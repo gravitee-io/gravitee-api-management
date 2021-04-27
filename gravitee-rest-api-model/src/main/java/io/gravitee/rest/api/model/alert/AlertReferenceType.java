@@ -20,5 +20,7 @@ package io.gravitee.rest.api.model.alert;
  * @author GraviteeSource Team
  */
 public enum AlertReferenceType {
-    API, APPLICATION, PLATFORM
+    API,
+    APPLICATION,
+    PLATFORM,
 }

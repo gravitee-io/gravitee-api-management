@@ -21,5 +21,5 @@ package io.gravitee.rest.api.model.command;
  */
 
 public enum CommandTags {
-    DATA_TO_INDEX
+    DATA_TO_INDEX,
 }

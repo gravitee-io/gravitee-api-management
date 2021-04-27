@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.monitoring;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 /**
@@ -26,6 +25,7 @@ import java.util.Objects;
 public class MonitoringThread {
 
     private int count;
+
     @JsonProperty("peak_count")
     private int peakCount;
 
@@ -50,8 +50,7 @@ public class MonitoringThread {
         if (this == o) return true;
         if (!(o instanceof MonitoringThread)) return false;
         MonitoringThread that = (MonitoringThread) o;
-        return count == that.count &&
-                peakCount == that.peakCount;
+        return count == that.count && peakCount == that.peakCount;
     }
 
     @Override
@@ -61,9 +60,6 @@ public class MonitoringThread {
 
     @Override
     public String toString() {
-        return "MonitoringThread{" +
-                "count=" + count +
-                ", peakCount=" + peakCount +
-                '}';
+        return "MonitoringThread{" + "count=" + count + ", peakCount=" + peakCount + '}';
     }
 }

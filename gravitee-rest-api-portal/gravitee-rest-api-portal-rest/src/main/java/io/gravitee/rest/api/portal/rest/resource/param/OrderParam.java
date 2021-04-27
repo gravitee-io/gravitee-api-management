@@ -61,9 +61,9 @@ public class OrderParam extends AbstractParam<OrderParam.Order> {
     @Override
     protected Order parse(String param) {
         if (param != null) {
-            String [] parts = param.split(":");
+            String[] parts = param.split(":");
             Order order = new Order();
-            order.setSorted(! parts[0].startsWith("-"));
+            order.setSorted(!parts[0].startsWith("-"));
 
             if (parts.length == 2) {
                 order.setType(order.isSorted() ? parts[0] : parts[0].substring(1));

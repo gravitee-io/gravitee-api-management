@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
-
 import java.util.List;
 
 /**
@@ -26,7 +25,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApplicationMetadataService {
-
     List<ApplicationMetadataEntity> findAllByApplication(String applicationId);
 
     ApplicationMetadataEntity findByIdAndApplication(String metadataId, String applicationId);

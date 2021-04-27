@@ -15,26 +15,25 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.API_QUALITY_RULE;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiQualityRuleRepository;
+import io.gravitee.repository.management.model.ApiQualityRule;
 import io.gravitee.rest.api.model.quality.*;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.exceptions.*;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiQualityRuleRepository;
-import io.gravitee.repository.management.model.ApiQualityRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.API_QUALITY_RULE;
-import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -47,6 +46,7 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
 
     @Autowired
     private ApiQualityRuleRepository apiQualityRuleRepository;
+
     @Autowired
     private AuditService auditService;
 
@@ -65,18 +65,21 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     @Override
     public ApiQualityRuleEntity create(NewApiQualityRuleEntity newEntity) {
         try {
-            final Optional<ApiQualityRule> optionalApiQualityRule =
-                    apiQualityRuleRepository.findById(newEntity.getApi(), newEntity.getQualityRule());
+            final Optional<ApiQualityRule> optionalApiQualityRule = apiQualityRuleRepository.findById(
+                newEntity.getApi(),
+                newEntity.getQualityRule()
+            );
             if (optionalApiQualityRule.isPresent()) {
                 throw new ApiQualityRuleAlreadyExistsException(newEntity.getApi(), newEntity.getQualityRule());
             }
             final ApiQualityRule apiQualityRule = convert(newEntity);
             auditService.createEnvironmentAuditLog(
-                    Collections.singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
-                    ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED,
-                    apiQualityRule.getCreatedAt(),
-                    null,
-                    apiQualityRule);
+                Collections.singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
+                ApiQualityRule.AuditEvent.API_QUALITY_RULE_CREATED,
+                apiQualityRule.getCreatedAt(),
+                null,
+                apiQualityRule
+            );
             return convert(apiQualityRuleRepository.create(apiQualityRule));
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to create an API quality rule " + newEntity;
@@ -88,18 +91,21 @@ public class ApiQualityRuleServiceImpl extends AbstractService implements ApiQua
     @Override
     public ApiQualityRuleEntity update(UpdateApiQualityRuleEntity updateEntity) {
         try {
-            final Optional<ApiQualityRule> optionalApiQualityRule =
-                    apiQualityRuleRepository.findById(updateEntity.getApi(), updateEntity.getQualityRule());
+            final Optional<ApiQualityRule> optionalApiQualityRule = apiQualityRuleRepository.findById(
+                updateEntity.getApi(),
+                updateEntity.getQualityRule()
+            );
             if (!optionalApiQualityRule.isPresent()) {
                 throw new ApiQualityRuleNotFoundException(updateEntity.getApi(), updateEntity.getQualityRule());
             }
             final ApiQualityRule apiQualityRule = apiQualityRuleRepository.update(convert(updateEntity));
             auditService.createEnvironmentAuditLog(
-                    singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
-                    ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED,
-                    apiQualityRule.getUpdatedAt(),
-                    optionalApiQualityRule.get(),
-                    apiQualityRule);
+                singletonMap(API_QUALITY_RULE, apiQualityRule.getApi()),
+                ApiQualityRule.AuditEvent.API_QUALITY_RULE_UPDATED,
+                apiQualityRule.getUpdatedAt(),
+                optionalApiQualityRule.get(),
+                apiQualityRule
+            );
             return convert(apiQualityRule);
         } catch (TechnicalException e) {
             final String error = "An error occurs while trying to update API quality rule " + updateEntity;

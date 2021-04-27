@@ -49,8 +49,6 @@ public class UpdateApiMetadataEntity extends UpdateReferenceMetadataEntity {
 
     @Override
     public String toString() {
-        return "UpdateApiMetadataEntity{" +
-                "apiId='" + apiId + '\'' +
-                "} " + super.toString();
+        return "UpdateApiMetadataEntity{" + "apiId='" + apiId + '\'' + "} " + super.toString();
     }
 }

@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.model.NotificationTemplate;
@@ -24,6 +29,9 @@ import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
 import io.gravitee.rest.api.service.impl.NotificationTemplateServiceImpl;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,15 +39,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -52,7 +51,8 @@ public class NotificationTemplateServiceTest {
     private static final String NOTIFICATION_TEMPLATE_HOOK = "my-notif-template-hook";
     private static final String NOTIFICATION_TEMPLATE_SCOPE = "my-notif-template-scope";
     private static final String NOTIFICATION_TEMPLATE_REFERENCE_ID = "DEFAULT";
-    private static final NotificationTemplateReferenceType NOTIFICATION_TEMPLATE_REFERENCE_TYPE = NotificationTemplateReferenceType.ORGANIZATION;
+    private static final NotificationTemplateReferenceType NOTIFICATION_TEMPLATE_REFERENCE_TYPE =
+        NotificationTemplateReferenceType.ORGANIZATION;
     private static final String NOTIFICATION_TEMPLATE_NAME = "my-notif-template-name";
     private static final String NOTIFICATION_TEMPLATE_DESCRIPTION = "my-notif-template-description";
     private static final String NOTIFICATION_TEMPLATE_TITLE = "my-notif-template-title";
@@ -123,7 +123,13 @@ public class NotificationTemplateServiceTest {
         NotificationTemplate temp2 = new NotificationTemplate();
         temp2.setId("TEMP2");
         temp2.setType(NotificationTemplateType.EMAIL);
-        when(notificationTemplateRepository.findAllByReferenceIdAndReferenceType(NOTIFICATION_TEMPLATE_REFERENCE_ID, NOTIFICATION_TEMPLATE_REFERENCE_TYPE)).thenReturn(Sets.newSet(temp1, temp2));
+        when(
+            notificationTemplateRepository.findAllByReferenceIdAndReferenceType(
+                NOTIFICATION_TEMPLATE_REFERENCE_ID,
+                NOTIFICATION_TEMPLATE_REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Sets.newSet(temp1, temp2));
 
         final Set<NotificationTemplateEntity> all = notificationTemplateService.findAll();
         assertNotNull(all);
@@ -135,9 +141,18 @@ public class NotificationTemplateServiceTest {
         NotificationTemplate temp1 = new NotificationTemplate();
         temp1.setId("TEMP1");
         temp1.setType(NotificationTemplateType.PORTAL);
-        when(notificationTemplateRepository.findByTypeAndReferenceIdAndReferenceType(NotificationTemplateType.PORTAL, NOTIFICATION_TEMPLATE_REFERENCE_ID, NOTIFICATION_TEMPLATE_REFERENCE_TYPE)).thenReturn(Sets.newSet(temp1));
+        when(
+            notificationTemplateRepository.findByTypeAndReferenceIdAndReferenceType(
+                NotificationTemplateType.PORTAL,
+                NOTIFICATION_TEMPLATE_REFERENCE_ID,
+                NOTIFICATION_TEMPLATE_REFERENCE_TYPE
+            )
+        )
+            .thenReturn(Sets.newSet(temp1));
 
-        final Set<NotificationTemplateEntity> byType = notificationTemplateService.findByType(io.gravitee.rest.api.model.notification.NotificationTemplateType.PORTAL);
+        final Set<NotificationTemplateEntity> byType = notificationTemplateService.findByType(
+            io.gravitee.rest.api.model.notification.NotificationTemplateType.PORTAL
+        );
         assertNotNull(byType);
         assertEquals(1, byType.size());
     }
@@ -146,14 +161,17 @@ public class NotificationTemplateServiceTest {
     public void shouldCreateNotificationTemplate() throws TechnicalException {
         NotificationTemplateEntity newNotificationTemplateEntity = new NotificationTemplateEntity();
         newNotificationTemplateEntity.setName(NOTIFICATION_TEMPLATE_NAME);
-        newNotificationTemplateEntity.setType(io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(NOTIFICATION_TEMPLATE_TYPE.name()));
+        newNotificationTemplateEntity.setType(
+            io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(NOTIFICATION_TEMPLATE_TYPE.name())
+        );
         newNotificationTemplateEntity.setEnabled(NOTIFICATION_TEMPLATE_ENABLED);
 
         when(notificationTemplateRepository.create(any())).thenReturn(notificationTemplate);
 
         notificationTemplateService.create(newNotificationTemplateEntity);
         verify(notificationTemplateRepository, times(1)).create(any());
-        verify(auditService, times(1)).createOrganizationAuditLog(any(), eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED), any(), isNull(), any());
+        verify(auditService, times(1))
+            .createOrganizationAuditLog(any(), eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_CREATED), any(), isNull(), any());
     }
 
     @Test
@@ -161,7 +179,9 @@ public class NotificationTemplateServiceTest {
         NotificationTemplateEntity updatingNotificationTemplateEntity = new NotificationTemplateEntity();
         updatingNotificationTemplateEntity.setId(NOTIFICATION_TEMPLATE_ID);
         updatingNotificationTemplateEntity.setName("New Name");
-        updatingNotificationTemplateEntity.setType(io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(NOTIFICATION_TEMPLATE_TYPE.name()));
+        updatingNotificationTemplateEntity.setType(
+            io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(NOTIFICATION_TEMPLATE_TYPE.name())
+        );
         updatingNotificationTemplateEntity.setEnabled(NOTIFICATION_TEMPLATE_ENABLED);
 
         final NotificationTemplate toUpdate = mock(NotificationTemplate.class);
@@ -170,6 +190,13 @@ public class NotificationTemplateServiceTest {
 
         notificationTemplateService.update(updatingNotificationTemplateEntity);
         verify(notificationTemplateRepository, times(1)).update(any());
-        verify(auditService, times(1)).createOrganizationAuditLog(any(), eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED), any(), eq(toUpdate), eq(notificationTemplate));
+        verify(auditService, times(1))
+            .createOrganizationAuditLog(
+                any(),
+                eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
+                any(),
+                eq(toUpdate),
+                eq(notificationTemplate)
+            );
     }
 }

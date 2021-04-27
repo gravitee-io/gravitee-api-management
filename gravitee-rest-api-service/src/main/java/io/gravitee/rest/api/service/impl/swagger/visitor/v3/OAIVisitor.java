@@ -21,6 +21,4 @@ import io.gravitee.rest.api.service.impl.swagger.visitor.Visitor;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface OAIVisitor extends Visitor {
-
-}
+public interface OAIVisitor extends Visitor {}

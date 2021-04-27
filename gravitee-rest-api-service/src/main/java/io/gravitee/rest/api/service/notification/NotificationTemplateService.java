@@ -17,16 +17,14 @@ package io.gravitee.rest.api.service.notification;
 
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateType;
-
 import java.io.Reader;
 import java.util.Set;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface NotificationTemplateService {
-
     NotificationTemplateEntity create(NotificationTemplateEntity newNotificationTemplate);
 
     NotificationTemplateEntity update(NotificationTemplateEntity updatingNotificationTemplate);

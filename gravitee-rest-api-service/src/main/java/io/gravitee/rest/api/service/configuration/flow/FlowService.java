@@ -16,7 +16,5 @@
 package io.gravitee.rest.api.service.configuration.flow;
 
 public interface FlowService {
-
     String getSchema();
-
 }

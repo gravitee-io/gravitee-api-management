@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.model.alert;
 
 public enum Metric {
-    ERROR("4xx"), SERVER_ERROR("5xx"), NOT_FOUND("404"), INTERNAL_SERVER_ERROR("500");
+    ERROR("4xx"),
+    SERVER_ERROR("5xx"),
+    NOT_FOUND("404"),
+    INTERNAL_SERVER_ERROR("500");
 
     private String description;
 

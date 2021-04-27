@@ -15,17 +15,15 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.TaskEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import java.util.List;
 
 /**
  * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface TaskService {
-
     List<TaskEntity> findAll(String userId);
 
     Metadata getMetadata(List<TaskEntity> tasks);

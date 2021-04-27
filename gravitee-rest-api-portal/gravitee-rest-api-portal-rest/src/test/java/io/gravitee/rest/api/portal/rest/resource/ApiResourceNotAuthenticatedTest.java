@@ -15,6 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
@@ -22,27 +29,19 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Plan;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -61,23 +60,32 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return null;
-                }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
-                @Override
-                public boolean isSecure() { return false; }
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return null;
+                    }
 
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return false;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
+                }
+            );
         }
     }
 
@@ -115,7 +123,6 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         doReturn(new Api()).when(apiMapper).convert(any());
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new Plan()).when(planMapper).convert(any());
-
     }
 
     @Test
@@ -137,7 +144,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
     }
 
     private void callResourceAndCheckResult(Integer expectedTotalPage, Integer expectedTotalPlan) {
-        final Response response = target(API).queryParam("include", "pages","plans") .request().get();
+        final Response response = target(API).queryParam("include", "pages", "plans").request().get();
         assertEquals(OK_200, response.getStatus());
 
         Api responseApi = response.readEntity(Api.class);

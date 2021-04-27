@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
-
-import java.util.Map;
-
 import static java.util.Collections.singletonMap;
+
+import io.gravitee.common.http.HttpStatusCode;
+import java.util.Map;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -35,7 +34,7 @@ public class PlanGeneralConditionStatusException extends AbstractManagementExcep
 
     @Override
     public String getMessage() {
-            return "Plan " + plan + " references a non published page as general conditions !";
+        return "Plan " + plan + " references a non published page as general conditions !";
     }
 
     @Override

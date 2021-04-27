@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.analytics;
 
 import java.util.*;
 
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

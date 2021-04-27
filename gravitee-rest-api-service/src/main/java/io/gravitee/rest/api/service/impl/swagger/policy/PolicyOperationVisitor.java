@@ -65,8 +65,10 @@ public class PolicyOperationVisitor {
     }
 
     public boolean display() {
-        return (oaiOperationVisitor == null && swaggerOperationVisitor == null)
-                || (swaggerOperationVisitor != null && swaggerOperationVisitor.display())
-                || (oaiOperationVisitor != null && oaiOperationVisitor.display());
+        return (
+            (oaiOperationVisitor == null && swaggerOperationVisitor == null) ||
+            (swaggerOperationVisitor != null && swaggerOperationVisitor.display()) ||
+            (oaiOperationVisitor != null && oaiOperationVisitor.display())
+        );
     }
 }

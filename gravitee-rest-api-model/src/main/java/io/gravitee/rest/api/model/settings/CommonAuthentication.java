@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class CommonAuthentication {
+
     private GoogleAuthentication google = new GoogleAuthentication();
     private GithubAuthentication github = new GithubAuthentication();
     private OAuth2Authentication oauth2 = new OAuth2Authentication();
@@ -52,6 +53,7 @@ public abstract class CommonAuthentication {
     }
 
     public static class GoogleAuthentication {
+
         //        @ParameterKey(Key.AUTHENTICATION_GOOGLE_CLIENTID)
         private String clientId;
 
@@ -65,6 +67,7 @@ public abstract class CommonAuthentication {
     }
 
     public static class GithubAuthentication {
+
         //        @ParameterKey(Key.AUTHENTICATION_GITHUB_CLIENTID)
         private String clientId;
 
@@ -78,6 +81,7 @@ public abstract class CommonAuthentication {
     }
 
     public static class OAuth2Authentication {
+
         //        @ParameterKey(Key.AUTHENTICATION_OAUTH2_CLIENTID)
         private String clientId;
 

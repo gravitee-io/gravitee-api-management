@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Map;
 
 /**
@@ -48,7 +47,6 @@ public class PageContentUnsafeException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-
         String message = "The page content does not follow security policy";
 
         if (rejectedMessage != null) {

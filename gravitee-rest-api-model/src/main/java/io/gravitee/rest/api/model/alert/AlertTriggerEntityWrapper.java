@@ -20,7 +20,6 @@ import io.gravitee.alert.api.condition.Filter;
 import io.gravitee.alert.api.trigger.Dampening;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.notifier.api.Notification;
-
 import java.util.List;
 import java.util.Map;
 

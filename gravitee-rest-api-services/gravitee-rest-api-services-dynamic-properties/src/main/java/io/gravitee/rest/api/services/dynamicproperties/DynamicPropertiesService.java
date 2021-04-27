@@ -28,12 +28,11 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
 import io.vertx.core.Vertx;
-
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Alexandre FARIA (lusoalex on github.com)

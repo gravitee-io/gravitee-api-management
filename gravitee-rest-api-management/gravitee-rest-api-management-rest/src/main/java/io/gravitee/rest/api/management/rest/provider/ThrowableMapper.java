@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.provider;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,9 +33,9 @@ public class ThrowableMapper extends AbstractExceptionMapper<Throwable> {
     public Response toResponse(Throwable e) {
         LOGGER.error("Internal error", e);
         return Response
-                .status(Response.Status.INTERNAL_SERVER_ERROR)
-                .type(MediaType.APPLICATION_JSON_TYPE)
-                .entity(convert(e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()))
-                .build();
+            .status(Response.Status.INTERNAL_SERVER_ERROR)
+            .type(MediaType.APPLICATION_JSON_TYPE)
+            .entity(convert(e, Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()))
+            .build();
     }
 }

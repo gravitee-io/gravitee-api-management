@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.PortalHook;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,23 +30,28 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface NotifierService {
-     void trigger(final ApiHook hook, final String apiId, Map<String, Object> params);
-     void trigger(final ApplicationHook hook, final String applicationId, Map<String, Object> params);
-     void trigger(final PortalHook hook, Map<String, Object> params);
-     void triggerEmail(final ApplicationHook hook, final String apiId, Map<String, Object> params, final String recipient);
-     List<NotifierEntity> list(NotificationReferenceType referenceType, String referenceId);
-     Set<io.gravitee.rest.api.model.NotifierEntity> findAll();
-     io.gravitee.rest.api.model.NotifierEntity findById(String notifier);
-     String getSchema(String notifier);
+    void trigger(final ApiHook hook, final String apiId, Map<String, Object> params);
+    void trigger(final ApplicationHook hook, final String applicationId, Map<String, Object> params);
+    void trigger(final PortalHook hook, Map<String, Object> params);
+    void triggerEmail(final ApplicationHook hook, final String apiId, Map<String, Object> params, final String recipient);
+    List<NotifierEntity> list(NotificationReferenceType referenceType, String referenceId);
+    Set<io.gravitee.rest.api.model.NotifierEntity> findAll();
+    io.gravitee.rest.api.model.NotifierEntity findById(String notifier);
+    String getSchema(String notifier);
 
-     /**
-      * Test if an email notification will be sent to the provided recipient
-      *
-      * @param hook the hook to test
-      * @param applicationId the notification related application identifier
-      * @param params the parameters used to customize template
-      * @param recipient the recipient to test
-      * @return if the recipient will received an email according to notification configuration, false otherwise
-      */
-     boolean hasEmailNotificationFor(final ApplicationHook hook, final String applicationId, Map<String, Object> params, final String recipient);
+    /**
+     * Test if an email notification will be sent to the provided recipient
+     *
+     * @param hook the hook to test
+     * @param applicationId the notification related application identifier
+     * @param params the parameters used to customize template
+     * @param recipient the recipient to test
+     * @return if the recipient will received an email according to notification configuration, false otherwise
+     */
+    boolean hasEmailNotificationFor(
+        final ApplicationHook hook,
+        final String applicationId,
+        Map<String, Object> params,
+        final String recipient
+    );
 }

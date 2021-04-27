@@ -30,14 +30,13 @@ import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -50,61 +49,69 @@ public class ApplicationSubscribersResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
+
     @Inject
     private AnalyticsService analyticsService;
+
     @Inject
     private ApplicationService applicationService;
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response getSubscriberApisByApplicationId(@BeanParam PaginationParam paginationParam,
-            @PathParam("applicationId") String applicationId, @QueryParam("statuses") List<SubscriptionStatus> statuses) {
+    public Response getSubscriberApisByApplicationId(
+        @BeanParam PaginationParam paginationParam,
+        @PathParam("applicationId") String applicationId,
+        @QueryParam("statuses") List<SubscriptionStatus> statuses
+    ) {
         String currentUser = getAuthenticatedUserOrNull();
         Collection<ApplicationListItem> userApplications = applicationService.findByUser(currentUser);
-        Optional<ApplicationListItem> optionalApplication = userApplications.stream().filter(a -> a.getId().equals(applicationId)).findFirst();
+        Optional<ApplicationListItem> optionalApplication = userApplications
+            .stream()
+            .filter(a -> a.getId().equals(applicationId))
+            .findFirst();
         if (optionalApplication.isPresent()) {
-
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
             subscriptionQuery.setApplication(applicationId);
 
             subscriptionQuery.setStatuses(statuses);
 
             ApplicationListItem application = optionalApplication.get();
-            if(!application.getPrimaryOwner().getId().equals(currentUser) ) {
+            if (!application.getPrimaryOwner().getId().equals(currentUser)) {
                 Set<ApiEntity> userApis = this.apiService.findPublishedByUser(currentUser);
-                if(userApis == null || userApis.isEmpty()) {
+                if (userApis == null || userApis.isEmpty()) {
                     return createListResponse(Collections.emptyList(), paginationParam);
                 }
                 subscriptionQuery.setApis(userApis.stream().map(ApiEntity::getId).collect(Collectors.toList()));
             }
 
-
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(applicationId);
 
             Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
-            List<Api> subscribersApis = subscriptions.stream().map(SubscriptionEntity::getApi)
-                    .distinct()
-                    .map(api -> apiService.findById(api))
-                    .map(apiMapper::convert)
-                    .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
-                    .collect(Collectors.toList());
+            List<Api> subscribersApis = subscriptions
+                .stream()
+                .map(SubscriptionEntity::getApi)
+                .distinct()
+                .map(api -> apiService.findById(api))
+                .map(apiMapper::convert)
+                .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
+                .collect(Collectors.toList());
             return createListResponse(subscribersApis, paginationParam);
         }
         throw new ApplicationNotFoundException(applicationId);
     }
 
     private int compareApp(Map<String, Long> nbHitsByApp, Api o1, Api o2) {
-        if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) == null) {
+        if (nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) == null) {
             return 0;
         }
-        if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) != null) {
+        if (nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) != null) {
             return 1;
         }
-        if(nbHitsByApp.get(o1.getId()) != null && nbHitsByApp.get(o2.getId()) == null) {
+        if (nbHitsByApp.get(o1.getId()) != null && nbHitsByApp.get(o2.getId()) == null) {
             return -1;
         }
         int compareTo = nbHitsByApp.get(o2.getId()).compareTo(nbHitsByApp.get(o1.getId()));
-        if(compareTo != 0) {
+        if (compareTo != 0) {
             return compareTo;
         }
         return o1.getName().compareTo(o2.getName());

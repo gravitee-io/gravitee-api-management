@@ -25,8 +25,10 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Logging {
+
     @ParameterKey(Key.LOGGING_DEFAULT_MAX_DURATION)
     private Long maxDurationMillis;
+
     private Audit audit = new Audit();
     private User user = new User();
 
@@ -55,8 +57,10 @@ public class Logging {
     }
 
     public static class Audit {
+
         @ParameterKey(Key.LOGGING_AUDIT_ENABLED)
         private Boolean enabled;
+
         private AuditTrail trail = new AuditTrail();
 
         public Boolean getEnabled() {
@@ -76,6 +80,7 @@ public class Logging {
         }
 
         public static class AuditTrail {
+
             @ParameterKey(Key.LOGGING_AUDIT_TRAIL_ENABLED)
             private Boolean enabled;
 
@@ -90,6 +95,7 @@ public class Logging {
     }
 
     public static class User {
+
         @ParameterKey(Key.LOGGING_USER_DISPLAYED)
         private Boolean displayed;
 

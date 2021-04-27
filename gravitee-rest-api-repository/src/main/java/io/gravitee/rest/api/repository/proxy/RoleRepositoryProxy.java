@@ -15,16 +15,14 @@
  */
 package io.gravitee.rest.api.repository.proxy;
 
-import java.util.Optional;
-import java.util.Set;
-
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import java.util.Optional;
+import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -59,20 +57,23 @@ public class RoleRepositoryProxy extends AbstractProxy<RoleRepository> implement
     }
 
     @Override
-    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
-            throws TechnicalException {
+    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         return target.findAllByReferenceIdAndReferenceType(referenceId, referenceType);
     }
 
     @Override
-    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId,
-            RoleReferenceType referenceType) throws TechnicalException {
+    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
+        throws TechnicalException {
         return target.findByScopeAndReferenceIdAndReferenceType(scope, referenceId, referenceType);
     }
 
     @Override
-    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId,
-            RoleReferenceType referenceType) throws TechnicalException {
+    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(
+        RoleScope scope,
+        String name,
+        String referenceId,
+        RoleReferenceType referenceType
+    ) throws TechnicalException {
         return target.findByScopeAndNameAndReferenceIdAndReferenceType(scope, name, referenceId, referenceType);
     }
 }

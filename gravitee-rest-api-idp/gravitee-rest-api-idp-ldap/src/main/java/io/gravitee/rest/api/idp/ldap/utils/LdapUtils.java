@@ -21,8 +21,8 @@ package io.gravitee.rest.api.idp.ldap.utils;
  */
 public final class LdapUtils {
 
-    private final static String FILTER_VARIABLE = "={0}";
-    private final static String PROTECTED_FILTER_VARIABLE = "=\\{0\\}";
+    private static final String FILTER_VARIABLE = "={0}";
+    private static final String PROTECTED_FILTER_VARIABLE = "=\\{0\\}";
 
     /**
      *  Filter can be uid={0} or mail={0} or may be even more complex like
@@ -36,11 +36,10 @@ public final class LdapUtils {
             return null;
         }
 
-        String [] parts = filter.split(PROTECTED_FILTER_VARIABLE);
+        String[] parts = filter.split(PROTECTED_FILTER_VARIABLE);
         if (parts.length > 1 || (parts.length == 1 && filter.endsWith(FILTER_VARIABLE))) {
             String attribute = parts[0];
-            int idxSep = Math.max(attribute.lastIndexOf(','),
-                    attribute.lastIndexOf('('));
+            int idxSep = Math.max(attribute.lastIndexOf(','), attribute.lastIndexOf('('));
 
             int idx = (idxSep == -1) ? 0 : idxSep + 1;
             return attribute.substring(idx);

@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
@@ -26,6 +32,7 @@ import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
+import java.util.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -36,14 +43,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.*;
-
-import static java.util.Collections.emptyList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -72,15 +71,17 @@ public class FilteringServiceTest {
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return null;
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-            @Override
-            public void setAuthentication(Authentication authentication) {
-            }
-        });
+        );
     }
 
     @BeforeClass
@@ -120,7 +121,11 @@ public class FilteringServiceTest {
 
     @Test
     public void shouldNotGetMineApi() {
-        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(mockApis, FilteringService.FilterType.MINE, null);
+        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(
+            mockApis,
+            FilteringService.FilterType.MINE,
+            null
+        );
 
         List<ApiEntity> filteredItems = apiEntityFilteredEntities.getFilteredItems();
         assertEquals(0, filteredItems.size());
@@ -140,8 +145,7 @@ public class FilteringServiceTest {
         appB.setId("B");
         ApplicationListItem appC = new ApplicationListItem();
         appC.setId("C");
-        doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA))).when(applicationService)
-                .findByUser(any());
+        doReturn(new HashSet<ApplicationListItem>(Arrays.asList(appC, appB, appA))).when(applicationService).findByUser(any());
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
@@ -160,7 +164,11 @@ public class FilteringServiceTest {
         subC8.setApi("8");
         doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
 
-        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(mockApis, FilteringService.FilterType.MINE, null);
+        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(
+            mockApis,
+            FilteringService.FilterType.MINE,
+            null
+        );
 
         List<ApiEntity> filteredItems = apiEntityFilteredEntities.getFilteredItems();
         assertEquals(2, filteredItems.size());
@@ -172,7 +180,11 @@ public class FilteringServiceTest {
     public void shouldNotGetStarredApi() {
         doReturn(false).when(ratingService).isEnabled();
 
-        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(mockApis, FilteringService.FilterType.STARRED, null);
+        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(
+            mockApis,
+            FilteringService.FilterType.STARRED,
+            null
+        );
 
         List<ApiEntity> filteredItems = apiEntityFilteredEntities.getFilteredItems();
         assertEquals(0, filteredItems.size());
@@ -206,7 +218,11 @@ public class FilteringServiceTest {
         ratingSummary5.setNumberOfRatings(3);
         doReturn(ratingSummary5).when(ratingService).findSummaryByApi("5");
 
-        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(mockApis, FilteringService.FilterType.STARRED, null);
+        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(
+            mockApis,
+            FilteringService.FilterType.STARRED,
+            null
+        );
 
         List<ApiEntity> filteredItems = apiEntityFilteredEntities.getFilteredItems();
         assertEquals(4, filteredItems.size());
@@ -214,12 +230,10 @@ public class FilteringServiceTest {
         assertEquals("4", filteredItems.get(1).getId());
         assertEquals("1", filteredItems.get(2).getId());
         assertEquals("5", filteredItems.get(3).getId());
-
     }
 
     @Test
     public void shouldGetTrendingsApi() {
-
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
         subA1.setApi("1");
@@ -237,7 +251,11 @@ public class FilteringServiceTest {
         subC8.setApi("8");
         doReturn(Arrays.asList(subC8, subA2, subB1, subC4, subA1)).when(subscriptionService).search(any());
 
-        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(mockApis, FilteringService.FilterType.TRENDINGS, null);
+        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(
+            mockApis,
+            FilteringService.FilterType.TRENDINGS,
+            null
+        );
 
         List<ApiEntity> filteredItems = apiEntityFilteredEntities.getFilteredItems();
         assertEquals(2, filteredItems.size());
@@ -264,13 +282,16 @@ public class FilteringServiceTest {
         topApi6.setOrder(1);
         doReturn(Arrays.asList(topApi5, topApi6)).when(topApiService).findAll();
 
-        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(mockApis, FilteringService.FilterType.FEATURED, null);
+        FilteredEntities<ApiEntity> apiEntityFilteredEntities = filteringService.filterApis(
+            mockApis,
+            FilteringService.FilterType.FEATURED,
+            null
+        );
 
         List<ApiEntity> filteredItems = apiEntityFilteredEntities.getFilteredItems();
         assertEquals(2, filteredItems.size());
         assertEquals("6", filteredItems.get(0).getId());
         assertEquals("5", filteredItems.get(1).getId());
-
     }
 
     @Test
@@ -297,7 +318,11 @@ public class FilteringServiceTest {
         subB3.setApplication("B");
         doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3)).when(subscriptionService).search(any());
 
-        FilteredEntities<FilterableItem> applicationListItemFilteredEntities = filteringService.getEntitiesOrderByNumberOfSubscriptions(mockApplications, false, false);
+        FilteredEntities<FilterableItem> applicationListItemFilteredEntities = filteringService.getEntitiesOrderByNumberOfSubscriptions(
+            mockApplications,
+            false,
+            false
+        );
 
         List<FilterableItem> filteredItems = applicationListItemFilteredEntities.getFilteredItems();
         assertEquals("B", filteredItems.get(0).getId());
@@ -326,7 +351,9 @@ public class FilteringServiceTest {
         applicationListItem4.setId("D");
         applicationListItem4.setName("d");
 
-        Set<FilterableItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4));
+        Set<FilterableItem> mockApplications = new HashSet<>(
+            Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4)
+        );
 
         SubscriptionEntity subA1 = new SubscriptionEntity();
         subA1.setApplication("A");
@@ -348,15 +375,20 @@ public class FilteringServiceTest {
         subD1.setApplication("D");
         SubscriptionEntity subD2 = new SubscriptionEntity();
         subD2.setApplication("D");
-        doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3, subC1, subC2, subC3, subD1, subD2)).when(subscriptionService).search(any());
+        doReturn(Arrays.asList(subA1, subA2, subB1, subB2, subB3, subC1, subC2, subC3, subD1, subD2))
+            .when(subscriptionService)
+            .search(any());
 
-        FilteredEntities<FilterableItem> applicationListItemFilteredEntities = filteringService.getEntitiesOrderByNumberOfSubscriptions(mockApplications, false, false);
+        FilteredEntities<FilterableItem> applicationListItemFilteredEntities = filteringService.getEntitiesOrderByNumberOfSubscriptions(
+            mockApplications,
+            false,
+            false
+        );
 
         List<FilterableItem> filteredItems = applicationListItemFilteredEntities.getFilteredItems();
         assertEquals("B", filteredItems.get(0).getId());
         assertEquals("C", filteredItems.get(1).getId());
         assertEquals("A", filteredItems.get(2).getId());
         assertEquals("D", filteredItems.get(3).getId());
-
     }
 }

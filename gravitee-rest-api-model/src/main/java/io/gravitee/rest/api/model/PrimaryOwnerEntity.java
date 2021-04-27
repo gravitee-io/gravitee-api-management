@@ -22,28 +22,20 @@ import io.swagger.annotations.ApiModelProperty;
  * @author GraviteeSource Team
  */
 public class PrimaryOwnerEntity {
-    @ApiModelProperty(
-            value = "The user or group id.",
-            example = "005197cc-cc84-86a6-a75a-88f9772c67db")
+
+    @ApiModelProperty(value = "The user or group id.", example = "005197cc-cc84-86a6-a75a-88f9772c67db")
     private String id;
 
-    @ApiModelProperty(
-            value = "The user or group email.",
-            example = "contact@gravitee.io")
+    @ApiModelProperty(value = "The user or group email.", example = "contact@gravitee.io")
     private String email;
 
-    @ApiModelProperty(
-            value = "The user or group display name.",
-            example = "John Doe")
+    @ApiModelProperty(value = "The user or group display name.", example = "John Doe")
     private String displayName;
 
-    @ApiModelProperty(
-        value = "The primary owner type",
-        example = "USER")
+    @ApiModelProperty(value = "The primary owner type", example = "USER")
     private String type;
 
-    public PrimaryOwnerEntity() {
-    }
+    public PrimaryOwnerEntity() {}
 
     public PrimaryOwnerEntity(UserEntity user) {
         this.id = user.getId();

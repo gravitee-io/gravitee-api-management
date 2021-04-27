@@ -15,23 +15,22 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -66,11 +65,7 @@ public class ApiDocumentTransformerTest {
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity(userEntity);
         toTransform.setPrimaryOwner(primaryOwnerEntity);
         Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(
-                Arrays.asList(
-                        new VirtualHost("host", "path"),
-                        new VirtualHost("host2", "path2"))
-        );
+        proxy.setVirtualHosts(Arrays.asList(new VirtualHost("host", "path"), new VirtualHost("host2", "path2")));
         toTransform.setProxy(proxy);
         toTransform.setLabels(Arrays.asList("label1", "label2", "label2"));
         toTransform.setCategories(new HashSet<>(Arrays.asList("cat1", "cat2")));

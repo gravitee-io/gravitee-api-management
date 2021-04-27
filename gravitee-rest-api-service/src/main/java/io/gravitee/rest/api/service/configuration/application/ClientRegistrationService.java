@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.configuration.application.registration.ClientR
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
-
 import java.util.Set;
 
 /**
@@ -29,7 +28,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ClientRegistrationService {
-
     Set<ClientRegistrationProviderEntity> findAll();
 
     ClientRegistrationProviderEntity create(NewClientRegistrationProviderEntity clientRegistrationProvider);

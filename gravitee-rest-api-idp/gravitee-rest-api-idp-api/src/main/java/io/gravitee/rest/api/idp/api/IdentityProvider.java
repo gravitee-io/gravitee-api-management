@@ -23,7 +23,6 @@ import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
  * @author GraviteeSource Team
  */
 public interface IdentityProvider {
-
     String type();
 
     Class<? extends AuthenticationProvider> authenticationProvider();

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.configuration.dictionary;
 
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.configuration.dictionary.DictionaryListItem;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
@@ -26,23 +28,20 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.swagger.annotations.*;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration", "Dictionaries"})
+@Api(tags = { "Configuration", "Dictionaries" })
 public class DictionariesResource extends AbstractResource {
 
     @Autowired
@@ -54,16 +53,22 @@ public class DictionariesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.READ))
-    @ApiOperation(value = "Get the list of global dictionaries",
-            notes = "User must have the DICTIONARY[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Get the list of global dictionaries",
+        notes = "User must have the DICTIONARY[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List global dictionaries", response = DictionaryListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public List<DictionaryListItem> getDictionaries()  {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public List<DictionaryListItem> getDictionaries() {
         return dictionaryService
-                .findAll()
-                .stream()
-                .map(dictionaryEntity -> {
+            .findAll()
+            .stream()
+            .map(
+                dictionaryEntity -> {
                     DictionaryListItem item = new DictionaryListItem();
                     item.setId(dictionaryEntity.getId());
                     item.setName(dictionaryEntity.getName());
@@ -83,30 +88,29 @@ public class DictionariesResource extends AbstractResource {
                     }
 
                     return item;
-                })
-                .collect(toList());
+                }
+            )
+            .collect(toList());
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.CREATE)
-    })
-    @ApiOperation(value = "Create a dictionary",
-            notes = "User must have the DICTIONARY[CREATE] permission to use this service")
-    @ApiResponses({
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.CREATE) })
+    @ApiOperation(value = "Create a dictionary", notes = "User must have the DICTIONARY[CREATE] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Dictionary successfully created", response = DictionaryEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response createDictionary(
-        @ApiParam(name = "dictionary", required = true) @Valid @NotNull NewDictionaryEntity newDictionaryEntity) {
+        @ApiParam(name = "dictionary", required = true) @Valid @NotNull NewDictionaryEntity newDictionaryEntity
+    ) {
         DictionaryEntity newDictionary = dictionaryService.create(newDictionaryEntity);
 
         if (newDictionary != null) {
-            return Response
-                    .created(this.getLocationHeader(newDictionary.getId()))
-                    .entity(newDictionary)
-                    .build();
+            return Response.created(this.getLocationHeader(newDictionary.getId())).entity(newDictionary).build();
         }
 
         return Response.serverError().build();

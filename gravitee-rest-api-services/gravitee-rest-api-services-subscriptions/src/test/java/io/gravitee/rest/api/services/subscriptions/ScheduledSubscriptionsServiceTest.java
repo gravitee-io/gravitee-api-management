@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.services.subscriptions;
 
+import static org.mockito.Mockito.*;
+
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -22,22 +24,18 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.services.subscriptions.ScheduledSubscriptionsService;
-
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.mockito.Mockito.*;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -56,29 +54,20 @@ public class ScheduledSubscriptionsServiceTest {
     public void shouldCloseOutdatedSubscriptions() {
         ApiEntity apiEntity = mock(ApiEntity.class);
         when(apiEntity.getId()).thenReturn("API_ID");
-        SubscriptionEntity endDateInThePast = createSubscription(
-                "end_date_in_the_past",
-                SubscriptionStatus.ACCEPTED,
-                new Date(0));
-        SubscriptionEntity noEndDate = createSubscription(
-                "no_end_date",
-                SubscriptionStatus.ACCEPTED,
-                null);
+        SubscriptionEntity endDateInThePast = createSubscription("end_date_in_the_past", SubscriptionStatus.ACCEPTED, new Date(0));
+        SubscriptionEntity noEndDate = createSubscription("no_end_date", SubscriptionStatus.ACCEPTED, null);
         SubscriptionEntity endDateInTheFuture = createSubscription(
-                "end_date_in_the_future",
-                SubscriptionStatus.ACCEPTED,
-                new Date(Long.MAX_VALUE));
+            "end_date_in_the_future",
+            SubscriptionStatus.ACCEPTED,
+            new Date(Long.MAX_VALUE)
+        );
         when(apiService.findAllLight()).thenReturn(Collections.singleton(apiEntity));
 
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApi(apiEntity.getId());
         query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
 
-        when(subscriptionService.search(query)).
-                thenReturn(new HashSet<>(Arrays.asList(
-                        endDateInThePast,
-                        noEndDate,
-                        endDateInTheFuture)));
+        when(subscriptionService.search(query)).thenReturn(new HashSet<>(Arrays.asList(endDateInThePast, noEndDate, endDateInTheFuture)));
 
         service.run();
 

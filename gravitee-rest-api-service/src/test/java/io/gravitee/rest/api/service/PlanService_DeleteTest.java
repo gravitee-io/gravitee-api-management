@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -23,16 +25,13 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.PlanWithSubscriptionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,7 +67,6 @@ public class PlanService_DeleteTest {
 
     @Mock
     private ApiEntity api;
-
 
     @Test(expected = PlanWithSubscriptionsException.class)
     public void shouldNotDeleteBecauseSubscriptionsExist() throws TechnicalException {

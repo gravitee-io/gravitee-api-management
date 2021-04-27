@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.parameters.Key.*;
+import static java.lang.String.format;
+import static java.util.Objects.isNull;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.EmailNotification;
@@ -24,6 +29,13 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.spring.GraviteeJavaMailManager;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import javax.activation.MimetypesFileTypeMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -38,19 +50,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import javax.activation.MimetypesFileTypeMap;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.parameters.Key.*;
-import static java.lang.String.format;
-import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -63,36 +62,59 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
     @Autowired
     private GraviteeJavaMailManager mailManager;
+
     @Autowired
     private NotificationTemplateService notificationTemplateService;
+
     @Autowired
     private ParameterService parameterService;
+
     @Value("${templates.path:${gravitee.home}/templates}")
     private String templatesPath;
 
     @Override
     public void sendEmailNotification(final EmailNotification emailNotification) {
         final GraviteeContext.ReferenceContext context = GraviteeContext.getCurrentContext();
-        this.sendEmailNotification(emailNotification, context.getReferenceId(), ParameterReferenceType.valueOf(context.getReferenceType().name()));
+        this.sendEmailNotification(
+                emailNotification,
+                context.getReferenceId(),
+                ParameterReferenceType.valueOf(context.getReferenceType().name())
+            );
     }
 
-    private void sendEmailNotification(final EmailNotification emailNotification, String referenceId, ParameterReferenceType referenceType) {
+    private void sendEmailNotification(
+        final EmailNotification emailNotification,
+        String referenceId,
+        ParameterReferenceType referenceType
+    ) {
         Map<Key, String> mailParameters = getMailSenderConfiguration(referenceId, referenceType);
 
-        if (Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED))
-                && emailNotification.getTo() != null
-                && emailNotification.getTo().length > 0) {
+        if (
+            Boolean.parseBoolean(mailParameters.get(EMAIL_ENABLED)) &&
+            emailNotification.getTo() != null &&
+            emailNotification.getTo().length > 0
+        ) {
             try {
                 JavaMailSender mailSender = mailManager.getOrCreateMailSender(referenceId, referenceType);
-                final MimeMessageHelper mailMessage = new MimeMessageHelper(mailSender.createMimeMessage(), true, StandardCharsets.UTF_8.name());
+                final MimeMessageHelper mailMessage = new MimeMessageHelper(
+                    mailSender.createMimeMessage(),
+                    true,
+                    StandardCharsets.UTF_8.name()
+                );
 
-                String emailSubject = notificationTemplateService.resolveTemplateWithParam(emailNotification.getTemplate() + ".EMAIL.TITLE", emailNotification.getParams());
-                String content = notificationTemplateService.resolveTemplateWithParam(emailNotification.getTemplate() + ".EMAIL", emailNotification.getParams());
+                String emailSubject = notificationTemplateService.resolveTemplateWithParam(
+                    emailNotification.getTemplate() + ".EMAIL.TITLE",
+                    emailNotification.getParams()
+                );
+                String content = notificationTemplateService.resolveTemplateWithParam(
+                    emailNotification.getTemplate() + ".EMAIL",
+                    emailNotification.getParams()
+                );
                 content = content.replaceAll("&lt;br /&gt;", "<br />");
 
                 final String from = isNull(emailNotification.getFrom()) || emailNotification.getFrom().isEmpty()
-                        ? mailParameters.get(EMAIL_FROM)
-                        : emailNotification.getFrom();
+                    ? mailParameters.get(EMAIL_FROM)
+                    : emailNotification.getFrom();
 
                 if (isEmpty(emailNotification.getFromName())) {
                     mailMessage.setFrom(from);
@@ -101,12 +123,12 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                 }
 
                 String sender = emailNotification.getFrom();
-                if (! isEmpty(emailNotification.getReplyTo())) {
+                if (!isEmpty(emailNotification.getReplyTo())) {
                     mailMessage.setReplyTo(emailNotification.getReplyTo());
                     sender = emailNotification.getReplyTo();
                 }
 
-                if (Arrays.equals(DEFAULT_MAIL_TO,emailNotification.getTo())) {
+                if (Arrays.equals(DEFAULT_MAIL_TO, emailNotification.getTo())) {
                     mailMessage.setTo(mailParameters.get(Key.EMAIL_FROM));
                 } else {
                     mailMessage.setTo(emailNotification.getTo());
@@ -124,8 +146,7 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
 
                 final String html = addResourcesInMessage(mailMessage, content);
 
-                LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}",
-                        emailNotification.getTo(), emailSubject, html);
+                LOGGER.debug("Sending an email to: {}\nSubject: {}\nMessage: {}", emailNotification.getTo(), emailSubject, html);
 
                 mailSender.send(mailMessage.getMimeMessage());
             } catch (final Exception ex) {
@@ -138,7 +159,11 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     @Override
     @Async
     public void sendAsyncEmailNotification(final EmailNotification emailNotification, GraviteeContext.ReferenceContext context) {
-        sendEmailNotification(emailNotification, context.getReferenceId(), ParameterReferenceType.valueOf(context.getReferenceType().name()));
+        sendEmailNotification(
+            emailNotification,
+            context.getReferenceId(),
+            ParameterReferenceType.valueOf(context.getReferenceType().name())
+        );
     }
 
     private String addResourcesInMessage(final MimeMessageHelper mailMessage, final String htmlText) throws Exception {
@@ -147,15 +172,20 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
         final List<String> resources = new ArrayList<>();
 
         final Elements imageElements = document.getElementsByTag("img");
-        resources.addAll(imageElements.stream()
+        resources.addAll(
+            imageElements
+                .stream()
                 .filter(imageElement -> imageElement.hasAttr("src"))
                 .filter(imageElement -> !imageElement.attr("src").startsWith("http"))
-                .map(imageElement -> {
-                    final String src = imageElement.attr("src");
-                    imageElement.attr("src", "cid:" + src);
-                    return src;
-                })
-                .collect(Collectors.toList()));
+                .map(
+                    imageElement -> {
+                        final String src = imageElement.attr("src");
+                        imageElement.attr("src", "cid:" + src);
+                        return src;
+                    }
+                )
+                .collect(Collectors.toList())
+        );
 
         final String html = document.html();
         mailMessage.setText(html, true);
@@ -191,22 +221,15 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
     private static String extractMimeType(final String encoded) {
         final Pattern mime = Pattern.compile("^data:([a-zA-Z0-9]+/[a-zA-Z0-9]+).*,.*");
         final Matcher matcher = mime.matcher(encoded);
-        if (!matcher.find())
-            return "";
+        if (!matcher.find()) return "";
         return matcher.group(1).toLowerCase();
     }
 
     private Map<Key, String> getMailSenderConfiguration(String referenceId, ParameterReferenceType referenceType) {
-        return parameterService.findAll(Arrays.asList(
-                EMAIL_ENABLED,
-                EMAIL_SUBJECT,
-                EMAIL_FROM
-        ), referenceId, referenceType)
-                .entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        e -> Key.findByKey(e.getKey()),
-                        e -> e.getValue().isEmpty() ? "" : e.getValue().get(0))
-                );
+        return parameterService
+            .findAll(Arrays.asList(EMAIL_ENABLED, EMAIL_SUBJECT, EMAIL_FROM), referenceId, referenceType)
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(e -> Key.findByKey(e.getKey()), e -> e.getValue().isEmpty() ? "" : e.getValue().get(0)));
     }
 }

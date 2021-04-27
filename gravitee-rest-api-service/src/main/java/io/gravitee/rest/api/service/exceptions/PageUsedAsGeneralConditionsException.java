@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.exceptions;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.model.PageType;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -56,11 +55,12 @@ public class PageUsedAsGeneralConditionsException extends AbstractManagementExce
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder()
-                .put("action", action)
-                .put("planName", planName)
-                .put("pageName", pageName)
-                .put("pageId", pageId)
-                .build();
+        return Maps
+            .<String, String>builder()
+            .put("action", action)
+            .put("planName", planName)
+            .put("pageName", pageName)
+            .put("pageId", pageId)
+            .build();
     }
 }

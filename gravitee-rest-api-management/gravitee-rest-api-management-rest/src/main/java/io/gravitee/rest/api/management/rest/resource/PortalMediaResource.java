@@ -29,38 +29,38 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.io.IOException;
-import java.io.InputStream;
-
-@Api(tags = {"Portal Media"})
+@Api(tags = { "Portal Media" })
 public class PortalMediaResource extends AbstractResource {
+
     @Inject
     private MediaService mediaService;
 
     @POST
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE)
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces("text/plain")
-    @ApiOperation(value = "Create a media for the portal",
-            notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Media successfully created"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(
+        value = "Create a media for the portal",
+        notes = "User must have the PORTAL_DOCUMENTATION[CREATE] permission to use this service"
+    )
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "Media successfully created"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
     public Response uploadPortalMedia(
-            @FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetail,
-            @FormDataParam("file") final FormDataBodyPart body
+        @FormDataParam("file") InputStream uploadedInputStream,
+        @FormDataParam("file") FormDataContentDisposition fileDetail,
+        @FormDataParam("file") final FormDataBodyPart body
     ) throws IOException {
         String mediaId;
 
@@ -88,13 +88,8 @@ public class PortalMediaResource extends AbstractResource {
     @GET
     @Path("/{hash}")
     @ApiOperation(value = "Retrieve a media")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "A media"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    public Response getPortalMedia(
-            @Context Request request,
-            @PathParam("hash") String hash) {
-
+    @ApiResponses({ @ApiResponse(code = 200, message = "A media"), @ApiResponse(code = 500, message = "Internal server error") })
+    public Response getPortalMedia(@Context Request request, @PathParam("hash") String hash) {
         MediaEntity mediaEntity = mediaService.findByHash(hash);
 
         if (mediaEntity == null) {
@@ -107,22 +102,14 @@ public class PortalMediaResource extends AbstractResource {
         cc.setNoCache(false);
         cc.setMaxAge(86400);
 
-
         EntityTag etag = new EntityTag(hash);
         Response.ResponseBuilder builder = request.evaluatePreconditions(etag);
 
         if (builder != null) {
             // Preconditions are not met, returning HTTP 304 'not-modified'
-            return builder
-                    .cacheControl(cc)
-                    .build();
+            return builder.cacheControl(cc).build();
         }
 
-        return Response
-                .ok(mediaEntity.getData())
-                .type(mediaEntity.getMimeType())
-                .cacheControl(cc)
-                .tag(etag)
-                .build();
+        return Response.ok(mediaEntity.getData()).type(mediaEntity.getMimeType()).cacheControl(cc).tag(etag).build();
     }
 }

@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.theme.NewThemeEntity;
 import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.service.ThemeService;
 import io.swagger.annotations.Api;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -39,7 +38,7 @@ import javax.ws.rs.core.Context;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Themes"})
+@Api(tags = { "Themes" })
 public class ThemesResource extends AbstractResource {
 
     @Context
@@ -51,9 +50,7 @@ public class ThemesResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE)
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_THEME, acls = RolePermissionAction.CREATE) })
     public ThemeEntity createTheme(@Valid @NotNull final NewThemeEntity theme) {
         return themeService.create(theme);
     }
@@ -62,5 +59,4 @@ public class ThemesResource extends AbstractResource {
     public ThemeResource getThemeResource() {
         return resourceContext.getResource(ThemeResource.class);
     }
-
 }

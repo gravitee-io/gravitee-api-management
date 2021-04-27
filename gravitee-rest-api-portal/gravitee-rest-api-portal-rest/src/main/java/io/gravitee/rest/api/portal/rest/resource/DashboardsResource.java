@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.repository.management.model.DashboardReferenceType.APPLICATION;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.DashboardEntity;
 import io.gravitee.rest.api.portal.rest.mapper.DashboardMapper;
 import io.gravitee.rest.api.portal.rest.model.Dashboard;
 import io.gravitee.rest.api.service.DashboardService;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
-import java.util.List;
-
-import static io.gravitee.repository.management.model.DashboardReferenceType.APPLICATION;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -38,13 +37,16 @@ public class DashboardsResource extends AbstractResource {
 
     @Inject
     private DashboardService dashboardService;
+
     @Inject
     private DashboardMapper dashboardMapper;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response list()  {
-        final List<Dashboard> dashboards = dashboardService.findByReferenceType(APPLICATION).stream()
+    public Response list() {
+        final List<Dashboard> dashboards = dashboardService
+            .findByReferenceType(APPLICATION)
+            .stream()
             .filter(DashboardEntity::isEnabled)
             .map(dashboardMapper::convert)
             .collect(toList());

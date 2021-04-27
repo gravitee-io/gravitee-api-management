@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.theme;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
 public class ThemeCssDefinition {

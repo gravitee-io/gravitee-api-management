@@ -18,9 +18,8 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.flow.Flow;
-
-import javax.validation.constraints.NotNull;
 import java.util.*;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -219,7 +218,6 @@ public class NewPlanEntity {
         NewPlanEntity that = (NewPlanEntity) o;
 
         return name.equals(that.name);
-
     }
 
     @Override

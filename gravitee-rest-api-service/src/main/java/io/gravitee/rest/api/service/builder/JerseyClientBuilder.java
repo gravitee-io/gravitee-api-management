@@ -15,21 +15,20 @@
  */
 package io.gravitee.rest.api.service.builder;
 
-import io.gravitee.common.util.EnvironmentUtils;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.HttpUrlConnectorProvider;
-import org.springframework.core.env.ConfigurableEnvironment;
-import org.springframework.core.env.Environment;
+import static io.gravitee.common.http.HttpHeaders.PROXY_AUTHORIZATION;
 
-import javax.ws.rs.client.ClientBuilder;
+import io.gravitee.common.util.EnvironmentUtils;
 import java.net.*;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static io.gravitee.common.http.HttpHeaders.PROXY_AUTHORIZATION;
+import javax.ws.rs.client.ClientBuilder;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 
 /**
  * This is an helper class which can be used to get a pre-configured jaxrs {@link ClientBuilder}.
@@ -72,27 +71,35 @@ public class JerseyClientBuilder {
     }
 
     private static void initHttpProxy(ClientBuilder builder, Environment environment) {
-
         final Proxy httpProxy = buildProxy(environment, HTTP_SCHEME);
         final String httpProxyAuth = buildProxyAuth(environment, HTTP_SCHEME);
         final Proxy httpsProxy = buildProxy(environment, HTTPS_SCHEME);
         final String httpsProxyAuth = buildProxyAuth(environment, HTTPS_SCHEME);
 
-        final List<String> proxyExcludeHosts = EnvironmentUtils.getPropertiesStartingWith((ConfigurableEnvironment) environment, "httpClient.proxy.exclude-hosts").values().stream().map(String::valueOf).collect(Collectors.toList());
-
+        final List<String> proxyExcludeHosts = EnvironmentUtils
+            .getPropertiesStartingWith((ConfigurableEnvironment) environment, "httpClient.proxy.exclude-hosts")
+            .values()
+            .stream()
+            .map(String::valueOf)
+            .collect(Collectors.toList());
 
         final ClientConfig clientConfig = new ClientConfig()
-                .connectorProvider(new HttpUrlConnectorProvider()
-                        .connectionFactory(url -> {
-
+        .connectorProvider(
+                new HttpUrlConnectorProvider()
+                .connectionFactory(
+                        url -> {
                             final String host = url.getHost();
-                            final boolean excluded = proxyExcludeHosts.stream().anyMatch(excludedHost -> {
-                                if (excludedHost.startsWith("*.")) {
-                                    return host.endsWith(WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
-                                } else {
-                                    return host.equals(excludedHost);
-                                }
-                            });
+                            final boolean excluded = proxyExcludeHosts
+                                .stream()
+                                .anyMatch(
+                                    excludedHost -> {
+                                        if (excludedHost.startsWith("*.")) {
+                                            return host.endsWith(WILCARD_PATTERN.matcher(excludedHost).replaceFirst(""));
+                                        } else {
+                                            return host.equals(excludedHost);
+                                        }
+                                    }
+                                );
 
                             if (excluded || (httpProxy == null && httpsProxy == null)) {
                                 return (HttpURLConnection) url.openConnection(Proxy.NO_PROXY);
@@ -119,7 +126,9 @@ public class JerseyClientBuilder {
                             }
 
                             return uc;
-                        }));
+                        }
+                    )
+            );
 
         builder.withConfig(clientConfig);
     }
@@ -145,25 +154,30 @@ public class JerseyClientBuilder {
     }
 
     private static String buildProxyAuth(Environment environment, String type) {
-
         final String proxyHttpUsername = environment.getProperty("httpClient.proxy." + type + ".username", String.class);
         final String proxyHttpPassword = environment.getProperty("httpClient.proxy." + type + ".password", String.class);
 
-        return proxyHttpUsername != null ? new String(Base64.getEncoder().encode((proxyHttpUsername + ':' + proxyHttpPassword).getBytes())) : null;
+        return proxyHttpUsername != null
+            ? new String(Base64.getEncoder().encode((proxyHttpUsername + ':' + proxyHttpPassword).getBytes()))
+            : null;
     }
 
     private static void buildSockProxyAuth(Environment environment, String type) {
-
         final String proxyHttpUsername = environment.getProperty("httpClient.proxy." + type + ".username", String.class);
         final String proxyHttpPassword = environment.getProperty("httpClient.proxy." + type + ".password", String.class);
 
         if (proxyHttpUsername != null) {
-            Authenticator.setDefault(new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(proxyHttpUsername, proxyHttpPassword != null ? proxyHttpPassword.toCharArray() : new char[0]);
+            Authenticator.setDefault(
+                new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(
+                            proxyHttpUsername,
+                            proxyHttpPassword != null ? proxyHttpPassword.toCharArray() : new char[0]
+                        );
+                    }
                 }
-            });
+            );
         }
     }
 }

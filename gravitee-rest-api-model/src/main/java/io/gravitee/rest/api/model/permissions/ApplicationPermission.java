@@ -17,18 +17,18 @@ package io.gravitee.rest.api.model.permissions;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum ApplicationPermission implements Permission {
-    DEFINITION(  "DEFINITION",   1000),
-    MEMBER(      "MEMBER",       1100),
-    ANALYTICS(   "ANALYTICS",    1200),
-    LOG(         "LOG",          1300),
+    DEFINITION("DEFINITION", 1000),
+    MEMBER("MEMBER", 1100),
+    ANALYTICS("ANALYTICS", 1200),
+    LOG("LOG", 1300),
     SUBSCRIPTION("SUBSCRIPTION", 1400),
     NOTIFICATION("NOTIFICATION", 1500),
-    ALERT(       "ALERT",        1600),
-    METADATA(    "METADATA",     1700);
+    ALERT("ALERT", 1600),
+    METADATA("METADATA", 1700);
 
     String name;
     int mask;
@@ -47,5 +47,4 @@ public enum ApplicationPermission implements Permission {
     public int getMask() {
         return mask;
     }
-
 }

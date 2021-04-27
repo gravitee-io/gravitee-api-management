@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
 import io.gravitee.definition.model.flow.Flow;
-
 import java.util.*;
 
 /**
@@ -325,5 +324,4 @@ public class PlanEntity {
     public int hashCode() {
         return id.hashCode();
     }
-
 }

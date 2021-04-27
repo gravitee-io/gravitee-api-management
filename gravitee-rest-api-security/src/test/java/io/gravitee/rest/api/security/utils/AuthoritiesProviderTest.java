@@ -15,11 +15,19 @@
  */
 package io.gravitee.rest.api.security.utils;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,15 +35,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -49,7 +48,6 @@ public class AuthoritiesProviderTest {
 
     private AuthoritiesProvider cut;
 
-
     @Before
     public void init() {
         cut = new AuthoritiesProvider(membershipService);
@@ -57,7 +55,6 @@ public class AuthoritiesProviderTest {
 
     @Test
     public void shouldGenerateAuthorities() {
-
         final String USER_ID = "userid1";
         final RoleEntity portalRole = new RoleEntity();
         portalRole.setId("PORTAL_ROLE");
@@ -74,14 +71,17 @@ public class AuthoritiesProviderTest {
         mgtRole2.setName("MGT_ROLE2");
         mgtRole2.setScope(RoleScope.ORGANIZATION);
 
-        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, USER_ID)).thenReturn(new HashSet<>(asList(portalRole)));
-        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, USER_ID)).thenReturn(new HashSet<>(asList(mgtRole1, mgtRole2)));
+        when(membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, "DEFAULT", MembershipMemberType.USER, USER_ID))
+            .thenReturn(new HashSet<>(asList(portalRole)));
+        when(membershipService.getRoles(MembershipReferenceType.ORGANIZATION, "DEFAULT", MembershipMemberType.USER, USER_ID))
+            .thenReturn(new HashSet<>(asList(mgtRole1, mgtRole2)));
 
         final Set<GrantedAuthority> grantedAuthorities = cut.retrieveAuthorities(USER_ID);
 
         assertEquals(3, grantedAuthorities.size());
-        final List<GrantedAuthority> expected = AuthorityUtils.commaSeparatedStringToAuthorityList("ENVIRONMENT:PORTAL_ROLE,ORGANIZATION:MGT_ROLE1,ORGANIZATION:MGT_ROLE2");
+        final List<GrantedAuthority> expected = AuthorityUtils.commaSeparatedStringToAuthorityList(
+            "ENVIRONMENT:PORTAL_ROLE,ORGANIZATION:MGT_ROLE1,ORGANIZATION:MGT_ROLE2"
+        );
         assertTrue(grantedAuthorities.containsAll(expected));
     }
-
 }

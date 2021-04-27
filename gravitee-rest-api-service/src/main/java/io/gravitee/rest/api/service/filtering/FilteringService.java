@@ -18,19 +18,26 @@ package io.gravitee.rest.api.service.filtering;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
-
 import java.util.Collection;
 
 public interface FilteringService {
-    <T extends FilterableItem> FilteredEntities<T> getEntitiesOrderByNumberOfSubscriptions(Collection<T> items, Boolean excluded, boolean isAsc);
+    <T extends FilterableItem> FilteredEntities<T> getEntitiesOrderByNumberOfSubscriptions(
+        Collection<T> items,
+        Boolean excluded,
+        boolean isAsc
+    );
 
-    FilteredEntities<ApiEntity> filterApis(final Collection<ApiEntity> apis, final FilterType filterType, final FilterType excludedFilterType);
+    FilteredEntities<ApiEntity> filterApis(
+        final Collection<ApiEntity> apis,
+        final FilterType filterType,
+        final FilterType excludedFilterType
+    );
 
     enum FilterType {
         ALL,
         FEATURED,
         MINE,
         STARRED,
-        TRENDINGS;
+        TRENDINGS,
     }
 }

@@ -64,9 +64,9 @@ public class OrderParam extends AbstractParam<OrderParam.Order> {
     protected Order parse(String param) throws Throwable {
         try {
             if (param != null) {
-                String [] parts = param.split(":");
+                String[] parts = param.split(":");
                 Order order = new Order();
-                order.setOrder(! parts[0].startsWith("-"));
+                order.setOrder(!parts[0].startsWith("-"));
 
                 if (parts.length == 2) {
                     order.setType(order.isOrder() ? parts[0] : parts[0].substring(1));
@@ -77,8 +77,7 @@ public class OrderParam extends AbstractParam<OrderParam.Order> {
 
                 return order;
             }
-        } catch (IllegalArgumentException iae) {
-        }
+        } catch (IllegalArgumentException iae) {}
 
         return null;
     }

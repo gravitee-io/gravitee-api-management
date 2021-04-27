@@ -21,7 +21,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 public interface EmailService {
-
     String[] DEFAULT_MAIL_TO = { "DEFAULT_MAIL_TO" };
 
     void sendEmailNotification(EmailNotification emailNotification);

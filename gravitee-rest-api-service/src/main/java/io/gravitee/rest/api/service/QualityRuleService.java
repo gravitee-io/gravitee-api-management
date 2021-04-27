@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
-
 import java.util.List;
 
 /**

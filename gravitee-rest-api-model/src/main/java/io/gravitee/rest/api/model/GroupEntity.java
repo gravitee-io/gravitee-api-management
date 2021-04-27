@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -31,27 +30,39 @@ public class GroupEntity {
 
     private String id;
     private String name;
+
     @JsonProperty("event_rules")
     private List<GroupEventRuleEntity> eventRules;
+
     boolean manageable;
     private Map<RoleScope, String> roles;
+
     @JsonProperty("created_at")
     private Date createdAt;
+
     @JsonProperty("updated_at")
     private Date updatedAt;
+
     @JsonProperty("max_invitation")
     private Integer maxInvitation;
+
     @JsonProperty("lock_api_role")
     private boolean lockApiRole;
+
     @JsonProperty("lock_application_role")
     private boolean lockApplicationRole;
+
     @JsonProperty("system_invitation")
     private boolean systemInvitation;
+
     @JsonProperty("email_invitation")
     private boolean emailInvitation;
+
     @JsonProperty("disable_membership_notifications")
     private boolean disableMembershipNotifications;
+
     private String apiPrimaryOwner;
+
     @JsonProperty("primary_owner")
     private boolean primaryOwner;
 
@@ -190,22 +201,41 @@ public class GroupEntity {
 
     @Override
     public String toString() {
-        return "GroupEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", eventRules=" + eventRules +
-                ", manageable=" + manageable +
-                ", roles=" + roles +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", maxInvitation=" + maxInvitation +
-                ", lockApiRole=" + lockApiRole +
-                ", lockApplicationRole=" + lockApplicationRole +
-                ", systemInvitation=" + systemInvitation +
-                ", emailInvitation=" + emailInvitation +
-                ", disableMembershipNotifications=" + disableMembershipNotifications +
-                ", apiPrimaryOwner=" + apiPrimaryOwner +
-                ", primaryOwner=" + primaryOwner +
-                '}';
+        return (
+            "GroupEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", eventRules=" +
+            eventRules +
+            ", manageable=" +
+            manageable +
+            ", roles=" +
+            roles +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", maxInvitation=" +
+            maxInvitation +
+            ", lockApiRole=" +
+            lockApiRole +
+            ", lockApplicationRole=" +
+            lockApplicationRole +
+            ", systemInvitation=" +
+            systemInvitation +
+            ", emailInvitation=" +
+            emailInvitation +
+            ", disableMembershipNotifications=" +
+            disableMembershipNotifications +
+            ", apiPrimaryOwner=" +
+            apiPrimaryOwner +
+            ", primaryOwner=" +
+            primaryOwner +
+            '}'
+        );
     }
 }

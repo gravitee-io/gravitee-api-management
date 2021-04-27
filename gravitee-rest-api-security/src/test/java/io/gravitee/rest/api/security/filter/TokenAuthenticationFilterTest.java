@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.security.filter;
 
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.Token;
@@ -24,16 +26,13 @@ import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import javax.servlet.FilterChain;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import static org.mockito.Mockito.*;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -44,16 +43,22 @@ public class TokenAuthenticationFilterTest {
 
     @Mock
     private CookieGenerator cookieGenerator;
+
     @Mock
     private UserService userService;
+
     @Mock
     private TokenService tokenService;
+
     @Mock
     private AuthoritiesProvider authoritiesProvider;
+
     @Mock
     private HttpServletRequest request;
+
     @Mock
     private HttpServletResponse response;
+
     @Mock
     private FilterChain filterChain;
 
@@ -64,11 +69,12 @@ public class TokenAuthenticationFilterTest {
         final String BEARER = "Bearer " + TOKEN;
 
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
-                "JWT_SECRET_TOEKN_TEST",
-                cookieGenerator,
-                userService,
-                tokenService,
-                authoritiesProvider);
+            "JWT_SECRET_TOEKN_TEST",
+            cookieGenerator,
+            userService,
+            tokenService,
+            authoritiesProvider
+        );
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -92,11 +98,12 @@ public class TokenAuthenticationFilterTest {
         final String BEARER = "Bearer " + TOKEN;
 
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
-                "JWT_SECRET_TOEKN_TEST",
-                cookieGenerator,
-                userService,
-                tokenService,
-                authoritiesProvider);
+            "JWT_SECRET_TOEKN_TEST",
+            cookieGenerator,
+            userService,
+            tokenService,
+            authoritiesProvider
+        );
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 
@@ -115,11 +122,12 @@ public class TokenAuthenticationFilterTest {
         final String BEARER = "Bearer " + TOKEN;
 
         TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
-                "JWT_SECRET_TOEKN_TEST",
-                cookieGenerator,
-                userService,
-                tokenService,
-                authoritiesProvider);
+            "JWT_SECRET_TOEKN_TEST",
+            cookieGenerator,
+            userService,
+            tokenService,
+            authoritiesProvider
+        );
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER);
 

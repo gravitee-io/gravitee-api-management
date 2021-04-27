@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Map;
 
 /**
  * @author Guillaume GILLON
  */
-public class PageFolderActionException  extends AbstractManagementException {
+public class PageFolderActionException extends AbstractManagementException {
+
     private final String action;
 
     public PageFolderActionException(String action) {

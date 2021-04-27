@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -22,6 +27,8 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.AccessControlServiceImpl;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,14 +39,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -79,7 +78,7 @@ public class AccessControlServiceTest {
     }
 
     @Test
-    public void shouldAccessPublicApiAsAuthenticatedUser(){
+    public void shouldAccessPublicApiAsAuthenticatedUser() {
         final ApiEntity apiEntityMock = mock(ApiEntity.class);
         when(apiEntityMock.getVisibility()).thenReturn(Visibility.PUBLIC);
         connectUser();
@@ -144,9 +143,14 @@ public class AccessControlServiceTest {
         doReturn(memberEntity).when(membershipServiceMock).getUserMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
         final PageEntity pageEntity = mock(PageEntity.class);
         connectUser();
-        when(roleService.hasPermission(memberEntity.getPermissions(), ApiPermission.DOCUMENTATION,
-            new RolePermissionAction[]{RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
-                RolePermissionAction.DELETE})).thenReturn(true);
+        when(
+            roleService.hasPermission(
+                memberEntity.getPermissions(),
+                ApiPermission.DOCUMENTATION,
+                new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
+            )
+        )
+            .thenReturn(true);
 
         boolean canAccess = accessControlService.canAccessPageFromConsole(apiEntityMock, pageEntity);
 
@@ -154,7 +158,6 @@ public class AccessControlServiceTest {
         verify(membershipServiceMock, times(1)).getUserMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
         verify(membershipServiceMock, never()).getUserMember(eq(MembershipReferenceType.GROUP), any(), any());
     }
-
 
     @Test
     public void shouldAccessPrivateApiAsGroupApiMember() {
@@ -164,9 +167,14 @@ public class AccessControlServiceTest {
         doReturn(null).when(membershipServiceMock).getUserMember(eq(MembershipReferenceType.API), any(), eq(USERNAME));
         doReturn(memberEntity).when(membershipServiceMock).getUserMember(eq(MembershipReferenceType.GROUP), any(), eq(USERNAME));
 
-        when(roleService.hasPermission(memberEntity.getPermissions(), ApiPermission.DOCUMENTATION,
-            new RolePermissionAction[]{RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
-                RolePermissionAction.DELETE})).thenReturn(true);
+        when(
+            roleService.hasPermission(
+                memberEntity.getPermissions(),
+                ApiPermission.DOCUMENTATION,
+                new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
+            )
+        )
+            .thenReturn(true);
 
         final PageEntity pageEntity = mock(PageEntity.class);
         connectUser();
@@ -178,7 +186,6 @@ public class AccessControlServiceTest {
         verify(membershipServiceMock, times(1)).getUserMember(eq(MembershipReferenceType.GROUP), any(), eq(USERNAME));
     }
 
-
     @Test
     public void shouldNotAccessPublicApiAndUnpublishedPageAsAnonymous() {
         final ApiEntity apiEntityMock = mock(ApiEntity.class);
@@ -189,7 +196,6 @@ public class AccessControlServiceTest {
 
         assertFalse(canAccess);
     }
-
 
     @Test
     public void shouldNotAccessPageFromPortalWithoutRole() {
@@ -220,9 +226,15 @@ public class AccessControlServiceTest {
 
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setId(ROLE_ID);
-        when(membershipServiceMock.getRoles(MembershipReferenceType.ENVIRONMENT,
-            GraviteeContext.getCurrentEnvironment(),
-            MembershipMemberType.USER, USERNAME)).thenReturn(new HashSet(Collections.singleton(roleEntity)));
+        when(
+            membershipServiceMock.getRoles(
+                MembershipReferenceType.ENVIRONMENT,
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipMemberType.USER,
+                USERNAME
+            )
+        )
+            .thenReturn(new HashSet(Collections.singleton(roleEntity)));
 
         boolean canAccess = accessControlService.canAccessPageFromPortal(pageEntity);
 
@@ -241,9 +253,15 @@ public class AccessControlServiceTest {
 
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setId(ROLE_ID);
-        when(membershipServiceMock.getRoles(MembershipReferenceType.ENVIRONMENT,
-            GraviteeContext.getCurrentEnvironment(),
-            MembershipMemberType.USER, USERNAME)).thenReturn(new HashSet(Collections.singleton(roleEntity)));
+        when(
+            membershipServiceMock.getRoles(
+                MembershipReferenceType.ENVIRONMENT,
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipMemberType.USER,
+                USERNAME
+            )
+        )
+            .thenReturn(new HashSet(Collections.singleton(roleEntity)));
 
         boolean canAccess = accessControlService.canAccessPageFromPortal(pageEntity);
 
@@ -262,9 +280,15 @@ public class AccessControlServiceTest {
 
         RoleEntity roleEntity = new RoleEntity();
         roleEntity.setId(ROLE_ID);
-        when(membershipServiceMock.getRoles(MembershipReferenceType.ENVIRONMENT,
-            GraviteeContext.getCurrentEnvironment(),
-            MembershipMemberType.USER, USERNAME)).thenReturn(new HashSet(Collections.singleton(roleEntity)));
+        when(
+            membershipServiceMock.getRoles(
+                MembershipReferenceType.ENVIRONMENT,
+                GraviteeContext.getCurrentEnvironment(),
+                MembershipMemberType.USER,
+                USERNAME
+            )
+        )
+            .thenReturn(new HashSet(Collections.singleton(roleEntity)));
 
         boolean canAccess = accessControlService.canAccessPageFromPortal(pageEntity);
 
@@ -368,21 +392,31 @@ public class AccessControlServiceTest {
 
     private Set<AccessControlEntity> buildAccessControls(List<String> roles, List<String> groups) {
         Set<AccessControlEntity> accessControlEntities = new HashSet<>();
-        Set<AccessControlEntity> roleEntities = roles.stream().map(id -> {
-            AccessControlEntity accessControlEntity = new AccessControlEntity();
-            accessControlEntity.setReferenceId(id);
-            accessControlEntity.setReferenceType("ROLE");
-            return accessControlEntity;
-        }).collect(Collectors.toSet());
+        Set<AccessControlEntity> roleEntities = roles
+            .stream()
+            .map(
+                id -> {
+                    AccessControlEntity accessControlEntity = new AccessControlEntity();
+                    accessControlEntity.setReferenceId(id);
+                    accessControlEntity.setReferenceType("ROLE");
+                    return accessControlEntity;
+                }
+            )
+            .collect(Collectors.toSet());
 
         accessControlEntities.addAll(roleEntities);
 
-        Set<AccessControlEntity> groupEntities = groups.stream().map(id -> {
-            AccessControlEntity accessControlEntity = new AccessControlEntity();
-            accessControlEntity.setReferenceId(id);
-            accessControlEntity.setReferenceType("GROUP");
-            return accessControlEntity;
-        }).collect(Collectors.toSet());
+        Set<AccessControlEntity> groupEntities = groups
+            .stream()
+            .map(
+                id -> {
+                    AccessControlEntity accessControlEntity = new AccessControlEntity();
+                    accessControlEntity.setReferenceId(id);
+                    accessControlEntity.setReferenceType("GROUP");
+                    return accessControlEntity;
+                }
+            )
+            .collect(Collectors.toSet());
 
         accessControlEntities.addAll(groupEntities);
 
@@ -391,64 +425,65 @@ public class AccessControlServiceTest {
 
     public static void connectUser() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return new Authentication() {
-                    @Override
-                    public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return null;
-                    }
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return new Authentication() {
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getCredentials() {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getDetails() {
-                        return null;
-                    }
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getPrincipal() {
-                        return new UserDetails(USERNAME, "password", Collections.emptyList());
-                    }
+                        @Override
+                        public Object getPrincipal() {
+                            return new UserDetails(USERNAME, "password", Collections.emptyList());
+                        }
 
-                    @Override
-                    public boolean isAuthenticated() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isAuthenticated() {
+                            return false;
+                        }
 
-                    @Override
-                    public void setAuthenticated(boolean b) throws IllegalArgumentException {
+                        @Override
+                        public void setAuthenticated(boolean b) throws IllegalArgumentException {}
 
-                    }
+                        @Override
+                        public String getName() {
+                            return null;
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-                };
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-            @Override
-            public void setAuthentication(Authentication authentication) {
-            }
-        });
+        );
     }
-
 
     @After
     public void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return null;
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-            @Override
-            public void setAuthentication(Authentication authentication) {
-            }
-        });
+        );
     }
 }

@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.model.api;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.Visibility;
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -127,18 +126,38 @@ public class ApiQuery {
 
     @Override
     public String toString() {
-        return "ApiQuery{" +
-                "ids=" + ids +
-                ", category='" + category + '\'' +
-                ", groups=" + groups +
-                ", contextPath='" + contextPath + '\'' +
-                ", label='" + label + '\'' +
-                ", state='" + state + '\'' +
-                ", visibility=" + visibility +
-                ", version='" + version + '\'' +
-                ", name='" + name + '\'' +
-                ", tag='" + tag + '\'' +
-                ", lifecycleStates=" + lifecycleStates +
-                '}';
+        return (
+            "ApiQuery{" +
+            "ids=" +
+            ids +
+            ", category='" +
+            category +
+            '\'' +
+            ", groups=" +
+            groups +
+            ", contextPath='" +
+            contextPath +
+            '\'' +
+            ", label='" +
+            label +
+            '\'' +
+            ", state='" +
+            state +
+            '\'' +
+            ", visibility=" +
+            visibility +
+            ", version='" +
+            version +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", tag='" +
+            tag +
+            '\'' +
+            ", lifecycleStates=" +
+            lifecycleStates +
+            '}'
+        );
     }
 }

@@ -23,11 +23,10 @@ import io.gravitee.cockpit.api.command.installation.InstallationPayload;
 import io.gravitee.cockpit.api.command.installation.InstallationReply;
 import io.gravitee.rest.api.service.InstallationService;
 import io.reactivex.Single;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -41,7 +40,6 @@ public class InstallationCommandHandler implements CommandHandler<InstallationCo
     private final InstallationService installationService;
 
     public InstallationCommandHandler(InstallationService installationService) {
-
         this.installationService = installationService;
     }
 
@@ -52,7 +50,6 @@ public class InstallationCommandHandler implements CommandHandler<InstallationCo
 
     @Override
     public Single<InstallationReply> handle(InstallationCommand command) {
-
         InstallationPayload installationPayload = command.getPayload();
 
         final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
@@ -65,6 +62,5 @@ public class InstallationCommandHandler implements CommandHandler<InstallationCo
             logger.info("Error occurred when updating installation status.", ex);
             return Single.just(new InstallationReply(command.getId(), CommandStatus.ERROR));
         }
-
     }
 }

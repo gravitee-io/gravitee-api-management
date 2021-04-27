@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.commands;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.organization.OrganizationCommand;
@@ -25,18 +29,13 @@ import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.reactivex.observers.TestObserver;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -62,7 +61,6 @@ public class OrganizationCommandHandlerTest {
 
     @Test
     public void handle() {
-
         OrganizationPayload organizationPayload = new OrganizationPayload();
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
@@ -72,12 +70,19 @@ public class OrganizationCommandHandlerTest {
         organizationPayload.setName("Organization name");
         organizationPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
 
-        when(organizationService.createOrUpdate(eq("orga#1"),
-                argThat(newOrganization -> newOrganization.getHrids().equals(organizationPayload.getHrids())
-                        && newOrganization.getDescription().equals(organizationPayload.getDescription())
-                        && newOrganization.getName().equals(organizationPayload.getName())
-                        && newOrganization.getDomainRestrictions().equals(organizationPayload.getDomainRestrictions()))))
-                .thenReturn(new OrganizationEntity());
+        when(
+            organizationService.createOrUpdate(
+                eq("orga#1"),
+                argThat(
+                    newOrganization ->
+                        newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
+                        newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
+                        newOrganization.getName().equals(organizationPayload.getName()) &&
+                        newOrganization.getDomainRestrictions().equals(organizationPayload.getDomainRestrictions())
+                )
+            )
+        )
+            .thenReturn(new OrganizationEntity());
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();
 
@@ -87,7 +92,6 @@ public class OrganizationCommandHandlerTest {
 
     @Test
     public void handleWithException() {
-
         OrganizationPayload organizationPayload = new OrganizationPayload();
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
@@ -96,7 +100,8 @@ public class OrganizationCommandHandlerTest {
         organizationPayload.setName("Organization name");
         organizationPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
 
-        when(organizationService.createOrUpdate(eq("orga#1"), any(UpdateOrganizationEntity.class))).thenThrow(new RuntimeException("fake error"));
+        when(organizationService.createOrUpdate(eq("orga#1"), any(UpdateOrganizationEntity.class)))
+            .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<OrganizationReply> obs = cut.handle(command).test();
 

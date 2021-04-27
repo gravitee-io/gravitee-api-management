@@ -15,18 +15,19 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.policy.impl;
 
-import io.gravitee.rest.api.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
 import io.gravitee.policy.api.swagger.Policy;
+import io.gravitee.rest.api.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
 import io.swagger.models.Operation;
 import io.swagger.models.Swagger;
-
 import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SwaggerPolicyOperationVisitor extends AbstractPolicyOperationVisitor<Swagger, Operation> implements SwaggerOperationVisitor<Optional<Policy>> {
+public class SwaggerPolicyOperationVisitor
+    extends AbstractPolicyOperationVisitor<Swagger, Operation>
+    implements SwaggerOperationVisitor<Optional<Policy>> {
 
     public SwaggerPolicyOperationVisitor(io.gravitee.policy.api.swagger.v2.SwaggerOperationVisitor policyVisitor) {
         super(policyVisitor);

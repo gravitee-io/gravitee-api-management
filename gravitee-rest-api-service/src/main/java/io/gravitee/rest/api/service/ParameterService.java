@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -31,7 +30,6 @@ import java.util.function.Predicate;
  * @author GraviteeSource Team
  */
 public interface ParameterService {
-
     /**
      * Find parameter for current context
      */
@@ -92,7 +90,6 @@ public interface ParameterService {
      */
     <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, String referenceId, ParameterReferenceType referenceType);
 
-
     /**
      * Find parameter as list with filter and mapper for current context
      */
@@ -101,17 +98,34 @@ public interface ParameterService {
     /**
      * Find parameter as list with filter and mapper for a specific context
      */
-    <T> List<T> findAll(Key key, Function<String, T> mapper, Predicate<String> filter, String referenceId, ParameterReferenceType referenceType);
+    <T> List<T> findAll(
+        Key key,
+        Function<String, T> mapper,
+        Predicate<String> filter,
+        String referenceId,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Find list of parameters with filter and mapper for current context
      */
-    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter, ParameterReferenceType referenceType);
+    <T> Map<String, List<T>> findAll(
+        List<Key> keys,
+        Function<String, T> mapper,
+        Predicate<String> filter,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Find list of parameters with filter and mapper for a specific context
      */
-    <T> Map<String, List<T>> findAll(List<Key> keys, Function<String, T> mapper, Predicate<String> filter, String referenceId, ParameterReferenceType referenceType);
+    <T> Map<String, List<T>> findAll(
+        List<Key> keys,
+        Function<String, T> mapper,
+        Predicate<String> filter,
+        String referenceId,
+        ParameterReferenceType referenceType
+    );
 
     /**
      * Save parameter for current context

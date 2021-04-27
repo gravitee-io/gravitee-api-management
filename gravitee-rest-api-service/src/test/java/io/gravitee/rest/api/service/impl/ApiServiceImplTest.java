@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import org.junit.Test;
-
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 public class ApiServiceImplTest {
 
@@ -25,30 +25,29 @@ public class ApiServiceImplTest {
 
     @Test
     public void shouldGetConfigurationSchema() {
-
         assertEquals(
-                "{\n" +
-                        "  \"type\": \"object\",\n" +
-                        "  \"id\": \"apim\",\n" +
-                        "  \"properties\": {\n" +
-                        "    \"flow-mode\": {\n" +
-                        "      \"title\": \"Flow Mode\",\n" +
-                        "      \"description\": \"The flow mode\",\n" +
-                        "      \"type\": \"string\",\n" +
-                        "      \"enum\": [ \"default\", \"best_match\" ],\n" +
-                        "      \"default\": \"default\",\n" +
-                        "      \"x-schema-form\": {\n" +
-                        "        \"titleMap\": {\n" +
-                        "          \"default\": \"Default\",\n" +
-                        "          \"best_match\": \"Best match\"\n" +
-                        "        }\n" +
-                        "      }\n" +
-                        "    }\n" +
-                        "  },\n" +
-                        "  \"required\": [],\n" +
-                        "  \"disabled\": []\n" +
-                        "}\n",
-                cut.getConfigurationSchema()
+            "{\n" +
+            "  \"type\": \"object\",\n" +
+            "  \"id\": \"apim\",\n" +
+            "  \"properties\": {\n" +
+            "    \"flow-mode\": {\n" +
+            "      \"title\": \"Flow Mode\",\n" +
+            "      \"description\": \"The flow mode\",\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"enum\": [ \"default\", \"best_match\" ],\n" +
+            "      \"default\": \"default\",\n" +
+            "      \"x-schema-form\": {\n" +
+            "        \"titleMap\": {\n" +
+            "          \"default\": \"Default\",\n" +
+            "          \"best_match\": \"Best match\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  },\n" +
+            "  \"required\": [],\n" +
+            "  \"disabled\": []\n" +
+            "}\n",
+            cut.getConfigurationSchema()
         );
     }
 }

@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.model.*;
@@ -24,21 +27,17 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
-import org.junit.Before;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize Elamrani (azize.elamrani at graviteesource.com)
@@ -156,7 +155,7 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         api.setEnvironmentId("DEFAULT");
         api.setGroups(Collections.singleton("my-group"));
         api.setEnvironmentId("DEFAULT");
-        
+
         // set proxy
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
@@ -200,7 +199,9 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         String jsonForExport = apiService.exportAsJson(API_ID, ApiSerializer.Version.V_1_15.getVersion(), SystemRole.PRIMARY_OWNER.name());
 
-        URL url = Resources.getResource("io/gravitee/rest/api/management/service/export-convertAsJsonForExportMultipleEndpointGroups-1_15.json");
+        URL url = Resources.getResource(
+            "io/gravitee/rest/api/management/service/export-convertAsJsonForExportMultipleEndpointGroups-1_15.json"
+        );
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
@@ -231,5 +232,4 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
     public void shouldConvertAsJsonWithoutMetadata_1_25() throws IOException {
         shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version.V_1_25, "1_25");
     }
-
 }

@@ -25,14 +25,19 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Portal {
+
     @ParameterKey(Key.PORTAL_ENTRYPOINT)
     private String entrypoint;
+
     @ParameterKey(Key.PORTAL_APIKEY_HEADER)
     private String apikeyHeader;
+
     @ParameterKey(Key.PORTAL_SUPPORT_ENABLED)
     private Enabled support;
+
     @ParameterKey(Key.PORTAL_URL)
     private String url;
+
     @ParameterKey(Key.PORTAL_HOMEPAGE_TITLE)
     private String homepageTitle;
 
@@ -137,6 +142,7 @@ public class Portal {
 
         @ParameterKey(Key.PORTAL_ANALYTICS_ENABLED)
         private Boolean enabled;
+
         @ParameterKey(Key.PORTAL_ANALYTICS_TRACKINGID)
         private String trackingId;
 
@@ -155,10 +161,10 @@ public class Portal {
         public void setTrackingId(String trackingId) {
             this.trackingId = trackingId;
         }
-
     }
 
     public static class PortalApis {
+
         @ParameterKey(Key.PORTAL_APIS_TILESMODE_ENABLED)
         private Enabled tilesMode;
 
@@ -205,6 +211,7 @@ public class Portal {
     }
 
     public static class PortalRating {
+
         @ParameterKey(Key.PORTAL_RATING_ENABLED)
         private Boolean enabled;
 
@@ -231,6 +238,7 @@ public class Portal {
         }
 
         public static class RatingComment {
+
             @ParameterKey(Key.PORTAL_RATING_COMMENT_MANDATORY)
             private Boolean mandatory;
 
@@ -245,8 +253,10 @@ public class Portal {
     }
 
     public static class PortalUploadMedia {
+
         @ParameterKey(Key.PORTAL_UPLOAD_MEDIA_ENABLED)
         private Boolean enabled;
+
         @ParameterKey(Key.PORTAL_UPLOAD_MEDIA_MAXSIZE)
         private Integer maxSizeInOctet;
 
@@ -268,8 +278,10 @@ public class Portal {
     }
 
     public static class PortalUserCreation {
+
         @ParameterKey(Key.PORTAL_USERCREATION_ENABLED)
         private Boolean enabled;
+
         @ParameterKey(Key.PORTAL_USERCREATION_AUTOMATICVALIDATION_ENABLED)
         private Enabled automaticValidation;
 

@@ -24,7 +24,6 @@ import org.apache.lucene.document.Document;
  * @author GraviteeSource Team
  */
 public interface DocumentTransformer<T extends Indexable> extends TypedHandler {
-
     String FIELD_REFERENCE_TYPE = "reference_type";
     String FIELD_REFERENCE_ID = "reference_id";
 

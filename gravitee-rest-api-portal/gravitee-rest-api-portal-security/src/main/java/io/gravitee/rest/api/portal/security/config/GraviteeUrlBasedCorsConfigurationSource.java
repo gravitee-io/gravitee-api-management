@@ -17,12 +17,11 @@ package io.gravitee.rest.api.portal.security.config;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.service.ParameterService;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)

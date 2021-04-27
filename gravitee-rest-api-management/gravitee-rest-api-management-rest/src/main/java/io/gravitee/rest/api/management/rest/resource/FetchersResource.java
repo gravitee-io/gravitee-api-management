@@ -24,7 +24,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
@@ -32,17 +35,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Plugins"})
+@Api(tags = { "Plugins" })
 public class FetchersResource {
 
     @Context
@@ -54,29 +53,34 @@ public class FetchersResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List of fetcher plugins")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "List of fetchers", response = FetcherListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Collection<FetcherListItem> getFetchers(@BeanParam FetchersParam params) {
         Stream<FetcherListItem> stream = fetcherService.findAll(params.isOnlyFilesFetchers()).stream().map(this::convert);
 
-        if(params != null && params.getExpand() != null && !params.getExpand().isEmpty()) {
+        if (params != null && params.getExpand() != null && !params.getExpand().isEmpty()) {
             for (String s : params.getExpand()) {
                 switch (s) {
                     case "schema":
-                        stream = stream.map(fetcherListItem -> {
-                            fetcherListItem.setSchema(fetcherService.getSchema(fetcherListItem.getId()));
-                            return fetcherListItem;
-                        });
+                        stream =
+                            stream.map(
+                                fetcherListItem -> {
+                                    fetcherListItem.setSchema(fetcherService.getSchema(fetcherListItem.getId()));
+                                    return fetcherListItem;
+                                }
+                            );
                         break;
-                    default: break;
+                    default:
+                        break;
                 }
             }
         }
 
-        return stream
-                .sorted(Comparator.comparing(FetcherListItem::getName))
-                .collect(Collectors.toList());
+        return stream.sorted(Comparator.comparing(FetcherListItem::getName)).collect(Collectors.toList());
     }
 
     @Path("{fetcher}")

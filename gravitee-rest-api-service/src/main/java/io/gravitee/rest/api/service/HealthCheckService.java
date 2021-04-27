@@ -27,7 +27,6 @@ import io.gravitee.rest.api.model.healthcheck.SearchLogResponse;
  * @author GraviteeSource Team
  */
 public interface HealthCheckService {
-
     ApiMetrics getAvailability(String api, String field);
 
     ApiMetrics getResponseTime(String api, String field);

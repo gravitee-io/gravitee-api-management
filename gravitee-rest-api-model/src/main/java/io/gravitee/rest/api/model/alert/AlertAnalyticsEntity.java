@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.alert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,7 @@ public class AlertAnalyticsEntity {
     }
 
     public static class AlertTriggerAnalytics {
+
         private String id;
         private String severity;
         private String name;
@@ -112,7 +112,14 @@ public class AlertAnalyticsEntity {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             AlertTriggerAnalytics that = (AlertTriggerAnalytics) o;
-            return Objects.equals(id, that.id) && Objects.equals(severity, that.severity) && Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(type, that.type) && Objects.equals(eventsCount, that.eventsCount);
+            return (
+                Objects.equals(id, that.id) &&
+                Objects.equals(severity, that.severity) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(description, that.description) &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(eventsCount, that.eventsCount)
+            );
         }
 
         @Override

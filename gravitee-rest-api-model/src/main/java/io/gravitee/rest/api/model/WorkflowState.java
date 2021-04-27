@@ -22,5 +22,8 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum WorkflowState {
-    DRAFT, IN_REVIEW, REQUEST_FOR_CHANGES, REVIEW_OK
+    DRAFT,
+    IN_REVIEW,
+    REQUEST_FOR_CHANGES,
+    REVIEW_OK,
 }

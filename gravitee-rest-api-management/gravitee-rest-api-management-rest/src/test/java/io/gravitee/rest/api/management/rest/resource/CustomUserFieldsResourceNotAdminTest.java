@@ -15,30 +15,30 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.CustomUserFieldEntity;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
-import javax.annotation.Priority;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.io.IOException;
-import java.security.Principal;
-
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.rest.api.model.CustomUserFieldEntity;
+import java.io.IOException;
+import java.security.Principal;
+import javax.annotation.Priority;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
+
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
+
     @Override
     protected String contextPath() {
         return "configuration/custom-user-fields";
@@ -51,22 +51,32 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
-                @Override
-                public boolean isSecure() { return true; }
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
+            );
         }
     }
 
@@ -90,7 +100,7 @@ public class CustomUserFieldsResourceNotAdminTest extends AbstractResourceTest {
         field.setKey("test-update");
         field.setLabel("Test");
 
-        final Response response = orgTarget("/"+field.getKey()).request().put(Entity.json(field));
+        final Response response = orgTarget("/" + field.getKey()).request().put(Entity.json(field));
 
         assertEquals(FORBIDDEN_403, response.getStatus());
         verify(customUserFieldService, never()).update(any());

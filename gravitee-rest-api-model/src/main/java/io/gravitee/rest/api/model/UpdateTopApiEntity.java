@@ -47,8 +47,7 @@ public class UpdateTopApiEntity {
         if (this == o) return true;
         if (!(o instanceof UpdateTopApiEntity)) return false;
         UpdateTopApiEntity that = (UpdateTopApiEntity) o;
-        return order == that.order &&
-                Objects.equals(api, that.api);
+        return order == that.order && Objects.equals(api, that.api);
     }
 
     @Override
@@ -58,9 +57,6 @@ public class UpdateTopApiEntity {
 
     @Override
     public String toString() {
-        return "UpdateTopApiEntity{" +
-                "api='" + api + '\'' +
-                ", order=" + order +
-                '}';
+        return "UpdateTopApiEntity{" + "api='" + api + '\'' + ", order=" + order + '}';
     }
 }

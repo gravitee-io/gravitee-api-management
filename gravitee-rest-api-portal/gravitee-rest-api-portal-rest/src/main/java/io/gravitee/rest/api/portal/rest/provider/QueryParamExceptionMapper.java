@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.provider;
 
-import org.glassfish.jersey.server.ParamException.QueryParamException;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
+import org.glassfish.jersey.server.ParamException.QueryParamException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
 @Provider
-public class QueryParamExceptionMapper extends AbstractExceptionMapper<QueryParamException>  {
+public class QueryParamExceptionMapper extends AbstractExceptionMapper<QueryParamException> {
 
     @Override
     public Response toResponse(final QueryParamException e) {

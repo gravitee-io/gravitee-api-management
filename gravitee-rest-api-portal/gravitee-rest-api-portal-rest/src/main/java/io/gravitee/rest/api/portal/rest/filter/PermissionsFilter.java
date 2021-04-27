@@ -15,11 +15,21 @@
  */
 package io.gravitee.rest.api.portal.rest.filter;
 
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.resource.AbstractResource;
+import io.gravitee.rest.api.portal.rest.security.Permission;
+import io.gravitee.rest.api.portal.rest.security.Permissions;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
+import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -28,21 +38,8 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
-
-import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
-import io.gravitee.rest.api.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.resource.AbstractResource;
-import io.gravitee.rest.api.portal.rest.security.Permission;
-import io.gravitee.rest.api.portal.rest.security.Permissions;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,15 +75,13 @@ public class PermissionsFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        if (    securityContext.isUserInRole(AbstractResource.ENVIRONMENT_ADMIN)) {
-            logger.debug("User [{}] has full access because of its ADMIN role",
-                    securityContext.getUserPrincipal().getName());
+        if (securityContext.isUserInRole(AbstractResource.ENVIRONMENT_ADMIN)) {
+            logger.debug("User [{}] has full access because of its ADMIN role", securityContext.getUserPrincipal().getName());
             return;
         }
 
         filter(getRequiredPermission(), requestContext);
         filter(requiredPortalAuth());
-
     }
 
     protected void filter(Permissions permissions, ContainerRequestContext requestContext) {
@@ -95,7 +90,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
             if (principal != null) {
                 String username = principal.getName();
                 for (Permission permission : permissions.value()) {
-                    if(hasPermission(requestContext, username, permission)) {
+                    if (hasPermission(requestContext, username, permission)) {
                         return;
                     }
                 }
@@ -114,10 +109,20 @@ public class PermissionsFilter implements ContainerRequestFilter {
         Map<String, char[]> memberPermissions;
         switch (permission.value().getScope()) {
             case ORGANIZATION:
-                memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization(), username);
+                memberPermissions =
+                    membershipService.getUserMemberPermissions(
+                        MembershipReferenceType.ORGANIZATION,
+                        GraviteeContext.getCurrentOrganization(),
+                        username
+                    );
                 return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
             case ENVIRONMENT:
-                memberPermissions = membershipService.getUserMemberPermissions(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), username);
+                memberPermissions =
+                    membershipService.getUserMemberPermissions(
+                        MembershipReferenceType.ENVIRONMENT,
+                        GraviteeContext.getCurrentEnvironment(),
+                        username
+                    );
                 return roleService.hasPermission(memberPermissions, permission.value().getPermission(), permission.acls());
             case APPLICATION:
                 ApplicationEntity application = getApplication(requestContext);

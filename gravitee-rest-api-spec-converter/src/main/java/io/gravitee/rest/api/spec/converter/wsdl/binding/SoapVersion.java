@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl.binding;
 
+import java.util.List;
 import javax.wsdl.BindingOperation;
 import javax.xml.namespace.QName;
-import java.util.List;
 
 public interface SoapVersion {
     String ENCODING_STYLE_URI = "http://schemas.xmlsoap.org/soap/encoding/";

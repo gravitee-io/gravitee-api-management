@@ -23,10 +23,9 @@ import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageRevision;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -34,6 +33,7 @@ import java.util.Optional;
  */
 @Component
 public class PageRevisionRepositoryProxy extends AbstractProxy<PageRevisionRepository> implements PageRevisionRepository {
+
     @Override
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
         return target.findAll(pageable);

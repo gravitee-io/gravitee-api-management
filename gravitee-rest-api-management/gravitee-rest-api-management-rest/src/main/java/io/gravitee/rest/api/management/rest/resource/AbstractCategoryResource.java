@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.rest.api.model.CategoryEntity;
-
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -51,5 +50,4 @@ public abstract class AbstractCategoryResource extends AbstractResource {
         }
         return categoryEntity;
     }
-
 }

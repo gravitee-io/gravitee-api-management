@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.idp.core.plugin;
 
-import java.util.Collection;
-import java.util.Map;
-
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
 public interface IdentityProviderManager {
-
     void register(IdentityProviderDefinition identityProviderPluginDefinition);
 
     Collection<IdentityProvider> getAll();

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.model.log;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.log.extended.Request;
 import io.gravitee.rest.api.model.log.extended.Response;
-
 import java.util.Map;
 
 /**

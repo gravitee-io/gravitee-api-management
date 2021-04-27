@@ -32,9 +32,7 @@ public class PageService_MockSinglePageFetcherConfiguration implements FetcherCo
     }
 
     @Override
-    public void setFilepath(String filepath) {
-
-    }
+    public void setFilepath(String filepath) {}
 
     @Override
     public boolean isAutoFetch() {

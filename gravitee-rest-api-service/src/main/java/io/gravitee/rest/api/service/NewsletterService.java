@@ -22,7 +22,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface NewsletterService {
-
     /**
      * Subscribe to newsletters.
      * @param email

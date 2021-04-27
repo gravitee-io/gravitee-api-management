@@ -22,15 +22,14 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import io.vertx.core.buffer.Buffer;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -64,7 +63,6 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
 
     @Override
     public boolean isValid(String token) {
-
         if (!this.isEnabled()) {
             LOGGER.debug("ReCaptchaService is disabled");
             return true;
@@ -78,7 +76,13 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
                 return false;
             }
 
-            Buffer response = httpClientService.request(HttpMethod.POST, serviceUrl, Collections.singletonMap(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED), "secret=" + secretKey + "&response=" + token, false);
+            Buffer response = httpClientService.request(
+                HttpMethod.POST,
+                serviceUrl,
+                Collections.singletonMap(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED),
+                "secret=" + secretKey + "&response=" + token,
+                false
+            );
             Map res = objectMapper.readValue(response.toString(), Map.class);
 
             Boolean success = (Boolean) res.getOrDefault("success", false);
@@ -103,5 +107,4 @@ public class ReCaptchaServiceImpl implements ReCaptchaService {
     public String getSiteKey() {
         return siteKey;
     }
-
 }

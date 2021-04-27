@@ -25,10 +25,13 @@ public class ResetPasswordUserEntity {
 
     @NotNull
     private String token;
+
     @NotNull
     private String password;
+
     @NotNull
     private String firstname;
+
     @NotNull
     private String lastname;
 
@@ -63,5 +66,4 @@ public class ResetPasswordUserEntity {
     public void setLastname(String lastname) {
         this.lastname = lastname;
     }
-
 }

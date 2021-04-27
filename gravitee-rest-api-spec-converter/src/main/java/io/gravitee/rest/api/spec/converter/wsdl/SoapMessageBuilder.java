@@ -15,24 +15,24 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl;
 
+import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.detectSoapVersion;
+import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.formatQName;
+
 import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapVersion;
 import io.gravitee.rest.api.spec.converter.wsdl.soap.SoapBodyBuilder;
 import io.gravitee.rest.api.spec.converter.wsdl.soap.SoapHeadersBuilder;
 import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.*;
+import javax.wsdl.*;
+import javax.wsdl.extensions.schema.Schema;
 import org.apache.xmlbeans.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.wsdl.*;
-import javax.wsdl.extensions.schema.Schema;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.*;
-
-import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.detectSoapVersion;
-import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.formatQName;
-
 public class SoapMessageBuilder {
+
     public static final Logger LOGGER = LoggerFactory.getLogger(SoapMessageBuilder.class);
     public static final String XMLSCHEMA = "http://www.w3.org/2001/XMLSchema";
     public static final String XSD_PREFIX = "xsd";
@@ -84,8 +84,7 @@ public class SoapMessageBuilder {
             compileSchemas();
         }
 
-        try (StringWriter writer = new StringWriter()){
-
+        try (StringWriter writer = new StringWriter()) {
             Optional<SoapVersion> optVersion = detectSoapVersion(binding.getExtensibilityElements());
             if (!optVersion.isPresent()) {
                 return Optional.empty();
@@ -111,24 +110,24 @@ public class SoapMessageBuilder {
             envelopeCursor.setBookmark(bookmark);
 
             new SoapHeadersBuilder()
-                    .withWsdlDef(wsdlDef)
-                    .withBindingOperation(bindingOperation)
-                    .withCursor(envelopeCursor)
-                    .withNamespaceMappings(namespaceMappings)
-                    .withShemaTypeSystem(shemaTypeSystem)
-                    .withVersion(version)
-                    .build();
+                .withWsdlDef(wsdlDef)
+                .withBindingOperation(bindingOperation)
+                .withCursor(envelopeCursor)
+                .withNamespaceMappings(namespaceMappings)
+                .withShemaTypeSystem(shemaTypeSystem)
+                .withVersion(version)
+                .build();
 
             envelopeCursor.toBookmark(bookmark);
             envelopeCursor.toLastChild();
 
             new SoapBodyBuilder()
-                    .withBindingOperation(bindingOperation)
-                    .withCursor(envelopeCursor)
-                    .withNamespaceMappings(namespaceMappings)
-                    .withShemaTypeSystem(shemaTypeSystem)
-                    .withVersion(version)
-                    .build();
+                .withBindingOperation(bindingOperation)
+                .withCursor(envelopeCursor)
+                .withNamespaceMappings(namespaceMappings)
+                .withShemaTypeSystem(shemaTypeSystem)
+                .withVersion(version)
+                .build();
 
             envelopeCursor.dispose();
             soapEnvelope.save(writer, options);
@@ -139,5 +138,4 @@ public class SoapMessageBuilder {
         }
         return Optional.empty();
     }
-
 }

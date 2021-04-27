@@ -23,7 +23,12 @@ import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.memory.InMemoryIdentityProvider;
 import io.gravitee.rest.api.idp.memory.authentication.spring.InMemoryGraviteeUserDetailsManager;
 import io.gravitee.rest.api.idp.memory.lookup.spring.InMemoryLookupConfiguration;
-
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -31,13 +36,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author David Brassely (david.brassely at graviteesource.com)
@@ -72,10 +70,11 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
 
     @Override
     public Collection<User> search(String query) {
-        return users.stream()
-                .filter(username -> username.contains(query))
-                .map(username -> convert(userDetailsService.loadUserByUsername(username)))
-                .collect(Collectors.toList());
+        return users
+            .stream()
+            .filter(username -> username.contains(query))
+            .map(username -> convert(userDetailsService.loadUserByUsername(username)))
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -97,7 +96,12 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
                 List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(roles);
                 userIdx++;
 
-                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser = new io.gravitee.rest.api.idp.api.authentication.UserDetails(username, password, email, authorities);
+                io.gravitee.rest.api.idp.api.authentication.UserDetails newUser = new io.gravitee.rest.api.idp.api.authentication.UserDetails(
+                    username,
+                    password,
+                    email,
+                    authorities
+                );
 
                 newUser.setSource(InMemoryIdentityProvider.PROVIDER_TYPE);
                 newUser.setSourceId(username);
@@ -117,7 +121,7 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
 
     @Override
     public boolean allowEmailInSearchResults() {
-        return environment.getProperty("allow-email-in-search-results",Boolean.class, false);
+        return environment.getProperty("allow-email-in-search-results", Boolean.class, false);
     }
 
     private User convert(UserDetails userDetails) {
@@ -131,9 +135,11 @@ public class InMemoryIdentityLookup implements IdentityLookup, InitializingBean 
         user.setLastname(userDetails.getLastname());
 
         if (userDetails.getAuthorities() != null && !userDetails.getAuthorities().isEmpty()) {
-            final Map<String, String> roles = userDetails.getAuthorities().stream()
-                    .map(g -> g.getAuthority().split(":"))
-                    .collect(Collectors.toMap(values-> values[0], values -> values[1]));
+            final Map<String, String> roles = userDetails
+                .getAuthorities()
+                .stream()
+                .map(g -> g.getAuthority().split(":"))
+                .collect(Collectors.toMap(values -> values[0], values -> values[1]));
             user.setRoles(roles);
         }
         return user;

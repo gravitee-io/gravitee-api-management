@@ -20,17 +20,15 @@ package io.gravitee.rest.api.model.permissions;
  * @author GraviteeSource Team
  */
 public enum OrganizationPermission implements Permission {
-    USER                            (   "USER",                         1000    ),
-    ENVIRONMENT                     (   "ENVIRONMENT",                  1100    ),
-    ROLE                            (   "ROLE",                         1200    ),
-    CUSTOM_USER_FIELDS              (   "CUSTOM_USER_FIELDS",           1300    ),
-    IDENTITY_PROVIDER               (   "IDENTITY_PROVIDER",            1400    ),
-    IDENTITY_PROVIDER_ACTIVATION    (   "IDENTITY_PROVIDER_ACTIVATION", 1500    ),
-    NOTIFICATION_TEMPLATES          (   "NOTIFICATION_TEMPLATES",       1600    ),
-    SETTINGS                        (   "SETTINGS",                     1700    ),
-    INSTALLATION                    (   "INSTALLATION",                 1800    ),
-    ;
-
+    USER("USER", 1000),
+    ENVIRONMENT("ENVIRONMENT", 1100),
+    ROLE("ROLE", 1200),
+    CUSTOM_USER_FIELDS("CUSTOM_USER_FIELDS", 1300),
+    IDENTITY_PROVIDER("IDENTITY_PROVIDER", 1400),
+    IDENTITY_PROVIDER_ACTIVATION("IDENTITY_PROVIDER_ACTIVATION", 1500),
+    NOTIFICATION_TEMPLATES("NOTIFICATION_TEMPLATES", 1600),
+    SETTINGS("SETTINGS", 1700),
+    INSTALLATION("INSTALLATION", 1800);
 
     String name;
     int mask;
@@ -49,5 +47,4 @@ public enum OrganizationPermission implements Permission {
     public int getMask() {
         return mask;
     }
-
 }

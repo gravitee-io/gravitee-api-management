@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Map;
 
 /**
@@ -25,8 +24,7 @@ import java.util.Map;
  */
 public class TechnicalManagementException extends AbstractManagementException {
 
-    public TechnicalManagementException() {
-    }
+    public TechnicalManagementException() {}
 
     public TechnicalManagementException(Throwable cause) {
         super(cause);

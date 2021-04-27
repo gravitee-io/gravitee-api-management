@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.policy.impl;
 
+import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v2.SwaggerOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
-import io.gravitee.policy.api.swagger.Policy;
-
 import java.util.*;
 
 /**
@@ -38,13 +37,19 @@ public class PolicyOperationVisitorManagerImpl implements PolicyOperationVisitor
     public void add(PolicyOperationVisitor visitor) {
         policyVisitors.add(visitor);
         if (visitor.getOaiOperationVisitor() != null) {
-            oaiOperationVisitors.put(visitor.getId(), (OAIOperationVisitor<Optional<Policy>>) (descriptor, operation) ->
-                    visitor.getOaiOperationVisitor().visit(descriptor, operation));
+            oaiOperationVisitors.put(
+                visitor.getId(),
+                (OAIOperationVisitor<Optional<Policy>>) (descriptor, operation) ->
+                    visitor.getOaiOperationVisitor().visit(descriptor, operation)
+            );
         }
 
         if (visitor.getSwaggerOperationVisitor() != null) {
-            swaggerOperationVisitors.put(visitor.getId(), (SwaggerOperationVisitor<Optional<Policy>>) (descriptor, operation) ->
-                    visitor.getSwaggerOperationVisitor().visit(descriptor, operation));
+            swaggerOperationVisitors.put(
+                visitor.getId(),
+                (SwaggerOperationVisitor<Optional<Policy>>) (descriptor, operation) ->
+                    visitor.getSwaggerOperationVisitor().visit(descriptor, operation)
+            );
         }
     }
 

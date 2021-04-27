@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -28,18 +31,14 @@ import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserExcepti
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
+import java.util.Arrays;
+import java.util.HashSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -322,26 +321,22 @@ public class ApiService_FindPrimaryOwnerTest {
         assertEquals("USER", primaryOwner.getType());
     }
 
-
     // Helpers
     private JsonNode noPODefinition() {
         return JsonNodeFactory.instance.objectNode();
     }
 
     private JsonNode poGroupDefinition() {
-        return JsonNodeFactory.instance.objectNode()
-                .set("primaryOwner", JsonNodeFactory.instance.objectNode()
-                        .put("id", PO_GROUP_ID)
-                        .put("type", "GROUP"));
+        return JsonNodeFactory.instance
+            .objectNode()
+            .set("primaryOwner", JsonNodeFactory.instance.objectNode().put("id", PO_GROUP_ID).put("type", "GROUP"));
     }
 
     private JsonNode poUserDefinition() {
-        return JsonNodeFactory.instance.objectNode()
-                .set("primaryOwner", JsonNodeFactory.instance.objectNode()
-                        .put("id", PO_USER_ID)
-                        .put("type", "USER"));
+        return JsonNodeFactory.instance
+            .objectNode()
+            .set("primaryOwner", JsonNodeFactory.instance.objectNode().put("id", PO_USER_ID).put("type", "USER"));
     }
-
 
     private void setPrimaryOwnerMode(String mode) {
         when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn(mode);

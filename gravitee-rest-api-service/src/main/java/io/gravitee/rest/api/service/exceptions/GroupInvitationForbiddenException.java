@@ -24,7 +24,10 @@ import java.util.Map;
  */
 public class GroupInvitationForbiddenException extends AbstractNotFoundException {
 
-    public enum Type {EMAIL,SYSTEM}
+    public enum Type {
+        EMAIL,
+        SYSTEM,
+    }
 
     private final String type;
     private final String group;

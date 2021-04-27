@@ -23,18 +23,17 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -66,7 +65,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
             LOGGER.debug("Find environment by ID: {}", environmentId);
             Optional<Environment> optEnvironment = environmentRepository.findById(environmentId);
 
-            if (! optEnvironment.isPresent()) {
+            if (!optEnvironment.isPresent()) {
                 throw new EnvironmentNotFoundException(environmentId);
             }
 
@@ -91,21 +90,22 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
             if (userId != null) {
                 final List<String> stringStream = membershipService
-                        .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.ENVIRONMENT)
-                        .stream()
-                        .map(MembershipEntity::getReferenceId)
-                        .collect(Collectors.toList());
+                    .getMembershipsByMemberAndReference(MembershipMemberType.USER, userId, MembershipReferenceType.ENVIRONMENT)
+                    .stream()
+                    .map(MembershipEntity::getReferenceId)
+                    .collect(Collectors.toList());
 
                 envStream = envStream.filter(env -> stringStream.contains(env.getId()));
             }
 
             if (!StringUtils.isEmpty(idOrHrid)) {
-                envStream = envStream.filter(env -> idOrHrid.equals(env.getId()) || !CollectionUtils.isEmpty(env.getHrids()) && env.getHrids().contains(idOrHrid));
+                envStream =
+                    envStream.filter(
+                        env -> idOrHrid.equals(env.getId()) || !CollectionUtils.isEmpty(env.getHrids()) && env.getHrids().contains(idOrHrid)
+                    );
             }
 
-            return envStream
-                    .map(this::convert)
-                    .collect(Collectors.toList());
+            return envStream.map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all environments", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all environments", ex);
@@ -114,7 +114,6 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     @Override
     public EnvironmentEntity createOrUpdate(String organizationId, String environmentId, final UpdateEnvironmentEntity environmentEntity) {
-
         try {
             // First we check that organization exists
             this.organizationService.findById(organizationId);
@@ -128,19 +127,17 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 return convert(environmentRepository.update(environment));
             } else {
                 EnvironmentEntity createdEnvironment = convert(environmentRepository.create(environment));
-                
+
                 //create Default items for environment
                 apiHeaderService.initialize(createdEnvironment.getId());
                 pageService.initialize(createdEnvironment.getId());
-                
+
                 return createdEnvironment;
             }
-            
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update environment {}", environmentEntity.getName(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update environment " + environmentEntity.getName(), ex);
         }
-        
     }
 
     @Override
@@ -197,12 +194,13 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     public List<EnvironmentEntity> findByOrganization(String organizationId) {
         try {
             LOGGER.debug("Find all environments by organization");
-            return environmentRepository.findByOrganization(organizationId)
-                    .stream()
-                    .map(this::convert).collect(Collectors.toList());
+            return environmentRepository.findByOrganization(organizationId).stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find all environments by organization {}", organizationId, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all environments by organization " + organizationId, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find all environments by organization " + organizationId,
+                ex
+            );
         }
     }
 }

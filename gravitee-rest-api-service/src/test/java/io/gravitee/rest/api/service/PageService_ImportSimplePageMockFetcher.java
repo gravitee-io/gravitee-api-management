@@ -19,7 +19,6 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.fetcher.api.Resource;
-
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -29,6 +28,7 @@ import java.util.Collections;
  * @author GraviteeSource Team
  */
 public class PageService_ImportSimplePageMockFetcher implements FilesFetcher {
+
     public PageService_ImportSimplePageMockFetcher(PageService_MockSinglePageFetcherConfiguration cfg) {
         super();
     }
@@ -43,12 +43,11 @@ public class PageService_ImportSimplePageMockFetcher implements FilesFetcher {
 
     @Override
     public String[] files() throws FetcherException {
-        return new String[]{"poc.md"};
+        return new String[] { "poc.md" };
     }
 
     @Override
     public FetcherConfiguration getConfiguration() {
         return new PageService_MockSinglePageFetcherConfiguration();
     }
-
 }

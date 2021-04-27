@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.policy.impl;
 
-import io.gravitee.rest.api.service.impl.swagger.visitor.OperationVisitor;
 import io.gravitee.policy.api.swagger.Policy;
-
+import io.gravitee.rest.api.service.impl.swagger.visitor.OperationVisitor;
 import java.util.Optional;
 
 /**

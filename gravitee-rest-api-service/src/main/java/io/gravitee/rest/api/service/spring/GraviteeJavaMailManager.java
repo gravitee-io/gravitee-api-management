@@ -23,20 +23,19 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
 
-    private final static String EMAIL_PROPERTIES_PREFIX = "email.properties";
-    private final static String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
+    private static final String EMAIL_PROPERTIES_PREFIX = "email.properties";
+    private static final String MAILAPI_PROPERTIES_PREFIX = "mail.smtp.";
 
     private final ParameterService parameterService;
     private final Map<GraviteeContext.ReferenceContext, JavaMailSenderImpl> mailSenderByReference;
@@ -79,7 +78,11 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
 
     @Override
     public void onEvent(Event<Key, Parameter> event) {
-        JavaMailSenderImpl mailSender = this.getMailSenderByReference(event.content().getReferenceId(), ParameterReferenceType.valueOf(event.content().getReferenceType().name()));
+        JavaMailSenderImpl mailSender =
+            this.getMailSenderByReference(
+                    event.content().getReferenceId(),
+                    ParameterReferenceType.valueOf(event.content().getReferenceType().name())
+                );
         if (mailSender != null) {
             switch (event.type()) {
                 case EMAIL_HOST:
@@ -110,8 +113,7 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
                 case EMAIL_PROPERTIES_AUTH_ENABLED:
                 case EMAIL_PROPERTIES_SSL_TRUST:
                 case EMAIL_PROPERTIES_STARTTLS_ENABLE:
-                    mailSender.getJavaMailProperties()
-                            .setProperty(computeMailProperty(event.type().key()), event.content().getValue());
+                    mailSender.getJavaMailProperties().setProperty(computeMailProperty(event.type().key()), event.content().getValue());
                     break;
             }
         }
@@ -122,7 +124,9 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
     }
 
     JavaMailSenderImpl getMailSenderByReference(String referenceId, ParameterReferenceType referenceType) {
-        return this.getMailSenderByReference(new GraviteeContext.ReferenceContext(referenceId, GraviteeContext.ReferenceContextType.valueOf(referenceType.name())));
+        return this.getMailSenderByReference(
+                new GraviteeContext.ReferenceContext(referenceId, GraviteeContext.ReferenceContextType.valueOf(referenceType.name()))
+            );
     }
 
     private String computeMailProperty(String graviteeProperty) {
@@ -130,22 +134,20 @@ public class GraviteeJavaMailManager implements EventListener<Key, Parameter> {
     }
 
     private Properties loadProperties(String referenceId, ParameterReferenceType referenceType) {
-        Map<String, List<String>> parameters = parameterService.findAll(Arrays.asList(
-                Key.EMAIL_PROPERTIES_AUTH_ENABLED,
-                Key.EMAIL_PROPERTIES_STARTTLS_ENABLE,
-                Key.EMAIL_PROPERTIES_SSL_TRUST),
-                referenceId,
-                referenceType);
+        Map<String, List<String>> parameters = parameterService.findAll(
+            Arrays.asList(Key.EMAIL_PROPERTIES_AUTH_ENABLED, Key.EMAIL_PROPERTIES_STARTTLS_ENABLE, Key.EMAIL_PROPERTIES_SSL_TRUST),
+            referenceId,
+            referenceType
+        );
 
         Properties properties = new Properties();
-        parameters.forEach((key, value) -> {
-            if (!value.isEmpty()) {
-                properties.setProperty(
-                        computeMailProperty(key),
-                        value.get(0)
-                );
+        parameters.forEach(
+            (key, value) -> {
+                if (!value.isEmpty()) {
+                    properties.setProperty(computeMailProperty(key), value.get(0));
+                }
             }
-        });
+        );
 
         return properties;
     }

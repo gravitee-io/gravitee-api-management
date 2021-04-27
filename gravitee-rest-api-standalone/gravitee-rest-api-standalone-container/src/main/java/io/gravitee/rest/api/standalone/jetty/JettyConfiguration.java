@@ -84,11 +84,11 @@ public class JettyConfiguration {
     private String trustStorePassword;
 
     public String getHttpHost() {
-      return httpHost;
+        return httpHost;
     }
 
     public void setHttpHost(String httpHost) {
-      this.httpHost = httpHost;
+        this.httpHost = httpHost;
     }
 
     public int getHttpPort() {

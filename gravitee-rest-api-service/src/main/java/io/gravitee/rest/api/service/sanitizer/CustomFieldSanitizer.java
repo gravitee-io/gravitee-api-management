@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.sanitizer;
 
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldException;
-
 import java.util.regex.Pattern;
 
 /**

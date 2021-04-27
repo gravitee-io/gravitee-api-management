@@ -17,12 +17,11 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
-
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -188,7 +187,6 @@ public class UpdatePlanEntity {
         UpdatePlanEntity that = (UpdatePlanEntity) o;
 
         return id != null ? id.equals(that.id) : that.id == null;
-
     }
 
     @Override

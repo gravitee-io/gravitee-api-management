@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.quality;
 
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -25,19 +27,16 @@ import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.service.QualityRuleService;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 
-import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
-
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration"})
+@Api(tags = { "Configuration" })
 public class QualityRuleResource extends AbstractResource {
 
     @Inject
@@ -49,15 +48,15 @@ public class QualityRuleResource extends AbstractResource {
 
     @GET
     @Produces(APPLICATION_JSON)
-    @ApiOperation(value = "Get a quality rule",
-            notes = "User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Get a quality rule", notes = "User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Quality rule", response = QualityRuleEntity.class),
             @ApiResponse(code = 404, message = "Quality rule not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.READ) })
     public QualityRuleEntity getQualityRule() {
         return qualityRuleService.findById(id);
     }
@@ -65,16 +64,18 @@ public class QualityRuleResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a quality rule",
-            notes = "User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Update a quality rule",
+        notes = "User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Quality rule successfully updated", response = QualityRuleEntity.class),
             @ApiResponse(code = 404, message = "Quality rule not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.UPDATE) })
     public QualityRuleEntity updateQualityRule(@Valid @NotNull final UpdateQualityRuleEntity updateQualityRuleEntity) {
         updateQualityRuleEntity.setId(id);
         return qualityRuleService.update(updateQualityRuleEntity);
@@ -82,15 +83,18 @@ public class QualityRuleResource extends AbstractResource {
 
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete a quality rule",
-            notes = "User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Delete a quality rule",
+        notes = "User must have the MANAGEMENT_QUALITY_RULE[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Quality rule successfully deleted"),
             @ApiResponse(code = 404, message = "Quality rule not found"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.DELETE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.DELETE) })
     public void deleteQualityRule() {
         qualityRuleService.delete(id);
     }

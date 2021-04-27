@@ -15,24 +15,32 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
 import com.google.common.collect.Sets;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.service.exceptions.PageActionException;
-import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.service.exceptions.PageActionException;
 import io.gravitee.rest.api.service.exceptions.PageUsedAsGeneralConditionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,15 +52,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -90,15 +89,17 @@ public class PageService_DeleteTest {
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return null;
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-            @Override
-            public void setAuthentication(Authentication authentication) {
-            }
-        });
+        );
     }
 
     @Test
@@ -226,6 +227,7 @@ public class PageService_DeleteTest {
 
         pageService.delete(PAGE_ID);
     }
+
     @Test(expected = PageUsedAsGeneralConditionsException.class)
     public void shouldNotDeletePage_UsedBy_STAGING_Plan() throws TechnicalException {
         Page page = mock(Page.class);
@@ -248,7 +250,6 @@ public class PageService_DeleteTest {
 
     @Test
     public void shouldDeleteAllByApi() throws TechnicalException {
-
         final SecurityContext securityContext = mock(SecurityContext.class);
         Authentication authentication = mock(Authentication.class);
         when(authentication.getPrincipal()).thenReturn(mock(UserDetails.class));
@@ -309,14 +310,19 @@ public class PageService_DeleteTest {
         when(translation.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
         when(translation.getReferenceId()).thenReturn(refId);
         when(translation.getVisibility()).thenReturn("PUBLIC");
-        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build())).thenReturn(Arrays.asList(translation));
+        when(pageRepository.search(new PageCriteria.Builder().parent(PAGE_ID).type(PageType.TRANSLATION.name()).build()))
+            .thenReturn(Arrays.asList(translation));
 
-        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build())).thenReturn(Arrays.asList(folder, child, childPage, page));
+        when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build()))
+            .thenReturn(Arrays.asList(folder, child, childPage, page));
 
         pageService.deleteAllByApi("apiId");
 
         verify(pageRepository, times(6)).delete(idCaptor.capture());
-        assertEquals("Pages are not deleted in order !", Arrays.asList(childPageId, PAGE_ID, linkId, translationId, childId, folderId), idCaptor.getAllValues());
+        assertEquals(
+            "Pages are not deleted in order !",
+            Arrays.asList(childPageId, PAGE_ID, linkId, translationId, childId, folderId),
+            idCaptor.getAllValues()
+        );
     }
-
 }

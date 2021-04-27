@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -25,6 +25,7 @@ import java.util.Objects;
 public class TransferSubscriptionEntity {
 
     private String id;
+
     @NotNull
     private String plan;
 

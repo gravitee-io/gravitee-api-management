@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
+import static io.gravitee.repository.management.model.Event.EventProperties.ID;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
@@ -29,22 +34,16 @@ import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
-import static io.gravitee.repository.management.model.Event.EventProperties.ID;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Titouan COMPIEGNE
@@ -56,6 +55,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
     @Autowired
     private EventRepository eventRepository;
+
     @Autowired
     private UserService userService;
 
@@ -87,7 +87,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             Event event = convert(newEventEntity);
             event.setId(RandomString.generate());
             event.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-            
+
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);
             // Set date fields
@@ -102,7 +102,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             throw new TechnicalManagementException("An error occurs while getting the server IP address", e);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for server {}", newEventEntity, hostAddress, ex);
-            throw new TechnicalManagementException("An error occurs while trying create " + newEventEntity + " for server " + hostAddress, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying create " + newEventEntity + " for server " + hostAddress,
+                ex
+            );
         }
     }
 
@@ -114,7 +117,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         event.setProperties(properties);
         return create(event);
     }
-    
+
     @Override
     public void delete(String eventId) {
         try {
@@ -127,18 +130,22 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     private Set<EventEntity> findByProperty(String property, String value) {
-        return convert(eventRepository.search(new EventCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).property(property, value).build()));
+        return convert(
+            eventRepository.search(
+                new EventCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).property(property, value).build()
+            )
+        );
     }
 
     @Override
-    public Page<EventEntity> search(List<EventType> eventTypes,
-                                    Map<String, Object> properties, long from, long to, int page, int size) {
+    public Page<EventEntity> search(List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size) {
         EventCriteria.Builder builder = new EventCriteria.Builder().from(from).to(to);
 
         if (eventTypes != null) {
-            io.gravitee.repository.management.model.EventType[] eventTypesArr = eventTypes.stream()
-                    .map(eventType -> io.gravitee.repository.management.model.EventType.valueOf(eventType.toString()))
-                    .toArray(io.gravitee.repository.management.model.EventType[]::new);
+            io.gravitee.repository.management.model.EventType[] eventTypesArr = eventTypes
+                .stream()
+                .map(eventType -> io.gravitee.repository.management.model.EventType.valueOf(eventType.toString()))
+                .toArray(io.gravitee.repository.management.model.EventType[]::new);
 
             builder.types(eventTypesArr);
         }
@@ -148,10 +155,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         }
 
         builder.environmentId(GraviteeContext.getCurrentEnvironment());
-        
-        Page<Event> pageEvent = eventRepository.search(
-                builder.build(),
-                new PageableBuilder().pageNumber(page).pageSize(size).build());
+
+        Page<Event> pageEvent = eventRepository.search(builder.build(), new PageableBuilder().pageNumber(page).pageSize(size).build());
 
         List<EventEntity> content = pageEvent.getContent().stream().map(this::convert).collect(Collectors.toList());
 
@@ -159,15 +164,36 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public <T> Page<T> search(List<EventType> eventTypes,
-                                    Map<String, Object> properties, long from, long to, int page, int size, Function<EventEntity, T> mapper) {
+    public <T> Page<T> search(
+        List<EventType> eventTypes,
+        Map<String, Object> properties,
+        long from,
+        long to,
+        int page,
+        int size,
+        Function<EventEntity, T> mapper
+    ) {
         return search(eventTypes, properties, from, to, page, size, mapper, (T t) -> true);
     }
 
     @Override
-    public <T> Page<T> search(List<EventType> eventTypes, Map<String, Object> properties, long from, long to, int page, int size, Function<EventEntity, T> mapper, Predicate<T> filter) {
+    public <T> Page<T> search(
+        List<EventType> eventTypes,
+        Map<String, Object> properties,
+        long from,
+        long to,
+        int page,
+        int size,
+        Function<EventEntity, T> mapper,
+        Predicate<T> filter
+    ) {
         Page<EventEntity> result = search(eventTypes, properties, from, to, page, size);
-        return new Page<>(result.getContent().stream().map(mapper).filter(filter).collect(Collectors.toList()), page, size, result.getTotalElements());
+        return new Page<>(
+            result.getContent().stream().map(mapper).filter(filter).collect(Collectors.toList()),
+            page,
+            size,
+            result.getTotalElements()
+        );
     }
 
     @Override
@@ -181,13 +207,12 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (query == null) {
             return builder;
         }
-        builder
-                .from(query.getFrom())
-                .to(query.getTo());
+        builder.from(query.getFrom()).to(query.getTo());
 
         if (!isEmpty(query.getTypes())) {
-            query.getTypes().forEach(eventType ->
-                    builder.types(io.gravitee.repository.management.model.EventType.valueOf(eventType.name())));
+            query
+                .getTypes()
+                .forEach(eventType -> builder.types(io.gravitee.repository.management.model.EventType.valueOf(eventType.name())));
         }
 
         if (!isEmpty(query.getProperties())) {
@@ -201,7 +226,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (!isBlank(query.getId())) {
             builder.property(ID.getValue(), query.getId());
         }
-        
+
         return builder;
     }
 

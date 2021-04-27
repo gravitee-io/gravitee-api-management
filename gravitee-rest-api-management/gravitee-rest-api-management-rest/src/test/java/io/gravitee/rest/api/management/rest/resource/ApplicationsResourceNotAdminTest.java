@@ -15,21 +15,19 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.reset;
 
+import io.gravitee.common.http.HttpStatusCode;
+import java.io.IOException;
+import java.security.Principal;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-
-import java.io.IOException;
-import java.security.Principal;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.reset;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,29 +55,32 @@ public class ApplicationsResourceNotAdminTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
-                }
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
 
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
 
-                @Override
-                public boolean isSecure() {
-                    return true;
-                }
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
 
-                @Override
-                public String getAuthenticationScheme() {
-                    return "BASIC";
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-            });
+            );
         }
     }
 }

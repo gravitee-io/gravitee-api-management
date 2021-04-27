@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
+import static java.util.Collections.singletonMap;
+
 import java.util.Map;
 import java.util.Set;
-
-import static java.util.Collections.singletonMap;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

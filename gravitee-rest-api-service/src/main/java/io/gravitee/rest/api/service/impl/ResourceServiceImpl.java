@@ -18,10 +18,9 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
 import io.gravitee.rest.api.service.ResourceService;
-import org.springframework.stereotype.Component;
-
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,10 +31,7 @@ public class ResourceServiceImpl extends AbstractPluginService<ResourcePlugin, P
 
     @Override
     public Set<PluginEntity> findAll() {
-        return super.list()
-                .stream()
-                .map(this::convert)
-                .collect(Collectors.toSet());
+        return super.list().stream().map(this::convert).collect(Collectors.toSet());
     }
 
     @Override

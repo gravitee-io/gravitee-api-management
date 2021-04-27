@@ -18,14 +18,12 @@ package io.gravitee.rest.api.portal.rest.filter;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.function.Predicate;
-
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
-
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -41,31 +39,35 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class SecurityContextFilter implements ContainerRequestFilter {
 
     @Override
-    public void filter(final ContainerRequestContext requestContext)
-            throws IOException {
-        requestContext.setSecurityContext(new SecurityContext() {
+    public void filter(final ContainerRequestContext requestContext) throws IOException {
+        requestContext.setSecurityContext(
+            new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
+                }
 
-            @Override
-            public Principal getUserPrincipal() {
-                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-                return (authentication instanceof AnonymousAuthenticationToken) ? null : authentication;
-            }
+                @Override
+                public boolean isUserInRole(final String role) {
+                    return SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+                        .getAuthorities()
+                        .stream()
+                        .anyMatch((Predicate<GrantedAuthority>) grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase(role));
+                }
 
-            @Override
-            public boolean isUserInRole(final String role) {
-                return SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-                        .stream().anyMatch((Predicate<GrantedAuthority>) grantedAuthority -> grantedAuthority.getAuthority().equalsIgnoreCase(role));
-            }
+                @Override
+                public boolean isSecure() {
+                    return requestContext.getUriInfo().getRequestUri().getScheme().equalsIgnoreCase("https");
+                }
 
-            @Override
-            public boolean isSecure() {
-                return requestContext.getUriInfo().getRequestUri().getScheme().equalsIgnoreCase("https");
+                @Override
+                public String getAuthenticationScheme() {
+                    return requestContext.getUriInfo().getRequestUri().getScheme();
+                }
             }
-
-            @Override
-            public String getAuthenticationScheme() {
-                return requestContext.getUriInfo().getRequestUri().getScheme();
-            }
-        });
+        );
     }
 }

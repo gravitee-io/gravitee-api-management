@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
+import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
+import static java.util.Collections.singletonMap;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
@@ -29,12 +34,6 @@ import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.exceptions.DuplicateMetadataNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.mail.internet.InternetAddress;
 import java.io.StringReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -42,11 +41,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.METADATA;
-import static io.gravitee.repository.management.model.Metadata.AuditEvent.*;
-import static java.util.Collections.singletonMap;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import javax.mail.internet.InternetAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -55,8 +54,9 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Component
 public class MetadataServiceImpl extends TransactionalService implements MetadataService {
 
-    private final static String DEFAULT_REFERENCE_ID = "_";
+    private static final String DEFAULT_REFERENCE_ID = "_";
     private final Logger LOGGER = LoggerFactory.getLogger(MetadataServiceImpl.class);
+
     @Autowired
     private MetadataRepository metadataRepository;
 
@@ -74,10 +74,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     public List<MetadataEntity> findAllDefault() {
         try {
             LOGGER.debug("Find all metadata");
-            return metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT).stream()
-                    .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                    .map(this::convert)
-                    .collect(Collectors.toList());
+            return metadataRepository
+                .findByReferenceType(MetadataReferenceType.DEFAULT)
+                .stream()
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                .map(this::convert)
+                .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to find all metadata", ex);
             throw new TechnicalManagementException("An error occurred while trying to find all metadata", ex);
@@ -93,9 +95,10 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
 
         try {
             // First we prevent the duplicate metadata name
-            final Optional<MetadataEntity> optionalMetadata = findAllDefault().stream()
-                    .filter(metadata -> metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
-                    .findAny();
+            final Optional<MetadataEntity> optionalMetadata = findAllDefault()
+                .stream()
+                .filter(metadata -> metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
+                .findAny();
 
             if (optionalMetadata.isPresent()) {
                 throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
@@ -110,11 +113,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             metadataRepository.create(metadata);
             // Audit
             auditService.createEnvironmentAuditLog(
-                    singletonMap(METADATA, metadata.getKey()),
-                    METADATA_CREATED,
-                    metadata.getCreatedAt(),
-                    null,
-                    metadata);
+                singletonMap(METADATA, metadata.getKey()),
+                METADATA_CREATED,
+                metadata.getCreatedAt(),
+                null,
+                metadata
+            );
             return convert(metadata);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to create metadata {}", metadataEntity.getName(), ex);
@@ -126,9 +130,14 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     public MetadataEntity update(final UpdateMetadataEntity metadataEntity) {
         try {
             // First we prevent the duplicate metadata name
-            final Optional<Metadata> optionalMetadata = metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT).stream()
-                    .filter(metadata -> !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName()))
-                    .findAny();
+            final Optional<Metadata> optionalMetadata = metadataRepository
+                .findByReferenceType(MetadataReferenceType.DEFAULT)
+                .stream()
+                .filter(
+                    metadata ->
+                        !metadataEntity.getKey().equals(metadata.getKey()) && metadataEntity.getName().equalsIgnoreCase(metadata.getName())
+                )
+                .findAny();
 
             if (optionalMetadata.isPresent()) {
                 throw new DuplicateMetadataNameException(optionalMetadata.get().getName());
@@ -143,11 +152,12 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             metadataRepository.update(metadata);
             // Audit
             auditService.createEnvironmentAuditLog(
-                    singletonMap(METADATA, metadata.getKey()),
-                    METADATA_UPDATED,
-                    metadata.getCreatedAt(),
-                    null,
-                    metadata);
+                singletonMap(METADATA, metadata.getKey()),
+                METADATA_UPDATED,
+                metadata.getCreatedAt(),
+                null,
+                metadata
+            );
             return convert(metadata);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurred while trying to update metadata {}", metadataEntity.getName(), ex);
@@ -169,12 +179,7 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
             if (optMetadata.isPresent()) {
                 metadataRepository.delete(key, DEFAULT_REFERENCE_ID, MetadataReferenceType.DEFAULT);
                 // Audit
-                auditService.createEnvironmentAuditLog(
-                        singletonMap(METADATA, key),
-                        METADATA_DELETED,
-                        new Date(),
-                        optMetadata.get(),
-                        null);
+                auditService.createEnvironmentAuditLog(singletonMap(METADATA, key), METADATA_DELETED, new Date(), optMetadata.get(), null);
                 // delete all overridden API metadata
                 final List<Metadata> apiMetadata = metadataRepository.findByKeyAndReferenceType(key, MetadataReferenceType.API);
 
@@ -182,12 +187,13 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
                     metadataRepository.delete(key, metadata.getReferenceId(), metadata.getReferenceType());
                     // Audit
                     auditService.createApiAuditLog(
-                            metadata.getReferenceId(),
-                            singletonMap(METADATA, key),
-                            METADATA_DELETED,
-                            new Date(),
-                            metadata,
-                            null);
+                        metadata.getReferenceId(),
+                        singletonMap(METADATA, key),
+                        METADATA_DELETED,
+                        new Date(),
+                        metadata,
+                        null
+                    );
                 }
             }
         } catch (TechnicalException ex) {
@@ -218,15 +224,21 @@ public class MetadataServiceImpl extends TransactionalService implements Metadat
     }
 
     @Override
-    public void checkMetadataFormat(final MetadataFormat format, final String value,
-                                    final MetadataReferenceType referenceType, final Object entity) {
+    public void checkMetadataFormat(
+        final MetadataFormat format,
+        final String value,
+        final MetadataReferenceType referenceType,
+        final Object entity
+    ) {
         try {
             String decodedValue = value;
             if (entity != null && !isBlank(value) && value.startsWith("${")) {
-                decodedValue = this.notificationTemplateService.resolveInlineTemplateWithParam(
-                        value,
-                        new StringReader(value),
-                        singletonMap(referenceType.name().toLowerCase(), entity));
+                decodedValue =
+                    this.notificationTemplateService.resolveInlineTemplateWithParam(
+                            value,
+                            new StringReader(value),
+                            singletonMap(referenceType.name().toLowerCase(), entity)
+                        );
             }
 
             if (isBlank(decodedValue)) {

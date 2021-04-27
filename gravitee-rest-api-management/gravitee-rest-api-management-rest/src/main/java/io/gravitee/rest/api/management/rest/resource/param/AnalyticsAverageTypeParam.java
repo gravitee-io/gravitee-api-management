@@ -23,7 +23,7 @@ public class AnalyticsAverageTypeParam extends AbstractParam<AnalyticsAverageTyp
 
     public enum AnalyticsAverageType {
         AVAILABILITY,
-        RESPONSE_TIME
+        RESPONSE_TIME,
     }
 
     public AnalyticsAverageTypeParam(String param) {

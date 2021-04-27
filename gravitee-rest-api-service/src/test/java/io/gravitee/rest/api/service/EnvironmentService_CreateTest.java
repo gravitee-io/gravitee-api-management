@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -23,20 +28,14 @@ import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.exceptions.BadOrganizationException;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.impl.EnvironmentServiceImpl;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -81,14 +80,17 @@ public class EnvironmentService_CreateTest {
 
         assertNotNull("result is null", environment);
         verify(mockEnvironmentRepository, times(1))
-                .create(argThat(arg ->
-                        arg != null
-                                && arg.getHrids().equals(Arrays.asList("envhrid"))
-                                && arg.getName().equals("env_name")
-                                && arg.getDescription().equals("env_desc")
-                                && arg.getDomainRestrictions().equals(domainRestrictions)
-                                && arg.getOrganizationId().equals("DEFAULT")
-                ));
+            .create(
+                argThat(
+                    arg ->
+                        arg != null &&
+                        arg.getHrids().equals(Arrays.asList("envhrid")) &&
+                        arg.getName().equals("env_name") &&
+                        arg.getDescription().equals("env_desc") &&
+                        arg.getDomainRestrictions().equals(domainRestrictions) &&
+                        arg.getOrganizationId().equals("DEFAULT")
+                )
+            );
         verify(mockEnvironmentRepository, never()).update(any());
         verify(mockAPIHeaderService, times(1)).initialize("env_id");
         verify(mockPageService, times(1)).initialize("env_id");
@@ -113,14 +115,17 @@ public class EnvironmentService_CreateTest {
 
         assertNotNull("result is null", environment);
         verify(mockEnvironmentRepository, times(1))
-                .update(argThat(arg ->
-                        arg != null
-                                && arg.getHrids().equals(Arrays.asList("envhrid"))
-                                && arg.getName().equals("env_name")
-                                && arg.getDescription().equals("env_desc")
-                                && arg.getDomainRestrictions().equals(domainRestrictions)
-                                && arg.getOrganizationId().equals("DEFAULT")
-                ));
+            .update(
+                argThat(
+                    arg ->
+                        arg != null &&
+                        arg.getHrids().equals(Arrays.asList("envhrid")) &&
+                        arg.getName().equals("env_name") &&
+                        arg.getDescription().equals("env_desc") &&
+                        arg.getDomainRestrictions().equals(domainRestrictions) &&
+                        arg.getOrganizationId().equals("DEFAULT")
+                )
+            );
         verify(mockEnvironmentRepository, never()).create(any());
         verify(mockAPIHeaderService, never()).initialize("env_id");
         verify(mockPageService, never()).initialize("env_id");
@@ -128,7 +133,6 @@ public class EnvironmentService_CreateTest {
 
     @Test(expected = OrganizationNotFoundException.class)
     public void shouldHaveBadOrganizationExceptionWhenNoOrganizationInEntity() {
-
         when(mockOrganizationService.findById("UNKNOWN")).thenThrow(new OrganizationNotFoundException("UNKNOWN"));
 
         environmentService.createOrUpdate("UNKNOWN", "env_id", new UpdateEnvironmentEntity());

@@ -18,13 +18,11 @@ package io.gravitee.rest.api.service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.ApiKeyGenerator;
 import io.gravitee.rest.api.service.impl.UUIDApiKeyGenerator;
-
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.UUID;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)

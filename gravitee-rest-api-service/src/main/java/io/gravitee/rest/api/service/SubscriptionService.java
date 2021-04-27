@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +29,6 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface SubscriptionService {
-
     /**
      * Get a subscription from its ID.
      * @param subscription

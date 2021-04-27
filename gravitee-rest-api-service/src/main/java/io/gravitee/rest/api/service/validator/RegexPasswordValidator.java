@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.service.validator;
 
 import io.gravitee.rest.api.service.PasswordValidator;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,7 +33,7 @@ public class RegexPasswordValidator implements PasswordValidator, InitializingBe
     @Value("${user.password.policy.pattern:^(?=\\s*\\S).*$}")
     private String passwordPattern;
 
-    public RegexPasswordValidator() { }
+    public RegexPasswordValidator() {}
 
     public RegexPasswordValidator(String pattern) {
         this.pattern = Pattern.compile(pattern);
@@ -45,7 +44,6 @@ public class RegexPasswordValidator implements PasswordValidator, InitializingBe
         matcher = pattern.matcher(password);
         return matcher.matches();
     }
-
 
     @Override
     public void afterPropertiesSet() {

@@ -49,7 +49,6 @@ public class DefaultEnvironmentUpgrader implements Upgrader, Ordered {
         return true;
     }
 
-
     @Override
     public int getOrder() {
         return 100;

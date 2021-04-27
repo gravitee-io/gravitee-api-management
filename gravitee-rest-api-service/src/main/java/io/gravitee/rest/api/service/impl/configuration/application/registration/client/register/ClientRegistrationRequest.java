@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -31,7 +30,7 @@ import java.util.List;
 public class ClientRegistrationRequest {
 
     //See https://tools.ietf.org/html/rfc6749#section-3.3
-    public final static String SCOPE_DELIMITER = " ";
+    public static final String SCOPE_DELIMITER = " ";
 
     /*******************************************************************************
      * Metadata in same order than the openid specification
@@ -45,7 +44,7 @@ public class ClientRegistrationRequest {
     private List<String> responseTypes;
 
     @JsonProperty("grant_types")
-    private List<String>grantTypes;
+    private List<String> grantTypes;
 
     @JsonProperty("application_type")
     private String applicationType;
@@ -124,7 +123,6 @@ public class ClientRegistrationRequest {
 
     @JsonProperty("request_uris")
     private List<String> requestUris;
-
 
     /*******************************************************************************
      * Oauth2 metadata in addition to RFC specification

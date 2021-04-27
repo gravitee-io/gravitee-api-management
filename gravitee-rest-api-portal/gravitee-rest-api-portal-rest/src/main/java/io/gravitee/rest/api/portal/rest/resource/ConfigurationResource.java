@@ -35,16 +35,15 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,18 +53,25 @@ public class ConfigurationResource extends AbstractResource {
 
     @Autowired
     private ConfigService configService;
+
     @Autowired
     private PageService pageService;
+
     @Autowired
     private SocialIdentityProviderService socialIdentityProviderService;
+
     @Autowired
     private ConfigurationMapper configMapper;
+
     @Autowired
     private IdentityProviderMapper identityProviderMapper;
+
     @Autowired
     private ApplicationTypeService applicationTypeService;
+
     @Inject
     private CustomUserFieldService customUserFieldService;
+
     @Autowired
     private AccessControlService accessControlService;
 
@@ -82,10 +88,7 @@ public class ConfigurationResource extends AbstractResource {
     public Response listCustomUserFields() {
         List<CustomUserFieldEntity> fields = customUserFieldService.listAllFields();
         if (fields != null) {
-            return Response
-                .ok()
-                .entity(fields)
-                .build();
+            return Response.ok().entity(fields).build();
         }
 
         return Response.serverError().build();
@@ -95,7 +98,14 @@ public class ConfigurationResource extends AbstractResource {
     @Path("identities")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalIdentityProviders(@BeanParam PaginationParam paginationParam) {
-        List<IdentityProvider> identities = socialIdentityProviderService.findAll(new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT)).stream()
+        List<IdentityProvider> identities = socialIdentityProviderService
+            .findAll(
+                new IdentityProviderActivationService.ActivationTarget(
+                    GraviteeContext.getCurrentEnvironment(),
+                    IdentityProviderActivationReferenceType.ENVIRONMENT
+                )
+            )
+            .stream()
             .sorted((idp1, idp2) -> String.CASE_INSENSITIVE_ORDER.compare(idp1.getName(), idp2.getName()))
             .map(identityProviderMapper::convert)
             .collect(Collectors.toList());
@@ -106,7 +116,19 @@ public class ConfigurationResource extends AbstractResource {
     @Path("identities/{identityProviderId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPortalIdentityProvider(@PathParam("identityProviderId") String identityProviderId) {
-        return Response.ok(identityProviderMapper.convert(socialIdentityProviderService.findById(identityProviderId, new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT)))).build();
+        return Response
+            .ok(
+                identityProviderMapper.convert(
+                    socialIdentityProviderService.findById(
+                        identityProviderId,
+                        new IdentityProviderActivationService.ActivationTarget(
+                            GraviteeContext.getCurrentEnvironment(),
+                            IdentityProviderActivationReferenceType.ENVIRONMENT
+                        )
+                    )
+                )
+            )
+            .build();
     }
 
     @GET
@@ -115,55 +137,63 @@ public class ConfigurationResource extends AbstractResource {
     public Response getPortalLinks(@HeaderParam("Accept-Language") String acceptLang) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> portalLinks = new HashMap<>();
-        pageService.search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale).stream()
+        pageService
+            .search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale)
+            .stream()
             .filter(PageEntity::isPublished)
-            .forEach(systemFolder -> {
-                List<CategorizedLinks> catLinksList = new ArrayList<>();
+            .forEach(
+                systemFolder -> {
+                    List<CategorizedLinks> catLinksList = new ArrayList<>();
 
-                // for pages under sysFolder
-                List<Link> links = getLinksFromFolder(systemFolder, acceptedLocale);
-                if (!links.isEmpty()) {
-                    CategorizedLinks catLinks = new CategorizedLinks();
-                    catLinks.setCategory(systemFolder.getName());
-                    catLinks.setLinks(links);
-                    catLinks.setRoot(true);
-                    catLinksList.add(catLinks);
+                    // for pages under sysFolder
+                    List<Link> links = getLinksFromFolder(systemFolder, acceptedLocale);
+                    if (!links.isEmpty()) {
+                        CategorizedLinks catLinks = new CategorizedLinks();
+                        catLinks.setCategory(systemFolder.getName());
+                        catLinks.setLinks(links);
+                        catLinks.setRoot(true);
+                        catLinksList.add(catLinks);
+                    }
+
+                    // for pages into folders
+                    pageService
+                        .search(new PageQuery.Builder().parent(systemFolder.getId()).build(), acceptedLocale)
+                        .stream()
+                        .filter(PageEntity::isPublished)
+                        .filter(p -> p.getType().equals("FOLDER"))
+                        .forEach(
+                            folder -> {
+                                List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
+                                if (folderLinks != null && !folderLinks.isEmpty()) {
+                                    CategorizedLinks catLinks = new CategorizedLinks();
+                                    catLinks.setCategory(folder.getName());
+                                    catLinks.setLinks(folderLinks);
+                                    catLinks.setRoot(false);
+                                    catLinksList.add(catLinks);
+                                }
+                            }
+                        );
+                    if (!catLinksList.isEmpty()) {
+                        portalLinks.put(systemFolder.getName().toLowerCase(), catLinksList);
+                    }
                 }
+            );
 
-                // for pages into folders
-                pageService.search(new PageQuery.Builder().parent(systemFolder.getId()).build(), acceptedLocale).stream()
-                    .filter(PageEntity::isPublished)
-                    .filter(p -> p.getType().equals("FOLDER"))
-                    .forEach(folder -> {
-                        List<Link> folderLinks = getLinksFromFolder(folder, acceptedLocale);
-                        if (folderLinks != null && !folderLinks.isEmpty()) {
-                            CategorizedLinks catLinks = new CategorizedLinks();
-                            catLinks.setCategory(folder.getName());
-                            catLinks.setLinks(folderLinks);
-                            catLinks.setRoot(false);
-                            catLinksList.add(catLinks);
-                        }
-
-                    });
-                if (!catLinksList.isEmpty()) {
-                    portalLinks.put(systemFolder.getName().toLowerCase(), catLinksList);
-                }
-            });
-
-        return Response
-            .ok(new LinksResponse().slots(portalLinks))
-            .build();
+        return Response.ok(new LinksResponse().slots(portalLinks)).build();
     }
 
     private List<Link> getLinksFromFolder(PageEntity folder, String acceptedLocale) {
-        return pageService.search(new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale).stream()
-            .filter((p) -> {
-                if (PageType.FOLDER.name().equals(p.getType()) ||
-                    PageType.MARKDOWN_TEMPLATE.name().equals(p.getType())) {
-                    return false;
+        return pageService
+            .search(new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale)
+            .stream()
+            .filter(
+                p -> {
+                    if (PageType.FOLDER.name().equals(p.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(p.getType())) {
+                        return false;
+                    }
+                    return accessControlService.canAccessPageFromPortal(p);
                 }
-                return accessControlService.canAccessPageFromPortal(p);
-            })
+            )
             .map(ConfigurationResource::convertToLink)
             .collect(Collectors.toList());
     }
@@ -181,10 +211,7 @@ public class ConfigurationResource extends AbstractResource {
             }
             return link;
         } else {
-            return new Link()
-                .name(p.getName())
-                .resourceRef(p.getId())
-                .resourceType(ResourceTypeEnum.PAGE);
+            return new Link().name(p.getName()).resourceRef(p.getId()).resourceType(ResourceTypeEnum.PAGE);
         }
     }
 
@@ -193,9 +220,7 @@ public class ConfigurationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEnabledApplicationTypes() {
         ApplicationTypesEntity enabledApplicationTypes = applicationTypeService.getEnabledApplicationTypes();
-        return Response
-            .ok(convert(enabledApplicationTypes))
-            .build();
+        return Response.ok(convert(enabledApplicationTypes)).build();
     }
 
     @GET
@@ -203,47 +228,61 @@ public class ConfigurationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApplicationRoles() {
         return Response
-            .ok(new ConfigurationApplicationRolesResponse()
-                .data(roleService.findByScope(RoleScope.APPLICATION).stream()
-                    .map(roleEntity -> new ApplicationRole()
-                        ._default(roleEntity.isDefaultRole())
-                        .id(roleEntity.getName())
-                        .name(roleEntity.getName())
-                        .system(roleEntity.isSystem())
+            .ok(
+                new ConfigurationApplicationRolesResponse()
+                .data(
+                        roleService
+                            .findByScope(RoleScope.APPLICATION)
+                            .stream()
+                            .map(
+                                roleEntity ->
+                                    new ApplicationRole()
+                                        ._default(roleEntity.isDefaultRole())
+                                        .id(roleEntity.getName())
+                                        .name(roleEntity.getName())
+                                        .system(roleEntity.isSystem())
+                            )
+                            .collect(Collectors.toList())
                     )
-                    .collect(Collectors.toList())
-                )
             )
             .build();
     }
 
     private ConfigurationApplicationTypesResponse convert(ApplicationTypesEntity enabledApplicationTypes) {
         ConfigurationApplicationTypesResponse configurationApplicationsTypesResponse = new ConfigurationApplicationTypesResponse();
-        List<ApplicationType> types = enabledApplicationTypes.getData().stream().map(applicationTypeEntity -> {
-
-            ApplicationType applicationType = new ApplicationType();
-            applicationType.setAllowedGrantTypes(convert(applicationTypeEntity.getAllowed_grant_types()));
-            applicationType.setDefaultGrantTypes(convert(applicationTypeEntity.getDefault_grant_types()));
-            applicationType.setMandatoryGrantTypes(convert(applicationTypeEntity.getMandatory_grant_types()));
-            applicationType.setId(applicationTypeEntity.getId());
-            applicationType.setName(applicationTypeEntity.getName());
-            applicationType.setDescription(applicationTypeEntity.getDescription());
-            applicationType.setRequiresRedirectUris(applicationTypeEntity.getRequires_redirect_uris());
-            return applicationType;
-        }).collect(Collectors.toList());
+        List<ApplicationType> types = enabledApplicationTypes
+            .getData()
+            .stream()
+            .map(
+                applicationTypeEntity -> {
+                    ApplicationType applicationType = new ApplicationType();
+                    applicationType.setAllowedGrantTypes(convert(applicationTypeEntity.getAllowed_grant_types()));
+                    applicationType.setDefaultGrantTypes(convert(applicationTypeEntity.getDefault_grant_types()));
+                    applicationType.setMandatoryGrantTypes(convert(applicationTypeEntity.getMandatory_grant_types()));
+                    applicationType.setId(applicationTypeEntity.getId());
+                    applicationType.setName(applicationTypeEntity.getName());
+                    applicationType.setDescription(applicationTypeEntity.getDescription());
+                    applicationType.setRequiresRedirectUris(applicationTypeEntity.getRequires_redirect_uris());
+                    return applicationType;
+                }
+            )
+            .collect(Collectors.toList());
 
         configurationApplicationsTypesResponse.setData(types);
         return configurationApplicationsTypesResponse;
     }
 
     private List<ApplicationGrantType> convert(List<ApplicationGrantTypeEntity> allowedGrantTypes) {
-
-        return allowedGrantTypes.stream().map(applicationGrantTypeEntity -> {
-            ApplicationGrantType applicationGrantType = new ApplicationGrantType();
-            applicationGrantType.setName(applicationGrantTypeEntity.getName());
-            applicationGrantType.setType(applicationGrantTypeEntity.getType());
-            return applicationGrantType;
-        }).collect(Collectors.toList());
+        return allowedGrantTypes
+            .stream()
+            .map(
+                applicationGrantTypeEntity -> {
+                    ApplicationGrantType applicationGrantType = new ApplicationGrantType();
+                    applicationGrantType.setName(applicationGrantTypeEntity.getName());
+                    applicationGrantType.setType(applicationGrantTypeEntity.getType());
+                    return applicationGrantType;
+                }
+            )
+            .collect(Collectors.toList());
     }
-
 }

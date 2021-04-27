@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -23,21 +27,16 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiKeyServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -121,7 +120,7 @@ public class ApiKeyServiceTest {
         assertEquals(subscription.getId(), apiKey.getSubscription());
 
         ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        verify(auditService).createApiAuditLog(any(), argument.capture(), any(), any(), any(), any());
         Map<Audit.AuditProperties, String> properties = argument.getValue();
         assertEquals(3, properties.size());
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
@@ -155,7 +154,7 @@ public class ApiKeyServiceTest {
         assertEquals(subscription.getId(), apiKey.getSubscription());
 
         ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        verify(auditService).createApiAuditLog(any(), argument.capture(), any(), any(), any(), any());
         Map<Audit.AuditProperties, String> properties = argument.getValue();
         assertEquals(3, properties.size());
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
@@ -202,7 +201,7 @@ public class ApiKeyServiceTest {
         verify(apiKeyRepository, times(1)).update(any());
 
         ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        verify(auditService).createApiAuditLog(any(), argument.capture(), any(), any(), any(), any());
         Map<Audit.AuditProperties, String> properties = argument.getValue();
         assertEquals(3, properties.size());
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
@@ -396,7 +395,7 @@ public class ApiKeyServiceTest {
         assertEquals(API_KEY, apiKeyEntity.getKey());
 
         ArgumentCaptor<Map> argument = ArgumentCaptor.forClass(Map.class);
-        verify(auditService, times(2)).createApiAuditLog(any(),argument.capture(), any(), any(), any(), any());
+        verify(auditService, times(2)).createApiAuditLog(any(), argument.capture(), any(), any(), any(), any());
         for (Map<Audit.AuditProperties, String> properties : argument.getAllValues()) {
             assertEquals(3, properties.size());
             assertTrue(properties.containsKey(Audit.AuditProperties.API));
@@ -500,10 +499,8 @@ public class ApiKeyServiceTest {
         //must be manage by the revoke method
         assertFalse("isRevoked", existingApiKey.isRevoked());
         assertTrue("isPaused", existingApiKey.isPaused());
-        verify(notifierService, times(1))
-                .trigger(eq(ApiHook.APIKEY_EXPIRED), any(), any());
-        verify(auditService, times(1))
-                .createApiAuditLog(any(), any(), eq(ApiKey.AuditEvent.APIKEY_EXPIRED), any(), any(), any());
+        verify(notifierService, times(1)).trigger(eq(ApiHook.APIKEY_EXPIRED), any(), any());
+        verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(ApiKey.AuditEvent.APIKEY_EXPIRED), any(), any(), any());
     }
 
     @Test

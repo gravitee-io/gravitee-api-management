@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import java.util.Map;
-
 import static java.util.Collections.singletonMap;
+
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

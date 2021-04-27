@@ -15,27 +15,26 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.Visibility;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
-import javax.annotation.Priority;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import java.io.IOException;
-import java.security.Principal;
-
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import java.io.IOException;
+import java.security.Principal;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -93,7 +92,9 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
-        doReturn(true).when(roleService).hasPermission(any(), eq(ApiPermission.DOCUMENTATION), eq(new RolePermissionAction[]{RolePermissionAction.READ}));
+        doReturn(true)
+            .when(roleService)
+            .hasPermission(any(), eq(ApiPermission.DOCUMENTATION), eq(new RolePermissionAction[] { RolePermissionAction.READ }));
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
 
         final Response response = envTarget().request().get();
@@ -105,29 +106,32 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
-                }
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
 
-                @Override
-                public boolean isUserInRole(String string) {
-                    return false;
-                }
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return false;
+                    }
 
-                @Override
-                public boolean isSecure() {
-                    return true;
-                }
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
 
-                @Override
-                public String getAuthenticationScheme() {
-                    return "BASIC";
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-            });
+            );
         }
     }
 }

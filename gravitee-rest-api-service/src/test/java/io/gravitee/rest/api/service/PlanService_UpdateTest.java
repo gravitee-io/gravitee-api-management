@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -29,17 +32,13 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Optional;
-
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -80,6 +79,7 @@ public class PlanService_UpdateTest {
 
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private PlanSynchronizationProcessor synchronizationProcessor;
 

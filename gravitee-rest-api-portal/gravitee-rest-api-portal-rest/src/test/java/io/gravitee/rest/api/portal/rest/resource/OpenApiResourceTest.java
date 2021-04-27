@@ -18,15 +18,12 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 
+import io.gravitee.common.http.MediaType;
 import java.io.IOException;
-
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-
 import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Test;
-
-import io.gravitee.common.http.MediaType;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -41,7 +38,6 @@ public class OpenApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetOpenApiSpecification() throws IOException {
-        
         final Response response = root().path("openapi").request().get();
         assertEquals(OK_200, response.getStatus());
 
@@ -52,8 +48,6 @@ public class OpenApiResourceTest extends AbstractResourceTest {
 
         String result = response.readEntity(String.class);
         assertEquals("DUMMY OPENAPI", result);
-        
     }
-    
     //APIPortal: add a test if spec file does not exist
 }

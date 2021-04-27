@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-import java.util.Set;
-
 import io.gravitee.rest.api.model.NewTagEntity;
 import io.gravitee.rest.api.model.TagEntity;
 import io.gravitee.rest.api.model.UpdateTagEntity;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)

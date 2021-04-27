@@ -21,7 +21,6 @@ import io.swagger.jaxrs.config.ReaderListener;
 import io.swagger.models.Swagger;
 import io.swagger.models.Tag;
 import io.swagger.models.auth.BasicAuthDefinition;
-
 import java.util.Comparator;
 import java.util.TreeMap;
 
@@ -35,8 +34,7 @@ public class GraviteeApiDefinition implements ReaderListener {
     public static final String TOKEN_AUTH_SCHEME = "gravitee-auth";
 
     @Override
-    public void beforeScan(Reader reader, Swagger swagger) {
-    }
+    public void beforeScan(Reader reader, Swagger swagger) {}
 
     @Override
     public void afterScan(Reader reader, Swagger swagger) {
@@ -48,8 +46,11 @@ public class GraviteeApiDefinition implements ReaderListener {
         swagger.setDefinitions(new TreeMap<>(swagger.getDefinitions()));
         swagger.addSecurityDefinition(TOKEN_AUTH_SCHEME, new BasicAuthDefinition());
 
-        swagger.getPaths().values()
-                .forEach(path -> path.getOperations()
-                        .forEach(operation -> operation.addSecurity(GraviteeApiDefinition.TOKEN_AUTH_SCHEME, null)));
+        swagger
+            .getPaths()
+            .values()
+            .forEach(
+                path -> path.getOperations().forEach(operation -> operation.addSecurity(GraviteeApiDefinition.TOKEN_AUTH_SCHEME, null))
+            );
     }
 }

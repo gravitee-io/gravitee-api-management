@@ -26,22 +26,21 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.annotations.*;
-import org.springframework.beans.factory.annotation.Autowired;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration", "Identity Providers"})
+@Api(tags = { "Configuration", "Identity Providers" })
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class IdentityProvidersResource extends AbstractResource {
@@ -54,44 +53,61 @@ public class IdentityProvidersResource extends AbstractResource {
 
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
-    @ApiOperation(value = "Get the list of identity providers",
-            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "List identity providers", response = IdentityProviderListItem.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(
+        value = "Get the list of identity providers",
+        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List identity providers",
+                response = IdentityProviderListItem.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public List<IdentityProviderListItem> getIdentityProviders() {
-        return identityProviderService.findAll().stream().map(identityProvider -> {
-            IdentityProviderListItem item = new IdentityProviderListItem();
-            item.setId(identityProvider.getId());
-            item.setName(identityProvider.getName());
-            item.setDescription(identityProvider.getDescription());
-            item.setEnabled(identityProvider.isEnabled());
-            item.setType(identityProvider.getType());
-            item.setCreatedAt(identityProvider.getCreatedAt());
-            item.setUpdatedAt(identityProvider.getUpdatedAt());
-            item.setSync(identityProvider.isSyncMappings());
-            return item;
-        }).collect(Collectors.toList());
+        return identityProviderService
+            .findAll()
+            .stream()
+            .map(
+                identityProvider -> {
+                    IdentityProviderListItem item = new IdentityProviderListItem();
+                    item.setId(identityProvider.getId());
+                    item.setName(identityProvider.getName());
+                    item.setDescription(identityProvider.getDescription());
+                    item.setEnabled(identityProvider.isEnabled());
+                    item.setType(identityProvider.getType());
+                    item.setCreatedAt(identityProvider.getCreatedAt());
+                    item.setUpdatedAt(identityProvider.getUpdatedAt());
+                    item.setSync(identityProvider.isSyncMappings());
+                    return item;
+                }
+            )
+            .collect(Collectors.toList());
     }
 
     @POST
-    @Permissions({
-            @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE)
-    })
-    @ApiOperation(value = "Create an identity provider",
-            notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service")
-    @ApiResponses({
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE) })
+    @ApiOperation(
+        value = "Create an identity provider",
+        notes = "User must have the ORGANIZATION_IDENTITY_PROVIDER[CREATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Identity provider successfully created", response = IdentityProviderEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Response createIdentityProvider(
-            @ApiParam(name = "identity-provider", required = true) @Valid @NotNull NewIdentityProviderEntity newIdentityProviderEntity) {
+        @ApiParam(name = "identity-provider", required = true) @Valid @NotNull NewIdentityProviderEntity newIdentityProviderEntity
+    ) {
         IdentityProviderEntity newIdentityProvider = identityProviderService.create(newIdentityProviderEntity);
 
         if (newIdentityProvider != null) {
-            return Response
-                    .created(this.getLocationHeader(newIdentityProvider.getId()))
-                    .entity(newIdentityProvider)
-                    .build();
+            return Response.created(this.getLocationHeader(newIdentityProvider.getId())).entity(newIdentityProvider).build();
         }
 
         return Response.serverError().build();

@@ -16,30 +16,24 @@
 package io.gravitee.rest.api.standalone.spring;
 
 import io.gravitee.node.container.NodeFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-
 import io.gravitee.node.vertx.spring.VertxConfiguration;
-import io.gravitee.rest.api.repository.spring.RepositoryConfiguration;
 import io.gravitee.rest.api.management.rest.spring.RestManagementConfiguration;
 import io.gravitee.rest.api.portal.rest.spring.RestPortalConfiguration;
+import io.gravitee.rest.api.repository.spring.RepositoryConfiguration;
 import io.gravitee.rest.api.standalone.jetty.JettyConfiguration;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.rest.api.standalone.jetty.JettyServerFactory;
 import io.gravitee.rest.api.standalone.node.GraviteeApisNode;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({
-        VertxConfiguration.class,
-        RepositoryConfiguration.class,
-        RestManagementConfiguration.class,
-        RestPortalConfiguration.class
-})
+@Import({ VertxConfiguration.class, RepositoryConfiguration.class, RestManagementConfiguration.class, RestPortalConfiguration.class })
 public class StandaloneConfiguration {
 
     @Bean

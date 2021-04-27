@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_TOP_APIS;
+import static java.util.Collections.emptyList;
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.rest.api.model.NewTopApiEntity;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.UpdateTopApiEntity;
@@ -23,18 +28,12 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.TopApiService;
+import java.util.ArrayList;
+import java.util.List;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-
-import static io.gravitee.rest.api.model.parameters.Key.PORTAL_TOP_APIS;
-import static java.util.Collections.emptyList;
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -47,14 +46,19 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
 
     @Inject
     private ParameterService parameterService;
+
     @Inject
     private ApiService apiService;
 
     @Override
     public List<TopApiEntity> findAll() {
         LOGGER.debug("Find all top APIs");
-        final List<ApiEntity> apis = parameterService.findAll(PORTAL_TOP_APIS, apiId -> apiService.findById(apiId),
-                apiService::exists, ParameterReferenceType.ENVIRONMENT);
+        final List<ApiEntity> apis = parameterService.findAll(
+            PORTAL_TOP_APIS,
+            apiId -> apiService.findById(apiId),
+            apiService::exists,
+            ParameterReferenceType.ENVIRONMENT
+        );
         if (!apis.isEmpty()) {
             final List<TopApiEntity> topApis = new ArrayList<>(apis.size());
             for (int i = 0; i < apis.size(); i++) {
@@ -90,13 +94,18 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
     public List<TopApiEntity> update(final List<UpdateTopApiEntity> topApis) {
         final List<String> existingTopApis = parameterService.findAll(PORTAL_TOP_APIS, ParameterReferenceType.ENVIRONMENT);
         final List<String> updatingTopApis = topApis.stream().map(UpdateTopApiEntity::getApi).collect(toList());
-        if (existingTopApis.size() != updatingTopApis.size() || !updatingTopApis.containsAll(existingTopApis) ||
-                !existingTopApis.containsAll(updatingTopApis)) {
+        if (
+            existingTopApis.size() != updatingTopApis.size() ||
+            !updatingTopApis.containsAll(existingTopApis) ||
+            !existingTopApis.containsAll(updatingTopApis)
+        ) {
             throw new IllegalArgumentException("Invalid content to update");
         }
-        parameterService.save(PORTAL_TOP_APIS, topApis.stream()
-                .sorted(comparing(UpdateTopApiEntity::getOrder)).map(UpdateTopApiEntity::getApi).collect(toList()),
-                ParameterReferenceType.ENVIRONMENT);
+        parameterService.save(
+            PORTAL_TOP_APIS,
+            topApis.stream().sorted(comparing(UpdateTopApiEntity::getOrder)).map(UpdateTopApiEntity::getApi).collect(toList()),
+            ParameterReferenceType.ENVIRONMENT
+        );
         return findAll();
     }
 
@@ -105,8 +114,11 @@ public class TopApiServiceImpl extends TransactionalService implements TopApiSer
         final List<TopApiEntity> topApis = findAll();
         if (!topApis.isEmpty()) {
             topApis.removeIf(topApiEntity -> apiId.equals(topApiEntity.getApi()));
-            parameterService.save(PORTAL_TOP_APIS,
-                    topApis.stream().sorted(comparing(TopApiEntity::getOrder)).map(TopApiEntity::getApi).collect(toList()), ParameterReferenceType.ENVIRONMENT);
+            parameterService.save(
+                PORTAL_TOP_APIS,
+                topApis.stream().sorted(comparing(TopApiEntity::getOrder)).map(TopApiEntity::getApi).collect(toList()),
+                ParameterReferenceType.ENVIRONMENT
+            );
         }
     }
 }

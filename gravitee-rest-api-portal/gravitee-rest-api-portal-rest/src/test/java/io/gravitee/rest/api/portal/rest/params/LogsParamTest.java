@@ -15,14 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.params;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.resource.param.LogsParam;
-import org.junit.Test;
-
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.core.Response;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -40,22 +39,22 @@ public class LogsParamTest {
         //test
         params.validate();
         assertTrue(true);
-        
+
         //another test with 'DESC'
         params.setOrder("DESC");
         //test
         params.validate();
         assertTrue(true);
     }
-    
+
     @Test
     public void testValidateKoFrom() {
         LogsParam params = new LogsParam();
         params.setFrom(-1);
-        
+
         testParams(params, "Query parameter 'from' is not valid");
     }
-    
+
     @Test
     public void testValidateKoTo() {
         LogsParam params = new LogsParam();
@@ -63,9 +62,8 @@ public class LogsParamTest {
         params.setTo(-1);
 
         testParams(params, "Query parameter 'to' is not valid");
-        
     }
-    
+
     @Test
     public void testValidateKoFromAndTo() {
         LogsParam params = new LogsParam();
@@ -73,7 +71,7 @@ public class LogsParamTest {
         params.setTo(1);
         testParams(params, "'from' query parameter value must not be greater than 'to'");
     }
-    
+
     @Test
     public void testValidateKoOrder() {
         LogsParam params = new LogsParam();
@@ -82,16 +80,15 @@ public class LogsParamTest {
         params.setOrder("");
         testParams(params, "'order' query parameter value must be 'ASC' or 'DESC'");
     }
-    
+
     private void testParams(LogsParam params, String expectedErrorMessage) {
         try {
             params.validate();
             assertFalse(true);
-        } catch(BadRequestException e) {
+        } catch (BadRequestException e) {
             final Response response = e.getResponse();
             assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
             assertEquals(expectedErrorMessage, e.getMessage());
-
         }
     }
 }

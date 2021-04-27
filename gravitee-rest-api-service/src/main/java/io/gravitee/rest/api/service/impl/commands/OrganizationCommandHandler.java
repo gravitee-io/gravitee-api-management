@@ -51,7 +51,6 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
 
     @Override
     public Single<OrganizationReply> handle(OrganizationCommand command) {
-
         OrganizationPayload organizationPayload = command.getPayload();
 
         try {
@@ -65,7 +64,12 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             logger.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {
-            logger.error("Error occurred when handling organization [{}] with id [{}].", organizationPayload.getName(), organizationPayload.getId(), e);
+            logger.error(
+                "Error occurred when handling organization [{}] with id [{}].",
+                organizationPayload.getName(),
+                organizationPayload.getId(),
+                e
+            );
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.ERROR));
         }
     }

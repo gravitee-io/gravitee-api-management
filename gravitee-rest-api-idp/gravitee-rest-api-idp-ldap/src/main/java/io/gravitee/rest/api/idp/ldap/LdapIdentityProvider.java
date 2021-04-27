@@ -27,7 +27,7 @@ import io.gravitee.rest.api.idp.ldap.lookup.LdapIdentityLookup;
  */
 public class LdapIdentityProvider implements IdentityProvider {
 
-    public final static String PROVIDER_TYPE = "ldap";
+    public static final String PROVIDER_TYPE = "ldap";
 
     @Override
     public String type() {

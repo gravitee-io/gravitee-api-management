@@ -15,27 +15,26 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.filtering.FilteredEntities;
-import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import java.util.*;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -68,12 +67,10 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
         doReturn(new Application().id("B").name("B")).when(applicationMapper).convert(eq(applicationListItem2), any());
 
-
         ApplicationEntity createdEntity = mock(ApplicationEntity.class);
         doReturn("NEW").when(createdEntity).getId();
         doReturn(createdEntity).when(applicationService).create(any(), any());
         doReturn(new Application().id("NEW")).when(applicationMapper).convert(eq(createdEntity), any());
-
     }
 
     @Test
@@ -118,14 +115,15 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         applicationListItem4.setId("D");
         applicationListItem4.setName("d");
 
-        Set<ApplicationListItem> mockApplications = new HashSet<>(Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4));
+        Set<ApplicationListItem> mockApplications = new HashSet<>(
+            Arrays.asList(applicationListItem1, applicationListItem2, applicationListItem3, applicationListItem4)
+        );
         doReturn(mockApplications).when(applicationService).findByUser(any());
 
         doReturn(new Application().id("A").name("A")).when(applicationMapper).convert(eq(applicationListItem1), any());
         doReturn(new Application().id("B").name("b")).when(applicationMapper).convert(eq(applicationListItem2), any());
         doReturn(new Application().id("C").name("C")).when(applicationMapper).convert(eq(applicationListItem3), any());
         doReturn(new Application().id("D").name("d")).when(applicationMapper).convert(eq(applicationListItem4), any());
-
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -138,7 +136,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals("D", applicationsResponse.getData().get(3).getId());
 
         Mockito.verify(filteringService, times(0)).getEntitiesOrderByNumberOfSubscriptions(anyCollection(), eq(false), eq(false));
-
     }
 
     @Test
@@ -162,7 +159,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         Links links = applicationsResponse.getLinks();
         assertNotNull(links);
-
     }
 
     @Test
@@ -183,7 +179,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoApplicationAndNoLink() {
-
         doReturn(new HashSet<>()).when(applicationService).findByUser(any());
 
         //Test with default limit
@@ -205,16 +200,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
         links = applicationsResponse.getLinks();
         assertNull(links);
-
     }
 
     @Test
     public void shouldCreateApplicationWithoutSettings() {
-
-        ApplicationInput input = new ApplicationInput()
-                .description(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
-                .name(APPLICATION);
+        ApplicationInput input = new ApplicationInput().description(APPLICATION).groups(Arrays.asList(APPLICATION)).name(APPLICATION);
 
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -240,7 +230,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNull(settings.getApp());
         assertNull(settings.getoAuthClient());
 
-
         Application createdApp = response.readEntity(Application.class);
         assertNotNull(createdApp);
         assertEquals("NEW", createdApp.getId());
@@ -248,12 +237,11 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateApplicationWithEmptySettings() {
-
         ApplicationInput input = new ApplicationInput()
-                .description(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
-                .name(APPLICATION)
-                .settings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings());
+            .description(APPLICATION)
+            .groups(Arrays.asList(APPLICATION))
+            .name(APPLICATION)
+            .settings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings());
 
         final Response response = target().request().post(Entity.json(input));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
@@ -278,7 +266,6 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertNull(settings.getApp());
         assertNull(settings.getoAuthClient());
 
-
         Application createdApp = response.readEntity(Application.class);
         assertNotNull(createdApp);
         assertEquals("NEW", createdApp.getId());
@@ -286,15 +273,9 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateApplicationWithSimpleSettings() {
+        ApplicationInput input = new ApplicationInput().description(APPLICATION).groups(Arrays.asList(APPLICATION)).name(APPLICATION);
 
-        ApplicationInput input = new ApplicationInput()
-                .description(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
-                .name(APPLICATION);
-
-        SimpleApplicationSettings sas = new SimpleApplicationSettings()
-                .clientId(APPLICATION)
-                .type(APPLICATION);
+        SimpleApplicationSettings sas = new SimpleApplicationSettings().clientId(APPLICATION).type(APPLICATION);
         input.setSettings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings().app(sas));
 
         final Response response = target().request().post(Entity.json(input));
@@ -330,22 +311,18 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldCreateApplicationWithOauthSettings() {
-
-        ApplicationInput input = new ApplicationInput()
-                .description(APPLICATION)
-                .groups(Arrays.asList(APPLICATION))
-                .name(APPLICATION);
+        ApplicationInput input = new ApplicationInput().description(APPLICATION).groups(Arrays.asList(APPLICATION)).name(APPLICATION);
 
         OAuthClientSettings oacs = new OAuthClientSettings()
-                .applicationType(APPLICATION)
-                .clientId(APPLICATION)
-                .clientSecret(APPLICATION)
-                .clientUri(APPLICATION)
-                .logoUri(APPLICATION)
-                .grantTypes(Arrays.asList(APPLICATION))
-                .redirectUris(Arrays.asList(APPLICATION))
-                .responseTypes(Arrays.asList(APPLICATION))
-                .renewClientSecretSupported(Boolean.TRUE);
+            .applicationType(APPLICATION)
+            .clientId(APPLICATION)
+            .clientSecret(APPLICATION)
+            .clientUri(APPLICATION)
+            .logoUri(APPLICATION)
+            .grantTypes(Arrays.asList(APPLICATION))
+            .redirectUris(Arrays.asList(APPLICATION))
+            .responseTypes(Arrays.asList(APPLICATION))
+            .renewClientSecretSupported(Boolean.TRUE);
         input.setSettings(new io.gravitee.rest.api.portal.rest.model.ApplicationSettings().oauth(oacs));
 
         final Response response = target().request().post(Entity.json(input));

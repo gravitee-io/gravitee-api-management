@@ -19,14 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.util.Arrays;
-import org.junit.Test;
-
 import io.gravitee.rest.api.model.analytics.Bucket;
 import io.gravitee.rest.api.model.analytics.HistogramAnalytics;
 import io.gravitee.rest.api.model.analytics.HitsAnalytics;
@@ -36,6 +28,12 @@ import io.gravitee.rest.api.portal.rest.model.CountAnalytics;
 import io.gravitee.rest.api.portal.rest.model.DateHistoAnalytics;
 import io.gravitee.rest.api.portal.rest.model.GroupByAnalytics;
 import io.gravitee.rest.api.portal.rest.model.Timerange;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.assertj.core.util.Arrays;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,13 +44,13 @@ public class AnalyticsMapperTest {
     private static final String ANALYTIC = "my-analytic";
 
     private AnalyticsMapper analyticsMapper = new AnalyticsMapper();
-    
+
     @Test
     public void testConvertDateHisto() {
         HistogramAnalytics histogramAnalytics = new HistogramAnalytics();
         Timestamp timestamp = new Timestamp(1L, 2L, 3L);
         histogramAnalytics.setTimestamp(timestamp);
-        
+
         Bucket b1 = new Bucket();
         final Number[] data1 = Arrays.array(1, 2, 3);
         b1.setData(data1);
@@ -63,7 +61,7 @@ public class AnalyticsMapperTest {
         analyticMetadata1.put("key1", "value1");
         metadata1.put("bucket1", analyticMetadata1);
         b1.setMetadata(metadata1);
-        
+
         Bucket b2 = new Bucket();
         final Number[] data2 = Arrays.array(4, 5, 6);
         b2.setData(data2);
@@ -75,7 +73,7 @@ public class AnalyticsMapperTest {
         metadata2.put("bucket2", analyticMetadata2);
         b2.setMetadata(metadata2);
         b2.setBuckets(new ArrayList<Bucket>());
-        
+
         Bucket b3 = new Bucket();
         final Number[] data3 = Arrays.array(7, 8, 9);
         b3.setData(data3);
@@ -90,11 +88,11 @@ public class AnalyticsMapperTest {
         innerBucketList.add(b2);
         innerBucketList.add(b3);
         b1.setBuckets(innerBucketList);
-        
+
         List<Bucket> bucketList = new ArrayList<>();
         bucketList.add(b1);
         histogramAnalytics.setValues(bucketList);
-        
+
         //Test
         DateHistoAnalytics analytics = analyticsMapper.convert(histogramAnalytics);
         assertNotNull(analytics);
@@ -102,7 +100,7 @@ public class AnalyticsMapperTest {
         assertEquals(1, timeRange.getFrom().longValue());
         assertEquals(2, timeRange.getTo().longValue());
         assertEquals(3, timeRange.getInterval().longValue());
-        
+
         final List<io.gravitee.rest.api.portal.rest.model.Bucket> values = analytics.getValues();
         assertNotNull(values);
         assertEquals(1, values.size());
@@ -111,7 +109,7 @@ public class AnalyticsMapperTest {
         assertEquals(Arrays.asList(data1), bucket1.getData());
         assertEquals("name1", bucket1.getName());
         assertEquals(metadata1, bucket1.getMetadata());
-        
+
         final List<io.gravitee.rest.api.portal.rest.model.Bucket> innerBuckets1 = bucket1.getBuckets();
         assertNotNull(innerBuckets1);
         assertEquals(2, innerBuckets1.size());
@@ -124,16 +122,15 @@ public class AnalyticsMapperTest {
         assertEquals(metadata2, bucket2.getMetadata());
         assertNotNull(bucket2.getBuckets());
         assertTrue(bucket2.getBuckets().isEmpty());
-        
+
         assertEquals("field3", bucket3.getField());
         assertEquals(Arrays.asList(data3), bucket3.getData());
         assertEquals("name3", bucket3.getName());
         assertEquals(metadata3, bucket3.getMetadata());
         assertNotNull(bucket3.getBuckets());
         assertTrue(bucket3.getBuckets().isEmpty());
-
     }
-    
+
     @Test
     public void testConvertCount() {
         HitsAnalytics hitsAnalytics = new HitsAnalytics();
@@ -144,21 +141,21 @@ public class AnalyticsMapperTest {
         assertNotNull(analytics);
         assertEquals(1, analytics.getHits().longValue());
     }
-    
+
     @Test
     public void testConvertGroupBy() {
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
-        
+
         Map<String, Map<String, String>> metadata = new HashMap<>();
         Map<String, String> analyticMetadata = new HashMap<>();
         analyticMetadata.put("key", "value");
         metadata.put("topHits", analyticMetadata);
         topHitsAnalytics.setMetadata(metadata);
-        
+
         Map<String, Long> values = new HashMap<>();
         values.put("valuesKey", 1L);
         topHitsAnalytics.setValues(values);
-        
+
         //Test
         GroupByAnalytics analytics = analyticsMapper.convert(topHitsAnalytics);
         assertNotNull(analytics);

@@ -16,5 +16,7 @@
 package io.gravitee.rest.api.model.settings;
 
 public enum ApiPrimaryOwnerMode {
-    HYBRID, USER, GROUP;
+    HYBRID,
+    USER,
+    GROUP,
 }

@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.Visibility.PUBLIC;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
@@ -29,22 +32,18 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import java.util.List;
-
-import static io.gravitee.rest.api.model.Visibility.PUBLIC;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Ratings"})
+@Api(tags = { "API Ratings" })
 public class ApiRatingResource extends AbstractResource {
 
     @Inject
@@ -61,11 +60,21 @@ public class ApiRatingResource extends AbstractResource {
     public Page<RatingEntity> getApiRating(@Min(1) @QueryParam("pageNumber") int pageNumber, @QueryParam("pageSize") int pageSize) {
         final ApiEntity apiEntity = apiService.findById(api);
         if (PUBLIC.equals(apiEntity.getVisibility()) || hasPermission(RolePermission.API_RATING, api, RolePermissionAction.READ)) {
-            final Page<RatingEntity> ratingEntityPage =
-                    ratingService.findByApi(api, new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build());
-            final List<RatingEntity> filteredRatings =
-                    ratingEntityPage.getContent().stream().map(ratingEntity -> filterPermission(api, ratingEntity)).collect(toList());
-            return new Page<>(filteredRatings, ratingEntityPage.getPageNumber(), (int) ratingEntityPage.getPageElements(), ratingEntityPage.getTotalElements());
+            final Page<RatingEntity> ratingEntityPage = ratingService.findByApi(
+                api,
+                new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build()
+            );
+            final List<RatingEntity> filteredRatings = ratingEntityPage
+                .getContent()
+                .stream()
+                .map(ratingEntity -> filterPermission(api, ratingEntity))
+                .collect(toList());
+            return new Page<>(
+                filteredRatings,
+                ratingEntityPage.getPageNumber(),
+                (int) ratingEntityPage.getPageElements(),
+                ratingEntityPage.getTotalElements()
+            );
         } else {
             throw new UnauthorizedAccessException();
         }
@@ -103,11 +112,8 @@ public class ApiRatingResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create a new rating for an API",
-            notes = "User must have the API_RATING[CREATE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE)
-    })
+    @ApiOperation(value = "Create a new rating for an API", notes = "User must have the API_RATING[CREATE] permission to use this service")
+    @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.CREATE) })
     public RatingEntity createApiRating(@Valid @NotNull final NewRatingEntity rating) {
         rating.setApi(api);
         return filterPermission(api, ratingService.create(rating));
@@ -117,11 +123,11 @@ public class ApiRatingResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update an existing rating for an API",
-            notes = "User must have the API_RATING[UPDATE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.UPDATE)
-    })
+    @ApiOperation(
+        value = "Update an existing rating for an API",
+        notes = "User must have the API_RATING[UPDATE] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.UPDATE) })
     public RatingEntity updateApiRating(@PathParam("rating") String rating, @Valid @NotNull final UpdateRatingEntity ratingEntity) {
         ratingEntity.setId(rating);
         ratingEntity.setApi(api);
@@ -131,11 +137,11 @@ public class ApiRatingResource extends AbstractResource {
     @Path("{rating}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete an existing rating for an API",
-            notes = "User must have the API_RATING[DELETE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE)
-    })
+    @ApiOperation(
+        value = "Delete an existing rating for an API",
+        notes = "User must have the API_RATING[DELETE] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE) })
     public void deleteApiRating(@PathParam("rating") String rating) {
         ratingService.delete(rating);
     }
@@ -144,11 +150,11 @@ public class ApiRatingResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Create an answer to a rating for an API",
-            notes = "User must have the API_RATING_ANSWER[CREATE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE)
-    })
+    @ApiOperation(
+        value = "Create an answer to a rating for an API",
+        notes = "User must have the API_RATING_ANSWER[CREATE] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE) })
     public RatingEntity createApiRatingAnswer(@PathParam("rating") String rating, @Valid @NotNull final NewRatingAnswerEntity answer) {
         answer.setRatingId(rating);
         return filterPermission(api, ratingService.createAnswer(answer));
@@ -157,11 +163,11 @@ public class ApiRatingResource extends AbstractResource {
     @Path("{rating}/answers/{answer}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Delete an answer to a rating for an API",
-            notes = "User must have the API_RATING_ANSWER[DELETE] permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE)
-    })
+    @ApiOperation(
+        value = "Delete an answer to a rating for an API",
+        notes = "User must have the API_RATING_ANSWER[DELETE] permission to use this service"
+    )
+    @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE) })
     public void deleteApiRatingAnswer(@PathParam("rating") String rating, @PathParam("answer") String answer) {
         ratingService.deleteAnswer(rating, answer);
     }

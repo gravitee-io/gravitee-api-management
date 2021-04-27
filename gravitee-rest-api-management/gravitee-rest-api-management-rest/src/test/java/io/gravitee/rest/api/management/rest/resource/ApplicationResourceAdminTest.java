@@ -15,22 +15,21 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
+
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApplicationResourceAdminTest extends AbstractResourceTest  {
+public class ApplicationResourceAdminTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {

@@ -20,7 +20,6 @@ package io.gravitee.rest.api.service;
  * @author GraviteeSource Team
  */
 public interface ReCaptchaService {
-
     boolean isValid(String token);
 
     boolean isEnabled();

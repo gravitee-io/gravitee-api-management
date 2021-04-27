@@ -18,7 +18,7 @@ package io.gravitee.rest.api.model;
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UserGroupEntity {

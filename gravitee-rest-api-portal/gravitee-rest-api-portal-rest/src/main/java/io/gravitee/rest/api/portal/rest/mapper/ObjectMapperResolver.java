@@ -15,12 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import java.io.IOException;
-import java.util.Collections;
-
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
@@ -37,9 +31,12 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import java.io.IOException;
+import java.util.Collections;
+import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.ext.Provider;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,6 +45,7 @@ import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
  */
 @Provider
 public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
+
     private final ObjectMapper mapper;
 
     public ObjectMapperResolver() {
@@ -60,29 +58,36 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
         registerFilterProvider();
 
         SimpleModule module = new SimpleModule();
-        module.setDeserializerModifier(new BeanDeserializerModifier() {
-            @Override
-            public JsonDeserializer<Enum> modifyEnumDeserializer(DeserializationConfig config,
-                                                                 final JavaType type,
-                                                                 BeanDescription beanDesc,
-                                                                 final JsonDeserializer<?> deserializer) {
-                return new JsonDeserializer<Enum>() {
-                    @Override
-                    public Enum deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-                        Class<? extends Enum> rawClass = (Class<Enum<?>>) type.getRawClass();
-                        return Enum.valueOf(rawClass, jp.getValueAsString().toUpperCase());
-                    }
-                };
+        module.setDeserializerModifier(
+            new BeanDeserializerModifier() {
+                @Override
+                public JsonDeserializer<Enum> modifyEnumDeserializer(
+                    DeserializationConfig config,
+                    final JavaType type,
+                    BeanDescription beanDesc,
+                    final JsonDeserializer<?> deserializer
+                ) {
+                    return new JsonDeserializer<Enum>() {
+                        @Override
+                        public Enum deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+                            Class<? extends Enum> rawClass = (Class<Enum<?>>) type.getRawClass();
+                            return Enum.valueOf(rawClass, jp.getValueAsString().toUpperCase());
+                        }
+                    };
+                }
             }
-        });
-        module.addSerializer(Enum.class, new StdSerializer<Enum>(Enum.class) {
-            @Override
-            public void serialize(Enum value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
-                jgen.writeString(value.name().toLowerCase());
+        );
+        module.addSerializer(
+            Enum.class,
+            new StdSerializer<Enum>(Enum.class) {
+                @Override
+                public void serialize(Enum value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+                    jgen.writeString(value.name().toLowerCase());
+                }
             }
-        });
+        );
         mapper.registerModule(module);
-        
+
         mapper.registerModule(new JavaTimeModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }

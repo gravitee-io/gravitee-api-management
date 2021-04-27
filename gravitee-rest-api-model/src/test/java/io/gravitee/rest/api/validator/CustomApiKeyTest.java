@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.validator;
 
+import java.util.Arrays;
+import java.util.Set;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,12 +27,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.validation.ConstraintViolation;
-import javax.validation.Validation;
-import javax.validation.Validator;
-import java.util.Arrays;
-import java.util.Set;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -41,12 +40,18 @@ public class CustomApiKeyTest {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-                { "Contains_at_least_8_chars", 0, null},
-                { "less8", 1, "Should have length between 8 and 64 characters"},
-                { "VeryLongLengthTOHaveMoreThan64charsVeryLongLengthTOHaveMoreThan64chars", 1, "Should have length between 8 and 64 characters"},
-                { "No pattern compliant", 1, "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)"}
-        });
+        return Arrays.asList(
+            new Object[][] {
+                { "Contains_at_least_8_chars", 0, null },
+                { "less8", 1, "Should have length between 8 and 64 characters" },
+                {
+                    "VeryLongLengthTOHaveMoreThan64charsVeryLongLengthTOHaveMoreThan64chars",
+                    1,
+                    "Should have length between 8 and 64 characters",
+                },
+                { "No pattern compliant", 1, "Should not contain: ^ # % @ \\ / ; = ? | ~ , (space)" },
+            }
+        );
     }
 
     @Parameterized.Parameter(0)
@@ -73,7 +78,7 @@ public class CustomApiKeyTest {
         Assert.assertEquals(violations.size(), this.violationSize);
 
         if (violationSize > 0) {
-            Assert.assertTrue(violations.stream().anyMatch( v -> v.getMessage().equals(message)));
+            Assert.assertTrue(violations.stream().anyMatch(v -> v.getMessage().equals(message)));
         }
     }
 

@@ -27,5 +27,4 @@ public class OAIOperationVisitorClassFinder extends AbstractSingleSubTypesFinder
     protected OAIOperationVisitorClassFinder() {
         super(OAIOperationVisitor.class);
     }
-
 }

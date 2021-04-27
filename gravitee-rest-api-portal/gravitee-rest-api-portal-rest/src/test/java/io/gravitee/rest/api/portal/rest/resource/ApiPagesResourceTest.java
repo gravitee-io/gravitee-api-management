@@ -15,20 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.*;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
@@ -38,6 +24,19 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
+
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
@@ -45,6 +44,7 @@ import static org.mockito.Mockito.when;
 public class ApiPagesResourceTest extends AbstractResourceTest {
 
     private static final String API = "my-api";
+
     protected String contextPath() {
         return "apis/";
     }
@@ -61,10 +61,13 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         markdownTemplate.setType(PageType.MARKDOWN_TEMPLATE.name());
         doReturn(Arrays.asList(new PageEntity(), markdownTemplate)).when(pageService).search(any(), isNull());
 
-        when(accessControlService.canAccessPageFromPortal(any(PageEntity.class))).thenAnswer(invocationOnMock -> {
-            PageEntity page = invocationOnMock.getArgument(0);
-            return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
-        });
+        when(accessControlService.canAccessPageFromPortal(any(PageEntity.class)))
+            .thenAnswer(
+                invocationOnMock -> {
+                    PageEntity page = invocationOnMock.getArgument(0);
+                    return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
+                }
+            );
 
         doReturn(new Page()).when(pageMapper).convert(any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
@@ -89,7 +92,7 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 
     @Test
@@ -122,5 +125,4 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
         assertNotNull(pages);
         assertEquals(0, pages.size());
     }
-
 }

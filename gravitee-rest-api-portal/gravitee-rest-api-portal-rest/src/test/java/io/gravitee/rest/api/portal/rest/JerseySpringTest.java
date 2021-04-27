@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest;
 
+import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
+import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
+import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import java.io.IOException;
 import java.security.Principal;
-
 import javax.annotation.Priority;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.WebTarget;
@@ -25,7 +27,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.SecurityContext;
-
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -38,17 +39,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 
-import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
-import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
-
 /**
  * @author David BRASSELY (brasseld at gmail.com)
  */
 public abstract class JerseySpringTest {
 
     protected static final String USER_NAME = "UnitTests";
-    protected final static Principal PRINCIPAL = () -> USER_NAME;
+    protected static final Principal PRINCIPAL = () -> USER_NAME;
 
     private JerseyTest _jerseyTest;
 
@@ -60,92 +57,97 @@ public abstract class JerseySpringTest {
         this.authenticationProviderManager = authenticationProviderManager;
     }
 
-    public final WebTarget root()
-    {
+    public final WebTarget root() {
         return _jerseyTest.target();
     }
-    
-    public final WebTarget target()
-    {
+
+    public final WebTarget target() {
         return target("");
     }
 
-    public final WebTarget target(final String path)
-    {
+    public final WebTarget target(final String path) {
         return _jerseyTest.target("/environments/DEFAULT/" + contextPath() + path);
     }
 
     @Before
-    public void setup() throws Exception
-    {
+    public void setup() throws Exception {
         _jerseyTest.setUp();
     }
 
     @After
-    public void tearDown() throws Exception
-    {
+    public void tearDown() throws Exception {
         _jerseyTest.tearDown();
     }
 
     @Autowired
-    public void setApplicationContext(final ApplicationContext context)
-    {
-        _jerseyTest = new JerseyTest()
-        {
-            @Override
-            protected Application configure()
-            {
-                // Find first available port.
-                forceSet(TestProperties.CONTAINER_PORT, "0");
+    public void setApplicationContext(final ApplicationContext context) {
+        _jerseyTest =
+            new JerseyTest() {
+                @Override
+                protected Application configure() {
+                    // Find first available port.
+                    forceSet(TestProperties.CONTAINER_PORT, "0");
 
-                ResourceConfig application = new GraviteePortalApplication(authenticationProviderManager);
+                    ResourceConfig application = new GraviteePortalApplication(authenticationProviderManager);
 
-                application.property("contextConfig", context);
-                decorate(application);
+                    application.property("contextConfig", context);
+                    decorate(application);
 
-                return application;
-            }
+                    return application;
+                }
 
-            @Override
-            protected void configureClient(ClientConfig config) {
-                super.configureClient(config);
+                @Override
+                protected void configureClient(ClientConfig config) {
+                    super.configureClient(config);
 
-                config.register(ObjectMapperResolver.class);
-                config.register(MultiPartFeature.class);
-            }
-        };
+                    config.register(ObjectMapperResolver.class);
+                    config.register(MultiPartFeature.class);
+                }
+            };
     }
 
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
 
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-        resourceConfig.register(new AbstractBinder() {
-            @Override
-            protected void configure() {
-                bind(response).to(HttpServletResponse.class);
+        resourceConfig.register(
+            new AbstractBinder() {
+                @Override
+                protected void configure() {
+                    bind(response).to(HttpServletResponse.class);
+                }
             }
-        });
+        );
     }
 
     @Priority(50)
     public static class AuthenticationFilter implements ContainerRequestFilter {
+
         @Override
         public void filter(final ContainerRequestContext requestContext) throws IOException {
-            requestContext.setSecurityContext(new SecurityContext() {
-                @Override
-                public Principal getUserPrincipal() {
-                    return () -> USER_NAME;
+            requestContext.setSecurityContext(
+                new SecurityContext() {
+                    @Override
+                    public Principal getUserPrincipal() {
+                        return () -> USER_NAME;
+                    }
+
+                    @Override
+                    public boolean isUserInRole(String string) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean isSecure() {
+                        return true;
+                    }
+
+                    @Override
+                    public String getAuthenticationScheme() {
+                        return "BASIC";
+                    }
                 }
-                @Override
-                public boolean isUserInRole(String string) {
-                    return true;
-                }
-                @Override
-                public boolean isSecure() { return true; }
-                @Override
-                public String getAuthenticationScheme() { return "BASIC"; }
-            });
+            );
         }
     }
 }

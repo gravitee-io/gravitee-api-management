@@ -29,13 +29,11 @@ import io.gravitee.rest.api.service.event.DictionaryEvent;
 import io.gravitee.rest.api.services.dictionary.provider.http.HttpProvider;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
 import io.vertx.core.Vertx;
-
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,7 +46,7 @@ public class DictionaryService extends AbstractService implements EventListener<
      */
     private final Logger logger = LoggerFactory.getLogger(DictionaryService.class);
 
-    private final static String DICTIONARY_HTTP_PROVIDER = "HTTP";
+    private static final String DICTIONARY_HTTP_PROVIDER = "HTTP";
 
     @Autowired
     private EventManager eventManager;
@@ -103,12 +101,15 @@ public class DictionaryService extends AbstractService implements EventListener<
     }
 
     private void startDynamicDictionary(DictionaryEntity dictionary) {
-        if (! timers.containsKey(dictionary.getId())) {
+        if (!timers.containsKey(dictionary.getId())) {
             DictionaryProviderEntity providerConf = dictionary.getProvider();
 
             if (DICTIONARY_HTTP_PROVIDER.equals(providerConf.getType())) {
                 try {
-                    HttpProviderConfiguration configuration = objectMapper.treeToValue(providerConf.getConfiguration(), HttpProviderConfiguration.class);
+                    HttpProviderConfiguration configuration = objectMapper.treeToValue(
+                        providerConf.getConfiguration(),
+                        HttpProviderConfiguration.class
+                    );
                     DictionaryRefresher refresher = new DictionaryRefresher(dictionary);
 
                     HttpProvider provider = new HttpProvider(configuration);
@@ -117,8 +118,12 @@ public class DictionaryService extends AbstractService implements EventListener<
 
                     refresher.setProvider(provider);
                     refresher.setDictionaryService(dictionaryService);
-                    logger.info("Add a scheduled task to poll dictionary provider for dictionary [{}] each {} {} ",dictionary.getId(), dictionary.getTrigger().getRate(),
-                            dictionary.getTrigger().getUnit());
+                    logger.info(
+                        "Add a scheduled task to poll dictionary provider for dictionary [{}] each {} {} ",
+                        dictionary.getId(),
+                        dictionary.getTrigger().getRate(),
+                        dictionary.getTrigger().getUnit()
+                    );
 
                     // Force the first refresh, and then run it periodically
                     refresher.handle(null);

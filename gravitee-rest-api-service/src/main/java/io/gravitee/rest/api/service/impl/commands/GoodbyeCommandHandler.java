@@ -22,11 +22,10 @@ import io.gravitee.cockpit.api.command.goodbye.GoodbyeCommand;
 import io.gravitee.cockpit.api.command.goodbye.GoodbyeReply;
 import io.gravitee.rest.api.service.InstallationService;
 import io.reactivex.Single;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,7 +50,6 @@ public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, Goo
 
     @Override
     public Single<GoodbyeReply> handle(GoodbyeCommand command) {
-
         final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
         additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, DELETED_STATUS);
         try {
@@ -62,6 +60,5 @@ public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, Goo
             logger.info("Error occurred when deleting installation.", ex);
             return Single.just(new GoodbyeReply(command.getId(), CommandStatus.ERROR));
         }
-
     }
 }

@@ -24,7 +24,7 @@ import java.io.File;
 abstract class AbstractDescriptorParser<T> implements DescriptorParser<T> {
 
     static boolean isLocationUrl(String content) {
-        content = content.toLowerCase().replaceAll("\\\\","/");
+        content = content.toLowerCase().replaceAll("\\\\", "/");
         return content.startsWith("http") || content.startsWith("file") || content.startsWith(File.separator);
     }
 }

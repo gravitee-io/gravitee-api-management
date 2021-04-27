@@ -38,7 +38,5 @@ public class DummyFetcherConfiguration implements FetcherConfiguration, Filepath
         return null;
     }
 
-    public void setFilepath(String filepath) {
-
-    }
+    public void setFilepath(String filepath) {}
 }

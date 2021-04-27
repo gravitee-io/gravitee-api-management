@@ -20,5 +20,7 @@ package io.gravitee.rest.api.model.parameters;
  * @author GraviteeSource Team
  */
 public enum ParameterReferenceType {
-    ENVIRONMENT, ORGANIZATION, SYSTEM;
+    ENVIRONMENT,
+    ORGANIZATION,
+    SYSTEM,
 }

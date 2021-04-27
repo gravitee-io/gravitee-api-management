@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.api;
 
 import io.swagger.annotations.ApiModelProperty;
-
 import javax.validation.constraints.Size;
 
 /**
@@ -25,9 +24,7 @@ import javax.validation.constraints.Size;
  */
 public class ApiDeploymentEntity {
 
-    @ApiModelProperty(
-            value = "Label for an Api deployment. Duplicate names can exists.",
-            example = "My deployment")
+    @ApiModelProperty(value = "Label for an Api deployment. Duplicate names can exists.", example = "My deployment")
     @Size(max = 32)
     private String deploymentLabel;
 
@@ -41,8 +38,6 @@ public class ApiDeploymentEntity {
 
     @Override
     public String toString() {
-        return "ApiDeploymentEntity{" +
-                "deploymentLabel='" + deploymentLabel + '\'' +
-                '}';
+        return "ApiDeploymentEntity{" + "deploymentLabel='" + deploymentLabel + '\'' + '}';
     }
 }

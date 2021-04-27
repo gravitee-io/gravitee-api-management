@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.NewTopApiEntity;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.UpdateTopApiEntity;
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface TopApiService {
-
     List<TopApiEntity> findAll();
 
     List<TopApiEntity> create(NewTopApiEntity topApis);

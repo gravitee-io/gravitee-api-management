@@ -31,9 +31,7 @@ public class PageService_MockAutoFetchDescriptorFetcherConfiguration implements 
     }
 
     @Override
-    public void setFilepath(String filepath) {
-
-    }
+    public void setFilepath(String filepath) {}
 
     @Override
     public boolean isAutoFetch() {

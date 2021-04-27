@@ -15,17 +15,17 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl.binding;
 
-import javax.wsdl.BindingOperation;
-import javax.wsdl.extensions.soap.SOAPBody;
-import javax.wsdl.extensions.soap.SOAPHeader;
-import javax.xml.namespace.QName;
+import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.extractAllElements;
+import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.extractFirstElement;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.extractAllElements;
-import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.extractFirstElement;
+import javax.wsdl.BindingOperation;
+import javax.wsdl.extensions.soap.SOAPBody;
+import javax.wsdl.extensions.soap.SOAPHeader;
+import javax.xml.namespace.QName;
 
 public class SoapBinding extends AbstractBinding {
 
@@ -33,7 +33,7 @@ public class SoapBinding extends AbstractBinding {
     public static final String SOAP_ENVELOPE_PREFIXS = "soapenv";
 
     public SoapBinding(boolean rpc) {
-       super(SOAP_ENVELOPE_NS, SOAP_ENVELOPE_PREFIXS, rpc);
+        super(SOAP_ENVELOPE_NS, SOAP_ENVELOPE_PREFIXS, rpc);
     }
 
     @Override
@@ -41,21 +41,24 @@ public class SoapBinding extends AbstractBinding {
         Optional<SOAPBody> optBody = extractFirstElement(elements, SOAPBody.class);
         return optBody.isPresent();
     }
+
     @Override
     public BobyParts extractBodyParts(List<Object> elements) {
         Optional<SOAPBody> optBody = extractFirstElement(elements, SOAPBody.class);
         return new BobyParts(optBody.get().getParts() == null ? Collections.EMPTY_LIST : optBody.get().getParts(), optBody.get().getUse());
     }
+
     @Override
     public boolean hasHeadersElement(List<Object> elements) {
         Optional<SOAPHeader> optHeader = extractFirstElement(elements, SOAPHeader.class);
         return optHeader.isPresent();
     }
+
     @Override
     public List<HeaderDef> extractHeaderParts(List<Object> elements) {
         return extractAllElements(elements, SOAPHeader.class)
-                .map(header -> new HeaderDef(header.getMessage(), header.getUse(), header.getPart(), header.getRequired()))
-                .collect(Collectors.toList());
+            .map(header -> new HeaderDef(header.getMessage(), header.getUse(), header.getPart(), header.getRequired()))
+            .collect(Collectors.toList());
     }
 
     @Override

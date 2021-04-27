@@ -25,13 +25,12 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collection;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Optional;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -75,17 +74,19 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
                 return convert(organizationRepository.update(organization));
             } else {
                 OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
-                
+
                 //create Default role for organization
                 roleService.initialize(createdOrganization.getId());
                 roleService.createOrUpdateSystemRoles(createdOrganization.getId());
-                
+
                 return createdOrganization;
             }
-            
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
-            throw new TechnicalManagementException("An error occurs while trying to update organization " + organizationEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update organization " + organizationEntity.getName(),
+                ex
+            );
         }
     }
 

@@ -20,6 +20,7 @@ package io.gravitee.rest.api.model.settings;
  * @author GraviteeSource Team
  */
 public class PortalConfigEntity {
+
     private Analytics analytics;
     private Api api;
     private ApiQualityMetrics apiQualityMetrics;
@@ -33,7 +34,6 @@ public class PortalConfigEntity {
     private Portal portal;
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
-
 
     public PortalConfigEntity() {
         super();
@@ -52,10 +52,10 @@ public class PortalConfigEntity {
         scheduler = new PortalScheduler();
     }
 
-     // Getters & Setters
-     public Analytics getAnalytics() {
-         return analytics;
-     }
+    // Getters & Setters
+    public Analytics getAnalytics() {
+        return analytics;
+    }
 
     public void setAnalytics(Analytics analytics) {
         this.analytics = analytics;

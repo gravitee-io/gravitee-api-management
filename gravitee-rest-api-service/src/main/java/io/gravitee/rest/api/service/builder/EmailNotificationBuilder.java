@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.builder;
 
 import io.gravitee.rest.api.service.EmailNotification;
 import io.gravitee.rest.api.service.notification.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,222 +81,129 @@ public class EmailNotificationBuilder {
     }
 
     public enum EmailTemplate {
-
-        API_APIKEY_REVOKED(
-                ApiHook.APIKEY_REVOKED,
-                "apiKeyRevoked.html",
-                "API key revoked for API ${api.name}"
-        ),
-        API_APIKEY_RENEWED(
-                ApiHook.APIKEY_RENEWED,
-                "apiKeyRenewed.html",
-                "API key renewed"
-        ),
-        API_APIKEY_EXPIRED(
-                ApiHook.APIKEY_EXPIRED,
-                "apiKeyExpired.html",
-                "API key expiration!"
-        ),
+        API_APIKEY_REVOKED(ApiHook.APIKEY_REVOKED, "apiKeyRevoked.html", "API key revoked for API ${api.name}"),
+        API_APIKEY_RENEWED(ApiHook.APIKEY_RENEWED, "apiKeyRenewed.html", "API key renewed"),
+        API_APIKEY_EXPIRED(ApiHook.APIKEY_EXPIRED, "apiKeyExpired.html", "API key expiration!"),
         API_SUBSCRIPTION_NEW(
-                ApiHook.SUBSCRIPTION_NEW,
-                "subscriptionReceived.html",
-                "New subscription for ${api.name} with plan ${plan.name}"
+            ApiHook.SUBSCRIPTION_NEW,
+            "subscriptionReceived.html",
+            "New subscription for ${api.name} with plan ${plan.name}"
         ),
-        API_SUBSCRIPTION_ACCEPTED(
-                ApiHook.SUBSCRIPTION_ACCEPTED,
-                "subscriptionApproved.html",
-                "Subscription approved"
-        ),
-        API_SUBSCRIPTION_CLOSED(
-                ApiHook.SUBSCRIPTION_CLOSED,
-                "subscriptionClosed.html",
-                "Subscription closed"
-        ),
+        API_SUBSCRIPTION_ACCEPTED(ApiHook.SUBSCRIPTION_ACCEPTED, "subscriptionApproved.html", "Subscription approved"),
+        API_SUBSCRIPTION_CLOSED(ApiHook.SUBSCRIPTION_CLOSED, "subscriptionClosed.html", "Subscription closed"),
         API_SUBSCRIPTION_PAUSED(
-                ApiHook.SUBSCRIPTION_PAUSED,
-                "subscriptionPaused.html",
-                "Subscription for ${api.name} with plan ${plan.name} has been paused"
+            ApiHook.SUBSCRIPTION_PAUSED,
+            "subscriptionPaused.html",
+            "Subscription for ${api.name} with plan ${plan.name} has been paused"
         ),
         API_SUBSCRIPTION_RESUMED(
-                ApiHook.SUBSCRIPTION_RESUMED,
-                "subscriptionResumed.html",
-                "Subscription for ${api.name} with plan ${plan.name} has been resumed"
+            ApiHook.SUBSCRIPTION_RESUMED,
+            "subscriptionResumed.html",
+            "Subscription for ${api.name} with plan ${plan.name} has been resumed"
         ),
-        API_SUBSCRIPTION_REJECTED(
-                ApiHook.SUBSCRIPTION_REJECTED,
-                "subscriptionRejected.html",
-                "Subscription rejected"
-        ),
+        API_SUBSCRIPTION_REJECTED(ApiHook.SUBSCRIPTION_REJECTED, "subscriptionRejected.html", "Subscription rejected"),
         API_SUBSCRIPTION_TRANSFERRED(
-                ApiHook.SUBSCRIPTION_TRANSFERRED,
-                "subscriptionTransferred.html",
-                "Subscription for ${api.name} with plan ${plan.name} has been transferred"
+            ApiHook.SUBSCRIPTION_TRANSFERRED,
+            "subscriptionTransferred.html",
+            "Subscription for ${api.name} with plan ${plan.name} has been transferred"
         ),
-        API_NEW_SUPPORT_TICKET(
-                ApiHook.NEW_SUPPORT_TICKET,
-                "supportTicketNotification.html",
-                "New Support Ticket"
-        ),
-        API_API_STARTED(
-                ApiHook.API_STARTED,
-                "apiStarted.html",
-                "API Started"
-        ),
-        API_API_STOPPED(
-                ApiHook.API_STOPPED,
-                "apiStopped.html",
-                "API Stopped"
-        ),
-        API_NEW_RATING(
-                ApiHook.NEW_RATING,
-                "newRating.html",
-                "New Rating"
-        ),
-        API_NEW_RATING_ANSWER(
-                ApiHook.NEW_RATING_ANSWER,
-                "newRatingAnswer.html",
-                "New Rating Answer"
-        ),
-        API_ASK_FOR_REVIEW(
-                ApiHook.ASK_FOR_REVIEW,
-                "askForReview.html",
-                "Review asked"
-        ),
-        API_REQUEST_FOR_CHANGES(
-                ApiHook.REQUEST_FOR_CHANGES,
-                "requestForChanges.html",
-                "Request for changes on API"
-        ),
-        API_REVIEW_OK(
-                ApiHook.REVIEW_OK,
-                "reviewOk.html",
-                "API review accepted"
-        ),
-        API_API_DEPRECATED(
-                ApiHook.API_DEPRECATED,
-                "apiDeprecated.html",
-                "API deprecated"
-        ),
+        API_NEW_SUPPORT_TICKET(ApiHook.NEW_SUPPORT_TICKET, "supportTicketNotification.html", "New Support Ticket"),
+        API_API_STARTED(ApiHook.API_STARTED, "apiStarted.html", "API Started"),
+        API_API_STOPPED(ApiHook.API_STOPPED, "apiStopped.html", "API Stopped"),
+        API_NEW_RATING(ApiHook.NEW_RATING, "newRating.html", "New Rating"),
+        API_NEW_RATING_ANSWER(ApiHook.NEW_RATING_ANSWER, "newRatingAnswer.html", "New Rating Answer"),
+        API_ASK_FOR_REVIEW(ApiHook.ASK_FOR_REVIEW, "askForReview.html", "Review asked"),
+        API_REQUEST_FOR_CHANGES(ApiHook.REQUEST_FOR_CHANGES, "requestForChanges.html", "Request for changes on API"),
+        API_REVIEW_OK(ApiHook.REVIEW_OK, "reviewOk.html", "API review accepted"),
+        API_API_DEPRECATED(ApiHook.API_DEPRECATED, "apiDeprecated.html", "API deprecated"),
         APPLICATION_SUBSCRIPTION_NEW(
-                ApplicationHook.SUBSCRIPTION_NEW,
-                "subscriptionCreated.html",
-                "New subscription to ${api.name} with plan ${plan.name}"
+            ApplicationHook.SUBSCRIPTION_NEW,
+            "subscriptionCreated.html",
+            "New subscription to ${api.name} with plan ${plan.name}"
         ),
         APPLICATION_SUBSCRIPTION_ACCEPTED(
-                ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                "subscriptionApproved.html",
-                "Your subscription to ${api.name} with plan ${plan.name} has been approved"
+            ApplicationHook.SUBSCRIPTION_ACCEPTED,
+            "subscriptionApproved.html",
+            "Your subscription to ${api.name} with plan ${plan.name} has been approved"
         ),
         APPLICATION_SUBSCRIPTION_CLOSED(
-                ApplicationHook.SUBSCRIPTION_CLOSED,
-                "subscriptionClosed.html",
-                "Your subscription to ${api.name} with plan ${plan.name} has been closed"
+            ApplicationHook.SUBSCRIPTION_CLOSED,
+            "subscriptionClosed.html",
+            "Your subscription to ${api.name} with plan ${plan.name} has been closed"
         ),
         APPLICATION_SUBSCRIPTION_PAUSED(
-                ApplicationHook.SUBSCRIPTION_PAUSED,
-                "subscriptionPaused.html",
-                "Your subscription to ${api.name} with plan ${plan.name} has been paused"
+            ApplicationHook.SUBSCRIPTION_PAUSED,
+            "subscriptionPaused.html",
+            "Your subscription to ${api.name} with plan ${plan.name} has been paused"
         ),
         APPLICATION_SUBSCRIPTION_RESUMED(
-                ApplicationHook.SUBSCRIPTION_RESUMED,
-                "subscriptionResumed.html",
-                "Your subscription to ${api.name} with plan ${plan.name} has been resumed"
+            ApplicationHook.SUBSCRIPTION_RESUMED,
+            "subscriptionResumed.html",
+            "Your subscription to ${api.name} with plan ${plan.name} has been resumed"
         ),
         APPLICATION_SUBSCRIPTION_REJECTED(
-                ApplicationHook.SUBSCRIPTION_REJECTED,
-                "subscriptionRejected.html",
-                "Your subscription to ${api.name} with plan ${plan.name} has been rejected"
+            ApplicationHook.SUBSCRIPTION_REJECTED,
+            "subscriptionRejected.html",
+            "Your subscription to ${api.name} with plan ${plan.name} has been rejected"
         ),
         APPLICATION_SUBSCRIPTION_TRANSFERRED(
-                ApplicationHook.SUBSCRIPTION_TRANSFERRED,
-                "subscriptionTransferred.html",
-                "Your subscription to ${api.name} with plan ${plan.name} has been transferred"
+            ApplicationHook.SUBSCRIPTION_TRANSFERRED,
+            "subscriptionTransferred.html",
+            "Your subscription to ${api.name} with plan ${plan.name} has been transferred"
         ),
         APPLICATION_NEW_SUPPORT_TICKET(
-                ApplicationHook.NEW_SUPPORT_TICKET,
-                "supportTicketNotification.html",
-                "New support Ticket by ${user.displayName}"
+            ApplicationHook.NEW_SUPPORT_TICKET,
+            "supportTicketNotification.html",
+            "New support Ticket by ${user.displayName}"
         ),
         PORTAL_USER_REGISTRATION_REQUEST(
-                PortalHook.USER_REGISTRATION_REQUEST,
-                "userRegistrationRequest.html",
-                "User registration requested - ${user.displayName}"
+            PortalHook.USER_REGISTRATION_REQUEST,
+            "userRegistrationRequest.html",
+            "User registration requested - ${user.displayName}"
         ),
-        PORTAL_USER_REGISTERED(
-                PortalHook.USER_REGISTERED,
-                "userRegistered.html",
-                "User registered - ${user.displayName}"
-        ),
-        PORTAL_USER_CREATED(
-                PortalHook.USER_CREATED,
-                "userCreated.html",
-                "User creation - ${user.displayName}"
-        ),
-        PORTAL_USER_FIRST_LOGIN(
-                PortalHook.USER_FIRST_LOGIN,
-                "userFirstLogin.html",
-                "First login - ${user.displayName}"
-        ),
-        PORTAL_PASSWORD_RESET(
-                PortalHook.PASSWORD_RESET,
-                "passwordResetNotification.html",
-                "Password reset - ${user.displayName}"
-        ),
+        PORTAL_USER_REGISTERED(PortalHook.USER_REGISTERED, "userRegistered.html", "User registered - ${user.displayName}"),
+        PORTAL_USER_CREATED(PortalHook.USER_CREATED, "userCreated.html", "User creation - ${user.displayName}"),
+        PORTAL_USER_FIRST_LOGIN(PortalHook.USER_FIRST_LOGIN, "userFirstLogin.html", "First login - ${user.displayName}"),
+        PORTAL_PASSWORD_RESET(PortalHook.PASSWORD_RESET, "passwordResetNotification.html", "Password reset - ${user.displayName}"),
         PORTAL_NEW_SUPPORT_TICKET(
-                PortalHook.NEW_SUPPORT_TICKET,
-                "supportTicketNotification.html",
-                "New support Ticket by ${user.displayName}"
+            PortalHook.NEW_SUPPORT_TICKET,
+            "supportTicketNotification.html",
+            "New support Ticket by ${user.displayName}"
         ),
-        PORTAL_GROUP_INVITATION(
-                PortalHook.GROUP_INVITATION,
-                "groupInvitationNotification.html",
-                "New group invitation - ${group.name}"
-        ),
+        PORTAL_GROUP_INVITATION(PortalHook.GROUP_INVITATION, "groupInvitationNotification.html", "New group invitation - ${group.name}"),
         TEMPLATES_FOR_ACTION_USER_REGISTRATION(
-                ActionHook.USER_REGISTRATION,
-                "userRegistration.html",
-                "User ${registrationAction} - ${user.displayName}"
+            ActionHook.USER_REGISTRATION,
+            "userRegistration.html",
+            "User ${registrationAction} - ${user.displayName}"
         ),
         TEMPLATES_FOR_ACTION_USER_REGISTRATION_REQUEST_PROCESSED(
-                ActionHook.USER_REGISTRATION_REQUEST_PROCESSED,
-                "userRegistrationRequestProcessed.html",
-                "User registration ${registrationStatus} - ${user.displayName}"
+            ActionHook.USER_REGISTRATION_REQUEST_PROCESSED,
+            "userRegistrationRequestProcessed.html",
+            "User registration ${registrationStatus} - ${user.displayName}"
         ),
         TEMPLATES_FOR_ACTION_APPLICATION_MEMBER_SUBSCRIPTION(
-                ActionHook.APPLICATION_MEMBER_SUBSCRIPTION,
-                "applicationMember.html",
-                "New member in application ${application.name}"
+            ActionHook.APPLICATION_MEMBER_SUBSCRIPTION,
+            "applicationMember.html",
+            "New member in application ${application.name}"
         ),
-        TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION(
-                ActionHook.API_MEMBER_SUBSCRIPTION,
-                "apiMember.html",
-                "New member in API ${api.name}"
-        ),
+        TEMPLATES_FOR_ACTION_API_MEMBER_SUBSCRIPTION(ActionHook.API_MEMBER_SUBSCRIPTION, "apiMember.html", "New member in API ${api.name}"),
         TEMPLATES_FOR_ACTION_GROUP_MEMBER_SUBSCRIPTION(
-                ActionHook.GROUP_MEMBER_SUBSCRIPTION,
-                "groupMember.html",
-                "New member in group ${group.name}"
+            ActionHook.GROUP_MEMBER_SUBSCRIPTION,
+            "groupMember.html",
+            "New member in group ${group.name}"
         ),
-        TEMPLATES_FOR_ACTION_SUPPORT_TICKET(
-                ActionHook.SUPPORT_TICKET,
-                "supportTicket.html",
-                "${ticketSubject}"
-        ),
+        TEMPLATES_FOR_ACTION_SUPPORT_TICKET(ActionHook.SUPPORT_TICKET, "supportTicket.html", "${ticketSubject}"),
         TEMPLATES_FOR_ACTION_USER_GROUP_INVITATION(
-                ActionHook.USER_GROUP_INVITATION,
-                "groupInvitation.html",
-                "Group invitation - ${group.name}"
+            ActionHook.USER_GROUP_INVITATION,
+            "groupInvitation.html",
+            "Group invitation - ${group.name}"
         ),
         TEMPLATES_FOR_ACTION_USER_PASSWORD_RESET(
-                ActionHook.USER_PASSWORD_RESET,
-                "passwordReset.html",
-                "Password reset - ${user.displayName}"
+            ActionHook.USER_PASSWORD_RESET,
+            "passwordReset.html",
+            "Password reset - ${user.displayName}"
         ),
-        TEMPLATES_FOR_ACTION_GENERIC_MESSAGE(
-                ActionHook.GENERIC_MESSAGE,
-                "genericMessage.html",
-                "${messageSubject}"
-        );
+        TEMPLATES_FOR_ACTION_GENERIC_MESSAGE(ActionHook.GENERIC_MESSAGE, "genericMessage.html", "${messageSubject}");
 
         private Hook linkedHook;
         private String htmlTemplate;
@@ -323,7 +229,7 @@ public class EmailNotificationBuilder {
 
         public static EmailTemplate fromHook(Hook hook) {
             final EmailTemplate[] values = values();
-            for(int i = 0; i < values.length; i++) {
+            for (int i = 0; i < values.length; i++) {
                 if (values[i].getLinkedHook().equals(hook)) {
                     return values[i];
                 }
@@ -333,7 +239,7 @@ public class EmailNotificationBuilder {
 
         public static EmailTemplate fromHtmlTemplateName(String htmlTemplate) {
             final EmailTemplate[] values = values();
-            for(int i = 0; i < values.length; i++) {
+            for (int i = 0; i < values.length; i++) {
                 if (values[i].getHtmlTemplate().equals(htmlTemplate)) {
                     return values[i];
                 }

@@ -15,12 +15,16 @@
  */
 package io.gravitee.rest.api.standalone.jetty;
 
+import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
+import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
+import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
+import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
+import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-
 import javax.servlet.DispatcherType;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -40,13 +44,6 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
-import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
-import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
-import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
-import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -63,7 +60,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
 
     @Value("${http.api.management.entrypoint:${http.api.entrypoint:/}management}")
     private String managementEntrypoint;
-    
+
     @Value("${http.api.portal.enabled:true}")
     private boolean startPortalAPI;
 
@@ -81,19 +78,27 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, "basic");
 
         List<ServletContextHandler> contexts = new ArrayList<>();
-        
+
         if (startPortalAPI) {
             // REST configuration for Portal API
-            ServletContextHandler portalContextHandler = configureAPI(portalEntrypoint, GraviteePortalApplication.class.getName(), SecurityPortalConfiguration.class);
+            ServletContextHandler portalContextHandler = configureAPI(
+                portalEntrypoint,
+                GraviteePortalApplication.class.getName(),
+                SecurityPortalConfiguration.class
+            );
             contexts.add(portalContextHandler);
         }
-        
+
         if (startManagementAPI) {
             // REST configuration for Management API
-            ServletContextHandler managementContextHandler = configureAPI(managementEntrypoint, GraviteeManagementApplication.class.getName(), SecurityManagementConfiguration.class);
+            ServletContextHandler managementContextHandler = configureAPI(
+                managementEntrypoint,
+                GraviteeManagementApplication.class.getName(),
+                SecurityManagementConfiguration.class
+            );
             contexts.add(managementContextHandler);
         }
-        
+
         if (contexts.isEmpty()) {
             throw new IllegalStateException("At least one API should be enabled");
         }
@@ -104,7 +109,11 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         server.start();
     }
 
-    protected ServletContextHandler configureAPI(String apiContextPath, String applicationName, Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass) {
+    protected ServletContextHandler configureAPI(
+        String apiContextPath,
+        String applicationName,
+        Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass
+    ) {
         final ServletContextHandler childContext = new ServletContextHandler(server, apiContextPath, ServletContextHandler.SESSIONS);
 
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
@@ -121,12 +130,14 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         childContext.addEventListener(new ContextLoaderListener(webApplicationContext));
 
         // Spring Security filter
-        childContext.addFilter(new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),"/*", EnumSet.allOf(DispatcherType.class));
+        childContext.addFilter(
+            new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")),
+            "/*",
+            EnumSet.allOf(DispatcherType.class)
+        );
         return childContext;
-
-
     }
-    
+
     @Override
     protected void doStop() throws Exception {
         server.stop();

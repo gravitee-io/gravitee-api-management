@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
@@ -26,20 +31,14 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.service.exceptions.ApplicationActiveException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
+import java.util.Collections;
+import java.util.Optional;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -76,7 +75,6 @@ public class ApplicationService_RestoreTest {
 
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotRestoreApp_NotExist() throws TechnicalException {
-
         when(applicationRepository.findById(APP)).thenReturn(Optional.empty());
 
         applicationService.restore(APP);
@@ -84,7 +82,6 @@ public class ApplicationService_RestoreTest {
 
     @Test(expected = ApplicationActiveException.class)
     public void shouldNotRestoreApp_NotArchived() throws TechnicalException {
-
         Application app = fakeApp(false);
         app.setStatus(ApplicationStatus.ACTIVE);
 
@@ -95,7 +92,6 @@ public class ApplicationService_RestoreTest {
 
     @Test
     public void shouldRestoreApp() throws TechnicalException {
-
         Application app = fakeApp(false);
         app.setStatus(ApplicationStatus.ARCHIVED);
 

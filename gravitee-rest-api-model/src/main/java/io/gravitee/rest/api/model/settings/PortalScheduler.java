@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PortalScheduler {
+
     @JsonProperty("tasks")
     @ParameterKey(Key.PORTAL_SCHEDULER_TASKS)
     private Integer tasksInSeconds;

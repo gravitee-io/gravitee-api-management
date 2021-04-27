@@ -33,16 +33,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserDocumentTransformer implements DocumentTransformer<UserEntity> {
 
-    private final static String FIELD_ID = "id";
-    private final static String FIELD_TYPE = "type";
-    private final static String FIELD_TYPE_VALUE = "user";
-    private final static String FIELD_FIRSTNAME = "firstname";
-    private final static String FIELD_LASTNAME = "lastname";
-    private final static String FIELD_DISPLAYNAME = "displayname";
-    private final static String FIELD_DISPLAYNAME_SPLIT = "displayname_split";
-    private final static String FIELD_EMAIL = "email";
-    private final static String FIELD_SOURCE = "source";
-    private final static String FIELD_REFERENCE = "reference";
+    private static final String FIELD_ID = "id";
+    private static final String FIELD_TYPE = "type";
+    private static final String FIELD_TYPE_VALUE = "user";
+    private static final String FIELD_FIRSTNAME = "firstname";
+    private static final String FIELD_LASTNAME = "lastname";
+    private static final String FIELD_DISPLAYNAME = "displayname";
+    private static final String FIELD_DISPLAYNAME_SPLIT = "displayname_split";
+    private static final String FIELD_EMAIL = "email";
+    private static final String FIELD_SOURCE = "source";
+    private static final String FIELD_REFERENCE = "reference";
 
     private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
 

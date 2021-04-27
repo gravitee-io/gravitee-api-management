@@ -74,11 +74,13 @@ public class MonitoringData {
         if (this == o) return true;
         if (!(o instanceof MonitoringData)) return false;
         MonitoringData that = (MonitoringData) o;
-        return Objects.equals(cpu, that.cpu) &&
-                Objects.equals(process, that.process) &&
-                Objects.equals(jvm, that.jvm) &&
-                Objects.equals(thread, that.thread) &&
-                Objects.equals(gc, that.gc);
+        return (
+            Objects.equals(cpu, that.cpu) &&
+            Objects.equals(process, that.process) &&
+            Objects.equals(jvm, that.jvm) &&
+            Objects.equals(thread, that.thread) &&
+            Objects.equals(gc, that.gc)
+        );
     }
 
     @Override
@@ -88,12 +90,6 @@ public class MonitoringData {
 
     @Override
     public String toString() {
-        return "MonitoringData{" +
-                "cpu=" + cpu +
-                ", process=" + process +
-                ", jvm=" + jvm +
-                ", thread=" + thread +
-                ", gc=" + gc +
-                '}';
+        return "MonitoringData{" + "cpu=" + cpu + ", process=" + process + ", jvm=" + jvm + ", thread=" + thread + ", gc=" + gc + '}';
     }
 }

@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionStatus;
-
 import java.util.Date;
 
 /**
@@ -229,6 +228,7 @@ public class Subscription {
     }
 
     public static class Plan {
+
         private final String id;
         private final String name;
         private PlanSecurityType security;
@@ -256,6 +256,7 @@ public class Subscription {
     }
 
     public static class Application {
+
         private final String id;
         private final String name;
         private final String type;
@@ -289,10 +290,10 @@ public class Subscription {
         public User getOwner() {
             return owner;
         }
-
     }
 
     public static class Api {
+
         private final String id;
         private final String name;
         private final String version;
@@ -323,6 +324,7 @@ public class Subscription {
     }
 
     public static class User {
+
         private final String id;
         private final String displayName;
 

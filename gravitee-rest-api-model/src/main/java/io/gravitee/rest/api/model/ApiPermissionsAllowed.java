@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.rest.api.model.permissions.ApiPermission;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import io.gravitee.rest.api.model.permissions.ApiPermission;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

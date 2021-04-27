@@ -48,8 +48,6 @@ public class NewTopApiEntity {
 
     @Override
     public String toString() {
-        return "NewTopApiEntity{" +
-                "api='" + api + '\'' +
-                '}';
+        return "NewTopApiEntity{" + "api='" + api + '\'' + '}';
     }
 }

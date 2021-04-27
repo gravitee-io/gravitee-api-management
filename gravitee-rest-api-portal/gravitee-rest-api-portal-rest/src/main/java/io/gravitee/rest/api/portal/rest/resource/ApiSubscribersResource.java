@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.rest.api.model.SubscriptionStatus.*;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -31,16 +33,13 @@ import io.gravitee.rest.api.service.AnalyticsService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.SubscriptionStatus.*;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -53,46 +52,51 @@ public class ApiSubscribersResource extends AbstractResource {
 
     @Inject
     private SubscriptionService subscriptionService;
+
     @Inject
     private AnalyticsService analyticsService;
+
     @Inject
     private ApplicationService applicationService;
 
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response getSubscriberApplicationsByApiId(@BeanParam PaginationParam paginationParam,
-            @PathParam("apiId") String apiId, @QueryParam("statuses") List<SubscriptionStatus> statuses) {
+    public Response getSubscriberApplicationsByApiId(
+        @BeanParam PaginationParam paginationParam,
+        @PathParam("apiId") String apiId,
+        @QueryParam("statuses") List<SubscriptionStatus> statuses
+    ) {
         String currentUser = getAuthenticatedUserOrNull();
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
         Collection<ApiEntity> userApis = apiService.findPublishedByUser(currentUser, apiQuery);
         Optional<ApiEntity> optionalApi = userApis.stream().filter(a -> a.getId().equals(apiId)).findFirst();
         if (optionalApi.isPresent()) {
-
             SubscriptionQuery subscriptionQuery = new SubscriptionQuery();
             subscriptionQuery.setApi(apiId);
 
             subscriptionQuery.setStatuses(statuses);
 
             ApiEntity api = optionalApi.get();
-            if(!api.getPrimaryOwner().getId().equals(currentUser) ) {
+            if (!api.getPrimaryOwner().getId().equals(currentUser)) {
                 Set<ApplicationListItem> userApplications = this.applicationService.findByUser(currentUser);
-                if(userApplications == null || userApplications.isEmpty()) {
+                if (userApplications == null || userApplications.isEmpty()) {
                     return createListResponse(Collections.emptyList(), paginationParam);
                 }
                 subscriptionQuery.setApplications(userApplications.stream().map(ApplicationListItem::getId).collect(Collectors.toList()));
             }
 
-
             Map<String, Long> nbHitsByApp = getNbHitsByApplication(apiId);
 
             Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
-            List<Application> subscribersApplication = subscriptions.stream().map(SubscriptionEntity::getApplication)
-                    .distinct()
-                    .map(application -> applicationService.findById(application))
-                    .map(application -> applicationMapper.convert(application, uriInfo))
-                    .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
-                    .collect(Collectors.toList());
+            List<Application> subscribersApplication = subscriptions
+                .stream()
+                .map(SubscriptionEntity::getApplication)
+                .distinct()
+                .map(application -> applicationService.findById(application))
+                .map(application -> applicationMapper.convert(application, uriInfo))
+                .sorted((o1, o2) -> compareApp(nbHitsByApp, o1, o2))
+                .collect(Collectors.toList());
             return createListResponse(subscribersApplication, paginationParam);
         }
         throw new ApiNotFoundException(apiId);
@@ -100,17 +104,17 @@ public class ApiSubscribersResource extends AbstractResource {
 
     private int compareApp(Map<String, Long> nbHitsByApp, Application o1, Application o2) {
         if (nbHitsByApp != null) {
-            if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) == null) {
+            if (nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) == null) {
                 return 0;
             }
-            if(nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) != null) {
+            if (nbHitsByApp.get(o1.getId()) == null && nbHitsByApp.get(o2.getId()) != null) {
                 return 1;
             }
-            if(nbHitsByApp.get(o1.getId()) != null && nbHitsByApp.get(o2.getId()) == null) {
+            if (nbHitsByApp.get(o1.getId()) != null && nbHitsByApp.get(o2.getId()) == null) {
                 return -1;
             }
             int compareTo = nbHitsByApp.get(o2.getId()).compareTo(nbHitsByApp.get(o1.getId()));
-            if(compareTo != 0) {
+            if (compareTo != 0) {
                 return compareTo;
             }
         }

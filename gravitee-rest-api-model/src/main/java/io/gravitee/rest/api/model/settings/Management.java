@@ -25,14 +25,19 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Management {
+
     @ParameterKey(Key.CONSOLE_SUPPORT_ENABLED)
     private Enabled support;
+
     @ParameterKey(Key.MANAGEMENT_TITLE)
     private String title;
+
     @ParameterKey(Key.MANAGEMENT_URL)
     private String url;
+
     @ParameterKey(Key.CONSOLE_USERCREATION_ENABLED)
     private Enabled userCreation;
+
     @ParameterKey(Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED)
     private Enabled automaticValidation;
 

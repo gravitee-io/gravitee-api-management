@@ -24,7 +24,7 @@ import io.gravitee.common.util.MultiValueMap;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = {"baseURL"})
+@JsonIgnoreProperties(value = { "baseURL" })
 public abstract class AbstractCommonSettingsEntity {
 
     public static final String METADATA_READONLY = "readonly";
@@ -37,6 +37,7 @@ public abstract class AbstractCommonSettingsEntity {
         email = new Email();
         metadata = new LinkedMultiValueMap<>();
     }
+
     // Getters & setters
     public Email getEmail() {
         return email;
@@ -53,5 +54,4 @@ public abstract class AbstractCommonSettingsEntity {
     public void setMetadata(MultiValueMap<String, String> metadata) {
         this.metadata = metadata;
     }
-
 }

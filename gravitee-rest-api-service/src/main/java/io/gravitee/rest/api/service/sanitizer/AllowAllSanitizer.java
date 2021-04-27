@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
+import java.util.List;
 import org.owasp.html.Handler;
 import org.owasp.html.HtmlSanitizer;
 import org.owasp.html.HtmlStreamEventReceiver;
 import org.owasp.html.HtmlStreamRenderer;
-
-import java.util.List;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -28,8 +27,7 @@ import java.util.List;
  */
 final class AllowAllSanitizer {
 
-    private AllowAllSanitizer() {
-    }
+    private AllowAllSanitizer() {}
 
     public static String sanitize(String content) {
         return new AllowAllPolicy().sanitize(content);
@@ -65,7 +63,6 @@ final class AllowAllSanitizer {
         }
 
         public String sanitize(String content) {
-
             HtmlSanitizer.sanitize(content, this);
             return htmlOutput.toString();
         }

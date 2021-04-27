@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.*;
 
 /**
@@ -60,8 +59,7 @@ public class InstanceEntity {
         this.id = id;
     }
 
-    public InstanceEntity() {
-    }
+    public InstanceEntity() {}
 
     public String getHostname() {
         return hostname;
@@ -187,6 +185,4 @@ public class InstanceEntity {
     public int hashCode() {
         return Objects.hash(id);
     }
-
-
 }

@@ -30,9 +30,9 @@ import org.springframework.util.Assert;
  */
 public class IdentityProviderPluginHandler implements PluginHandler {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(IdentityProviderPluginHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderPluginHandler.class);
 
-    private final static String PLUGIN_TYPE = "identity_provider";
+    private static final String PLUGIN_TYPE = "identity_provider";
 
     @Autowired
     private PluginClassLoaderFactory pluginClassLoaderFactory;

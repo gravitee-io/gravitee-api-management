@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -26,8 +26,10 @@ public class NewTicketEntity {
 
     @NotNull
     private String subject;
+
     @NotNull
     private String content;
+
     private String application;
     private String api;
     private boolean copyToSender;
@@ -77,11 +79,13 @@ public class NewTicketEntity {
         if (this == o) return true;
         if (!(o instanceof NewTicketEntity)) return false;
         NewTicketEntity that = (NewTicketEntity) o;
-        return Objects.equals(subject, that.subject) &&
-                Objects.equals(content, that.content) &&
-                Objects.equals(application, that.application) &&
-                Objects.equals(api, that.api) &&
-                Objects.equals(copyToSender, that.copyToSender);
+        return (
+            Objects.equals(subject, that.subject) &&
+            Objects.equals(content, that.content) &&
+            Objects.equals(application, that.application) &&
+            Objects.equals(api, that.api) &&
+            Objects.equals(copyToSender, that.copyToSender)
+        );
     }
 
     @Override
@@ -91,12 +95,24 @@ public class NewTicketEntity {
 
     @Override
     public String toString() {
-        return "NewSupportEntity{" +
-                "subject='" + subject + '\'' +
-                ", content='" + content + '\'' +
-                ", application='" + application + '\'' +
-                ", api='" + api + '\'' +
-                ", copyToSender='" + copyToSender + '\'' +
-                '}';
+        return (
+            "NewSupportEntity{" +
+            "subject='" +
+            subject +
+            '\'' +
+            ", content='" +
+            content +
+            '\'' +
+            ", application='" +
+            application +
+            '\'' +
+            ", api='" +
+            api +
+            '\'' +
+            ", copyToSender='" +
+            copyToSender +
+            '\'' +
+            '}'
+        );
     }
 }

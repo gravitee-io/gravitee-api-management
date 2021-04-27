@@ -23,9 +23,7 @@ public class AccessControlListEntity {
     private boolean excluded;
     private List<AccessControlEntity> accessControls;
 
-    public AccessControlListEntity() {
-
-    }
+    public AccessControlListEntity() {}
 
     public boolean isExcluded() {
         return excluded;
@@ -48,8 +46,7 @@ public class AccessControlListEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AccessControlListEntity accessControlList = (AccessControlListEntity) o;
-        return Objects.equals(accessControls, accessControlList.accessControls) &&
-            Objects.equals(excluded, accessControlList.excluded);
+        return Objects.equals(accessControls, accessControlList.accessControls) && Objects.equals(excluded, accessControlList.excluded);
     }
 
     @Override
@@ -59,10 +56,6 @@ public class AccessControlListEntity {
 
     @Override
     public String toString() {
-        return "AccessControlListEntity{" +
-            "accessControls='" + accessControls + '\'' +
-            ", excluded='" + excluded + '\'' +
-            '}';
+        return "AccessControlListEntity{" + "accessControls='" + accessControls + '\'' + ", excluded='" + excluded + '\'' + '}';
     }
-
 }

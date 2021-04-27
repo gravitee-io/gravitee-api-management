@@ -15,22 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.management.api.EntrypointRepository;
-import io.gravitee.repository.management.model.Entrypoint;
-import io.gravitee.rest.api.model.EntrypointEntity;
-import io.gravitee.rest.api.model.NewEntryPointEntity;
-import io.gravitee.rest.api.model.UpdateEntryPointEntity;
-import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
-import io.gravitee.rest.api.service.impl.EntrypointServiceImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.List;
-
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
@@ -40,6 +24,21 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.management.api.EntrypointRepository;
+import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.rest.api.model.EntrypointEntity;
+import io.gravitee.rest.api.model.NewEntryPointEntity;
+import io.gravitee.rest.api.model.UpdateEntryPointEntity;
+import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
+import io.gravitee.rest.api.service.impl.EntrypointServiceImpl;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -51,11 +50,11 @@ public class EntrypointServiceTest {
     private static final String ID = "123";
     private static final String VALUE = "https://api.mycompany.com";
     private static final String TAG = "private;product";
-    private static final String[] TAGS = new String[]{"private", "product"};
+    private static final String[] TAGS = new String[] { "private", "product" };
 
     private static final String NEW_VALUE = "https://public-api.mycompany.com";
     private static final String NEW_TAG = "public;product";
-    private static final String[] NEW_TAGS = new String[]{"public", "product"};
+    private static final String[] NEW_TAGS = new String[] { "public", "product" };
 
     private static final String UNKNOWN_ID = "unknown";
 
@@ -64,8 +63,10 @@ public class EntrypointServiceTest {
 
     @Mock
     private AuditService auditService;
+
     @Mock
     private EntrypointRepository entrypointRepository;
+
     private final Entrypoint entrypointCreated = new Entrypoint();
     private final Entrypoint entrypointUpdated = new Entrypoint();
 

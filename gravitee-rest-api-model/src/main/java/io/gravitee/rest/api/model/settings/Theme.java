@@ -25,12 +25,16 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Theme {
+
     @ParameterKey(Key.THEME_NAME)
     private String name;
+
     @ParameterKey(Key.THEME_LOGO)
     private String logo;
+
     @ParameterKey(Key.THEME_LOADER)
     private String loader;
+
     @ParameterKey(Key.THEME_CSS)
     private String css;
 

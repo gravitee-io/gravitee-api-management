@@ -19,7 +19,6 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.NewIdentityProviderEntity;
 import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
-
 import java.util.Collection;
 import java.util.Set;
 
@@ -28,7 +27,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface IdentityProviderService {
-
     IdentityProviderEntity create(NewIdentityProviderEntity identityProvider);
 
     IdentityProviderEntity update(String id, UpdateIdentityProviderEntity identityProvider);

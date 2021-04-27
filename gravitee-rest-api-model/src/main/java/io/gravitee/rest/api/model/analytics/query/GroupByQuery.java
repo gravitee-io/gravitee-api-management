@@ -61,9 +61,7 @@ public class GroupByQuery extends AbstractQuery {
 
         private String type;
 
-        public Order() {
-
-        }
+        public Order() {}
 
         public String getField() {
             return field;

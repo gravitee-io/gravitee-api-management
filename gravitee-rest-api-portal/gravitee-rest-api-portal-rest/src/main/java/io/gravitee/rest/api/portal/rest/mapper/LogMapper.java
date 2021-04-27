@@ -21,9 +21,8 @@ import io.gravitee.rest.api.portal.rest.model.HttpMethod;
 import io.gravitee.rest.api.portal.rest.model.Log;
 import io.gravitee.rest.api.portal.rest.model.Request;
 import io.gravitee.rest.api.portal.rest.model.Response;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -43,20 +42,22 @@ public class LogMapper {
         logItem.setPath(applicationRequest.getPath());
         logItem.setPlan(applicationRequest.getPlan());
         if (applicationRequest.getRequest() != null) {
-            logItem.setRequest(new Request()
+            logItem.setRequest(
+                new Request()
                     .body(applicationRequest.getRequest().getBody())
                     .headers(applicationRequest.getRequest().getHeaders())
                     .method(HttpMethod.fromValue(applicationRequest.getRequest().getMethod().name()))
                     .uri(applicationRequest.getRequest().getUri())
-                    );
+            );
         }
         logItem.setRequestContentLength(applicationRequest.getRequestContentLength());
         if (applicationRequest.getResponse() != null) {
-            logItem.setResponse(new Response()
+            logItem.setResponse(
+                new Response()
                     .body(applicationRequest.getResponse().getBody())
                     .status(applicationRequest.getResponse().getStatus())
                     .headers(applicationRequest.getResponse().getHeaders())
-                    );
+            );
         }
         logItem.setResponseContentLength(applicationRequest.getResponseContentLength());
         logItem.setResponseTime(applicationRequest.getResponseTime());
@@ -66,7 +67,7 @@ public class LogMapper {
         logItem.setTimestamp(applicationRequest.getTimestamp());
         logItem.setTransactionId(applicationRequest.getTransactionId());
         logItem.setUser(applicationRequest.getUser());
-        
+
         return logItem;
     }
 
@@ -82,7 +83,7 @@ public class LogMapper {
         logItem.setTimestamp(applicationRequestItem.getTimestamp());
         logItem.setTransactionId(applicationRequestItem.getTransactionId());
         logItem.setUser(applicationRequestItem.getUser());
-        
+
         return logItem;
     }
 }

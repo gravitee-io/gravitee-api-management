@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
  * @author GraviteeSource Team
  */
 public interface AccessControlService {
-
     boolean canAccessApiFromPortal(String apiId);
 
     boolean canAccessApiFromPortal(ApiEntity apiEntity);
@@ -33,5 +32,4 @@ public interface AccessControlService {
     boolean canAccessPageFromConsole(PageEntity pageEntity);
 
     boolean canAccessPageFromConsole(ApiEntity apiEntity, PageEntity pageEntity);
-
 }

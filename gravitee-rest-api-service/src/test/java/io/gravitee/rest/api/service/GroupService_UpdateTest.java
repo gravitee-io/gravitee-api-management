@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.util.Maps;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
@@ -24,20 +29,14 @@ import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
+import java.util.Collections;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.Optional;
-
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,7 +64,6 @@ public class GroupService_UpdateTest {
 
     @Test
     public void shouldUpdateGroup() throws Exception {
-
         UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
         updatedGroupEntity.setDisableMembershipNotifications(true);
         updatedGroupEntity.setEmailInvitation(true);
@@ -79,39 +77,51 @@ public class GroupService_UpdateTest {
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
         when(permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, "DEFAULT", CREATE, UPDATE, DELETE)).thenReturn(true);
-        when(membershipService.getRoles(any(),  any(),  any(),  any())).thenReturn(Collections.emptySet());
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         groupService.update(GROUP_ID, updatedGroupEntity);
 
-        verify(groupRepository).update(
+        verify(groupRepository)
+            .update(
                 argThat(
-                        group -> group.isDisableMembershipNotifications() &&
-                                group.isEmailInvitation() &&
-                                group.getEventRules() == null &&
-                                group.isLockApiRole() &&
-                                group.isLockApplicationRole() &&
-                                group.getMaxInvitation() == 100 &&
-                                group.getName().equals("my-group-name") &&
-                                !group.isSystemInvitation()
+                    group ->
+                        group.isDisableMembershipNotifications() &&
+                        group.isEmailInvitation() &&
+                        group.getEventRules() == null &&
+                        group.isLockApiRole() &&
+                        group.isLockApplicationRole() &&
+                        group.getMaxInvitation() == 100 &&
+                        group.getName().equals("my-group-name") &&
+                        !group.isSystemInvitation()
                 )
-        );
+            );
 
-        verify(membershipService).addRoleToMemberOnReference(
-                argThat(membershipReference -> membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null),
-                argThat(membershipMember -> membershipMember.getMemberId().equals(GROUP_ID) && membershipMember.getReference() == null && membershipMember.getMemberType() == MembershipMemberType.GROUP),
+        verify(membershipService)
+            .addRoleToMemberOnReference(
+                argThat(
+                    membershipReference ->
+                        membershipReference.getType() == MembershipReferenceType.API && membershipReference.getId() == null
+                ),
+                argThat(
+                    membershipMember ->
+                        membershipMember.getMemberId().equals(GROUP_ID) &&
+                        membershipMember.getReference() == null &&
+                        membershipMember.getMemberType() == MembershipMemberType.GROUP
+                ),
                 argThat(membershipRole -> membershipRole.getScope() == RoleScope.API && membershipRole.getName().equals("OWNER"))
-        );
+            );
     }
 
     @Test
     public void shouldNotUpdateDefaultRoleBecausePrimaryOwner() throws Exception {
-
         UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
-        updatedGroupEntity.setRoles(Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build());
+        updatedGroupEntity.setRoles(
+            Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
+        );
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
         when(permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, "DEFAULT", CREATE, UPDATE, DELETE)).thenReturn(true);
-        when(membershipService.getRoles(any(),  any(),  any(),  any())).thenReturn(Collections.emptySet());
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         groupService.update(GROUP_ID, updatedGroupEntity);
 

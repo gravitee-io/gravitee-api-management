@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -45,6 +44,4 @@ public class HealthcheckInheritanceException extends AbstractManagementException
     public String getMessage() {
         return "There is a problem with the health-check inheritance. Perhaps the root configuration is missing.";
     }
-
-
 }

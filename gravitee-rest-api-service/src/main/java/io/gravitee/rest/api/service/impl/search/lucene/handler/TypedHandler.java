@@ -22,6 +22,5 @@ import io.gravitee.rest.api.model.search.Indexable;
  * @author GraviteeSource Team
  */
 public interface TypedHandler {
-
     boolean handle(Class<? extends Indexable> source);
 }

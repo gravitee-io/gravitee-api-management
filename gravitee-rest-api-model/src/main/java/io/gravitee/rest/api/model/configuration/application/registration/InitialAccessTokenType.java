@@ -17,5 +17,5 @@ package io.gravitee.rest.api.model.configuration.application.registration;
 
 public enum InitialAccessTokenType {
     INITIAL_ACCESS_TOKEN,
-    CLIENT_CREDENTIALS
+    CLIENT_CREDENTIALS,
 }

@@ -24,7 +24,6 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -38,7 +37,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Keys"})
+@Api(tags = { "API Keys" })
 public class ApiKeysResource extends AbstractResource {
 
     @Context
@@ -55,41 +54,33 @@ public class ApiKeysResource extends AbstractResource {
     @DELETE
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke an API key",
-            notes = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE)
-    })
-    public Response revokeApiKey(
-            @PathParam("key") @ApiParam("The API key") String apiKey) {
+    @ApiOperation(value = "Revoke an API key", notes = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
+    public Response revokeApiKey(@PathParam("key") @ApiParam("The API key") String apiKey) {
         apiKeyService.revoke(apiKey, true);
 
-        return Response
-                .status(Response.Status.NO_CONTENT)
-                .build();
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
     @PUT
     @Path("{key}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update an API Key",
-            notes = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Update an API Key", notes = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "API Key successfully updated", response = ApiKeyEntity.class),
             @ApiResponse(code = 400, message = "Bad plan format"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE)
-    })
-    public Response updateApiKey(
-            @PathParam("key") @ApiParam("The API key") String apiKey,
-            @Valid @NotNull ApiKeyEntity apiKeyEntity) {
-        if (apiKeyEntity.getKey() != null && ! apiKey.equals(apiKeyEntity.getKey())) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
+    public Response updateApiKey(@PathParam("key") @ApiParam("The API key") String apiKey, @Valid @NotNull ApiKeyEntity apiKeyEntity) {
+        if (apiKeyEntity.getKey() != null && !apiKey.equals(apiKeyEntity.getKey())) {
             return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'apiKey' parameter does not correspond to the api-key to update")
-                    .build();
+                .status(Response.Status.BAD_REQUEST)
+                .entity("'apiKey' parameter does not correspond to the api-key to update")
+                .build();
         }
 
         // Force API Key
@@ -103,21 +94,21 @@ public class ApiKeysResource extends AbstractResource {
     @Path("_verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Check if an API key is available",
-            notes = "User must have the API_SUBSCRIPTION:READ permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Check if an API key is available",
+        notes = "User must have the API_SUBSCRIPTION:READ permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "API Key successfully checked", response = Boolean.class),
             @ApiResponse(code = 400, message = "Bad API Key parameter"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Response verifyApiKeyAvailability(
-            @ApiParam(name = "apiKey", required = true)
-            @CustomApiKey @NotNull @QueryParam("apiKey") String apiKey) {
-
-        return Response
-                .ok(!apiKeyService.exists(apiKey))
-                .build();
+        @ApiParam(name = "apiKey", required = true) @CustomApiKey @NotNull @QueryParam("apiKey") String apiKey
+    ) {
+        return Response.ok(!apiKeyService.exists(apiKey)).build();
     }
 }

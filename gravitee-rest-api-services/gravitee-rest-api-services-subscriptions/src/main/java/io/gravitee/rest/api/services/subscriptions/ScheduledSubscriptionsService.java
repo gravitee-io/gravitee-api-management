@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.services.subscriptions;
 
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -22,22 +24,18 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
-
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
-import static java.util.stream.Collectors.toSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -86,21 +84,20 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     @Override
     public void run() {
         logger.debug("Refresh subscriptions #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
-        final Set<String> apiIds = apiService.findAllLight().stream()
-                .map(ApiEntity::getId)
-                .collect(toSet());
+        final Set<String> apiIds = apiService.findAllLight().stream().map(ApiEntity::getId).collect(toSet());
 
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApis(apiIds);
         query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
         final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
         final Date now = new Date();
-        subscriptions
-                .forEach(subscription -> {
-                    if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
-                        subscriptionService.close(subscription.getId());
-                    }
-                });
+        subscriptions.forEach(
+            subscription -> {
+                if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
+                    subscriptionService.close(subscription.getId());
+                }
+            }
+        );
 
         logger.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
     }

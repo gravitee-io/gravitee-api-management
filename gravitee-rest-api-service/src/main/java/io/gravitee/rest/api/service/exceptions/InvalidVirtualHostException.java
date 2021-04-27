@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Maps;
-
 import java.util.List;
 import java.util.Map;
 
@@ -47,10 +46,7 @@ public class InvalidVirtualHostException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Maps.<String, String>builder()
-                .put("host", host)
-                .put("restrictions", String.join(",", restrictions))
-                .build();
+        return Maps.<String, String>builder().put("host", host).put("restrictions", String.join(",", restrictions)).build();
     }
 
     @Override

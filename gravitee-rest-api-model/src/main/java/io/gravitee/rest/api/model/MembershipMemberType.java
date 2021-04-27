@@ -21,5 +21,5 @@ package io.gravitee.rest.api.model;
  */
 public enum MembershipMemberType {
     USER,
-    GROUP
+    GROUP,
 }

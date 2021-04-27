@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.spec.converter.wsdl.soap;
 
-import io.gravitee.rest.api.spec.converter.wsdl.binding.BobyParts;
-import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
-import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapVersion;
-import org.apache.xmlbeans.XmlCursor;
+import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.formatQName;
 
-import javax.wsdl.*;
-import javax.xml.namespace.QName;
+import io.gravitee.rest.api.spec.converter.wsdl.binding.BobyParts;
+import io.gravitee.rest.api.spec.converter.wsdl.binding.SoapVersion;
+import io.gravitee.rest.api.spec.converter.wsdl.utils.SampleXmlUtil;
 import java.util.Collection;
 import java.util.Objects;
-
-import static io.gravitee.rest.api.spec.converter.wsdl.WSDLUtils.formatQName;
+import javax.wsdl.*;
+import javax.xml.namespace.QName;
+import org.apache.xmlbeans.XmlCursor;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -44,7 +43,6 @@ public class SoapBodyBuilder extends AbstractSoapBuilder {
         xmlCursor.beginElement(version.getBodyQName());
 
         if (bodyParts != null) {
-
             if (bodyParts.useEncoded()) {
                 xmlCursor.insertAttributeWithValue(SampleXmlUtil.XSI_TYPE, formatQName(version.getBodyQName()));
             }
@@ -68,7 +66,7 @@ public class SoapBodyBuilder extends AbstractSoapBuilder {
 
                 // all part of the body element are generated, go back to the SoapEnvelope element
                 xmlCursor.toParent(); // go to body elt
-                xmlCursor.toParent();// go to envelope elt
+                xmlCursor.toParent(); // go to envelope elt
             } else if (version.isRpcStyle()) {
                 // root element in rpc style is related to the operation
                 // https://www.w3.org/TR/2007/REC-soap12-part2-20070427/#soapforrpc
@@ -91,7 +89,6 @@ public class SoapBodyBuilder extends AbstractSoapBuilder {
                         generateRpcPart(xmlCursor, part, bodyParts.useEncoded());
                     }
                 }
-
             }
         } else {
             // no part for body, close the element

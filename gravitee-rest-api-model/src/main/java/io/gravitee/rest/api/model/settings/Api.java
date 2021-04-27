@@ -18,7 +18,6 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
-
 import java.util.List;
 
 /**
@@ -27,8 +26,10 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Api {
+
     @ParameterKey(Key.API_LABELS_DICTIONARY)
     private List<String> labelsDictionary;
+
     @ParameterKey(Key.API_PRIMARY_OWNER_MODE)
     private String primaryOwnerMode;
 

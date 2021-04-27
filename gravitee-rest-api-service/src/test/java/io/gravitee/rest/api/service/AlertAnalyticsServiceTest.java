@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertEventRepository;
@@ -26,20 +30,14 @@ import io.gravitee.rest.api.model.alert.AlertAnalyticsEntity;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AlertAnalyticsServiceImpl;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -86,9 +84,10 @@ public class AlertAnalyticsServiceTest {
         when(alertEventRepository.search(any(), any())).thenReturn(new Page(Collections.emptyList(), 0, 1, 0));
 
         AlertAnalyticsEntity result = cut.findByReference(
-                AlertReferenceType.PLATFORM,
-                REFERENCE_ID,
-                new AlertAnalyticsQuery.Builder().from(0).to(1).build());
+            AlertReferenceType.PLATFORM,
+            REFERENCE_ID,
+            new AlertAnalyticsQuery.Builder().from(0).to(1).build()
+        );
 
         assertThat(result.getAlerts()).isEmpty();
         assertThat(result.getBySeverity()).isEmpty();
@@ -98,15 +97,16 @@ public class AlertAnalyticsServiceTest {
     public void shouldFindByReference() throws Exception {
         when(alertTriggerRepository.findByReference(REFERENCE_TYPE, REFERENCE_ID)).thenReturn(alertTriggerProvider());
         when(alertEventRepository.search(any(), any()))
-                .thenReturn(alertEventsProvider(10, "alert1"))
-                .thenReturn(alertEventsProvider(50, "alert2"))
-                .thenReturn(alertEventsProvider(12, "alert3"))
-                .thenReturn(alertEventsProvider(0, "alert4"));
+            .thenReturn(alertEventsProvider(10, "alert1"))
+            .thenReturn(alertEventsProvider(50, "alert2"))
+            .thenReturn(alertEventsProvider(12, "alert3"))
+            .thenReturn(alertEventsProvider(0, "alert4"));
 
         AlertAnalyticsEntity result = cut.findByReference(
-                AlertReferenceType.PLATFORM,
-                REFERENCE_ID,
-                new AlertAnalyticsQuery.Builder().from(0).to(1).build());
+            AlertReferenceType.PLATFORM,
+            REFERENCE_ID,
+            new AlertAnalyticsQuery.Builder().from(0).to(1).build()
+        );
 
         assertThat(result.getAlerts()).hasSize(3);
         // Checking sorting on Severity then event count
@@ -144,7 +144,6 @@ public class AlertAnalyticsServiceTest {
     }
 
     private Page<AlertEvent> alertEventsProvider(int eventNumber, String alert) {
-
         ArrayList<AlertEvent> events = new ArrayList<>();
 
         for (int i = 0; i < eventNumber; i++) {

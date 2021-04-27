@@ -15,6 +15,20 @@
  */
 package io.gravitee.rest.api.service;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static io.gravitee.repository.management.model.Token.AuditEvent.TOKEN_CREATED;
+import static io.gravitee.repository.management.model.Token.AuditEvent.TOKEN_DELETED;
+import static io.gravitee.rest.api.model.TokenReferenceType.USER;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.of;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyMap;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TokenRepository;
 import io.gravitee.repository.management.model.Token;
@@ -23,6 +37,10 @@ import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
 import io.gravitee.rest.api.service.impl.TokenServiceImpl;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,25 +53,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static io.gravitee.repository.management.model.Token.AuditEvent.TOKEN_CREATED;
-import static io.gravitee.repository.management.model.Token.AuditEvent.TOKEN_DELETED;
-import static io.gravitee.rest.api.model.TokenReferenceType.USER;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.anyMap;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -70,25 +69,30 @@ public class TokenServiceTest {
 
     @Mock
     private TokenRepository tokenRepository;
+
     @Mock
     private AuditService auditService;
+
     @Mock
     private Token token;
+
     @Mock
     private PasswordEncoder passwordEncoder;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return null;
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-            @Override
-            public void setAuthentication(Authentication authentication) {
-            }
-        });
+        );
     }
 
     @Before
@@ -104,52 +108,50 @@ public class TokenServiceTest {
         when(token.getLastUseAt()).thenReturn(new Date(1486773200000L));
         when(tokenRepository.findById(TOKEN_ID)).thenReturn(of(token));
 
-        SecurityContextHolder.setContext(new SecurityContext() {
-            @Override
-            public Authentication getAuthentication() {
-                return new Authentication() {
-                    @Override
-                    public Collection<? extends GrantedAuthority> getAuthorities() {
-                        return null;
-                    }
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return new Authentication() {
+                        @Override
+                        public Collection<? extends GrantedAuthority> getAuthorities() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getCredentials() {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getDetails() {
-                        return null;
-                    }
+                        @Override
+                        public Object getDetails() {
+                            return null;
+                        }
 
-                    @Override
-                    public Object getPrincipal() {
-                        return new UserDetails(USER_ID, "", Collections.emptyList());
-                    }
+                        @Override
+                        public Object getPrincipal() {
+                            return new UserDetails(USER_ID, "", Collections.emptyList());
+                        }
 
-                    @Override
-                    public boolean isAuthenticated() {
-                        return false;
-                    }
+                        @Override
+                        public boolean isAuthenticated() {
+                            return false;
+                        }
 
-                    @Override
-                    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+                        @Override
+                        public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
-                    }
+                        @Override
+                        public String getName() {
+                            return null;
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-                };
+                @Override
+                public void setAuthentication(Authentication authentication) {}
             }
-
-            @Override
-            public void setAuthentication(Authentication authentication) {
-
-            }
-        });
+        );
     }
 
     @Test

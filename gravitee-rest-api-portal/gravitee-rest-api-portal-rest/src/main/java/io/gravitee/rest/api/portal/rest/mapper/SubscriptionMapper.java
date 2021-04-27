@@ -17,11 +17,10 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
-import org.springframework.stereotype.Component;
-
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -30,7 +29,7 @@ import java.util.Date;
 
 @Component
 public class SubscriptionMapper {
-    
+
     public Subscription convert(SubscriptionEntity subscriptionEntity) {
         final Subscription subscriptionItem = new Subscription();
         subscriptionItem.setId(subscriptionEntity.getId());

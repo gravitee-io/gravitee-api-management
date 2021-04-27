@@ -15,79 +15,75 @@
  */
 package io.gravitee.rest.api.security.authentication;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
-import io.gravitee.rest.api.security.authentication.GraviteeAuthenticationDetails;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public class GraviteeAuthenticationDetailsTest {
 
-  @Mock
-  private HttpServletRequest httpServletRequest;
+    @Mock
+    private HttpServletRequest httpServletRequest;
 
-  @Test
-  public void shouldNotOverrideGetSession() {
-    HttpSession sessionMock = mock(HttpSession.class);
-    when(httpServletRequest.getSession(false)).thenReturn(sessionMock);
-    when(sessionMock.getId()).thenReturn("sessionId");
-    GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
-    assertEquals("sessionId", authenticationDetails.getSessionId());
-  }
+    @Test
+    public void shouldNotOverrideGetSession() {
+        HttpSession sessionMock = mock(HttpSession.class);
+        when(httpServletRequest.getSession(false)).thenReturn(sessionMock);
+        when(sessionMock.getId()).thenReturn("sessionId");
+        GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
+        assertEquals("sessionId", authenticationDetails.getSessionId());
+    }
 
-  @Test
-  public void shouldGetCorrectIPWhenProxyRequest() {
-    when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
-    when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
-    GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
-    assertEquals("CORRECT_IP", authenticationDetails.getRemoteAddress());
-  }
+    @Test
+    public void shouldGetCorrectIPWhenProxyRequest() {
+        when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
+        when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
+        GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
+        assertEquals("CORRECT_IP", authenticationDetails.getRemoteAddress());
+    }
 
-  @Test
-  public void shouldGetCorrectIPWithoutProxy() {
-    when(httpServletRequest.getRemoteAddr()).thenReturn("CORRECT_IP");
-    GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
-    assertEquals("CORRECT_IP", authenticationDetails.getRemoteAddress());
-  }
+    @Test
+    public void shouldGetCorrectIPWithoutProxy() {
+        when(httpServletRequest.getRemoteAddr()).thenReturn("CORRECT_IP");
+        GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
+        assertEquals("CORRECT_IP", authenticationDetails.getRemoteAddress());
+    }
 
-  @Test
-  public void shouldObjectBeEqualsForSameRequest() {
-    when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
-    when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
-    GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
-    assertEquals(authenticationDetails, new GraviteeAuthenticationDetails(httpServletRequest));
-  }
+    @Test
+    public void shouldObjectBeEqualsForSameRequest() {
+        when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
+        when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
+        GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
+        assertEquals(authenticationDetails, new GraviteeAuthenticationDetails(httpServletRequest));
+    }
 
-  @Test
-  public void shouldNotBeEqualsWhenCompareToParentType() {
-    when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
-    when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
-    GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
-    assertNotEquals(authenticationDetails, new WebAuthenticationDetails(httpServletRequest));
-  }
+    @Test
+    public void shouldNotBeEqualsWhenCompareToParentType() {
+        when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
+        when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
+        GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
+        assertNotEquals(authenticationDetails, new WebAuthenticationDetails(httpServletRequest));
+    }
 
-  @Test
-  public void shouldHashCodeBeEqualsForSameValues() {
-    when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
-    when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
-    GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
-    Map<GraviteeAuthenticationDetails, String> map = new HashMap<>();
-    map.put(authenticationDetails, "found");
-    assertEquals("found", map.get(authenticationDetails));
-  }
-
+    @Test
+    public void shouldHashCodeBeEqualsForSameValues() {
+        when(httpServletRequest.getHeader("X-Forwarded-For")).thenReturn("CORRECT_IP,PROXY_IP");
+        when(httpServletRequest.getRemoteAddr()).thenReturn("PROXY_IP");
+        GraviteeAuthenticationDetails authenticationDetails = new GraviteeAuthenticationDetails(httpServletRequest);
+        Map<GraviteeAuthenticationDetails, String> map = new HashMap<>();
+        map.put(authenticationDetails, "found");
+        assertEquals("found", map.get(authenticationDetails));
+    }
 }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static java.lang.String.format;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.analytics.query.LogQuery;
 import io.gravitee.rest.api.model.log.ApplicationRequest;
@@ -30,17 +32,14 @@ import io.gravitee.rest.api.portal.rest.security.Permission;
 import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.LogsService;
-
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -53,47 +52,48 @@ public class ApplicationLogsResource extends AbstractResource {
 
     @Inject
     private LogMapper logMapper;
-    
+
     @Inject
     private ApplicationService applicationService;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response applicationLogs(
-            @PathParam("applicationId") String applicationId,
-            @BeanParam PaginationParam paginationParam,
-            @BeanParam LogsParam logsParam) {
+        @PathParam("applicationId") String applicationId,
+        @BeanParam PaginationParam paginationParam,
+        @BeanParam LogsParam logsParam
+    ) {
         //Does application exists ?
         applicationService.findById(applicationId);
-        
-        final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId,
-                paginationParam, logsParam);
-        
-        List<Log> logs = searchLogResponse.getLogs().stream()
-                .map(logMapper::convert)
-                .collect(Collectors.toList());
+
+        final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
+
+        List<Log> logs = searchLogResponse.getLogs().stream().map(logMapper::convert).collect(Collectors.toList());
 
         final Map<String, Object> metadataTotal = new HashMap<>();
         metadataTotal.put(METADATA_DATA_TOTAL_KEY, searchLogResponse.getTotal());
 
-        final Map<String, Map<String, Object>> metadata = searchLogResponse.getMetadata() == null ? new HashMap() : new HashMap(searchLogResponse.getMetadata());
+        final Map<String, Map<String, Object>> metadata = searchLogResponse.getMetadata() == null
+            ? new HashMap()
+            : new HashMap(searchLogResponse.getMetadata());
         metadata.put(METADATA_DATA_KEY, metadataTotal);
         //No pagination, because logsService did it already
         return createListResponse(logs, paginationParam, metadata, false);
     }
 
     @SuppressWarnings("unchecked")
-    protected SearchLogResponse<ApplicationRequestItem> getSearchLogResponse(String applicationId,
-            PaginationParam paginationParam, LogsParam logsParam) {
+    protected SearchLogResponse<ApplicationRequestItem> getSearchLogResponse(
+        String applicationId,
+        PaginationParam paginationParam,
+        LogsParam logsParam
+    ) {
         logsParam.validate();
 
         LogQuery logQuery = new LogQuery();
         logQuery.setPage(paginationParam.getPage());
         logQuery.setSize(paginationParam.getSize());
-        
+
         logQuery.setQuery(logsParam.getQuery());
         logQuery.setFrom(logsParam.getFrom());
         logQuery.setTo(logsParam.getTo());
@@ -106,39 +106,37 @@ public class ApplicationLogsResource extends AbstractResource {
     @GET
     @Path("/{logId}")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response applicationLog(
-            @PathParam("applicationId") String applicationId,
-            @PathParam("logId") String logId,
-            @QueryParam("timestamp") Long timestamp) {
+        @PathParam("applicationId") String applicationId,
+        @PathParam("logId") String logId,
+        @QueryParam("timestamp") Long timestamp
+    ) {
         //Does application exists ?
         applicationService.findById(applicationId);
-        
+
         ApplicationRequest applicationLogs = logsService.findApplicationLog(logId, timestamp);
-        
-        return Response
-                .ok(logMapper.convert(applicationLogs))
-                .build();
+
+        return Response.ok(logMapper.convert(applicationLogs)).build();
     }
 
     @POST
     @Path("_export")
-    @Permissions({
-        @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public Response exportApplicationLogsAsCSV(
-            @PathParam("applicationId") String applicationId,
-            @BeanParam PaginationParam paginationParam,
-            @BeanParam LogsParam logsParam) {
+        @PathParam("applicationId") String applicationId,
+        @BeanParam PaginationParam paginationParam,
+        @BeanParam LogsParam logsParam
+    ) {
         //Does application exists ?
         applicationService.findById(applicationId);
         final SearchLogResponse<ApplicationRequestItem> searchLogResponse = getSearchLogResponse(applicationId, paginationParam, logsParam);
         return Response
-                .ok(logsService.exportAsCsv(searchLogResponse))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis()))
-                .build();
+            .ok(logsService.exportAsCsv(searchLogResponse))
+            .header(
+                HttpHeaders.CONTENT_DISPOSITION,
+                format("attachment;filename=logs-%s-%s.csv", applicationId, System.currentTimeMillis())
+            )
+            .build();
     }
-
 }
