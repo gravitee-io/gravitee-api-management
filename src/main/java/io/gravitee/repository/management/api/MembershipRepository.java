@@ -89,11 +89,21 @@ public interface MembershipRepository {
      * @throws TechnicalException if something goes wrong, should never happen.
      */
     Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException;
+    /**
+     * find all memberships for a member and a referenceType and SourceId
+     * @param memberId the member
+     * @param memberType the member type.
+     * @param referenceType the referenceType
+     * @param sourceId the source Id
+     * @return the list of memberships, or an empty set
+     * @throws TechnicalException if something goes wrong, should never happen.
+     */
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String sourceId) throws TechnicalException;
 
     /**
      * find all memberships for a list of member and a referenceType
      * => find all apis of a user
-     * @param membersId the members
+     * @param memberIds the members
      * @param memberType the member type. Can be USER or GROUP.
      * @param referenceType the referenceType
      * @return the list of memberships, or an empty set
