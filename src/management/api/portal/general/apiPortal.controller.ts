@@ -561,7 +561,7 @@ class ApiPortalController {
         template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: `Are you sure you want to ask for a review of the API?`,
+          title: 'Are you sure you want to ask for a review of the API?',
           msg: '',
           confirmButton: 'Ask for review',
         },

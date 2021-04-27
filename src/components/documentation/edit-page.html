@@ -156,6 +156,16 @@
                   </div>
                 </div>
               </div>
+
+              <div class="md-actions gravitee-api-save-button" layout="row">
+                <md-button
+                  class="md-raised md-primary"
+                  type="submit"
+                  ng-disabled="$ctrl.formNewLink.$invalid || $ctrl.formNewLink.$pristine"
+                >
+                  Save
+                </md-button>
+              </div>
             </form>
           </md-tab-body>
         </md-tab>

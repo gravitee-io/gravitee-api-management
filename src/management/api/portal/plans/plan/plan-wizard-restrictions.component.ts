@@ -43,7 +43,7 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
       this.policies = [
         {
           id: 'rate-limit',
-          title: 'Rate-Limiting',
+          title: 'Rate Limiting',
           description: 'Rate limit how many HTTP requests an application can make in a given period of seconds or minutes',
         },
         {
@@ -53,8 +53,8 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
         },
         {
           id: 'resource-filtering',
-          title: 'Path Authorization',
-          description: 'Restrict paths according to whitelist and / or blacklist rules',
+          title: 'Resource Filtering',
+          description: 'Restrict resources according to whitelist and / or blacklist rules',
         },
       ];
     }
