@@ -149,7 +149,7 @@ public interface ApiService {
     ApiEntity acceptReview(String apiId, String userId, ReviewEntity reviewEntity);
     ApiEntity rejectReview(String apiId, String userId, ReviewEntity reviewEntity);
 
-    ApiEntity duplicate(String apiId, DuplicateApiEntity duplicateApiEntity);
+    ApiEntity duplicate(ApiEntity apiEntity, DuplicateApiEntity duplicateApiEntity);
 
     InlinePictureEntity getBackground(String apiId);
 

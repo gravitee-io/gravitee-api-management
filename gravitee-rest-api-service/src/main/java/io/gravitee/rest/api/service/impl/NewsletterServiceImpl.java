@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.service.EmailValidator;
@@ -22,6 +23,7 @@ import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.exceptions.EmailFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.vertx.core.buffer.Buffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +32,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static io.gravitee.common.http.HttpMethod.GET;
 import static io.gravitee.common.http.HttpMethod.POST;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 /**
@@ -68,6 +73,23 @@ public class NewsletterServiceImpl extends TransactionalService implements Newsl
         } catch (final Exception e) {
             LOGGER.error("Error while subscribing to newsletters cause: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public List<String> getTaglines() {
+        try {
+            if (isEnabled()) {
+                String taglinesPath = "taglines";
+                if (newsletterUrl.lastIndexOf('/') != newsletterUrl.length() - 1) {
+                    taglinesPath = "/" + taglinesPath;
+                }
+                final Buffer buffer = httpClientService.request(GET, newsletterUrl + taglinesPath, emptyMap(), null, null);
+                return mapper.readValue(buffer.toString(), List.class);
+            }
+        } catch (Exception e) {
+            LOGGER.debug("Error while reading the taglines response: {}", e.getMessage());
+        }
+        return null;
     }
 
     @Override

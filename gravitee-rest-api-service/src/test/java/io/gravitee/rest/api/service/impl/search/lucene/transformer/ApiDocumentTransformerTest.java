@@ -56,6 +56,8 @@ public class ApiDocumentTransformerTest {
         toTransform.setId("apiId");
         toTransform.setName("name");
         toTransform.setDescription("description");
+        toTransform.setReferenceId("xxxxxx");
+        toTransform.setReferenceType("env1");
         UserEntity userEntity = new UserEntity();
         userEntity.setId("userId");
         userEntity.setEmail("userMail");

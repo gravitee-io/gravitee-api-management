@@ -100,6 +100,15 @@ public class HtmlSanitizerTest {
         return html;
     }
 
+    @Test
+    public void isNotSafe_markdownLink() {
+        final String content = "[my_link](javascript:alert('xss'))";
+        HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(content);
+
+        assertFalse(sanitizeInfos.isSafe());
+        assertEquals("[Tag not allowed: a]", sanitizeInfos.getRejectedMessage());
+    }
+
     private String getNotSafe() {
 
         String html = "";

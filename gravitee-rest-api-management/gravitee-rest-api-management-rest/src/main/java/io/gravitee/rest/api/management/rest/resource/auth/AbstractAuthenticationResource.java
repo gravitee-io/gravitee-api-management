@@ -84,16 +84,16 @@ abstract class AbstractAuthenticationResource {
         });
     }
 
-    protected Response connectUser(String userId, final String state, final HttpServletResponse servletResponse) {
+    protected Response connectUser(String userId, final String state, final HttpServletResponse servletResponse, final String accessToken, final String idToken) {
         UserEntity user = userService.connect(userId);
-        return this.connectUserInternal(user, state, servletResponse);
+        return this.connectUserInternal(user, state, servletResponse, accessToken, idToken);
     }
 
     protected void connectUser(UserEntity user, final HttpServletResponse servletResponse) {
-        this.connectUserInternal(user, null, servletResponse);
+        this.connectUserInternal(user, null, servletResponse, null, null);
     }
 
-    protected Response connectUserInternal(UserEntity user, final String state, final HttpServletResponse servletResponse) {
+    protected Response connectUserInternal(UserEntity user, final String state, final HttpServletResponse servletResponse, final String accessToken, final String idToken) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -133,6 +133,10 @@ abstract class AbstractAuthenticationResource {
         final TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setType(BEARER);
         tokenEntity.setToken(token);
+        if (idToken != null) {
+            tokenEntity.setAccessToken(accessToken);
+            tokenEntity.setIdToken(idToken);
+        }
 
         if (state != null && !state.isEmpty()) {
             tokenEntity.setState(state);

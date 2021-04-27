@@ -121,6 +121,7 @@ public class ApplicationResource extends AbstractResource {
         updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
         checkImageFormat(application.getBackground());
         updateApplicationEntity.setBackground(application.getBackground());
+        updateApplicationEntity.setGroups(appEntity.getGroups());
 
         if (application.getSettings() != null) {
             ApplicationSettings settings = new ApplicationSettings();

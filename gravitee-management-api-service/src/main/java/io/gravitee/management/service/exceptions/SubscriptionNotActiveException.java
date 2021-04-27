@@ -13,20 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.search;
+package io.gravitee.management.service.exceptions;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.management.model.SubscriptionEntity;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Indexable {
-    String getId();
-    void setId(String id);
+public class SubscriptionNotActiveException extends AbstractManagementException {
 
-    String getReferenceType();
-    void setReferenceType(String referenceType);
+    private final SubscriptionEntity subscription;
 
-    String getReferenceId();
-    void setReferenceId(String referenceId);
+    public SubscriptionNotActiveException(SubscriptionEntity subscription) {
+        this.subscription = subscription;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Subscription [" + subscription.getId() + "] should be paused or accepted. Currently it is " + subscription.getStatus();
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return HttpStatusCode.BAD_REQUEST_400;
+    }
 }

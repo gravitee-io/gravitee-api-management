@@ -28,6 +28,9 @@ import java.util.List;
  */
 public interface DocumentSearcher extends TypedHandler {
 
+    String FIELD_REFERENCE_TYPE = "reference_type";
+    String FIELD_REFERENCE_ID = "reference_id";
+
     /**
      *
      * @param query

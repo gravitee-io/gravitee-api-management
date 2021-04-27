@@ -33,7 +33,7 @@ import java.util.List;
 public final class HtmlSanitizer {
 
     private static final Parser mdParser = Parser.builder(new MutableDataSet()).build();
-    private static final HtmlRenderer htmlRenderer = HtmlRenderer.builder(new MutableDataSet()).build();
+    private static final HtmlRenderer htmlRenderer = HtmlRenderer.builder(new MutableDataSet().set(HtmlRenderer.SUPPRESSED_LINKS, "")).build();
 
     private static final AttributePolicy INTEGER = new AttributePolicy() {
         @Override
@@ -72,7 +72,8 @@ public final class HtmlSanitizer {
             .and(Sanitizers.FORMATTING)
             .and(new HtmlPolicyBuilder()
                     .allowStandardUrlProtocols().allowElements("a")
-                    .allowAttributes("href").onElements("a")
+                    .allowAttributes("href", "title")
+                    .onElements("a")
                     .toFactory())
             .and(HTML_CSS_SANITIZER)
             .and(Sanitizers.TABLES)

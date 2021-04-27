@@ -58,9 +58,6 @@ public class UsersResource extends AbstractResource {
     @Inject
     private UserService userService;
 
-    @Inject
-    private CustomUserFieldService customUserFieldService;
-
     @GET
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = READ))
     @ApiOperation(
@@ -68,7 +65,7 @@ public class UsersResource extends AbstractResource {
             notes = "User must have the ORGANIZATION_USERS[READ] permission to use this service"
     )
     @ApiResponses({
-            @ApiResponse(code = 200, message = "List users matching the query criteria", response = UserEntity.class, responseContainer = "PagedResult"),
+            @ApiResponse(code = 200, message = "List users matching the query criteria", response = PagedResult.class),
             @ApiResponse(code = 500, message = "Internal server error")})
     public PagedResult<UserEntity> getAllUsers(
             @ApiParam(name = "q")

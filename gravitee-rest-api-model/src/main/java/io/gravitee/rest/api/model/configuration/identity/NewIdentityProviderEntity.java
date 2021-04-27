@@ -26,7 +26,7 @@ import java.util.Map;
 public class NewIdentityProviderEntity {
 
     @NotNull
-    @Size(min = 3)
+    @Size(min = 2)
     private String name;
 
     private String description;

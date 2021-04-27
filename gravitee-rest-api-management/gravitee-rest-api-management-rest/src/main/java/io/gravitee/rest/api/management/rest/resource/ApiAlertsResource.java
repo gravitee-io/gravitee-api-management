@@ -82,7 +82,7 @@ public class ApiAlertsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
+            @Permission(value = RolePermission.API_ALERT, acls = READ)
     })
     public AlertStatusEntity getApiAlertsStatus() {
         return alertService.getStatus();
@@ -171,7 +171,7 @@ public class ApiAlertsResource extends AbstractResource {
             @ApiResponse(code = 500, message = "Internal server error")})
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_ALERT, acls = READ)
+            @Permission(value = RolePermission.API_ALERT, acls = READ)
     })
     public Page<AlertEventEntity> getApiAlertEvents(@PathParam("alert") String alert, @BeanParam AlertEventSearchParam param) {
         return alertService.findEvents(

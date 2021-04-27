@@ -40,6 +40,7 @@ public interface MembershipService {
     void                    deleteReference                             (MembershipReferenceType referenceType, String referenceId);
     void                    deleteReferenceMember                       (MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
     List<UserMembership>    findUserMembership                          (MembershipReferenceType referenceType, String userId);
+    List<UserMembership>    findUserMembershipBySource                  (MembershipReferenceType referenceType, String userId, String sourceId);
     Metadata                findUserMembershipMetadata                  (List<UserMembership> memberships, MembershipReferenceType type);
     Page<MemberEntity>      getMembersByReference                       (MembershipReferenceType referenceType, String referenceId, Pageable pageable);
     Set<MemberEntity>      getMembersByReference                        (MembershipReferenceType referenceType, String referenceId);
@@ -71,6 +72,7 @@ public interface MembershipService {
     void                    transferApplicationOwnership                (String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
     MemberEntity            updateRoleToMemberOnReference               (MembershipReference reference, MembershipMember member, MembershipRole role);
     List<MemberEntity>      updateRolesToMemberOnReference              (MembershipReference reference, MembershipMember member, Collection<MembershipRole> roles, String source, boolean notify);
+    List<MemberEntity>      updateRolesToMemberOnReferenceBySource      (MembershipReference reference, MembershipMember member, Collection<MembershipRole> roles, String source);
 
     class MembershipReference {
         private final MembershipReferenceType type;

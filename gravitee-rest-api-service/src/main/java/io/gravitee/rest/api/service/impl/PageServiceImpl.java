@@ -38,6 +38,9 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.permissions.ApiPermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
@@ -1996,6 +1999,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         pageEntity.setHomepage(page.isHomepage());
         pageEntity.setType(page.getType());
         pageEntity.setContent(page.getContent());
+        pageEntity.setReferenceType(page.getReferenceType().name());
+        pageEntity.setReferenceId(page.getReferenceId());
 
         if (isJson(page.getContent())) {
             pageEntity.setContentType(MediaType.APPLICATION_JSON);

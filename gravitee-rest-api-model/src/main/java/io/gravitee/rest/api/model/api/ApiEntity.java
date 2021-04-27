@@ -19,12 +19,15 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.DeploymentRequired;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.filtering.FilterableItem;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.swagger.annotations.ApiModelProperty;
@@ -234,12 +237,40 @@ public class ApiEntity implements Indexable, FilterableItem {
             example = "https://gravitee.mycompany.com/management/apis/6c530064-0b2c-4004-9300-640b2ce0047b/background")
     private String backgroundUrl;
 
+    @JsonIgnore
+    private String referenceType;
+
+    @JsonIgnore
+    private String referenceId;
+
+    @Override
     public String getId() {
         return id;
     }
 
+    @Override
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public String getReferenceType() {
+        return this.referenceType;
+    }
+
+    @Override
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    @Override
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    @Override
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public Date getCreatedAt() {

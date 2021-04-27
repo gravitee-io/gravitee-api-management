@@ -488,6 +488,44 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
+    public List<UserMembership> findUserMembershipBySource(MembershipReferenceType type, String userId, String sourceId) {
+        try {
+            Map<String, RoleEntity> roleMap = roleService.findAll().stream().collect(Collectors.toMap(RoleEntity::getId, r -> r));
+            HashMap<Integer, UserMembership> userMembershipMap = new HashMap<>();
+            membershipRepository
+                    .findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
+                            userId,
+                            io.gravitee.repository.management.model.MembershipMemberType.USER,
+                            convert(type), sourceId)
+                    .stream()
+                    .filter(membership -> sourceId != null && sourceId.equals(membership.getSource()))
+                    .forEach(membership -> {
+                        UserMembership userMembership = new UserMembership();
+                        userMembership.setType(type.name());
+                        userMembership.setReference(membership.getReferenceId());
+                        userMembership.setSource(membership.getSource());
+                        RoleEntity role = roleMap.get(membership.getRoleId());
+                        if (role != null) {
+                            int key = userMembership.hashCode();
+                            if (userMembershipMap.containsKey(key)) {
+                                userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
+                            } else {
+                                HashMap<String, String> roles = new HashMap<>();
+                                roles.put(role.getScope().name(), role.getName());
+                                userMembership.setRoles(roles);
+                                userMembershipMap.put(userMembership.hashCode(), userMembership);
+                            }
+                        }
+                    });
+
+            return new ArrayList<>(userMembershipMap.values());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to remove user {}", userId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to remove user " + userId, ex);
+        }
+    }
+
+    @Override
     public List<UserMembership> findUserMembership(MembershipReferenceType type, String userId) {
         if (type == null || (!type.equals(MembershipReferenceType.API) && !type.equals(MembershipReferenceType.APPLICATION) && !type.equals(MembershipReferenceType.GROUP))) {
             return Collections.emptyList();
@@ -510,7 +548,6 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             int key = userMembership.hashCode();
                             if (userMembershipMap.containsKey(key)) {
                                 userMembershipMap.get(key).getRoles().put(role.getScope().name(), role.getName());
-
                             } else {
                                 HashMap<String, String> roles = new HashMap<>();
                                 roles.put(role.getScope().name(), role.getName());
@@ -1121,6 +1158,13 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             LOGGER.error("An error occurs while trying to update member for {} {}", reference.getType(), reference.getId(), ex);
             throw new TechnicalManagementException("An error occurs while trying to update member for " + reference.getType() + " " + reference.getId(), ex);
         }
+    }
 
+    @Override
+    public List<MemberEntity> updateRolesToMemberOnReferenceBySource(MembershipReference reference, MembershipMember member,
+                                                               Collection<MembershipRole> roles, String source) {
+        return roles.stream()
+                .map(role -> _addRoleToMemberOnReference(reference, member, role, source, false))
+                .collect(Collectors.toList());
     }
 }

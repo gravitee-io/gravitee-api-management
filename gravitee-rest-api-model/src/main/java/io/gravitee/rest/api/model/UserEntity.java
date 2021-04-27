@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
@@ -118,6 +119,12 @@ public class UserEntity implements Indexable {
 
     private Map<String, Object> customFields;
 
+    @JsonIgnore
+    private String referenceType;
+
+    @JsonIgnore
+    private String referenceId;
+
     @Override
     public String getId() {
         return id;
@@ -126,6 +133,26 @@ public class UserEntity implements Indexable {
     @Override
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public String getReferenceType() {
+        return this.referenceType;
+    }
+
+    @Override
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    @Override
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    @Override
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public String getFirstname() {
