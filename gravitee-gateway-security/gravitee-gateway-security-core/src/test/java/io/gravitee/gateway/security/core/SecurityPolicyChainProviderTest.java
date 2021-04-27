@@ -22,7 +22,7 @@ import io.gravitee.gateway.policy.DirectPolicyChain;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,7 +58,7 @@ public class SecurityPolicyChainProviderTest {
             .thenReturn(Collections.singletonList(Mockito.mock(Policy.class)));
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
-        Assert.assertEquals(RequestPolicyChain.class, processor.getClass());
+        Assert.assertEquals(OrderedPolicyChain.class, processor.getClass());
     }
 
     @Test

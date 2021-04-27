@@ -27,6 +27,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
+import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
@@ -58,18 +59,18 @@ public class CheckSubscriptionPolicyTest {
     public void shouldReturnUnauthorized_onException() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
-        Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
+        when(executionContext.request()).thenReturn(request);
 
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
 
-        policy.onRequest(request, response, policyChain, executionContext);
+        policy.execute(policyChain, executionContext);
 
         verify(policyChain, times(1))
             .failWith(
@@ -90,11 +91,12 @@ public class CheckSubscriptionPolicyTest {
         PolicyChain policyChain = mock(PolicyChain.class);
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
+        when(executionContext.response()).thenReturn(response);
 
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
 
-        policy.onRequest(request, response, policyChain, executionContext);
+        policy.execute(policyChain, executionContext);
 
         verify(policyChain, times(1))
             .failWith(
@@ -110,12 +112,12 @@ public class CheckSubscriptionPolicyTest {
     public void shouldReturnUnauthorized_badClient() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
-        Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
+        when(executionContext.request()).thenReturn(request);
 
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
@@ -125,7 +127,7 @@ public class CheckSubscriptionPolicyTest {
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
 
-        policy.onRequest(request, response, policyChain, executionContext);
+        policy.execute(policyChain, executionContext);
 
         verify(policyChain, times(1))
             .failWith(
@@ -147,6 +149,8 @@ public class CheckSubscriptionPolicyTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
+        when(executionContext.request()).thenReturn(request);
+        when(executionContext.response()).thenReturn(response);
 
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
@@ -157,7 +161,7 @@ public class CheckSubscriptionPolicyTest {
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
 
-        policy.onRequest(request, response, policyChain, executionContext);
+        policy.execute(policyChain, executionContext);
 
         verify(policyChain, times(1)).doNext(request, response);
     }
@@ -166,13 +170,13 @@ public class CheckSubscriptionPolicyTest {
     public void shouldReturnUnauthorized_badPlan() throws PolicyException, TechnicalException {
         CheckSubscriptionPolicy policy = new CheckSubscriptionPolicy();
 
-        Response response = mock(Response.class);
         PolicyChain policyChain = mock(PolicyChain.class);
 
         ExecutionContext executionContext = mock(ExecutionContext.class);
         when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_CLIENT_ID)).thenReturn("my-client-id");
         when(executionContext.getAttribute(CheckSubscriptionPolicy.CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)).thenReturn(true);
         when(executionContext.getAttribute(ExecutionContext.ATTR_PLAN)).thenReturn("plan-id");
+        when(executionContext.request()).thenReturn(request);
 
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
@@ -182,7 +186,7 @@ public class CheckSubscriptionPolicyTest {
 
         when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
 
-        policy.onRequest(request, response, policyChain, executionContext);
+        policy.execute(policyChain, executionContext);
 
         verify(policyChain, times(1))
             .failWith(

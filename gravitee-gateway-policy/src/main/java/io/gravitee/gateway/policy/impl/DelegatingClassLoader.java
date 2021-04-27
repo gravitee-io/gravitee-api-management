@@ -16,9 +16,9 @@
 package io.gravitee.gateway.policy.impl;
 
 /**
- * A classloader that delegates first to an optional parent and then to a delegate loader
+ * A classloader that delegates first to the parent and then to a delegate loader
  *
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 class DelegatingClassLoader extends ClassLoader {

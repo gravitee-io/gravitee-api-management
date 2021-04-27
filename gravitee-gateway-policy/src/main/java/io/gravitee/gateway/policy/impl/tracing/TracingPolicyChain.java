@@ -13,27 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.policy.impl.tracing;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
-import io.gravitee.policy.api.annotations.OnRequest;
-import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.PolicyResult;
+import io.gravitee.tracing.api.Span;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyPolicy {
+public class TracingPolicyChain implements PolicyChain {
 
-    @OnRequest
-    public void onRequest(PolicyChain chain, Request request, Response response) {
-        // Do nothing
+    private final PolicyChain chain;
+    private final Span span;
+
+    TracingPolicyChain(final PolicyChain chain, final Span span) {
+        this.chain = chain;
+        this.span = span;
     }
 
-    @OnResponse
-    public void onResponse(Request chain, Response response, PolicyChain handler) {
-        // Do nothing
+    @Override
+    public void doNext(Request request, Response response) {
+        span.end();
+        chain.doNext(request, response);
+    }
+
+    @Override
+    public void failWith(PolicyResult policyResult) {
+        span.reportError(policyResult.message()).end();
+        chain.failWith(policyResult);
+    }
+
+    @Override
+    public void streamFailWith(PolicyResult policyResult) {
+        span.reportError(policyResult.message()).end();
+        chain.failWith(policyResult);
     }
 }

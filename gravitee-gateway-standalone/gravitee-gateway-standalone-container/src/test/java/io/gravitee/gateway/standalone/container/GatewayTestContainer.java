@@ -16,13 +16,16 @@
 package io.gravitee.gateway.standalone.container;
 
 import io.gravitee.gateway.standalone.GatewayContainer;
+import io.gravitee.gateway.standalone.tracer.NoOpTracer;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.tracing.api.Tracer;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * This class allows to extends the {@link GatewayContainer} in order to be able to override the {@link NodeFactory} and provide a {@link GatewayTestNode}
+ * This class allows to extends the {@link GatewayContainer} in order to be able to override the {@link NodeFactory}
+ * and provide a {@link GatewayTestNode}
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
@@ -42,6 +45,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public NodeFactory node() {
             return new NodeFactory(GatewayTestNode.class);
+        }
+
+        @Bean
+        public Tracer tracer() {
+            return new NoOpTracer();
         }
     }
 }

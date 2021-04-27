@@ -21,9 +21,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import io.gravitee.gateway.policy.impl.ReversedPolicyChain;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -52,10 +52,10 @@ public class GlobalPolicyChainTest {
     public void doNext_multiplePolicyOrder() throws Exception {
         List<Policy> policies = policies2();
 
-        PolicyChain requestChain = RequestPolicyChain.create(policies, mock(ExecutionContext.class));
+        PolicyChain requestChain = OrderedPolicyChain.create(policies, mock(ExecutionContext.class));
         requestChain.handler(result -> {});
 
-        PolicyChain responseChain = ResponsePolicyChain.create(policies, mock(ExecutionContext.class));
+        PolicyChain responseChain = ReversedPolicyChain.create(policies, mock(ExecutionContext.class));
         responseChain.handler(result -> {});
 
         InOrder requestOrder = inOrder(policy, policy2);
@@ -64,11 +64,11 @@ public class GlobalPolicyChainTest {
         requestChain.doNext(null, null);
         responseChain.doNext(null, null);
 
-        requestOrder.verify(policy).onRequest(any());
-        requestOrder.verify(policy2).onRequest(any());
+        requestOrder.verify(policy).execute(any(), any());
+        requestOrder.verify(policy2).execute(any(), any());
 
-        responseOrder.verify(policy2).onResponse(any());
-        responseOrder.verify(policy).onResponse(any());
+        responseOrder.verify(policy2).execute(any(), any());
+        responseOrder.verify(policy).execute(any(), any());
     }
 
     private List<Policy> policies2() {

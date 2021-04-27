@@ -54,8 +54,8 @@ import org.springframework.context.annotation.Configuration;
 public class ApiHandlerConfiguration {
 
     @Bean
-    public PolicyChainFactory policyChainFactory() {
-        return new PolicyChainFactory();
+    public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {
+        return new PolicyChainFactory(policyManager);
     }
 
     @Bean

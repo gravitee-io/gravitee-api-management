@@ -36,7 +36,6 @@ import org.springframework.util.StringUtils;
 public class ProxyEndpointResolver implements EndpointResolver {
 
     private static final String URI_PATH_SEPARATOR = "/";
-
     private static final String QUERY_SEPARATOR = "?";
     private static final String QUERY_PARAM_SEPARATOR = "&";
 

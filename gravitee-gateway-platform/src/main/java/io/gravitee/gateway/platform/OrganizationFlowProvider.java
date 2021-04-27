@@ -24,10 +24,9 @@ import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
 import io.gravitee.gateway.flow.FlowPolicyResolver;
 import io.gravitee.gateway.flow.FlowProvider;
 import io.gravitee.gateway.flow.FlowResolver;
-import io.gravitee.gateway.flow.policy.FlowResponsePolicyChain;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,8 +67,8 @@ public class OrganizationFlowProvider implements FlowProvider {
                         context,
                         policies ->
                             streamType == StreamType.ON_REQUEST
-                                ? RequestPolicyChain.create(policies, context)
-                                : FlowResponsePolicyChain.create(policies, context)
+                                ? OrderedPolicyChain.create(policies, context)
+                                : OrderedPolicyChain.create(policies, context)
                     )
                 );
             }

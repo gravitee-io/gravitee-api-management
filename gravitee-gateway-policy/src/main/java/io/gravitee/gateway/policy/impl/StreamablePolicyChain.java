@@ -39,27 +39,27 @@ public abstract class StreamablePolicyChain extends PolicyChain {
     private ReadWriteStream<Buffer> streamablePolicyHandlerChain;
     private boolean initialized;
 
-    protected StreamablePolicyChain(List<Policy> policies, final ExecutionContext executionContext) {
+    protected StreamablePolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
         super(policies, executionContext);
     }
 
     @Override
     public void doNext(Request request, Response response) {
         if (!initialized && !policies.isEmpty()) {
-            prepareStreamablePolicyChain(request, response);
+            prepareStreamablePolicyChain();
             initialized = true;
         }
 
         super.doNext(request, response);
     }
 
-    private void prepareStreamablePolicyChain(final Request request, final Response response) {
+    private void prepareStreamablePolicyChain() {
         ReadWriteStream<Buffer> previousPolicyStreamer = null;
         for (Policy policy : policies) {
             if (policy.isStreamable()) {
                 try {
                     // Run OnXXXContent to get ReadWriteStream object
-                    final ReadWriteStream<Buffer> streamer = stream(policy, request, response, this, executionContext);
+                    final ReadWriteStream<Buffer> streamer = policy.stream(this, executionContext);
                     if (streamer != null) {
                         // An handler was never assigned to start the chain, so let's do it
                         if (streamablePolicyHandlerChain == null) {
@@ -143,6 +143,4 @@ public abstract class StreamablePolicyChain extends PolicyChain {
             }
         }
     }
-
-    protected abstract ReadWriteStream<Buffer> stream(Policy policy, Object... args) throws Exception;
 }
