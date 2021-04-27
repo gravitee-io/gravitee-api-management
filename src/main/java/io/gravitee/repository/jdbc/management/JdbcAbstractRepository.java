@@ -26,7 +26,7 @@ import java.util.Objects;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class JdbcAbstractRepository<T> {
+public abstract class JdbcAbstractRepository<T> extends TransactionalRepository {
 
     private final String prefix;
     private final JdbcObjectMapper<T> orm;
