@@ -157,7 +157,7 @@ export class ApplicationMetadataComponent implements OnInit {
       attributes: {
         placeholder: 'Nom de la donnée',
         required: true,
-        innerHTML: (item) => (this._isAddFormLine(item) ? '' : item.name),
+        innerText: (item) => (this._isAddFormLine(item) ? '' : item.name),
         'ongv-input:input': this._onInput.bind(this),
       },
     };
