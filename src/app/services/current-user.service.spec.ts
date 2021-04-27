@@ -27,5 +27,4 @@ describe('CurrentUserService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
 });

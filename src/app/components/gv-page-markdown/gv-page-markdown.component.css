@@ -21,7 +21,7 @@
   padding: 0;
 }
 
-.attached-resources li{
+.attached-resources li {
   list-style: none;
 }
 
@@ -63,7 +63,6 @@ app-gv-markdown-toc {
   .page__box-content {
     padding: var(--gv-page-markdown--p, 2rem);
   }
-
 }
 
 :host ::ng-deep img {
@@ -83,16 +82,16 @@ app-gv-markdown-toc {
   box-sizing: border-box;
 }
 
-:host ::ng-deep  table th,
-:host ::ng-deep  table td {
-  border: 1px solid var(--gv-theme-neutral-color-dark, #EFEFEF);
+:host ::ng-deep table th,
+:host ::ng-deep table td {
+  border: 1px solid var(--gv-theme-neutral-color-dark, #efefef);
   padding: 5px 14px 5px 12px;
   height: 32px;
 }
 
 :host ::ng-deep table th {
-  background-color: var(--gv-theme-color-dark, #28444F);
+  background-color: var(--gv-theme-color-dark, #28444f);
   font-weight: 300;
-  color: var(--gv-theme-font-color-light, #FFFFFF);
+  color: var(--gv-theme-font-color-light, #ffffff);
   padding-top: 6px;
 }

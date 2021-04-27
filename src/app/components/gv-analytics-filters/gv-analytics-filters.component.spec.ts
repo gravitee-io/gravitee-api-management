@@ -36,9 +36,7 @@ describe('GvAnalyticsFiltersComponent', () => {
     component = spectator.component;
   });
 
-
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

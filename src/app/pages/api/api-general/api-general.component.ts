@@ -21,7 +21,9 @@ import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import {
   Api,
   ApiInformation,
-  ApiService, ApplicationService, FilterApiQuery,
+  ApiService,
+  ApplicationService,
+  FilterApiQuery,
   GetApiRatingsByApiIdRequestParams,
   Link,
   Page,
@@ -30,7 +32,7 @@ import {
   PortalService,
   Rating,
   Subscription,
-  User
+  User,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ApiMetrics } from '../../../../../projects/portal-webclient-sdk/src/lib/model/apiMetrics';
 import '@gravitee/ui-components/wc/gv-confirm';
@@ -51,10 +53,9 @@ import StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-api-general',
   templateUrl: './api-general.component.html',
-  styleUrls: ['./api-general.component.css']
+  styleUrls: ['./api-general.component.css'],
 })
 export class ApiGeneralComponent implements OnInit {
-
   private apiId: any;
   private ratingPageSize: any;
   private ratingsMetadata: any;
@@ -68,7 +69,7 @@ export class ApiGeneralComponent implements OnInit {
   apiHomepage: Page;
   connectedApps: Promise<any[]>;
   permissions: PermissionsResponse = {};
-  ratingListPermissions: { update, delete, addAnswer, deleteAnswer };
+  ratingListPermissions: { update; delete; addAnswer; deleteAnswer };
   ratingForm: FormGroup;
   ratings: Array<Rating>;
   ratingsSortOptions: any;
@@ -77,7 +78,7 @@ export class ApiGeneralComponent implements OnInit {
   apiHomepageLoaded: boolean;
   hasRatingFeature: boolean;
   apiInformations: Array<ApiInformation>;
-  backButton: { url?: string, label?: string, queryParams?: Params };
+  backButton: { url?: string; label?: string; queryParams?: Params };
 
   constructor(
     private apiService: ApiService,
@@ -95,7 +96,10 @@ export class ApiGeneralComponent implements OnInit {
     private applicationService: ApplicationService,
   ) {
     this.ratingListPermissions = {
-      update: [], delete: false, addAnswer: false, deleteAnswer: false
+      update: [],
+      delete: false,
+      addAnswer: false,
+      deleteAnswer: false,
     };
     this.backButton = {};
   }
@@ -114,31 +118,35 @@ export class ApiGeneralComponent implements OnInit {
     this.route.params.subscribe(() => {
       if (apiId) {
         if (this.hasRatingFeature) {
-          this.translateService.get([
+          this.translateService
+            .get([
               i18n('apiGeneral.ratingsSortOptions.newest'),
               i18n('apiGeneral.ratingsSortOptions.oldest'),
               i18n('apiGeneral.ratingsSortOptions.best'),
               i18n('apiGeneral.ratingsSortOptions.worst'),
               i18n('apiGeneral.ratingsSortOptions.answers'),
-            ]
-          ).toPromise().then(translations => {
-            const options = Object.values(translations).map(label => ({ label, value: 'date' }));
-            options[1].value = '-date';
-            options[2].value = 'value';
-            options[3].value = '-value';
-            options[4].value = 'answers';
-            this.ratingsSortOptions = options;
-          });
+            ])
+            .toPromise()
+            .then((translations) => {
+              const options = Object.values(translations).map((label) => ({ label, value: 'date' }));
+              options[1].value = '-date';
+              options[2].value = 'value';
+              options[3].value = '-value';
+              options[4].value = 'answers';
+              this.ratingsSortOptions = options;
+            });
           this.ratingPageSize = 3;
           this.currentOrder = 'date';
         }
 
         this.apiId = apiId;
 
-        this.apiService.getApiMetricsByApiId({ apiId }).toPromise()
-          .then(metrics => this.currentApiMetrics = metrics);
+        this.apiService
+          .getApiMetricsByApiId({ apiId })
+          .toPromise()
+          .then((metrics) => (this.currentApiMetrics = metrics));
         this.currentApi = this.route.snapshot.data.api;
-        this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
+        this.apiService.getApiLinks({ apiId }).subscribe((apiLinks) => {
           if (apiLinks.slots && apiLinks.slots.aside) {
             apiLinks.slots.aside.forEach((catLinks) => {
               if (catLinks.root) {
@@ -151,10 +159,11 @@ export class ApiGeneralComponent implements OnInit {
         this.currentUser = this.currentUserService.getUser();
         if (this.currentUser) {
           this._updateRatings();
-          this.connectedApps = this.apiService.getSubscriberApplicationsByApiId({
-            apiId,
-            statuses: [StatusEnum.ACCEPTED],
-          })
+          this.connectedApps = this.apiService
+            .getSubscriberApplicationsByApiId({
+              apiId,
+              statuses: [StatusEnum.ACCEPTED],
+            })
             .toPromise()
             .then((response) => response.data.map((app) => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
             .catch(() => []);
@@ -184,7 +193,9 @@ export class ApiGeneralComponent implements OnInit {
 
       if (this.currentUser) {
         const requestParameters: GetApiRatingsByApiIdRequestParams = { apiId, mine: true };
-        this.apiService.getApiRatingsByApiId(requestParameters).toPromise()
+        this.apiService
+          .getApiRatingsByApiId(requestParameters)
+          .toPromise()
           .then((mineRatingsResponse) => {
             this.userRating = mineRatingsResponse.data.find((rating) => {
               return rating.author.id === this.currentUser.id;
@@ -194,12 +205,14 @@ export class ApiGeneralComponent implements OnInit {
           });
       }
 
-      this.apiService.getApiRatingsByApiId({
-        apiId,
-        page: 1,
-        size: this.ratingPageSize,
-        order: this.currentOrder
-      }).toPromise()
+      this.apiService
+        .getApiRatingsByApiId({
+          apiId,
+          page: 1,
+          size: this.ratingPageSize,
+          order: this.currentOrder,
+        })
+        .toPromise()
         .then((ratingsResponse) => {
           this.ratings = ratingsResponse.data;
           if (this.currentUser) {
@@ -218,7 +231,7 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   _buildLinks(apiId: string, links: Link[]) {
-    return links.map(element => {
+    return links.map((element) => {
       let path: string;
       let target: string;
       switch (element.resourceType) {
@@ -276,39 +289,42 @@ export class ApiGeneralComponent implements OnInit {
   onUpdate({ rating }) {
     const apiId = this.apiId;
     const ratingInput = { title: rating.title, value: rating.value, comment: rating.comment };
-    this.apiService.updateApiRating({ apiId, ratingId: rating.id, ratingInput })
+    this.apiService
+      .updateApiRating({ apiId, ratingId: rating.id, ratingInput })
       .toPromise()
       .then((res) => {
         this.ratingForm = null;
         this._updateRatings();
-        this.apiService.getApiByApiId({ apiId })
+        this.apiService
+          .getApiByApiId({ apiId })
           .toPromise()
-          .then((api) => this.currentApi = api);
+          .then((api) => (this.currentApi = api));
       })
-      .then(() =>
-        this.notificationService.info(i18n('apiGeneral.ratingUpdated'))
-      );
+      .then(() => this.notificationService.info(i18n('apiGeneral.ratingUpdated')));
   }
 
   @HostListener(':gv-rating-list:delete', ['$event.detail'])
   onDeleteRating({ rating }) {
     const apiId = this.apiId;
-    this.apiService.deleteApiRating({ apiId, ratingId: rating.id })
+    this.apiService
+      .deleteApiRating({ apiId, ratingId: rating.id })
       .toPromise()
       .then(() => {
         this.notificationService.info(i18n('apiGeneral.ratingDeleted'));
       })
       .finally(() => {
         this._updateRatings();
-        this.apiService.getApiByApiId({ apiId })
+        this.apiService
+          .getApiByApiId({ apiId })
           .toPromise()
-          .then((api) => this.currentApi = api);
+          .then((api) => (this.currentApi = api));
       });
   }
 
   @HostListener(':gv-rating-list:delete-answer', ['$event.detail'])
   onDeleteRatingAnswer({ rating, answer }) {
-    this.apiService.deleteApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, answerId: answer.id })
+    this.apiService
+      .deleteApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, answerId: answer.id })
       .toPromise()
       .then(() => {
         this.notificationService.info(i18n('apiGeneral.ratingAnswerDeleted'));
@@ -321,7 +337,8 @@ export class ApiGeneralComponent implements OnInit {
   @HostListener(':gv-rating-list:add-answer', ['$event.detail'])
   onAnswer({ rating, answer }) {
     const ratingAnswerInput = { comment: answer };
-    this.apiService.createApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, ratingAnswerInput })
+    this.apiService
+      .createApiRatingAnswer({ apiId: this.apiId, ratingId: rating.id, ratingAnswerInput })
       .toPromise()
       .then(() => {
         this.notificationService.info(i18n('apiGeneral.ratingAnswerCreated'));
@@ -346,14 +363,18 @@ export class ApiGeneralComponent implements OnInit {
   rate() {
     const apiId = this.apiId;
     const ratingInput = this.ratingForm.getRawValue();
-    this.apiService.createApiRating({ apiId, ratingInput }).toPromise().then((res) => {
-      this.ratingForm = null;
-      this.notificationService.info(i18n('apiGeneral.ratingCreated'));
-      this._updateRatings();
-      this.apiService.getApiByApiId({ apiId })
-        .toPromise()
-        .then((api) => this.currentApi = api);
-    });
+    this.apiService
+      .createApiRating({ apiId, ratingInput })
+      .toPromise()
+      .then((res) => {
+        this.ratingForm = null;
+        this.notificationService.info(i18n('apiGeneral.ratingCreated'));
+        this._updateRatings();
+        this.apiService
+          .getApiByApiId({ apiId })
+          .toPromise()
+          .then((api) => (this.currentApi = api));
+      });
   }
 
   private _updateRatingForm() {
@@ -365,10 +386,9 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   onInfoRating() {
-    this.scrollService.scrollToAnchor('apiRatingForm')
-      .catch(() => {
-        this.scrollService.scrollToAnchor('apiRatings');
-      });
+    this.scrollService.scrollToAnchor('apiRatingForm').catch(() => {
+      this.scrollService.scrollToAnchor('apiRatings');
+    });
   }
 
   hasMoreRatings() {
@@ -408,18 +428,14 @@ export class ApiGeneralComponent implements OnInit {
     let queryParams;
     const queryParamMap = this.route.snapshot.queryParamMap;
     if (queryParamMap.has(SearchQueryParam.QUERY)) {
-      label = await this.translateService
-        .get(i18n('apiGeneral.backToSearch'))
-        .toPromise();
+      label = await this.translateService.get(i18n('apiGeneral.backToSearch')).toPromise();
       url = '/catalog/search';
       queryParams = this.route.snapshot.queryParams;
     } else if (queryParamMap.has(SearchQueryParam.CATEGORY)) {
       const categoryId = queryParamMap.get(SearchQueryParam.CATEGORY);
       try {
         const category = await this.portalService.getCategoryByCategoryId({ categoryId }).toPromise();
-        label = await this.translateService
-          .get(i18n('apiGeneral.backToCategory'), { name: category.name })
-          .toPromise();
+        label = await this.translateService.get(i18n('apiGeneral.backToCategory'), { name: category.name }).toPromise();
         url = `/catalog/categories/${categoryId}`;
       } catch (err) {
         if (err && err.interceptorFuture) {
@@ -430,9 +446,7 @@ export class ApiGeneralComponent implements OnInit {
       const applicationId = queryParamMap.get(SearchQueryParam.APPLICATION);
       try {
         const application = await this.applicationService.getApplicationByApplicationId({ applicationId }).toPromise();
-        label = await this.translateService
-          .get(i18n('apiGeneral.backToApplication'), { name: application.name })
-          .toPromise();
+        label = await this.translateService.get(i18n('apiGeneral.backToApplication'), { name: application.name }).toPromise();
         url = `/applications/${applicationId}`;
       } catch (err) {
         if (err && err.interceptorFuture) {
@@ -442,20 +456,16 @@ export class ApiGeneralComponent implements OnInit {
     } else if (queryParamMap.has(SearchQueryParam.API_QUERY)) {
       const apiQuery = queryParamMap.get(SearchQueryParam.API_QUERY) as FilterApiQuery;
       if (Object.values(FilterApiQuery).includes(apiQuery)) {
-        label = await this.translateService
-          .get(i18n('apiGeneral.backToCatalog'))
-          .toPromise();
+        label = await this.translateService.get(i18n('apiGeneral.backToCatalog')).toPromise();
         url = `/catalog/${apiQuery.toLowerCase()}`;
       }
     }
 
     this.backButton = { label, url, queryParams };
-
   }
 
   @HostListener(':gv-list:click', ['$event.detail'])
   onGvListClick(detail: any) {
     this.router.navigate([`/applications/${detail.item.id}`]);
   }
-
 }

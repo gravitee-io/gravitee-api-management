@@ -25,7 +25,6 @@ import { ApiService, ApisResponse } from '../../../../projects/portal-webclient-
   templateUrl: './gv-search-api.component.html',
 })
 export class GvSearchApiComponent implements OnInit {
-
   @ViewChild('searchAutocomplete', { static: true }) searchAutocomplete;
   query: string;
   options: any;
@@ -47,7 +46,8 @@ export class GvSearchApiComponent implements OnInit {
   }
 
   onSearch({ detail }) {
-    return this.apiService.searchApis(new SearchRequestParams(detail, 5))
+    return this.apiService
+      .searchApis(new SearchRequestParams(detail, 5))
       .toPromise()
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
@@ -68,13 +68,11 @@ export class GvSearchApiComponent implements OnInit {
   onSelect({ detail }) {
     this._selected = true;
     setTimeout(() => {
-      this.router.navigate(['/catalog/api/' + detail.id])
-        .then(() => {
-          this._selected = false;
-          this.searchAutocomplete.nativeElement.reset();
-        });
+      this.router.navigate(['/catalog/api/' + detail.id]).then(() => {
+        this._selected = false;
+        this.searchAutocomplete.nativeElement.reset();
+      });
     }, 300);
-
   }
 
   onSubmit({ detail }) {
@@ -83,7 +81,5 @@ export class GvSearchApiComponent implements OnInit {
       queryParams[SearchQueryParam.QUERY] = detail;
       this.router.navigate(['/catalog/search'], { queryParams });
     }
-
   }
-
 }

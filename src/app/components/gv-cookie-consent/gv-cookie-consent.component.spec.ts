@@ -22,17 +22,11 @@ import { GvCookieConsentComponent } from './gv-cookie-consent.component';
 import '@gravitee/ui-components/wc/gv-button';
 
 describe('GvCookieConsentComponent', () => {
-
   const createComponent = createComponentFactory({
     component: GvCookieConsentComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      TranslateTestingModule,
-      RouterTestingModule,
-    ],
-    providers: [
-      mockProvider(HttpClient),
-    ]
+    imports: [TranslateTestingModule, RouterTestingModule],
+    providers: [mockProvider(HttpClient)],
   });
 
   let spectator: Spectator<GvCookieConsentComponent>;

@@ -29,9 +29,7 @@ import { ConfigurationService } from 'src/app/services/configuration.service';
   templateUrl: './gv-page-markdown.component.html',
   styleUrls: ['./gv-page-markdown.component.css'],
 })
-
 export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
-
   @Input() withToc: boolean;
 
   pageContent: string;
@@ -47,8 +45,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     private router: Router,
     private scrollService: ScrollService,
     private elementRef: ElementRef,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.baseURL = this.configurationService.get('baseURL');
@@ -88,7 +85,8 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         }
         return defaultRenderer.image(href, title, text);
       },
-      link(href, title, text) {        // is it a portal page URL ?
+      link(href, title, text) {
+        // is it a portal page URL ?
         let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
         if (!parsedURL) {
           // is it a API page URL ?
@@ -105,7 +103,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         }
 
         return defaultRenderer.link(href, title, text);
-      }
+      },
     };
   }
 
@@ -128,7 +126,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
         if (element && element.id && ['H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
           this.pageElementsPosition.push({
             id: element.id,
-            offsetTop: document.getElementById(element.id).offsetTop - ScrollService.getHeaderHeight()
+            offsetTop: document.getElementById(element.id).offsetTop - ScrollService.getHeaderHeight(),
           });
         }
       });
@@ -161,14 +159,12 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     window.open(link, '_blank');
   }
 
-
   @HostListener(':gv-button:click', ['$event.target'])
   onButtonClick(btn) {
     if (btn.href != null) {
       this.scrollService.scrollToAnchor(btn.href);
     } else if (btn.dataset != null && btn.dataset.pageId) {
-      dispatchCustomEvent(this.elementRef.nativeElement, 'navigate', { pageId: btn.dataset.pageId })
+      dispatchCustomEvent(this.elementRef.nativeElement, 'navigate', { pageId: btn.dataset.pageId });
     }
   }
-
 }

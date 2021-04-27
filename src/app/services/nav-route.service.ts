@@ -31,17 +31,17 @@ export interface INavRoute {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NavRouteService {
-
-  constructor(private router: Router,
-              private translateService: TranslateService,
-              private featureGuardService: FeatureGuardService,
-              private currentUserService: CurrentUserService,
-              private authGuardService: AuthGuardService,
-              private permissionGuardService: PermissionGuardService,
-              ) {}
+  constructor(
+    private router: Router,
+    private translateService: TranslateService,
+    private featureGuardService: FeatureGuardService,
+    private currentUserService: CurrentUserService,
+    private authGuardService: AuthGuardService,
+    private permissionGuardService: PermissionGuardService,
+  ) {}
 
   async getUserNav(): Promise<INavRoute[]> {
     const parentPath = 'user';
@@ -65,30 +65,36 @@ export class NavRouteService {
   async getManagementNav(): Promise<INavRoute> {
     const user = this.currentUserService.getUser();
     if (user && user.config && user.config.management_url) {
-      return this.translateService.get('route.management').toPromise().then((_title) => {
-        const routeNav: INavRoute = {
-          path: user.config.management_url,
-          icon: 'code:settings',
-          title: _title,
-          target: '_blank'
-        };
-        return routeNav;
-      });
+      return this.translateService
+        .get('route.management')
+        .toPromise()
+        .then((_title) => {
+          const routeNav: INavRoute = {
+            path: user.config.management_url,
+            icon: 'code:settings',
+            title: _title,
+            target: '_blank',
+          };
+          return routeNav;
+        });
     }
   }
 
   async getChildrenNav(aRoute: ActivatedRoute | Route, parentPath?: string, hiddenPaths?: Array<string>): Promise<INavRoute[]> {
     // @ts-ignore
-    const _route: { data, pathFromRoot, routeConfig, children, path } = aRoute instanceof ActivatedRoute ? aRoute.snapshot : aRoute;
+    const _route: { data; pathFromRoot; routeConfig; children; path } = aRoute instanceof ActivatedRoute ? aRoute.snapshot : aRoute;
 
     const data = _route.data;
     if (data && data.menu) {
       const menuOptions = typeof data.menu === 'object' ? data.menu : { hiddenPaths: [] };
       const _hiddenPaths = (hiddenPaths ? hiddenPaths : menuOptions.hiddenPaths) || [];
 
-      const _parentPath = parentPath ? parentPath : (_route.pathFromRoot || [])
-        .filter((route) => route.routeConfig)
-        .map((route) => route.routeConfig.path).join('/');
+      const _parentPath = parentPath
+        ? parentPath
+        : (_route.pathFromRoot || [])
+            .filter((route) => route.routeConfig)
+            .map((route) => route.routeConfig.path)
+            .join('/');
 
       let children = _route.routeConfig ? _route.routeConfig.children : _route.children;
       if (_route.routeConfig && _route.routeConfig.loadChildren) {
@@ -96,45 +102,49 @@ export class NavRouteService {
       }
 
       // @ts-ignore
-      return Promise.all(children
-        .filter(child => child.data != null && child.data.title)
-        .filter(this.isVisiblePath(_hiddenPaths))
-        .map(child => {
-          const newChild = Object.assign({}, child);
-          newChild.data = { ...data, ...child.data };
-          return newChild;
-        })
-        .filter(child => this.featureGuardService.canActivate(child) === true)
-        .filter(child => this.permissionGuardService.canActivate(child) === true)
-        .map(async (child) => {
-          const hasAuth = await this.authGuardService.canActivate(child);
-          if (hasAuth === true) {
-            let path = `${_parentPath}/${child.path}`;
-            // remove trailing slash to allow empty path
-            if (path.endsWith('/')) {
-              path = path.substring(0, path.length - 1);
+      return Promise.all(
+        children
+          .filter((child) => child.data != null && child.data.title)
+          .filter(this.isVisiblePath(_hiddenPaths))
+          .map((child) => {
+            const newChild = Object.assign({}, child);
+            newChild.data = { ...data, ...child.data };
+            return newChild;
+          })
+          .filter((child) => this.featureGuardService.canActivate(child) === true)
+          .filter((child) => this.permissionGuardService.canActivate(child) === true)
+          .map(async (child) => {
+            const hasAuth = await this.authGuardService.canActivate(child);
+            if (hasAuth === true) {
+              let path = `${_parentPath}/${child.path}`;
+              // remove trailing slash to allow empty path
+              if (path.endsWith('/')) {
+                path = path.substring(0, path.length - 1);
+              }
+              const active = this.router.isActive(path, false) || this.isActive(path, this.router.url);
+              return this.translateService
+                .get(child.data.title)
+                .toPromise()
+                .then((_title) => {
+                  const routeNav: INavRoute = {
+                    path,
+                    icon: child.data.icon,
+                    title: _title,
+                    active,
+                    separator: child.data.separator,
+                  };
+                  return routeNav;
+                });
             }
-            const active = this.router.isActive(path, false) || this.isActive(path, this.router.url);
-            return this.translateService.get(child.data.title).toPromise().then((_title) => {
-              const routeNav: INavRoute = {
-                path,
-                icon: child.data.icon,
-                title: _title,
-                active,
-                separator: child.data.separator
-              };
-              return routeNav;
-            });
-          }
-          return null;
-        }))
-        .then((routes) => routes.filter((route) => route != null));
+            return null;
+          }),
+      ).then((routes) => routes.filter((route) => route != null));
     }
     return null;
   }
 
   private isActive(path, url) {
-    const regexp = '^' + path.replace(/\/:([^/])+/, '\/([^\/])+') + '$';
+    const regexp = '^' + path.replace(/\/:([^/])+/, '/([^/])+') + '$';
     return new RegExp(regexp).test(url.substring(1).split('?')[0].split('#')[0]);
   }
 
@@ -189,8 +199,7 @@ export class NavRouteService {
     if (children) {
       const found = children.find((route) => route.path === path);
       if (found == null) {
-        return children.map((route) => this._getRouteByPath(route.children, path))
-          .find((route) => route && route.path === path);
+        return children.map((route) => this._getRouteByPath(route.children, path)).find((route) => route && route.path === path);
       }
       return found;
     }
@@ -198,16 +207,19 @@ export class NavRouteService {
   }
 
   navigateForceRefresh(commands: any[], extras?: NavigationExtras) {
-    this.router.navigate([], {
-      ...extras, ...{
-        queryParams: { skipRefresh: true },
-        skipLocationChange: true
-      }
-    }).then(() => {
-      if (extras && extras.queryParams) {
-        extras.queryParams.skipRefresh = null;
-      }
-      this.router.navigate(commands, extras);
-    });
+    this.router
+      .navigate([], {
+        ...extras,
+        ...{
+          queryParams: { skipRefresh: true },
+          skipLocationChange: true,
+        },
+      })
+      .then(() => {
+        if (extras && extras.queryParams) {
+          extras.queryParams.skipRefresh = null;
+        }
+        this.router.navigate(commands, extras);
+      });
   }
 }

@@ -23,10 +23,7 @@ import { ConfigurationService } from './configuration.service';
 export class CurrentUserService {
   private readonly currentUserSource: BehaviorSubject<User>;
 
-  constructor(
-    private http: HttpClient,
-    private configurationService: ConfigurationService,
-  ) {
+  constructor(private http: HttpClient, private configurationService: ConfigurationService) {
     this.currentUserSource = new BehaviorSubject<User>(null);
   }
 
@@ -45,7 +42,9 @@ export class CurrentUserService {
   load() {
     const baseURL = this.configurationService.get('baseURL');
     return new Promise((resolve) => {
-      this.http.get(baseURL + '/user').toPromise()
+      this.http
+        .get(baseURL + '/user')
+        .toPromise()
         .then((data) => {
           this.currentUserSource.next(data);
         })

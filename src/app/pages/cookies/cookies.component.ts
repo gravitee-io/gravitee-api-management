@@ -24,20 +24,19 @@ import { NotificationService } from '../../services/notification.service';
 @Component({
   selector: 'app-cookies',
   templateUrl: './cookies.component.html',
-  styleUrls: ['./cookies.component.css']
+  styleUrls: ['./cookies.component.css'],
 })
 export class CookiesComponent implements OnInit {
-
   gaCookieEnabled: boolean;
 
   constructor(
     private googleAnalyticsService: GoogleAnalyticsService,
     private cookieService: CookieService,
-    private notificationService: NotificationService
-  ) { }
+    private notificationService: NotificationService,
+  ) {}
 
   ngOnInit() {
-    this.gaCookieEnabled = (this.cookieService.get(CookieEnum.googleAnalytics) === '1');
+    this.gaCookieEnabled = this.cookieService.get(CookieEnum.googleAnalytics) === '1';
   }
 
   _disableGA() {
@@ -55,7 +54,7 @@ export class CookiesComponent implements OnInit {
   }
 
   displayGACookie() {
-    this.gaCookieEnabled = (this.cookieService.get(CookieEnum.googleAnalytics) === '1');
+    this.gaCookieEnabled = this.cookieService.get(CookieEnum.googleAnalytics) === '1';
     return this.googleAnalyticsService.isLoaded();
   }
 
@@ -66,5 +65,4 @@ export class CookiesComponent implements OnInit {
       this._disableGA();
     }
   }
-
 }

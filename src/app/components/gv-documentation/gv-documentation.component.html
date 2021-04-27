@@ -19,13 +19,17 @@
   <div class="gv-documentation__loading" *ngIf="!isLoaded">
     <gv-icon shape="navigation:waiting"></gv-icon>
   </div>
-  <div #treeMenu class="gv-documentation__menu" [ngClass]="{show: isLoaded}">
+  <div #treeMenu class="gv-documentation__menu" [ngClass]="{ show: isLoaded }">
     <gv-tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
   </div>
-  <app-gv-page *ngIf="currentPage" [page]="currentPage" withToc="true"
-               [ngClass]="{'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded, fullscreen: this.hasTreeClosed}"
-               [fragment]="this.fragment"
-               class="gv-documentation__content"></app-gv-page>
+  <app-gv-page
+    *ngIf="currentPage"
+    [page]="currentPage"
+    withToc="true"
+    [ngClass]="{ 'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded, fullscreen: this.hasTreeClosed }"
+    [fragment]="this.fragment"
+    class="gv-documentation__content"
+  ></app-gv-page>
 </div>
 
 <div class="page__content" *ngIf="isEmpty()">
@@ -33,9 +37,8 @@
     <gv-message class="message-empty">
       <gv-icon shape="home:library"></gv-icon>
       <div class="title">
-        {{'gv-documentation.empty' | translate}}
+        {{ 'gv-documentation.empty' | translate }}
       </div>
     </gv-message>
   </section>
 </div>
-

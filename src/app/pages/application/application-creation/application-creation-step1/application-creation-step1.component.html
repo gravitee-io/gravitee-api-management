@@ -19,36 +19,41 @@
   <form [formGroup]="form" *ngIf="form" class="form step-grid-content">
     <div class="step-grid-column">
       <div class="form-control">
-        <gv-input name="name"
-                  formControlName="name"
-                  ngDefaultControl
-                  required
-                  autofocus
-                  label="{{ 'applicationCreation.general.name.label' | translate }}"
-                  placeholder="{{ 'applicationCreation.general.name.placeholder' | translate }}"></gv-input>
+        <gv-input
+          name="name"
+          formControlName="name"
+          ngDefaultControl
+          required
+          autofocus
+          label="{{ 'applicationCreation.general.name.label' | translate }}"
+          placeholder="{{ 'applicationCreation.general.name.placeholder' | translate }}"
+        ></gv-input>
       </div>
 
       <div class="form-control">
-        <gv-text name="description"
-                 formControlName="description"
-                 ngDefaultControl
-                 required
-                 rows="10"
-                 label="{{ 'applicationCreation.general.description.label' | translate }}"
-                 placeholder="{{ 'applicationCreation.general.description.placeholder' | translate }}"></gv-text>
+        <gv-text
+          name="description"
+          formControlName="description"
+          ngDefaultControl
+          required
+          rows="10"
+          label="{{ 'applicationCreation.general.description.label' | translate }}"
+          placeholder="{{ 'applicationCreation.general.description.placeholder' | translate }}"
+        ></gv-text>
       </div>
-
     </div>
     <div class="step-grid-column">
       <div class="form-control">
-        <gv-file-upload name="picture"
-                        formControlName="picture"
-                        ngDefaultControl
-                        accept="image/*"
-                        except=".svg"
-                        limit="500000"
-                        class="application-creation__avatar"
-                        [label]="'applicationCreation.general.image' | translate">
+        <gv-file-upload
+          name="picture"
+          formControlName="picture"
+          ngDefaultControl
+          accept="image/*"
+          except=".svg"
+          limit="500000"
+          class="application-creation__avatar"
+          [label]="'applicationCreation.general.image' | translate"
+        >
         </gv-file-upload>
       </div>
     </div>

@@ -24,7 +24,6 @@ import { ApplicationTypeOption } from '../application-creation.component';
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep2Component implements OnInit, OnChanges {
-
   @Input() allowedTypes: Array<ApplicationTypeOption>;
   @Input() requireClientId: boolean;
   @Output() applicationTypeSelected = new EventEmitter<ApplicationTypeOption>();
@@ -35,8 +34,7 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
   appForm: any;
   private formSubscription: Subscription;
 
-  constructor(private formBuilder: FormBuilder) {
-  }
+  constructor(private formBuilder: FormBuilder) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.requireClientId && this.appForm && changes.requireClientId.previousValue !== changes.requireClientId.currentValue) {
@@ -57,14 +55,14 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
       app: this.formBuilder.group({
         type: new FormControl('', null),
         client_id: new FormControl('', null),
-      })
+      }),
     });
     this.oauthForm = this.formBuilder.group({
       oauth: this.formBuilder.group({
         redirect_uris: new FormArray([], null),
         grant_types: new FormArray([], [Validators.required]),
         application_type: new FormControl(null, [Validators.required]),
-      })
+      }),
     });
     this.setApplicationType(firstApplicationType);
   }
@@ -77,11 +75,9 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
     this.applicationType = applicationType;
     this.grantTypes.clear();
     this.allGrantTypes = this.applicationType.allowed_grant_types.map((allowedGrantType) => {
-      const value = this.applicationType.default_grant_types
-        .find((grant) => allowedGrantType.type === grant.type) != null;
+      const value = this.applicationType.default_grant_types.find((grant) => allowedGrantType.type === grant.type) != null;
 
-      const disabled = this.applicationType.mandatory_grant_types
-        .find((grant) => allowedGrantType.type === grant.type) != null;
+      const disabled = this.applicationType.mandatory_grant_types.find((grant) => allowedGrantType.type === grant.type) != null;
 
       if (value === true) {
         this.grantTypes.push(new FormControl(allowedGrantType.type));
@@ -165,5 +161,4 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
       }
     }
   }
-
 }

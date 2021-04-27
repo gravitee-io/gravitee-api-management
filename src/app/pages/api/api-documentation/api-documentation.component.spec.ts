@@ -26,13 +26,9 @@ describe('ApiDocumentationComponent', () => {
   const createComponent = createComponentFactory({
     component: ApiDocumentationComponent,
     declarations: [GvDocumentationComponent],
-    imports: [
-      RouterTestingModule, HttpClientTestingModule
-    ],
+    imports: [RouterTestingModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [
-      mockProvider(PortalService),
-    ]
+    providers: [mockProvider(PortalService)],
   });
 
   let spectator: Spectator<ApiDocumentationComponent>;
@@ -47,5 +43,4 @@ describe('ApiDocumentationComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

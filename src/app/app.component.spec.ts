@@ -20,14 +20,10 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('AppComponent', () => {
-
   const createComponent = createComponentFactory({
     component: AppComponent,
-    imports: [
-      RouterTestingModule,
-      HttpClientTestingModule
-    ],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    imports: [RouterTestingModule, HttpClientTestingModule],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 
   let spectator: Spectator<AppComponent>;
@@ -42,5 +38,4 @@ describe('AppComponent', () => {
     const app = spectator.component;
     expect(app).toBeTruthy();
   });
-
 });

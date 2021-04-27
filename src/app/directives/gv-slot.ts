@@ -18,8 +18,7 @@ import { ComponentFactory, ViewContainerRef } from '@angular/core';
 export abstract class GvSlot {
   private currentComponentFactory: ComponentFactory<any>;
 
-  constructor(private viewContainerRef: ViewContainerRef) {
-  }
+  constructor(private viewContainerRef: ViewContainerRef) {}
 
   abstract getName(): string;
 
@@ -50,5 +49,4 @@ export abstract class GvSlot {
     }
     this.currentComponentFactory = componentFactory;
   }
-
 }

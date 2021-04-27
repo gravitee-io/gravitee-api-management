@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-Object.defineProperty(window, 'CSS', {value: null});
+Object.defineProperty(window, 'CSS', { value: null });
 Object.defineProperty(document, 'doctype', {
-  value: '<!DOCTYPE html>'
+  value: '<!DOCTYPE html>',
 });
 
 Object.defineProperty(window, 'getComputedStyle', {
   value: () => ({
     getPropertyValue: (prop) => {
       return '';
-    }
-  })
+    },
+  }),
 });
 
 Object.defineProperty(document, 'removeEventListener', {
-  value: jest.fn()
+  value: jest.fn(),
 });
 
 /**

@@ -24,9 +24,8 @@ import { Router, NavigationEnd } from '@angular/router';
 declare var gtag: any;
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
 export class GoogleAnalyticsService {
   private readonly isGAEnabled: BehaviorSubject<boolean>;
   private readonly isGALoaded: BehaviorSubject<boolean>;
@@ -34,11 +33,7 @@ export class GoogleAnalyticsService {
   private readonly scriptGtagId = 'Gtag_ID';
   private trackingId: string;
 
-  constructor(
-    private configurationService: ConfigurationService,
-    private cookieService: CookieService,
-    private router: Router,
-  ) {
+  constructor(private configurationService: ConfigurationService, private cookieService: CookieService, private router: Router) {
     this.isGAEnabled = new BehaviorSubject<boolean>(undefined);
     this.isGALoaded = new BehaviorSubject<boolean>(undefined);
     this.router.events.subscribe((event) => {
@@ -122,6 +117,6 @@ export class GoogleAnalyticsService {
   private _removeGACookies() {
     this.cookieService.delete('_ga');
     this.cookieService.delete('_gid');
-    this.cookieService.delete('_gat_gtag_' + this.trackingId.replace(/-/g,'_'));
+    this.cookieService.delete('_gat_gtag_' + this.trackingId.replace(/-/g, '_'));
   }
 }

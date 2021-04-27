@@ -44,21 +44,15 @@ describe('GvTicketsHistoryComponent', () => {
   const response: TicketsResponse = {
     data: tickets,
     metadata: {
-      data: { total: { total: tickets.length } }
-    }
-  }
+      data: { total: { total: tickets.length } },
+    },
+  };
 
   const createComponent = createComponentFactory({
     component: TicketsHistoryComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      RouterTestingModule,
-      TranslateTestingModule,
-      HttpClientTestingModule,
-    ],
-    providers: [
-      mockProvider(TranslateService),
-    ]
+    imports: [RouterTestingModule, TranslateTestingModule, HttpClientTestingModule],
+    providers: [mockProvider(TranslateService)],
   });
 
   let spectator: Spectator<TicketsHistoryComponent>;
@@ -70,46 +64,43 @@ describe('GvTicketsHistoryComponent', () => {
   });
 
   beforeEach(async(() => {
-
     route = spectator.inject(ActivatedRoute);
     portalService = spectator.inject(PortalService);
     routerSpy = spectator.inject(Router);
 
-    spyOn(ConfigurationService.prototype, 'get').and.callFake(arg => {
+    spyOn(ConfigurationService.prototype, 'get').and.callFake((arg) => {
       if (arg === 'pagination.size.values') {
-        return PAGE_SIZES
-      }else if (arg === 'pagination.size.values') {
-        return PAGE_SIZE_DEFAULT
+        return PAGE_SIZES;
+      } else if (arg === 'pagination.size.values') {
+        return PAGE_SIZE_DEFAULT;
       }
-    })
+    });
 
     route.queryParams = of({
       skipRefresh: false,
       size: 10,
       page: 1,
       field: 'subject',
-      order: 'ASC'
+      order: 'ASC',
     });
 
     route.snapshot = {
       queryParams: {
-        size: 10
+        size: 10,
       },
       data: {
-        api: { id: 'apiId' }
-      }
+        api: { id: 'apiId' },
+      },
     };
-
   }));
 
   afterEach(() => {
     if (component.queryParamSubscription) {
       component.ngOnDestroy();
     }
-  })
+  });
 
   it('should init the component', () => {
-
     spyOn(component, 'refresh');
 
     component.ngOnInit();
@@ -123,7 +114,6 @@ describe('GvTicketsHistoryComponent', () => {
   });
 
   it('should get ticket data without api path param and without selected ticket', async () => {
-
     spyOn(portalService, 'getTickets').and.returnValue(of(response));
     route.snapshot.data.api = null;
     route.queryParams.ticket = null;
@@ -134,11 +124,9 @@ describe('GvTicketsHistoryComponent', () => {
     expect(component.selectedTicket).toBeNull();
     expect(component.selectedTicketIds.length).toEqual(0);
     expect(component.options.data.length).toEqual(4);
-
   });
 
   it('should get ticket data with api path param and with selected ticket', async () => {
-
     spyOn(portalService, 'getTickets').and.returnValue(of(response));
     const scrollServiceSpy = spyOn(ScrollService.prototype, 'scrollToAnchor');
     route.queryParams.ticket = 'ticket1';
@@ -150,7 +138,6 @@ describe('GvTicketsHistoryComponent', () => {
     expect(component.selectedTicketIds.length).toEqual(1);
     expect(component.options.data.length).toEqual(3);
     expect(scrollServiceSpy).toHaveBeenCalledWith('ticket');
-
   });
 
   it('should get field order for desc order query', () => {
@@ -160,12 +147,10 @@ describe('GvTicketsHistoryComponent', () => {
   });
 
   it('should return default field order when no queried', () => {
-
     expect(component.getOrder()).toEqual('-created_at');
   });
 
   it('should navigate with new query params when selecting page size', fakeAsync(() => {
-
     const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
 
     component.onSelectSize(5);
@@ -174,15 +159,14 @@ describe('GvTicketsHistoryComponent', () => {
 
     expect(spy).toHaveBeenCalledWith([], {
       queryParams: { size: 5, page: null, ticket: null },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
     expect(component.size).toEqual(5);
   }));
 
   it('should navigate with new query params when paginating', fakeAsync(() => {
-
     component.paginationData = {
-      current_page: 1
+      current_page: 1,
     };
     component.size = 5;
     const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
@@ -193,16 +177,15 @@ describe('GvTicketsHistoryComponent', () => {
       queryParams: {
         page: 2,
         size: 5,
-        ticket: null
+        ticket: null,
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }));
 
   it('should not navigate with new query params when paginating on same page', fakeAsync(() => {
-
     component.paginationData = {
-      current_page: 1
+      current_page: 1,
     };
     component.size = 5;
     const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
@@ -213,7 +196,6 @@ describe('GvTicketsHistoryComponent', () => {
   }));
 
   it('should navigate with new query params when sorting', fakeAsync(() => {
-
     const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
 
     component._onSort({ order: '-subject' });
@@ -221,14 +203,13 @@ describe('GvTicketsHistoryComponent', () => {
     expect(spy).toHaveBeenCalledWith([], {
       queryParams: {
         order: '-subject',
-        ticket: null
+        ticket: null,
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }));
 
   it('should navigate with new query params when selecting a ticket', fakeAsync(() => {
-
     const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
 
     component.onSelectTicket(tickets[0]);
@@ -237,12 +218,11 @@ describe('GvTicketsHistoryComponent', () => {
       queryParams: {
         ticket: tickets[0].id,
       },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }));
 
   it('should not navigate with new query params when deselecting a ticket', fakeAsync(() => {
-
     const spy = spyOn(routerSpy, 'navigate').and.returnValue(Promise.resolve(true));
 
     component.onSelectTicket(undefined);

@@ -18,7 +18,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Notification } from '../model/notification';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
   private notificationSource = new BehaviorSubject<Notification>(undefined);

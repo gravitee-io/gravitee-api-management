@@ -4,17 +4,9 @@
     "outDir": "./out-tsc/spec",
     "module": "commonjs",
     "target": "es5",
-    "types": [
-      "jest",
-      "node"
-    ],
-    "emitDecoratorMetadata": true,
+    "types": ["jest", "node"],
+    "emitDecoratorMetadata": true
   },
-  "files": [
-    "src/polyfills.ts"
-  ],
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
-  ]
+  "files": ["src/polyfills.ts"],
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }

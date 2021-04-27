@@ -22,13 +22,12 @@ import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 
 describe('FilteredCatalogComponent', () => {
-
   const createComponent = createComponentFactory({
     component: FilteredCatalogComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule],
     declarations: [ApiStatesPipe, ApiLabelsPipe],
-    providers:[ApiStatesPipe, ApiLabelsPipe],
+    providers: [ApiStatesPipe, ApiLabelsPipe],
   });
 
   let spectator: Spectator<FilteredCatalogComponent>;
@@ -40,7 +39,6 @@ describe('FilteredCatalogComponent', () => {
   });
 
   it('should create', () => {
-      expect(component).toBeTruthy();
+    expect(component).toBeTruthy();
   });
-
 });

@@ -23,7 +23,7 @@ describe('AuthService', () => {
   const createService = createServiceFactory({
     service: AuthService,
     imports: [HttpClientTestingModule],
-    providers: [mockProvider(OAuthService)]
+    providers: [mockProvider(OAuthService)],
   });
 
   beforeEach(() => {
@@ -33,5 +33,4 @@ describe('AuthService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
 });

@@ -23,15 +23,11 @@ import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('HomepageComponent', () => {
-
   const createComponent = createComponentFactory({
     component: HomepageComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      RouterTestingModule,
-      HttpClientTestingModule,
-    ],
-    declarations: [ GvPageComponent, ApiStatesPipe, ApiLabelsPipe ],
+    imports: [RouterTestingModule, HttpClientTestingModule],
+    declarations: [GvPageComponent, ApiStatesPipe, ApiLabelsPipe],
     providers: [ApiStatesPipe, ApiLabelsPipe],
   });
 
@@ -46,5 +42,4 @@ describe('HomepageComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

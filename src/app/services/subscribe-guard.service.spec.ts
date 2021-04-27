@@ -20,14 +20,14 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('SubscribeGuardService', () => {
-
-  beforeEach(() => TestBed.configureTestingModule({
-    imports: [HttpClientTestingModule, RouterTestingModule],
-  }));
+  beforeEach(() =>
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule, RouterTestingModule],
+    }),
+  );
 
   it('should be created', () => {
     const service: SubscribeGuardService = TestBed.inject(SubscribeGuardService);
     expect(service).toBeTruthy();
   });
-
 });

@@ -15,8 +15,7 @@
     limitations under the License.
 
 -->
-<form class="page__content form" [formGroup]="registrationConfirmationForm"
-      (ngSubmit)="onSubmitRegistrationConfirmationForm()">
+<form class="page__content form" [formGroup]="registrationConfirmationForm" (ngSubmit)="onSubmitRegistrationConfirmationForm()">
   <ng-container *ngIf="!isSubmitted && !isTokenExpired">
     <div class="page__box">
       <div class="page__box-title">
@@ -25,70 +24,76 @@
 
       <div class="page__box-content">
         <gv-input
-            large
-            required
-            label="{{ 'registrationConfirmation.firstname' | translate }}"
-            formControlName="firstname"
-            value="{{ userFromToken.firstname }}"
-            ngDefaultControl
-            gvControl
-            class="form__control">
+          large
+          required
+          label="{{ 'registrationConfirmation.firstname' | translate }}"
+          formControlName="firstname"
+          value="{{ userFromToken.firstname }}"
+          ngDefaultControl
+          gvControl
+          class="form__control"
+        >
         </gv-input>
         <gv-input
-            large
-            required
-            label="{{ 'registrationConfirmation.lastname' | translate }}"
-            formControlName="lastname"
-            value="{{ userFromToken.lastname }}"
-            ngDefaultControl
-            gvControl
-            class="form__control">
+          large
+          required
+          label="{{ 'registrationConfirmation.lastname' | translate }}"
+          formControlName="lastname"
+          value="{{ userFromToken.lastname }}"
+          ngDefaultControl
+          gvControl
+          class="form__control"
+        >
         </gv-input>
         <gv-input
-            large
-            required
-            type="email"
-            label="{{ 'registrationConfirmation.email' | translate }}"
-            formControlName="email"
-            value="{{ userFromToken.email }}"
-            ngDefaultControl
-            gvControl
-            class="form__control">
+          large
+          required
+          type="email"
+          label="{{ 'registrationConfirmation.email' | translate }}"
+          formControlName="email"
+          value="{{ userFromToken.email }}"
+          ngDefaultControl
+          gvControl
+          class="form__control"
+        >
         </gv-input>
         <gv-input
-            large
-            required
-            type="password"
-            label="{{ 'registrationConfirmation.password' | translate }}"
-            formControlName="password"
-            ngDefaultControl
-            gvControl
-            class="form__control">
+          large
+          required
+          type="password"
+          label="{{ 'registrationConfirmation.password' | translate }}"
+          formControlName="password"
+          ngDefaultControl
+          gvControl
+          class="form__control"
+        >
         </gv-input>
         <gv-input
-            large
-            required
-            type="password"
-            label="{{ 'registrationConfirmation.confirmedPassword' | translate }}"
-            formControlName="confirmedPassword"
-            ngDefaultControl
-            gvControl
-            class="form__control">
+          large
+          required
+          type="password"
+          label="{{ 'registrationConfirmation.confirmedPassword' | translate }}"
+          formControlName="confirmedPassword"
+          ngDefaultControl
+          gvControl
+          class="form__control"
+        >
         </gv-input>
       </div>
 
       <div class="page__box-footer form__actions form__actions-column">
         <gv-button
-            [disabled]="this.registrationConfirmationForm.pristine || this.registrationConfirmationForm.invalid"
-            primary
-            class="form__control"
-            type="submit">
+          [disabled]="this.registrationConfirmationForm.pristine || this.registrationConfirmationForm.invalid"
+          primary
+          class="form__control"
+          type="submit"
+        >
           {{ 'registrationConfirmation.button' | translate }}
         </gv-button>
 
         <p class="text-center">
           <gv-button link routerLink="/">{{ 'registrationConfirmation.backHome' | translate }}</gv-button>
-          </p>
+        </p>
       </div>
     </div>
   </ng-container>
@@ -99,13 +104,11 @@
         <h3>{{ 'registrationConfirmation.title' | translate }}</h3>
       </div>
 
-      <div class="page__box-content" >
+      <div class="page__box-content">
         <div class="form__message">
           <gv-icon shape="home:clock"></gv-icon>
           <h2>{{ 'registrationConfirmation.tokenExpired' | translate }}</h2>
-          <gv-button link
-                     routerLink="/user/registration"
-                     [innerHTML]="'registrationConfirmation.backRegistration' | translate"></gv-button>
+          <gv-button link routerLink="/user/registration" [innerHTML]="'registrationConfirmation.backRegistration' | translate"></gv-button>
         </div>
       </div>
     </div>
@@ -117,13 +120,11 @@
         <h3>{{ 'registrationConfirmation.success.title' | translate }}</h3>
       </div>
 
-      <div class="page__box-content" >
+      <div class="page__box-content">
         <div class="form__message">
           <gv-icon shape="general:smile"></gv-icon>
           <h2>{{ 'registrationConfirmation.success.message' | translate }}</h2>
-          <gv-button link
-                     routerLink="/user/login"
-                     [innerHTML]="'registrationConfirmation.backLogin' | translate"></gv-button>
+          <gv-button link routerLink="/user/login" [innerHTML]="'registrationConfirmation.backLogin' | translate"></gv-button>
         </div>
       </div>
     </div>

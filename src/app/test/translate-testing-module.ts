@@ -13,15 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  AfterViewChecked,
-  Directive,
-  ElementRef,
-  Input,
-  NgModule,
-  Pipe,
-  PipeTransform,
-} from '@angular/core';
+import { AfterViewChecked, Directive, ElementRef, Input, NgModule, Pipe, PipeTransform } from '@angular/core';
 import { LangChangeEvent, TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 
@@ -33,15 +25,9 @@ export class TranslateServiceMock {
   onDefaultLangChangeSubject: Subject<string> = new Subject();
   isLoadedSubject: BehaviorSubject<boolean> = new BehaviorSubject(true);
 
-  onLangChange: Observable<
-    LangChangeEvent
-    > = this.onLangChangeSubject.asObservable();
-  onTranslationChange: Observable<
-    string
-    > = this.onTranslationChangeSubject.asObservable();
-  onDefaultLangChange: Observable<
-    string
-    > = this.onDefaultLangChangeSubject.asObservable();
+  onLangChange: Observable<LangChangeEvent> = this.onLangChangeSubject.asObservable();
+  onTranslationChange: Observable<string> = this.onTranslationChangeSubject.asObservable();
+  onDefaultLangChange: Observable<string> = this.onDefaultLangChangeSubject.asObservable();
   isLoaded: Observable<boolean> = this.isLoadedSubject.asObservable();
 
   currentLang: string;
@@ -110,6 +96,4 @@ export class TranslateMockDirective implements AfterViewChecked {
   exports: [TranslateMockPipe, TranslateMockDirective],
   providers: [{ provide: TranslateService, useClass: TranslateServiceMock }],
 })
-export class TranslateTestingModule {
-
-}
+export class TranslateTestingModule {}
