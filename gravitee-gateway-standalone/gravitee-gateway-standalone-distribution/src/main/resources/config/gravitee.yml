@@ -174,7 +174,7 @@ reporters:
 #      path: ${gravitee.home}/config/reporter/elasticsearch/templates
 #      extended_request_mapping: request.ftl
   file:
-    enabled: false # Is the reporter enabled or not (default to false)
+    enabled: true # Is the reporter enabled or not (default to false)
 #    fileName: ${gravitee.home}/metrics/%s-yyyy_mm_dd
 #    output: json # Can be csv, json, elasticsearch or message_pack
 
@@ -258,6 +258,15 @@ services:
 #    delay: 5000
 #    unit: MILLISECONDS
 #    storeSystemProperties: true
+
+  tracing:
+    enabled: true
+    type: jaeger
+    jaeger:
+      host: localhost
+      port: 14250
+#      ssl:
+#        enabled: false
 
 #handlers:
 #  request:

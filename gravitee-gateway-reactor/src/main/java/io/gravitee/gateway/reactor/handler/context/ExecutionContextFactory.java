@@ -18,7 +18,7 @@ package io.gravitee.gateway.reactor.handler.context;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
-import java.util.ArrayList;
+import io.gravitee.tracing.api.Tracer;
 import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,13 +38,16 @@ public class ExecutionContextFactory implements InitializingBean {
 
     private List<TemplateVariableProvider> providers;
 
+    @Autowired
+    private Tracer tracer;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         providers = templateVariableProviderFactory.getTemplateVariableProviders();
     }
 
     public ExecutionContext create(ExecutionContext wrapped) {
-        ReactableExecutionContext context = new ReactableExecutionContext((MutableExecutionContext) wrapped, applicationContext);
+        ReactableExecutionContext context = new ReactableExecutionContext((MutableExecutionContext) wrapped, tracer, applicationContext);
         context.setProviders(providers);
         return context;
     }

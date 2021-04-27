@@ -16,47 +16,31 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyChainException;
-import io.gravitee.gateway.policy.PolicyException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
 /**
+ * A specific {@link io.gravitee.policy.api.PolicyChain} which is used to execute policies in their reverse order.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResponsePolicyChain extends StreamablePolicyChain {
+public class ReversedPolicyChain extends StreamablePolicyChain {
 
-    private ResponsePolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
+    private ReversedPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
         super(policies, executionContext);
     }
 
-    public static ResponsePolicyChain create(List<Policy> policies, ExecutionContext executionContext) {
-        return new ResponsePolicyChain(policies, executionContext);
-    }
-
-    @Override
-    protected void execute(Policy policy, Object... args) throws PolicyChainException {
-        try {
-            policy.onResponse(args);
-        } catch (PolicyException pe) {
-            throw new PolicyChainException(pe);
-        }
-    }
-
-    @Override
-    protected ReadWriteStream<Buffer> stream(Policy policy, Object... args) throws Exception {
-        return policy.onResponseContent(args);
+    public static ReversedPolicyChain create(final List<Policy> policies, final ExecutionContext executionContext) {
+        return new ReversedPolicyChain(policies, executionContext);
     }
 
     @Override
     public Iterator<Policy> iterator() {
         final ListIterator<Policy> listIterator = policies.listIterator(policies.size());
-        return new Iterator<Policy>() {
+        return new Iterator<>() {
             @Override
             public boolean hasNext() {
                 return listIterator.hasPrevious();

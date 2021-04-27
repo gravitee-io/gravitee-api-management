@@ -21,10 +21,9 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.EmptyStreamableProcessor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.chain.DefaultStreamableProcessorChain;
-import io.gravitee.gateway.flow.policy.FlowResponsePolicyChain;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,8 +60,8 @@ public class SimpleFlowProvider implements FlowProvider {
                         context,
                         policies ->
                             streamType == StreamType.ON_REQUEST
-                                ? RequestPolicyChain.create(policies, context)
-                                : FlowResponsePolicyChain.create(policies, context)
+                                ? OrderedPolicyChain.create(policies, context)
+                                : OrderedPolicyChain.create(policies, context)
                     )
                 );
             }

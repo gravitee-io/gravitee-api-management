@@ -16,11 +16,7 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyChainException;
-import io.gravitee.gateway.policy.PolicyException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,28 +24,14 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class RequestPolicyChain extends StreamablePolicyChain {
+public class OrderedPolicyChain extends StreamablePolicyChain {
 
-    private RequestPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
+    private OrderedPolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
         super(policies, executionContext);
     }
 
-    public static RequestPolicyChain create(List<Policy> policies, ExecutionContext executionContext) {
-        return new RequestPolicyChain(policies, executionContext);
-    }
-
-    @Override
-    protected void execute(Policy policy, Object... args) throws PolicyChainException {
-        try {
-            policy.onRequest(args);
-        } catch (PolicyException pe) {
-            throw new PolicyChainException(pe);
-        }
-    }
-
-    @Override
-    protected ReadWriteStream<Buffer> stream(Policy policy, Object... args) throws Exception {
-        return policy.onRequestContent(args);
+    public static OrderedPolicyChain create(final List<Policy> policies, final ExecutionContext executionContext) {
+        return new OrderedPolicyChain(policies, executionContext);
     }
 
     @Override

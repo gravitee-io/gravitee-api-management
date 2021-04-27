@@ -19,9 +19,7 @@ import static io.gravitee.reporter.api.http.SecurityType.JWT;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
-import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.AbstractPolicy;
+import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
@@ -37,7 +35,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CheckSubscriptionPolicy extends AbstractPolicy {
+public class CheckSubscriptionPolicy implements Policy {
 
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
 
@@ -49,16 +47,15 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
     static final String GATEWAY_OAUTH2_SERVER_ERROR_KEY = "GATEWAY_OAUTH2_SERVER_ERROR";
 
     @Override
-    protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext)
-        throws PolicyException {
+    public void execute(PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
         SubscriptionRepository subscriptionRepository = executionContext.getComponent(SubscriptionRepository.class);
 
         // Get plan and client_id from execution context
         String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
         String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
 
-        request.metrics().setSecurityType(JWT);
-        request.metrics().setSecurityToken(clientId);
+        executionContext.request().metrics().setSecurityType(JWT);
+        executionContext.request().metrics().setSecurityToken(clientId);
         try {
             List<Subscription> subscriptions = subscriptionRepository.search(
                 new SubscriptionCriteria.Builder()
@@ -74,12 +71,15 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                 if (
                     subscription != null &&
                     subscription.getClientId().equals(clientId) &&
-                    (subscription.getEndingAt() == null || subscription.getEndingAt().after(new Date(request.timestamp())))
+                    (
+                        subscription.getEndingAt() == null ||
+                        subscription.getEndingAt().after(new Date(executionContext.request().timestamp()))
+                    )
                 ) {
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
 
-                    policyChain.doNext(request, response);
+                    policyChain.doNext(executionContext.request(), executionContext.response());
                     return;
                 }
             }

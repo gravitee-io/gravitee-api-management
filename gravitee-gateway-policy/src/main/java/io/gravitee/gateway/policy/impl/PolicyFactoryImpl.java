@@ -15,20 +15,13 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import static org.reflections.ReflectionUtils.withModifier;
-import static org.reflections.ReflectionUtils.withParametersCount;
-
-import com.google.common.base.Predicate;
-import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.*;
 import io.gravitee.policy.api.PolicyConfiguration;
-import java.lang.reflect.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import org.reflections.ReflectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
+import io.gravitee.policy.api.annotations.OnResponse;
+import io.gravitee.policy.api.annotations.OnResponseContent;
+import java.lang.reflect.Method;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,104 +29,25 @@ import org.slf4j.LoggerFactory;
  */
 public class PolicyFactoryImpl implements PolicyFactory {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(PolicyFactoryImpl.class);
+    private final PolicyPluginFactory policyPluginFactory;
 
-    /**
-     * Cache of constructor by policy
-     */
-    private Map<Class<?>, Constructor<?>> constructors = new HashMap<>();
-
-    @Override
-    public Object create(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
-        Class<?> policyClass = policyMetadata.policy();
-        LOGGER.debug("Create a new policy instance for {}", policyClass.getName());
-
-        return createPolicy(policyMetadata, policyConfiguration);
+    public PolicyFactoryImpl(final PolicyPluginFactory policyPluginFactory) {
+        this.policyPluginFactory = policyPluginFactory;
     }
 
     @Override
-    public void clearCache() {
-        constructors.clear();
-    }
+    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
+        Object policy = policyPluginFactory.create(policyMetadata.policy(), policyConfiguration);
 
-    private Object createPolicy(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
-        Object policyInst = null;
-
-        Constructor<?> constr = lookingForConstructor(policyMetadata.policy());
-
-        if (constr != null) {
-            try {
-                if (constr.getParameterCount() > 0) {
-                    policyInst = constr.newInstance(policyConfiguration);
-                } else {
-                    policyInst = constr.newInstance();
-                }
-            } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
-                LOGGER.error("Unable to instantiate policy {}", policyMetadata.policy().getName(), ex);
-            }
+        Method headMethod, streamMethod;
+        if (streamType == StreamType.ON_REQUEST) {
+            headMethod = policyMetadata.method(OnRequest.class);
+            streamMethod = policyMetadata.method(OnRequestContent.class);
+        } else {
+            headMethod = policyMetadata.method(OnResponse.class);
+            streamMethod = policyMetadata.method(OnResponseContent.class);
         }
 
-        return policyInst;
-    }
-
-    private Constructor<?> lookingForConstructor(Class<?> policyClass) {
-        Constructor constructor = constructors.get(policyClass);
-        if (constructor == null) {
-            LOGGER.debug("Looking for a constructor to inject policy configuration");
-
-            Set<Constructor> policyConstructors = ReflectionUtils.getConstructors(
-                policyClass,
-                withModifier(Modifier.PUBLIC),
-                withParametersAssignableFrom(PolicyConfiguration.class),
-                withParametersCount(1)
-            );
-
-            if (policyConstructors.isEmpty()) {
-                LOGGER.debug(
-                    "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
-                    policyClass.getName()
-                );
-                try {
-                    constructor = policyClass.getConstructor();
-                } catch (NoSuchMethodException nsme) {
-                    LOGGER.error("Unable to find default empty constructor for {}", policyClass.getName(), nsme);
-                }
-            } else if (policyConstructors.size() == 1) {
-                constructor = policyConstructors.iterator().next();
-            } else {
-                LOGGER.info("Too much constructors to instantiate policy {}", policyClass.getName());
-            }
-
-            constructors.put(policyClass, constructor);
-        }
-
-        return constructor;
-    }
-
-    private static Predicate<Member> withParametersAssignableFrom(final Class... types) {
-        return input -> {
-            if (input != null) {
-                Class<?>[] parameterTypes = parameterTypes(input);
-                if (parameterTypes.length == types.length) {
-                    for (int i = 0; i < parameterTypes.length; i++) {
-                        if (
-                            !types[i].isAssignableFrom(parameterTypes[i]) || (parameterTypes[i] == Object.class && types[i] != Object.class)
-                        ) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-            }
-            return false;
-        };
-    }
-
-    private static Class[] parameterTypes(Member member) {
-        return member != null
-            ? member.getClass() == Method.class
-                ? ((Method) member).getParameterTypes()
-                : member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null
-            : null;
+        return new ExecutablePolicy(policyMetadata.id(), policy, headMethod, streamMethod);
     }
 }

@@ -19,7 +19,6 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.policy.api.PolicyResult;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,13 +51,7 @@ public class DirectPolicyChainTest {
 
         directPolicyChain = new DirectPolicyChain(policyResult, executionContext);
         directPolicyChain.handler(resultHandler);
-        directPolicyChain.errorHandler(
-            new Handler<ProcessorFailure>() {
-                @Override
-                public void handle(ProcessorFailure failure) {}
-            }
-        );
+        directPolicyChain.errorHandler(failure -> {});
         directPolicyChain.doNext(Mockito.mock(Request.class), Mockito.mock(Response.class));
-        //Mockito.verify(resultHandler, Mockito.times(1)).handle(executionContext);
     }
 }

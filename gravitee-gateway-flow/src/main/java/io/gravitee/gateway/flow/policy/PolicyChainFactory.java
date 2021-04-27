@@ -22,27 +22,31 @@ import io.gravitee.gateway.policy.NoOpPolicyChain;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
+import io.gravitee.gateway.policy.impl.ReversedPolicyChain;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 
 /**
+ * A factory of {@link io.gravitee.policy.api.PolicyChain}.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PolicyChainFactory {
 
-    @Inject
-    private PolicyManager policyManager;
+    private final PolicyManager policyManager;
+
+    public PolicyChainFactory(final PolicyManager policyManager) {
+        this.policyManager = policyManager;
+    }
 
     public StreamableProcessor<ExecutionContext, Buffer> create(
-        List<PolicyResolver.Policy> resolvedPolicies,
-        StreamType streamType,
-        ExecutionContext context
+        final List<PolicyResolver.Policy> resolvedPolicies,
+        final StreamType streamType,
+        final ExecutionContext context
     ) {
         return create(
             resolvedPolicies,
@@ -50,8 +54,8 @@ public class PolicyChainFactory {
             context,
             policies ->
                 streamType == StreamType.ON_REQUEST
-                    ? RequestPolicyChain.create(policies, context)
-                    : ResponsePolicyChain.create(policies, context)
+                    ? OrderedPolicyChain.create(policies, context)
+                    : ReversedPolicyChain.create(policies, context)
         );
     }
 

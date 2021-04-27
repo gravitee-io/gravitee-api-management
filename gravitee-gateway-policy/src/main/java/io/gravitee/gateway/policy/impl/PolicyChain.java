@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-import com.google.common.base.Throwables;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -25,12 +24,10 @@ import io.gravitee.gateway.api.stream.BufferedReadWriteStream;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.Policy;
-import io.gravitee.gateway.policy.PolicyChainException;
 import io.gravitee.gateway.policy.impl.processor.PolicyChainProcessorFailure;
 import io.gravitee.policy.api.PolicyResult;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,10 +50,7 @@ public abstract class PolicyChain
     private final Iterator<Policy> policyIterator;
     protected final ExecutionContext executionContext;
 
-    protected PolicyChain(List<Policy> policies, final ExecutionContext executionContext) {
-        Objects.requireNonNull(policies, "Policies must not be null");
-        Objects.requireNonNull(executionContext, "ExecutionContext must not be null");
-
+    protected PolicyChain(final List<Policy> policies, final ExecutionContext executionContext) {
         this.policies = policies;
         this.executionContext = executionContext;
 
@@ -67,16 +61,15 @@ public abstract class PolicyChain
     public void doNext(final Request request, final Response response) {
         if (policyIterator.hasNext()) {
             Policy policy = policyIterator.next();
+
             try {
                 if (policy.isRunnable()) {
-                    execute(policy, this, executionContext.request(), executionContext.response(), executionContext);
+                    policy.execute(this, executionContext);
                 } else {
+                    // Skip and move to the next policy in case of a streamable policy.
                     doNext(executionContext.request(), executionContext.response());
                 }
             } catch (Exception ex) {
-                request
-                    .metrics()
-                    .setMessage("An error occurs in policy[" + policy.id() + "] error[" + Throwables.getStackTraceAsString(ex) + "]");
                 if (errorHandler != null) {
                     errorHandler.handle(
                         new PolicyChainProcessorFailure(PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, ex.getMessage()))
@@ -126,8 +119,6 @@ public abstract class PolicyChain
         // Nothing to do here, we are never exiting from policy chain without a processor failure.
         return this;
     }
-
-    protected abstract void execute(Policy policy, Object... args) throws PolicyChainException;
 
     protected abstract Iterator<Policy> iterator();
 }

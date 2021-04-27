@@ -34,7 +34,7 @@ public final class LoggingUtils {
 
     public static int getMaxSizeLogMessage(ExecutionContext executionContext) {
         try {
-            return (int) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message");
+            return (int) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging");
         } catch (Exception ex) {
             return -1;
         }

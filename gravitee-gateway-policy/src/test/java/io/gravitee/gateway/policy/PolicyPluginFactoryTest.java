@@ -15,21 +15,38 @@
  */
 package io.gravitee.gateway.policy;
 
+import static org.mockito.Mockito.mock;
+
+import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.policy.api.PolicyConfiguration;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyPolicyConfiguration implements PolicyConfiguration {
+public class PolicyPluginFactoryTest {
 
-    private int value;
+    private PolicyPluginFactory policyFactory;
 
-    public int getValue() {
-        return value;
+    @Before
+    public void setUp() {
+        policyFactory = new PolicyPluginFactoryImpl();
     }
 
-    public void setValue(int value) {
-        this.value = value;
+    @Test
+    public void createPolicyWithConfigurationAndWithoutConfigurationData() {
+        Object policy = policyFactory.create(DummyPolicy.class, mock(PolicyConfiguration.class));
+
+        Assert.assertNotNull(policy);
+    }
+
+    @Test
+    public void createPolicyWithoutConfigurationAndWithoutConfigurationData() {
+        Object policy = policyFactory.create(DummyPolicy.class, null);
+
+        Assert.assertNotNull(policy);
     }
 }

@@ -15,15 +15,14 @@
  */
 package io.gravitee.gateway.policy;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.reflections.ReflectionUtils.withAnnotation;
 import static org.reflections.ReflectionUtils.withModifier;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
-import io.gravitee.gateway.policy.impl.PolicyImpl;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
@@ -31,127 +30,87 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Set;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import org.reflections.ReflectionUtils;
 
 /**
- * @author David BRASSELY (brasseld at gmail.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
  */
 public class PolicyTest {
 
-    private PolicyFactory policyFactory = new PolicyFactoryImpl();
+    @Mock
+    private PolicyPluginFactory policyPluginFactory;
+
+    private PolicyFactory policyFactory;
+
+    @Mock
+    private PolicyChain policyChain;
+
+    @Mock
+    private Request request;
+
+    @Mock
+    private Response response;
+
+    @Mock
+    private ExecutionContext context;
 
     @Before
     public void setUp() {
-        policyFactory = spy(policyFactory);
+        MockitoAnnotations.initMocks(this);
+        policyFactory = spy(new PolicyFactoryImpl(policyPluginFactory));
+
+        when(context.request()).thenReturn(request);
+        when(context.response()).thenReturn(response);
     }
 
     @Test
     public void onRequest() throws Exception {
-        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
-        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
-
-        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
+        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
+        when(policyMetadata.method(OnRequest.class)).thenReturn(onRequestMethod);
 
-        when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
+        DummyPolicy dummyPolicy = mock(DummyPolicy.class);
+        when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
-        policy.onRequest();
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_REQUEST, policyMetadata, null));
 
-        verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
-        verify(policyInst, never()).onResponse(any(), any(), any());
+        policy.execute(policyChain, context);
+
+        Assert.assertTrue(policy.isRunnable());
+        Assert.assertFalse(policy.isStreamable());
+        verify(dummyPolicy, atLeastOnce()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, never()).onResponse(request, response, policyChain);
+        verify(policy, atLeastOnce()).execute(policyChain, context);
     }
 
     @Test
     public void onResponse() throws Exception {
-        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
-        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
-
-        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
+        PolicyMetadata policyMetadata = mock(PolicyMetadata.class);
+        when(policyMetadata.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
+        when(policyMetadata.method(OnResponse.class)).thenReturn(onResponseMethod);
 
-        when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
+        DummyPolicy dummyPolicy = mock(DummyPolicy.class);
+        when(policyPluginFactory.create(DummyPolicy.class, null)).thenReturn(dummyPolicy);
 
-        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
-        policy.onResponse();
+        io.gravitee.gateway.policy.Policy policy = Mockito.spy(policyFactory.create(StreamType.ON_RESPONSE, policyMetadata, null));
 
-        verify(policyInst, never()).onRequest(any(), any(), any());
-        verify(policyInst, atLeastOnce()).onResponse(any(), any(), any());
-    }
+        policy.execute(policyChain, context);
 
-    @Test
-    public void onRequest_emptyParameters() throws Exception {
-        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
-        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
-
-        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
-        Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
-
-        when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
-
-        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
-        policy.onRequest();
-
-        verify(policyInst, atLeastOnce()).onRequest(any(), any(), any());
-    }
-
-    @Test
-    public void onResponse_emptyParameters() throws Exception {
-        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
-        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
-
-        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
-        Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
-
-        when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
-
-        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
-        policy.onResponse();
-
-        verify(policyInst, atLeastOnce()).onResponse(any(), any(), any());
-    }
-
-    @Test
-    public void onRequest_mockParameters() throws Exception {
-        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
-        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
-
-        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
-        Method onRequestMethod = resolvePolicyMethod(DummyPolicy.class, OnRequest.class);
-
-        when(policyDefinition.method(OnRequest.class)).thenReturn(onRequestMethod);
-
-        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
-        Request mockRequest = mock(Request.class);
-        Response mockResponse = mock(Response.class);
-
-        policy.onRequest(mockRequest, mockResponse);
-
-        verify(policyInst, atLeastOnce()).onRequest(nullable(PolicyChain.class), eq(mockRequest), eq(mockResponse));
-    }
-
-    @Test
-    public void onResponse_mockParameters() throws Exception {
-        PolicyMetadata policyDefinition = mock(PolicyMetadata.class);
-        when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
-
-        DummyPolicy policyInst = Mockito.spy((DummyPolicy) policyFactory.create(policyDefinition, null));
-        Method onResponseMethod = resolvePolicyMethod(DummyPolicy.class, OnResponse.class);
-
-        when(policyDefinition.method(OnResponse.class)).thenReturn(onResponseMethod);
-
-        Policy policy = PolicyImpl.target(policyInst).definition(policyDefinition).build();
-
-        Request mockRequest = mock(Request.class);
-        Response mockResponse = mock(Response.class);
-
-        policy.onResponse(mockRequest, mockResponse);
-
-        verify(policyInst, atLeastOnce()).onResponse(eq(mockRequest), eq(mockResponse), nullable(PolicyChain.class));
+        Assert.assertTrue(policy.isRunnable());
+        Assert.assertFalse(policy.isStreamable());
+        verify(dummyPolicy, never()).onRequest(policyChain, request, response);
+        verify(dummyPolicy, atLeastOnce()).onResponse(request, response, policyChain);
+        verify(policy, atLeastOnce()).execute(policyChain, context);
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {

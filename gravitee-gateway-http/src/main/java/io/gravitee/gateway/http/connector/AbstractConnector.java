@@ -38,6 +38,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.*;
+import io.vertx.core.tracing.TracingPolicy;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -175,9 +176,9 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
             );
 
             if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
-                return uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString();
+                return uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString;
             } else {
-                return uri + URI_QUERY_DELIMITER_CHAR + parametersAsString.toString();
+                return uri + URI_QUERY_DELIMITER_CHAR + parametersAsString;
             }
         } else {
             return uri;
@@ -187,6 +188,7 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
     protected HttpClientOptions getOptions() throws EndpointException {
         HttpClientOptions options = new HttpClientOptions();
 
+        options.setTracingPolicy(TracingPolicy.ALWAYS);
         options.setPipelining(endpoint.getHttpClientOptions().isPipelining());
         options.setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive());
         options.setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000));

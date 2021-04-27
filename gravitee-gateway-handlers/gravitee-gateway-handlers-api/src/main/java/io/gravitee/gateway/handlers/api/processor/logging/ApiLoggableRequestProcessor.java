@@ -16,9 +16,6 @@
 package io.gravitee.gateway.handlers.api.processor.logging;
 
 import io.gravitee.definition.model.Logging;
-import io.gravitee.definition.model.LoggingContent;
-import io.gravitee.definition.model.LoggingMode;
-import io.gravitee.definition.model.LoggingScope;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.logging.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
@@ -30,29 +27,28 @@ import io.gravitee.gateway.core.logging.processor.LoggableRequestProcessor;
  */
 public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
 
-    private final LoggingMode mode;
-    private final LoggingContent content;
-    private final LoggingScope scope;
-    private int maxSizeLogMessage;
-    private String excludedResponseTypes;
+    private final LoggingContext loggingContext;
 
     public ApiLoggableRequestProcessor(Logging logging) {
         super(new ExpressionLanguageBasedConditionEvaluator(logging.getCondition()));
-        this.mode = logging.getMode();
-        this.content = logging.getContent();
-        this.scope = logging.getScope();
+        this.loggingContext = new LoggingContext(logging);
     }
 
     @Override
     protected boolean evaluate(ExecutionContext context) throws Exception {
         boolean evaluate = super.evaluate(context);
         if (evaluate) {
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.client", mode.isClientMode());
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy", mode.isProxyMode());
+            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging", loggingContext);
 
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", maxSizeLogMessage);
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types", excludedResponseTypes);
+            //TODO: Remove all those attributes and replace them with a single LoggingContext which is managing
+            // all the logging states.
+            // context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.client", mode.isClientMode());
+            // context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy", mode.isProxyMode());
 
+            // context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message", maxSizeLogMessage);
+            // context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types", excludedResponseTypes);
+
+            /*
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.request.headers", scope.isRequest() && content.isHeaders());
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.request.payloads", scope.isRequest() && content.isPayloads());
 
@@ -76,20 +72,19 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
                 ExecutionContext.ATTR_PREFIX + "logging.proxy.response.payloads",
                 mode.isProxyMode() && scope.isResponse() && content.isPayloads()
             );
+             */
 
-            return mode.isClientMode();
+            return loggingContext.clientMode();
         }
 
         return false;
     }
 
     public void setMaxSizeLogMessage(int maxSizeLogMessage) {
-        // log max size limit is in MB format
-        // -1 means no limit
-        this.maxSizeLogMessage = (maxSizeLogMessage <= -1) ? -1 : maxSizeLogMessage * (1024 * 1024);
+        this.loggingContext.setMaxSizeLogMessage(maxSizeLogMessage);
     }
 
     public void setExcludedResponseTypes(String excludedResponseTypes) {
-        this.excludedResponseTypes = excludedResponseTypes;
+        this.loggingContext.setExcludedResponseTypes(excludedResponseTypes);
     }
 }

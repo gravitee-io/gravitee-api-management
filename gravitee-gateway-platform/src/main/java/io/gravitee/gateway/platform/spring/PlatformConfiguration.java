@@ -49,8 +49,8 @@ public class PlatformConfiguration {
     }
 
     @Bean
-    public PolicyChainFactory policyChainFactory() {
-        return new PolicyChainFactory();
+    public PolicyChainFactory policyChainFactory(PlatformPolicyManager platformPolicyManager) {
+        return new PolicyChainFactory(platformPolicyManager);
     }
 
     @Bean
