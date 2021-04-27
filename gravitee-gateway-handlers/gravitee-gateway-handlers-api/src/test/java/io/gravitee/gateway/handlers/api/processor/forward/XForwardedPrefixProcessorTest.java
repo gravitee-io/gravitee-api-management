@@ -13,3 +13,78 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.gateway.handlers.api.processor.forward;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
+
+import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.context.MutableExecutionContext;
+import io.gravitee.gateway.api.context.SimpleExecutionContext;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class XForwardedPrefixProcessorTest {
+
+    public static final String CONTEXT_PATH = "/context_path";
+
+    private MutableExecutionContext context;
+
+    @Mock
+    private Request request;
+
+    @Mock
+    private Response response;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+        context = new SimpleExecutionContext(request, response);
+        HttpHeaders headers = new HttpHeaders();
+        Mockito.when(request.headers()).thenReturn(headers);
+    }
+
+    @Test
+    public void testNoXForwardedPrefixInHeader() {
+        when(request.contextPath()).thenReturn(CONTEXT_PATH);
+
+        new XForwardedPrefixProcessor()
+            .handler(
+                context -> {
+                    List<String> xForwardedPrefixList = context.request().headers().get(HttpHeaders.X_FORWARDED_PREFIX);
+                    assertEquals(xForwardedPrefixList.size(), 1);
+                    assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
+                }
+            )
+            .handle(context);
+    }
+
+    @Test
+    public void testXForwardedPrefixInHeader() {
+        when(request.contextPath()).thenReturn(CONTEXT_PATH);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.X_FORWARDED_PREFIX, "randomPrefix");
+        when(request.headers()).thenReturn(headers);
+
+        new XForwardedPrefixProcessor()
+            .handler(
+                context -> {
+                    List<String> xForwardedPrefixList = context.request().headers().get(HttpHeaders.X_FORWARDED_PREFIX);
+                    assertEquals(xForwardedPrefixList.size(), 1);
+                    assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
+                }
+            )
+            .handle(context);
+    }
+}

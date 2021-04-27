@@ -59,27 +59,38 @@ public class EndpointInvoker implements Invoker {
                     proxyRequestBuilder -> proxyRequestBuilder.method(getHttpMethod(context))
                 );
 
-                final ProxyConnection proxyConnection = LoggableProxyConnectionDecorator.decorate(
-                    endpoint.connector().request(proxyRequest),
-                    proxyRequest,
-                    context
-                );
+                endpoint
+                    .connector()
+                    .request(
+                        proxyRequest,
+                        proxyConnection -> {
+                            final ProxyConnection decoratedProxyConnection = LoggableProxyConnectionDecorator.decorate(
+                                proxyConnection,
+                                proxyRequest,
+                                context
+                            );
 
-                connectionHandler.handle(proxyConnection);
+                            connectionHandler.handle(decoratedProxyConnection);
 
-                // Plug underlying stream to connection stream
-                stream
-                    .bodyHandler(
-                        buffer -> {
-                            proxyConnection.write(buffer);
+                            // Plug underlying stream to connection stream
+                            stream
+                                .bodyHandler(
+                                    buffer -> {
+                                        decoratedProxyConnection.write(buffer);
 
-                            if (proxyConnection.writeQueueFull()) {
-                                context.request().pause();
-                                proxyConnection.drainHandler(aVoid -> context.request().resume());
-                            }
+                                        if (decoratedProxyConnection.writeQueueFull()) {
+                                            context.request().pause();
+                                            decoratedProxyConnection.drainHandler(aVoid -> context.request().resume());
+                                        }
+                                    }
+                                )
+                                .endHandler(aVoid -> decoratedProxyConnection.end());
+
+                            // Inbound request could only be resume once we succeed to connect to the underlying backend
+                            // otherwise, the endHandler will be called first (seems to be a breaking change since Vert.x 4.x)
+                            context.request().resume();
                         }
-                    )
-                    .endHandler(aVoid -> proxyConnection.end());
+                    );
             } catch (Exception ex) {
                 context.request().metrics().setMessage(getStackTraceAsString(ex));
 
@@ -89,9 +100,6 @@ public class EndpointInvoker implements Invoker {
                 statusOnlyConnection.sendResponse();
             }
         }
-
-        // Resume the incoming request to handle content and end
-        context.request().resume();
     }
 
     private HttpMethod getHttpMethod(ExecutionContext context) {

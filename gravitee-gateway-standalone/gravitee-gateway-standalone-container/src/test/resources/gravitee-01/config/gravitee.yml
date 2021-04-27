@@ -1,6 +1,8 @@
 
 http:
   instances: 0
+  websocket:
+    enabled: true
 
 plugins:
     path: ${gravitee.home}/plugins

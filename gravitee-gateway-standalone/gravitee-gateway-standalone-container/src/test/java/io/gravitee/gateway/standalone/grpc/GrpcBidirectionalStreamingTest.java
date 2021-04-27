@@ -22,11 +22,12 @@ import io.gravitee.gateway.standalone.AbstractGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.grpc.ManagedChannel;
+import io.grpc.stub.ClientCallStreamObserver;
+import io.grpc.stub.ClientResponseObserver;
+import io.grpc.stub.StreamObserver;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
-import io.vertx.grpc.GrpcBidiExchange;
 import io.vertx.grpc.VertxChannelBuilder;
 import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.VertxServerBuilder;
@@ -44,34 +45,37 @@ import org.junit.rules.TestRule;
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/grpc/streaming-greeter.json")
-public class GrpcStreamingGreeterTest extends AbstractGatewayTest {
+public class GrpcBidirectionalStreamingTest extends AbstractGatewayTest {
 
     @Rule
     public final TestRule chain = RuleChain.outerRule(new ApiDeployer(this));
 
     @Test
     public void simple_grpc_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(true));
+        Vertx vertx = Vertx.vertx();
 
         // Prepare gRPC Server
-        StreamingGreeterGrpc.StreamingGreeterVertxImplBase service = new StreamingGreeterGrpc.StreamingGreeterVertxImplBase() {
+        StreamingGreeterGrpc.StreamingGreeterImplBase service = new StreamingGreeterGrpc.StreamingGreeterImplBase() {
             private int counter = 3;
 
             @Override
-            public void sayHelloStreaming(
-                GrpcBidiExchange<io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest, io.gravitee.gateway.grpc.manualflowcontrol.HelloReply> exchange
-            ) {
-                exchange
-                    .handler(
-                        event -> {
-                            exchange.write(HelloReply.newBuilder().setMessage("Hello " + event.getName()).build());
+            public StreamObserver<HelloRequest> sayHelloStreaming(StreamObserver<HelloReply> responseObserver) {
+                return new StreamObserver<>() {
+                    @Override
+                    public void onNext(HelloRequest helloRequest) {
+                        responseObserver.onNext(HelloReply.newBuilder().setMessage("Hello " + helloRequest.getName()).build());
 
-                            if (--counter == 0) {
-                                exchange.end();
-                            }
+                        if (--counter == 0) {
+                            responseObserver.onCompleted();
                         }
-                    )
-                    .endHandler(event -> {});
+                    }
+
+                    @Override
+                    public void onError(Throwable throwable) {}
+
+                    @Override
+                    public void onCompleted() {}
+                };
             }
         };
 
@@ -81,43 +85,52 @@ public class GrpcStreamingGreeterTest extends AbstractGatewayTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         // Prepare gRPC Client
-        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext(true).build();
+        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext().build();
 
         // Start is asynchronous
         rpcServer.start(
-            new Handler<AsyncResult<Void>>() {
+            new Handler<>() {
                 @Override
                 public void handle(AsyncResult<Void> event) {
                     // Get a stub to use for interacting with the remote service
-                    StreamingGreeterGrpc.StreamingGreeterVertxStub stub = StreamingGreeterGrpc.newVertxStub(channel);
+                    StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
                     // Call the remote service
+
                     stub.sayHelloStreaming(
-                        new Handler<GrpcBidiExchange<HelloReply, io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest>>() {
+                        new ClientResponseObserver<HelloRequest, HelloReply>() {
                             private int counter = 3;
+                            private long timerID;
+                            private ClientCallStreamObserver<HelloRequest> clientCallStreamObserver;
 
                             @Override
-                            public void handle(
-                                GrpcBidiExchange<HelloReply, io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest> event
-                            ) {
+                            public void beforeStart(ClientCallStreamObserver<HelloRequest> clientCallStreamObserver) {
+                                this.clientCallStreamObserver = clientCallStreamObserver;
+
                                 // Adding a latency to simulate multi calls to grpc service
-                                long id = vertx.setPeriodic(
-                                    1000,
-                                    periodic -> event.write(HelloRequest.newBuilder().setName("David").build())
-                                );
+                                timerID =
+                                    vertx.setPeriodic(
+                                        1000,
+                                        periodic -> clientCallStreamObserver.onNext(HelloRequest.newBuilder().setName("David").build())
+                                    );
+                            }
 
-                                event
-                                    .handler(
-                                        reply -> {
-                                            counter--;
+                            @Override
+                            public void onNext(HelloReply helloReply) {
+                                counter--;
 
-                                            if (counter == 0) {
-                                                vertx.cancelTimer(id);
-                                                event.end();
-                                            }
-                                        }
-                                    )
-                                    .endHandler(event1 -> latch.countDown());
+                                if (counter == 0) {
+                                    vertx.cancelTimer(timerID);
+                                    clientCallStreamObserver.onCompleted();
+                                }
+                            }
+
+                            @Override
+                            public void onError(Throwable throwable) {}
+
+                            @Override
+                            public void onCompleted() {
+                                latch.countDown();
                             }
                         }
                     );

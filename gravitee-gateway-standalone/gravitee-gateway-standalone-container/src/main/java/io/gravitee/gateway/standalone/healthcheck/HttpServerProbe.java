@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.standalone.healthcheck;
 
-import io.gravitee.gateway.standalone.vertx.VertxCompletableFuture;
 import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -48,8 +48,8 @@ public class HttpServerProbe implements Probe {
     }
 
     @Override
-    public CompletableFuture<Result> check() {
-        VertxCompletableFuture<Result> result = new VertxCompletableFuture<>(vertx);
+    public CompletionStage<Result> check() {
+        Promise<Result> promise = Promise.promise();
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
         NetClient client = vertx.createNetClient(options);
@@ -59,15 +59,15 @@ public class HttpServerProbe implements Probe {
             host,
             res -> {
                 if (res.succeeded()) {
-                    result.complete(Result.healthy());
+                    promise.complete(Result.healthy());
                 } else {
-                    result.complete(Result.unhealthy(res.cause()));
+                    promise.complete(Result.unhealthy(res.cause()));
                 }
 
                 client.close();
             }
         );
 
-        return result;
+        return promise.future().toCompletionStage();
     }
 }

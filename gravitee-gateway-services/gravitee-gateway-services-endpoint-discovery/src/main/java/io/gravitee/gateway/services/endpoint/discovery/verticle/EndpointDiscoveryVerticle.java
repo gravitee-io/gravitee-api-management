@@ -32,7 +32,7 @@ import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryF
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,8 +58,9 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
     private final Map<Api, List<ServiceDiscovery>> apiServiceDiscoveries = new HashMap<>();
 
     @Override
-    public void start(final Future<Void> startedResult) {
+    public void start(final Promise<Void> startPromise) {
         eventManager.subscribeForEvents(this, ReactorEvent.class);
+        startPromise.complete();
     }
 
     @Override

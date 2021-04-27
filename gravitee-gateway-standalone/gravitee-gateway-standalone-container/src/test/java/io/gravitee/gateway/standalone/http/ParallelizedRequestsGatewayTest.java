@@ -21,10 +21,13 @@ import static org.junit.Assert.assertEquals;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.http.*;
 import java.util.concurrent.*;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -43,23 +46,41 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
     public void shouldProcessParallelRequests() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        Vertx vertx = Vertx.vertx();
+        Vertx vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(true));
 
         HttpClient client = vertx.createHttpClient();
         CountDownLatch latch = new CountDownLatch(NUMBER_OF_CLIENTS * NUMBER_OF_REQUESTS);
 
         Runnable calls = () -> {
             for (int i = 0; i < NUMBER_OF_REQUESTS; i++) {
-                client
-                    .requestAbs(
-                        HttpMethod.GET,
-                        "http://localhost:8082/test/my_team",
-                        response -> {
-                            assertEquals(HttpStatusCode.OK_200, response.statusCode());
+                client.request(
+                    new RequestOptions().setAbsoluteURI("http://localhost:8082/test/my_team").setMethod(HttpMethod.GET),
+                    new Handler<AsyncResult<HttpClientRequest>>() {
+                        @Override
+                        public void handle(AsyncResult<HttpClientRequest> httpClientRequestEvt) {
+                            if (httpClientRequestEvt.succeeded()) {
+                                httpClientRequestEvt
+                                    .result()
+                                    .send(
+                                        new Handler<AsyncResult<HttpClientResponse>>() {
+                                            @Override
+                                            public void handle(AsyncResult<HttpClientResponse> httpClientResponseEvt) {
+                                                if (httpClientResponseEvt.succeeded()) {
+                                                    assertEquals(HttpStatusCode.OK_200, httpClientResponseEvt.result().statusCode());
+                                                } else {
+                                                    Assert.fail();
+                                                }
+                                            }
+                                        }
+                                    );
+                            } else {
+                                Assert.fail();
+                            }
+
                             latch.countDown();
                         }
-                    )
-                    .end();
+                    }
+                );
             }
         };
 

@@ -1,7 +1,6 @@
 {
   "id": "api-test",
   "name": "api-test",
-
   "proxy": {
     "context_path": "/test",
     "endpoints": [
@@ -46,7 +45,6 @@
     ],
     "strip_context_path": false
   },
-
   "paths": {
     "/*": [
     ]

@@ -60,7 +60,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         );
 
         Request request = Request.Post("http://localhost:8082/test/my_team").bodyString(mockContent, ContentType.APPLICATION_JSON);
-        HttpResponse response = execute(request).returnResponse();
+        HttpResponse response = request.execute().returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

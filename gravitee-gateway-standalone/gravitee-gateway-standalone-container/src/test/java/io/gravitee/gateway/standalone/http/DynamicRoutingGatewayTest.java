@@ -48,7 +48,10 @@ public class DynamicRoutingGatewayTest extends AbstractWiremockGatewayTest {
         String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
         String dynamicTarget = exchangePort(initialTarget, wireMockRule.port());
 
-        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team").addHeader("X-Dynamic-Routing-URI", dynamicTarget))
+        HttpResponse response = Request
+            .Get("http://localhost:8082/test/my_team")
+            .addHeader("X-Dynamic-Routing-URI", dynamicTarget)
+            .execute()
             .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());

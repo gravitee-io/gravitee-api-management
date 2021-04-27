@@ -1,16 +1,15 @@
 {
-  "id": "unreachable-api",
-  "name": "My unreachable API",
-
+  "id": "api-test",
+  "name": "api-test",
   "proxy": {
-    "context_path": "/unreachable",
+    "context_path": "/test",
     "endpoints": [
       {
         "name": "default",
-        "target": "http://10.255.255.255:8080/team",
+        "target": "http://localhost:16664/team",
         "http": {
           "connectTimeout": 3000,
-          "readTimeout": 3000
+          "readTimeout": 60000
         }
       }
     ],

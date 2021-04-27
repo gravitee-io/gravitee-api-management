@@ -32,8 +32,8 @@ import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.net.*;
 import java.net.URI;
 
@@ -57,19 +57,15 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
-    protected HttpClientRequest createHttpClientRequest(
-        final HttpClient httpClient,
-        URI request,
-        io.gravitee.definition.model.services.healthcheck.Step step
-    ) throws Exception {
-        HttpClientRequest httpClientRequest = super.createHttpClientRequest(httpClient, request, step);
+    protected RequestOptions prepareHttpClientRequest(URI request, io.gravitee.definition.model.services.healthcheck.Step step) {
+        RequestOptions options = super.prepareHttpClientRequest(request, step);
 
         // Set timeout on request
         if (rule.endpoint().getHttpClientOptions() != null) {
-            httpClientRequest.setTimeout(rule.endpoint().getHttpClientOptions().getReadTimeout());
+            options.setTimeout(rule.endpoint().getHttpClientOptions().getReadTimeout());
         }
 
-        return httpClientRequest;
+        return options;
     }
 
     @Override

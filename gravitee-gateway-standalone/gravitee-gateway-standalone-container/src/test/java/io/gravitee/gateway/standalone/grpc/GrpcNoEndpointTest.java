@@ -16,16 +16,15 @@
 package io.gravitee.gateway.standalone.grpc;
 
 import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
-import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
-import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
+import io.gravitee.gateway.grpc.helloworld.HelloReply;
 import io.gravitee.gateway.standalone.AbstractGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import io.vertx.grpc.VertxChannelBuilder;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -50,16 +49,16 @@ public class GrpcNoEndpointTest extends AbstractGatewayTest {
     @Test
     @Ignore("Vertx-grpc doesn't work with vertx 3.9.7, to re-enable with vertx 4 (see https://github.com/vert-x3/vertx-grpc/issues/90)")
     public void simple_grpc_request() throws InterruptedException {
-        Vertx vertx = Vertx.vertx(new VertxOptions().setPreferNativeTransport(true));
+        Vertx vertx = Vertx.vertx();
 
         // Wait for result
         CountDownLatch latch = new CountDownLatch(1);
 
         // Prepare gRPC Client
-        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext(true).build();
+        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext().build();
 
         // Get a stub to use for interacting with the remote service
-        GreeterGrpc.GreeterVertxStub stub = GreeterGrpc.newVertxStub(channel);
+        GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
 
         io.gravitee.gateway.grpc.helloworld.HelloRequest request = io.gravitee.gateway.grpc.helloworld.HelloRequest
             .newBuilder()
@@ -69,12 +68,23 @@ public class GrpcNoEndpointTest extends AbstractGatewayTest {
         // Call the remote service
         stub.sayHello(
             request,
-            ar -> {
-                Assert.assertFalse(ar.succeeded());
-                Assert.assertEquals(StatusRuntimeException.class, ar.cause().getClass());
-                Assert.assertEquals(Status.Code.UNAVAILABLE, ((StatusRuntimeException) ar.cause()).getStatus().getCode());
+            new StreamObserver<>() {
+                @Override
+                public void onNext(HelloReply helloReply) {
+                    Assert.fail();
+                }
 
-                latch.countDown();
+                @Override
+                public void onError(Throwable throwable) {
+                    Assert.assertNotNull(throwable);
+                    Assert.assertEquals(StatusRuntimeException.class, throwable.getClass());
+                    Assert.assertEquals(Status.Code.UNAVAILABLE, ((StatusRuntimeException) throwable).getStatus().getCode());
+
+                    latch.countDown();
+                }
+
+                @Override
+                public void onCompleted() {}
             }
         );
 

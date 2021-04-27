@@ -28,7 +28,7 @@ import io.vertx.core.http.HttpServerRequest;
  */
 public class VertxWebSocketServerRequest extends VertxHttpServerRequest {
 
-    private VertxWebSocket vertxWebSocket;
+    private final VertxWebSocket vertxWebSocket;
 
     VertxWebSocketServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
         super(httpServerRequest, idGenerator);

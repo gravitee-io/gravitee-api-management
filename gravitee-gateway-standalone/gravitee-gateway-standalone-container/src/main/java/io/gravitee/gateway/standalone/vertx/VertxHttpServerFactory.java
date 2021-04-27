@@ -53,9 +53,6 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         options.setPort(httpServerConfiguration.getPort());
         options.setHost(httpServerConfiguration.getHost());
 
-        // Netty pool buffers must be enabled by default
-        options.setUsePooledBuffers(true);
-
         if (httpServerConfiguration.isSecured()) {
             options.setSsl(httpServerConfiguration.isSecured());
             options.setUseAlpn(httpServerConfiguration.isAlpn());

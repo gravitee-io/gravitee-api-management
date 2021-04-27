@@ -17,13 +17,14 @@ package io.gravitee.gateway.services.sync.subscriptions.handler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.services.sync.subscriptions.task.SubscriptionRefresher;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,8 +56,9 @@ public class ApiSubscriptionsHandler implements Handler<RoutingContext> {
                 response.setStatusCode(HttpStatusCode.OK_200);
                 response.setChunked(true);
 
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(Json.prettyMapper.writeValueAsString(new RefresherStatistics(apiKeyRefresher)));
+                final ObjectMapper objectMapper = DatabindCodec.prettyMapper();
+                objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                response.write(objectMapper.writeValueAsString(new RefresherStatistics(apiKeyRefresher)));
             }
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);

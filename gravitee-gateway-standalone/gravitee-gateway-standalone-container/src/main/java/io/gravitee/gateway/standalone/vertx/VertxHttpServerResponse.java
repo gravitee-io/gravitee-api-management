@@ -35,7 +35,7 @@ public class VertxHttpServerResponse implements Response {
     private final Request serverRequest;
     protected final HttpHeaders headers = new HttpHeaders();
 
-    private HttpHeaders trailers;
+    protected HttpHeaders trailers;
 
     public VertxHttpServerResponse(final VertxHttpServerRequest serverRequest) {
         this.serverRequest = serverRequest;
@@ -127,11 +127,15 @@ public class VertxHttpServerResponse implements Response {
                 writeHeaders();
             }
 
-            if (trailers != null) {
-                trailers.forEach(serverResponse::putTrailer);
-            }
+            writeTrailers();
 
             serverResponse.end();
+        }
+    }
+
+    protected void writeTrailers() {
+        if (trailers != null) {
+            trailers.forEach(serverResponse::putTrailer);
         }
     }
 

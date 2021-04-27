@@ -32,6 +32,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.Date;
 import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +96,9 @@ public class ApiDeployerStatement extends Statement {
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 
         try {
-            apiManager.register(new io.gravitee.gateway.handlers.api.definition.Api(api));
+            final io.gravitee.gateway.handlers.api.definition.Api apiToRegister = new io.gravitee.gateway.handlers.api.definition.Api(api);
+            apiToRegister.setDeployedAt(new Date());
+            apiManager.register(apiToRegister);
             base.evaluate();
         } catch (Exception e) {
             logger.error("An error occurred", e);

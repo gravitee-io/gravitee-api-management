@@ -21,7 +21,7 @@ import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketReactorHandler;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import org.slf4j.Logger;
@@ -63,7 +63,7 @@ public class ReactorVerticle extends AbstractVerticle {
     private String requestFormat;
 
     @Override
-    public void start(Future<Void> startFuture) throws Exception {
+    public void start(Promise<Void> startPromise) throws Exception {
         VertxReactorHandler handler;
 
         final IdGenerator idGenerator;
@@ -89,10 +89,10 @@ public class ReactorVerticle extends AbstractVerticle {
             res -> {
                 if (res.succeeded()) {
                     logger.info("HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort());
-                    startFuture.complete();
+                    startPromise.complete();
                 } else {
                     logger.error("Unable to start HTTP Server", res.cause());
-                    startFuture.fail(res.cause());
+                    startPromise.fail(res.cause());
                 }
             }
         );

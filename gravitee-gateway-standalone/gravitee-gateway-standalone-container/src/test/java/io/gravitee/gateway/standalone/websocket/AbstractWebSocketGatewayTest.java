@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.repository;
+package io.gravitee.gateway.standalone.websocket;
 
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.gateway.standalone.AbstractGatewayTest;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class RepositoryConfiguration {}
+public abstract class AbstractWebSocketGatewayTest extends AbstractGatewayTest {
+    static {
+        System.setProperty("vertx.disableWebsockets", Boolean.FALSE.toString());
+    }
+}
