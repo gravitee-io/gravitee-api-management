@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <form class="page__box form" [formGroup]="addMemberForm" (ngSubmit)="addMember()" *ngIf="!readonly">
+    <form class="page__box form" [formGroup]="addMemberForm" (ngSubmit)="addMember()" *ngIf="!readonly && canSearchUser">
 
       <div class="page__box-title">
         <h3 class="title">{{'application.members.add.title' | translate}}</h3>
@@ -72,7 +72,7 @@
 
     </form>
 
-    <form [formGroup]="transferOwnershipForm" class="page__box form" *ngIf="!readonly">
+    <form [formGroup]="transferOwnershipForm" class="page__box form" *ngIf="!readonly && canSearchUser">
 
       <div class="page__box-title">
         <h3 class="title">{{'application.members.transferOwnership.title' | translate}}</h3>
