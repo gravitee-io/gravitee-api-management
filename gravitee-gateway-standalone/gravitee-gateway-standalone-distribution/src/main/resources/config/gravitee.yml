@@ -262,6 +262,15 @@ services:
 #    unit: MILLISECONDS
 #    storeSystemProperties: true
 
+  tracing:
+    enabled: false
+    type: jaeger
+    jaeger:
+      host: localhost
+      port: 14250
+#      ssl:
+#        enabled: false
+
 #handlers:
 #  request:
 #    # manage traceparent header defined by W3C trace-context specification

@@ -34,11 +34,6 @@ public class NoOpPolicyChain extends PolicyChain {
     }
 
     @Override
-    protected void execute(Policy policy, Object... args) throws PolicyChainException {
-        // Nothing to do
-    }
-
-    @Override
     protected Iterator<Policy> iterator() {
         return Collections.emptyIterator();
     }

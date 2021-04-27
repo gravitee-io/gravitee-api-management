@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
+ * A {@link PolicyResolver} based on the rules from API v1 definitions.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */

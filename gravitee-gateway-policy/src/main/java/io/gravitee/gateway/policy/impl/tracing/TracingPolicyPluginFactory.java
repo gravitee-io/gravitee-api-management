@@ -13,23 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.policy.impl.tracing;
 
+import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyMetadata;
+import io.gravitee.gateway.policy.PolicyPluginFactory;
+import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.policy.api.PolicyConfiguration;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyPolicyConfiguration implements PolicyConfiguration {
+public class TracingPolicyPluginFactory extends PolicyFactoryImpl {
 
-    private int value;
-
-    public int getValue() {
-        return value;
+    public TracingPolicyPluginFactory(PolicyPluginFactory policyPluginFactory) {
+        super(policyPluginFactory);
     }
 
-    public void setValue(int value) {
-        this.value = value;
+    @Override
+    public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
+        Policy policy = super.create(streamType, policyMetadata, policyConfiguration);
+
+        return new TracingPolicy(policy);
     }
 }

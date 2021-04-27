@@ -15,25 +15,14 @@
  */
 package io.gravitee.gateway.policy;
 
+import io.gravitee.policy.api.PolicyConfiguration;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyChainException extends Exception {
+public interface PolicyPluginFactory {
+    <T> T create(Class<T> policyClass, PolicyConfiguration policyConfiguration);
 
-    public PolicyChainException() {
-        super();
-    }
-
-    public PolicyChainException(String message) {
-        super(message);
-    }
-
-    public PolicyChainException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public PolicyChainException(Throwable cause) {
-        super(cause);
-    }
+    void clearCache();
 }

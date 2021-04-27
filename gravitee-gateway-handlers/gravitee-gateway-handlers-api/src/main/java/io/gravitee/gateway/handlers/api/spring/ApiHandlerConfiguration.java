@@ -20,10 +20,12 @@ import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
-import io.gravitee.gateway.policy.PolicyFactory;
-import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
+import io.gravitee.gateway.policy.PolicyPluginFactory;
+import io.gravitee.gateway.policy.impl.PolicyFactoryCreator;
+import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,7 +55,12 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public PolicyFactory policyFactory() {
-        return new PolicyFactoryImpl();
+    public PolicyPluginFactory policyPluginFactory() {
+        return new PolicyPluginFactoryImpl();
+    }
+
+    @Bean
+    public PolicyFactoryCreator policyFactoryFactoryBean(final Environment environment, final PolicyPluginFactory policyPluginFactory) {
+        return new PolicyFactoryCreator(environment, policyPluginFactory);
     }
 }

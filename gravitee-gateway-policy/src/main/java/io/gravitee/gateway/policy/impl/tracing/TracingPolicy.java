@@ -13,41 +13,63 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy;
+package io.gravitee.gateway.policy.impl.tracing;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
+import io.gravitee.tracing.api.Span;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class StreamablePolicy implements Policy {
+public class TracingPolicy implements Policy {
+
+    static final String SPAN_ATTRIBUTE = "policy";
+
+    private final Policy policy;
+
+    public TracingPolicy(final Policy policy) {
+        this.policy = policy;
+    }
 
     @Override
     public String id() {
-        return "streamable-policy";
+        return policy.id();
     }
 
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        chain.doNext(context.request(), context.response());
+        Span span = context.getTracer().span(this.policy.id()).withAttribute(SPAN_ATTRIBUTE, this.policy.id());
+
+        try {
+            // The policy is ending once doNext or failWith are called from the chain
+            this.policy.execute(new TracingPolicyChain(chain, span), context);
+        } catch (Exception ex) {
+            span.reportError(ex).end();
+
+            // Propagate the exception
+            throw ex;
+        }
     }
 
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        return null;
+        ReadWriteStream<Buffer> stream = policy.stream(chain, context);
+        return (stream == null) ? null : new TracingReadWriteStream(context, stream, policy);
     }
 
     @Override
     public boolean isStreamable() {
-        return true;
+        return policy.isStreamable();
     }
 
     @Override
     public boolean isRunnable() {
-        return true;
+        return policy.isRunnable();
     }
 }

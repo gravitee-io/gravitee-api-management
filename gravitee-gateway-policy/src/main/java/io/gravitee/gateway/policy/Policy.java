@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.policy;
 
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.policy.api.PolicyChain;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,15 +27,9 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 public interface Policy {
     String id();
 
-    default void onRequest(Object... args) throws PolicyException {}
+    default void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {}
 
-    default void onResponse(Object... args) throws PolicyException {}
-
-    default ReadWriteStream<Buffer> onRequestContent(Object... args) throws PolicyException {
-        return null;
-    }
-
-    default ReadWriteStream<Buffer> onResponseContent(Object... args) throws PolicyException {
+    default ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
         return null;
     }
 

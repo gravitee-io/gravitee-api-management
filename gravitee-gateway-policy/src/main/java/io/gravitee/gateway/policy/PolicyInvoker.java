@@ -15,21 +15,15 @@
  */
 package io.gravitee.gateway.policy;
 
-import io.gravitee.policy.api.PolicyConfiguration;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.policy.api.PolicyChain;
 
 /**
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyPolicyConfiguration implements PolicyConfiguration {
-
-    private int value;
-
-    public int getValue() {
-        return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
-    }
+@FunctionalInterface
+public interface PolicyInvoker {
+    void invoke(ExecutionContext context, PolicyChain chain, Policy policy) throws Exception;
 }

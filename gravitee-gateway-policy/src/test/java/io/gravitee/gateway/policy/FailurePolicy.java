@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.policy;
 
-import io.gravitee.gateway.api.buffer.Buffer;
-import io.gravitee.gateway.api.stream.ReadWriteStream;
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.policy.api.PolicyChain;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,32 +30,7 @@ public class FailurePolicy implements Policy {
     }
 
     @Override
-    public void onRequest(Object... args) throws PolicyException {
+    public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
         throw new RuntimeException();
-    }
-
-    @Override
-    public void onResponse(Object... args) throws PolicyException {
-        throw new RuntimeException();
-    }
-
-    @Override
-    public ReadWriteStream<Buffer> onRequestContent(Object... args) throws PolicyException {
-        throw new RuntimeException();
-    }
-
-    @Override
-    public ReadWriteStream<Buffer> onResponseContent(Object... args) throws PolicyException {
-        throw new RuntimeException();
-    }
-
-    @Override
-    public boolean isStreamable() {
-        return true;
-    }
-
-    @Override
-    public boolean isRunnable() {
-        return true;
     }
 }

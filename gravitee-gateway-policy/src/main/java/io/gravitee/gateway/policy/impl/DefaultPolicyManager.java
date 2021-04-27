@@ -181,7 +181,7 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
                         policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, globalClassLoader);
                     }
 
-                    logger.debug("Loading policy {} for {}", policy.getName());
+                    logger.debug("Loading policy {}", policy.getName());
 
                     PolicyMetadataBuilder builder = new PolicyMetadataBuilder();
                     builder.setId(policyPlugin.id());
@@ -268,10 +268,7 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
         if (metadata != null && metadata.accept(streamType)) {
             PolicyConfiguration policyConfiguration = policyConfigurationFactory.create(metadata.configuration(), configuration);
 
-            Object policyInst = policyFactory.create(metadata, policyConfiguration);
-
-            logger.debug("Policy {} has been added to the policy chain", metadata.id());
-            return PolicyImpl.target(policyInst).definition(metadata).build();
+            return policyFactory.create(streamType, metadata, policyConfiguration);
         }
 
         return null;

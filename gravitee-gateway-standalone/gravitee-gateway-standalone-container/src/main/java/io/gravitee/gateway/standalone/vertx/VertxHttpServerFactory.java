@@ -23,6 +23,7 @@ import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.core.net.PfxOptions;
+import io.vertx.core.tracing.TracingPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -48,6 +49,8 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
     @Override
     public HttpServer getObject() throws Exception {
         HttpServerOptions options = new HttpServerOptions();
+
+        options.setTracingPolicy(TracingPolicy.ALWAYS);
 
         // Binding port
         options.setPort(httpServerConfiguration.getPort());

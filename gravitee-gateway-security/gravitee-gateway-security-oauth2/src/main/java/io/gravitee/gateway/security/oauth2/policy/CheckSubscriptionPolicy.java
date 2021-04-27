@@ -20,9 +20,8 @@ import static io.gravitee.reporter.api.http.SecurityType.OAUTH2;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.policy.AbstractPolicy;
+import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
@@ -38,7 +37,7 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class CheckSubscriptionPolicy extends AbstractPolicy {
+public class CheckSubscriptionPolicy implements Policy {
 
     static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
         ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
@@ -53,19 +52,24 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
     static final String GATEWAY_OAUTH2_INVALID_CLIENT_KEY = "GATEWAY_OAUTH2_INVALID_CLIENT";
 
     @Override
-    protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext)
-        throws PolicyException {
+    public void execute(PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
         SubscriptionRepository subscriptionRepository = executionContext.getComponent(SubscriptionRepository.class);
 
         // Get plan and client_id from execution context
         String clientId = (String) executionContext.getAttribute(CONTEXT_ATTRIBUTE_CLIENT_ID);
         if (clientId == null || clientId.trim().isEmpty()) {
-            sendError(GATEWAY_OAUTH2_INVALID_CLIENT_KEY, response, policyChain, "invalid_client", "No client_id was supplied");
+            sendError(
+                GATEWAY_OAUTH2_INVALID_CLIENT_KEY,
+                executionContext.response(),
+                policyChain,
+                "invalid_client",
+                "No client_id was supplied"
+            );
             return;
         }
 
-        request.metrics().setSecurityType(OAUTH2);
-        request.metrics().setSecurityToken(clientId);
+        executionContext.request().metrics().setSecurityType(OAUTH2);
+        executionContext.request().metrics().setSecurityToken(clientId);
 
         String api = (String) executionContext.getAttribute(ExecutionContext.ATTR_API);
 
@@ -89,13 +93,16 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                 if (
                     subscription != null &&
                     subscription.getClientId().equals(clientId) &&
-                    (subscription.getEndingAt() == null || subscription.getEndingAt().after(new Date(request.timestamp())))
+                    (
+                        subscription.getEndingAt() == null ||
+                        subscription.getEndingAt().after(new Date(executionContext.request().timestamp()))
+                    )
                 ) {
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                     executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
 
-                    policyChain.doNext(request, response);
+                    policyChain.doNext(executionContext.request(), executionContext.response());
                     return;
                 }
             }

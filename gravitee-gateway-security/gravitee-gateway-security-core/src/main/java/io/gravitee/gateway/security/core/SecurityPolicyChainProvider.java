@@ -20,7 +20,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.*;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.OrderedPolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import java.util.List;
 
@@ -51,7 +51,7 @@ public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
                 );
             }
 
-            return RequestPolicyChain.create(policies, context);
+            return OrderedPolicyChain.create(policies, context);
         }
 
         return new NoOpPolicyChain(context);

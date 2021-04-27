@@ -56,7 +56,8 @@ public class PlatformPolicyManager extends DefaultPolicyManager {
     @Override
     protected void doStop() throws Exception {
         super.doStop();
-        policyFactory.clearCache();
+        // TODO: how /when to clear cache
+        // policyFactory.clearCache();
         if (policyConfigurationFactory instanceof CachedPolicyConfigurationFactory) {
             ((CachedPolicyConfigurationFactory) policyConfigurationFactory).clear();
         }

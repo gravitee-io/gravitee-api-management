@@ -18,11 +18,12 @@ package io.gravitee.gateway.policy;
 import io.gravitee.policy.api.PolicyConfiguration;
 
 /**
+ * A factory to create an instance of {@link Policy} based on its {@link PolicyConfiguration}.
+ * This factory is called during request processing while creating the {@link io.gravitee.policy.api.PolicyChain}
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface PolicyFactory {
-    Object create(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration);
-
-    void clearCache();
+    Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration);
 }

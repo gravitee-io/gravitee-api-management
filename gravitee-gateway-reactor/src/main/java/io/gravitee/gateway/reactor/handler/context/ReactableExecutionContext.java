@@ -24,9 +24,9 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.api.el.EvaluableResponse;
+import io.gravitee.tracing.api.Tracer;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import org.springframework.context.ApplicationContext;
 
@@ -46,10 +46,13 @@ public class ReactableExecutionContext implements MutableExecutionContext {
 
     private TemplateEngine templateEngine;
 
+    private final Tracer tracer;
+
     private final MutableExecutionContext context;
 
-    ReactableExecutionContext(final MutableExecutionContext context, ApplicationContext applicationContext) {
+    ReactableExecutionContext(final MutableExecutionContext context, final Tracer tracer, ApplicationContext applicationContext) {
         this.context = context;
+        this.tracer = tracer;
         this.applicationContext = applicationContext;
 
         setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, context.request().contextPath());
@@ -125,24 +128,12 @@ public class ReactableExecutionContext implements MutableExecutionContext {
         return templateEngine;
     }
 
-    void setProviders(Collection<TemplateVariableProvider> providers) {
-        this.providers = providers;
+    @Override
+    public Tracer getTracer() {
+        return tracer;
     }
 
-    private class AttributeMap extends HashMap<String, Object> {
-
-        /**
-         * In the most general case, the context will not store more than 20 elements in the Map.
-         * Then, the initial capacity must be set to limit size in memory.
-         */
-        AttributeMap() {
-            super(20, 1.0f);
-        }
-
-        @Override
-        public Object get(Object key) {
-            Object value = super.get(key);
-            return (value != null) ? value : super.get(ExecutionContext.ATTR_PREFIX + key);
-        }
+    void setProviders(Collection<TemplateVariableProvider> providers) {
+        this.providers = providers;
     }
 }

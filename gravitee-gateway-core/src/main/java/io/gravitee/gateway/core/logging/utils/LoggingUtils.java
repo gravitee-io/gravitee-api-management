@@ -17,6 +17,7 @@ package io.gravitee.gateway.core.logging.utils;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.core.logging.LoggingContext;
 import java.util.regex.Pattern;
 
 /**
@@ -34,7 +35,7 @@ public final class LoggingUtils {
 
     public static int getMaxSizeLogMessage(ExecutionContext executionContext) {
         try {
-            return (int) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.max.size.log.message");
+            return getLoggingContext(executionContext).getMaxSizeLogMessage();
         } catch (Exception ex) {
             return -1;
         }
@@ -44,9 +45,7 @@ public final class LoggingUtils {
         // init pattern
         if (EXCLUDED_CONTENT_TYPES_PATTERN == null) {
             try {
-                final String responseTypes = (String) executionContext.getAttribute(
-                    ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types"
-                );
+                final String responseTypes = getLoggingContext(executionContext).getExcludedResponseTypes();
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(responseTypes);
             } catch (Exception e) {
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(DEFAULT_EXCLUDED_CONTENT_TYPES);
@@ -57,40 +56,47 @@ public final class LoggingUtils {
     }
 
     public static boolean isRequestHeadersLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.request.headers");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.requestHeaders();
     }
 
     public static boolean isRequestPayloadsLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.request.payloads");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.requestPayload();
     }
 
     public static boolean isResponseHeadersLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.response.headers");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.responseHeaders();
     }
 
     public static boolean isResponsePayloadsLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.response.payloads");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.responsePayload();
     }
 
     public static boolean isProxyRequestHeadersLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.proxy.request.headers");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.proxyRequestHeaders();
     }
 
     public static boolean isProxyRequestPayloadsLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.proxy.request.payloads");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.proxyRequestPayload();
     }
 
     public static boolean isProxyResponseHeadersLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.proxy.response.headers");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.proxyResponseHeaders();
     }
 
     public static boolean isProxyResponsePayloadsLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.proxy.response.payloads");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.proxyResponsePayload();
     }
 
-    private static boolean getAttribute(final ExecutionContext executionContext, final String name) {
-        Object attr = executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + name);
-        return attr != null && ((boolean) attr);
+    private static LoggingContext getLoggingContext(final ExecutionContext executionContext) {
+        return ((LoggingContext) executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE));
     }
 
     public static void appendBuffer(Buffer buffer, Buffer chunk, int maxLength) {
@@ -105,6 +111,7 @@ public final class LoggingUtils {
     }
 
     public static boolean isProxyLoggable(final ExecutionContext executionContext) {
-        return getAttribute(executionContext, "logging.proxy");
+        final LoggingContext context = getLoggingContext(executionContext);
+        return context != null && context.proxyMode();
     }
 }

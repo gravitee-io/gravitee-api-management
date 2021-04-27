@@ -40,7 +40,7 @@ public class ApiPolicyResolver extends RuleBasedPolicyResolver {
         // Has been registered in path parameters processor
         final Path path = (Path) context.getAttribute(API_RESOLVED_PATH);
 
-        // Get the policy according to the resolved path
+        // Get the policies according to the resolved path
         return resolve(context, path.getRules());
     }
 }

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.core.logging.LoggingContext;
 import java.lang.reflect.Field;
 import org.junit.Test;
 
@@ -68,8 +69,10 @@ public class LoggingUtilsTest {
     @Test
     public void shouldNotLogCustom() throws Exception {
         resetStatic();
+        LoggingContext loggingContext = mock(LoggingContext.class);
+        when(loggingContext.getExcludedResponseTypes()).thenReturn("foo/bar");
         ExecutionContext executionContext = mock(ExecutionContext.class);
-        when(executionContext.getAttribute("gravitee.attribute.logging.response.excluded.types")).thenReturn("foo/bar");
+        when(executionContext.getAttribute(LoggingContext.LOGGING_ATTRIBUTE)).thenReturn(loggingContext);
         assertFalse(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
     }
 
