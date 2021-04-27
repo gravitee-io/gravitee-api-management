@@ -19,6 +19,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+import freemarker.template.TemplateException;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -162,7 +163,7 @@ public class EmailNotifierServiceTest {
     }
 
     @Test
-    public void shouldHaveATemplateForApplicationHooksWithFreemarker() {
+    public void shouldHaveATemplateForApplicationHooksWithFreemarker() throws TemplateException {
         GenericNotificationConfig cfg = new GenericNotificationConfig();
         cfg.setConfig("test@mail.com, ${api.primaryOwner.email} ");
         ApiEntity api = new ApiEntity();

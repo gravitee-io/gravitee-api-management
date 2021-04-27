@@ -25,6 +25,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import freemarker.template.TemplateException;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
@@ -486,9 +487,43 @@ public class PageService_CreateTest {
         when(newPage.getLastContributor()).thenReturn(contrib);
         when(newPage.getType()).thenReturn(PageType.MARKDOWN);
         when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
-        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any())).thenReturn(content);
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
+            .thenReturn(content);
         this.pageService.createPage(API_ID, newPage);
 
         verify(pageRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldNotCreateBecausePageContentTemplatingException() throws TechnicalException, TemplateException {
+        setField(pageService, "markdownSanitize", true);
+
+        final String name = "MARKDOWN";
+        final String contrib = "contrib";
+        final String content = "${api.metadata['my_metadata']}";
+
+        when(newPage.getName()).thenReturn(name);
+        when(newPage.getOrder()).thenReturn(1);
+        when(newPage.getContent()).thenReturn(content);
+        when(newPage.getLastContributor()).thenReturn(contrib);
+        when(newPage.getType()).thenReturn(PageType.MARKDOWN);
+        when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
+        when(page1.getId()).thenReturn(PAGE_ID);
+        when(page1.getName()).thenReturn(name);
+        when(page1.getReferenceId()).thenReturn(API_ID);
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.API);
+        when(page1.getType()).thenReturn("MARKDOWN");
+        when(page1.getVisibility()).thenReturn("PUBLIC");
+        when(page1.getLastContributor()).thenReturn(contrib);
+        when(page1.getOrder()).thenReturn(1);
+        when(page1.getContent()).thenReturn(content);
+
+        when(pageRepository.create(any())).thenReturn(page1);
+
+        when(this.notificationTemplateService.resolveInlineTemplateWithParam(anyString(), eq(content), any(), anyBoolean()))
+            .thenThrow(new TemplateProcessingException(new TemplateException(null)));
+        this.pageService.createPage(API_ID, newPage);
+
+        verify(pageRepository).create(any());
     }
 }

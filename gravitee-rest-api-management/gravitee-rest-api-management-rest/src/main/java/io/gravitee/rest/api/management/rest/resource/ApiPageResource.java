@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static java.util.Collections.singletonList;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -96,10 +98,13 @@ public class ApiPageResource extends AbstractResource {
             }
             if (isDisplayable(apiEntity, pageEntity)) {
                 if (pageEntity.getContentType() != null) {
+                    String content = pageEntity.getContent();
                     try {
-                        pageEntity.setMessages(pageService.validateSafeContent(pageEntity, api));
-                    } catch (SwaggerDescriptorException swaggerDescriptorException) {
-                        pageEntity.setMessages(Arrays.asList(swaggerDescriptorException.getMessage()));
+                        pageService.validateSafeContent(pageEntity, api);
+                    } catch (SwaggerDescriptorException contentException) {
+                        pageEntity.setMessages(singletonList(contentException.getMessage()));
+                    } finally {
+                        pageEntity.setContent(content);
                     }
                 }
                 return pageEntity;

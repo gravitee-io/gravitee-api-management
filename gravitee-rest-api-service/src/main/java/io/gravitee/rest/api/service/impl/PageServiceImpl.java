@@ -18,8 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE;
 import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -45,9 +44,6 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.model.permissions.ApiPermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
@@ -80,6 +76,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -683,10 +680,21 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 model.put("api", apiEntity);
             }
 
-            final String content =
-                this.notificationTemplateService.resolveInlineTemplateWithParam(pageEntity.getId(), pageEntity.getContent(), model);
-
-            pageEntity.setContent(content);
+            try {
+                String content =
+                    this.notificationTemplateService.resolveInlineTemplateWithParam(
+                            pageEntity.getId(),
+                            pageEntity.getContent(),
+                            model,
+                            false
+                        );
+                pageEntity.setContent(content);
+            } catch (TemplateProcessingException e) {
+                if (pageEntity.getMessages() == null) {
+                    pageEntity.setMessages(new ArrayList<>());
+                }
+                pageEntity.getMessages().add("Invalid expression or value is missing for " + e.getBlamedExpressionString());
+            }
         }
     }
 
@@ -2375,8 +2383,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         if (pageEntity != null) {
             if (markdownSanitize && PageType.MARKDOWN.name().equals(pageEntity.getType())) {
                 this.transformWithTemplate(pageEntity, apiId);
+                if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
+                    return Arrays.asList(pageEntity.getMessages().toString());
+                }
                 HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(pageEntity.getContent());
-
                 if (!sanitizeInfos.isSafe()) {
                     throw new PageContentUnsafeException(sanitizeInfos.getRejectedMessage());
                 }

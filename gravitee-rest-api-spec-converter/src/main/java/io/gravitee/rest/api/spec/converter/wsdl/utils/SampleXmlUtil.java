@@ -481,9 +481,7 @@ public class SampleXmlUtil {
                 int len = max.getIntValue();
                 if (result.length() > len) result = result.substring(0, len);
             }
-        } catch (
-            Exception e
-        ) {} // intValue can be out of range
+        } catch (Exception e) {} // intValue can be out of range
         return result;
     }
 

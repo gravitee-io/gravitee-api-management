@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.configuration.identity.RoleMappingEntity;
 import io.gravitee.rest.api.model.configuration.identity.UpdateIdentityProviderEntity;
 import java.util.Collection;
 import java.util.Set;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -20,7 +20,6 @@ import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;

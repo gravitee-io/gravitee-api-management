@@ -19,14 +19,25 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import java.io.IOException;
+import java.io.IOException;
 import java.security.Principal;
+import java.security.Principal;
+import java.util.Collections;
+import javax.annotation.Priority;
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.SecurityContext;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
 import org.junit.Test;
 
 /**

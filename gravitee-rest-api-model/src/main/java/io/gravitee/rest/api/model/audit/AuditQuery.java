@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.audit;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

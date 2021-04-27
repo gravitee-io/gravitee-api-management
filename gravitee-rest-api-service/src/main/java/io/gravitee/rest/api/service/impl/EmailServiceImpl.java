@@ -36,6 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.activation.MimetypesFileTypeMap;
+import javax.mail.internet.InternetAddress;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -116,10 +117,15 @@ public class EmailServiceImpl extends TransactionalService implements EmailServi
                     ? mailParameters.get(EMAIL_FROM)
                     : emailNotification.getFrom();
 
-                if (isEmpty(emailNotification.getFromName())) {
-                    mailMessage.setFrom(from);
+                InternetAddress configuredFrom = new InternetAddress(from);
+                if (isEmpty(configuredFrom.getPersonal())) {
+                    if (isEmpty(emailNotification.getFromName())) {
+                        mailMessage.setFrom(from);
+                    } else {
+                        mailMessage.setFrom(from, emailNotification.getFromName());
+                    }
                 } else {
-                    mailMessage.setFrom(from, emailNotification.getFromName());
+                    mailMessage.setFrom(configuredFrom);
                 }
 
                 String sender = emailNotification.getFrom();

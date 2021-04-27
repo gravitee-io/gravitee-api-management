@@ -323,10 +323,14 @@ email:
 #  dashboards:
 #    path: ${gravitee.home}/dashboards
 
-# Portal themes
 #portal:
 #  themes:
 #    path: ${gravitee.home}/themes
+  # Allows domains to be used while generating some emails from the portal. ie. registration, forget password
+  # Empty whitelist means all urls are allowed.
+#  whitelist:
+#    - https://portal.domain.com
+#    - https://private-portal.domain.com
 
 # Referenced properties
 ds:

@@ -297,9 +297,11 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                                         @Override
                                         public void accept(Map.Entry<String, T> stringTEntry) {
                                             Number value = stringTEntry.getValue();
-                                            Double total = values.getOrDefault(stringTEntry.getKey(), 0d);
-                                            total += value.doubleValue();
-                                            values.put(stringTEntry.getKey(), total);
+                                            if (value.intValue() >= 0) {
+                                                Double total = values.getOrDefault(stringTEntry.getKey(), 0d);
+                                                total += value.doubleValue();
+                                                values.put(stringTEntry.getKey(), total);
+                                            }
                                         }
                                     }
                                 );
@@ -313,7 +315,14 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                     new Consumer<Map.Entry<String, Double>>() {
                         @Override
                         public void accept(Map.Entry<String, Double> stringDoubleEntry) {
-                            values.put(stringDoubleEntry.getKey(), stringDoubleEntry.getValue() / apiMetrics.getBuckets().size());
+                            long availableBuckets = apiMetrics
+                                .getBuckets()
+                                .values()
+                                .stream()
+                                .filter(stringTMap -> stringTMap.get(stringDoubleEntry.getKey()).intValue() >= 0)
+                                .count();
+
+                            values.put(stringDoubleEntry.getKey(), stringDoubleEntry.getValue() / availableBuckets);
                         }
                     }
                 );

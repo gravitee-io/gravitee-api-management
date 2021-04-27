@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.idp.memory.lookup;
 
-import io.gravitee.rest.api.idp.api.authentication.UserDetailRole;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
