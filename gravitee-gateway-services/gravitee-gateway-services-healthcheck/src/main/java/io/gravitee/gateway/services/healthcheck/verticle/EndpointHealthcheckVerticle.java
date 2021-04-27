@@ -36,7 +36,7 @@ import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,8 +73,9 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     private final Map<Api, List<EndpointRuleCronHandler>> apiHandlers = new HashMap<>();
 
     @Override
-    public void start(final Future<Void> startedResult) {
+    public void start(final Promise<Void> startPromise) {
         eventManager.subscribeForEvents(this, ReactorEvent.class);
+        startPromise.complete();
     }
 
     @Override

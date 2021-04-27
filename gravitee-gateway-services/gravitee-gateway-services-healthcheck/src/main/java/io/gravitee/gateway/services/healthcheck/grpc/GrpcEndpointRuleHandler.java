@@ -21,11 +21,9 @@ import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.*;
 import java.net.URI;
 
 /**
@@ -41,21 +39,33 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<GrpcEndpoin
     }
 
     @Override
-    protected HttpClientRequest createHttpClientRequest(
+    protected Future<HttpClientRequest> createHttpClientRequest(
         final HttpClient httpClient,
         URI request,
         io.gravitee.definition.model.services.healthcheck.Step step
-    ) throws Exception {
-        HttpClientRequest httpClientRequest = super.createHttpClientRequest(httpClient, request, step);
+    ) {
+        RequestOptions options = prepareHttpClientRequest(request, step);
 
-        // Always set chunked mode for gRPC transport
-        httpClientRequest.setChunked(true);
+        return httpClient
+            .request(options)
+            .map(
+                httpClientRequest -> {
+                    // Always set chunked mode for gRPC transport
+                    httpClientRequest.setChunked(true);
+                    return httpClientRequest;
+                }
+            );
+    }
+
+    @Override
+    protected RequestOptions prepareHttpClientRequest(URI request, io.gravitee.definition.model.services.healthcheck.Step step) {
+        RequestOptions options = super.prepareHttpClientRequest(request, step);
 
         // Ensure required grpc headers
-        httpClientRequest.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_GRPC);
-        httpClientRequest.headers().set(io.gravitee.common.http.HttpHeaders.TE, GRPC_TRAILERS_TE);
+        options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_GRPC);
+        options.putHeader(io.gravitee.common.http.HttpHeaders.TE, GRPC_TRAILERS_TE);
 
-        return httpClientRequest;
+        return options;
     }
 
     @Override

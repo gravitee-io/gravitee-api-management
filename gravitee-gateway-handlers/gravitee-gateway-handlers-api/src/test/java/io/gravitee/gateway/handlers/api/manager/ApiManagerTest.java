@@ -344,7 +344,7 @@ public class ApiManagerTest {
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
         final Api api2 = buildTestApi();
-        api2.setDeployedAt(new Date());
+        api2.setDeployedAt(new Date(api.getDeployedAt().getTime() + 100));
         api2.setPlans(Collections.<Plan>emptyList());
 
         apiManager.register(api2);

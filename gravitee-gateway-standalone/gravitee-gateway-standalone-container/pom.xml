@@ -208,19 +208,29 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web-client</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-rx-java2</artifactId>
-            <version>${vertx.version}</version>
+        </dependency>
+
+        <!-- Netty native transport -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
+            <classifier>osx-x86_64</classifier>
         </dependency>
 
         <!-- Logging -->
@@ -265,7 +275,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>${spring.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
@@ -276,22 +285,18 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -319,13 +324,21 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-unit</artifactId>
-            <version>${vertx.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-grpc</artifactId>
-            <version>${vertx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+            This dependency can be removed once Vertx 4.1 is released.
+            See: https://github.com/vert-x3/vertx-grpc/issues/90
+        -->
+        <dependency>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-netty</artifactId>
+            <version>1.35.1</version>
             <scope>test</scope>
         </dependency>
 
@@ -371,14 +384,12 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-transport-native-epoll</artifactId>
-            <version>${netty.version}</version>
             <classifier>linux-x86_64</classifier>
         </dependency>
 
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-transport-native-kqueue</artifactId>
-            <version>${netty.version}</version>
             <classifier>osx-x86_64</classifier>
         </dependency>
     </dependencies>
@@ -413,7 +424,16 @@
                     <protoTestSourceRoot>src/test/resources</protoTestSourceRoot>
                     <protocArtifact>com.google.protobuf:protoc:${protobuf-java.version}:exe:${os.detected.classifier}</protocArtifact>
                     <pluginId>grpc-java</pluginId>
-                    <pluginArtifact>io.vertx:protoc-gen-grpc-java:1.25.0:exe:${os.detected.classifier}</pluginArtifact>
+                    <pluginArtifact>io.grpc:protoc-gen-grpc-java:1.37.0:exe:${os.detected.classifier}</pluginArtifact>
+                    <protocPlugins>
+                        <protocPlugin>
+                            <id>vertx-grpc-protoc-plugin</id>
+                            <groupId>io.vertx</groupId>
+                            <artifactId>vertx-grpc-protoc-plugin</artifactId>
+                            <version>${vertx.version}</version>
+                            <mainClass>io.vertx.grpc.protoc.plugin.VertxGrpcGenerator</mainClass>
+                        </protocPlugin>
+                    </protocPlugins>
                 </configuration>
                 <executions>
                     <execution>
@@ -441,7 +461,6 @@
                 <dependency>
                     <groupId>io.vertx</groupId>
                     <artifactId>vertx-codegen</artifactId>
-                    <version>${vertx.version}</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>

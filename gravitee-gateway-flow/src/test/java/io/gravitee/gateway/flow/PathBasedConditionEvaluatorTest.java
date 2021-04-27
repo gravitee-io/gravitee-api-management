@@ -16,7 +16,10 @@
 package io.gravitee.gateway.flow;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.flow.Flow;

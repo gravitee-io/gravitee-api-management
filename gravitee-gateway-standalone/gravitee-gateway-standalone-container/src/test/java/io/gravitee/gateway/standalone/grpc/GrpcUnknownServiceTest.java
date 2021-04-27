@@ -15,12 +15,14 @@
  */
 package io.gravitee.gateway.standalone.grpc;
 
+import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 import io.gravitee.gateway.standalone.AbstractGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
 import io.grpc.ManagedChannel;
+import io.grpc.stub.StreamObserver;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.grpc.VertxChannelBuilder;
@@ -51,17 +53,28 @@ public class GrpcUnknownServiceTest extends AbstractGatewayTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         // Prepare gRPC Client
-        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext(true).build();
+        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext().build();
 
         // Get a stub to use for interacting with the remote service
-        StreamingGreeterGrpc.StreamingGreeterVertxStub stub = StreamingGreeterGrpc.newVertxStub(channel);
+        StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
         // Call the remote service
-        stub.sayHelloStreaming(
-            event1 -> {
-                event1.write(HelloRequest.newBuilder().setName("David").build()).exceptionHandler(event -> latch.countDown());
+        StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
+            new StreamObserver<>() {
+                @Override
+                public void onNext(HelloReply helloReply) {}
+
+                @Override
+                public void onError(Throwable throwable) {
+                    latch.countDown();
+                }
+
+                @Override
+                public void onCompleted() {}
             }
         );
+
+        requestStreamObserver.onNext(HelloRequest.newBuilder().setName("David").build());
 
         Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
         channel.shutdownNow();

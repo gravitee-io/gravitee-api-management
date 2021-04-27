@@ -137,17 +137,16 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public HttpMethod method() {
-        return HttpMethod.valueOf(serverRequest.method().name());
+        try {
+            return HttpMethod.valueOf(serverRequest.method().name());
+        } catch (IllegalArgumentException iae) {
+            return HttpMethod.OTHER;
+        }
     }
 
     @Override
     public String scheme() {
         return serverRequest.scheme();
-    }
-
-    @Override
-    public String rawMethod() {
-        return serverRequest.rawMethod();
     }
 
     @Override

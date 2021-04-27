@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.manager.endpoint;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
@@ -26,7 +27,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.node.management.http.endpoint.ManagementEndpoint;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,8 +69,9 @@ public class ApiManagementEndpoint implements Handler<RoutingContext>, Managemen
                 response.setStatusCode(HttpStatusCode.OK_200);
                 response.setChunked(true);
 
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                response.write(Json.prettyMapper.writeValueAsString(api));
+                final ObjectMapper objectMapper = DatabindCodec.prettyMapper();
+                objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                response.write(objectMapper.writeValueAsString(api));
             }
         } catch (JsonProcessingException jpe) {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);

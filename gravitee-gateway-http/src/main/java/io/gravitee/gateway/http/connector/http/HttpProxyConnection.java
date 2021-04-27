@@ -30,6 +30,9 @@ import io.gravitee.gateway.core.proxy.EmptyProxyResponse;
 import io.gravitee.gateway.http.connector.AbstractHttpProxyConnection;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.http.*;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
@@ -85,134 +88,149 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
     }
 
     @Override
-    public ProxyConnection connect(HttpClient httpClient, int port, String host, String uri, Handler<Void> tracker) {
+    public void connect(HttpClient httpClient, int port, String host, String uri, Handler<Void> connectionHandler, Handler<Void> tracker) {
         // Remove HOP-by-HOP headers
         for (CharSequence header : HOP_HEADERS) {
             proxyRequest.headers().remove(header.toString());
         }
 
-        httpClientRequest = prepareUpstreamRequest(httpClient, port, host, uri);
+        Future<HttpClientRequest> request = prepareUpstreamRequest(httpClient, port, host, uri);
+        request.onComplete(
+            new io.vertx.core.Handler<>() {
+                @Override
+                public void handle(AsyncResult<HttpClientRequest> event) {
+                    cancelHandler(tracker);
 
-        cancelHandler(tracker);
+                    if (event.succeeded()) {
+                        httpClientRequest = event.result();
 
-        httpClientRequest.handler(
-            event -> {
-                // Prepare upstream response
-                handleUpstreamResponse(event, tracker);
-
-                // And send it to the client
-                sendToClient(proxyResponse);
-            }
-        );
-
-        httpClientRequest.connectionHandler(
-            connection -> {
-                connection.exceptionHandler(
-                    ex -> {
-                        // I don't want to fill my logs with error
-                    }
-                );
-            }
-        );
-
-        httpClientRequest.exceptionHandler(
-            event -> {
-                if (!isCanceled() && !isTransmitted()) {
-                    proxyRequest.metrics().setMessage(event.getMessage());
-
-                    if (
-                        this.timeoutHandler() != null &&
-                        (
-                            event instanceof ConnectException ||
-                            event instanceof TimeoutException ||
-                            event instanceof NoRouteToHostException ||
-                            event instanceof UnknownHostException
-                        )
-                    ) {
-                        handleConnectTimeout(event);
-                    } else {
-                        ProxyResponse clientResponse = new EmptyProxyResponse(
-                            ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException))
-                                ? HttpStatusCode.GATEWAY_TIMEOUT_504
-                                : HttpStatusCode.BAD_GATEWAY_502
+                        httpClientRequest.response(
+                            response -> {
+                                // Prepare upstream response
+                                handleUpstreamResponse(response, tracker);
+                            }
                         );
 
-                        clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-                        sendToClient(clientResponse);
+                        httpClientRequest.exceptionHandler(
+                            exEvent -> {
+                                if (!isCanceled() && !isTransmitted()) {
+                                    handleException(event.cause());
+                                    tracker.handle(null);
+                                }
+                            }
+                        );
+                        connectionHandler.handle(null);
+                    } else {
+                        connectionHandler.handle(null);
+                        handleException(event.cause());
                         tracker.handle(null);
                     }
                 }
             }
         );
-
-        return this;
     }
 
-    protected HttpClientRequest prepareUpstreamRequest(HttpClient httpClient, int port, String host, String uri) {
-        // Prepare HTTP request
-        httpClientRequest = httpClient.request(HttpMethod.valueOf(proxyRequest.method().name()), port, host, uri);
+    private void handleException(Throwable cause) {
+        if (!isCanceled() && !isTransmitted()) {
+            proxyRequest.metrics().setMessage(cause.getMessage());
 
-        httpClientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
-        httpClientRequest.setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects());
+            if (
+                timeoutHandler() != null &&
+                (
+                    cause instanceof ConnectException ||
+                    cause instanceof TimeoutException ||
+                    cause instanceof NoRouteToHostException ||
+                    cause instanceof UnknownHostException
+                )
+            ) {
+                handleConnectTimeout(cause);
+            } else {
+                ProxyResponse clientResponse = new EmptyProxyResponse(
+                    ((cause instanceof ConnectTimeoutException) || (cause instanceof TimeoutException))
+                        ? HttpStatusCode.GATEWAY_TIMEOUT_504
+                        : HttpStatusCode.BAD_GATEWAY_502
+                );
 
-        if (proxyRequest.method() == io.gravitee.common.http.HttpMethod.OTHER) {
-            httpClientRequest.setRawMethod(proxyRequest.rawMethod());
+                clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+                sendToClient(clientResponse);
+            }
         }
+    }
 
-        return httpClientRequest;
+    protected Future<HttpClientRequest> prepareUpstreamRequest(HttpClient httpClient, int port, String host, String uri) {
+        // Prepare HTTP request
+        return httpClient.request(
+            new RequestOptions()
+                .setHost(host)
+                .setMethod(HttpMethod.valueOf(proxyRequest.method().name()))
+                .setPort(port)
+                .setURI(uri)
+                .setTimeout(endpoint.getHttpClientOptions().getReadTimeout())
+                .setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects())
+        );
     }
 
     protected T createProxyResponse(HttpClientResponse clientResponse) {
         return (T) new HttpProxyResponse(clientResponse);
     }
 
-    protected T handleUpstreamResponse(final HttpClientResponse clientResponse, Handler<Void> tracker) {
-        this.proxyResponse = createProxyResponse(clientResponse);
+    protected T handleUpstreamResponse(final AsyncResult<HttpClientResponse> clientResponseFuture, Handler<Void> tracker) {
+        if (clientResponseFuture.succeeded()) {
+            HttpClientResponse clientResponse = clientResponseFuture.result();
 
-        // Copy HTTP headers
-        clientResponse
-            .headers()
-            .names()
-            .forEach(headerName -> proxyResponse.headers().put(headerName, clientResponse.headers().getAll(headerName)));
+            proxyResponse = createProxyResponse(clientResponse);
 
-        proxyResponse.pause();
+            // Copy HTTP headers
+            clientResponse
+                .headers()
+                .names()
+                .forEach(headerName -> proxyResponse.headers().put(headerName, clientResponse.headers().getAll(headerName)));
 
-        proxyResponse.cancelHandler(tracker);
+            proxyResponse.pause();
 
-        // Copy body content
-        clientResponse.handler(event -> proxyResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
+            proxyResponse.cancelHandler(tracker);
 
-        // Signal end of the response
-        clientResponse.endHandler(
-            event -> {
-                // Write trailing headers to client response
-                if (!clientResponse.trailers().isEmpty()) {
-                    clientResponse.trailers().forEach(header -> proxyResponse.trailers().set(header.getKey(), header.getValue()));
+            // Copy body content
+            clientResponse.handler(event -> proxyResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
+
+            // Signal end of the response
+            clientResponse.endHandler(
+                event -> {
+                    // Write trailing headers to client response
+                    if (!clientResponse.trailers().isEmpty()) {
+                        clientResponse.trailers().forEach(header -> proxyResponse.trailers().set(header.getKey(), header.getValue()));
+                    }
+
+                    proxyResponse.endHandler().handle(null);
+                    tracker.handle(null);
                 }
+            );
 
-                proxyResponse.endHandler().handle(null);
-                tracker.handle(null);
-            }
-        );
+            clientResponse.exceptionHandler(
+                throwable -> {
+                    LOGGER.error(
+                        "Unexpected error while handling backend response for request {} {} - {}",
+                        httpClientRequest.getMethod(),
+                        httpClientRequest.absoluteURI(),
+                        throwable.getMessage()
+                    );
 
-        clientResponse.exceptionHandler(
-            throwable -> {
-                LOGGER.error(
-                    "Unexpected error while handling backend response for request {} {} - {}",
-                    httpClientRequest.method(),
-                    httpClientRequest.absoluteURI(),
-                    throwable.getMessage()
-                );
+                    proxyResponse.endHandler().handle(null);
+                    tracker.handle(null);
+                }
+            );
 
-                proxyResponse.endHandler().handle(null);
-                tracker.handle(null);
-            }
-        );
+            clientResponse.customFrameHandler(
+                frame ->
+                    proxyResponse.writeCustomFrame(HttpFrame.create(frame.type(), frame.flags(), Buffer.buffer(frame.payload().getBytes())))
+            );
 
-        clientResponse.customFrameHandler(
-            frame ->
-                proxyResponse.writeCustomFrame(HttpFrame.create(frame.type(), frame.flags(), Buffer.buffer(frame.payload().getBytes())))
-        );
+            // And send it to the client
+            sendToClient(proxyResponse);
+        } else {
+            handleException(clientResponseFuture.cause());
+            tracker.handle(null);
+        }
 
         return proxyResponse;
     }
@@ -313,12 +331,15 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
     @Override
     public void end() {
-        if (!headersWritten) {
-            this.writeHeaders();
-        }
+        // Request can be null in case of connectivity issue with the upstream
+        if (httpClientRequest != null) {
+            if (!headersWritten) {
+                this.writeHeaders();
+            }
 
-        if (!canceled) {
-            httpClientRequest.end();
+            if (!canceled) {
+                httpClientRequest.end();
+            }
         }
     }
 

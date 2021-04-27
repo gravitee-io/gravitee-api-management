@@ -20,9 +20,12 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.http.connector.http.HttpProxyConnection;
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
+import java.util.function.Function;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,18 +40,26 @@ public class GrpcProxyConnection extends HttpProxyConnection {
     }
 
     @Override
-    protected HttpClientRequest prepareUpstreamRequest(HttpClient httpClient, int port, String host, String uri) {
-        HttpClientRequest clientRequest = httpClient.request(HttpMethod.POST, port, host, uri);
-
-        clientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
-
-        // Always set chunked mode for gRPC transport
-        clientRequest.setChunked(true);
-
-        // Ensure required gRPC headers
-        clientRequest.headers().set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_GRPC);
-        clientRequest.headers().set(io.gravitee.common.http.HttpHeaders.TE, GRPC_TRAILERS_TE);
-
-        return clientRequest;
+    protected Future<HttpClientRequest> prepareUpstreamRequest(HttpClient httpClient, int port, String host, String uri) {
+        // Prepare HTTP request
+        return httpClient
+            .request(
+                new RequestOptions()
+                    .setHost(host)
+                    .setMethod(HttpMethod.POST)
+                    .setPort(port)
+                    .setURI(uri)
+                    // Ensure required gRPC headers
+                    .putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_GRPC)
+                    .putHeader(io.gravitee.common.http.HttpHeaders.TE, GRPC_TRAILERS_TE)
+                    .setTimeout(endpoint.getHttpClientOptions().getReadTimeout())
+                    .setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects())
+            )
+            .map(
+                httpClientRequest -> {
+                    // Always set chunked mode for gRPC transport
+                    return httpClientRequest.setChunked(true);
+                }
+            );
     }
 }

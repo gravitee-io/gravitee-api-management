@@ -31,13 +31,10 @@
     <name>Gravitee.io APIM - Gateway - Flow</name>
 
     <dependencies>
-
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-policy</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
-
 </project>

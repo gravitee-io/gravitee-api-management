@@ -40,14 +40,4 @@
         <module>gravitee-gateway-services-endpoint-discovery</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Vert.x -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-web</artifactId>
-                <version>${vertx.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>

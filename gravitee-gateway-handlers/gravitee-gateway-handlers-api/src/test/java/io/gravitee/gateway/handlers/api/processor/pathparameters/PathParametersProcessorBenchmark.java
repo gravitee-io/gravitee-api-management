@@ -152,11 +152,6 @@ public class PathParametersProcessorBenchmark {
         }
 
         @Override
-        public String rawMethod() {
-            return null;
-        }
-
-        @Override
         public HttpVersion version() {
             return null;
         }

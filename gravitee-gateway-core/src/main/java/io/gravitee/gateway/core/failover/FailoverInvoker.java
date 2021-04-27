@@ -127,19 +127,16 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
                     }
                 }
             )
-            .setHandler(
-                new io.vertx.core.Handler<AsyncResult<ProxyConnection>>() {
-                    @Override
-                    public void handle(AsyncResult<ProxyConnection> event) {
-                        if (event.failed()) {
-                            FailoverConnection connection = new FailoverConnection();
-                            connectionHandler.handle(connection);
-                            connection.sendBadGatewayResponse();
-                        } else {
-                            FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
-                            connectionHandler.handle(proxyConnection);
-                            proxyConnection.sendResponse();
-                        }
+            .onComplete(
+                event -> {
+                    if (event.failed()) {
+                        FailoverConnection connection = new FailoverConnection();
+                        connectionHandler.handle(connection);
+                        connection.sendBadGatewayResponse();
+                    } else {
+                        FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
+                        connectionHandler.handle(proxyConnection);
+                        proxyConnection.sendResponse();
                     }
                 }
             );

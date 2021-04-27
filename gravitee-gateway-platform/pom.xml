@@ -43,7 +43,5 @@
             <artifactId>gravitee-gateway-flow</artifactId>
             <version>${project.version}</version>
         </dependency>
-
     </dependencies>
-
 </project>

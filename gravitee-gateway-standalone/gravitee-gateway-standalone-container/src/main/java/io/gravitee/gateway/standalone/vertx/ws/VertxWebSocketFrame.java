@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.ws.WebSocketFrame;
+import io.vertx.core.http.WebSocketFrameType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,7 +35,13 @@ class VertxWebSocketFrame implements WebSocketFrame {
     public Type type() {
         return frame.isBinary()
             ? Type.BINARY
-            : frame.isClose() ? Type.CLOSE : frame.isContinuation() ? Type.CONTINUATION : frame.isText() ? Type.TEXT : Type.CLOSE;
+            : frame.isClose()
+                ? Type.CLOSE
+                : frame.isContinuation()
+                    ? Type.CONTINUATION
+                    : frame.isText()
+                        ? Type.TEXT
+                        : frame.isPing() ? Type.PING : frame.type() == WebSocketFrameType.PONG ? Type.PONG : Type.CLOSE;
     }
 
     @Override

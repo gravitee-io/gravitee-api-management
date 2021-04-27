@@ -35,7 +35,7 @@ import io.vertx.core.http.HttpVersion;
 public class VertxReactorHandler implements Handler<HttpServerRequest> {
 
     private final Reactor reactor;
-    private IdGenerator idGenerator;
+    private final IdGenerator idGenerator;
 
     public VertxReactorHandler(final Reactor reactor, IdGenerator idGenerator) {
         this.reactor = reactor;
