@@ -411,8 +411,40 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
       if (slots && slots.expectedFeature && !this.configurationService.hasFeature(slots.expectedFeature)) {
         slot = null;
       }
+      if (slots && slots.expectedPermissions) {
+        const userPermissions = (this.currentUserService.get().getValue() && this.currentUserService.get().getValue().permissions) || {};
+        const expectedPermissions = slots.expectedPermissions;
+        const expectedPermissionsObject = {};
+        expectedPermissions.map((perm) => {
+          const splittedPerms = perm.split('-');
+          if (expectedPermissionsObject[splittedPerms[0]]) {
+            expectedPermissionsObject[splittedPerms[0]].push(splittedPerms[1]);
+          } else {
+            expectedPermissionsObject[splittedPerms[0]] = [splittedPerms[1]];
+          }
+        });
+        Object.keys(expectedPermissionsObject).forEach((perm) => {
+          const applicationRights = userPermissions[perm];
+          if (
+            slot !== null &&
+            (!applicationRights || (applicationRights && !this._includesAll(applicationRights, expectedPermissionsObject[perm])))
+          ) {
+            slot = null;
+          }
+        });
+      }
       this._updateSlot(slot, directive);
     });
+  }
+
+  private _includesAll(applicationRights, expectedRights): boolean {
+    let includesAll = true;
+    expectedRights.forEach((r) => {
+      if (!applicationRights.includes(r)) {
+        includesAll = false;
+      }
+    });
+    return includesAll;
   }
 
   private _updateSlot(slot, directive) {
