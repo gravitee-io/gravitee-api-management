@@ -21,37 +21,35 @@
     <div layout="column">
       <md-input-container class="md-block" flex-gt-xs>
         <label>Client Id</label>
-        <input ng-model="$ctrl.identityProvider.configuration.clientId" type="text" required>
+        <input ng-model="$ctrl.identityProvider.configuration.clientId" type="text" required />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>Client Secret</label>
-        <input ng-model="$ctrl.identityProvider.configuration.clientSecret" type="text" required>
+        <input ng-model="$ctrl.identityProvider.configuration.clientSecret" type="password" required />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>Server URL</label>
-        <input ng-model="$ctrl.identityProvider.configuration.serverURL" type="url" required>
+        <input ng-model="$ctrl.identityProvider.configuration.serverURL" type="url" required />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>Security domain</label>
-        <input ng-model="$ctrl.identityProvider.configuration.domain" type="text" required>
+        <input ng-model="$ctrl.identityProvider.configuration.domain" type="text" required />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>Scopes</label>
-        <md-chips ng-model="$ctrl.identityProvider.configuration.scopes"
-                  md-add-on-blur="true"
-                  placeholder="Enter a scope and press Enter"></md-chips>
+        <md-chips
+          ng-model="$ctrl.identityProvider.configuration.scopes"
+          md-add-on-blur="true"
+          placeholder="Enter a scope and press Enter"
+        ></md-chips>
       </md-input-container>
 
       <label>Authentication button color</label>
-      <div flex
-           md-color-picker="$ctrl.buttonConfig"
-           ng-model="$ctrl.identityProvider.configuration.color"
-           md-color-history="true">
-      </div>
+      <div flex md-color-picker="$ctrl.buttonConfig" ng-model="$ctrl.identityProvider.configuration.color" md-color-history="true"></div>
     </div>
   </div>
 </div>
@@ -62,27 +60,27 @@
     <div layout="column">
       <md-input-container class="md-block" flex-gt-xs>
         <label>ID</label>
-        <input ng-model="$ctrl.identityProvider.userProfileMapping.id" type="text" placeholder="sub" required>
+        <input ng-model="$ctrl.identityProvider.userProfileMapping.id" type="text" placeholder="sub" required />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>First name</label>
-        <input ng-model="$ctrl.identityProvider.userProfileMapping.firstname" type="text" placeholder="given_name">
+        <input ng-model="$ctrl.identityProvider.userProfileMapping.firstname" type="text" placeholder="given_name" />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>Last name</label>
-        <input ng-model="$ctrl.identityProvider.userProfileMapping.lastname" type="text" placeholder="family_name">
+        <input ng-model="$ctrl.identityProvider.userProfileMapping.lastname" type="text" placeholder="family_name" />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>Email</label>
-        <input ng-model="$ctrl.identityProvider.userProfileMapping.email" type="text" placeholder="email">
+        <input ng-model="$ctrl.identityProvider.userProfileMapping.email" type="text" placeholder="email" />
       </md-input-container>
 
       <md-input-container class="md-block" flex-gt-xs>
         <label>Picture</label>
-        <input ng-model="$ctrl.identityProvider.userProfileMapping.picture" type="text" placeholder="picture">
+        <input ng-model="$ctrl.identityProvider.userProfileMapping.picture" type="text" placeholder="picture" />
       </md-input-container>
     </div>
   </div>

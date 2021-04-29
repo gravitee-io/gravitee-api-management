@@ -15,10 +15,9 @@
  */
 import _ = require('lodash');
 import QualityRuleService from '../../../services/qualityRule.service';
-import {QualityRule} from '../../../entities/qualityRule';
+import { QualityRule } from '../../../entities/qualityRule';
 
-function DialogReviewController($scope, $mdDialog, api, QualityRuleService: QualityRuleService, $q,
-                                apiQualityRules, qualityRules) {
+function DialogReviewController($scope, $mdDialog, api, QualityRuleService: QualityRuleService, $q, apiQualityRules, qualityRules) {
   'ngInject';
   this.apiQualityRules = apiQualityRules;
   this.qualityRules = qualityRules;
@@ -30,7 +29,7 @@ function DialogReviewController($scope, $mdDialog, api, QualityRuleService: Qual
   this.confirm = function (accept: boolean) {
     let promises = [];
     _.forEach(this.qualityRules, (qualityRule) => {
-      let apiQualityRule: any = _.find(this.apiQualityRules, {quality_rule: qualityRule.id});
+      let apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
       let checked: boolean = apiQualityRule && apiQualityRule.checked;
       if (!apiQualityRule || apiQualityRule.new) {
         promises.push(QualityRuleService.createApiRule(api.id, qualityRule.id, checked));
@@ -41,13 +40,13 @@ function DialogReviewController($scope, $mdDialog, api, QualityRuleService: Qual
     $q.all(promises).then(() => {
       $mdDialog.hide({
         accept: accept,
-        message: this.message
+        message: this.message,
       });
     });
   };
 
   this.toggleQualityRule = (qualityRule: QualityRule) => {
-    let apiQualityRule: any = _.find(this.apiQualityRules, {quality_rule: qualityRule.id});
+    let apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
     if (apiQualityRule) {
       apiQualityRule.checked = !apiQualityRule.checked;
     } else {
@@ -55,13 +54,13 @@ function DialogReviewController($scope, $mdDialog, api, QualityRuleService: Qual
         api: api.id,
         quality_rule: qualityRule.id,
         checked: true,
-        new: true
+        new: true,
       });
     }
   };
 
   this.isChecked = (qualityRule: QualityRule) => {
-    let apiQualityRule: any = _.find(this.apiQualityRules, {quality_rule: qualityRule.id});
+    let apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
     return apiQualityRule && apiQualityRule.checked;
   };
 }

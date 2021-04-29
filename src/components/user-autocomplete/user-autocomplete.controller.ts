@@ -17,7 +17,6 @@ import * as _ from 'lodash';
 import UserService from '../../services/user.service';
 
 class UserAutocompleteController {
-
   private searchText: string;
   private usersSelected: any[];
   private placeHolder: string;
@@ -30,9 +29,7 @@ class UserAutocompleteController {
   private minLength: number;
   private autofocus: boolean;
 
-  constructor(
-    private UserService: UserService
-  ) {
+  constructor(private UserService: UserService) {
     'ngInject';
   }
 
@@ -52,15 +49,14 @@ class UserAutocompleteController {
   searchUser(query) {
     if (query) {
       return this.UserService.search(query).then((response) => {
-          let result = _.sortBy(response.data, ['displayName']);
+        let result = _.sortBy(response.data, ['displayName']);
 
-          if (this.userFilterFn && typeof this.userFilterFn === 'function') {
-            result = _.filter(result, this.userFilterFn);
-          }
-
-          return result;
+        if (this.userFilterFn && typeof this.userFilterFn === 'function') {
+          result = _.filter(result, this.userFilterFn);
         }
-      );
+
+        return result;
+      });
     } else {
       return this.defaultUsersList;
     }
@@ -71,9 +67,7 @@ class UserAutocompleteController {
       if (this.singleUser) {
         this.usersSelected[0] = user;
       } else {
-        const selected = user.reference
-          ? _.find(this.usersSelected, { reference: user.reference })
-          : _.find(this.defaultUsersList, user);
+        const selected = user.reference ? _.find(this.usersSelected, { reference: user.reference }) : _.find(this.defaultUsersList, user);
         if (!selected) {
           this.usersSelected.push(user);
         }
@@ -82,9 +76,7 @@ class UserAutocompleteController {
     } else if (this.singleUser && this.usersSelected[0] !== null) {
       this.usersSelected[0] = null;
     }
-
   }
-
 }
 
 export default UserAutocompleteController;

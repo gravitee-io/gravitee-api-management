@@ -15,7 +15,6 @@
  */
 
 class CategoryService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }

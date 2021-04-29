@@ -32,7 +32,7 @@ function applicationsConfig($stateProvider) {
   $stateProvider
     .state('management.applications', {
       abstract: true,
-      url: '/applications'
+      url: '/applications',
     })
     .state('management.applications.list', {
       url: '/',
@@ -42,81 +42,85 @@ function applicationsConfig($stateProvider) {
           label: 'Applications',
           icon: 'list',
           firstLevel: true,
-          order: 20
+          order: 20,
         },
         perms: {
-          only: ['environment-application-r']
+          only: ['environment-application-r'],
         },
         docs: {
-          page: 'management-applications'
-        }
+          page: 'management-applications',
+        },
       },
       resolve: {
-        applications: (ApplicationService: ApplicationService) => ApplicationService.list().then(response => response.data)
-      }
+        applications: (ApplicationService: ApplicationService) => ApplicationService.list().then((response) => response.data),
+      },
     })
     .state('management.applications.create', {
       url: '/create',
       component: 'createApplication',
       resolve: {
         enabledApplicationTypes: (ApplicationTypesService: ApplicationTypesService) =>
-          ApplicationTypesService.getEnabledApplicationTypes().then(response => response.data.map((appType) => new ApplicationType(appType))),
+          ApplicationTypesService.getEnabledApplicationTypes().then((response) =>
+            response.data.map((appType) => new ApplicationType(appType)),
+          ),
       },
       data: {
         perms: {
-          only: ['environment-application-c']
+          only: ['environment-application-c'],
         },
         docs: {
-          page: 'management-create-application'
-        }
-      }
+          page: 'management-create-application',
+        },
+      },
     })
     .state('management.applications.application', {
       abstract: true,
       url: '/:applicationId',
       component: 'application',
       resolve: {
-        application: ($stateParams: StateParams,
-                      ApplicationService: ApplicationService,
-                      $state: StateService,
-                      EnvironmentService: EnvironmentService,
-                      Constants: any
+        application: (
+          $stateParams: StateParams,
+          ApplicationService: ApplicationService,
+          $state: StateService,
+          EnvironmentService: EnvironmentService,
+          Constants: any,
         ) =>
           ApplicationService.get($stateParams.applicationId)
-            .then(response => response.data)
-            .catch(err => {
+            .then((response) => response.data)
+            .catch((err) => {
               if (err && err.interceptorFuture) {
-                $state.go('management.applications.list', { environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id)});
+                $state.go('management.applications.list', {
+                  environmentId: EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv.id),
+                });
               }
             }),
         applicationType: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
           ApplicationService.getApplicationType($stateParams.applicationId)
-            .then(response => response.data)
-            .catch(err => {
+            .then((response) => response.data)
+            .catch((err) => {
               if (err && err.interceptorFuture) {
                 err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
               }
             }),
         resolvedApplicationPermissions: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getPermissions($stateParams.applicationId)
-            .catch(err => {
-              if (err && err.interceptorFuture) {
-                err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
-              }
-            }),
-        onEnter: function(UserService, resolvedApplicationPermissions) {
+          ApplicationService.getPermissions($stateParams.applicationId).catch((err) => {
+            if (err && err.interceptorFuture) {
+              err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
+            }
+          }),
+        onEnter: function (UserService, resolvedApplicationPermissions) {
           UserService.currentUser.userApplicationPermissions = [];
           if (resolvedApplicationPermissions && resolvedApplicationPermissions.data) {
-            _.forEach(_.keys(resolvedApplicationPermissions.data), function(permission) {
-              _.forEach(resolvedApplicationPermissions.data[permission], function(right) {
+            _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
+              _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
                 let permissionName = 'APPLICATION-' + permission + '-' + right;
                 UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
               });
             });
           }
           UserService.reloadPermissions();
-        }
-      }
+        },
+      },
     })
     .state('management.applications.application.general', {
       url: '/',
@@ -124,22 +128,22 @@ function applicationsConfig($stateProvider) {
       data: {
         menu: {
           label: 'Global settings',
-          icon: 'blur_on'
+          icon: 'blur_on',
         },
         perms: {
-          only: ['application-definition-r']
+          only: ['application-definition-r'],
         },
         docs: {
-          page: 'management-application'
-        }
+          page: 'management-application',
+        },
       },
       resolve: {
         groups: (UserService: UserService, GroupService: GroupService) => {
           return GroupService.list().then((groups) => {
             return _.filter(groups.data, 'manageable');
           });
-        }
-      }
+        },
+      },
     })
     .state('management.applications.application.metadata', {
       url: '/metadata',
@@ -150,33 +154,32 @@ function applicationsConfig($stateProvider) {
           return ApplicationService.listMetadata($stateParams.applicationId).then(function (response) {
             return response.data;
           });
-        }
+        },
       },
       data: {
         menu: {
           label: 'Metadata',
-          icon: 'collections_bookmark'
+          icon: 'collections_bookmark',
         },
         perms: {
-          only: ['application-metadata-r']
+          only: ['application-metadata-r'],
         },
         docs: {
-          page: 'management-application-metadata'
-        }
-      }
+          page: 'management-application-metadata',
+        },
+      },
     })
     .state('management.applications.application.subscriptions', {
       abstract: true,
       url: '/subscriptions',
-      template: '<div ui-view></div>'
+      template: '<div ui-view></div>',
     })
     .state('management.applications.application.subscriptions.list', {
       url: '?page&size&:api&:status&:api_key',
       component: 'applicationSubscriptions',
       resolve: {
         subscriptions: ($stateParams, ApplicationService: ApplicationService) => {
-          let query = '?page=' + $stateParams.page
-            + '&size=' + $stateParams.size;
+          let query = '?page=' + $stateParams.page + '&size=' + $stateParams.size;
 
           if ($stateParams.status) {
             query += '&status=' + $stateParams.status;
@@ -190,111 +193,111 @@ function applicationsConfig($stateProvider) {
             query += '&api_key=' + $stateParams.api_key;
           }
 
-          return ApplicationService.listSubscriptions($stateParams.applicationId, query).then(response => response.data);
+          return ApplicationService.listSubscriptions($stateParams.applicationId, query).then((response) => response.data);
         },
 
         subscribers: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getSubscribedAPI($stateParams.applicationId).then(response => response.data)
+          ApplicationService.getSubscribedAPI($stateParams.applicationId).then((response) => response.data),
       },
       data: {
         menu: {
           label: 'Subscriptions',
-          icon: 'vpn_key'
+          icon: 'vpn_key',
         },
         perms: {
-          only: ['application-subscription-r']
+          only: ['application-subscription-r'],
         },
         docs: {
-          page: 'management-application-subscriptions'
-        }
+          page: 'management-application-subscriptions',
+        },
       },
       params: {
         status: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         api: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         page: {
           type: 'int',
           value: 1,
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
           value: 10,
-          dynamic: true
+          dynamic: true,
         },
         api_key: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.applications.application.subscriptions.subscription', {
       url: '/:subscriptionId?page&size&:api&:status&:api_key',
       component: 'applicationSubscription',
       resolve: {
         subscription: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getSubscription($stateParams.applicationId, $stateParams.subscriptionId).then(response => response.data)
+          ApplicationService.getSubscription($stateParams.applicationId, $stateParams.subscriptionId).then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['application-subscription-r']
+          only: ['application-subscription-r'],
         },
         docs: {
-          page: 'management-application-subscriptions'
-        }
+          page: 'management-application-subscriptions',
+        },
       },
       params: {
         status: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         api: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         page: {
           type: 'int',
           value: 1,
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
           value: 10,
-          dynamic: true
+          dynamic: true,
         },
         api_key: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.applications.application.subscriptions.subscribe', {
       url: '/subscribe',
       component: 'applicationSubscribe',
       resolve: {
-        apis: (ApiService: ApiService) => ApiService.list(null, true).then(response => response.data),
+        apis: (ApiService: ApiService) => ApiService.list(null, true).then((response) => response.data),
         subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.listSubscriptions($stateParams.applicationId).then(response => response.data)
+          ApplicationService.listSubscriptions($stateParams.applicationId).then((response) => response.data),
       },
       data: {
         perms: {
-          only: ['application-subscription-r']
-        }
-      }
+          only: ['application-subscription-r'],
+        },
+      },
     })
     .state('management.applications.application.members', {
       url: '/members',
       component: 'applicationMembers',
       resolve: {
         members: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getMembers($stateParams.applicationId).then(response => response.data),
+          ApplicationService.getMembers($stateParams.applicationId).then((response) => response.data),
         resolvedGroups: (GroupService: GroupService) => {
-          return GroupService.list().then(response => {
+          return GroupService.list().then((response) => {
             return response.data;
           });
         },
@@ -302,52 +305,50 @@ function applicationsConfig($stateProvider) {
       data: {
         menu: {
           label: 'Members',
-          icon: 'group'
+          icon: 'group',
         },
         perms: {
-          only: ['application-member-r']
+          only: ['application-member-r'],
         },
         docs: {
-          page: 'management-application-members'
-        }
-      }
+          page: 'management-application-members',
+        },
+      },
     })
     .state('management.applications.application.analytics', {
       url: '/analytics?from&to&q&dashboard',
       component: 'applicationAnalytics',
-      resolve: {
-        dashboards: (DashboardService: DashboardService) => DashboardService.list('APPLICATION').then(response => response.data)
-      },
+      resolve: {},
       data: {
         menu: {
           label: 'Analytics',
-          icon: 'insert_chart'
+          icon: 'insert_chart',
         },
         perms: {
-          only: ['application-analytics-r']
+          only: ['application-analytics-r'],
         },
         docs: {
-          page: 'management-application-analytics'
-        }
+          page: 'management-application-analytics',
+        },
       },
       params: {
         from: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         to: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         q: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         dashboard: {
           type: 'string',
-          dynamic: true
-        }
-      }
+          dynamic: true,
+        },
+      },
     })
     .state('management.applications.application.logs', {
       url: '/logs?from&to&q&page&size',
@@ -355,53 +356,55 @@ function applicationsConfig($stateProvider) {
       data: {
         menu: {
           label: 'Logs',
-          icon: 'receipt'
+          icon: 'receipt',
         },
         perms: {
-          only: ['application-log-r']
+          only: ['application-log-r'],
         },
         docs: {
-          page: 'management-application-logs'
-        }
+          page: 'management-application-logs',
+        },
       },
       params: {
         from: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         to: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         q: {
           type: 'string',
-          dynamic: true
+          dynamic: true,
         },
         page: {
           type: 'int',
-          dynamic: true
+          dynamic: true,
         },
         size: {
           type: 'int',
-          dynamic: true
-        }
+          dynamic: true,
+        },
       },
       resolve: {
         apis: ($stateParams: StateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getSubscribedAPI($stateParams.applicationId)
-      }
+          ApplicationService.getSubscribedAPI($stateParams.applicationId),
+      },
     })
     .state('management.applications.application.log', {
       url: '/logs/:logId?timestamp&from&to&q&page&size',
       component: 'applicationLog',
       resolve: {
         log: ($stateParams, ApplicationService: ApplicationService) =>
-          ApplicationService.getLog($stateParams.applicationId, $stateParams.logId, $stateParams.timestamp).then(response => response.data)
+          ApplicationService.getLog($stateParams.applicationId, $stateParams.logId, $stateParams.timestamp).then(
+            (response) => response.data,
+          ),
       },
       data: {
         perms: {
-          only: ['application-log-r']
-        }
-      }
+          only: ['application-log-r'],
+        },
+      },
     });
 }

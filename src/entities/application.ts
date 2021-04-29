@@ -28,7 +28,7 @@ export class ApplicationType {
   public allowed_grant_types: Array<any>;
   public mandatory_grant_types: Array<any>;
 
-  constructor({name, id, description, requires_redirect_uris, allowed_grant_types, default_grant_types, mandatory_grant_types}) {
+  constructor({ name, id, description, requires_redirect_uris, allowed_grant_types, default_grant_types, mandatory_grant_types }) {
     this.id = id;
     this.name = name;
     this.description = description;
@@ -43,7 +43,7 @@ export class ApplicationType {
     return this.id.toLowerCase() !== 'simple';
   }
 
-  public isGrantTypeMandatory(grantType: {type}): boolean {
+  public isGrantTypeMandatory(grantType: { type }): boolean {
     return this.mandatory_grant_types && _.indexOf(this.mandatory_grant_types, grantType.type) !== -1;
   }
 
@@ -61,5 +61,4 @@ export class ApplicationType {
         return 'pan_tool';
     }
   }
-
 }

@@ -19,35 +19,38 @@ require('@gravitee/ui-components/wc/gv-stats');
 const WidgetDataStatsComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
-  controller: function($scope, $element) {
+  controller: function ($scope, $element) {
     'ngInject';
     this.$onInit = () => {
       this.chartData = _.cloneDeep(this.parent.widget.chart.data);
       checkFallback();
     };
     const checkFallback = () => {
-
       let gvStats = $element.children()[0];
 
       let stats = {};
-      if (Object.values(this.data).some(data => data !== 0)) {
-        this.chartData.forEach(data => {
+      if (Object.values(this.data).some((data) => data !== 0)) {
+        this.chartData.forEach((data) => {
           stats[data.key] = this.data[data.key];
         });
       }
 
-      let options = this.chartData.map(data => {
+      let options = this.chartData.map((data) => {
         return {
           key: data.key,
           unit: data.unit,
           color: data.color,
           label: data.label,
-          fallback: data.fallback && data.fallback.map(fallback => { return { key: fallback.key, label: fallback.label }; })
+          fallback:
+            data.fallback &&
+            data.fallback.map((fallback) => {
+              return { key: fallback.key, label: fallback.label };
+            }),
         };
       });
 
@@ -55,7 +58,7 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
       gvStats.setAttribute('stats', JSON.stringify(stats));
       gvStats.setAttribute('options', JSON.stringify(options));
     };
-  }
+  },
 };
 
 export default WidgetDataStatsComponent;

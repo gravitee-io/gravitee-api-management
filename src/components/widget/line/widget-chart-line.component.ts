@@ -21,12 +21,12 @@ require('@gravitee/ui-components/wc/gv-chart-line');
 const WidgetChartLineComponent: ng.IComponentOptions = {
   template: require('./widget-chart-line.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
-  controller: function($scope, $element, $rootScope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService) {
+  controller: function ($scope, $element, $rootScope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService) {
     'ngInject';
 
     this.AnalyticsService = AnalyticsService;
@@ -40,7 +40,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     this.$onChanges = (changes) => {
       if (changes.data) {
         let data = changes.data.currentValue;
-        this.series = {values: []};
+        this.series = { values: [] };
         this.gvChartLine = $element.children()[0];
 
         if ((data.values && data.values.length > 0) || (data.events && data.events.content && data.events.content.length > 0)) {
@@ -54,7 +54,6 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           this.gvChartLine.addEventListener('gv-chart-line:zoom', this.onZoom.bind(this));
           this.gvChartLine.addEventListener('gv-chart-line:select', this.onSelect.bind(this));
           $scope.$on('onWidgetResize', this.onResize.bind(this));
-
         } else {
           this.gvChartLine.setAttribute('options', JSON.stringify([{}]));
           this.gvChartLine.setAttribute('series', JSON.stringify([{}]));
@@ -66,7 +65,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
       let timestamp = data.timestamp;
       this.events = data.events && data.events.content;
 
-      data.values.forEach( (value, idx) => {
+      data.values.forEach((value, idx) => {
         let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
 
         if (value.buckets.length === 0) {
@@ -77,14 +76,17 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
             data: Array(bucketCount).fill(0),
             labelPrefix: label,
             id: label,
-            visible: true
+            visible: true,
           });
         } else {
           value.buckets.forEach((bucket) => {
             if (bucket) {
               let isFieldRequest = this.parent.widget.chart.request.aggs.split('%3B')[idx].includes('field:');
               let query = this.parent.widget.chart.request.query;
-              if (bucket.name === '1' || bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')) {
+              if (
+                bucket.name === '1' ||
+                bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+              ) {
                 isFieldRequest = false;
               }
               if (!label || (value.metadata && value.metadata[bucket.name])) {
@@ -96,7 +98,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                 data: bucket.data,
                 labelPrefix: isFieldRequest ? label : '',
                 id: bucket.name,
-                visible: this.parent.widget.chart.selectable && query ? query.includes(bucket.name) : true
+                visible: this.parent.widget.chart.selectable && query ? query.includes(bucket.name) : true,
               });
             }
           });
@@ -108,14 +110,14 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
         pointStart: timestamp.from,
         pointInterval: timestamp.interval,
         stacking: this.parent.widget.chart.stacked ? 'normal' : null,
-        plotLines: (this.events || []).map(event => {
-            return {
-              color: 'rgba(223, 169, 65, 0.4)',
-              width: 2,
-              value: event.created_at,
-              label: {
-                useHTML: true,
-                text: `
+        plotLines: (this.events || []).map((event) => {
+          return {
+            color: 'rgba(223, 169, 65, 0.4)',
+            width: 2,
+            value: event.created_at,
+            label: {
+              useHTML: true,
+              text: `
                   <div style="
                         background-color: var(--gv-theme-font-color-dark, #262626);
                         color: white;
@@ -127,20 +129,20 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
                     <br>
                     <span>${event.properties.deployment_label || ''}</span>
                   </div>`,
-                rotation: 0,
-                style: {
-                  visibility: 'hidden',
-                }
-              }
-            };
-          })
+              rotation: 0,
+              style: {
+                visibility: 'hidden',
+              },
+            },
+          };
+        }),
       };
     };
 
     this.onZoom = (event) => {
       $rootScope.$broadcast('timeframeZoom', {
         from: Math.floor(event.detail.from),
-        to: Math.round(event.detail.to)
+        to: Math.round(event.detail.to),
       });
     };
 
@@ -155,8 +157,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           this.updateQuery(selected, true);
         }
       } else {
-
-        this.series.values.forEach(serie => {
+        this.series.values.forEach((serie) => {
           if (serie.name === selected.name) {
             serie.visible = !selected.visible;
           }
@@ -177,18 +178,17 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     };
 
     this.updateQuery = (item, add) => {
-
       if (this.widget && item.userOptions) {
         this.$scope.$emit('filterItemChange', {
           widget: this.widget.$uid,
           field: this.widget.chart.request.aggs.split(':')[1],
           key: item.userOptions.id,
           name: item.name,
-          mode: (add) ? 'add' : 'remove',
+          mode: add ? 'add' : 'remove',
         });
       }
     };
-  }
+  },
 };
 
 export default WidgetChartLineComponent;

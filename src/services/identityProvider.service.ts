@@ -18,17 +18,16 @@ import { IdentityProvider } from '../entities/identityProvider';
 import { IHttpPromise, IPromise } from 'angular';
 
 class IdentityProviderService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
 
   list(): IPromise<IdentityProvider[]> {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/`).then(response => response.data);
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/`).then((response) => response.data);
   }
 
   get(id: string): IPromise<IdentityProvider> {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/` + id).then(response => {
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/` + id).then((response) => {
       let identityProvider = response.data;
       identityProvider.configuration = identityProvider.configuration || {};
       identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];
@@ -51,9 +50,8 @@ class IdentityProviderService {
   }
 
   update(identityProvider: IdentityProvider): IPromise<IdentityProvider> {
-
-    return this.$http.put(`${this.Constants.org.baseURL}/configuration/identities/` + identityProvider.id,
-      {
+    return this.$http
+      .put(`${this.Constants.org.baseURL}/configuration/identities/` + identityProvider.id, {
         name: identityProvider.name,
         description: identityProvider.description,
         configuration: identityProvider.configuration,
@@ -62,24 +60,25 @@ class IdentityProviderService {
         roleMappings: identityProvider.roleMappings,
         userProfileMapping: identityProvider.userProfileMapping,
         emailRequired: identityProvider.emailRequired,
-        syncMappings: identityProvider.syncMappings
-      }).then(response => {
-      let identityProvider = response.data;
+        syncMappings: identityProvider.syncMappings,
+      })
+      .then((response) => {
+        let identityProvider = response.data;
 
-      identityProvider.configuration = identityProvider.configuration || {};
-      identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];
+        identityProvider.configuration = identityProvider.configuration || {};
+        identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];
 
-      // Init group mapping
-      identityProvider.groupMappings = identityProvider.groupMappings || [];
+        // Init group mapping
+        identityProvider.groupMappings = identityProvider.groupMappings || [];
 
-      // Init role mapping
-      identityProvider.roleMappings = identityProvider.roleMappings || [];
+        // Init role mapping
+        identityProvider.roleMappings = identityProvider.roleMappings || [];
 
-      // Init user mapping
-      identityProvider.userProfileMapping = identityProvider.userProfileMapping || {};
+        // Init user mapping
+        identityProvider.userProfileMapping = identityProvider.userProfileMapping || {};
 
-      return identityProvider;
-    });
+        return identityProvider;
+      });
   }
 
   delete(identityProvider: IdentityProvider): IHttpPromise<any> {

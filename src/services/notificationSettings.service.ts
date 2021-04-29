@@ -19,7 +19,6 @@ import { IHttpPromise } from 'angular';
 import { NotificationConfig } from '../entities/notificationConfig';
 
 class NotificationSettingsService {
-
   constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
   }
@@ -66,7 +65,9 @@ class NotificationSettingsService {
   delete(scope: Scope, referenceId: string, notificationSettingId: string): IHttpPromise<any> {
     switch (scope) {
       case Scope.APPLICATION:
-        return this.$http.delete(`${this.Constants.env.baseURL}/applications/` + referenceId + '/notificationsettings/' + notificationSettingId);
+        return this.$http.delete(
+          `${this.Constants.env.baseURL}/applications/` + referenceId + '/notificationsettings/' + notificationSettingId,
+        );
       case Scope.API:
         return this.$http.delete(`${this.Constants.env.baseURL}/apis/` + referenceId + '/notificationsettings/' + notificationSettingId);
       case Scope.PORTAL:
@@ -77,7 +78,7 @@ class NotificationSettingsService {
   }
 
   update(cfg: NotificationConfig): IHttpPromise<any> {
-    const urlId = (cfg.id ? cfg.id : '');
+    const urlId = cfg.id ? cfg.id : '';
     if (cfg.referenceType === 'API') {
       return this.$http.put(`${this.Constants.env.baseURL}/apis/` + cfg.referenceId + '/notificationsettings/' + urlId, cfg);
     } else if (cfg.referenceType === 'APPLICATION') {

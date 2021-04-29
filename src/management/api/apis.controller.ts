@@ -16,7 +16,7 @@
 import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
-import {StateParams, StateService, TransitionService} from '@uirouter/core';
+import { StateParams, StateService, TransitionService } from '@uirouter/core';
 import ApiService from '../../services/api.service';
 
 interface IApisScope extends ng.IScope {
@@ -26,7 +26,6 @@ interface IApisScope extends ng.IScope {
 }
 
 export class ApisController {
-
   private query: string = '';
   private order: string = undefined;
   private currentOrder: string = undefined;
@@ -43,20 +42,22 @@ export class ApisController {
   private canceler: any;
   private currentApisResponse: any;
 
-  constructor(private ApiService: ApiService,
-              private $mdDialog: ng.material.IDialogService,
-              private $scope: IApisScope,
-              private $state: StateService,
-              private Constants,
-              private Build,
-              private resolvedApis,
-              private UserService: UserService,
-              private graviteeUser,
-              private $filter: ng.IFilterService,
-              private $transitions: TransitionService,
-              private $stateParams: StateParams,
-              private $timeout: ng.ITimeoutService,
-              private $q: ng.IQService) {
+  constructor(
+    private ApiService: ApiService,
+    private $mdDialog: ng.material.IDialogService,
+    private $scope: IApisScope,
+    private $state: StateService,
+    private Constants,
+    private Build,
+    private resolvedApis,
+    private UserService: UserService,
+    private graviteeUser,
+    private $filter: ng.IFilterService,
+    private $transitions: TransitionService,
+    private $stateParams: StateParams,
+    private $timeout: ng.ITimeoutService,
+    private $q: ng.IQService,
+  ) {
     'ngInject';
 
     this.$q = $q;
@@ -93,15 +94,11 @@ export class ApisController {
   }
 
   searchWithQuery(query: string) {
-
     this.canceler.resolve();
     this.canceler = this.$q.defer();
 
-    let promOpts = {timeout: this.canceler.promise};
-    this.$state.transitionTo(
-      this.$state.current,
-      {q: this.query},
-      {notify: false});
+    let promOpts = { timeout: this.canceler.promise };
+    this.$state.transitionTo(this.$state.current, { q: this.query }, { notify: false });
 
     this.ApiService.searchApis(query, 1, this.currentOrder, promOpts).then((response) => {
       this.currentApisResponse = response.data;
@@ -111,7 +108,6 @@ export class ApisController {
   }
 
   sort(order: string, field: string) {
-
     if (order === this.currentOrder || (order !== undefined && !order.includes(field))) {
       return;
     }
@@ -128,7 +124,6 @@ export class ApisController {
   }
 
   gotToPage(requestedPage: number) {
-
     if (this.$scope.apisLoading) {
       return;
     }
@@ -193,19 +188,21 @@ export class ApisController {
 
   showImportDialog() {
     var that = this;
-    this.$mdDialog.show({
-      controller: 'DialogApiImportController',
-      controllerAs: 'dialogApiImportCtrl',
-      template: require('./portal/general/dialog/apiImport.dialog.html'),
-      locals: {
-        apiId: ''
-      },
-      clickOutsideToClose: true
-    }).then(function (response) {
-      if (response) {
-        that.$state.go('apis.admin.general', {apiId: response.data.id}, {reload: true});
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogApiImportController',
+        controllerAs: 'dialogApiImportCtrl',
+        template: require('./portal/general/dialog/apiImport.dialog.html'),
+        locals: {
+          apiId: '',
+        },
+        clickOutsideToClose: true,
+      })
+      .then(function (response) {
+        if (response) {
+          that.$state.go('apis.admin.general', { apiId: response.data.id }, { reload: true });
+        }
+      });
   }
 
   getSubMessage() {
@@ -222,20 +219,18 @@ export class ApisController {
     if (this.currentApisResponse.data) {
       _.forEach(this.currentApisResponse.data, (api: any) => {
         if (_.isUndefined(this.syncStatus[api.id])) {
-          this.ApiService.isAPISynchronized(api.id)
-            .then((sync) => {
-              this.syncStatus[api.id] = sync.data.is_synchronized;
-            });
+          this.ApiService.isAPISynchronized(api.id).then((sync) => {
+            this.syncStatus[api.id] = sync.data.is_synchronized;
+          });
         }
         if (this.isQualityDisplayed && _.isUndefined(this.qualityScores[api.id])) {
-          this.ApiService.getQualityMetrics(api.id)
-            .then((response) => {
-              this.qualityScores[api.id] = _.floor(response.data.score * 100);
-            });
+          this.ApiService.getQualityMetrics(api.id).then((response) => {
+            this.qualityScores[api.id] = _.floor(response.data.score * 100);
+          });
         }
       });
     }
-  }
+  };
 
   getQualityMetricCssClass(score) {
     return this.ApiService.getQualityMetricCssClass(score);

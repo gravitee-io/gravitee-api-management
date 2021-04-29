@@ -17,7 +17,6 @@ import InstancesService from '../../services/instances.service';
 import { StateService } from '@uirouter/core';
 
 interface IInstancesScope extends ng.IScope {
-
   showHistory: boolean;
 
   switchDisplayInstances(): void;
@@ -31,17 +30,14 @@ class InstancesController {
   private lastFrom: any;
   private lastTo: any;
 
-  constructor(
-    private $scope: IInstancesScope,
-    private InstancesService: InstancesService,
-    private $state: StateService) {
+  constructor(private $scope: IInstancesScope, private InstancesService: InstancesService, private $state: StateService) {
     'ngInject';
   }
 
   $onInit() {
     this.query = {
       limit: 10,
-      page: 1
+      page: 1,
     };
 
     this.searchInstances = this.searchInstances.bind(this);
@@ -57,8 +53,8 @@ class InstancesController {
 
       if (this.$scope.showHistory) {
         let now = Date.now();
-        this.$state.params.from = now - (1000 * 60 * 60 * 24);
-        this.$state.params.to = now + (1000 * 60);
+        this.$state.params.from = now - 1000 * 60 * 60 * 24;
+        this.$state.params.to = now + 1000 * 60;
       } else {
         this.searchInstances();
       }
@@ -91,10 +87,13 @@ class InstancesController {
   }
 
   searchInstances() {
-    this.InstancesService.search(this.$scope.showHistory,
-      this.$scope.showHistory ? this.lastFrom : 0, this.$scope.showHistory ? this.lastTo : 0,
+    this.InstancesService.search(
+      this.$scope.showHistory,
+      this.$scope.showHistory ? this.lastFrom : 0,
+      this.$scope.showHistory ? this.lastTo : 0,
       this.$scope.showHistory ? this.query.page - 1 : 0,
-      this.$scope.showHistory ? this.query.limit : 100).then(response => {
+      this.$scope.showHistory ? this.query.limit : 100,
+    ).then((response) => {
       this.instances = response.data;
       this._displayEmptyMode = this.instances.content.length === 0;
     });

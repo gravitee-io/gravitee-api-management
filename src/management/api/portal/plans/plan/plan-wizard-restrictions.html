@@ -17,27 +17,24 @@
 -->
 <md-step label="Restrictions" md-complete="$ctrl.parent.vm.stepData[2].completed">
   <md-step-body>
-
     <md-content layout-padding class="gv-creation-general-content gv-creation-content">
       <section ng-repeat="policy in $ctrl.policies">
         <md-subheader>
-
-          <md-checkbox
-            ng-model="policy.enabled"
-            aria-label="Enable policy" flex>
+          <md-checkbox ng-model="policy.enabled" aria-label="Enable policy" flex>
             <div>{{policy.title}}</div>
             <div class="hints">{{policy.description}}</div>
           </md-checkbox>
-
         </md-subheader>
 
         <div layout-gt-sm="row" ng-if="policy.enabled">
-          <form name="policy.form" flex
-                sf-schema="policy.schema"
-                sf-form="['*']"
-                sf-model="policy.model"
-                sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }">
-          </form>
+          <form
+            name="policy.form"
+            flex
+            sf-schema="policy.schema"
+            sf-form="['*']"
+            sf-model="policy.model"
+            sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }"
+          ></form>
         </div>
       </section>
 
@@ -52,9 +49,12 @@
         <div flex layout="row" layout-align="end top">
           <md-button ng-if="!$ctrl.parent.isV2()" ng-disabled="!$ctrl.validate()" ng-click="$ctrl.gotoNextStep()">NEXT</md-button>
           <md-button
-              ng-if="$ctrl.parent.isV2()" ng-disabled="!$ctrl.validate()"
-              ng-click="$ctrl.gotoNextStep()"
-              class="md-primary md-raised">SAVE</md-button>
+            ng-if="$ctrl.parent.isV2()"
+            ng-disabled="!$ctrl.validate()"
+            ng-click="$ctrl.gotoNextStep()"
+            class="md-primary md-raised"
+            >SAVE</md-button
+          >
         </div>
       </md-step-actions>
     </md-content>

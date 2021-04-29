@@ -19,77 +19,79 @@ import '@gravitee/ui-components/wc/gv-policy-studio';
 
 export const propertyProviders = [
   {
-    'id': 'HTTP',
-    'name': 'Custom (HTTP)',
-    'schema': {
-      'type': 'object',
-      'properties': {
-        'method': {
-          'title': 'HTTP Method',
-          'description': 'HTTP method to invoke the endpoint.',
-          'type' : 'string',
-          'default': 'GET',
-          'enum' : [ 'GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE' ]
+    id: 'HTTP',
+    name: 'Custom (HTTP)',
+    schema: {
+      type: 'object',
+      properties: {
+        method: {
+          title: 'HTTP Method',
+          description: 'HTTP method to invoke the endpoint.',
+          type: 'string',
+          default: 'GET',
+          enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE'],
         },
-        'url': {
-          'title': 'Http service URL',
-          'description': 'http://localhost',
-          'type': 'string',
-          'pattern': '^(http://|https://)'
+        url: {
+          title: 'Http service URL',
+          description: 'http://localhost',
+          type: 'string',
+          pattern: '^(http://|https://)',
         },
-        'headers': {
-          'type': 'array',
-          'title': 'Request Headers',
-          'items': {
-            'type': 'object',
-            'title': 'Header',
-            'properties': {
-              'name': {
-                'title': 'Name',
-                'type': 'string'
+        headers: {
+          type: 'array',
+          title: 'Request Headers',
+          items: {
+            type: 'object',
+            title: 'Header',
+            properties: {
+              name: {
+                title: 'Name',
+                type: 'string',
               },
-              'value': {
-                'title': 'Value',
-                'type': 'string'
-              }
-            }
+              value: {
+                title: 'Value',
+                type: 'string',
+              },
+            },
           },
         },
-        'body': {
-          'title': 'Request body',
-          'type': 'string',
+        body: {
+          title: 'Request body',
+          type: 'string',
           'x-schema-form': {
-            'type': 'codemirror',
-            'codemirrorOptions': {
-              'lineWrapping': true,
-              'lineNumbers': true,
-              'allowDropFileTypes': true,
-              'autoCloseTags': true,
-            }
-          }
+            type: 'codemirror',
+            codemirrorOptions: {
+              lineWrapping: true,
+              lineNumbers: true,
+              allowDropFileTypes: true,
+              autoCloseTags: true,
+            },
+          },
         },
-        'specification': {
-          'title': 'Transformation (JOLT Specification)',
-          'type': 'string',
+        specification: {
+          title: 'Transformation (JOLT Specification)',
+          type: 'string',
           'x-schema-form': {
-            'type': 'codemirror',
-            'codemirrorOptions': {
-              'lineWrapping': true,
-              'lineNumbers': true,
-              'allowDropFileTypes': true,
-              'autoCloseTags': true,
-              'mode': 'javascript'
-            }
-          }
-        }
+            type: 'codemirror',
+            codemirrorOptions: {
+              lineWrapping: true,
+              lineNumbers: true,
+              allowDropFileTypes: true,
+              autoCloseTags: true,
+              mode: 'javascript',
+            },
+          },
+        },
       },
-      'required': ['url', 'specification']
+      required: ['url', 'specification'],
     },
-    'documentation': '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n'
-  }
+    documentation:
+      '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n',
+  },
 ];
 
-export const configurationInformation = 'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
+export const configurationInformation =
+  'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
 
 class ApiPolicyStudioController {
   private studio: any;
@@ -116,7 +118,6 @@ class ApiPolicyStudioController {
   }
 
   $onInit = () => {
-
     this.resolvedPolicies.data.sort((a, b) => {
       if (a.category == null) {
         a.category = this.CATEGORY_POLICY[3];
@@ -161,58 +162,60 @@ class ApiPolicyStudioController {
     if (!this.UserService.isUserHasPermissions(['api-plan-u'])) {
       this.studio.setAttribute('readonly-plans', 'true');
     }
-  }
+  };
 
   setApi(api) {
     if (api !== this.api) {
       this.api = api;
       this.studio.definition = {
-        'name': this.api.name,
-        'version': this.api.version,
-        'flows': this.api.flows != null ? this.api.flows : [],
-        'resources': this.api.resources,
-        'plans': this.UserService.isUserHasPermissions(['api-plan-r', 'api-plan-u']) && this.api.plans != null ? this.api.plans : [],
-        'properties': this.api.properties,
-        'flow-mode': this.api.flow_mode
+        name: this.api.name,
+        version: this.api.version,
+        flows: this.api.flows != null ? this.api.flows : [],
+        resources: this.api.resources,
+        plans: this.UserService.isUserHasPermissions(['api-plan-r', 'api-plan-u']) && this.api.plans != null ? this.api.plans : [],
+        properties: this.api.properties,
+        'flow-mode': this.api.flow_mode,
       };
       this.studio.services = this.api.services;
       this.studio.removeAttribute('dirty');
     }
   }
 
-  onChangeTab({detail}) {
+  onChangeTab({ detail }) {
     this.$location.hash(detail);
   }
 
-  onSelectFlows({detail: {flows}}) {
+  onSelectFlows({ detail: { flows } }) {
     this.$location.search('flows', flows);
   }
 
-  fetchPolicyDocumentation({detail}) {
+  fetchPolicyDocumentation({ detail }) {
     const policy = detail.policy;
     this.PolicyService.getDocumentation(policy.id)
       .then((response) => {
-        this.studio.documentation = {content: response.data, image: policy.icon, id: policy.id};
+        this.studio.documentation = { content: response.data, image: policy.icon, id: policy.id };
       })
-      .catch(() => this.studio.documentation = null);
+      .catch(() => (this.studio.documentation = null));
   }
 
   fetchResourceDocumentation(event) {
-    const {detail: {resourceType, target}} = event;
+    const {
+      detail: { resourceType, target },
+    } = event;
     this.ResourceService.getDocumentation(resourceType.id)
       .then((response) => {
-        target.documentation = {content: response.data, image: resourceType.icon};
+        target.documentation = { content: response.data, image: resourceType.icon };
       })
-      .catch(() => target.documentation = null);
+      .catch(() => (target.documentation = null));
   }
 
-  fetchSpelGrammar({detail}) {
+  fetchSpelGrammar({ detail }) {
     this.SpelService.getGrammar().then((response) => {
       detail.currentTarget.grammar = response.data;
     });
   }
 
-  onSave({detail: {definition, services}}) {
+  onSave({ detail: { definition, services } }) {
     this.api.flows = definition.flows;
     this.api.plans = definition.plans;
     this.api.resources = definition.resources;
@@ -222,10 +225,9 @@ class ApiPolicyStudioController {
     this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Design of api has been updated');
       this.studio.saved();
-      this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+      this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     });
   }
-
 }
 
 export default ApiPolicyStudioController;

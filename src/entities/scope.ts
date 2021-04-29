@@ -15,5 +15,7 @@
  */
 
 export enum Scope {
-  API, APPLICATION, PORTAL
+  API,
+  APPLICATION,
+  PORTAL,
 }

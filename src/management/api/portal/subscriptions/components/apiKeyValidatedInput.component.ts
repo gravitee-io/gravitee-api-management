@@ -19,7 +19,7 @@ import ApiService from '../../../../../services/api.service';
 export enum CustomApiKeyInputState {
   EMPTY = 'empty',
   VALID = 'valid',
-  INVALID = 'invalid'
+  INVALID = 'invalid',
 }
 
 const ApiKeyValidatedInput: ng.IComponentOptions = {
@@ -40,22 +40,25 @@ const ApiKeyValidatedInput: ng.IComponentOptions = {
       this.label = this.label || 'Custom API key';
     };
 
-    this.valueChange = function() {
+    this.valueChange = function () {
       this.checkApiKeyUnicity(this.value);
       this.onChange(this.value);
     };
 
     this.checkApiKeyUnicity = (apiKey: string) => {
       if (apiKey && apiKey.length > 0) {
-        ApiService.verifyApiKey(this.apiId, apiKey).then((response) => {
-          if (response && response.data) {
-            this.state = CustomApiKeyInputState.VALID;
-          } else {
+        ApiService.verifyApiKey(this.apiId, apiKey).then(
+          (response) => {
+            if (response && response.data) {
+              this.state = CustomApiKeyInputState.VALID;
+            } else {
+              this.state = CustomApiKeyInputState.INVALID;
+            }
+          },
+          () => {
             this.state = CustomApiKeyInputState.INVALID;
-          }
-        }, () => {
-          this.state = CustomApiKeyInputState.INVALID;
-        });
+          },
+        );
       } else {
         this.state = CustomApiKeyInputState.EMPTY;
       }
@@ -68,7 +71,7 @@ const ApiKeyValidatedInput: ng.IComponentOptions = {
     this.isApiKeyInvalid = () => {
       return this.state === CustomApiKeyInputState.INVALID;
     };
-  }
+  },
 };
 
 export default ApiKeyValidatedInput;

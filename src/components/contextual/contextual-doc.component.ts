@@ -15,7 +15,7 @@
  */
 const ContextualDocComponent: ng.IComponentOptions = {
   template: require('./contextual-doc.component.html'),
-  controller: 'ContextualDocController'
+  controller: 'ContextualDocController',
 };
 
 export default ContextualDocComponent;

@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 import ApiHeaderService from '../../../services/apiHeader.service';
-import {ApiPortalHeader} from '../../../entities/apiPortalHeader';
+import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 
 function UpdateApiPortalHeaderDialogController(
   ApiHeaderService: ApiHeaderService,
   $mdDialog: angular.material.IDialogService,
-  header: ApiPortalHeader) {
+  header: ApiPortalHeader,
+) {
   'ngInject';
 
   this.header = header;
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.cancel();
   };
 
-  this.save = function() {
-    ApiHeaderService.update(this.header).then( (response) => {
+  this.save = function () {
+    ApiHeaderService.update(this.header).then((response) => {
       $mdDialog.hide(response.data);
     });
   };

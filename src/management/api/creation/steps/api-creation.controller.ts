@@ -17,14 +17,10 @@ import * as _ from 'lodash';
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import NewApiController, {
-  getDefinitionVersionDescription,
-  getDefinitionVersionTitle
-} from '../newApiPortal.controller';
+import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
 import UserService from '../../../../services/user.service';
 
 class ApiCreationController {
-
   api: any;
   selectedTenants: any[];
   attachableGroups: any[];
@@ -41,8 +37,8 @@ class ApiCreationController {
       label?: string;
       completed: boolean;
       optional: boolean;
-      data: any
-    }[]
+      data: any;
+    }[];
   };
   private contextPathInvalid: boolean;
   private plan: any;
@@ -53,7 +49,7 @@ class ApiCreationController {
   private quotaTimeUnits: string[];
   private methods: string[];
   private resourceFiltering: {
-    whitelist: any
+    whitelist: any;
   };
   private skippedStep: boolean;
   private apiSteps: any[];
@@ -67,17 +63,19 @@ class ApiCreationController {
   private tenants: any[];
   private groups: any[];
 
-  constructor(private $scope,
-              private $timeout,
-              private $mdDialog,
-              private $stateParams,
-              private $window,
-              private ApiService: ApiService,
-              private NotificationService: NotificationService,
-              private UserService: UserService,
-              private $state: StateService,
-              private Constants: any,
-              private $rootScope) {
+  constructor(
+    private $scope,
+    private $timeout,
+    private $mdDialog,
+    private $stateParams,
+    private $window,
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
+    private UserService: UserService,
+    private $state: StateService,
+    private Constants: any,
+    private $rootScope,
+  ) {
     'ngInject';
     this.api = {};
     this.api.gravitee = ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0';
@@ -90,21 +88,21 @@ class ApiCreationController {
     this.api.groups = [];
 
     this.plan = {
-      characteristics: []
+      characteristics: [],
     };
 
     this.pages = {};
     this.securityTypes = [];
     if (this.Constants.env.settings.plan.security.apikey.enabled) {
       this.securityTypes.push({
-        'id': 'API_KEY',
-        'name': 'API Key'
+        id: 'API_KEY',
+        name: 'API Key',
       });
     }
     if (this.Constants.env.settings.plan.security.keyless.enabled) {
       this.securityTypes.push({
-        'id': 'KEY_LESS',
-        'name': 'Keyless (public)'
+        id: 'KEY_LESS',
+        name: 'Keyless (public)',
       });
     }
 
@@ -114,7 +112,7 @@ class ApiCreationController {
     this.methods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
 
     this.resourceFiltering = {
-      whitelist: []
+      whitelist: [],
     };
 
     // init steps settings
@@ -125,12 +123,12 @@ class ApiCreationController {
   }
 
   $onInit = () => {
-    this.attachableGroups = this.groups.filter(
-      (group) => group.apiPrimaryOwner == null
-    );
+    this.attachableGroups = this.groups.filter((group) => group.apiPrimaryOwner == null);
     const currentUserGroups = this.UserService.getCurrentUserGroups();
-    this.poGroups = this.groups.filter((group) => group.apiPrimaryOwner != null && currentUserGroups.some(userGroup => userGroup.id === group.id));
-  }
+    this.poGroups = this.groups.filter(
+      (group) => group.apiPrimaryOwner != null && currentUserGroups.some((userGroup) => userGroup.id === group.id),
+    );
+  };
 
   /*
    md-stepper
@@ -144,12 +142,12 @@ class ApiCreationController {
       maxStep: 5,
       showBusyText: false,
       stepData: [
-        {step: 1, completed: false, optional: false, data: {}},
-        {step: 2, completed: false, optional: false, data: {}},
-        {step: 3, label: 'Plan', completed: false, optional: true, data: {}},
-        {step: 4, label: 'Documentation', completed: false, optional: true, data: {}},
-        {step: 5, label: 'Confirmation', completed: false, optional: false, data: {}}
-      ]
+        { step: 1, completed: false, optional: false, data: {} },
+        { step: 2, completed: false, optional: false, data: {} },
+        { step: 3, label: 'Plan', completed: false, optional: true, data: {} },
+        { step: 4, label: 'Documentation', completed: false, optional: true, data: {} },
+        { step: 5, label: 'Confirmation', completed: false, optional: false, data: {} },
+      ],
     };
   }
 
@@ -216,16 +214,15 @@ class ApiCreationController {
   createAPI(deployAndStart, readyForReview?: boolean) {
     const alert = this.$mdDialog.confirm({
       title: 'Create API?',
-      content: 'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + ((deployAndStart) ? ' and deployed.' : '.'),
+      content:
+        'The API ' + this.api.name + ' in version ' + this.api.version + ' will be created' + (deployAndStart ? ' and deployed.' : '.'),
       ok: 'CREATE' + (readyForReview ? ' AND ASK FOR REVIEW' : ''),
-      cancel: 'CANCEL'
+      cancel: 'CANCEL',
     });
 
-    this.$mdDialog
-      .show(alert)
-      .then(() => {
-        this._createAPI(deployAndStart, readyForReview);
-      });
+    this.$mdDialog.show(alert).then(() => {
+      this._createAPI(deployAndStart, readyForReview);
+    });
   }
 
   _createAPI(deployAndStart, readyForReview?: boolean) {
@@ -241,7 +238,7 @@ class ApiCreationController {
 
     // handle plan publish state
     _.forEach(this.api.plans, function (plan) {
-      plan.status = (deployAndStart) ? 'PUBLISHED' : 'STAGING';
+      plan.status = deployAndStart ? 'PUBLISHED' : 'STAGING';
     });
 
     if (this.api.groups != null) {
@@ -253,33 +250,32 @@ class ApiCreationController {
       this.api.lifecycle_state = 'PUBLISHED';
     }
     this.ApiService.import(null, this.api)
-      .then(api => {
-          this.vm.showBusyText = false;
-          return api;
-        }
-      )
-      .then(api => {
+      .then((api) => {
+        this.vm.showBusyText = false;
+        return api;
+      })
+      .then((api) => {
         if (readyForReview) {
           this.ApiService.askForReview(api.data).then((response) => {
             api.data.workflow_state = 'in_review';
             api.data.etag = response.headers('etag');
             this.api = api.data;
-            this.$rootScope.$broadcast('apiChangeSuccess', {api: api.data});
+            this.$rootScope.$broadcast('apiChangeSuccess', { api: api.data });
           });
         }
         return api;
       })
-      .then(api => {
+      .then((api) => {
         if (deployAndStart) {
           this.ApiService.deploy(api.data.id).then(() => {
             this.ApiService.start(api.data).then(() => {
               this.NotificationService.show('API created, deployed and started');
-              this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+              this.$state.go('management.apis.detail.portal.general', { apiId: api.data.id });
             });
           });
         } else {
           this.NotificationService.show('API created');
-          this.$state.go('management.apis.detail.portal.general', {apiId: api.data.id});
+          this.$state.go('management.apis.detail.portal.general', { apiId: api.data.id });
         }
         return api;
       })
@@ -294,14 +290,17 @@ class ApiCreationController {
   validFirstStep(stepData) {
     const stepMessage = `${this.api.name} (${this.api.version}) <code>${this.api.proxy.context_path}</code>`;
     if (this.contextPathInvalid) {
-      const criteria = {'context_path': this.api.proxy.context_path};
-      this.ApiService.verify(criteria).then(() => {
-        this.contextPathInvalid = false;
-        this.submitCurrentStep(stepData);
-        this.apiSteps[this.vm.selectedStep + 1].title = stepMessage;
-      }, () => {
-        this.contextPathInvalid = true;
-      });
+      const criteria = { context_path: this.api.proxy.context_path };
+      this.ApiService.verify(criteria).then(
+        () => {
+          this.contextPathInvalid = false;
+          this.submitCurrentStep(stepData);
+          this.apiSteps[this.vm.selectedStep + 1].title = stepMessage;
+        },
+        () => {
+          this.contextPathInvalid = true;
+        },
+      );
     } else {
       this.submitCurrentStep(stepData);
       this.apiSteps[this.vm.selectedStep + 1].title = stepMessage;
@@ -321,7 +320,7 @@ class ApiCreationController {
       name: 'default',
       target: this.endpoint,
       tenants: this.selectedTenants,
-      inherit: true
+      inherit: true,
     };
 
     this.api.proxy.endpoints.push(endpoint);
@@ -347,53 +346,53 @@ class ApiCreationController {
     });
     if (this.api.gravitee === '1.0.0') {
       this.plan.paths = {
-        '/': []
+        '/': [],
       };
 
       if (this.resourceFiltering.whitelist.length) {
         this.plan.paths['/'].push({
-          'methods': this.methods,
+          methods: this.methods,
           'resource-filtering': {
-            'whitelist': this.resourceFiltering.whitelist
-          }
+            whitelist: this.resourceFiltering.whitelist,
+          },
         });
       }
       // set rate limit policy
       if (this.rateLimit && this.rateLimit.limit) {
         this.plan.paths['/'].push({
-          'methods': this.methods,
+          methods: this.methods,
           'rate-limit': {
-            'rate': this.rateLimit
-          }
+            rate: this.rateLimit,
+          },
         });
       }
       // set quota policy
       if (this.quota && this.quota.limit) {
         this.plan.paths['/'].push({
-          'methods': this.methods,
-          'quota': {
-            'quota': this.quota,
-            'addHeaders': true
-          }
+          methods: this.methods,
+          quota: {
+            quota: this.quota,
+            addHeaders: true,
+          },
         });
       }
     } else {
       const flow = {
         'path-operator': {
           path: '/',
-          operator: 'STARTS_WITH'
+          operator: 'STARTS_WITH',
         },
         condition: '',
         pre: [],
-        post: []
+        post: [],
       };
       if (this.resourceFiltering.whitelist.length) {
         flow.pre.push({
           name: 'Resource Filtering',
           policy: 'resource-filtering',
           configuration: {
-            whitelist: this.resourceFiltering.whitelist
-          }
+            whitelist: this.resourceFiltering.whitelist,
+          },
         });
       }
       // set rate limit policy
@@ -402,8 +401,8 @@ class ApiCreationController {
           name: 'Rate limit',
           policy: 'rate-limit',
           configuration: {
-            rate: this.rateLimit
-          }
+            rate: this.rateLimit,
+          },
         });
       }
       // set quota policy
@@ -413,8 +412,8 @@ class ApiCreationController {
           policy: 'quota',
           configuration: {
             quota: this.quota,
-            addHeaders: true
-          }
+            addHeaders: true,
+          },
         });
       }
       this.plan.flows = [flow];
@@ -447,17 +446,17 @@ class ApiCreationController {
         const file = {
           name: this.$scope.newApiPageFile.name,
           content: data,
-          type: ''
+          type: '',
         };
 
         const fileExtension = file.name.split('.').pop().toUpperCase();
         switch (fileExtension) {
-          case 'MD' :
+          case 'MD':
             file.type = 'MARKDOWN';
             break;
-          case 'YAML' :
-          case 'YML' :
-          case 'JSON' :
+          case 'YAML':
+          case 'YML':
+          case 'JSON':
             file.type = 'SWAGGER';
             break;
         }
@@ -481,7 +480,7 @@ class ApiCreationController {
         name: file.name,
         content: file.content,
         type: file.type,
-        published: false
+        published: false,
       };
 
       this.api.pages.push(page);
@@ -503,17 +502,15 @@ class ApiCreationController {
       title: 'Warning',
       content: 'Are you sure you want to remove this page?',
       ok: 'OK',
-      cancel: 'Cancel'
+      cancel: 'Cancel',
     });
 
     const that = this;
-    this.$mdDialog
-      .show(alert)
-      .then(function () {
-        _.remove(that.api.pages, (_page: any) => {
-          return _page.fileName === page.fileName;
-        });
+    this.$mdDialog.show(alert).then(function () {
+      _.remove(that.api.pages, (_page: any) => {
+        return _page.fileName === page.fileName;
       });
+    });
   }
 
   skipDocumentation() {
@@ -527,28 +524,33 @@ class ApiCreationController {
         badgeClass: 'info',
         badgeIconClass: 'glyphicon-ok-circle',
         title: getDefinitionVersionTitle(this.api.gravitee),
-        content: getDefinitionVersionDescription(this.api.gravitee)
-      }, {
+        content: getDefinitionVersionDescription(this.api.gravitee),
+      },
+      {
         badgeClass: 'disable',
         badgeIconClass: 'glyphicon-refresh',
         title: 'General',
-        content: 'Name, version and context-path'
-      }, {
+        content: 'Name, version and context-path',
+      },
+      {
         badgeClass: 'disable',
         badgeIconClass: 'glyphicon-refresh',
         title: 'Gateway',
-        content: 'Endpoint'
-      }, {
+        content: 'Endpoint',
+      },
+      {
         badgeClass: 'disable',
         badgeIconClass: 'glyphicon-refresh',
         title: 'Plan',
-        content: 'Name, security type and validation mode'
-      }, {
+        content: 'Name, security type and validation mode',
+      },
+      {
         badgeClass: 'disable',
         badgeIconClass: 'glyphicon-refresh',
         title: 'Documentation',
-        content: 'Pages name'
-      }];
+        content: 'Pages name',
+      },
+    ];
   }
 }
 

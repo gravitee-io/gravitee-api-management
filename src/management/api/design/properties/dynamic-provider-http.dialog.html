@@ -22,13 +22,12 @@
       <textarea
         ui-codemirror="{ onLoad : ctrl.codemirrorLoaded }"
         ui-codemirror-opts="ctrl.codeMirrorOptions"
-        ng-model="ctrl.specificationExample">
+        ng-model="ctrl.specificationExample"
+      >
       </textarea>
     </p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-    <md-button class="md-primary" ng-click="ctrl.cancel()">
-      Close
-    </md-button>
+    <md-button class="md-primary" ng-click="ctrl.cancel()"> Close </md-button>
   </md-dialog-actions>
 </md-dialog>

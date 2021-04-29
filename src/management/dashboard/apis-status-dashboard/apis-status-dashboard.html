@@ -54,9 +54,7 @@
         <span ng-if="(!$ctrl.apisInError || $ctrl.apisInError === 0) && ($ctrl.apisInWarning && $ctrl.apisInWarning > 0)">
           {{$ctrl.apisInWarning == 1 ? '1 API is in warning' : $ctrl.apisInWarning + ' APIs are in warning'}}
         </span>
-        <span>
-        &nbsp;in the {{$ctrl.currentTimeframe.title.toLowerCase()}}.
-        </span>
+        <span> &nbsp;in the {{$ctrl.currentTimeframe.title.toLowerCase()}}. </span>
       </div>
       <div class="gv-apis-healthcheck_list">
         <md-card
@@ -64,8 +62,8 @@
           ng-class="{
           'apiError': $ctrl.isInError(api),
           'apiWarn': $ctrl.isInWarning(api)
-          }">
-
+          }"
+        >
           <md-card-header>
             <md-card-avatar>
               <gravitee-identity-picture
@@ -98,13 +96,14 @@
             <div class="noData" ng-if="api.availability === -1">No data to display</div>
           </md-card-content>
         </md-card>
-
       </div>
     </div>
 
-    <gravitee-empty-state ng-if="$ctrl.displayedApis.length === 0"
-                          icon="grid_off"
-                          model="API"
-                          message="There is no API to monitor"></gravitee-empty-state>
+    <gravitee-empty-state
+      ng-if="$ctrl.displayedApis.length === 0"
+      icon="grid_off"
+      model="API"
+      message="There is no API to monitor"
+    ></gravitee-empty-state>
   </div>
 </div>

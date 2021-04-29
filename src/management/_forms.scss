@@ -13,10 +13,10 @@
   }
 
   .gv-forms-header {
-    a, div {
+    a,
+    div {
       padding: 0 0 4px 12px;
       display: inline-block;
-
     }
 
     ng-md-icon {
@@ -86,18 +86,17 @@
       bottom: -18px !important;
     }
   }
-
 }
 .gv-forms.gv-forms-fluid {
-    max-width: 100%;
+  max-width: 100%;
 }
 
 .custom-user-fields-values {
-  overflow-y: scroll; 
+  overflow-y: scroll;
   max-height: max-content;
 }
 .custom-user-fields-values-help {
   font-style: italic;
   font-size: 12px;
-  color: gray; 
+  color: gray;
 }

@@ -23,16 +23,16 @@ import _ = require('lodash');
 const ConsoleSettingsComponent: ng.IComponentOptions = {
   bindings: {
     tags: '<',
-    settings: '<'
+    settings: '<',
   },
   template: require('./console.html'),
-  controller: function(
+  controller: function (
     NotificationService: NotificationService,
     ConsoleSettingsService: ConsoleSettingsService,
     CorsService: CorsService,
     ApiService: ApiService,
     $state: StateService,
-    Constants: any
+    Constants: any,
   ) {
     'ngInject';
     this.methods = CorsService.getHttpMethods();
@@ -45,11 +45,11 @@ const ConsoleSettingsComponent: ng.IComponentOptions = {
       this.settings.cors.allowHeaders = this.settings.cors.allowHeaders || [];
       this.settings.cors.allowMethods = this.settings.cors.allowMethods || [];
       this.settings.cors.exposedHeaders = this.settings.cors.exposedHeaders || [];
-      this.settings.authentication.localLogin.enabled = (this.settings.authentication.localLogin.enabled || !this.hasIdpDefined());
+      this.settings.authentication.localLogin.enabled = this.settings.authentication.localLogin.enabled || !this.hasIdpDefined();
     };
 
     this.save = () => {
-      ConsoleSettingsService.save(this.settings).then( (response) => {
+      ConsoleSettingsService.save(this.settings).then((response) => {
         _.merge(Constants.org.settings, response.data);
         NotificationService.show('Configuration saved');
         $state.reload();
@@ -57,9 +57,11 @@ const ConsoleSettingsComponent: ng.IComponentOptions = {
     };
 
     this.hasIdpDefined = () => {
-      return this.settings.authentication.google.clientId ||
+      return (
+        this.settings.authentication.google.clientId ||
         this.settings.authentication.github.clientId ||
-        this.settings.authentication.oauth2.clientId;
+        this.settings.authentication.oauth2.clientId
+      );
     };
 
     this.isReadonlySetting = (property: string): boolean => {
@@ -77,7 +79,7 @@ const ConsoleSettingsComponent: ng.IComponentOptions = {
     this.querySearchHeaders = (query) => {
       return CorsService.querySearchHeaders(query, this.headers);
     };
-  }
+  },
 };
 
 export default ConsoleSettingsComponent;

@@ -16,10 +16,10 @@
 const MetadataComponent: ng.IComponentOptions = {
   bindings: {
     metadata: '<',
-    metadataFormats: '<'
+    metadataFormats: '<',
   },
   controller: 'MetadataController',
-  template: require('../../../components/metadata/metadata.html')
+  template: require('../../../components/metadata/metadata.html'),
 };
 
 export default MetadataComponent;

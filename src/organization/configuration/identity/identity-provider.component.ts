@@ -22,7 +22,7 @@ const IdentityProviderComponent: ng.IComponentOptions = {
     environments: '<',
   },
   controller: 'IdentityProviderController',
-  template: require('./identity-provider.html')
+  template: require('./identity-provider.html'),
 };
 
 export default IdentityProviderComponent;

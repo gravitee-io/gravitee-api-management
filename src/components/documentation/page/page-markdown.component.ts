@@ -17,8 +17,8 @@
 const PageMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-markdown.html'),
   bindings: {
-    page: '<'
-  }
+    page: '<',
+  },
 };
 
 export default PageMarkdownComponent;

@@ -1,4 +1,4 @@
-import {StateService} from '@uirouter/core';
+import { StateService } from '@uirouter/core';
 import NotificationService from '../../../../services/notification.service';
 
 /*
@@ -18,9 +18,9 @@ import NotificationService from '../../../../services/notification.service';
  */
 const ApplicationLogComponent: ng.IComponentOptions = {
   bindings: {
-    log: '<'
+    log: '<',
   },
-  controller: function($state: StateService, NotificationService: NotificationService, Constants: any) {
+  controller: function ($state: StateService, NotificationService: NotificationService, Constants: any) {
     'ngInject';
     this.Constants = Constants;
     this.NotificationService = NotificationService;
@@ -30,10 +30,10 @@ const ApplicationLogComponent: ng.IComponentOptions = {
       to: $state.params.to,
       q: $state.params.q,
       page: $state.params.page,
-      size: $state.params.size
+      size: $state.params.size,
     };
 
-    this.getMimeType = function(log) {
+    this.getMimeType = function (log) {
       if (log.headers['Content-Type'] !== undefined) {
         let contentType = log.headers['Content-Type'][0];
         return contentType.split(';', 1)[0];
@@ -42,12 +42,12 @@ const ApplicationLogComponent: ng.IComponentOptions = {
       return null;
     };
 
-    this.onCopyBodySuccess = function(evt) {
+    this.onCopyBodySuccess = function (evt) {
       this.NotificationService.show('Body has been copied to clipboard');
       evt.clearSelection();
     };
   },
-  template: require('./application-log.html')
+  template: require('./application-log.html'),
 };
 
 export default ApplicationLogComponent;

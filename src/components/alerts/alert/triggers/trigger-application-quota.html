@@ -16,12 +16,21 @@
 
 -->
 <div layout-gt-sm="row">
-  <span ng-if="$ctrl.label === undefined || $ctrl.label === true" flex="15" style="display: grid;align-items: center;" align="center">When quota reaches </span>
+  <span ng-if="$ctrl.label === undefined || $ctrl.label === true" flex="15" style="display: grid; align-items: center" align="center"
+    >When quota reaches
+  </span>
 
   <md-input-container class="md-block" flex="5">
-
-    <input ng-model="$ctrl.threshold" required type="number" min="1" max="100" name="threshold" aria-label="trigger threshold"
-           ng-change="$ctrl.calculateMultiplier()" />
+    <input
+      ng-model="$ctrl.threshold"
+      required
+      type="number"
+      min="1"
+      max="100"
+      name="threshold"
+      aria-label="trigger threshold"
+      ng-change="$ctrl.calculateMultiplier()"
+    />
     <div ng-messages="$ctrl.parent.formAlert.threshold.$error">
       <div ng-message="required">Threshold is required.</div>
       <div ng-message="min">Threshold must be higher than 0.</div>
@@ -29,5 +38,12 @@
     </div>
   </md-input-container>
 
-  <span ng-if="$ctrl.label === undefined || $ctrl.label === true" flex style="margin-left: 10px; display: grid;align-items: center;text-align: left;" align="center"> % of the limit fixed by the API's plan.</span>
+  <span
+    ng-if="$ctrl.label === undefined || $ctrl.label === true"
+    flex
+    style="margin-left: 10px; display: grid; align-items: center; text-align: left"
+    align="center"
+  >
+    % of the limit fixed by the API's plan.</span
+  >
 </div>

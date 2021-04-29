@@ -21,7 +21,6 @@ import { IPromise, IScope } from 'angular';
 import { StateService } from '@uirouter/core';
 import UserService from '../../../services/user.service';
 class AlertsDashboardComponent implements ng.IComponentController {
-
   private static INFO_COLOR = '#54a3ff';
   private static WARNING_COLOR = '#FF950D';
   private static CRITICAL_COLOR = '#d73a49';
@@ -39,12 +38,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
   private series: IPromise<unknown>;
   private options: any;
 
-  constructor(
-    private $scope: IScope,
-    private AlertService: AlertService,
-    private UserService: UserService,
-    private $state: StateService,
-  ) {
+  constructor(private $scope: IScope, private AlertService: AlertService, private UserService: UserService, private $state: StateService) {
     'ngInject';
   }
 
@@ -52,22 +46,22 @@ class AlertsDashboardComponent implements ng.IComponentController {
     this.timeframe = TimeframeRanges.LAST_MINUTE;
 
     this.options = {
-        name: 'Severity',
-        data: [
-          {
-            name: 'INFO',
-            color: AlertsDashboardComponent.INFO_COLOR
-          },
-          {
-            name: 'WARNING',
-            color: AlertsDashboardComponent.WARNING_COLOR
-          },
-          {
-            name: 'CRITICAL',
-            color: AlertsDashboardComponent.CRITICAL_COLOR
-          }
-        ]
-      };
+      name: 'Severity',
+      data: [
+        {
+          name: 'INFO',
+          color: AlertsDashboardComponent.INFO_COLOR,
+        },
+        {
+          name: 'WARNING',
+          color: AlertsDashboardComponent.WARNING_COLOR,
+        },
+        {
+          name: 'CRITICAL',
+          color: AlertsDashboardComponent.CRITICAL_COLOR,
+        },
+      ],
+    };
 
     if (this.hasAlertingPlugin && this.hasConfiguredAlerts) {
       this.refresh();
@@ -77,15 +71,19 @@ class AlertsDashboardComponent implements ng.IComponentController {
   searchAlertAnalytics() {
     let contextualInformationFromReferenceType = this.getContextualInformationFromReferenceType();
     if (contextualInformationFromReferenceType.hasPermission) {
-
-      this.series = this.AlertService.getAnalytics(this.customTimeframe.from, this.customTimeframe.to, contextualInformationFromReferenceType.scope, this.referenceId).then(response => {
+      this.series = this.AlertService.getAnalytics(
+        this.customTimeframe.from,
+        this.customTimeframe.to,
+        contextualInformationFromReferenceType.scope,
+        this.referenceId,
+      ).then((response) => {
         this.alerts = response.data.alerts;
         this.eventsBySeverity = response.data.bySeverity;
 
         return {
           values: {
-            ...this.eventsBySeverity
-          }
+            ...this.eventsBySeverity,
+          },
         };
       });
     }
@@ -100,13 +98,19 @@ class AlertsDashboardComponent implements ng.IComponentController {
     this.customTimeframe = {
       interval: this.timeframe.interval,
       from: now - this.timeframe.range,
-      to: now
+      to: now,
     };
 
     this.searchAlertAnalytics();
   }
 
-  getContextualInformationFromReferenceType(): {scope: Scope, alertCreationUiRef: string, uiRef: string, permission: string, hasPermission: boolean} {
+  getContextualInformationFromReferenceType(): {
+    scope: Scope;
+    alertCreationUiRef: string;
+    uiRef: string;
+    permission: string;
+    hasPermission: boolean;
+  } {
     switch (this.referenceType) {
       case 'api':
         return {
@@ -114,7 +118,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
           alertCreationUiRef: 'management.apis.detail.alerts.alertnew',
           uiRef: 'management.apis.detail.alerts.alert({alertId: alert.id, tab: "history"})',
           permission: 'api-alert-r',
-          hasPermission: this.UserService.currentUser?.userApiPermissions.includes('api-alert-r')
+          hasPermission: this.UserService.currentUser?.userApiPermissions.includes('api-alert-r'),
         };
       case 'application':
         return {
@@ -122,7 +126,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
           alertCreationUiRef: '',
           uiRef: '',
           permission: 'application-alert-r',
-          hasPermission: this.UserService.currentUser?.userApplicationPermissions.includes('application-alert-r')
+          hasPermission: this.UserService.currentUser?.userApplicationPermissions.includes('application-alert-r'),
         };
       default:
         return {
@@ -130,7 +134,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
           alertCreationUiRef: 'management.settings.alerts.alertnew',
           uiRef: 'management.settings.alerts.alert({alertId: alert.id, tab: "history"})',
           permission: 'environment-alert-r',
-          hasPermission: this.UserService.currentUser?.userEnvironmentPermissions.includes('environment-alert-r')
+          hasPermission: this.UserService.currentUser?.userEnvironmentPermissions.includes('environment-alert-r'),
         };
     }
   }
@@ -169,9 +173,9 @@ const AlertDashBoardComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
     hasConfiguredAlerts: '<',
-    hasAlertingPlugin: '<'
+    hasAlertingPlugin: '<',
   },
-  controller: AlertsDashboardComponent
+  controller: AlertsDashboardComponent,
 };
 
 export default AlertDashBoardComponent;

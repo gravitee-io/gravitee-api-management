@@ -21,11 +21,11 @@ function DialogConfirmController($scope, $mdDialog, locals) {
   $scope.confirmButton = locals.confirmButton || 'OK';
   $scope.cancelButton = locals.cancelButton || 'Cancel';
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.hide(false);
   };
 
-  this.confirm = function() {
+  this.confirm = function () {
     $mdDialog.hide(true);
   };
 }

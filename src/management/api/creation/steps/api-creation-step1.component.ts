@@ -18,7 +18,7 @@ import ApiPrimaryOwnerModeService from '../../../../services/apiPrimaryOwnerMode
 
 const ApiCreationStep1Component: ng.IComponentOptions = {
   require: {
-    parent: '^apiCreation'
+    parent: '^apiCreation',
   },
   template: require('./api-creation-step1.html'),
   controller: class {
@@ -37,22 +37,17 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
       if (!this.advancedMode) {
         this.parent.api.groups = [];
       }
-    }
+    };
 
     canUseAdvancedMode = () => {
       return (
         (this.ApiPrimaryOwnerModeService.isHybrid() &&
-          ((this.parent.attachableGroups &&
-            this.parent.attachableGroups.length > 0) ||
+          ((this.parent.attachableGroups && this.parent.attachableGroups.length > 0) ||
             (this.parent.poGroups && this.parent.poGroups.length > 0))) ||
-        (this.ApiPrimaryOwnerModeService.isGroupOnly() &&
-          this.parent.attachableGroups &&
-          this.parent.attachableGroups.length > 0)
+        (this.ApiPrimaryOwnerModeService.isGroupOnly() && this.parent.attachableGroups && this.parent.attachableGroups.length > 0)
       );
-    }
-
-
-  }
+    };
+  },
 };
 
 export default ApiCreationStep1Component;

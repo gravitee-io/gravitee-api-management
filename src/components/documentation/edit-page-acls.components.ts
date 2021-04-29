@@ -31,17 +31,13 @@ const EditPageAclsComponent: ng.IComponentOptions = {
   bindings: {
     page: '<',
     groups: '<',
-    roles: '<'
+    roles: '<',
   },
   template: require('./edit-page-acls.html'),
-  controller: function(
-    $scope: IPageScope,
-    RoleService: RoleService,
-  ) {
+  controller: function ($scope: IPageScope, RoleService: RoleService) {
     'ngInject';
 
     this.$onInit = () => {
-
       RoleService.list('ENVIRONMENT').then((roles) => {
         this.roles = roles;
       });
@@ -50,26 +46,26 @@ const EditPageAclsComponent: ng.IComponentOptions = {
         isPrivate: this.page.visibility.toLowerCase() === 'private',
         groups: this.page.accessControls?.filter((acl) => acl.referenceType.toUpperCase() === 'GROUP').map((group) => group.referenceId),
         roles: this.page.accessControls?.filter((acl) => acl.referenceType.toUpperCase() === 'ROLE').map((role) => role.referenceId),
-        excludedAccessControls: this.page.excludedAccessControls
+        excludedAccessControls: this.page.excludedAccessControls,
       };
 
-      $scope.$watch('acls', () => {
-        this.page.visibility = $scope.acls.isPrivate ? 'private' : 'public';
-        this.page.excludedAccessControls = $scope.acls.excludedAccessControls;
+      $scope.$watch(
+        'acls',
+        () => {
+          this.page.visibility = $scope.acls.isPrivate ? 'private' : 'public';
+          this.page.excludedAccessControls = $scope.acls.excludedAccessControls;
 
-        this.page.accessControls = [
-          $scope.acls.groups?.map((acl) => ({referenceId: acl, referenceType: 'GROUP'})),
-          $scope.acls.roles?.map((acl) => ({referenceId: acl, referenceType: 'ROLE'})),
-        ]
-          .filter((acl) => acl != null)
-          .reduce((acc, val) => acc.concat(val), []);
-
-      }, true);
-
+          this.page.accessControls = [
+            $scope.acls.groups?.map((acl) => ({ referenceId: acl, referenceType: 'GROUP' })),
+            $scope.acls.roles?.map((acl) => ({ referenceId: acl, referenceType: 'ROLE' })),
+          ]
+            .filter((acl) => acl != null)
+            .reduce((acc, val) => acc.concat(val), []);
+        },
+        true,
+      );
     };
-
-  }
-
+  },
 };
 
 export default EditPageAclsComponent;

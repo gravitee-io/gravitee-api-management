@@ -27,7 +27,6 @@ export class ConditionType {
     this.id = id;
     this.statement = statement;
   }
-
 }
 
 export class Condition {
@@ -97,7 +96,9 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   };
 
   this.save = () => {
-    let condition = _($scope.conditions).map((condition) => condition.toCondition()).join(' && ');
+    let condition = _($scope.conditions)
+      .map((condition) => condition.toCondition())
+      .join(' && ');
 
     $mdDialog.hide(condition);
   };

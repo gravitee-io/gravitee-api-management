@@ -15,10 +15,10 @@
  */
 const ClientRegistrationProviderComponent: ng.IComponentOptions = {
   bindings: {
-    clientRegistrationProvider: '<'
+    clientRegistrationProvider: '<',
   },
   controller: 'ClientRegistrationProviderController',
-  template: require('./client-registration-provider.html')
+  template: require('./client-registration-provider.html'),
 };
 
 export default ClientRegistrationProviderComponent;

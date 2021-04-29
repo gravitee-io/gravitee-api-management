@@ -16,9 +16,10 @@
 
 -->
 <div class="gv-sub-content" ng-if="!$ctrl.hasAlertingPlugin">
-  <gravitee-empty-state icon="alarm_off"
-                        message="No alert plugin is installed."
-                        sub-message="Please install a plugin before being able to define alert rules."
+  <gravitee-empty-state
+    icon="alarm_off"
+    message="No alert plugin is installed."
+    sub-message="Please install a plugin before being able to define alert rules."
   ></gravitee-empty-state>
 </div>
 
@@ -28,11 +29,16 @@
     model="Alert"
     message="No alert configured"
     sub-message="Start creating an alert"
-    create-mode="true">
-    <md-button permission permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
-               class="md-fab"
-               aria-label="create-alert" ng-click="$ctrl.goToAlertCreation()">
-      <ng-md-icon icon="add" style="fill: #fff;"></ng-md-icon>
+    create-mode="true"
+  >
+    <md-button
+      permission
+      permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
+      class="md-fab"
+      aria-label="create-alert"
+      ng-click="$ctrl.goToAlertCreation()"
+    >
+      <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
     </md-button>
   </gravitee-empty-state>
 </div>
@@ -51,25 +57,22 @@
     </div>
 
     <div ng-if="$ctrl.hasConfiguredAlerts && $ctrl.alerts.length === 0">
-      <gravitee-empty-state icon="alarm_on"
-                            message="No alert event"
-      ></gravitee-empty-state>
+      <gravitee-empty-state icon="alarm_on" message="No alert event"></gravitee-empty-state>
     </div>
 
     <div layout="column" ng-show="$ctrl.alerts.length > 0">
       <div>
         <h2>All alert events in {{$ctrl.timeframe.title | lowercase}}</h2>
         <div style="height: 250px">
-          <gv-chart-bar ng-prop-series="$ctrl.series"
-                        ng-attr-options="{{$ctrl.options}}"
-          ></gv-chart-bar>
+          <gv-chart-bar ng-prop-series="$ctrl.series" ng-attr-options="{{$ctrl.options}}"></gv-chart-bar>
         </div>
       </div>
       <div>
         <div>
           <div class="gv-alerts_list">
-            <md-card ng-repeat="alert in $ctrl.alerts"
-                     ng-class="{
+            <md-card
+              ng-repeat="alert in $ctrl.alerts"
+              ng-class="{
                         'alert-critical': $ctrl.isAlertCritical(alert),
                         'alert-warning': $ctrl.isAlertWarning(alert),
                         'alert-info': $ctrl.isAlertInfo(alert)
@@ -89,7 +92,6 @@
                 </div>
               </md-card-content>
             </md-card>
-
           </div>
         </div>
       </div>

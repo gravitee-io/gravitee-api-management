@@ -20,20 +20,14 @@ import NotificationService from '../../services/notification.service';
 const NewsletterReminderComponent: ng.IComponentOptions = {
   template: require('./newsletter-reminder.html'),
   bindings: {},
-  controller: function(
-    $element,
-    Constants: any,
-    UserService: UserService,
-    $scope: IScope,
-    NotificationService: NotificationService,
-  ) {
+  controller: function ($element, Constants: any, UserService: UserService, $scope: IScope, NotificationService: NotificationService) {
     'ngInject';
     const vm = this;
     this.displayNewsletterSubscription = false;
     this.user = null;
     this.error = false;
 
-    $scope.$on('graviteeUserRefresh', (event, {user, refresh}) => {
+    $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
       if (refresh) {
         this._loadUser();
       } else if (user && user.authenticated) {
@@ -44,9 +38,10 @@ const NewsletterReminderComponent: ng.IComponentOptions = {
     });
 
     vm._loadUser = () => {
-      UserService.current().then((user) => {
-        this.setUser(user);
-      })
+      UserService.current()
+        .then((user) => {
+          this.setUser(user);
+        })
         .catch(() => this.setUser(null));
     };
 
@@ -91,7 +86,7 @@ const NewsletterReminderComponent: ng.IComponentOptions = {
         NotificationService.show('Your newsletter preference has been saved.');
       });
     };
-  }
+  },
 };
 
 export default NewsletterReminderComponent;

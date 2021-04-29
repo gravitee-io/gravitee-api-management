@@ -26,15 +26,9 @@
     <md-input-container class="md-block">
       <label>Mode</label>
       <md-select ng-model="$ctrl.dampening.mode" required ng-change="$ctrl.onModeChange()">
-        <md-option
-          ng-value="mode.type"
-          ng-repeat="mode in $ctrl.modes">
-          {{::mode.description}}
-        </md-option>
+        <md-option ng-value="mode.type" ng-repeat="mode in $ctrl.modes"> {{::mode.description}} </md-option>
       </md-select>
-      <div class="hint">
-        Select the most appropriate dampening mode for this alert.
-      </div>
+      <div class="hint">Select the most appropriate dampening mode for this alert.</div>
     </md-input-container>
 
     <div layout="column" ng-switch="$ctrl.dampening.mode">
@@ -42,10 +36,16 @@
       <div ng-switch-when="strict_count">
         <md-input-container class="md-block" flex-gt-sm flex="30">
           <label>Number of true evaluations</label>
-          <input ng-model="$ctrl.dampening.trueEvaluations" required type="number" min="1" max="100" name="dampening.trueevaluations" aria-label="dampening true evaluations" />
-          <div class="hint">
-            The number of consecutive true evaluations.
-          </div>
+          <input
+            ng-model="$ctrl.dampening.trueEvaluations"
+            required
+            type="number"
+            min="1"
+            max="100"
+            name="dampening.trueevaluations"
+            aria-label="dampening true evaluations"
+          />
+          <div class="hint">The number of consecutive true evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.trueevaluations'].$error">
             <div ng-message="required">Number of true evaluations is required.</div>
             <div ng-message="min">Number of true evaluations must be higher or equals to 1.</div>
@@ -57,24 +57,36 @@
       <div ng-switch-when="relaxed_count" layout="row">
         <md-input-container class="md-block" flex-gt-sm flex="30">
           <label>Number of true evaluations</label>
-          <input ng-model="$ctrl.dampening.trueEvaluations" required type="number" min="1" max="100" name="dampening.trueevaluations" aria-label="dampening true evaluations" />
-          <div class="hint">
-            The number of true evaluations.
-          </div>
+          <input
+            ng-model="$ctrl.dampening.trueEvaluations"
+            required
+            type="number"
+            min="1"
+            max="100"
+            name="dampening.trueevaluations"
+            aria-label="dampening true evaluations"
+          />
+          <div class="hint">The number of true evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.trueevaluations'].$error">
             <div ng-message="required">Number of true evaluations is required.</div>
             <div ng-message="min">Number of true evaluations must be higher or equals to 1.</div>
           </div>
         </md-input-container>
 
-        <span flex="10" style="display: grid;align-items: center;" align="center"> of </span>
+        <span flex="10" style="display: grid; align-items: center" align="center"> of </span>
 
         <md-input-container class="md-block" flex-gt-sm flex="30">
           <label>Number of total evaluations</label>
-          <input ng-model="$ctrl.dampening.totalEvaluations" required type="number" min="{{$ctrl.dampening.trueEvaluations}}" max="100" name="dampening.totalevaluations" aria-label="dampening total evaluations" />
-          <div class="hint">
-            The number of total evaluations.
-          </div>
+          <input
+            ng-model="$ctrl.dampening.totalEvaluations"
+            required
+            type="number"
+            min="{{$ctrl.dampening.trueEvaluations}}"
+            max="100"
+            name="dampening.totalevaluations"
+            aria-label="dampening total evaluations"
+          />
+          <div class="hint">The number of total evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.totalevaluations'].$error">
             <div ng-message="required">Number of total evaluations is required.</div>
             <div ng-message="min">Number of total evaluations must be higher than the number of true evaluations.</div>
@@ -86,7 +98,15 @@
       <div ng-switch-when="strict_time" layout="row">
         <md-input-container class="md-block" flex-gt-sm flex="10">
           <label>Duration</label>
-          <input ng-model="$ctrl.dampening.duration" required type="number" min="1" max="100" name="dampening.duration" aria-label="dampening duration" />
+          <input
+            ng-model="$ctrl.dampening.duration"
+            required
+            type="number"
+            min="1"
+            max="100"
+            name="dampening.duration"
+            aria-label="dampening duration"
+          />
           <div ng-messages="$ctrl.parent.formAlert['dampening.duration'].$error">
             <div ng-message="required">Number of true evaluations is required.</div>
             <div ng-message="min">Number of true evaluations must be higher or equals to 1.</div>
@@ -96,11 +116,7 @@
         <md-input-container class="md-block" flex-gt-sm flex="15">
           <label>TimeUnit</label>
           <md-select ng-model="$ctrl.dampening.timeUnit" required>
-            <md-option
-              ng-value="unit.key"
-              ng-repeat="unit in $ctrl.timeUnits">
-              {{::unit.name}}
-            </md-option>
+            <md-option ng-value="unit.key" ng-repeat="unit in $ctrl.timeUnits"> {{::unit.name}} </md-option>
           </md-select>
         </md-input-container>
       </div>
@@ -109,21 +125,35 @@
       <div ng-switch-when="relaxed_time" layout="row">
         <md-input-container class="md-block" flex-gt-sm flex="30">
           <label>Number of true evaluations</label>
-          <input ng-model="$ctrl.dampening.trueEvaluations" required type="number" min="1" max="100" name="dampening.trueevaluations" aria-label="dampening true evaluations" />
-          <div class="hint">
-            The number of true evaluations.
-          </div>
+          <input
+            ng-model="$ctrl.dampening.trueEvaluations"
+            required
+            type="number"
+            min="1"
+            max="100"
+            name="dampening.trueevaluations"
+            aria-label="dampening true evaluations"
+          />
+          <div class="hint">The number of true evaluations.</div>
           <div ng-messages="$ctrl.parent.formAlert['dampening.trueevaluations'].$error">
             <div ng-message="required">Number of true evaluations is required.</div>
             <div ng-message="min">Number of true evaluations must be higher or equals to 1.</div>
           </div>
         </md-input-container>
 
-        <span flex="10" style="display: grid;align-items: center;" align="center"> for </span>
+        <span flex="10" style="display: grid; align-items: center" align="center"> for </span>
 
         <md-input-container class="md-block" flex-gt-sm flex="10">
           <label>Duration</label>
-          <input ng-model="$ctrl.dampening.duration" required type="number" min="1" max="100" name="dampening.duration" aria-label="dampening duration" />
+          <input
+            ng-model="$ctrl.dampening.duration"
+            required
+            type="number"
+            min="1"
+            max="100"
+            name="dampening.duration"
+            aria-label="dampening duration"
+          />
           <div ng-messages="$ctrl.parent.formAlert['dampening.duration'].$error">
             <div ng-message="required">Number of true evaluations is required.</div>
             <div ng-message="min">Number of true evaluations must be higher or equals to 1.</div>
@@ -133,15 +163,10 @@
         <md-input-container class="md-block" flex-gt-sm flex="15">
           <label>TimeUnit</label>
           <md-select ng-model="$ctrl.dampening.timeUnit" required>
-            <md-option
-              ng-value="unit.key"
-              ng-repeat="unit in $ctrl.timeUnits">
-              {{::unit.name}}
-            </md-option>
+            <md-option ng-value="unit.key" ng-repeat="unit in $ctrl.timeUnits"> {{::unit.name}} </md-option>
           </md-select>
         </md-input-container>
       </div>
     </div>
   </div>
-
 </div>

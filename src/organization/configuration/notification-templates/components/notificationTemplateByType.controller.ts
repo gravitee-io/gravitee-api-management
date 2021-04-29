@@ -25,10 +25,7 @@ class NotificationTemplateByTypeController {
   private isTemplateToInclude: boolean;
   private overrideModeEnabled: boolean;
 
-  constructor(
-    private NotificationTemplatesService: NotificationTemplatesService,
-    private NotificationService: NotificationService,
-  ) {
+  constructor(private NotificationTemplatesService: NotificationTemplatesService, private NotificationService: NotificationService) {
     'ngInject';
   }
 
@@ -42,22 +39,18 @@ class NotificationTemplateByTypeController {
     const that = this;
     this.notifTemplate.enabled = this.overrideModeEnabled;
     if (this.notifTemplate.id) {
-      this.NotificationTemplatesService.update(this.notifTemplate)
-        .then(response => {
-          that.originalNotifTemplate = _.clone(response.data);
-          that.notifTemplateForm.$setPristine();
-          that.NotificationService.show(that.notifTemplate.name + ' has been saved.');
-        })
-      ;
+      this.NotificationTemplatesService.update(this.notifTemplate).then((response) => {
+        that.originalNotifTemplate = _.clone(response.data);
+        that.notifTemplateForm.$setPristine();
+        that.NotificationService.show(that.notifTemplate.name + ' has been saved.');
+      });
     } else {
-      this.NotificationTemplatesService.create(this.notifTemplate)
-        .then(response => {
-          this.notifTemplate.id = response.data.id;
-          that.originalNotifTemplate = _.clone(response.data);
-          that.notifTemplateForm.$setPristine();
-          that.NotificationService.show(that.notifTemplate.name + ' has been saved.');
-        })
-      ;
+      this.NotificationTemplatesService.create(this.notifTemplate).then((response) => {
+        this.notifTemplate.id = response.data.id;
+        that.originalNotifTemplate = _.clone(response.data);
+        that.notifTemplateForm.$setPristine();
+        that.NotificationService.show(that.notifTemplate.name + ' has been saved.');
+      });
     }
   }
 

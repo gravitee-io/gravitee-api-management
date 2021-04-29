@@ -23,17 +23,15 @@ class NotificationTemplateController {
 
   private templateName: string;
 
-  constructor(
-    private $stateParams
-  ) {
+  constructor(private $stateParams) {
     'ngInject';
   }
 
   $onInit() {
     if (this.$stateParams.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE') {
-      this.emailNotifTemplate = this.notifTemplates.find(notif => notif.name === this.$stateParams.hook);
+      this.emailNotifTemplate = this.notifTemplates.find((notif) => notif.name === this.$stateParams.hook);
     } else {
-      this.notifTemplates.forEach(notif => {
+      this.notifTemplates.forEach((notif) => {
         if (notif.type.toUpperCase() === 'PORTAL') {
           this.portalNotifTemplate = notif;
         } else {

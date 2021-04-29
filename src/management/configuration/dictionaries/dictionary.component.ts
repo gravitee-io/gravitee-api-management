@@ -15,10 +15,10 @@
  */
 const DictionaryComponent: ng.IComponentOptions = {
   bindings: {
-    dictionary: '<'
+    dictionary: '<',
   },
   controller: 'DictionaryController',
-  template: require('./dictionary.html')
+  template: require('./dictionary.html'),
 };
 
 export default DictionaryComponent;

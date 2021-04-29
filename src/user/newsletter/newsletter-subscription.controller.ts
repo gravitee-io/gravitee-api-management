@@ -17,16 +17,18 @@ import UserService from '../../services/user.service';
 import '@gravitee/ui-components/wc/gv-newsletter-subscription';
 
 class NewsletterSubscriptionController {
-
   newsletterPage;
 
-  constructor(private $state,
-              private $scope,
-              public UserService: UserService,
-              private NotificationService,
-              Constants,
-              private $window,
-              private $rootScope) {
+  constructor(
+    private $state,
+    private $scope,
+    public UserService: UserService,
+    private NotificationService,
+    Constants,
+    private $window,
+    private $rootScope,
+    private taglines,
+  ) {
     'ngInject';
 
     $scope.user = UserService.currentUser;
@@ -35,9 +37,12 @@ class NewsletterSubscriptionController {
     this.newsletterPage.addEventListener('gv-newsletter-subscription:subscribe', this.onSubscribe.bind(this));
     this.newsletterPage.addEventListener('gv-newsletter-subscription:skip', this.onSkip.bind(this));
     this.newsletterPage.disabled = !!$scope.user.email;
+    if (taglines) {
+      this.newsletterPage.taglines = taglines;
+    }
   }
 
-  onSubscribe({ detail } ) {
+  onSubscribe({ detail }) {
     if (detail && detail.trim() !== '') {
       this.UserService.subscribeNewsletter(detail).then((user) => {
         this.NotificationService.show('Your newsletter preference has been saved.');

@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 import QualityRuleService from '../../../../services/qualityRule.service';
-import {QualityRule} from '../../../../entities/qualityRule';
-import {IScope} from 'angular';
+import { QualityRule } from '../../../../entities/qualityRule';
+import { IScope } from 'angular';
 
 function DeleteApiQualityRuleDialogController(
   $scope: IScope,
   $mdDialog: angular.material.IDialogService,
   qualityRule: QualityRule,
-  QualityRuleService: QualityRuleService) {
+  QualityRuleService: QualityRuleService,
+) {
   'ngInject';
   this.qualityRule = qualityRule;
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.cancel();
   };
 
-  this.ok = function() {
+  this.ok = function () {
     QualityRuleService.delete(qualityRule).then(function () {
       $mdDialog.hide(true);
     });

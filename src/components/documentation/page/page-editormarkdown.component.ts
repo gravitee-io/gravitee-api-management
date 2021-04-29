@@ -15,12 +15,11 @@
  */
 import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
-import * as hljs  from 'highlight.js';
+import * as hljs from 'highlight.js';
 import NotificationService from '../../../services/notification.service';
 import { PageType } from '../../../services/documentation.service';
 
 class ComponentCtrl implements ng.IComponentController {
-
   public page: any;
   public options: any;
   public pagesToLink: any[];
@@ -33,7 +32,7 @@ class ComponentCtrl implements ng.IComponentController {
     private Constants,
     private $state: StateService,
     private $mdDialog: angular.material.IDialogService,
-    private NotificationService: NotificationService
+    private NotificationService: NotificationService,
   ) {
     'ngInject';
     var lastElement = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;
@@ -69,9 +68,8 @@ class ComponentCtrl implements ng.IComponentController {
       'link',
       'divider',
       'code',
-      'codeblock'
+      'codeblock',
     ];
-
 
     let $http = this.$http;
     let Constants = this.Constants;
@@ -88,67 +86,74 @@ class ComponentCtrl implements ng.IComponentController {
     }
 
     const that = this;
-    this.tuiEditor = new Editor(Object.assign({
-      el: document.querySelector('#editSection'),
-      initialEditType: 'markdown',
-      previewStyle: 'vertical',
-      initialValue: initialValue,
-      useDefaultHTMLSanitizer: false,
-      height: '500px',
-      usageStatistics: false,
-      exts: ['table', 'scrollSync'],
-      toolbarItems: toolbarItems,
-      events: {
-        change: (change) => {
-          this.page.content = this.tuiEditor.getMarkdown();
-        }
-      },
-      hooks: {
-        addImageBlobHook: function (blob, callback) {
+    this.tuiEditor = new Editor(
+      Object.assign(
+        {
+          el: document.querySelector('#editSection'),
+          initialEditType: 'markdown',
+          previewStyle: 'vertical',
+          initialValue: initialValue,
+          useDefaultHTMLSanitizer: false,
+          height: '500px',
+          usageStatistics: false,
+          exts: ['table', 'scrollSync'],
+          toolbarItems: toolbarItems,
+          events: {
+            change: (change) => {
+              this.page.content = this.tuiEditor.getMarkdown();
+            },
+          },
+          hooks: {
+            addImageBlobHook: function (blob, callback) {
+              let fd = new FormData();
+              fd.append('file', blob);
 
-          let fd = new FormData();
-          fd.append('file', blob);
+              if (blob.size > Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
+                that.NotificationService.showError(
+                  `File uploaded is too big, you're limited at ${Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`,
+                );
+                return false;
+              }
 
-          if (blob.size > Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
-            that.NotificationService.showError(`File uploaded is too big, you're limited at ${Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`);
-            return false;
-          }
+              $http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } }).then((response) => {
+                callback(mediaURL + response.data, blob.name);
+              });
 
-          $http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } })
-            .then((response) => {
-              callback(mediaURL + response.data, blob.name);
-            });
-
-          return false;
-        }
-      },
-      plugins: [[codeSyntaxHighlight, { hljs }]]
-    }, this.options));
+              return false;
+            },
+          },
+          plugins: [[codeSyntaxHighlight, { hljs }]],
+        },
+        this.options,
+      ),
+    );
 
     this.tuiEditor.eventManager.addEventType('addLinkToPage');
     const toolbar = this.tuiEditor.getUI().getToolbar();
     toolbar.insertItem(
-      (Constants.env.settings.portal.uploadMedia.enabled ? 17 : 16), // index depends on image button
+      Constants.env.settings.portal.uploadMedia.enabled ? 17 : 16, // index depends on image button
       {
-      type: 'button',
-      options: {
-        event: 'addLinkToPage',
-        tooltip: 'Insert page link',
-        style: 'background-image: url(\'assets/logo_file.svg\');  background-size: 20px 20px;'
-      }
-    });
+        type: 'button',
+        options: {
+          event: 'addLinkToPage',
+          tooltip: 'Insert page link',
+          style: "background-image: url('assets/logo_file.svg');  background-size: 20px 20px;",
+        },
+      },
+    );
 
     this.tuiEditor.eventManager.listen('addLinkToPage', function () {
-      that.$mdDialog.show({
-        controller: 'SelectPageDialogController',
-        controllerAs: 'ctrl',
-        template: require('../dialog/selectpage.dialog.html'),
-        clickOutsideToClose: true,
-        locals: {
-          pages: that.pagesToLink,
-          title: 'Create a link to a page'
-        }
-      })
+      that.$mdDialog
+        .show({
+          controller: 'SelectPageDialogController',
+          controllerAs: 'ctrl',
+          template: require('../dialog/selectpage.dialog.html'),
+          clickOutsideToClose: true,
+          locals: {
+            pages: that.pagesToLink,
+            title: 'Create a link to a page',
+          },
+        })
         .then((page) => {
           if (page) {
             if (that.$state.params.apiId) {
@@ -161,12 +166,12 @@ class ComponentCtrl implements ng.IComponentController {
           }
         });
     });
-
   }
 
   getBannerMessage(): string {
-    return this.isMarkdownTemplate() ? 'This page is not available for users yet' :
-      'This page is not published yet and will not be visible to other users';
+    return this.isMarkdownTemplate()
+      ? 'This page is not available for users yet'
+      : 'This page is not published yet and will not be visible to other users';
   }
 
   isMarkdownTemplate(): boolean {
@@ -179,9 +184,9 @@ const PageEditorMarkdownComponent: ng.IComponentOptions = {
   bindings: {
     page: '<',
     options: '<',
-    pagesToLink: '<'
+    pagesToLink: '<',
   },
-  controller: ComponentCtrl
+  controller: ComponentCtrl,
 };
 
 export default PageEditorMarkdownComponent;

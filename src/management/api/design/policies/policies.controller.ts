@@ -58,7 +58,7 @@ class ApiPoliciesController {
     this.schemaByPolicyId = {};
 
     this.listAllPolicies().then((policies) => {
-      _.forEach(policies, ({policy}) => {
+      _.forEach(policies, ({ policy }) => {
         this.policiesToCopy.push(policy);
         this.policiesMap[policy.policyId] = policy;
       });
@@ -71,19 +71,22 @@ class ApiPoliciesController {
     });
 
     const that = this;
-    this.$scope.$on('dragulardrop', function(event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
-      if (dropzoneObjList !== null) {
-        // Automatically display the configuration associated to the dragged policy
-        that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
-          // Automatically save if there is no json schema configuration attached to the dragged policy.
-          if (schema.id === 'empty') {
-            that.savePaths();
-          }
-        });
-      } else {
-        that.savePaths();
-      }
-    });
+    this.$scope.$on(
+      'dragulardrop',
+      function (event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
+        if (dropzoneObjList !== null) {
+          // Automatically display the configuration associated to the dragged policy
+          that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
+            // Automatically save if there is no json schema configuration attached to the dragged policy.
+            if (schema.id === 'empty') {
+              that.savePaths();
+            }
+          });
+        } else {
+          that.savePaths();
+        }
+      },
+    );
   }
 
   generatePathsToCompare() {
@@ -95,7 +98,6 @@ class ApiPoliciesController {
   completeApiPolicies(pathMap) {
     _.forEach(pathMap, (policies) => {
       _.forEach(policies, (policy) => {
-
         _.forEach(policy, (value, property) => {
           if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
             policy.policyId = property;
@@ -124,17 +126,17 @@ class ApiPoliciesController {
     const dragularSrcOptions = document.querySelector('.gravitee-policy-draggable');
 
     this.dragularService([dragularSrcOptions], {
-      moves: function() {
+      moves: function () {
         return true;
       },
       copy: true,
       scope: this.$scope,
       containersModel: this.policiesToCopy,
       classes: {
-        unselectable: 'gravitee-policy-draggable-selected'
+        unselectable: 'gravitee-policy-draggable-selected',
       },
       nameSpace: 'policies',
-      accepts: this.acceptDragDrop
+      accepts: this.acceptDragDrop,
     });
   }
 
@@ -143,17 +145,17 @@ class ApiPoliciesController {
       const dragularApiOptions = document.querySelector('.dropzone-' + this.StringService.hashCode(path));
       if (dragularApiOptions) {
         this.dragularService([dragularApiOptions], {
-          moves: function() {
+          moves: function () {
             return true;
           },
           copy: false,
           scope: this.$scope,
           containersModel: this.apiPoliciesByPath[path],
           classes: {
-            unselectable: 'gravitee-policy-draggable-selected'
+            unselectable: 'gravitee-policy-draggable-selected',
           },
           nameSpace: 'policies',
-          accepts: this.acceptDragDrop
+          accepts: this.acceptDragDrop,
         });
         this.pathsInitialized[path] = true;
       }
@@ -161,7 +163,7 @@ class ApiPoliciesController {
   }
 
   listAllPolicies() {
-    return this.PolicyService.list({expandSchema: true}).then((policies) => {
+    return this.PolicyService.list({ expandSchema: true }).then((policies) => {
       return _.map(policies.data, (originalPolicy: any) => {
         const policy = {
           policyId: originalPolicy.id,
@@ -170,16 +172,16 @@ class ApiPoliciesController {
           name: originalPolicy.name,
           type: originalPolicy.type,
           description: originalPolicy.description,
-          enabled: originalPolicy.enabled || true
+          enabled: originalPolicy.enabled || true,
         };
-        return {policy};
+        return { policy };
       });
     });
   }
 
   acceptDragDrop(el, target, source) {
     const draggable = document.querySelector('.gravitee-policy-draggable');
-    return (source === draggable || source === target);
+    return source === draggable || source === target;
   }
 
   editPolicy(index, path) {
@@ -203,8 +205,7 @@ class ApiPoliciesController {
   }
 
   getHttpMethodClass(method, methods) {
-    return 'gravitee-policy-method-badge-' + method +
-      (methods.indexOf(method) > -1 ? '-selected' : '-unselected');
+    return 'gravitee-policy-method-badge-' + method + (methods.indexOf(method) > -1 ? '-selected' : '-unselected');
   }
 
   getApiPolicyClass(policy) {
@@ -225,9 +226,7 @@ class ApiPoliciesController {
   }
 
   getDropzoneClass(path) {
-    return 'gravitee-policy-dropzone ' +
-      'gravitee-policy-dropzone-filled' +
-      ' dropzone-' + this.StringService.hashCode(path);
+    return 'gravitee-policy-dropzone ' + 'gravitee-policy-dropzone-filled' + ' dropzone-' + this.StringService.hashCode(path);
   }
 
   toggleHttpMethod(method, methods) {
@@ -244,9 +243,11 @@ class ApiPoliciesController {
     return _.reduce(
       _.map(policy.methods, (method: string) => {
         return this.httpMethodsFilter.indexOf(method) < 0;
-      }), (result, n) => {
+      }),
+      (result, n) => {
         return result && n;
-      });
+      },
+    );
   }
 
   removePolicy(index, path, ev) {
@@ -254,26 +255,28 @@ class ApiPoliciesController {
     this.selectedApiPolicy = null;
     const hashKey = this.apiPoliciesByPath[path][index].$$hashKey;
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to remove this policy?',
-        confirmButton: 'Remove'
-      }
-    }).then(function(response) {
-      if (response) {
-        _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
-          if (policy.$$hashKey === hashKey) {
-            that.apiPoliciesByPath[path].splice(idx, 1);
-            return false;
-          }
-        });
-        that.savePaths();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to remove this policy?',
+          confirmButton: 'Remove',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
+            if (policy.$$hashKey === hashKey) {
+              that.apiPoliciesByPath[path].splice(idx, 1);
+              return false;
+            }
+          });
+          that.savePaths();
+        }
+      });
   }
 
   editPolicyDescription(index, path, ev) {
@@ -283,20 +286,25 @@ class ApiPoliciesController {
     const policy = this.apiPoliciesByPath[path][index];
     const that = this;
 
-    this.$mdDialog.show({
-      controller: 'DialogEditPolicyController',
-      controllerAs: 'editPolicyDialogCtrl',
-      template: require('./dialog/policy.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        description: policy.description
-      }
-    }).then(function(description) {
-      policy.description = description;
-      that.savePaths();
-    }, function() {
-      // You cancelled the dialog
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogEditPolicyController',
+        controllerAs: 'editPolicyDialogCtrl',
+        template: require('./dialog/policy.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          description: policy.description,
+        },
+      })
+      .then(
+        function (description) {
+          policy.description = description;
+          that.savePaths();
+        },
+        function () {
+          // You cancelled the dialog
+        },
+      );
   }
 
   switchPolicyEnabled(index, path, ev) {
@@ -335,71 +343,77 @@ class ApiPoliciesController {
 
     let api = this.$scope.$parent.apiCtrl.api;
     return this.ApiService.update(api).then((updatedApi) => {
-      that.NotificationService.show('API \'' + updatedApi.data.name + '\' saved');
+      that.NotificationService.show("API '" + updatedApi.data.name + "' saved");
       that.pathsToCompare = that.generatePathsToCompare();
 
       that.httpMethodsUpdated = false;
-      that.$rootScope.$broadcast('apiChangeSuccess', {api: updatedApi.data});
+      that.$rootScope.$broadcast('apiChangeSuccess', { api: updatedApi.data });
     });
   }
 
   showAddPathModal(event) {
-    this.$mdDialog.show({
-      controller: 'AddPoliciesPathController',
-      controllerAs: 'addPoliciesPathCtrl',
-      template: require('./addPoliciesPath.html'),
-      parent: angular.element(document.body),
-      targetEvent: event,
-      clickOutsideToClose: true,
-      locals: {
-        paths: this.apiPoliciesByPath,
-        rootCtrl: this
-      }
-    }).then((paths) => {
-      this.apiPoliciesByPath = paths;
-      this.savePaths();
-    });
+    this.$mdDialog
+      .show({
+        controller: 'AddPoliciesPathController',
+        controllerAs: 'addPoliciesPathCtrl',
+        template: require('./addPoliciesPath.html'),
+        parent: angular.element(document.body),
+        targetEvent: event,
+        clickOutsideToClose: true,
+        locals: {
+          paths: this.apiPoliciesByPath,
+          rootCtrl: this,
+        },
+      })
+      .then((paths) => {
+        this.apiPoliciesByPath = paths;
+        this.savePaths();
+      });
   }
 
   migrateApiToPolicyStudio() {
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to migrate to Policy Studio?',
-        msg: 'The migration process will save the API definition, but it will not be deployed. You can still do a rollback from history.',
-        confirmButton: 'Yes, I want to migrate'
-      }
-    }).then((response) => {
-      if (response) {
-        this.ApiService.migrateApiToPolicyStudio(this.$scope.$parent.apiCtrl.api.id).then((response) => {
-          this.$state.go('management.apis.detail.design.policy-studio', {apiId: response.data.id}, {reload: true});
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to migrate to Policy Studio?',
+          msg: 'The migration process will save the API definition, but it will not be deployed. You can still do a rollback from history.',
+          confirmButton: 'Yes, I want to migrate',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          this.ApiService.migrateApiToPolicyStudio(this.$scope.$parent.apiCtrl.api.id).then((response) => {
+            this.$state.go('management.apis.detail.design.policy-studio', { apiId: response.data.id }, { reload: true });
+          });
+        }
+      });
   }
 
   removePath(path) {
     this.selectedApiPolicy = {};
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to remove this path?',
-        confirmButton: 'Remove'
-      }
-    }).then(function(response) {
-      if (response) {
-        delete that.apiPoliciesByPath[path];
-        that.pathsInitialized[path] = false;
-        that.savePaths();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to remove this path?',
+          confirmButton: 'Remove',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          delete that.apiPoliciesByPath[path];
+          that.pathsInitialized[path] = false;
+          that.savePaths();
+        }
+      });
   }
 
   pathNotExists(path, index) {
@@ -425,7 +439,10 @@ class ApiPoliciesController {
     if (path === '/') {
       return '/';
     } else {
-      return path.trim().replace(/(:.*?\/)|(:.*$)/g, ':x\/').replace(/\/+$/, '');
+      return path
+        .trim()
+        .replace(/(:.*?\/)|(:.*$)/g, ':x/')
+        .replace(/\/+$/, '');
     }
   }
 
@@ -464,9 +481,9 @@ class ApiPoliciesController {
   private checkEmptySchema() {
     if (!this.$scope.policyJsonSchema || Object.keys(this.$scope.policyJsonSchema).length === 0) {
       this.$scope.policyJsonSchema = {
-        'type': 'object',
-        'id': 'empty',
-        'properties': {'': {}}
+        type: 'object',
+        id: 'empty',
+        properties: { '': {} },
       };
     }
     this.httpMethodsUpdated = false;

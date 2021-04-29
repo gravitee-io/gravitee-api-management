@@ -1,14 +1,8 @@
 {
   "rules": {
-    "ban": [true,
-      ["_", "extend"],
-      ["_", "isNull"],
-      ["_", "isDefined"]
-    ],
+    "ban": [true, ["_", "extend"], ["_", "isNull"], ["_", "isDefined"]],
     "class-name": true,
-    "comment-format": [true,
-      "check-space"
-    ],
+    "comment-format": [true, "check-space"],
     "curly": true,
     "eofline": true,
     "forin": true,
@@ -17,21 +11,10 @@
     "jsdoc-format": true,
     "label-position": true,
     "max-line-length": [false, 140],
-    "member-ordering": [true,
-      "public-before-private",
-      "static-before-instance",
-      "variables-before-functions"
-    ],
+    "member-ordering": [true, "public-before-private", "static-before-instance", "variables-before-functions"],
     "no-arg": true,
     "no-bitwise": true,
-    "no-console": [true,
-      "debug",
-      "log",
-      "info",
-      "time",
-      "timeEnd",
-      "trace"
-    ],
+    "no-console": [true, "debug", "log", "info", "time", "timeEnd", "trace"],
     "no-construct": true,
     "no-constructor-vars": false,
     "no-debugger": true,
@@ -44,36 +27,15 @@
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
     "no-var-requires": true,
-    "one-line": [true,
-      "check-open-brace",
-      "check-catch",
-      "check-else",
-      "check-whitespace"
-    ],
-    "quotemark": [true, "single"],
+    "one-line": [true, "check-open-brace", "check-catch", "check-else", "check-whitespace"],
+    "quotemark": [true, "single", "avoid-escape", "avoid-template"],
     "radix": true,
-    "semicolon": true,
+    "semicolon": false,
     "triple-equals": [true, "allow-null-check"],
-    "typedef": [false,
-      "callSignature",
-      "indexSignature",
-      "parameter",
-      "propertySignature",
-      "variableDeclarator"
-    ],
-    "typedef-whitespace": [true,
-      ["callSignature", "noSpace"],
-      ["catchClause", "noSpace"],
-      ["indexSignature", "space"]
-    ],
+    "typedef": [false, "callSignature", "indexSignature", "parameter", "propertySignature", "variableDeclarator"],
+    "typedef-whitespace": [true, ["callSignature", "noSpace"], ["catchClause", "noSpace"], ["indexSignature", "space"]],
     "use-strict": false,
     "variable-name": false,
-    "whitespace": [true,
-      "check-branch",
-      "check-decl",
-      "check-operator",
-      "check-separator",
-      "check-type"
-    ]
+    "whitespace": [true, "check-branch", "check-decl", "check-operator", "check-separator", "check-type"]
   }
 }

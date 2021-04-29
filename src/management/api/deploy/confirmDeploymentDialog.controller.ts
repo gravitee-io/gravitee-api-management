@@ -22,7 +22,7 @@ function DialogConfirmDeploymentController($scope, $mdDialog, locals, Constants)
   this.confirmButton = locals.confirmButton || 'OK';
   this.cancelButton = locals.cancelButton || 'Cancel';
 
-  this.cancel = function() {
+  this.cancel = function () {
     $mdDialog.hide(false);
   };
 

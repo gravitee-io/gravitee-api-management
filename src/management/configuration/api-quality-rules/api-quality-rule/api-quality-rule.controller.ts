@@ -26,7 +26,8 @@ class ApiQualityRuleController {
     private QualityRuleService: QualityRuleService,
     private NotificationService: NotificationService,
     private $state: StateService,
-    private $location: ng.ILocationService) {
+    private $location: ng.ILocationService,
+  ) {
     'ngInject';
     this.createMode = $location.path().endsWith('new');
   }
@@ -36,18 +37,18 @@ class ApiQualityRuleController {
       this.qualityRule = {
         description: '',
         name: '',
-        weight: 0
+        weight: 0,
       };
     }
   }
 
   save() {
     let that = this;
-    let save = (this.createMode) ? this.QualityRuleService.create(this.qualityRule) : this.QualityRuleService.update(this.qualityRule);
-    save.then(response => {
+    let save = this.createMode ? this.QualityRuleService.create(this.qualityRule) : this.QualityRuleService.update(this.qualityRule);
+    save.then((response) => {
       let qualityRule = response.data;
       that.NotificationService.show('Quality rule ' + qualityRule.name + ' has been saved.');
-      that.$state.go('management.settings.qualityRule', {qualityRuleId: qualityRule.id}, {reload: true});
+      that.$state.go('management.settings.qualityRule', { qualityRuleId: qualityRule.id }, { reload: true });
     });
   }
 }

@@ -19,18 +19,16 @@
   <md-dialog-content layout-padding>
     <h4>How to write assertion</h4>
     <p>
-      Example 1: Check the status of the HTTP response<br>
+      Example 1: Check the status of the HTTP response<br />
       <code>#response.status == 200</code>
     </p>
-    <br>
+    <br />
     <p>
-      Example 2: Check the JSON content of the response<br>
+      Example 2: Check the JSON content of the response<br />
       <code>#jsonPath(#response.content, '$.status') == 'green'</code>
     </p>
   </md-dialog-content>
   <md-dialog-actions layout="row">
-    <md-button class="md-primary" ng-click="ctrl.cancel()">
-      Close
-    </md-button>
+    <md-button class="md-primary" ng-click="ctrl.cancel()"> Close </md-button>
   </md-dialog-actions>
 </md-dialog>

@@ -23,7 +23,12 @@ class DashboardFilterController {
   private onFilterChange: any;
   private lastSource: any;
 
-  constructor(private $rootScope, private $state: StateService, private AnalyticsService: AnalyticsService) {
+  constructor(
+    private $rootScope,
+    private $state: StateService,
+    private AnalyticsService: AnalyticsService,
+    private $timeout: ng.ITimeoutService,
+  ) {
     'ngInject';
 
     this.fields = {};
@@ -45,26 +50,32 @@ class DashboardFilterController {
     if (queryFilters) {
       this.decodeQueryFilters(queryFilters);
     } else {
-      this.onFilterChange({query: undefined, widget: this.lastSource});
+      this.onFilterChange({ query: undefined, widget: this.lastSource });
     }
   }
 
   addFieldFilter(filter, run: boolean = true) {
-    let field = this.fields[filter.field] || {filters: {}};
+    let field = this.fields[filter.field] || { filters: {} };
 
     field.filters[filter.key] = {
       value: filter.name,
-      onRemove: (filter.events !== undefined) && filter.events.remove
+      onRemove: filter.events !== undefined && filter.events.remove,
     };
 
-    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + ' = \'' + filter.name + '\'';
-    let query = '(' + _.map(_.keys(field.filters), (key) => filter.field.includes('path') || filter.field.includes('host') ?
-      filter.field + ':' + '\\"' + key + '\\"' : filter.field + ':' + key).join(' OR ') + ')';
+    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + " = '" + filter.name + "'";
+    let query =
+      '(' +
+      _.map(_.keys(field.filters), (key) =>
+        filter.field.includes('path') || filter.field.includes('host')
+          ? filter.field + ':' + '\\"' + key + '\\"'
+          : filter.field + ':' + key,
+      ).join(' OR ') +
+      ')';
 
     this.filters.push({
       source: filter.widget,
       key: filter.field + '_' + filter.key,
-      label: label
+      label: label,
     });
 
     this.filters = _.uniqBy(this.filters, 'key');
@@ -98,7 +109,7 @@ class DashboardFilterController {
       this.lastSource = filters[0].source;
     }
 
-    let fieldObject = this.fields[field] || {filters: {}};
+    let fieldObject = this.fields[field] || { filters: {} };
 
     let fieldFilter = fieldObject.filters[key];
     if (fieldFilter) {
@@ -113,9 +124,13 @@ class DashboardFilterController {
       delete fieldObject.filters;
     }
 
-    if (! _.isEmpty(fieldObject.filters)) {
-      fieldObject.query = '(' + _.map(_.keys(fieldObject.filters), (key) => field.includes('path') || field.includes('host') ?
-        field + ':' + '\\"' + key + '\\"' : field + ':' + key).join(' OR ') + ')';
+    if (!_.isEmpty(fieldObject.filters)) {
+      fieldObject.query =
+        '(' +
+        _.map(_.keys(fieldObject.filters), (key) =>
+          field.includes('path') || field.includes('host') ? field + ':' + '\\"' + key + '\\"' : field + ':' + key,
+        ).join(' OR ') +
+        ')';
       this.fields[field] = fieldObject;
     } else {
       delete this.fields[field];
@@ -126,28 +141,33 @@ class DashboardFilterController {
 
   createAndSendQuery(silent) {
     // Create a query with all the current filters
-    let query = Object.keys(this.fields).map(field => this.fields[field].query).join(' AND ');
+    let query = Object.keys(this.fields)
+      .map((field) => this.fields[field].query)
+      .join(' AND ');
 
     // Update the query parameter
     if (!silent) {
-      this.$state.transitionTo(
-        this.$state.current,
-        _.merge(this.$state.params, {
-          q: query
-        }),
-        {notify: false});
-      this.onFilterChange({query: query, widget: this.lastSource});
+      this.$timeout(async () => {
+        await this.$state.transitionTo(
+          this.$state.current,
+          _.merge(this.$state.params, {
+            q: query,
+          }),
+          { notify: false },
+        );
+        this.onFilterChange({ query: query, widget: this.lastSource });
+      });
     }
   }
 
   private decodeQueryFilters(queryFilters) {
     let filters = Object.keys(queryFilters);
     let lastFilter;
-    filters.forEach(filter => {
+    filters.forEach((filter) => {
       let k = filter;
       let v = queryFilters[filter];
 
-      v.forEach(value => {
+      v.forEach((value) => {
         let filter: any = {};
         filter.key = value;
         filter.name = value;

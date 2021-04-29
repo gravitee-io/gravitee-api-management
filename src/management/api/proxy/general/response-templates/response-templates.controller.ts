@@ -16,13 +16,13 @@
 import _ = require('lodash');
 import ApiService from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
-import {StateParams, StateService} from '@uirouter/core';
+import { StateParams, StateService } from '@uirouter/core';
 
 class ApiResponseTemplatesController {
   private api: any;
-  private templates:  any;
+  private templates: any;
 
-  constructor (
+  constructor(
     private ApiService: ApiService,
     private NotificationService: NotificationService,
     private $rootScope: ng.IRootScopeService,
@@ -46,28 +46,30 @@ class ApiResponseTemplatesController {
   }
 
   remove(key) {
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to delete response templates?',
-        confirmButton: 'Delete'
-      }
-    }).then( (response) => {
-      if (response) {
-        delete this.api.response_templates[key];
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to delete response templates?',
+          confirmButton: 'Delete',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          delete this.api.response_templates[key];
 
-        this.ApiService.update(this.api).then((updatedApi) => {
-          this.api = updatedApi.data;
-          this.api.etag = updatedApi.headers('etag');
-          this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
-          this.NotificationService.show('Response templates for key ' + key + ' have been deleted !');
-          this.$state.go('management.apis.detail.proxy.responsetemplates.list');
-        });
-      }
-    });
+          this.ApiService.update(this.api).then((updatedApi) => {
+            this.api = updatedApi.data;
+            this.api.etag = updatedApi.headers('etag');
+            this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
+            this.NotificationService.show('Response templates for key ' + key + ' have been deleted !');
+            this.$state.go('management.apis.detail.proxy.responsetemplates.list');
+          });
+        }
+      });
   }
 }
 

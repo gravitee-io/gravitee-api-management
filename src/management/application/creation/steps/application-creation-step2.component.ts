@@ -15,7 +15,7 @@
  */
 const ApplicationCreationStep2Component: ng.IComponentOptions = {
   require: {
-    parent: '^createApplication'
+    parent: '^createApplication',
   },
   template: require('./application-creation-step2.html'),
   controller: 'ApplicationCreationStep2Controller',

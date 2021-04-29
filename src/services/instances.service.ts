@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class InstancesService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -40,7 +39,9 @@ class InstancesService {
       size = 100;
     }
 
-    return this.$http.get(`${this.Constants.env.baseURL}/instances/?includeStopped=${includeStopped}&from=${from}&to=${to}&page=${page}&size=${size}`);
+    return this.$http.get(
+      `${this.Constants.env.baseURL}/instances/?includeStopped=${includeStopped}&from=${from}&to=${to}&page=${page}&size=${size}`,
+    );
   }
 
   get(id) {

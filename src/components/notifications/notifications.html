@@ -24,10 +24,15 @@
     </div>
 
     <ul class="aui-nav">
-      <li class="iterable-item" ui-sref-active="aui-nav-selected"
-          ng-repeat="notificationSetting in $ctrl.notificationSettings"
-          ng-click="$ctrl.selectNotificationSetting(notificationSetting)">
-        <a class="execute" ui-sref="^.notifications.notification({notificationId: notificationSetting.id || 'portal'})">{{notificationSetting.name}}</a>
+      <li
+        class="iterable-item"
+        ui-sref-active="aui-nav-selected"
+        ng-repeat="notificationSetting in $ctrl.notificationSettings"
+        ng-click="$ctrl.selectNotificationSetting(notificationSetting)"
+      >
+        <a class="execute" ui-sref="^.notifications.notification({notificationId: notificationSetting.id || 'portal'})"
+          >{{notificationSetting.name}}</a
+        >
       </li>
     </ul>
   </div>

@@ -17,18 +17,16 @@ import NotificationService from '../../../services/notification.service';
 import ConsoleSettingsService from '../../../services/consoleSettings.service';
 
 class ApiLoggingController {
-
   public providedConfigurationMessage = 'Configuration provided by the system';
   private formApiLogging: any;
   private settings: any;
 
-  constructor(private ConsoleSettingsService: ConsoleSettingsService,
-              private NotificationService: NotificationService) {
+  constructor(private ConsoleSettingsService: ConsoleSettingsService, private NotificationService: NotificationService) {
     'ngInject';
   }
 
   save() {
-    this.ConsoleSettingsService.save(this.settings).then( () => {
+    this.ConsoleSettingsService.save(this.settings).then(() => {
       this.NotificationService.show('API logging saved');
       this.formApiLogging.$setPristine();
     });

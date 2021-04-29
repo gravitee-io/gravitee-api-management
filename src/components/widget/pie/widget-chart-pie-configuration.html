@@ -16,7 +16,6 @@
 
 -->
 <div layout="column">
-
   <md-switch ng-model="$ctrl.isCustomField" aria-label="Use custom field?">Use custom field?</md-switch>
 
   <div layout="row">
@@ -35,27 +34,31 @@
 </div>
 
 <div layout="row" ng-repeat="data in $ctrl.data" ng-show="!$ctrl.isCustomField">
-
   <ng-md-icon icon="clear" aria-label="Remove data" ng-click="$ctrl.removeData(data)"></ng-md-icon>
 
   <md-input-container>
     <label>Min</label>
-    <input type="number" ng-model="data.min" min="0" required ng-change="$ctrl.onDataChanged()">
+    <input type="number" ng-model="data.min" min="0" required ng-change="$ctrl.onDataChanged()" />
   </md-input-container>
 
   <md-input-container>
     <label>Max</label>
-    <input type="number" ng-model="data.max" min="0" required ng-change="$ctrl.onDataChanged()">
+    <input type="number" ng-model="data.max" min="0" required ng-change="$ctrl.onDataChanged()" />
   </md-input-container>
 
   <md-input-container>
     <label>Label</label>
-    <input type="text" ng-model="data.label" required ng-change="$ctrl.onDataChanged()">
+    <input type="text" ng-model="data.label" required ng-change="$ctrl.onDataChanged()" />
   </md-input-container>
 
-  <div type="text" ng-model="data.color" ng-change="$ctrl.onDataChanged()"
-       md-color-picker="$ctrl.buttonConfig" md-color-clear-button="false" required></div>
-
+  <div
+    type="text"
+    ng-model="data.color"
+    ng-change="$ctrl.onDataChanged()"
+    md-color-picker="$ctrl.buttonConfig"
+    md-color-clear-button="false"
+    required
+  ></div>
 </div>
 
 <ng-md-icon ng-show="!$ctrl.isCustomField" icon="add" aria-label="Add data" ng-click="$ctrl.addData()"></ng-md-icon>

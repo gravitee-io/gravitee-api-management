@@ -15,12 +15,12 @@
  */
 
 import _ = require('lodash');
-import {Metrics, Scope} from '../../../../../entities/alert';
+import { Metrics, Scope } from '../../../../../entities/alert';
 
 const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
   bindings: {
     condition: '<',
-    metrics: '<'
+    metrics: '<',
   },
   template: require('./trigger-condition-string.html'),
   controller: function ($injector, $state) {
@@ -28,7 +28,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       // Get the metric field according to the condition property
-      let metric = _.find(this.metrics as Metrics[], metric => metric.key === this.condition.property);
+      let metric = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);
 
       if (metric.loader) {
         let referenceId;
@@ -49,9 +49,9 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
     };
 
     this.displaySelect = () => {
-      return this.values !== undefined && this.condition.operator === 'equals' || this.condition.operator === 'not_equals';
+      return (this.values !== undefined && this.condition.operator === 'equals') || this.condition.operator === 'not_equals';
     };
-  }
+  },
 };
 
 export default AlertTriggerConditionStringComponent;

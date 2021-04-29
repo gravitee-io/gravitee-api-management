@@ -29,9 +29,9 @@ class ApisStatusDashboardController {
   private currentTimeframe: ITimeframe;
 
   private query: {
-    from: number,
-    to: number,
-    interval: number
+    from: number;
+    to: number;
+    interval: number;
   };
   private apisInError: number;
   private apisInWarning: number;
@@ -39,15 +39,11 @@ class ApisStatusDashboardController {
   private startedAPIsWithHC: any[];
   private displayedApis: any[];
 
-  constructor(
-    private apis: any[],
-    private ApiService: ApiService,
-    private $q
-  ) {
+  constructor(private apis: any[], private ApiService: ApiService, private $q) {
     'ngInject';
 
     this.apis = this.apis.sort((a, b) => (a.name + ' ' + a.version).localeCompare(b.name + ' ' + b.version));
-    this.startedAPIsWithHC = this.apis.filter(api => this.hasHealthcheck(api) && api.state === 'started');
+    this.startedAPIsWithHC = this.apis.filter((api) => this.hasHealthcheck(api) && api.state === 'started');
 
     this.viewAllApis = this.startedAPIsWithHC.length === this.apis.length;
 
@@ -73,59 +69,57 @@ class ApisStatusDashboardController {
     this.query = {
       from: now - this.currentTimeframe.range,
       to: now,
-      interval: this.currentTimeframe.interval
+      interval: this.currentTimeframe.interval,
     };
 
     let refreshedApisInErrorNumber = 0;
     let refreshedApisInWarningNumber = 0;
 
-    const apisPromises = this.startedAPIsWithHC.map(api => {
-
+    const apisPromises = this.startedAPIsWithHC.map((api) => {
       const promises = [
         this.ApiService.apiHealthAverage(api.id, {
           ...this.query,
-          type: 'AVAILABILITY'
+          type: 'AVAILABILITY',
         }),
-        this.ApiService.apiHealth(api.id, 'availability')
+        this.ApiService.apiHealth(api.id, 'availability'),
       ];
 
-      return this.$q.all(promises)
-        .then(responses => {
-          const availabilityResponse = responses[0];
+      return this.$q.all(promises).then((responses) => {
+        const availabilityResponse = responses[0];
 
-          let values = availabilityResponse.data.values;
-          let timestamp = availabilityResponse && availabilityResponse.data && availabilityResponse.data.timestamp;
+        let values = availabilityResponse.data.values;
+        let timestamp = availabilityResponse && availabilityResponse.data && availabilityResponse.data.timestamp;
 
-          if (values && values.length > 0) {
-            values.forEach(value => {
-              value.buckets.forEach(bucket => {
-                if (bucket) {
-                  const availabilitySeries = this._getAvailabilitySeries(bucket);
-                  const chartData = this._computeChartData(timestamp, availabilitySeries);
+        if (values && values.length > 0) {
+          values.forEach((value) => {
+            value.buckets.forEach((bucket) => {
+              if (bucket) {
+                const availabilitySeries = this._getAvailabilitySeries(bucket);
+                const chartData = this._computeChartData(timestamp, availabilitySeries);
 
-                  api.chartData = chartData;
-                } else {
-                  delete api.chartData;
-                }
-              });
-            });
-          }
-
-          const healthResponse = responses[1];
-          if (healthResponse.data && healthResponse.data.global) {
-            api.availability = healthResponse.data.global[this.currentTimeframe.id];
-            if (api.availability >= 0) {
-              if (api.availability <= 80) {
-                refreshedApisInErrorNumber++;
-              } else if (api.availability <= 95) {
-                refreshedApisInWarningNumber++;
+                api.chartData = chartData;
+              } else {
+                delete api.chartData;
               }
-              api.uptimeSeries = this._getApiAvailabilityForGauge(api.availability);
+            });
+          });
+        }
+
+        const healthResponse = responses[1];
+        if (healthResponse.data && healthResponse.data.global) {
+          api.availability = healthResponse.data.global[this.currentTimeframe.id];
+          if (api.availability >= 0) {
+            if (api.availability <= 80) {
+              refreshedApisInErrorNumber++;
+            } else if (api.availability <= 95) {
+              refreshedApisInWarningNumber++;
             }
+            api.uptimeSeries = this._getApiAvailabilityForGauge(api.availability);
           }
-        });
+        }
+      });
     });
-    this.$q.all(apisPromises).then( () => {
+    this.$q.all(apisPromises).then(() => {
       this.apisInError = refreshedApisInErrorNumber;
       this.apisInWarning = refreshedApisInWarningNumber;
     });
@@ -147,7 +141,7 @@ class ApisStatusDashboardController {
     return api.state === 'stopped';
   }
 
-  getPictureDisplayName(api: {name: string, version: string}): string {
+  getPictureDisplayName(api: { name: string; version: string }): string {
     return getPictureDisplayName(api);
   }
 
@@ -164,28 +158,28 @@ class ApisStatusDashboardController {
     }
     return [
       {
-        'name': 'Availability',
-        'data': [
+        name: 'Availability',
+        data: [
           {
-            'color': color,
-            'radius': '112%',
-            'innerRadius': '88%',
-            'y': averageUptime
-          }
+            color: color,
+            radius: '112%',
+            innerRadius: '88%',
+            y: averageUptime,
+          },
         ],
-        'dataLabels': [
+        dataLabels: [
           {
-            'enabled': true,
-            'align': 'center',
-            'verticalAlign': 'middle',
-            'format': '{point.y}%',
-            'borderWidth': 0,
-            'style': {
-              'fontSize': '12px'
-            }
-          }
-        ]
-      }
+            enabled: true,
+            align: 'center',
+            verticalAlign: 'middle',
+            format: '{point.y}%',
+            borderWidth: 0,
+            style: {
+              fontSize: '12px',
+            },
+          },
+        ],
+      },
     ];
   }
 
@@ -194,45 +188,53 @@ class ApisStatusDashboardController {
       plotOptions: {
         series: {
           pointStart: timestamp && timestamp.from,
-          pointInterval: timestamp && timestamp.interval
-        }
+          pointInterval: timestamp && timestamp.interval,
+        },
       },
       series: availabilitySeries,
       legend: {
-        enabled: false
+        enabled: false,
       },
       xAxis: {
         type: 'datetime',
         dateTimeLabelFormats: {
           month: '%e. %b',
-          year: '%b'
-        }
+          year: '%b',
+        },
       },
-      yAxis: [{
-        visible: false,
-        max: 100,
-      }],
+      yAxis: [
+        {
+          visible: false,
+          max: 100,
+        },
+      ],
     };
   }
 
   _getAvailabilitySeries(bucket) {
-    return [{
-      name: 'Availability',
-      data: bucket.data,
-      color: '#5CB85C',
-      type: 'column',
-      labelSuffix: '%',
-      decimalFormat: true,
-      zones: [{
-        value: 80,
-        color: this.RED_COLOR
-      }, {
-        value: 95,
-        color: this.ORANGE_COLOR
-      }, {
-        color: this.GREEN_COLOR
-      }]
-    }];
+    return [
+      {
+        name: 'Availability',
+        data: bucket.data,
+        color: '#5CB85C',
+        type: 'column',
+        labelSuffix: '%',
+        decimalFormat: true,
+        zones: [
+          {
+            value: 80,
+            color: this.RED_COLOR,
+          },
+          {
+            value: 95,
+            color: this.ORANGE_COLOR,
+          },
+          {
+            color: this.GREEN_COLOR,
+          },
+        ],
+      },
+    ];
   }
 }
 

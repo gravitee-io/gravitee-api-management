@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class NotifierService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }

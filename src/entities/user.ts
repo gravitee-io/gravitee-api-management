@@ -46,20 +46,27 @@ export class User {
     if (!permissions || !this.userPermissions) {
       return false;
     }
-    return _.intersection(this.userPermissions, permissions).length > 0 ||
+    return (
+      _.intersection(this.userPermissions, permissions).length > 0 ||
       _.intersection(this.userEnvironmentPermissions, permissions).length > 0 ||
       _.intersection(this.userApiPermissions, permissions).length > 0 ||
-      _.intersection(this.userApplicationPermissions, permissions).length > 0;
+      _.intersection(this.userApplicationPermissions, permissions).length > 0
+    );
   }
 
   allowedToAnd(permissions: string[]): boolean {
     if (!permissions || !this.userPermissions) {
       return false;
     }
-    return _.difference(permissions, this.userPermissions).length === 0 ||
-      _.difference(permissions, this.userEnvironmentPermissions).length === 0 ||
-      _.difference(permissions, this.userApiPermissions).length === 0 ||
-      _.difference(permissions, this.userApplicationPermissions).length === 0;
+
+    let allPermissions = _.concat(
+      this.userPermissions,
+      this.userEnvironmentPermissions,
+      this.userApiPermissions,
+      this.userApplicationPermissions,
+    );
+
+    return _.difference(permissions, allPermissions).length === 0;
   }
 
   isAdmin(): boolean {
@@ -67,9 +74,7 @@ export class User {
       return false;
     }
     return this.userEnvironmentPermissions.some((userEnvironmentPermission) => {
-      return userEnvironmentPermission.startsWith('environment-instance')
-        || userEnvironmentPermission.startsWith('environment-platform');
+      return userEnvironmentPermission.startsWith('environment-instance') || userEnvironmentPermission.startsWith('environment-platform');
     });
   }
-
 }

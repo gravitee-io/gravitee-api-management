@@ -19,7 +19,7 @@ import '@gravitee/ui-components/wc/gv-cron-editor';
 
 class ApiHealthCheckConfigureController {
   private api: any;
-  private healthcheck: { enabled: boolean, inherit: boolean, trigger?: any, schedule?: string, steps?: any[], response?: any };
+  private healthcheck: { enabled: boolean; inherit: boolean; trigger?: any; schedule?: string; steps?: any[]; response?: any };
   private timeUnits: string[];
   private httpMethods: string[];
   private endpoint: any;
@@ -33,7 +33,8 @@ class ApiHealthCheckConfigureController {
     private $scope,
     private $state,
     private $stateParams,
-    private $rootScope
+    private $rootScope,
+    private $window,
   ) {
     'ngInject';
 
@@ -44,15 +45,12 @@ class ApiHealthCheckConfigureController {
 
     if (this.$stateParams.endpointName !== undefined) {
       // Health-check for specific endpoint
-      let group: any = _.find(this.api.proxy.groups, {'name': $stateParams.groupName});
-      this.endpoint = _.find(group.endpoints, {'name': $stateParams.endpointName});
-      this.rootHealthcheckEnabled =
-        this.api.services &&
-        this.api.services['health-check'] &&
-        this.api.services['health-check'].enabled;
+      let group: any = _.find(this.api.proxy.groups, { name: $stateParams.groupName });
+      this.endpoint = _.find(group.endpoints, { name: $stateParams.endpointName });
+      this.rootHealthcheckEnabled = this.api.services && this.api.services['health-check'] && this.api.services['health-check'].enabled;
 
       if (!this.endpoint.healthcheck && this.rootHealthcheckEnabled) {
-        this.healthcheck = {enabled: true, inherit: true};
+        this.healthcheck = { enabled: true, inherit: true };
       } else {
         this.healthcheck = this.endpoint.healthcheck;
       }
@@ -67,11 +65,11 @@ class ApiHealthCheckConfigureController {
     }
 
     this.healthcheck = this.healthcheck || { enabled: false, inherit: false, trigger: {}, schedule: '*/1 * * * * *' };
-    let inherit = (this.endpoint !== undefined) && this.healthcheck.inherit;
+    let inherit = this.endpoint !== undefined && this.healthcheck.inherit;
     let enabled = this.healthcheck.enabled;
 
     if (inherit) {
-      this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || {enabled: false, trigger: {}});
+      this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || { enabled: false, trigger: {} });
     }
 
     this.healthcheck.inherit = inherit;
@@ -91,11 +89,11 @@ class ApiHealthCheckConfigureController {
     if (this.healthcheck.steps[0] === undefined) {
       this.healthcheck.steps[0] = {
         request: {
-          headers: []
+          headers: [],
         },
         response: {
-          assertions: []
-        }
+          assertions: [],
+        },
       };
     }
   }
@@ -109,7 +107,7 @@ class ApiHealthCheckConfigureController {
       this.healthcheck.steps[0].request.headers = [];
     }
 
-    this.healthcheck.steps[0].request.headers.push({name: '', value: ''});
+    this.healthcheck.steps[0].request.headers.push({ name: '', value: '' });
   }
 
   removeHTTPHeader(idx) {
@@ -121,7 +119,7 @@ class ApiHealthCheckConfigureController {
   addAssertion() {
     if (this.healthcheck.steps[0].response === undefined) {
       this.healthcheck.response = {
-        assertions: ['']
+        assertions: [''],
       };
     } else {
       this.healthcheck.steps[0].response.assertions.push('');
@@ -137,7 +135,7 @@ class ApiHealthCheckConfigureController {
   buildRequest() {
     let request = '';
 
-    request += (((this.healthcheck.steps && this.healthcheck.steps[0].request.method)) || '{method}') + ' ';
+    request += ((this.healthcheck.steps && this.healthcheck.steps[0].request.method) || '{method}') + ' ';
 
     if (this.healthcheck.steps && this.healthcheck.steps[0].request.fromRoot) {
       if (this.endpointToDisplay) {
@@ -151,7 +149,7 @@ class ApiHealthCheckConfigureController {
       }
       request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || '/{path}';
     } else {
-      request += ((this.endpointToDisplay) ? this.endpointToDisplay.target : '{endpoint}');
+      request += this.endpointToDisplay ? this.endpointToDisplay.target : '{endpoint}';
       request += (this.healthcheck.steps && this.healthcheck.steps[0].request.path) || '/{path}';
     }
 
@@ -164,17 +162,25 @@ class ApiHealthCheckConfigureController {
       controllerAs: 'ctrl',
       template: require('./assertion.dialog.html'),
       parent: angular.element(document.body),
-      clickOutsideToClose: true
+      clickOutsideToClose: true,
     });
   }
 
   backToEndpointConfiguration() {
-    this.$state.go('management.apis.detail.proxy.endpoint',
-      {groupName: this.$stateParams.groupName, endpointName: this.$stateParams.endpointName});
+    this.$state.go('management.apis.detail.proxy.endpoint', {
+      groupName: this.$stateParams.groupName,
+      endpointName: this.$stateParams.endpointName,
+    });
   }
 
   backToHealthcheck() {
-    this.$state.go('management.apis.detail.proxy.healthcheck.visualize');
+    let query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
+    this.$state.go('management.apis.detail.proxy.healthcheck.visualize', {
+      page: query.page,
+      size: query.size,
+      from: query.from,
+      to: query.to,
+    });
   }
 
   updateSchedule(event) {
@@ -205,7 +211,7 @@ class ApiHealthCheckConfigureController {
       this.$scope.formApiHealthCheckTrigger.$setPristine();
       this.$scope.formApiHealthCheckRequest.$setPristine();
       this.$scope.formApiHealthCheckResponse.$setPristine();
-      this.$rootScope.$broadcast('apiChangeSuccess', {api: this.api});
+      this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
 
       if (this.endpoint !== undefined) {
         this.NotificationService.show('Health-check configuration for endpoint [' + this.endpoint.name + '] has been updated');
@@ -217,4 +223,3 @@ class ApiHealthCheckConfigureController {
 }
 
 export default ApiHealthCheckConfigureController;
-

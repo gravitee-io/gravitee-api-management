@@ -16,11 +16,9 @@
 
 -->
 <div layout="column">
-
   <md-switch ng-model="$ctrl.isCustomField" aria-label="Use custom field?">Use custom field?</md-switch>
 
   <div layout="row">
-
     <md-input-container ng-show="!$ctrl.isCustomField">
       <label>Field</label>
       <md-select ng-model="$ctrl.field" ng-change="$ctrl.onFieldChanged()">
@@ -32,13 +30,10 @@
       <label>Field</label>
       <input name="Field" ng-model="$ctrl.field" ng-change="$ctrl.onFieldChanged()" />
     </md-input-container>
-
   </div>
-
 </div>
 
 <div layout="row">
-
   <md-input-container>
     <label>Projection</label>
     <md-select ng-model="$ctrl.projection" ng-change="$ctrl.onProjectionChanged()">
@@ -52,26 +47,19 @@
       <md-option ng-repeat="order in $ctrl.projectionOrders" ng-value="order.value">{{order.label}}</md-option>
     </md-select>
   </md-input-container>
-
 </div>
 
 <div layout="column">
-
   <md-input-container>
-    <md-checkbox ng-model="$ctrl.chart.percent" ng-disabled="$ctrl.projection !== '_count'">
-      Display percentage
-    </md-checkbox>
+    <md-checkbox ng-model="$ctrl.chart.percent" ng-disabled="$ctrl.projection !== '_count'"> Display percentage </md-checkbox>
   </md-input-container>
 
   <md-input-container>
-    <md-checkbox ng-model="$ctrl.chart.selectable">
-      Allows to check a row to filter
-    </md-checkbox>
+    <md-checkbox ng-model="$ctrl.chart.selectable"> Allows to check a row to filter </md-checkbox>
   </md-input-container>
 
   <md-input-container>
     <label>Paging</label>
-    <input type="number" ng-model="$ctrl.chart.paging" min="5" max="100" required>
+    <input type="number" ng-model="$ctrl.chart.paging" min="5" max="100" required />
   </md-input-container>
-
 </div>

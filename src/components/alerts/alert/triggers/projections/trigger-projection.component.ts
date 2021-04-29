@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {ApiMetrics} from '../../../../../entities/alerts/api.metrics';
-import {NodeLifecycleMetrics, NodeMetrics} from '../../../../../entities/alerts/node.metrics';
-import {HealthcheckMetrics} from '../../../../../entities/alerts/healthcheck.metrics';
-import {Metrics} from '../../../../../entities/alert';
+import { ApiMetrics } from '../../../../../entities/alerts/api.metrics';
+import { NodeLifecycleMetrics, NodeMetrics } from '../../../../../entities/alerts/node.metrics';
+import { HealthcheckMetrics } from '../../../../../entities/alerts/healthcheck.metrics';
+import { Metrics } from '../../../../../entities/alert';
 import _ = require('lodash');
 
 const AlertTriggerProjectionComponent: ng.IComponentOptions = {
   bindings: {
     projection: '<',
     alert: '<',
-    onProjectionRemove: '&'
+    onProjectionRemove: '&',
   },
   template: require('./trigger-projection.html'),
   controller: function () {
@@ -41,13 +41,15 @@ const AlertTriggerProjectionComponent: ng.IComponentOptions = {
         this.metrics = Metrics.filterByScope(NodeLifecycleMetrics.METRICS, this.alert.reference_type);
       }
 
-      this.metrics = _.filter(this.metrics, (metric) => { return metric.supportPropertyProjection; });
+      this.metrics = _.filter(this.metrics, (metric) => {
+        return metric.supportPropertyProjection;
+      });
     };
 
     this.deleteProjection = () => {
       this.onProjectionRemove();
     };
-  }
+  },
 };
 
 export default AlertTriggerProjectionComponent;

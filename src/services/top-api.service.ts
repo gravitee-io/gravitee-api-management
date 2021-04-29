@@ -16,7 +16,6 @@
 import * as _ from 'lodash';
 
 class TopApiService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -33,9 +32,12 @@ class TopApiService {
 
   update(topApis) {
     if (topApis && topApis.length) {
-      return this.$http.put(`${this.Constants.env.baseURL}/configuration/top-apis/`, _.map(topApis, function (topApi: any) {
-        return { api: topApi.api };
-      }));
+      return this.$http.put(
+        `${this.Constants.env.baseURL}/configuration/top-apis/`,
+        _.map(topApis, function (topApi: any) {
+          return { api: topApi.api };
+        }),
+      );
     }
   }
 

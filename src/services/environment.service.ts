@@ -20,7 +20,6 @@ import { IHttpResponse } from 'angular';
 import { IEnvironmentPermissions } from '../entities/IEnvironmentPermissions';
 
 class EnvironmentService {
-
   constructor(private $http, private Constants, private $q) {
     'ngInject';
   }
@@ -37,7 +36,6 @@ class EnvironmentService {
         url += key + '=' + val + '&';
       }
     });
-
 
     return this.$http.get(url, { timeout: this.getAnalyticsHttpTimeout() });
   }
@@ -71,11 +69,11 @@ class EnvironmentService {
   }
 
   isSameEnvironment(environment, otherEnvId) {
-    return environment && (environment.id === otherEnvId || environment.hrids && environment.hrids.includes(otherEnvId));
+    return environment && (environment.id === otherEnvId || (environment.hrids && environment.hrids.includes(otherEnvId)));
   }
 
   getEnvironmentFromHridOrId(environments, id) {
-    return environments.find(environment => environment.id === id || environment.hrids && environment.hrids.includes(id));
+    return environments.find((environment) => environment.id === id || (environment.hrids && environment.hrids.includes(id)));
   }
 }
 

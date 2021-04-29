@@ -15,7 +15,7 @@
  */
 import NotificationService from '../services/notification.service';
 import { User } from '../entities/user';
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 import UserService from '../services/user.service';
 import { StateService } from '@uirouter/core';
 import TokenService from '../services/token.service';
@@ -40,18 +40,19 @@ class UserController {
     private $rootScope: IScope,
     private TokenService: TokenService,
     private $mdDialog: angular.material.IDialogService,
-    private Constants) {
+    private Constants,
+  ) {
     'ngInject';
   }
 
   $onInit() {
-    this.UserService.customUserFieldsToRegister().then((resp) => this.fields = resp.data);
-    if (! this.user || (this.user && this.user.id === undefined)) {
-      this.$state.go('login', {}, {reload: true, inherit: false});
+    this.UserService.customUserFieldsToRegister().then((resp) => (this.fields = resp.data));
+    if (!this.user || (this.user && this.user.id === undefined)) {
+      this.$state.go('login', {}, { reload: true, inherit: false });
     } else {
       this.originalPicture = this.getUserPicture();
       this.user.picture_url = this.getUserPicture();
-      this.TokenService.list().then(response => {
+      this.TokenService.list().then((response) => {
         this.tokens = response.data;
       });
       if (this.user.groupsByEnvironment) {
@@ -61,7 +62,7 @@ class UserController {
         } else {
           this.groups = groupsByEnvironmentKeys
             .map((envId) => {
-              const env = this.Constants.org.environments.find(env => env.id === envId);
+              const env = this.Constants.org.environments.find((env) => env.id === envId);
               return `[${env.name}] ${this.user.groupsByEnvironment[envId].join('/')}`;
             })
             .join(' - ');
@@ -76,7 +77,7 @@ class UserController {
     this.UserService.save(this.user).then((response) => {
       this.user = response.data;
       this.user.picture_url = this.getUserPicture();
-      this.$rootScope.$broadcast('graviteeUserRefresh', {'user' : this.user, 'refresh': true});
+      this.$rootScope.$broadcast('graviteeUserRefresh', { user: this.user, refresh: true });
       this.$scope.formUser.$setPristine();
       this.NotificationService.show('User has been updated successfully');
     });
@@ -88,27 +89,29 @@ class UserController {
 
   deleteMyAccount() {
     let that = this;
-    return this.$mdDialog.show({
-      controller: 'DialogConfirmAndValidateController',
-      controllerAs: 'ctrl',
-      template: require('../components/dialog/confirmAndValidate.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to delete your account ?',
-        warning: 'This operation is irreversible.',
-        msg: 'After removing your account, you will be automatically logout.',
-        validationMessage: 'Please, type in your username <code>' + this.user.displayName + '</code> to confirm.',
-        validationValue: this.user.displayName,
-        confirmButton: 'Yes, delete my account'
-      }
-    }).then(function (response) {
-      if (response) {
-        return that.UserService.removeCurrentUser().then((response) => {
-          that.$state.go('logout');
-          that.NotificationService.show('You have been successfully deleted');
-        });
-      }
-    });
+    return this.$mdDialog
+      .show({
+        controller: 'DialogConfirmAndValidateController',
+        controllerAs: 'ctrl',
+        template: require('../components/dialog/confirmAndValidate.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to delete your account ?',
+          warning: 'This operation is irreversible.',
+          msg: 'After removing your account, you will be automatically logout.',
+          validationMessage: 'Please, type in your username <code>' + this.user.displayName + '</code> to confirm.',
+          validationValue: this.user.displayName,
+          confirmButton: 'Yes, delete my account',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          return that.UserService.removeCurrentUser().then((response) => {
+            that.$state.go('logout');
+            that.NotificationService.show('You have been successfully deleted');
+          });
+        }
+      });
   }
 
   cancel() {
@@ -122,47 +125,52 @@ class UserController {
   }
 
   isInternalUser(): boolean {
-    return this.user.source === 'gravitee' ||  this.user.source === 'memory';
+    return this.user.source === 'gravitee' || this.user.source === 'memory';
   }
 
-
   generateToken() {
-    this.$mdDialog.show({
-      controller: 'DialogGenerateTokenController',
-      controllerAs: 'ctrl',
-      template: require('./token/generateToken.dialog.html'),
-      clickOutsideToClose: false,
-      escapeToClose: false,
-      locals: {
-        msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
-        title: 'Generate Personal Access Token'
-      }
-    }).then((tokenGenerated) => {
-      if (tokenGenerated) {
-        this.$state.reload();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogGenerateTokenController',
+        controllerAs: 'ctrl',
+        template: require('./token/generateToken.dialog.html'),
+        clickOutsideToClose: false,
+        escapeToClose: false,
+        locals: {
+          msg:
+            'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
+          title: 'Generate Personal Access Token',
+        },
+      })
+      .then((tokenGenerated) => {
+        if (tokenGenerated) {
+          this.$state.reload();
+        }
+      });
   }
 
   revoke(token) {
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        msg: 'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
-        title: 'Are you sure you want to revoke the token "' + token.name + '"?',
-        confirmButton: 'Revoke'
-      }
-    }).then((response) => {
-      if (response) {
-        this.TokenService.revoke(token).then(() => {
-          this.NotificationService.show('Token "' + token.name + '" has been revoked.');
-          this.$state.reload();
-        });
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          msg:
+            'Any applications or scripts using this token will no longer be able to access the Gravitee.io management API. You cannot undo this action.',
+          title: 'Are you sure you want to revoke the token "' + token.name + '"?',
+          confirmButton: 'Revoke',
+        },
+      })
+      .then((response) => {
+        if (response) {
+          this.TokenService.revoke(token).then(() => {
+            this.NotificationService.show('Token "' + token.name + '" has been revoked.');
+            this.$state.reload();
+          });
+        }
+      });
   }
 }
 

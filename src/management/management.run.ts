@@ -18,39 +18,65 @@ import UserService from '../services/user.service';
 import EnvironmentService from '../services/environment.service';
 import PortalConfigService from '../services/portalConfig.service';
 
-function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
-                  $timeout, UserService: UserService, Constants, PermissionStrategies, ReCaptchaService, ApiService, EnvironmentService: EnvironmentService, PortalConfigService: PortalConfigService) {
+function runBlock(
+  $rootScope,
+  $window,
+  $http,
+  $mdSidenav,
+  $transitions,
+  $state,
+  $timeout,
+  UserService: UserService,
+  Constants,
+  PermissionStrategies,
+  ReCaptchaService,
+  ApiService,
+  EnvironmentService: EnvironmentService,
+  PortalConfigService: PortalConfigService,
+) {
   'ngInject';
 
-  $transitions.onStart({
-    to: (state) => state.name !== 'login' && state.name !== 'registration'
-      && state.name !== 'confirm' && state.name !== 'newsletter' && state.name !== 'resetPassword'
-  }, (trans) => {
-    if (!UserService.isAuthenticated()) {
-      return trans.router.stateService.target('login');
-    }
-    if (UserService.isAuthenticated()
-      && UserService.currentUser.firstLogin
-      && Constants.org.settings.newsletter.enabled
-      && !$window.localStorage.getItem('newsletterProposed')) {
-      return trans.router.stateService.target('newsletter');
-    } else {
-      if (!Constants.org.settings.newsletter.enabled) {
-        $rootScope.$broadcast('graviteeUserRefresh', { user: UserService.currentUser, refresh: true });
+  $transitions.onStart(
+    {
+      to: (state) =>
+        state.name !== 'login' &&
+        state.name !== 'registration' &&
+        state.name !== 'confirm' &&
+        state.name !== 'newsletter' &&
+        state.name !== 'resetPassword',
+    },
+    (trans) => {
+      if (!UserService.isAuthenticated()) {
+        return trans.router.stateService.target('login');
       }
-    }
-  });
+      if (
+        UserService.isAuthenticated() &&
+        UserService.currentUser.firstLogin &&
+        Constants.org.settings.newsletter.enabled &&
+        !$window.localStorage.getItem('newsletterProposed')
+      ) {
+        return trans.router.stateService.target('newsletter');
+      } else {
+        if (!Constants.org.settings.newsletter.enabled) {
+          $rootScope.$broadcast('graviteeUserRefresh', { user: UserService.currentUser, refresh: true });
+        }
+      }
+    },
+  );
 
-  $transitions.onBefore({
-    to: (state, transition) => {
-      return state.name.startsWith('management')
-        && !EnvironmentService.isSameEnvironment(Constants.org.currentEnv, transition.params().environmentId);
-    }
-  }, trans => {
-
-    const params = Object.assign({}, trans.params());
-    const stateService = trans.router.stateService;
-    let toState = trans.to();
+  $transitions.onBefore(
+    {
+      to: (state, transition) => {
+        return (
+          state.name.startsWith('management') &&
+          !EnvironmentService.isSameEnvironment(Constants.org.currentEnv, transition.params().environmentId)
+        );
+      },
+    },
+    (trans) => {
+      const params = Object.assign({}, trans.params());
+      const stateService = trans.router.stateService;
+      let toState = trans.to();
 
       let shouldReload = true;
       if (!params.environmentId) {
@@ -67,86 +93,98 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
         params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
         return stateService.target(toState, params, { reload: shouldReload });
       }
-  });
+    },
+  );
 
-  $transitions.onBefore({}, trans => {
+  $transitions.onBefore(
+    {},
+    (trans) => {
+      const params = Object.assign({}, trans.params());
+      const stateService = trans.router.stateService;
+      let toState = trans.to();
 
-    const params = Object.assign({}, trans.params());
-    const stateService = trans.router.stateService;
-    let toState = trans.to();
+      if (UserService.currentUser && UserService.currentUser.id && !Constants.org.currentEnv) {
+        return EnvironmentService.list()
+          .then((response) => {
+            Constants.org.environments = response.data;
 
-    if (UserService.currentUser && UserService.currentUser.id && !Constants.org.currentEnv) {
-      return EnvironmentService.list()
-        .then(response => {
-          Constants.org.environments = response.data;
-
-          const lastEnvironmentLoaded = 'gv-last-environment-loaded';
-          const lastEnv = $window.localStorage.getItem(lastEnvironmentLoaded);
-          if (lastEnv !== null) {
-            const foundEnv = Constants.org.environments.find(env => env.id === lastEnv);
-            if (foundEnv) {
-              Constants.org.currentEnv = Constants.org.environments.find(env => env.id === lastEnv);
+            const lastEnvironmentLoaded = 'gv-last-environment-loaded';
+            const lastEnv = $window.localStorage.getItem(lastEnvironmentLoaded);
+            if (lastEnv !== null) {
+              const foundEnv = Constants.org.environments.find((env) => env.id === lastEnv);
+              if (foundEnv) {
+                Constants.org.currentEnv = Constants.org.environments.find((env) => env.id === lastEnv);
+              } else {
+                Constants.org.currentEnv = Constants.org.environments[0];
+                $window.localStorage.removeItem(lastEnvironmentLoaded);
+              }
             } else {
               Constants.org.currentEnv = Constants.org.environments[0];
-              $window.localStorage.removeItem(lastEnvironmentLoaded);
             }
-          } else {
-            Constants.org.currentEnv = Constants.org.environments[0];
-          }
 
-          return response.data;
-        })
-        .then((environments) => {
-          if (environments && environments.length >= 1) {
-            return PortalConfigService.get();
+            return response.data;
+          })
+          .then((environments) => {
+            if (environments && environments.length >= 1) {
+              return PortalConfigService.get();
+            }
+          })
+          .then((response) => {
+            if (response) {
+              Constants.env.settings = response.data;
+            }
+          });
+      } else if (toState.apiDefinition) {
+        return ApiService.get(params.apiId).then((response) => {
+          if (response.data.gravitee != null && toState.apiDefinition.version !== response.data.gravitee) {
+            return stateService.target(toState.apiDefinition.redirect, params);
           }
-        })
-        .then(response => {
-          if (response) {
-            Constants.env.settings = response.data;
-          }
+          return {};
         });
-    } else if (toState.apiDefinition) {
-      return ApiService.get(params.apiId).then((response) => {
-        if (response.data.gravitee != null && toState.apiDefinition.version !== response.data.gravitee) {
-          return stateService.target(toState.apiDefinition.redirect, params);
-        }
-        return {};
-      });
-    }
-  }, { priority: 10 });
+      }
+    },
+    { priority: 10 },
+  );
 
-  $transitions.onFinish({}, function(trans) {
-
+  $transitions.onFinish({}, function (trans) {
     // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
     ReCaptchaService.hideBadge();
 
     let fromState = trans.from();
     let toState = trans.to();
 
-    let notEligibleForUserCreation = !Constants.org.settings.management.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
+    let notEligibleForUserCreation =
+      !Constants.org.settings.management.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
 
     if (notEligibleForUserCreation) {
       return trans.router.stateService.target('login');
-    } else if (toState.data && toState.data.perms && toState.data.perms.only && !UserService.isUserHasPermissions(toState.data.perms.only)) {
+    } else if (
+      toState.data &&
+      toState.data.perms &&
+      toState.data.perms.only &&
+      !UserService.isUserHasPermissions(toState.data.perms.only)
+    ) {
       return trans.router.stateService.target(UserService.isAuthenticated() ? 'management.home' : 'login');
     }
   });
 
-  $rootScope.$on('graviteeLogout', function(event, params) {
-    $state.go('login', {redirectUri: params.redirectUri});
+  $rootScope.$on('graviteeLogout', function (event, params) {
+    $state.go('login', { redirectUri: params.redirectUri });
   });
 
-  $rootScope.$watch(function () {
-    return $http.pendingRequests.length > 0;
-  }, function(hasPendingRequests) {
-    $rootScope.isLoading = hasPendingRequests;
-  });
+  $rootScope.$watch(
+    function () {
+      return $http.pendingRequests.length > 0;
+    },
+    function (hasPendingRequests) {
+      $rootScope.isLoading = hasPendingRequests;
+    },
+  );
 
   $rootScope.displayLoader = true;
 
   // force displayLoader value to change on a new digest cycle
-  $timeout(function() {
+  $timeout(function () {
     $rootScope.displayLoader = false;
   });
 
@@ -160,7 +198,6 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions, $state,
   $window.onfocus = () => {
     $rootScope.isWindowFocused = true;
   };
-
 }
 
 export default runBlock;

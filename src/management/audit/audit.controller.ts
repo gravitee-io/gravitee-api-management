@@ -21,15 +21,15 @@ class AuditController {
     private ApiService: ApiService,
     private ApplicationService: ApplicationService,
     private resolvedEvents: string[],
-    private $scope
+    private $scope,
   ) {
     'ngInject';
     this.$scope.events = resolvedEvents;
   }
 
   $onInit() {
-    this.ApiService.list().then(response => this.$scope.apis = response.data );
-    this.ApplicationService.list().then(response => this.$scope.applications = response.data );
+    this.ApiService.list().then((response) => (this.$scope.apis = response.data));
+    this.ApplicationService.list().then((response) => (this.$scope.applications = response.data));
   }
 }
 export default AuditController;

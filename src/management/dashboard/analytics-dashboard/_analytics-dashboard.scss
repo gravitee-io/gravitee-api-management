@@ -9,8 +9,8 @@ md-chips.events-md-chips {
 }
 
 md-list-item.eventType {
-  float:left;
-  background: rgb(224,224,224);
+  float: left;
+  background: rgb(224, 224, 224);
   border-radius: 16px;
   min-height: 32px;
   line-height: 32px;
@@ -19,7 +19,7 @@ md-list-item.eventType {
 
   & > a {
     text-decoration: none;
-    color:rgb(66,66,66);
+    color: rgb(66, 66, 66);
   }
 
   &.eventTypeSelected {
@@ -48,10 +48,10 @@ md-list-item.eventType {
   & > md-card-header {
     padding-bottom: 0px;
     span.md-title {
-        font-size: 12px;
+      font-size: 12px;
     }
     span.md-subhead {
-        font-size: 11px;
+      font-size: 11px;
     }
   }
 

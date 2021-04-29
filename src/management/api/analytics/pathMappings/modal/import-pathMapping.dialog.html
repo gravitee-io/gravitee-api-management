@@ -16,20 +16,18 @@
 
 -->
 <md-dialog aria-label="Import path mapping">
-    <form name="formImportPathMapping" ng-submit="$ctrl.save()" novalidate>
-        <md-dialog-content layout-padding layout="column">
-          <h4>Select a swagger document to import</h4>
-          <label ng-if="!docs.length">No swagger documentation on your API</label>
-          <md-radio-group ng-show="docs.length" ng-model="selectedDoc" required>
-            <md-radio-button ng-repeat="doc in docs | orderBy: 'name'" value="{{doc.id}}">
-              {{doc.name}}
-            </md-radio-button>
-          </md-radio-group>
-        </md-dialog-content>
+  <form name="formImportPathMapping" ng-submit="$ctrl.save()" novalidate>
+    <md-dialog-content layout-padding layout="column">
+      <h4>Select a swagger document to import</h4>
+      <label ng-if="!docs.length">No swagger documentation on your API</label>
+      <md-radio-group ng-show="docs.length" ng-model="selectedDoc" required>
+        <md-radio-button ng-repeat="doc in docs | orderBy: 'name'" value="{{doc.id}}"> {{doc.name}} </md-radio-button>
+      </md-radio-group>
+    </md-dialog-content>
 
-        <md-dialog-actions layout="row">
-            <md-button ng-click="$ctrl.hide()">Cancel</md-button>
-            <md-button type="submit" class="md-raised md-primary" ng-disabled="formImportPathMapping.$invalid">Import</md-button>
-        </md-dialog-actions>
-    </form>
+    <md-dialog-actions layout="row">
+      <md-button ng-click="$ctrl.hide()">Cancel</md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formImportPathMapping.$invalid">Import</md-button>
+    </md-dialog-actions>
+  </form>
 </md-dialog>

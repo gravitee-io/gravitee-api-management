@@ -15,14 +15,14 @@
  */
 
 class ThemeElementController {
-  constructor (private Theme) {
+  constructor(private Theme) {
     'ngInject';
   }
 }
 
-const ThemeElementDirective: ng.IDirective = ({
+const ThemeElementDirective: ng.IDirective = {
   restrict: 'A',
-  link: function (scope, elem, attr, ctr: {Theme}) {
+  link: function (scope, elem, attr, ctr: { Theme }) {
     if (attr.gvThemeElement) {
       let splittedTheme: string[] = attr.gvThemeElement.split('.');
       let style: any = ctr.Theme;
@@ -35,6 +35,6 @@ const ThemeElementDirective: ng.IDirective = ({
     }
   },
   controller: ThemeElementController,
-});
+};
 
 export default ThemeElementDirective;

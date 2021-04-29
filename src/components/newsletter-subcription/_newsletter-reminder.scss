@@ -7,7 +7,7 @@ gv-newsletter-reminder.newsletter-open {
 gv-newsletter-reminder {
   position: fixed;
   padding: 1rem;
-  border: 1px solid #BFBFBF;
+  border: 1px solid #bfbfbf;
   right: 2px;
   bottom: 2px;
   z-index: 100;
@@ -16,7 +16,8 @@ gv-newsletter-reminder {
   opacity: 0;
   visibility: hidden;
 
-  .newsletter-box, .newsletter-title {
+  .newsletter-box,
+  .newsletter-title {
     flex: 1;
   }
 
@@ -24,12 +25,13 @@ gv-newsletter-reminder {
     display: flex;
   }
 
-  .newsletter-error, .newsletter-success {
+  .newsletter-error,
+  .newsletter-success {
     display: none;
   }
 
   .newsletter-error {
-    color: #FF5722;
+    color: #ff5722;
   }
 
   .newsletter-success {
@@ -58,7 +60,7 @@ gv-newsletter-reminder {
   }
 
   .gv-input {
-    border: var(--gv-input--bdw, 1px) var(--gv-input--bds, solid) var(--gv-input--bdc, var(--gv-theme-neutral-color-dark, #D9D9D9));
+    border: var(--gv-input--bdw, 1px) var(--gv-input--bds, solid) var(--gv-input--bdc, var(--gv-theme-neutral-color-dark, #d9d9d9));
     box-sizing: border-box;
     border-radius: 4px;
     font-style: normal;
@@ -93,13 +95,12 @@ gv-newsletter-reminder {
     font-weight: 700;
   }
 
-  .gv-button:focus, .gv-button:hover {
-    box-shadow: 0 1px 3px var(--gv-theme-color-darker, #383E3F);
+  .gv-button:focus,
+  .gv-button:hover {
+    box-shadow: 0 1px 3px var(--gv-theme-color-darker, #383e3f);
   }
 
   .message {
     font-size: 12px;
   }
-
 }
-

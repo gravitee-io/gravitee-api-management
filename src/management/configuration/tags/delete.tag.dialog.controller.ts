@@ -18,11 +18,11 @@ function DeleteTagDialogController($scope, $mdDialog: angular.material.IDialogSe
 
   $scope.tag = tag.name;
 
-  $scope.cancel = function() {
+  $scope.cancel = function () {
     $mdDialog.cancel();
   };
 
-  $scope.ok = function() {
+  $scope.ok = function () {
     $mdDialog.hide(true);
   };
 }

@@ -20,12 +20,10 @@ import _ = require('lodash');
 
 const RoleComponent: ng.IComponentOptions = {
   bindings: {
-    roleScopes: '<'
+    roleScopes: '<',
   },
   template: require('./role.html'),
-  controller: function (RoleService: RoleService,
-                        NotificationService: NotificationService,
-                        $state: StateService) {
+  controller: function (RoleService: RoleService, NotificationService: NotificationService, $state: StateService) {
     'ngInject';
     this.$onInit = () => {
       this.editMode = !!$state.params.role;
@@ -40,9 +38,12 @@ const RoleComponent: ng.IComponentOptions = {
         if (this.permissions) {
           this.role = {
             scope: $state.params.roleScope,
-            permissions: _.zipObject(this.permissions, _.map(this.permissions, () => {
-              return {};
-            }))
+            permissions: _.zipObject(
+              this.permissions,
+              _.map(this.permissions, () => {
+                return {};
+              }),
+            ),
           };
         } else {
           $state.go('organization.settings.roles');
@@ -65,7 +66,7 @@ const RoleComponent: ng.IComponentOptions = {
         that.formRole.$setPristine();
         NotificationService.show(`Role ${that.editMode ? 'updated' : 'created'} with success`);
         if (!that.editMode) {
-          $state.go('organization.settings.roleedit', {roleScope: that.role.scope, role: that.role.name});
+          $state.go('organization.settings.roleedit', { roleScope: that.role.scope, role: that.role.name });
         }
       });
     };
@@ -73,8 +74,10 @@ const RoleComponent: ng.IComponentOptions = {
     this._viewToModel = () => {
       let roleCopy = _.clone(this.role);
       roleCopy.permissions = _(roleCopy.permissions)
-        .mapValues(value => {
-          return _(value).pickBy((value) => value).keys();
+        .mapValues((value) => {
+          return _(value)
+            .pickBy((value) => value)
+            .keys();
         })
         .value();
       return roleCopy;
@@ -82,9 +85,12 @@ const RoleComponent: ng.IComponentOptions = {
 
     this._modelToView = () => {
       this.role.permissions = _(this.role.permissions)
-        .mapValues(value => {
+        .mapValues((value) => {
           let values = _.values(value);
-          return _.zipObject(values, _.map(values, () => true));
+          return _.zipObject(
+            values,
+            _.map(values, () => true),
+          );
         })
         .value();
     };
@@ -104,7 +110,7 @@ const RoleComponent: ng.IComponentOptions = {
       this.updateCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].U);
       this.deleteCheckedAll = _.every(this.permissions, (permission) => this.role.permissions[permission].D);
     };
-  }
+  },
 };
 
 export default RoleComponent;

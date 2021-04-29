@@ -1,6 +1,6 @@
 {
   "name": "gravitee-management-webui",
-  "version": "3.8.0",
+  "version": "3.9.0-SNAPSHOT",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
     "@gravitee/ui-components": "^2.3.5",
@@ -101,7 +101,7 @@
     "express": "^4.17.1",
     "extract-text-webpack-plugin": "v4.0.0-beta.0",
     "file-loader": "^1.1.11",
-    "fork-ts-checker-webpack-plugin": "^0.4.15",
+    "fork-ts-checker-webpack-plugin": "^6.2.1",
     "gulp": "^4.0.2",
     "gulp-filter": "^5.1.0",
     "gulp-hub": "^4.2.0",
@@ -121,6 +121,7 @@
     "ng-annotate-loader": "^0.6.1",
     "node-sass": "^4.14.1",
     "postcss-loader": "^2.1.6",
+    "prettier": "^2.2.1",
     "require-dir": "^1.2.0",
     "sass-loader": "^7.3.1",
     "style-loader": "^0.21.0",
@@ -150,16 +151,20 @@
     ]
   },
   "scripts": {
-    "test": "jest",
-    "test:ci": "jest --runInBand --ci",
+    "build:prod": "gulp serve:dist",
+    "compile": "gulp compile",
+    "lint": "gulp lint && npm run prettier",
+    "lint:fix": "gulp lint:fix && npm run prettier:fix",
+    "postinstall": "rm -rf node_modules/codemirror/mode/rpm/changes",
+    "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
+    "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
+    "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
     "serve": "gulp serve",
     "serve:demo": "gulp serve:demo",
     "serve:nightly": "gulp serve:nightly",
     "serve:prod": "node scripts/serve.js",
+    "test": "jest",
     "test:auto": "jest --watch",
-    "build:prod": "gulp serve:dist",
-    "lint": "gulp lint",
-    "lint:fix": "gulp lint:fix",
-    "compile": "gulp compile"
+    "test:ci": "jest --runInBand --ci"
   }
 }

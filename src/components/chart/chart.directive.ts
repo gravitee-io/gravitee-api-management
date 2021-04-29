@@ -30,15 +30,14 @@ class ChartDirective {
         type: '@',
         zoom: '=',
         height: '=',
-        width: '='
+        width: '=',
       },
       controller: ChartController,
       link: function (scope, element, attributes, controller) {
-
         Highcharts.setOptions({
           time: {
             useUTC: false,
-          }
+          },
         });
 
         let chartElement = element[0];
@@ -61,7 +60,7 @@ class ChartDirective {
           }, 100);
         }
 
-        angular.element(controller.$window).bind('resize', function() {
+        angular.element(controller.$window).bind('resize', function () {
           onWindowResized();
         });
 
@@ -126,39 +125,39 @@ class ChartDirective {
           if (newOptions) {
             newOptions = _.merge(newOptions, {
               lang: {
-                noData: '<code>No data to display</code>'
+                noData: '<code>No data to display</code>',
               },
               noData: {
-                useHTML: true
-              }
+                useHTML: true,
+              },
             });
 
             if (newOptions.title) {
               newOptions.title.style = {
-                'fontWeight': 'bold',
-                'fontSize': '12px',
-                'fontFamily': '"Helvetica Neue",Helvetica,Arial,sans-serif'
+                fontWeight: 'bold',
+                fontSize: '12px',
+                fontFamily: '"Helvetica Neue",Helvetica,Arial,sans-serif',
               };
               newOptions.title.align = 'left';
             } else {
-              newOptions.title = {text: ''};
+              newOptions.title = { text: '' };
             }
-            newOptions.yAxis = _.merge(newOptions.yAxis, {title: {text: ''}});
-
+            newOptions.yAxis = _.merge(newOptions.yAxis, { title: { text: '' } });
 
             let containerElement = element.parent().parent()[0];
             let parentElement = element.parent()[0];
 
-            newOptions.chart = _.merge(newOptions.chart, {type: scope.type,
+            newOptions.chart = _.merge(newOptions.chart, {
+              type: scope.type,
               height: scope.height || parentElement.height || containerElement.height,
-              width: scope.width || parentElement.clientWidth || containerElement.clientWidth
+              width: scope.width || parentElement.clientWidth || containerElement.clientWidth,
             });
             if (scope.zoom) {
               newOptions.chart.zoomType = 'x';
             }
 
             newOptions.credits = {
-              enabled: false
+              enabled: false,
             };
 
             newOptions.series = _.sortBy(newOptions.series, 'name');
@@ -175,19 +174,32 @@ class ChartDirective {
                   const nbCol = Math.trunc(this.points.filter((p) => p.y).length / 10);
                   let dateFormat = newOptions.dateFormat || '%A, %b %d, %H:%M';
                   let s = '<div><b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b></div>';
-                  s += '<div class="' + ((nbCol >= 2) ? 'gv-tooltip gv-tooltip-' + (nbCol > 5 ? 5 : nbCol) : '') + '">';
-                  if (_.filter(this.points, (point: any) => {
+                  s += '<div class="' + (nbCol >= 2 ? 'gv-tooltip gv-tooltip-' + (nbCol > 5 ? 5 : nbCol) : '') + '">';
+                  if (
+                    _.filter(this.points, (point: any) => {
                       return point.y !== 0;
-                    }).length) {
+                    }).length
+                  ) {
                     let i = 0;
                     _.forEach(this.points, function (point) {
                       if (point.y) {
-                        let name = ' ' + (point.series.options.labelPrefix ? point.series.options.labelPrefix + ' ' + point.series.name : point.series.name);
+                        let name =
+                          ' ' +
+                          (point.series.options.labelPrefix
+                            ? point.series.options.labelPrefix + ' ' + point.series.name
+                            : point.series.name);
                         if (nbCol < 2 && i++ > 0) {
                           s += '<br />';
                         }
-                        s += '<span style="margin: 1px 5px;"><span style="color:' + point.color + '">\u25CF</span>' + name + ': <b>' + (point.series.options.decimalFormat ? Highcharts.numberFormat(point.y, 2) : point.y) +
-                          (point.series.options.labelSuffix ? point.series.options.labelSuffix : '') + '</b></span>';
+                        s +=
+                          '<span style="margin: 1px 5px;"><span style="color:' +
+                          point.color +
+                          '">\u25CF</span>' +
+                          name +
+                          ': <b>' +
+                          (point.series.options.decimalFormat ? Highcharts.numberFormat(point.y, 2) : point.y) +
+                          (point.series.options.labelSuffix ? point.series.options.labelSuffix : '') +
+                          '</b></span>';
                       }
                     });
                   }
@@ -195,31 +207,31 @@ class ChartDirective {
                   return s;
                 },
                 shared: true,
-                useHTML: true
+                useHTML: true,
               };
               newOptions.plotOptions = _.merge(newOptions.plotOptions, {
                 series: {
                   marker: {
-                    enabled: false
+                    enabled: false,
                   },
-                  fillOpacity: 0.1
-                }
+                  fillOpacity: 0.1,
+                },
               });
 
               if (scope.type && scope.type.startsWith('area')) {
-                newOptions.xAxis = _.merge(newOptions.xAxis, {crosshair: true});
+                newOptions.xAxis = _.merge(newOptions.xAxis, { crosshair: true });
               }
             } else if (scope.type && scope.type === 'solidgauge') {
               newOptions = _.merge(newOptions, {
                 pane: {
                   background: {
                     innerRadius: '80%',
-                    outerRadius: '100%'
-                  }
+                    outerRadius: '100%',
+                  },
                 },
 
                 tooltip: {
-                  enabled: false
+                  enabled: false,
                 },
 
                 yAxis: {
@@ -230,10 +242,10 @@ class ChartDirective {
                   stops: [
                     [0.1, '#55BF3B'], // green
                     [0.5, '#DDDF0D'], // yellow
-                    [0.9, '#DF5353'] // red
+                    [0.9, '#DF5353'], // red
                   ],
                   minorTickInterval: null,
-                  tickAmount: 2
+                  tickAmount: 2,
                 },
 
                 plotOptions: {
@@ -243,26 +255,32 @@ class ChartDirective {
                     dataLabels: {
                       y: 30,
                       borderWidth: 0,
-                      useHTML: true
-                    }
-                  }
+                      useHTML: true,
+                    },
+                  },
                 },
-                series: [{
-                  dataLabels: {
-                    format: '<div style="text-align:center">' +
-                    '<span style="font-size:25px;color:' +
-                    (((Highcharts as any).theme && (Highcharts as any).theme.contrastTextColor) || 'black') + '">{y}%</span><br/>' +
-                    '<span style="font-size:12px;color:silver;">' + newOptions.series[0].name + '</span>' +
-                    '</div>'
-                  }
-                }]
+                series: [
+                  {
+                    dataLabels: {
+                      format:
+                        '<div style="text-align:center">' +
+                        '<span style="font-size:25px;color:' +
+                        (((Highcharts as any).theme && (Highcharts as any).theme.contrastTextColor) || 'black') +
+                        '">{y}%</span><br/>' +
+                        '<span style="font-size:12px;color:silver;">' +
+                        newOptions.series[0].name +
+                        '</span>' +
+                        '</div>',
+                    },
+                  },
+                ],
               });
             } else if (scope.type && scope.type === 'column') {
               if (scope.stacked) {
                 newOptions.plotOptions = {
                   column: {
-                    stacking: 'normal'
-                  }
+                    stacking: 'normal',
+                  },
                 };
               }
             } else if (scope.type && scope.type === 'sparkline') {
@@ -274,46 +292,46 @@ class ChartDirective {
                   type: 'area',
                   margin: [0, 0, 2, 0],
                   // small optimalization, saves 1-2 ms each sparkline
-                  skipClone: true
+                  skipClone: true,
                 },
                 title: {
-                  text: ''
+                  text: '',
                 },
                 credits: {
-                  enabled: false
+                  enabled: false,
                 },
                 xAxis: {
                   labels: {
-                    enabled: false
+                    enabled: false,
                   },
                   title: {
-                    text: null
+                    text: null,
                   },
                   startOnTick: false,
                   endOnTick: false,
-                  tickPositions: []
+                  tickPositions: [],
                 },
                 yAxis: {
                   max: maxValue === 0 ? 1 : maxValue,
                   endOnTick: false,
                   startOnTick: false,
                   labels: {
-                    enabled: false
+                    enabled: false,
                   },
                   title: {
-                    text: null
+                    text: null,
                   },
-                  tickPositions: [0]
+                  tickPositions: [0],
                 },
                 legend: {
-                  enabled: false
+                  enabled: false,
                 },
                 tooltip: {
                   hideDelay: 0,
                   outside: true,
                   shared: true,
                   headerFormat: '',
-                  pointFormat: '<b>{point.y}</b> hits'
+                  pointFormat: '<b>{point.y}</b> hits',
                 },
                 plotOptions: {
                   series: {
@@ -322,25 +340,25 @@ class ChartDirective {
                     shadow: false,
                     states: {
                       hover: {
-                        lineWidth: 2
-                      }
+                        lineWidth: 2,
+                      },
                     },
                     marker: {
                       enabled: false,
                       radius: 1,
                       states: {
                         hover: {
-                          radius: 2
-                        }
-                      }
+                          radius: 2,
+                        },
+                      },
                     },
-                    fillOpacity: 0.25
+                    fillOpacity: 0.25,
                   },
                   column: {
                     negativeColor: '#910000',
-                    borderColor: 'silver'
-                  }
-                }
+                    borderColor: 'silver',
+                  },
+                },
               });
             }
 
@@ -351,14 +369,13 @@ class ChartDirective {
             }
           }
         }
-      }
+      },
     };
   }
 }
 
 class ChartController {
-  constructor(
-    private $window: ng.IWindowService) {
+  constructor(private $window: ng.IWindowService) {
     'ngInject';
   }
 }

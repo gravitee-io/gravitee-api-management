@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 const WidgetChartMapConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-chart-map-configuration.html'),
   bindings: {
-    chart: '<'
+    chart: '<',
   },
   controller: function () {
     'ngInject';
@@ -26,12 +26,12 @@ const WidgetChartMapConfigurationComponent: ng.IComponentOptions = {
         _.merge(this.chart, {
           request: {
             type: 'group_by',
-            field: 'geoip.city_name'
-          }
+            field: 'geoip.city_name',
+          },
         });
       }
     };
-  }
+  },
 };
 
 export default WidgetChartMapConfigurationComponent;

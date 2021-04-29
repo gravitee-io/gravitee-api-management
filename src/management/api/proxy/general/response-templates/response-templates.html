@@ -39,23 +39,29 @@
             <tbody md-body ng-repeat="(key, templates) in ctrl.api.response_templates">
               <tr md-row ng-repeat="(type, template) in ctrl.api.response_templates[key]">
                 <td ng-if="$first" md-cell rowspan="{{ctrl.countTypes(templates)}}">
-                  <a ui-sref="management.apis.detail.proxy.responsetemplates.edit({key: key})" permission permission-only="['api-response_templates-u','api-response_templates-r']">{{key}}</a>
+                  <a
+                    ui-sref="management.apis.detail.proxy.responsetemplates.edit({key: key})"
+                    permission
+                    permission-only="['api-response_templates-u','api-response_templates-r']"
+                    >{{key}}</a
+                  >
                 </td>
                 <td md-cell>{{type}}</td>
                 <td md-cell>{{template.status}}</td>
                 <td md-cell>
-                  <div ui-codemirror
-                       ui-refresh='true'
-                       ui-codemirror-opts="{lineWrapping: true, readOnly: nocursor, mode: type}"
-                       ng-model="template.body"
-                       ng-if="template.display">
-                  </div>
+                  <div
+                    ui-codemirror
+                    ui-refresh="true"
+                    ui-codemirror-opts="{lineWrapping: true, readOnly: nocursor, mode: type}"
+                    ng-model="template.body"
+                    ng-if="template.display"
+                  ></div>
                   <a ng-if="!template.display" ng-click="template.display=true">show</a>
                   <a ng-if="template.display" ng-click="template.display=false">hide</a>
                 </td>
                 <td ng-if="$first" md-cell rowspan="{{ctrl.countTypes(templates)}}" width="100px">
                   <ng-md-icon icon="delete" ng-click="ctrl.remove(key)" permission permission-only="'api-response_templates-d'">
-                              style="font-size: 24px; height: 24px;">
+                    style="font-size: 24px; height: 24px;">
                     <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
                   </ng-md-icon>
                 </td>
@@ -64,23 +70,26 @@
           </table>
         </md-table-container>
 
-          <gravitee-empty-state
-                                ng-if="!ctrl.hasTemplates()"
-                                icon="assignment"
-                                model="Response template"
-                                message="Response templates will appear here"
-                                sub-message="Start creating a response template"
-                                create-mode="true"></gravitee-empty-state>
+        <gravitee-empty-state
+          ng-if="!ctrl.hasTemplates()"
+          icon="assignment"
+          model="Response template"
+          message="Response templates will appear here"
+          sub-message="Start creating a response template"
+          create-mode="true"
+        ></gravitee-empty-state>
       </div>
     </div>
-
   </div>
 </form>
 
-<md-button permission permission-only="'api-response_templates-c'"
-           aria-label="Create response template"
-           class="md-fab md-fab-bottom-right"
-           ui-sref="management.apis.detail.proxy.responsetemplates.new">
+<md-button
+  permission
+  permission-only="'api-response_templates-c'"
+  aria-label="Create response template"
+  class="md-fab md-fab-bottom-right"
+  ui-sref="management.apis.detail.proxy.responsetemplates.new"
+>
   <md-tooltip md-direction="top" md-visible="false">Add a new response template</md-tooltip>
   <ng-md-icon icon="add"></ng-md-icon>
 </md-button>

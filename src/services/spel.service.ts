@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 class SpelService {
-
   constructor(private $http, private Constants) {
     'ngInject';
   }
@@ -22,7 +21,6 @@ class SpelService {
   getGrammar() {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/spel/grammar`);
   }
-
 }
 
 export default SpelService;

@@ -16,9 +16,9 @@
 import _ = require('lodash');
 import ApiService from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import {PagedResult} from '../../../../entities/pagedResult';
-import {StateService} from '@uirouter/core';
-import {IScope} from 'angular';
+import { PagedResult } from '../../../../entities/pagedResult';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import * as moment from 'moment';
 
 let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
@@ -37,22 +37,21 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     api: '<',
     plans: '<',
     subscriptions: '<',
-    subscribers: '<'
+    subscribers: '<',
   },
   template: require('./subscriptions.html'),
   controller: class {
-
     private subscriptions: PagedResult;
     private api: any;
 
     private query: SubscriptionQuery = new SubscriptionQuery();
 
     private status = {
-      'ACCEPTED': 'Accepted',
-      'CLOSED': 'Closed',
-      'PAUSED': 'Paused',
-      'PENDING': 'Pending',
-      'REJECTED': 'Rejected'
+      ACCEPTED: 'Accepted',
+      CLOSED: 'Closed',
+      PAUSED: 'Paused',
+      PENDING: 'Pending',
+      REJECTED: 'Rejected',
     };
 
     private subscriptionsFiltersForm: any;
@@ -63,7 +62,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       private $mdDialog: angular.material.IDialogService,
       private $state: StateService,
       public $rootScope: IScope,
-      private $timeout: ng.ITimeoutService
+      private $timeout: ng.ITimeoutService,
     ) {
       'ngInject';
 
@@ -136,7 +135,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       }
 
       _.mapKeys(parameters, (value, key) => {
-        return query += key + '=' + value + '&';
+        return (query += key + '=' + value + '&');
       });
 
       return query;
@@ -152,9 +151,10 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
           plan: this.query.plans ? this.query.plans.join(',') : '',
           page: this.query.page,
           size: this.query.size,
-          api_key: this.query.api_key
+          api_key: this.query.api_key,
         }),
-        {notify: false});
+        { notify: false },
+      );
 
       this.ApiService.getSubscriptions(this.api.id, query).then((response) => {
         this.subscriptions = response.data as PagedResult;
@@ -170,7 +170,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
           aggs: 'field:subscription',
           interval: 86400000,
           from: moment().endOf('day').subtract(1, 'months'),
-          to: moment().endOf('day')
+          to: moment().endOf('day'),
         }).then((result) => {
           if (result.data.values && result.data.values.length) {
             _.forEach(this.subscriptions.data, (subscription) => {
@@ -181,13 +181,17 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
               if (subBucket) {
                 subBucketData = subBucket.data;
               } else {
-                if (result.data.values[0].buckets[0] && result.data.values[0].buckets[0].data && result.data.values[0].buckets[0].data.length) {
+                if (
+                  result.data.values[0].buckets[0] &&
+                  result.data.values[0].buckets[0].data &&
+                  result.data.values[0].buckets[0].data.length
+                ) {
                   subBucketData = _.fill(Array(result.data.values[0].buckets[0].data.length), 0);
                 } else {
                   subBucketData = [0];
                 }
               }
-              subscription.chartData = {series: [{data: subBucketData}]};
+              subscription.chartData = { series: [{ data: subBucketData }] };
             });
           }
         });
@@ -201,24 +205,30 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
           return plan.security !== 'key_less';
         });
 
-        this.$mdDialog.show({
-          controller: 'DialogSubscriptionCreateController',
-          controllerAs: 'dialogSubscriptionCreateController',
-          template: require('./dialog/subscription.create.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            api: this.api,
-            plans: plans
-          }
-        }).then((data) => {
-          if (data && data.applicationId && data.planId) {
-            this.ApiService.subscribe(this.api.id, data.applicationId, data.planId, data.customApiKey).then((response) => {
-              let subscription = response.data;
-              this.NotificationService.show('A new subscription has been created.');
-              this.$state.go('management.apis.detail.portal.subscriptions.subscription', {subscriptionId: subscription.id}, {reload: true});
-            });
-          }
-        });
+        this.$mdDialog
+          .show({
+            controller: 'DialogSubscriptionCreateController',
+            controllerAs: 'dialogSubscriptionCreateController',
+            template: require('./dialog/subscription.create.dialog.html'),
+            clickOutsideToClose: true,
+            locals: {
+              api: this.api,
+              plans: plans,
+            },
+          })
+          .then((data) => {
+            if (data && data.applicationId && data.planId) {
+              this.ApiService.subscribe(this.api.id, data.applicationId, data.planId, data.customApiKey).then((response) => {
+                let subscription = response.data;
+                this.NotificationService.show('A new subscription has been created.');
+                this.$state.go(
+                  'management.apis.detail.portal.subscriptions.subscription',
+                  { subscriptionId: subscription.id },
+                  { reload: true },
+                );
+              });
+            }
+          });
       });
     }
 
@@ -240,13 +250,15 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     }
 
     hasFilter() {
-      return _.difference(defaultStatus, this.query.status).length > 0
-        || _.difference(this.query.status, defaultStatus).length > 0
-        || (this.query.applications && this.query.applications.length)
-        || (this.query.plans && this.query.plans.length)
-        || this.query.api_key;
+      return (
+        _.difference(defaultStatus, this.query.status).length > 0 ||
+        _.difference(this.query.status, defaultStatus).length > 0 ||
+        (this.query.applications && this.query.applications.length) ||
+        (this.query.plans && this.query.plans.length) ||
+        this.query.api_key
+      );
     }
-  }
+  },
 };
 
 export default ApiSubscriptionsComponent;

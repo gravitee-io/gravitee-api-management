@@ -17,14 +17,11 @@ import { StateService } from '@uirouter/core';
 import UserService from '../../services/user.service';
 
 class DashboardController {
+  canViewAnalytics: boolean;
   private selectedIndex;
   private alertsEnabled;
 
-  constructor(
-    private $state: StateService,
-    private UserService: UserService,
-    private Constants
-  ) {
+  constructor(private $state: StateService, private UserService: UserService, private Constants) {
     'ngInject';
 
     this.alertsEnabled = Constants.org.settings.alert.enabled && UserService.isUserHasPermissions(['environment-alert-r']);
@@ -37,6 +34,8 @@ class DashboardController {
     } else {
       this.selectedIndex = 0;
     }
+
+    this.canViewAnalytics = UserService.isUserHasAllPermissions(['environment-platform-r']);
   }
 }
 

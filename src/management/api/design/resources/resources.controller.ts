@@ -22,7 +22,7 @@ class ApiResourcesController {
   private resource: any;
   private resourceJsonSchema: any;
 
-  constructor (
+  constructor(
     private ApiService,
     private $mdSidenav,
     private $mdDialog,
@@ -31,7 +31,7 @@ class ApiResourcesController {
     private $scope,
     private $rootScope,
     private resolvedResources,
-    private $timeout
+    private $timeout,
   ) {
     'ngInject';
     this.creation = true;
@@ -63,26 +63,27 @@ class ApiResourcesController {
       // Update resource
       this.creation = false;
       this.resource = resource;
-      if (! this.resource.configuration) {
+      if (!this.resource.configuration) {
         this.resource.configuration = {};
       }
 
-      this.ResourceService.getSchema(this.resource.type).then( ({data}) => {
-        this.resourceJsonSchema = data;
+      this.ResourceService.getSchema(this.resource.type).then(
+        ({ data }) => {
+          this.resourceJsonSchema = data;
           return {
-            schema: data
+            schema: data,
           };
         },
         (response) => {
-          if ( response.status === 404) {
+          if (response.status === 404) {
             return {
-              schema: {}
+              schema: {},
             };
           } else {
             this.NotificationService.showError('Unexpected error while loading resource schema for ' + this.resource.type);
           }
-        });
-
+        },
+      );
     } else {
       // Create new resource
       this.resourceJsonSchema = {};
@@ -102,43 +103,47 @@ class ApiResourcesController {
   onTypeChange() {
     this.resource.configuration = {};
 
-    this.ResourceService.getSchema(this.resource.type).then( ({data}) => {
+    this.ResourceService.getSchema(this.resource.type).then(
+      ({ data }) => {
         this.resourceJsonSchema = data;
         return {
-          schema: data
+          schema: data,
         };
       },
       (response) => {
-        if ( response.status === 404) {
+        if (response.status === 404) {
           this.resourceJsonSchema = {};
           return {
-            schema: {}
+            schema: {},
           };
         } else {
           // todo manage errors
           this.NotificationService.showError('Unexpected error while loading resource schema for ' + this.resource.type);
         }
-      });
+      },
+    );
   }
 
   deleteResource(resourceIdx) {
     let that = this;
-    this.$mdDialog.show({
-      controller: 'DialogConfirmController',
-      controllerAs: 'ctrl',
-      template: require('../../../../components/dialog/confirmWarning.dialog.html'),
-      clickOutsideToClose: true,
-      locals: {
-        title: 'Are you sure you want to remove this resource?',
-        msg: '',
-        confirmButton: 'Remove'
-      }
-    }).then(function (response) {
-      if (response) {
-        that.$scope.$parent.apiCtrl.api.resources.splice(resourceIdx, 1);
-        that.updateApi();
-      }
-    });
+    this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Are you sure you want to remove this resource?',
+          msg: '',
+          confirmButton: 'Remove',
+        },
+      })
+      .then(function (response) {
+        if (response) {
+          that.$scope.$parent.apiCtrl.api.resources.splice(resourceIdx, 1);
+          that.updateApi();
+        }
+      });
   }
 
   saveResource() {
@@ -155,10 +160,10 @@ class ApiResourcesController {
     const that = this;
 
     let api = this.$scope.$parent.apiCtrl.api;
-    return this.ApiService.update(api).then( ( {data} ) => {
+    return this.ApiService.update(api).then(({ data }) => {
       that.closeResourcePanel();
-      that.$rootScope.$broadcast('apiChangeSuccess', {api: data});
-      that.NotificationService.show('API \'' + data.name + '\' saved');
+      that.$rootScope.$broadcast('apiChangeSuccess', { api: data });
+      that.NotificationService.show("API '" + data.name + "' saved");
 
       that.$timeout(function () {
         api = data;
@@ -167,7 +172,7 @@ class ApiResourcesController {
   }
 
   getResourceTypeName(resourceTypeId) {
-    return _.find(this.types, { 'id': resourceTypeId }).name;
+    return _.find(this.types, { id: resourceTypeId }).name;
   }
 }
 

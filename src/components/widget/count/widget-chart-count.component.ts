@@ -18,20 +18,18 @@ require('@gravitee/ui-components/wc/gv-card-full');
 const WidgetChartCountComponent: ng.IComponentOptions = {
   template: require('./widget-chart-count.html'),
   bindings: {
-    data: '<'
+    data: '<',
   },
   require: {
-    parent: '^gvWidget'
+    parent: '^gvWidget',
   },
-  controller: function() {
-
-    this.$onChanges = function(changes) {
-
+  controller: function () {
+    this.$onChanges = function (changes) {
       if (changes.data && changes.data.currentValue) {
         this.count = changes.data.currentValue.count || 0;
       }
     };
-  }
+  },
 };
 
 export default WidgetChartCountComponent;

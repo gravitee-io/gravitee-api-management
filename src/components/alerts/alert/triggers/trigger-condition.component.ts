@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import {Conditions, Metrics} from '../../../../entities/alert';
+import { Conditions, Metrics } from '../../../../entities/alert';
 
 const AlertTriggerConditionComponent: ng.IComponentOptions = {
   bindings: {
     condition: '<',
     metrics: '<',
-    label: '<'
+    label: '<',
   },
   template: require('./trigger-condition.html'),
   controller: function () {
@@ -45,7 +45,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
         }
 
         // Get the metric field according to the condition property
-        this.conditions = _.find(this.metrics as Metrics[], metric => metric.key === this.condition.property).conditions;
+        this.conditions = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property).conditions;
 
         this.onConditionChange();
       }
@@ -61,7 +61,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
         }
       }
     };
-  }
+  },
 };
 
 export default AlertTriggerConditionComponent;

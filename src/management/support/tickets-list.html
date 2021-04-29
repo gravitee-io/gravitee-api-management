@@ -24,42 +24,51 @@
 
     <div class="gv-form">
       <md-table-container layout-padding>
-        <table md-table class="gravitee-analytics-top-hits-table gv-table-dense" multiple
-               md-row-select="ticketsListCtrl.widget.chart.selectable" data-ng-model="ticketsListCtrl.selected">
+        <table
+          md-table
+          class="gravitee-analytics-top-hits-table gv-table-dense"
+          multiple
+          md-row-select="ticketsListCtrl.widget.chart.selectable"
+          data-ng-model="ticketsListCtrl.selected"
+        >
           <thead md-head md-order="ticketsListCtrl.query.order">
-          <tr md-row>
-            <th md-column width="1%" md-order-by="created_at" nowrap>Date</th>
-            <th md-column width="1%" md-order-by="api" nowrap>Api</th>
-            <th md-column width="1%" md-order-by="application" nowrap>Application</th>
-            <th md-column width="1%" md-order-by="subject" nowrap>Subject</th>
-            <th md-column width="1%"></th>
-          </tr>
+            <tr md-row>
+              <th md-column width="1%" md-order-by="created_at" nowrap>Date</th>
+              <th md-column width="1%" md-order-by="api" nowrap>Api</th>
+              <th md-column width="1%" md-order-by="application" nowrap>Application</th>
+              <th md-column width="1%" md-order-by="subject" nowrap>Subject</th>
+              <th md-column width="1%"></th>
+            </tr>
           </thead>
           <tbody md-body>
-          <tr ng-if="ticketsListCtrl.tickets.content.length > 0" md-row
+            <tr
+              ng-if="ticketsListCtrl.tickets.content.length > 0"
+              md-row
               ng-repeat="ticket in ticketsListCtrl.tickets.content | limitTo: ticketsListCtrl.query.size"
-              md-auto-select md-select="ticket" md-select-id="key">
-            <td md-cell nowrap>
-                {{ticket.created_at | date:'yyyy-MM-dd HH:mm:ss.sss'}}
-            </td>
-            <td md-cell nowrap>{{ticket.api}}</td>
-            <td md-cell nowrap>{{ticket.application}}</td>
-            <td md-cell nowrap>{{ticket.subject}}</td>
-            <td md-cell nowrap>
-              <ng-md-icon ui-sref="management.support.ticket({
+              md-auto-select
+              md-select="ticket"
+              md-select-id="key"
+            >
+              <td md-cell nowrap>{{ticket.created_at | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
+              <td md-cell nowrap>{{ticket.api}}</td>
+              <td md-cell nowrap>{{ticket.application}}</td>
+              <td md-cell nowrap>{{ticket.subject}}</td>
+              <td md-cell nowrap>
+                <ng-md-icon
+                  ui-sref="management.support.ticket({
               ticketId: ticket.id,
               page: ticketsListCtrl.query.page,
               order: ticketsListCtrl.query.order,
               size: ticketsListCtrl.query.size
               })"
-                          icon="remove_red_eye">
-
-              </ng-md-icon>
-            </td>
-          </tr>
-          <tr ng-if="ticketsListCtrl.tickets.totalElements === 0">
-            <td md-cell colspan="9" style="text-align:center;">No ticket</td>
-          </tr>
+                  icon="remove_red_eye"
+                >
+                </ng-md-icon>
+              </td>
+            </tr>
+            <tr ng-if="ticketsListCtrl.tickets.totalElements === 0">
+              <td md-cell colspan="9" style="text-align: center">No ticket</td>
+            </tr>
           </tbody>
         </table>
       </md-table-container>
@@ -69,7 +78,8 @@
         md-limit-options="[5, 10, 15, 20, 30, 50, 100]"
         md-page="ticketsListCtrl.query.page"
         md-total="{{ticketsListCtrl.tickets.totalElements}}"
-        md-on-paginate="ticketsListCtrl.onPaginate">
+        md-on-paginate="ticketsListCtrl.onPaginate"
+      >
       </md-table-pagination>
     </div>
   </div>

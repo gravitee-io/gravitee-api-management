@@ -13,7 +13,7 @@ md-sidenav {
   @include min-max-width($sidenavMinWidth);
 }
 
-.md-sidenav-min span{
+.md-sidenav-min span {
   font-size: 0;
   opacity: 0;
 }
@@ -29,20 +29,20 @@ md-sidenav {
   height: calc(100vh - #{$navbarHeaderHeight} - #{$sidenavFooterHeight});
 }
 
-
 md-sidenav,
 md-list-item::before,
 md-list-item.subheader,
 md-list-item.subheader::before,
 .sidenav-list h4,
-.sidenav-list hr, .sidenav-footer hr,
-.sidenav-list span, .sidenav-footer span {
-  transition: .40s all;
-	-moz-transition: .40s all;
-	-webkit-transition: .40s all;
-	-o-transition: .40s all;
+.sidenav-list hr,
+.sidenav-footer hr,
+.sidenav-list span,
+.sidenav-footer span {
+  transition: 0.4s all;
+  -moz-transition: 0.4s all;
+  -webkit-transition: 0.4s all;
+  -o-transition: 0.4s all;
 }
-
 
 .md-sidenav-min md-list-item.subheader {
   min-height: 0;
@@ -52,7 +52,7 @@ md-list-item.subheader::before,
   min-height: 0;
 }
 
-.md-sidenav-min .sidenav-list hr  {
+.md-sidenav-min .sidenav-list hr {
   border-top: 1px solid #eee;
 }
 
@@ -61,7 +61,7 @@ md-sidenav.md-sidenav-theme {
 }
 
 md-sidenav:not(._md-locked-open) {
-  box-shadow: 0 5px 5px -3px rgba(0,0,0,.2), 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12);
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
 }
 
 .sidenav-header {
@@ -101,9 +101,10 @@ md-sidenav:not(._md-locked-open) {
     width: 100%;
     padding: 0 0 8px $sidenavItemLeftWidth;
 
-    &:hover, &.sidenav-active {
+    &:hover,
+    &.sidenav-active {
       font-weight: bold;
-      background-color: #1C1C25;
+      background-color: #1c1c25;
     }
 
     &.sidenav-active {
@@ -117,7 +118,7 @@ md-sidenav:not(._md-locked-open) {
     text-transform: uppercase;
     color: #fdfdfd;
     font-weight: 400;
-    letter-spacing: .5px;
+    letter-spacing: 0.5px;
     padding: 15px $sidenavItemLeftWidth/2 8px;
     white-space: nowrap;
     overflow: hidden;
@@ -164,7 +165,8 @@ md-sidenav:not(._md-locked-open) {
     background-color: $bgColor;
   }
 
-  .md-button.sidenav-toggle:hover, .md-button.sidenav-toggle:focus {
+  .md-button.sidenav-toggle:hover,
+  .md-button.sidenav-toggle:focus {
     background-color: $bgColor;
   }
 
@@ -191,9 +193,8 @@ md-sidenav:not(._md-locked-open) {
 
       &:hover {
         font-weight: bold;
-        background-color: #1C1C25;
+        background-color: #1c1c25;
       }
-
     }
   }
 }

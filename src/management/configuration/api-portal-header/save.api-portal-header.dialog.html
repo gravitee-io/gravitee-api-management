@@ -22,21 +22,17 @@
       <div layout="column">
         <md-input-container>
           <label>Name</label>
-            <input ng-model="$ctrl.header.name">
+          <input ng-model="$ctrl.header.name" />
         </md-input-container>
         <md-input-container>
           <label>Value</label>
-            <input ng-model="$ctrl.header.value">
+          <input ng-model="$ctrl.header.value" />
         </md-input-container>
       </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
-      <md-button ng-click="$ctrl.cancel()">
-        Cancel
-      </md-button>
-      <md-button  type="submit" class="md-raised md-primary" ng-disabled="form.$invalid">
-        {{$ctrl.header.id?'Update':'Create'}}
-      </md-button>
+      <md-button ng-click="$ctrl.cancel()"> Cancel </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="form.$invalid"> {{$ctrl.header.id?'Update':'Create'}} </md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>

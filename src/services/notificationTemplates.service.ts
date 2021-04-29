@@ -17,7 +17,6 @@
 import { IHttpPromise } from 'angular';
 
 class NotificationTemplatesService {
-
   constructor(private $http: ng.IHttpService, private Constants) {
     'ngInject';
   }
@@ -35,7 +34,10 @@ class NotificationTemplatesService {
   }
 
   update(notificationTemplate: any): IHttpPromise<any> {
-    return this.$http.put(`${this.Constants.org.baseURL}/configuration/notification-templates/` + notificationTemplate.id, notificationTemplate);
+    return this.$http.put(
+      `${this.Constants.org.baseURL}/configuration/notification-templates/` + notificationTemplate.id,
+      notificationTemplate,
+    );
   }
 }
 
