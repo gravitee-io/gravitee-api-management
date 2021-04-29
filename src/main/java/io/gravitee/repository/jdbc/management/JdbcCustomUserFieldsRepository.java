@@ -45,7 +45,6 @@ import static java.lang.String.format;
  */
 @Repository
 public class JdbcCustomUserFieldsRepository extends JdbcAbstractRepository<CustomUserField> implements CustomUserFieldsRepository {
-    
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCustomUserFieldsRepository.class);
     
     private final String CUSTOM_USER_FIELDS_VALUES;
