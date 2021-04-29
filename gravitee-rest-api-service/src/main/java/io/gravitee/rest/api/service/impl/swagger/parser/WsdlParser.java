@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
  * @author GraviteeSource Team
  */
 public class WsdlParser extends AbstractDescriptorParser<OpenAPI> {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(WsdlParser.class);
 
     @Override

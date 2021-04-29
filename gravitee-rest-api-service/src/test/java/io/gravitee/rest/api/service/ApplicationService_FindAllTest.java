@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.Application;
@@ -25,20 +30,14 @@ import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -69,10 +68,10 @@ public class ApplicationService_FindAllTest {
         application.setType(ApplicationType.SIMPLE);
         application.setStatus(ApplicationStatus.ACTIVE);
         when(applicationRepository.findAllByEnvironment(eq("DEFAULT"), eq(ApplicationStatus.ACTIVE)))
-                .thenReturn(new HashSet<>(Collections.singletonList(application)));
+            .thenReturn(new HashSet<>(Collections.singletonList(application)));
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(new RoleEntity());
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
-                .thenReturn(new HashSet<>(Collections.singletonList(new MembershipEntity())));
+            .thenReturn(new HashSet<>(Collections.singletonList(new MembershipEntity())));
         when(userService.findByIds(any())).thenReturn(Collections.emptySet());
 
         Set<ApplicationListItem> set = applicationService.findAll();

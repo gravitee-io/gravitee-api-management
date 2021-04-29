@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.search.lucene;
 
 import io.gravitee.repository.exceptions.TechnicalException;
+import java.io.IOException;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
@@ -25,8 +26,6 @@ import org.apache.lucene.search.TermQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,8 +38,8 @@ public class SearchEngineIndexer {
      */
     private final Logger logger = LoggerFactory.getLogger(SearchEngineIndexer.class);
 
-    private final static String ID_FIELD = "id";
-    private final static String TYPE_FIELD = "type";
+    private static final String ID_FIELD = "id";
+    private static final String TYPE_FIELD = "type";
 
     @Autowired
     private IndexWriter writer;

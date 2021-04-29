@@ -21,7 +21,7 @@ import io.gravitee.rest.api.service.ApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricHealthcheck implements ApiQualityMetric {

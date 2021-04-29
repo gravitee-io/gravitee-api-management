@@ -15,16 +15,18 @@
  */
 package io.gravitee.rest.api.service;
 
+import java.util.List;
+
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface NewsletterService {
-
     /**
      * Subscribe to newsletters.
      * @param email
      */
     void subscribe(String email);
+    List<String> getTaglines();
     boolean isEnabled();
 }

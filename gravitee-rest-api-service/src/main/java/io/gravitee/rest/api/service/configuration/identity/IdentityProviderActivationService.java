@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.configuration.identity;
 
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -27,7 +26,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface IdentityProviderActivationService {
-
     Set<IdentityProviderActivationEntity> activateIdpOnTargets(String identityProviderId, ActivationTarget... targetsToAdd);
 
     Set<IdentityProviderActivationEntity> addIdpsOnTarget(ActivationTarget target, String... identityProviderIdsToAdd);
@@ -47,6 +45,7 @@ public interface IdentityProviderActivationService {
     void updateTargetIdp(ActivationTarget target, List<String> identityProviderIds);
 
     class ActivationTarget {
+
         private String referenceId;
         private IdentityProviderActivationReferenceType referenceType;
 
@@ -68,8 +67,7 @@ public interface IdentityProviderActivationService {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             ActivationTarget that = (ActivationTarget) o;
-            return Objects.equals(referenceId, that.referenceId) &&
-                    referenceType == that.referenceType;
+            return Objects.equals(referenceId, that.referenceId) && referenceType == that.referenceType;
         }
 
         @Override

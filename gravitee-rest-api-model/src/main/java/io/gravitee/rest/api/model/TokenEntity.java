@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Objects;
 
@@ -29,10 +28,13 @@ public class TokenEntity {
     private String id;
     private String name;
     private String token;
+
     @JsonProperty(value = "created_at")
     private Date createdAt;
+
     @JsonProperty(value = "expires_at")
     private Date expiresAt;
+
     @JsonProperty(value = "last_use_at")
     private Date lastUseAt;
 
@@ -89,12 +91,14 @@ public class TokenEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TokenEntity that = (TokenEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(token, that.token) &&
-                Objects.equals(createdAt, that.createdAt) &&
-                Objects.equals(expiresAt, that.expiresAt) &&
-                Objects.equals(lastUseAt, that.lastUseAt);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(token, that.token) &&
+            Objects.equals(createdAt, that.createdAt) &&
+            Objects.equals(expiresAt, that.expiresAt) &&
+            Objects.equals(lastUseAt, that.lastUseAt)
+        );
     }
 
     @Override
@@ -104,13 +108,24 @@ public class TokenEntity {
 
     @Override
     public String toString() {
-        return "TokenEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", token='" + token + '\'' +
-                ", createdAt=" + createdAt +
-                ", expiresAt=" + expiresAt +
-                ", lastUseAt=" + lastUseAt +
-                '}';
+        return (
+            "TokenEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", token='" +
+            token +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", expiresAt=" +
+            expiresAt +
+            ", lastUseAt=" +
+            lastUseAt +
+            '}'
+        );
     }
 }

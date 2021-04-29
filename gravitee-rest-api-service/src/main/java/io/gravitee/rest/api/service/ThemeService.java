@@ -19,7 +19,6 @@ import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.theme.NewThemeEntity;
 import io.gravitee.rest.api.model.theme.ThemeEntity;
 import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
-
 import java.util.Set;
 
 /**

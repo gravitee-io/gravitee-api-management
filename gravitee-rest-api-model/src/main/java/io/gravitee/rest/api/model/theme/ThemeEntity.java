@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.model.theme;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Date;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -139,14 +138,28 @@ public class ThemeEntity {
 
     @Override
     public String toString() {
-        return "ThemeEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", createdAt='"+ createdAt + '\'' +
-                ", updatedAt='" + updatedAt + '\'' +
-                ", enabled='"+ enabled + '\'' +
-                ", definition='" + definition + '\'' +
-                '}';
+        return (
+            "ThemeEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", createdAt='" +
+            createdAt +
+            '\'' +
+            ", updatedAt='" +
+            updatedAt +
+            '\'' +
+            ", enabled='" +
+            enabled +
+            '\'' +
+            ", definition='" +
+            definition +
+            '\'' +
+            '}'
+        );
     }
 
     public String getFavicon() {

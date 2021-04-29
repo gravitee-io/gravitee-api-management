@@ -16,36 +16,41 @@
 package io.gravitee.rest.api.model.permissions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface Permission {
-    default String getName() {return null;}
-    default int getMask() {return -1;}
+    default String getName() {
+        return null;
+    }
+
+    default int getMask() {
+        return -1;
+    }
 
     static Permission[] findByScope(RoleScope scope) {
-         switch (scope) {
-             case API:
-                 return ApiPermission.values();
-             case APPLICATION:
-                 return ApplicationPermission.values();
-             case GROUP:
-                 return GroupPermission.values();
-             case ENVIRONMENT:
-                 return EnvironmentPermission.values();
-             case ORGANIZATION:
-                 return OrganizationPermission.values();
-             default:
-                 throw new IllegalArgumentException("[" + scope + "] are not a RolePermission");
+        switch (scope) {
+            case API:
+                return ApiPermission.values();
+            case APPLICATION:
+                return ApplicationPermission.values();
+            case GROUP:
+                return GroupPermission.values();
+            case ENVIRONMENT:
+                return EnvironmentPermission.values();
+            case ORGANIZATION:
+                return OrganizationPermission.values();
+            default:
+                throw new IllegalArgumentException("[" + scope + "] are not a RolePermission");
         }
     }
 
     static Permission findByScopeAndName(RoleScope scope, String name) {
-         for (Permission permission : findByScope(scope)) {
-             if (permission.getName().equals(name)) {
-                 return permission;
-             }
-         }
-         throw new IllegalArgumentException("[" + scope + "] and [" + name + "] are not a RolePermission");
+        for (Permission permission : findByScope(scope)) {
+            if (permission.getName().equals(name)) {
+                return permission;
+            }
+        }
+        throw new IllegalArgumentException("[" + scope + "] and [" + name + "] are not a RolePermission");
     }
 }

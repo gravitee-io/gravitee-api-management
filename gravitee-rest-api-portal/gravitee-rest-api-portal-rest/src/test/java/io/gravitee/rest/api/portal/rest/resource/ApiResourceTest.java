@@ -15,34 +15,33 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.*;
-import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.time.Instant;
-import java.util.*;
-
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.*;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -87,13 +86,11 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(responseApi);
 
         ArgumentCaptor<String> ac = ArgumentCaptor.forClass(String.class);
-        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture(),
-                ArgumentCaptor.forClass(Date.class).capture());
+        Mockito.verify(apiMapper, Mockito.times(1)).computeApiLinks(ac.capture(), ArgumentCaptor.forClass(Date.class).capture());
 
         String expectedBasePath = target(API).getUriBuilder().build().toString();
         List<String> bastPathList = ac.getAllValues();
         assertTrue(bastPathList.contains(expectedBasePath));
-
     }
 
     @Test
@@ -148,7 +145,6 @@ public class ApiResourceTest extends AbstractResourceTest {
         final List<Plan> plans = responseApi.getPlans();
         assertNotNull(plans);
         assertEquals(2, plans.size());
-
     }
 
     @Test
@@ -171,16 +167,14 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
-
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 
     @Test
     public void shouldGetApiPicture() throws IOException, URISyntaxException {
         // init
         InlinePictureEntity mockImage = new InlinePictureEntity();
-        byte[] apiLogoContent = Files
-                .readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
+        byte[] apiLogoContent = Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("media/logo.svg").toURI()));
         mockImage.setContent(apiLogoContent);
         mockImage.setType("image/svg");
         doReturn(mockImage).when(apiService).getPicture(API);
@@ -211,8 +205,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         assertNotNull(error);
         assertEquals("errors.api.notFound", error.getCode());
         assertEquals("404", error.getStatus());
-        assertEquals("Api ["+API+"] can not be found.", error.getMessage());
-
+        assertEquals("Api [" + API + "] can not be found.", error.getMessage());
     }
 
     @Test
@@ -264,24 +257,26 @@ public class ApiResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(any(PageQuery.class), isNull())).thenAnswer(new Answer<List<PageEntity>>() {
-
-            @Override
-            public List<PageEntity> answer(InvocationOnMock invocation) throws Throwable {
-                PageQuery pq = invocation.getArgument(0);
-                if(PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
-                    return Arrays.asList(sysFolder);
-                } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                    return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
-                } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                    return Arrays.asList(markdownFolderSysFolder);
+        when(pageService.search(any(PageQuery.class), isNull()))
+            .thenAnswer(
+                new Answer<List<PageEntity>>() {
+                    @Override
+                    public List<PageEntity> answer(InvocationOnMock invocation) throws Throwable {
+                        PageQuery pq = invocation.getArgument(0);
+                        if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
+                            return Arrays.asList(sysFolder);
+                        } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                            return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
+                        } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                            return Arrays.asList(markdownFolderSysFolder);
+                        }
+                        return null;
+                    }
                 }
-                return null;
-            }
-        });
+            );
 
         when(accessControlService.canAccessPageFromPortal(any())).thenReturn(true);
-        
+
         final Response response = target(API).path("links").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 

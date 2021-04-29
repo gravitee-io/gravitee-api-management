@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static java.util.Collections.singletonList;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -30,7 +32,7 @@ import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.swagger.annotations.*;
-
+import java.util.Arrays;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -38,14 +40,13 @@ import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Pages"})
+@Api(tags = { "API Pages" })
 public class ApiPageResource extends AbstractResource {
 
     @Inject
@@ -68,23 +69,22 @@ public class ApiPageResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a page",
-            notes = "User must have the READ permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Page"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(value = "Get a page", notes = "User must have the READ permission to use this service")
+    @ApiResponses({ @ApiResponse(code = 200, message = "Page"), @ApiResponse(code = 500, message = "Internal server error") })
     public PageEntity getApiPage(
-                @HeaderParam("Accept-Language") String acceptLang,
-                @QueryParam("portal") boolean portal,
-                @QueryParam("translated") boolean translated) {
+        @HeaderParam("Accept-Language") String acceptLang,
+        @QueryParam("portal") boolean portal,
+        @QueryParam("translated") boolean translated
+    ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
 
         final ApiEntity apiEntity = apiService.findById(api);
 
-        if (Visibility.PUBLIC.equals(apiEntity.getVisibility())
-                || hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)) {
-
-            PageEntity pageEntity = pageService.findById(page, translated?acceptedLocale:null);
+        if (
+            Visibility.PUBLIC.equals(apiEntity.getVisibility()) ||
+            hasPermission(RolePermission.API_DOCUMENTATION, api, RolePermissionAction.READ)
+        ) {
+            PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
 
             // check if the page is used as GeneralCondition by an active Plan
             // and update the PageEntity to transfer the information to the FrontEnd
@@ -98,10 +98,13 @@ public class ApiPageResource extends AbstractResource {
             }
             if (isDisplayable(apiEntity, pageEntity)) {
                 if (pageEntity.getContentType() != null) {
+                    String content = pageEntity.getContent();
                     try {
-                        pageEntity.setMessages(pageService.validateSafeContent(pageEntity, api));
-                    } catch (SwaggerDescriptorException swaggerDescriptorException) {
-                        pageEntity.setMessages(Arrays.asList(swaggerDescriptorException.getMessage()));
+                        pageService.validateSafeContent(pageEntity, api);
+                    } catch (SwaggerDescriptorException contentException) {
+                        pageEntity.setMessages(singletonList(contentException.getMessage()));
+                    } finally {
+                        pageEntity.setContent(content);
                     }
                 }
                 return pageEntity;
@@ -114,11 +117,8 @@ public class ApiPageResource extends AbstractResource {
 
     @GET
     @Path("/content")
-    @ApiOperation(value = "Get the page's content",
-            notes = "User must have the READ permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Page's content"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(value = "Get the page's content", notes = "User must have the READ permission to use this service")
+    @ApiResponses({ @ApiResponse(code = 200, message = "Page's content"), @ApiResponse(code = 500, message = "Internal server error") })
     public Response getApiPageContent() {
         final PageEntity pageEntity = getApiPage(null, true, false);
         return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
@@ -128,14 +128,14 @@ public class ApiPageResource extends AbstractResource {
     @Path("/content")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Put the page's content",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Put the page's content", notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Page content successfully updated"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public String updatePageContent(@ApiParam(name = "content", required = true) @Valid @NotNull String content) {
         pageService.findById(page);
 
@@ -149,17 +149,17 @@ public class ApiPageResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a page",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Update a page", notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public PageEntity updateApiPage(@ApiParam(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
             throw new PageMarkdownTemplateActionException("Update");
@@ -172,14 +172,17 @@ public class ApiPageResource extends AbstractResource {
     @POST
     @Path("/_fetch")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Refresh page by calling the associated fetcher",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses({
+    @ApiOperation(
+        value = "Refresh page by calling the associated fetcher",
+        notes = "User must have the MANAGE_PAGES permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Page successfully refreshed", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public PageEntity fetchApiPage() {
         pageService.findById(page);
         String contributor = getAuthenticatedUser();
@@ -190,18 +193,17 @@ public class ApiPageResource extends AbstractResource {
     @PATCH
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a page",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Update a page", notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Page successfully updated", response = PageEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE)
-    })
-    public PageEntity partialUpdateApiPage(
-            @ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    public PageEntity partialUpdateApiPage(@ApiParam(name = "page") UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
             throw new PageMarkdownTemplateActionException("Update");
@@ -212,17 +214,14 @@ public class ApiPageResource extends AbstractResource {
     }
 
     @DELETE
-    @ApiOperation(value = "Delete a page",
-            notes = "User must have the MANAGE_PAGES permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Page successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE)
-    })
+    @ApiOperation(value = "Delete a page", notes = "User must have the MANAGE_PAGES permission to use this service")
+    @ApiResponses(
+        { @ApiResponse(code = 204, message = "Page successfully deleted"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
     public void deleteApiPage() {
         PageEntity existingPage = pageService.findById(page);
-        if(existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
+        if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Delete");
         } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
             throw new PageMarkdownTemplateActionException("Delete");
@@ -239,5 +238,4 @@ public class ApiPageResource extends AbstractResource {
     public ApiPageMediaResource getApiPageMediaResource() {
         return resourceContext.getResource(ApiPageMediaResource.class);
     }
-
 }

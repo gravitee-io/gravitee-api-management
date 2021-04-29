@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.UpdateApplicationEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
-
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +29,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApplicationService {
-
     ApplicationEntity findById(String applicationId);
 
     Set<ApplicationListItem> findByUser(String username);
@@ -55,7 +53,7 @@ public interface ApplicationService {
     ApplicationEntity restore(String applicationId);
 
     void archive(String applicationId);
-    
+
     InlinePictureEntity getPicture(String apiId);
 
     InlinePictureEntity getBackground(String application);

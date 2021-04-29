@@ -15,21 +15,19 @@
  */
 package io.gravitee.rest.api.security.authentication.impl;
 
+import io.gravitee.common.util.EnvironmentUtils;
+import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
+import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
-
-import io.gravitee.common.util.EnvironmentUtils;
-import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
-import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,17 +54,23 @@ public class AuthenticationProviderManagerImpl implements AuthenticationProvider
 
     @Override
     public Optional<AuthenticationProvider> findIdentityProviderByType(String type) {
-        return identityProviders.stream()
-                .filter(provider -> provider.type().equalsIgnoreCase(type))
-                .findFirst();
+        return identityProviders.stream().filter(provider -> provider.type().equalsIgnoreCase(type)).findFirst();
     }
 
     private Map<String, Object> getConfiguration(AuthenticationProvider provider) {
         String prefix = "security.providers[" + provider.index() + "].";
         Map<String, Object> properties = EnvironmentUtils.getPropertiesStartingWith(environment, prefix);
         Map<String, Object> unprefixedProperties = new HashMap<>(properties.size());
-        properties.entrySet().stream().forEach(propEntry -> unprefixedProperties.put(
-                EnvironmentUtils.encodedKey(propEntry.getKey()).substring(EnvironmentUtils.encodedKey(prefix).length()), propEntry.getValue()));
+        properties
+            .entrySet()
+            .stream()
+            .forEach(
+                propEntry ->
+                    unprefixedProperties.put(
+                        EnvironmentUtils.encodedKey(propEntry.getKey()).substring(EnvironmentUtils.encodedKey(prefix).length()),
+                        propEntry.getValue()
+                    )
+            );
         return unprefixedProperties;
     }
 

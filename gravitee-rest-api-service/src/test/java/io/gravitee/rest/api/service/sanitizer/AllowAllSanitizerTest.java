@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
-import org.junit.Test;
-
 import static org.junit.Assert.*;
+
+import org.junit.Test;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -27,7 +27,6 @@ public class AllowAllSanitizerTest {
 
     @Test
     public void sanitize() {
-
         String html = "<div><script>alert('toto')</script></div>";
 
         assertEquals(html, AllowAllSanitizer.sanitize(html));

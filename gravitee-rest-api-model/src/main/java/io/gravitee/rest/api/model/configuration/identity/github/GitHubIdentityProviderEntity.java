@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.configuration.identity.github;
 
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;

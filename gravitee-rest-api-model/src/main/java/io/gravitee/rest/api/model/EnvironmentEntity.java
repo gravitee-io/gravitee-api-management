@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -95,12 +94,14 @@ public class EnvironmentEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EnvironmentEntity that = (EnvironmentEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(hrids, that.hrids) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(organizationId, that.organizationId) &&
-                Objects.equals(domainRestrictions, that.domainRestrictions);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(hrids, that.hrids) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(organizationId, that.organizationId) &&
+            Objects.equals(domainRestrictions, that.domainRestrictions)
+        );
     }
 
     @Override
@@ -110,13 +111,25 @@ public class EnvironmentEntity {
 
     @Override
     public String toString() {
-        return "EnvironmentEntity{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", domainRestrictions=" + domainRestrictions +
-                '}';
+        return (
+            "EnvironmentEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hrids=" +
+            hrids +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", domainRestrictions=" +
+            domainRestrictions +
+            '}'
+        );
     }
 }

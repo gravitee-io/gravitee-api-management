@@ -58,9 +58,11 @@ public class DefaultPageRevisionUpgrader implements Upgrader, Ordered {
                 Pageable pageable = new PageableImpl(pageNumber, pageSize);
                 pagesSubSet = pageService.findAll(pageable);
                 if (!pagesSubSet.getContent().isEmpty()) {
-                    pagesSubSet.getContent().stream()
-                            .filter(entity -> pageService.shouldHaveRevision(entity.getType()))
-                            .forEach(entity -> pageRevisionService.create(convert(entity)));
+                    pagesSubSet
+                        .getContent()
+                        .stream()
+                        .filter(entity -> pageService.shouldHaveRevision(entity.getType()))
+                        .forEach(entity -> pageRevisionService.create(convert(entity)));
                     ++pageNumber;
                 }
             } while (!pagesSubSet.getContent().isEmpty());

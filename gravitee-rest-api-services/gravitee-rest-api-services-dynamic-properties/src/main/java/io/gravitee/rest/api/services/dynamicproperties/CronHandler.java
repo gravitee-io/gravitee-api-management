@@ -17,11 +17,10 @@ package io.gravitee.rest.api.services.dynamicproperties;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.SimpleTriggerContext;
-
 import java.io.Serializable;
 import java.util.Date;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -29,7 +28,7 @@ import java.util.Date;
  */
 public class CronHandler implements Handler<Long>, Serializable {
 
-    private transient final Vertx vertx;
+    private final transient Vertx vertx;
     private final CronTrigger expression;
     private transient Handler<Long> handler;
     private long timerId;
@@ -68,5 +67,4 @@ public class CronHandler implements Handler<Long>, Serializable {
     public long getTimerId() {
         return timerId;
     }
-
 }

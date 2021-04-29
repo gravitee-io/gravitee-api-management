@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -34,15 +35,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
-    protected final static String FIELD_TYPE_VALUE = "page";
+    protected static final String FIELD_TYPE_VALUE = "page";
 
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
-        QueryParser parser = new MultiFieldQueryParser(new String[]{
-                "name",
-                "name_lowercase",
-                "content"
-        }, analyzer);
+        QueryParser parser = new MultiFieldQueryParser(new String[] { "name", "name_lowercase", "content" }, analyzer);
         parser.setFuzzyMinSim(0.6f);
 
         try {
@@ -53,11 +50,16 @@ public class PageDocumentSearcher extends AbstractDocumentSearcher {
 
             pageFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
             pageFieldsQuery.add(new WildcardQuery(new Term("name", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            pageFieldsQuery.add(new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')), BooleanClause.Occur.SHOULD);
+            pageFieldsQuery.add(
+                new WildcardQuery(new Term("name_lowercase", '*' + query.getQuery().toLowerCase() + '*')),
+                BooleanClause.Occur.SHOULD
+            );
             pageFieldsQuery.add(new WildcardQuery(new Term("content", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
 
             pageQuery.add(pageFieldsQuery.build(), BooleanClause.Occur.MUST);
             pageQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
+
+            // Note: Page search does not seem to be used so for now we don't implement any filtering for organization or environment.
             return search(pageQuery.build());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for page documents", pe);

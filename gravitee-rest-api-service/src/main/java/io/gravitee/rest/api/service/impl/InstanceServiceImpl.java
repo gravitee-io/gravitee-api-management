@@ -22,12 +22,6 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -35,6 +29,11 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,30 +77,38 @@ public class InstanceServiceImpl implements InstanceService {
         }
 
         ExpiredPredicate filter = new ExpiredPredicate(Duration.ofSeconds(unknownExpireAfterInSec));
-        return eventService.search(types, query.getProperties(), query.getFrom(),
-                query.getTo(), query.getPage(), query.getSize(), new Function<EventEntity, InstanceListItem>() {
-                    @Override
-                    public InstanceListItem apply(EventEntity eventEntity) {
-                        InstanceEntity instanceEntity = convert(eventEntity);
+        return eventService.search(
+            types,
+            query.getProperties(),
+            query.getFrom(),
+            query.getTo(),
+            query.getPage(),
+            query.getSize(),
+            new Function<EventEntity, InstanceListItem>() {
+                @Override
+                public InstanceListItem apply(EventEntity eventEntity) {
+                    InstanceEntity instanceEntity = convert(eventEntity);
 
-                        InstanceListItem item = new InstanceListItem();
-                        item.setId(instanceEntity.getId());
-                        item.setEvent(instanceEntity.getEvent());
-                        item.setHostname(instanceEntity.getHostname());
-                        item.setIp(instanceEntity.getIp());
-                        item.setPort(instanceEntity.getPort());
-                        item.setLastHeartbeatAt(instanceEntity.getLastHeartbeatAt());
-                        item.setStartedAt(instanceEntity.getStartedAt());
-                        item.setStoppedAt(instanceEntity.getStoppedAt());
-                        item.setVersion(instanceEntity.getVersion());
-                        item.setTags(instanceEntity.getTags());
-                        item.setTenant(instanceEntity.getTenant());
-                        item.setOperatingSystemName(instanceEntity.getSystemProperties().get("os.name"));
-                        item.setState(instanceEntity.getState());
+                    InstanceListItem item = new InstanceListItem();
+                    item.setId(instanceEntity.getId());
+                    item.setEvent(instanceEntity.getEvent());
+                    item.setHostname(instanceEntity.getHostname());
+                    item.setIp(instanceEntity.getIp());
+                    item.setPort(instanceEntity.getPort());
+                    item.setLastHeartbeatAt(instanceEntity.getLastHeartbeatAt());
+                    item.setStartedAt(instanceEntity.getStartedAt());
+                    item.setStoppedAt(instanceEntity.getStoppedAt());
+                    item.setVersion(instanceEntity.getVersion());
+                    item.setTags(instanceEntity.getTags());
+                    item.setTenant(instanceEntity.getTenant());
+                    item.setOperatingSystemName(instanceEntity.getSystemProperties().get("os.name"));
+                    item.setState(instanceEntity.getState());
 
-                        return item;
-                    }
-                }, filter);
+                    return item;
+                }
+            },
+            filter
+        );
     }
 
     @Override
@@ -172,6 +179,7 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     private static class InstanceInfo {
+
         private String id;
         private String version;
         private List<String> tags;
@@ -256,6 +264,7 @@ public class InstanceServiceImpl implements InstanceService {
     }
 
     public static final class ExpiredPredicate implements Predicate<InstanceListItem> {
+
         private Duration threshold;
 
         public ExpiredPredicate(Duration threshold) {

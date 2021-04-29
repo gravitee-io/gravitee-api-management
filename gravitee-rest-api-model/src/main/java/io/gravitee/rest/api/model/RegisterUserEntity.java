@@ -24,11 +24,14 @@ import javax.validation.constraints.NotNull;
 public class RegisterUserEntity {
 
     @NotNull
-	private String token;
+    private String token;
+
     @NotNull
     private String password;
+
     @NotNull
     private String firstname;
+
     @NotNull
     private String lastname;
 

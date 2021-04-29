@@ -23,6 +23,4 @@ import io.swagger.models.Swagger;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface SwaggerPathVisitor<T> extends PathVisitor<T, Swagger, Path>, SwaggerVisitor {
-
-}
+public interface SwaggerPathVisitor<T> extends PathVisitor<T, Swagger, Path>, SwaggerVisitor {}

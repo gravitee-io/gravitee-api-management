@@ -19,12 +19,11 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiQualityMetricDescription implements ApiQualityMetric {
@@ -40,12 +39,14 @@ public class ApiQualityMetricDescription implements ApiQualityMetric {
     @Override
     public boolean isValid(ApiEntity api) {
         int minLength = Integer.parseInt(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH.defaultValue());
-        List<String> minLengthParam = parameterService.findAll(Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH, ParameterReferenceType.ENVIRONMENT);
+        List<String> minLengthParam = parameterService.findAll(
+            Key.API_QUALITY_METRICS_DESCRIPTION_MIN_LENGTH,
+            ParameterReferenceType.ENVIRONMENT
+        );
         if (!minLengthParam.isEmpty()) {
             minLength = Integer.parseInt(minLengthParam.get(0));
         }
 
-        return api.getDescription() != null
-                && api.getDescription().length() >= minLength;
+        return api.getDescription() != null && api.getDescription().length() >= minLength;
     }
 }

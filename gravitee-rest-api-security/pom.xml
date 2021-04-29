@@ -29,6 +29,10 @@
 	<artifactId>gravitee-rest-api-security</artifactId>
 	<name>Gravitee.io Rest APIs - Security</name>
 
+	<properties>
+		<imageio.version>3.6.4</imageio.version>
+	</properties>
+
 	<dependencies>
 		<!-- Gravitee Management dependencies -->
 		<dependency>
@@ -76,17 +80,17 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.4.1</version>
+			<version>${imageio.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.4.1</version>
+			<version>${imageio.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>3.4.1</version>
+			<version>${imageio.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>

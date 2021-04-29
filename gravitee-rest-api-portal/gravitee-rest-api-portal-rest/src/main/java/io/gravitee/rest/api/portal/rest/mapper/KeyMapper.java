@@ -20,12 +20,11 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Key;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import java.time.ZoneOffset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.ZoneOffset;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -66,5 +65,4 @@ public class KeyMapper {
         }
         return keyItem;
     }
-
 }

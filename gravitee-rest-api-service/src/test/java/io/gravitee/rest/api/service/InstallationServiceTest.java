@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
@@ -22,6 +27,12 @@ import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.InstallationServiceImpl;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,18 +40,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -67,7 +66,7 @@ public class InstallationServiceTest {
 
     private Installation installation;
 
-    private final static Date NOW = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));;
+    private static final Date NOW = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
 
     @Before
     public void init() throws TechnicalException {
@@ -92,8 +91,14 @@ public class InstallationServiceTest {
         assertEquals(NOW, installationEntity.getCreatedAt());
         assertEquals(NOW, installationEntity.getUpdatedAt());
         assertEquals(2, installationEntity.getAdditionalInformation().size());
-        assertEquals(COCKPIT_INSTALLATION_ID, installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID));
-        assertEquals(COCKPIT_INSTALLATION_STATUS, installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS));
+        assertEquals(
+            COCKPIT_INSTALLATION_ID,
+            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID)
+        );
+        assertEquals(
+            COCKPIT_INSTALLATION_STATUS,
+            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS)
+        );
     }
 
     @Test
@@ -108,8 +113,14 @@ public class InstallationServiceTest {
         assertEquals(NOW, installationEntity.getCreatedAt());
         assertEquals(NOW, installationEntity.getUpdatedAt());
         assertEquals(2, installationEntity.getAdditionalInformation().size());
-        assertEquals(COCKPIT_INSTALLATION_ID, installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID));
-        assertEquals(COCKPIT_INSTALLATION_STATUS, installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS));
+        assertEquals(
+            COCKPIT_INSTALLATION_ID,
+            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID)
+        );
+        assertEquals(
+            COCKPIT_INSTALLATION_STATUS,
+            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS)
+        );
     }
 
     @Test
@@ -127,8 +138,14 @@ public class InstallationServiceTest {
         assertEquals(NOW, installationEntity.getCreatedAt());
         assertEquals(NOW, installationEntity.getUpdatedAt());
         assertEquals(2, installationEntity.getAdditionalInformation().size());
-        assertEquals(COCKPIT_INSTALLATION_ID, installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID));
-        assertEquals(COCKPIT_INSTALLATION_STATUS, installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS));
+        assertEquals(
+            COCKPIT_INSTALLATION_ID,
+            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_ID)
+        );
+        assertEquals(
+            COCKPIT_INSTALLATION_STATUS,
+            installationEntity.getAdditionalInformation().get(InstallationService.COCKPIT_INSTALLATION_STATUS)
+        );
     }
 
     @Test
@@ -144,11 +161,17 @@ public class InstallationServiceTest {
         final InstallationEntity updatedInstallationEntity = installationService.setAdditionalInformation(newAdditionalInformation);
 
         verify(installationRepository).find();
-        verify(installationRepository).update(ArgumentMatchers.argThat(argument -> argument != null
-                && INSTALLATION_ID.equals(argument.getId())
-                && NOW.equals(argument.getCreatedAt())
-                && NOW.before(argument.getUpdatedAt())
-                && newAdditionalInformation.equals(argument.getAdditionalInformation())));
+        verify(installationRepository)
+            .update(
+                ArgumentMatchers.argThat(
+                    argument ->
+                        argument != null &&
+                        INSTALLATION_ID.equals(argument.getId()) &&
+                        NOW.equals(argument.getCreatedAt()) &&
+                        NOW.before(argument.getUpdatedAt()) &&
+                        newAdditionalInformation.equals(argument.getAdditionalInformation())
+                )
+            );
 
         assertNotNull(updatedInstallationEntity);
         assertEquals(INSTALLATION_ID, updatedInstallationEntity.getId());

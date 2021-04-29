@@ -15,17 +15,16 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.assertEquals;
+
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationResponse;
+import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -36,7 +35,10 @@ public class ConfigurationMapperTest {
     @Test
     public void testConvert() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        PortalSettingsEntity portalSettingsEntity = mapper.readValue(this.getClass().getResourceAsStream("portalSettingsEntity.json"), PortalSettingsEntity.class);
+        PortalSettingsEntity portalSettingsEntity = mapper.readValue(
+            this.getClass().getResourceAsStream("portalSettingsEntity.json"),
+            PortalSettingsEntity.class
+        );
         String expected = IOUtils.toString(this.getClass().getResourceAsStream("expectedPortalConfiguration.json"), "UTF-8");
         ConfigurationMapper configurationMapper = new ConfigurationMapper();
         ConfigurationResponse configuration = configurationMapper.convert(portalSettingsEntity);
@@ -46,5 +48,4 @@ public class ConfigurationMapperTest {
         String configurationAsJSON = mapper.writeValueAsString(configuration);
         assertEquals(expected.trim(), configurationAsJSON.trim());
     }
-
 }

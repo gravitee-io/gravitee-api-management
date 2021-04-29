@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,7 @@ import java.util.Objects;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
- * @author Guillaume GILLON 
+ * @author Guillaume GILLON
  */
 public class PageListItem {
 
@@ -134,9 +133,13 @@ public class PageListItem {
         this.excludedGroups = excludedGroups;
     }
 
-    public List<PageListItem> getPages() { return pages; }
+    public List<PageListItem> getPages() {
+        return pages;
+    }
 
-    public void setPages(List<PageListItem> pages) { this.pages = pages; }
+    public void setPages(List<PageListItem> pages) {
+        this.pages = pages;
+    }
 
     public Date getUpdatedAt() {
         return updatedAt;

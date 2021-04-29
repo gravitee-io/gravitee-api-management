@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
@@ -25,20 +31,12 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.exceptions.RoleReservedNameException;
 import io.gravitee.rest.api.service.impl.RoleServiceImpl;
-
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-
-import static io.gravitee.rest.api.model.permissions.EnvironmentPermission.DOCUMENTATION;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -56,28 +54,26 @@ public class RoleService_CreateTest {
     @Mock
     private AuditService auditService;
 
-
     @Test
     public void shouldCreate() throws TechnicalException {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("new mock role");
         when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
-                DOCUMENTATION.getName(),
-                new char[]{RolePermissionAction.CREATE.getId()}));
+        when(newRoleEntityMock.getPermissions())
+            .thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { RolePermissionAction.CREATE.getId() }));
         Role roleMock = mock(Role.class);
         when(roleMock.getId()).thenReturn("new_mock_role");
         when(roleMock.getName()).thenReturn("new mock role");
         when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
-        when(roleMock.getPermissions()).thenReturn(new int[]{3008});
+        when(roleMock.getPermissions()).thenReturn(new int[] { 3008 });
         when(mockRoleRepository.create(any())).thenReturn(roleMock);
 
         RoleEntity entity = roleService.create(newRoleEntityMock);
 
         assertNotNull("no entoty created", entity);
-        assertEquals("invalid id","new_mock_role", entity.getId());
-        assertEquals("invalid name","new mock role", entity.getName());
-        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT , entity.getScope());
+        assertEquals("invalid id", "new_mock_role", entity.getId());
+        assertEquals("invalid name", "new mock role", entity.getName());
+        assertEquals("invalid scope", io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT, entity.getScope());
         assertFalse("no permissions found", entity.getPermissions().isEmpty());
         assertTrue("invalid Permission name", entity.getPermissions().containsKey(DOCUMENTATION.getName()));
         char[] perms = entity.getPermissions().get(DOCUMENTATION.getName());
@@ -90,9 +86,7 @@ public class RoleService_CreateTest {
         NewRoleEntity newRoleEntityMock = mock(NewRoleEntity.class);
         when(newRoleEntityMock.getName()).thenReturn("new mock role");
         when(newRoleEntityMock.getScope()).thenReturn(io.gravitee.rest.api.model.permissions.RoleScope.ENVIRONMENT);
-        when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(
-                DOCUMENTATION.getName(),
-                new char[]{'X'}));
+        when(newRoleEntityMock.getPermissions()).thenReturn(Collections.singletonMap(DOCUMENTATION.getName(), new char[] { 'X' }));
 
         roleService.create(newRoleEntityMock);
 

@@ -24,6 +24,7 @@ import javax.validation.constraints.Size;
 public class NewRatingAnswerEntity {
 
     private String ratingId;
+
     @Size(max = 1024)
     private String comment;
 
@@ -45,9 +46,6 @@ public class NewRatingAnswerEntity {
 
     @Override
     public String toString() {
-        return "NewRatingAnswerEntity{" +
-                "ratingId='" + ratingId + '\'' +
-                ", comment='" + comment + '\'' +
-                '}';
+        return "NewRatingAnswerEntity{" + "ratingId='" + ratingId + '\'' + ", comment='" + comment + '\'' + '}';
     }
 }

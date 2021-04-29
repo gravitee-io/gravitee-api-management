@@ -16,10 +16,8 @@
 package io.gravitee.rest.api.model.configuration.identity.oidc;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-
 import java.util.List;
 import java.util.Map;
 

@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.model.permissions;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum EnvironmentPermission implements Permission {
@@ -62,5 +62,4 @@ public enum EnvironmentPermission implements Permission {
     public int getMask() {
         return mask;
     }
-
 }

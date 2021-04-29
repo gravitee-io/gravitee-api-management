@@ -25,17 +25,14 @@ import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
-
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,11 +66,13 @@ public class JoltMapper {
         jsonProperties = JsonUtils.toJsonString(transformed);
 
         //Now ensure current json properties is well formatted.
-    //    if (validateJson(jsonProperties)) {
+        //    if (validateJson(jsonProperties)) {
 
         List<Object> items = JsonUtils.jsonToList(jsonProperties);
-        Object collect = items.stream()
-                .map(item -> {
+        Object collect = items
+            .stream()
+            .map(
+                item -> {
                     Map<String, String> mapItem = (Map<String, String>) item;
                     Object key = mapItem.get("key");
                     if (key instanceof Number) {
@@ -81,8 +80,9 @@ public class JoltMapper {
                     } else {
                         return new DynamicProperty((String) key, mapItem.get("value"));
                     }
-                })
-                .collect(Collectors.toList());
+                }
+            )
+            .collect(Collectors.toList());
 
         return (Collection<DynamicProperty>) collect;
     }

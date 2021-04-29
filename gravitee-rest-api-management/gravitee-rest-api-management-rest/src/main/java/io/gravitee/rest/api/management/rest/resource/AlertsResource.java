@@ -15,26 +15,25 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.alert.AlertMetric;
 import io.gravitee.rest.api.model.alert.AlertThreshold;
 import io.gravitee.rest.api.model.alert.MetricType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-
+import java.util.List;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import java.util.List;
-
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Alerts"})
+@Api(tags = { "Alerts" })
 public class AlertsResource extends AbstractResource {
 
     @Path("metrics")
@@ -42,17 +41,29 @@ public class AlertsResource extends AbstractResource {
     @ApiOperation(value = "List alert metrics")
     @Produces(MediaType.APPLICATION_JSON)
     public List<AlertMetric> getAlertMetrics() {
-        return stream(MetricType.values()).map(metric -> {
-            final AlertMetric alertMetric = new AlertMetric();
-            alertMetric.setKey(metric.name().toLowerCase());
-            alertMetric.setDescription(metric.description());
-            alertMetric.setThresholds(metric.thresholds().stream().map(thresholdType -> {
-                final AlertThreshold alertThreshold = new AlertThreshold();
-                alertThreshold.setKey(thresholdType.name().toLowerCase());
-                alertThreshold.setDescription(thresholdType.description());
-                return alertThreshold;
-            }).collect(toList()));
-            return alertMetric;
-        }).collect(toList());
+        return stream(MetricType.values())
+            .map(
+                metric -> {
+                    final AlertMetric alertMetric = new AlertMetric();
+                    alertMetric.setKey(metric.name().toLowerCase());
+                    alertMetric.setDescription(metric.description());
+                    alertMetric.setThresholds(
+                        metric
+                            .thresholds()
+                            .stream()
+                            .map(
+                                thresholdType -> {
+                                    final AlertThreshold alertThreshold = new AlertThreshold();
+                                    alertThreshold.setKey(thresholdType.name().toLowerCase());
+                                    alertThreshold.setDescription(thresholdType.description());
+                                    return alertThreshold;
+                                }
+                            )
+                            .collect(toList())
+                    );
+                    return alertMetric;
+                }
+            )
+            .collect(toList());
     }
 }

@@ -19,17 +19,18 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class GenericNotificationConfigRepositoryProxy extends AbstractProxy<GenericNotificationConfigRepository> implements GenericNotificationConfigRepository {
+public class GenericNotificationConfigRepositoryProxy
+    extends AbstractProxy<GenericNotificationConfigRepository>
+    implements GenericNotificationConfigRepository {
 
     @Override
     public GenericNotificationConfig create(GenericNotificationConfig genericNotificationConfig) throws TechnicalException {
@@ -52,12 +53,14 @@ public class GenericNotificationConfigRepositoryProxy extends AbstractProxy<Gene
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         return target.findByReferenceAndHook(hook, referenceType, referenceId);
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         return target.findByReference(referenceType, referenceId);
     }
 

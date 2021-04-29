@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.portal.rest.resource.param;
 
 import io.swagger.annotations.ApiParam;
-
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.QueryParam;
 
@@ -29,21 +28,23 @@ public class LogsParam {
     @QueryParam("from")
     @ApiParam(value = "Timestamp used to define the start date of the time window to query")
     private long from;
-    
+
     @QueryParam("to")
     @ApiParam(value = "Timestamp used to define the end date of the time window to query")
     private long to;
-    
-    @ApiParam(name="query",
-            value = "The expresion used to search for logs. It looks like 'transaction:123-456-789 AND uri=\\\\/path\\\\/to\\\\/resource* AND response-time:[100 TO 200]'." +
-                    " Reserved characters that must be escaped + - = && || > < ! ( ) { } [ ] ^ \" ~ * ? : \\ /")
+
+    @ApiParam(
+        name = "query",
+        value = "The expresion used to search for logs. It looks like 'transaction:123-456-789 AND uri=\\\\/path\\\\/to\\\\/resource* AND response-time:[100 TO 200]'." +
+        " Reserved characters that must be escaped + - = && || > < ! ( ) { } [ ] ^ \" ~ * ? : \\ /"
+    )
     @QueryParam("query")
     private String query;
 
     @QueryParam("field")
     @ApiParam(value = "The field to query when doing `group_by` queries")
     private String field;
-    
+
     @QueryParam("order")
     @ApiParam(value = "true means ASC order, false means DESC")
     private String order;
@@ -100,7 +101,7 @@ public class LogsParam {
         if (from >= to) {
             throw new BadRequestException("'from' query parameter value must not be greater than 'to'");
         }
-        
+
         if (!"ASC".equals(order) && !"DESC".equals(order)) {
             throw new BadRequestException("'order' query parameter value must be 'ASC' or 'DESC'");
         }

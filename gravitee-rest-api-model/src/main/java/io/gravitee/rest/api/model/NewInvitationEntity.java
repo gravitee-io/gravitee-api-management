@@ -16,9 +16,8 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -29,13 +28,17 @@ public class NewInvitationEntity {
     @NotNull
     @JsonProperty("reference_type")
     private InvitationReferenceType referenceType;
+
     @NotNull
     @JsonProperty("reference_id")
     private String referenceId;
+
     @NotNull
     private String email;
+
     @JsonProperty("api_role")
     private String apiRole;
+
     @JsonProperty("application_role")
     private String applicationRole;
 
@@ -84,9 +87,7 @@ public class NewInvitationEntity {
         if (this == o) return true;
         if (!(o instanceof NewInvitationEntity)) return false;
         NewInvitationEntity that = (NewInvitationEntity) o;
-        return referenceType == that.referenceType &&
-                Objects.equals(referenceId, that.referenceId) &&
-                Objects.equals(email, that.email);
+        return referenceType == that.referenceType && Objects.equals(referenceId, that.referenceId) && Objects.equals(email, that.email);
     }
 
     @Override
@@ -96,12 +97,23 @@ public class NewInvitationEntity {
 
     @Override
     public String toString() {
-        return "NewInvitationEntity{" +
-                "referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                ", email='" + email + '\'' +
-                ", apiRole='" + apiRole + '\'' +
-                ", applicationRole='" + applicationRole + '\'' +
-                '}';
+        return (
+            "NewInvitationEntity{" +
+            "referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", apiRole='" +
+            apiRole +
+            '\'' +
+            ", applicationRole='" +
+            applicationRole +
+            '\'' +
+            '}'
+        );
     }
 }

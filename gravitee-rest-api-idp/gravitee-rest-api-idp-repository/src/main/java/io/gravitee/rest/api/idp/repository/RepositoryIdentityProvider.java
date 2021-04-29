@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.idp.repository;
 
-
 import io.gravitee.rest.api.idp.api.IdentityProvider;
 import io.gravitee.rest.api.idp.api.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
@@ -28,7 +27,7 @@ import io.gravitee.rest.api.idp.repository.lookup.RepositoryIdentityLookup;
  */
 public class RepositoryIdentityProvider implements IdentityProvider {
 
-    public final static String PROVIDER_TYPE = "gravitee";
+    public static final String PROVIDER_TYPE = "gravitee";
 
     @Override
     public String type() {
@@ -44,5 +43,4 @@ public class RepositoryIdentityProvider implements IdentityProvider {
     public Class<? extends IdentityLookup> identityLookup() {
         return RepositoryIdentityLookup.class;
     }
-
 }

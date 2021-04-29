@@ -64,7 +64,11 @@ public class ReferenceMetadataMapper {
         return newApplicationMetadataEntity;
     }
 
-    public UpdateApplicationMetadataEntity convert(ReferenceMetadataInput applicationReferenceMetadataInput, String applicationId, String metadataId) {
+    public UpdateApplicationMetadataEntity convert(
+        ReferenceMetadataInput applicationReferenceMetadataInput,
+        String applicationId,
+        String metadataId
+    ) {
         final UpdateApplicationMetadataEntity updateApplicationMetadataEntity = new UpdateApplicationMetadataEntity();
 
         updateApplicationMetadataEntity.setApplicationId(applicationId);

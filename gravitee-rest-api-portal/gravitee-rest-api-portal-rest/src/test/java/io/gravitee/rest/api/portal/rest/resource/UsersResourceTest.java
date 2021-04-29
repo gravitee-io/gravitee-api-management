@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
@@ -23,20 +29,13 @@ import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import java.io.IOException;
+import java.util.Collections;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.Collections;
-
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,7 +53,7 @@ public class UsersResourceTest extends AbstractResourceTest {
     @Before
     public void init() {
         resetAllMocks();
-      
+
         searchableUser = Mockito.mock(SearchableUser.class);
         doReturn("my-user-display-name").when(searchableUser).getDisplayName();
         doReturn("my-user-email").when(searchableUser).getEmail();
@@ -83,7 +82,6 @@ public class UsersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoUserAndNoLink() {
-
         doReturn(Collections.emptyList()).when(identityService).search(anyString());
 
         // Test with default limit
@@ -97,7 +95,12 @@ public class UsersResourceTest extends AbstractResourceTest {
         assertNull(links);
 
         // Test with small limit
-        final Response anotherResponse = target("_search").queryParam("q", "q").queryParam("page", 2).queryParam("size", 1).request().post(null);
+        final Response anotherResponse = target("_search")
+            .queryParam("q", "q")
+            .queryParam("page", 2)
+            .queryParam("size", 1)
+            .request()
+            .post(null);
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
 
         usersResponse = anotherResponse.readEntity(UsersResponse.class);
@@ -105,14 +108,16 @@ public class UsersResourceTest extends AbstractResourceTest {
 
         links = usersResponse.getLinks();
         assertNull(links);
-
     }
 
     @Test
     public void shouldCreateRegistration() {
         // init
-        RegisterUserInput input = new RegisterUserInput().email("test@example.com").firstname("Firstname")
-                .lastname("LASTNAME").confirmationPageUrl("HTTP://MY-CONFIRM-PAGE");
+        RegisterUserInput input = new RegisterUserInput()
+            .email("test@example.com")
+            .firstname("Firstname")
+            .lastname("LASTNAME")
+            .confirmationPageUrl("HTTP://MY-CONFIRM-PAGE");
 
         NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
         doReturn(newExternalUserEntity).when(userMapper).convert(input);
@@ -125,14 +130,12 @@ public class UsersResourceTest extends AbstractResourceTest {
 
         Mockito.verify(userMapper).convert(input);
         Mockito.verify(userService).register(newExternalUserEntity, "HTTP://MY-CONFIRM-PAGE");
-
     }
 
     @Test
     public void shouldNotCreateRegistration() {
         // init
-        RegisterUserInput input = new RegisterUserInput().email("test@example.com").firstname("Firstname")
-                .lastname("LASTNAME");
+        RegisterUserInput input = new RegisterUserInput().email("test@example.com").firstname("Firstname").lastname("LASTNAME");
 
         NewExternalUserEntity newExternalUserEntity = new NewExternalUserEntity();
         doReturn(newExternalUserEntity).when(userMapper).convert(input);
@@ -152,6 +155,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         final Response response = target("registration").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
+
     @Test
     public void shouldHaveBadRequestWhileRegisteringAUserWithEmpty() {
         final Response response = target("registration").request().post(Entity.json(new RegisterUserInput()));
@@ -163,6 +167,7 @@ public class UsersResourceTest extends AbstractResourceTest {
         final Response response = target("registration/_finalize").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
+
     @Test
     public void shouldHaveBadRequestWhileFinalizingRegistrationWithEmpty() {
         final Response response = target("registration/_finalize").request().post(Entity.json(new FinalizeRegistrationInput()));
@@ -172,8 +177,11 @@ public class UsersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldFinalizeRegistration() {
         // init
-        FinalizeRegistrationInput input = new FinalizeRegistrationInput().token("token").password("P4s5vv0Rd")
-                .firstname("Firstname").lastname("LASTNAME");
+        FinalizeRegistrationInput input = new FinalizeRegistrationInput()
+            .token("token")
+            .password("P4s5vv0Rd")
+            .firstname("Firstname")
+            .lastname("LASTNAME");
 
         RegisterUserEntity registerUserEntity = new RegisterUserEntity();
         doReturn(registerUserEntity).when(userMapper).convert(input);
@@ -191,8 +199,11 @@ public class UsersResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotFinalizeRegistration() {
         // init
-        FinalizeRegistrationInput input = new FinalizeRegistrationInput().token("token").password("P4s5vv0Rd")
-                .firstname("Firstname").lastname("LASTNAME");
+        FinalizeRegistrationInput input = new FinalizeRegistrationInput()
+            .token("token")
+            .password("P4s5vv0Rd")
+            .firstname("Firstname")
+            .lastname("LASTNAME");
 
         RegisterUserEntity registerUserEntity = new RegisterUserEntity();
         doReturn(registerUserEntity).when(userMapper).convert(input);
@@ -216,18 +227,20 @@ public class UsersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveNoContentResponseWithUnexistingUser() {
-        doThrow(new UserNotFoundException("my@email.com")).when(userService).resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");
+        doThrow(new UserNotFoundException("my@email.com"))
+            .when(userService)
+            .resetPasswordFromSourceId("my@email.com", "HTTP://MY-RESET-PAGE");
         ResetUserPasswordInput input = new ResetUserPasswordInput().username("my@email.com").resetPageUrl("HTTP://MY-RESET-PAGE");
         final Response response = target().path("_reset_password").request().post(Entity.json(input));
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
     }
-    
+
     @Test
     public void shouldHaveBadRequestWhileResettingPasswordWithoutInput() {
         final Response response = target().path("_reset_password").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
-    
+
     @Test
     public void shouldGetUserAvatar() throws IOException {
         final Response response = target().path("userId").path("avatar").request().get();

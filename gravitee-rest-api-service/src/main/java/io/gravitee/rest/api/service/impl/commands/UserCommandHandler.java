@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.commands;
 
+import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.PICTURE;
+import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.SUB;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
@@ -28,14 +31,10 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.Single;
+import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-
-import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.PICTURE;
-import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.SUB;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -60,7 +59,6 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
 
     @Override
     public Single<UserReply> handle(UserCommand command) {
-
         UserPayload userPayload = command.getPayload();
         GraviteeContext.setCurrentOrganization(userPayload.getOrganizationId());
 
@@ -85,8 +83,7 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
             logger.info("User [{}] with APIM id [{}] updated.", userPayload.getUsername(), cockpitUserEntity.getId());
 
             return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
-
-        } catch(UserNotFoundException unfe) {
+        } catch (UserNotFoundException unfe) {
             NewExternalUserEntity newUser = new NewExternalUserEntity();
             newUser.setSourceId(userPayload.getId());
             newUser.setFirstname(userPayload.getFirstName());
@@ -108,12 +105,21 @@ public class UserCommandHandler implements CommandHandler<UserCommand, UserReply
                 logger.info("User [{}] created with APIM id [{}].", userPayload.getUsername(), cockpitUserEntity.getId());
                 return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
             } catch (Exception e) {
-                logger.info("Error occurred when creating user [{}] for organization [{}].", userPayload.getUsername(), userPayload.getOrganizationId(), e);
+                logger.info(
+                    "Error occurred when creating user [{}] for organization [{}].",
+                    userPayload.getUsername(),
+                    userPayload.getOrganizationId(),
+                    e
+                );
                 return Single.just(new UserReply(command.getId(), CommandStatus.ERROR));
             }
-
         } catch (Exception e) {
-            logger.info("Error occurred when updating user [{}] for organization [{}].", userPayload.getUsername(), userPayload.getOrganizationId(), e);
+            logger.info(
+                "Error occurred when updating user [{}] for organization [{}].",
+                userPayload.getUsername(),
+                userPayload.getOrganizationId(),
+                e
+            );
             return Single.just(new UserReply(command.getId(), CommandStatus.ERROR));
         } finally {
             GraviteeContext.cleanContext();

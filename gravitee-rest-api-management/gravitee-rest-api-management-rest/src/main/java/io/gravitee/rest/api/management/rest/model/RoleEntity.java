@@ -18,10 +18,11 @@ package io.gravitee.rest.api.management.rest.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class RoleEntity {
+
     @JsonProperty("role")
     private String name;
 

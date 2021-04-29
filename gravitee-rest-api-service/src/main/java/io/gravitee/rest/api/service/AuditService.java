@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.audit.AuditEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
-
 import java.util.Date;
 import java.util.Map;
 
@@ -29,16 +28,49 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface AuditService {
+    void createApiAuditLog(
+        String apiId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    );
 
-    void createApiAuditLog(String apiId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+    void createApplicationAuditLog(
+        String applicationId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    );
 
-    void createApplicationAuditLog(String applicationId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+    void createEnvironmentAuditLog(
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    );
 
-    void createEnvironmentAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+    void createOrganizationAuditLog(
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    );
 
-    void createOrganizationAuditLog(Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
-
-    void createAuditLog(Audit.AuditReferenceType referenceType, String referenceId, Map<Audit.AuditProperties, String> properties, Audit.AuditEvent event, Date createdAt, Object oldValue, Object newValue);
+    void createAuditLog(
+        Audit.AuditReferenceType referenceType,
+        String referenceId,
+        Map<Audit.AuditProperties, String> properties,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Object oldValue,
+        Object newValue
+    );
 
     MetadataPage<AuditEntity> search(AuditQuery query);
 }

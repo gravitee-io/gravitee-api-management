@@ -27,12 +27,6 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -40,6 +34,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.xml.bind.DatatypeConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume Gillon
@@ -69,7 +68,9 @@ public class MediaServiceImpl implements MediaService {
             MessageDigest digest = MessageDigest.getInstance("MD5");
             byte[] hash = digest.digest(mediaEntity.getData());
             String hashString = DatatypeConverter.printHexBinary(hash);
-            String id = mediaEntity.getId() != null && UUID.fromString(mediaEntity.getId()) != null ? mediaEntity.getId() : RandomString.generate();
+            String id = mediaEntity.getId() != null && UUID.fromString(mediaEntity.getId()) != null
+                ? mediaEntity.getId()
+                : RandomString.generate();
 
             Optional<Media> checkMedia = null;
 
@@ -93,7 +94,6 @@ public class MediaServiceImpl implements MediaService {
 
                 return hashString;
             }
-
         } catch (TechnicalException | NoSuchAlgorithmException ex) {
             LOGGER.error("An error occurs while trying to create {}", mediaEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + mediaEntity, ex);
@@ -154,7 +154,6 @@ public class MediaServiceImpl implements MediaService {
             }
         }
         return result;
-
     }
 
     @Override
@@ -164,9 +163,7 @@ public class MediaServiceImpl implements MediaService {
 
     @Override
     public List<MediaEntity> findAllByApiId(String apiId) {
-        return mediaRepository.findAllByApi(apiId)
-            .stream()
-            .map(media -> convert(media)).collect(Collectors.toList());
+        return mediaRepository.findAllByApi(apiId).stream().map(media -> convert(media)).collect(Collectors.toList());
     }
 
     @Override

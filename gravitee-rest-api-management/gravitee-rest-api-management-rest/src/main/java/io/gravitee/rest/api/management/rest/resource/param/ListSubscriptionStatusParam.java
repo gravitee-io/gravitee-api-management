@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import io.gravitee.rest.api.model.SubscriptionStatus;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

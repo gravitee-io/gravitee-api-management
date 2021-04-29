@@ -22,32 +22,28 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
+import io.gravitee.rest.api.model.InlinePictureEntity;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
 import javax.ws.rs.core.EntityTag;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-
 import org.eclipse.jetty.http.HttpHeader;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import io.gravitee.rest.api.model.InlinePictureEntity;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PictureManagementTest {
-
 
     AbstractResource pictureResourceForTest = new AbstractResource() {};
 
@@ -71,13 +67,12 @@ public class PictureManagementTest {
 
         assertEquals(mockImage.getType(), mediaType.toString());
 
-        ByteArrayOutputStream baos = (ByteArrayOutputStream)response.getEntity();
+        ByteArrayOutputStream baos = (ByteArrayOutputStream) response.getEntity();
         byte[] fileContent = baos.toByteArray();
         assertTrue(Arrays.equals(fileContent, imageContent));
 
         String expectedTag = Integer.toString(new String(fileContent).hashCode());
         assertEquals(expectedTag, etag);
-
 
         // test Cache
         ResponseBuilder responseBuilder = Response.notModified();
@@ -86,5 +81,4 @@ public class PictureManagementTest {
         final Response cachedResponse = pictureResourceForTest.createPictureResponse(request, mockImage);
         assertEquals(NOT_MODIFIED_304, cachedResponse.getStatus());
     }
-
 }

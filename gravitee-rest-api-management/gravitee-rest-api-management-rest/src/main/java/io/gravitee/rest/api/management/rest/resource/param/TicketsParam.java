@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.swagger.annotations.ApiParam;
-
 import javax.ws.rs.QueryParam;
 
 /**
@@ -34,10 +33,7 @@ public class TicketsParam {
     private String application;
 
     @QueryParam("order")
-    @ApiParam(
-            value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
-            example = "-subject"
-    )
+    @ApiParam(value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-subject")
     private OrderParam order;
 
     public String getApi() {

@@ -16,14 +16,13 @@
 package io.gravitee.rest.api.management.rest.provider;
 
 import io.gravitee.common.http.HttpHeaders;
-
+import java.io.IOException;
+import java.util.List;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.PreMatching;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.ext.Provider;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -34,7 +33,7 @@ import java.util.List;
 public class UriBuilderRequestFilter implements ContainerRequestFilter {
 
     @Override
-    public void filter( ContainerRequestContext ctx ) throws IOException {
+    public void filter(ContainerRequestContext ctx) throws IOException {
         List<String> schemes = ctx.getHeaders().get(HttpHeaders.X_FORWARDED_PROTO);
         UriBuilder baseBuilder = ctx.getUriInfo().getBaseUriBuilder();
         UriBuilder requestBuilder = ctx.getUriInfo().getRequestUriBuilder();
@@ -53,7 +52,7 @@ public class UriBuilderRequestFilter implements ContainerRequestFilter {
 
             if (host.contains(":")) {
                 // Forwarded host contains both host and port
-                String [] parts = host.split(":");
+                String[] parts = host.split(":");
                 baseBuilder.host(parts[0]).port(Integer.parseInt(parts[1]));
                 requestBuilder.host(parts[0]).port(Integer.parseInt(parts[1]));
             } else {

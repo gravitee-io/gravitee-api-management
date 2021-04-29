@@ -15,10 +15,9 @@
  */
 package io.gravitee.rest.api.service.search.query;
 
-import java.util.Map;
-
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.search.Indexable;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,7 +28,7 @@ public class QueryBuilder<T extends Indexable> {
     private final Query<T> query;
 
     private QueryBuilder(final Class<T> root) {
-         query = new Query<>(root);
+        query = new Query<>(root);
     }
 
     public static <S extends Indexable> QueryBuilder<S> create(Class<S> root) {

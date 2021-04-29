@@ -15,19 +15,18 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.service.impl.configuration.application.ApplicationTypeServiceImpl;
+import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -42,8 +41,9 @@ public class ApplicationTypeServiceTest {
 
     @Test
     public void shouldGetAllApplicationTypes() throws TechnicalException, IOException {
-        JsonNode jsonTypes = objectMapper
-                .readTree("{ \"simple\": { \"enabled\": true }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": true }, \"native\": { \"enabled\": true } }");
+        JsonNode jsonTypes = objectMapper.readTree(
+            "{ \"simple\": { \"enabled\": true }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": true }, \"native\": { \"enabled\": true } }"
+        );
         ApplicationTypesEntity enabledApplicationsTypes = applicationTypeService.getFilteredApplicationTypes(jsonTypes);
         assertNotNull(enabledApplicationsTypes);
         assertEquals(5, enabledApplicationsTypes.getData().size());
@@ -51,11 +51,11 @@ public class ApplicationTypeServiceTest {
 
     @Test
     public void shouldGetEnabledApplicationTypes() throws TechnicalException, IOException {
-        JsonNode jsonTypes = objectMapper
-                .readTree("{ \"simple\": { \"enabled\": false }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": false }, \"native\": { \"enabled\": true } }");
+        JsonNode jsonTypes = objectMapper.readTree(
+            "{ \"simple\": { \"enabled\": false }, \"web\": { \"enabled\": true }, \"browser\": { \"enabled\": true }, \"backend_to_backend\": { \"enabled\": false }, \"native\": { \"enabled\": true } }"
+        );
         ApplicationTypesEntity enabledApplicationsTypes = applicationTypeService.getFilteredApplicationTypes(jsonTypes);
         assertNotNull(enabledApplicationsTypes);
         assertEquals(3, enabledApplicationsTypes.getData().size());
     }
-
 }

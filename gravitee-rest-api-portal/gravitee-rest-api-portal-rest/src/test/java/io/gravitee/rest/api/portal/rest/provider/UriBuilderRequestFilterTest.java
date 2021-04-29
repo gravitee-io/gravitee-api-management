@@ -15,25 +15,24 @@
  */
 package io.gravitee.rest.api.portal.rest.provider;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.invocation.Invocation;
-
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests {@link UriBuilderRequestFilter}
@@ -44,10 +43,13 @@ public class UriBuilderRequestFilterTest {
 
     @InjectMocks
     protected UriBuilderRequestFilter filter;
+
     @Mock
     protected ContainerRequestContext containerRequestContext;
+
     @Mock
     protected UriBuilder baseUriBuilder;
+
     @Mock
     protected UriBuilder requestUriBuilder;
 
@@ -72,9 +74,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void protoHeaderCausesUriBuildersSchemeSet() {
-        givenHeaders(
-                "X-Forwarded-Proto", "https"
-        );
+        givenHeaders("X-Forwarded-Proto", "https");
 
         filter.filter(containerRequestContext);
 
@@ -85,9 +85,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void hostHeaderWithoutPortCausesUriBuildersHostSetAndPortReset() {
-        givenHeaders(
-                "X-Forwarded-Host", "gravitee.io"
-        );
+        givenHeaders("X-Forwarded-Host", "gravitee.io");
 
         filter.filter(containerRequestContext);
 
@@ -98,9 +96,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void portHeaderCausesUriBuildersPortSet() {
-        givenHeaders(
-                "X-Forwarded-Port", "1234"
-        );
+        givenHeaders("X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
 
@@ -111,9 +107,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void hostHeaderWithPortCausesUriBuildersHostSetAndPortSet() {
-        givenHeaders(
-                "X-Forwarded-Host", "gravitee.io:4321"
-        );
+        givenHeaders("X-Forwarded-Host", "gravitee.io:4321");
 
         filter.filter(containerRequestContext);
 
@@ -122,13 +116,9 @@ public class UriBuilderRequestFilterTest {
         verifyUriBuildersChangedPortTo(4321); // override with port in Host header
     }
 
-
     @Test
     public void hostHeaderWithoutPortAndPortHeaderCauseUriBuildersHostSetAndPortSet() {
-        givenHeaders(
-                "X-Forwarded-Host", "gravitee.io",
-                "X-Forwarded-Port", "1234"
-        );
+        givenHeaders("X-Forwarded-Host", "gravitee.io", "X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
 
@@ -139,10 +129,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void hostHeaderWithPortAndPortHeaderCauseUriBuildersHostSetAndPortSetFromPortHeader() {
-        givenHeaders(
-                "X-Forwarded-Host", "gravitee.io:4321",
-                "X-Forwarded-Port", "1234"
-        );
+        givenHeaders("X-Forwarded-Host", "gravitee.io:4321", "X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
 
@@ -153,10 +140,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void protoHeaderAndHostHeaderWithoutPortCauseUriBuildersSchemeSetHostSetAndPortReset() {
-        givenHeaders(
-                "X-Forwarded-Proto", "https",
-                "X-Forwarded-Host", "gravitee.io"
-        );
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io");
 
         filter.filter(containerRequestContext);
 
@@ -167,10 +151,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void protoHeaderAndHostHeaderWithPortCauseUriBuildersSchemeSetHostSetAndPortSet() {
-        givenHeaders(
-                "X-Forwarded-Proto", "https",
-                "X-Forwarded-Host", "gravitee.io:4321"
-        );
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io:4321");
 
         filter.filter(containerRequestContext);
 
@@ -181,10 +162,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void protoHeaderAndPortHeaderCauseUriBuildersSchemeSetAndPortSet() {
-        givenHeaders(
-                "X-Forwarded-Proto", "https",
-                "X-Forwarded-Port", "1234"
-        );
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
 
@@ -195,11 +173,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void protoHeaderHostHeaderWithoutPortAndPortHeaderCauseUriBuildersSchemeSetHostSetAndPortSet() {
-        givenHeaders(
-                "X-Forwarded-Proto", "https",
-                "X-Forwarded-Host", "gravitee.io",
-                "X-Forwarded-Port", "1234"
-        );
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io", "X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
 
@@ -210,11 +184,7 @@ public class UriBuilderRequestFilterTest {
 
     @Test
     public void protoHeaderHostHeaderWithPortAndPortHeaderCauseUriBuildersSchemeSetHostSetAndPortSet() {
-        givenHeaders(
-                "X-Forwarded-Proto", "https",
-                "X-Forwarded-Host", "gravitee.io:4321",
-                "X-Forwarded-Port", "1234"
-        );
+        givenHeaders("X-Forwarded-Proto", "https", "X-Forwarded-Host", "gravitee.io:4321", "X-Forwarded-Port", "1234");
 
         filter.filter(containerRequestContext);
 
@@ -231,7 +201,6 @@ public class UriBuilderRequestFilterTest {
             mockHeaders.put(hName, Collections.singletonList(hValue));
         }
         when(containerRequestContext.getHeaders()).thenReturn(mockHeaders);
-
     }
 
     private void setupBuildersMocks() {
@@ -245,25 +214,25 @@ public class UriBuilderRequestFilterTest {
     }
 
     private void verifyUriBuildersKeptOriginalScheme() {
-        for (UriBuilder uriBuilder : new UriBuilder[]{baseUriBuilder, requestUriBuilder}) {
+        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
             verify(uriBuilder, never()).scheme(anyString());
         }
     }
 
     private void verifyUriBuildersKeptOriginalHost() {
-        for (UriBuilder uriBuilder : new UriBuilder[]{baseUriBuilder, requestUriBuilder}) {
+        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
             verify(uriBuilder, never()).host(anyString());
         }
     }
 
     private void verifyUriBuildersKeptOriginalPort() {
-        for (UriBuilder uriBuilder : new UriBuilder[]{baseUriBuilder, requestUriBuilder}) {
+        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
             verify(uriBuilder, never()).port(anyInt());
         }
     }
 
     private void verifyUriBuildersChangedSchemeTo(String expectedScheme) {
-        for (UriBuilder uriBuilder : new UriBuilder[]{baseUriBuilder, requestUriBuilder}) {
+        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
             String actualScheme = getMethodArgBeforeLastBuild(uriBuilder, "scheme", String.class);
             assertNotNull(actualScheme);
             assertEquals(expectedScheme, actualScheme);
@@ -271,7 +240,7 @@ public class UriBuilderRequestFilterTest {
     }
 
     private void verifyUriBuildersChangedHostTo(String expectedHost) {
-        for (UriBuilder uriBuilder : new UriBuilder[]{baseUriBuilder, requestUriBuilder}) {
+        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
             String actualHost = getMethodArgBeforeLastBuild(uriBuilder, "host", String.class);
             assertNotNull(actualHost);
             assertEquals(expectedHost, actualHost);
@@ -279,7 +248,7 @@ public class UriBuilderRequestFilterTest {
     }
 
     private void verifyUriBuildersChangedPortTo(int expectedPort) {
-        for (UriBuilder uriBuilder : new UriBuilder[]{baseUriBuilder, requestUriBuilder}) {
+        for (UriBuilder uriBuilder : new UriBuilder[] { baseUriBuilder, requestUriBuilder }) {
             Integer actualPort = getMethodArgBeforeLastBuild(uriBuilder, "port", Integer.class);
             assertNotNull(actualPort);
             assertEquals(expectedPort, actualPort.intValue());

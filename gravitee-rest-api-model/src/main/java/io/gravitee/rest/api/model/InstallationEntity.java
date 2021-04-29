@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InstallationEntity {
+
     /**
      * Auto generated id.
      * This id is generated at the first startup time.
@@ -46,18 +47,15 @@ public class InstallationEntity {
      */
     private Date updatedAt;
 
-    public InstallationEntity() {
-    }
+    public InstallationEntity() {}
 
     public InstallationEntity(InstallationEntity other) {
-
         this.id = other.id;
         this.cockpitURL = other.cockpitURL;
         this.additionalInformation = other.additionalInformation;
         this.createdAt = other.createdAt;
         this.updatedAt = other.updatedAt;
     }
-
 
     public String getId() {
         return id;

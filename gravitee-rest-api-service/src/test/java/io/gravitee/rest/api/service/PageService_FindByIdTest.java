@@ -15,9 +15,15 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageRevisionEntity;
@@ -25,19 +31,12 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
-
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
-import static org.mockito.ArgumentMatchers.argThat;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -64,12 +63,14 @@ public class PageService_FindByIdTest {
 
     @Mock
     private PageRevisionService pageRevisionService;
-    
+
     @Test
     public void shouldFindById() throws TechnicalException {
         when(translationPage.getId()).thenReturn(TRANSLATION_ID);
         when(translationPage.getOrder()).thenReturn(1);
         when(translationPage.getParentId()).thenReturn(PAGE_ID);
+        when(translationPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(translationPage.getReferenceId()).thenReturn("envId");
         when(translationPage.getVisibility()).thenReturn("PUBLIC");
         Map<String, String> conf = new HashMap<>();
         conf.put(PageConfigurationKeys.TRANSLATION_LANG, "FR");
@@ -78,9 +79,12 @@ public class PageService_FindByIdTest {
         when(page1.getId()).thenReturn(PAGE_ID);
         when(page1.getType()).thenReturn(PageType.MARKDOWN.name());
         when(page1.getOrder()).thenReturn(1);
+        when(page1.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(page1.getReferenceId()).thenReturn("envId");
         when(page1.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.findById(PAGE_ID)).thenReturn(Optional.of(page1));
-        when(pageRepository.search(argThat(p->"TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent())))).thenReturn(Arrays.asList(translationPage));
+        when(pageRepository.search(argThat(p -> "TRANSLATION".equals(p.getType()) && PAGE_ID.equals(p.getParent()))))
+            .thenReturn(Arrays.asList(translationPage));
 
         final PageRevisionEntity pageRevision = new PageRevisionEntity();
         pageRevision.setRevision(5);

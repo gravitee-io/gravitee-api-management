@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.impl.commands;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.environment.EnvironmentCommand;
@@ -24,18 +28,13 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.reactivex.observers.TestObserver;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -61,7 +60,6 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     public void handle() {
-
         EnvironmentPayload environmentPayload = new EnvironmentPayload();
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
@@ -72,12 +70,20 @@ public class EnvironmentCommandHandlerTest {
         environmentPayload.setName("Environment name");
         environmentPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
 
-        when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"),
-                argThat(newEnvironment -> newEnvironment.getHrids().equals(environmentPayload.getHrids())
-                        && newEnvironment.getDescription().equals(environmentPayload.getDescription())
-                        && newEnvironment.getName().equals(environmentPayload.getName())
-                        && newEnvironment.getDomainRestrictions().equals(environmentPayload.getDomainRestrictions()))))
-                .thenReturn(new EnvironmentEntity());
+        when(
+            environmentService.createOrUpdate(
+                eq("orga#1"),
+                eq("env#1"),
+                argThat(
+                    newEnvironment ->
+                        newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
+                        newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
+                        newEnvironment.getName().equals(environmentPayload.getName()) &&
+                        newEnvironment.getDomainRestrictions().equals(environmentPayload.getDomainRestrictions())
+                )
+            )
+        )
+            .thenReturn(new EnvironmentEntity());
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 
@@ -87,7 +93,6 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     public void handleWithException() {
-
         EnvironmentPayload environmentPayload = new EnvironmentPayload();
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
@@ -97,7 +102,8 @@ public class EnvironmentCommandHandlerTest {
         environmentPayload.setName("Environment name");
         environmentPayload.setDomainRestrictions(Arrays.asList("domain.restriction1.io", "domain.restriction2.io"));
 
-        when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class))).thenThrow(new RuntimeException("fake error"));
+        when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class)))
+            .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<EnvironmentReply> obs = cut.handle(command).test();
 

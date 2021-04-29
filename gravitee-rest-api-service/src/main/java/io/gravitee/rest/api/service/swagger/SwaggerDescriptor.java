@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  * @author GraviteeSource Team
  */
 public interface SwaggerDescriptor<T> {
-
     T getSpecification();
 
     String toYaml() throws JsonProcessingException;

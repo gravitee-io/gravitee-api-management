@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import java.util.List;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -70,7 +69,7 @@ public class OrganizationEntity {
     public void setDomainRestrictions(List<String> domainRestrictions) {
         this.domainRestrictions = domainRestrictions;
     }
-    
+
     public List<String> getHrids() {
         return hrids;
     }
@@ -84,11 +83,13 @@ public class OrganizationEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         OrganizationEntity that = (OrganizationEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(hrids, that.hrids) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(domainRestrictions, that.domainRestrictions);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(hrids, that.hrids) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(domainRestrictions, that.domainRestrictions)
+        );
     }
 
     @Override
@@ -98,12 +99,22 @@ public class OrganizationEntity {
 
     @Override
     public String toString() {
-        return "OrganizationEntity{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", domainRestrictions=" + domainRestrictions +
-                '}';
+        return (
+            "OrganizationEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hrids=" +
+            hrids +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", domainRestrictions=" +
+            domainRestrictions +
+            '}'
+        );
     }
 }

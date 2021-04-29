@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.InstallationEntity;
-
 import java.util.Map;
 
 /**
@@ -24,7 +23,6 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface InstallationService {
-
     String COCKPIT_INSTALLATION_ID = "COCKPIT_INSTALLATION_ID";
     String COCKPIT_INSTALLATION_STATUS = "COCKPIT_INSTALLATION_STATUS";
 
@@ -34,7 +32,6 @@ public interface InstallationService {
      * @return the current installation or an {@link io.gravitee.rest.api.service.exceptions.InstallationNotFoundException} exception.
      */
     InstallationEntity get();
-
 
     /**
      * Get or initialize the installation. A new installation will be created only if none exists.

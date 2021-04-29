@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static java.lang.String.format;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.param.LogsParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
@@ -29,20 +31,17 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
-import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Platform Logs"})
+@Api(tags = { "Platform Logs" })
 public class PlatformLogsResource extends AbstractResource {
 
     @Inject
@@ -50,16 +49,15 @@ public class PlatformLogsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get platform logs",
-            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Get platform logs", notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Platform logs", response = SearchLogResponse.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
-    })
-    public SearchLogResponse getPlatformLogs(
-            @BeanParam LogsParam param) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
+    public SearchLogResponse getPlatformLogs(@BeanParam LogsParam param) {
         param.validate();
 
         LogQuery logQuery = new LogQuery();
@@ -77,35 +75,34 @@ public class PlatformLogsResource extends AbstractResource {
     @GET
     @Path("/{log}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a specific log",
-            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Get a specific log", notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Single log", response = ApiRequest.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)
-    })
-    public ApiRequest getPlatformLog(
-            @PathParam("log") String logId,
-            @QueryParam("timestamp") Long timestamp) {
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
+    public ApiRequest getPlatformLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
         return logsService.findApiLog(logId, timestamp);
     }
 
     @GET
     @Path("export")
     @Produces(MediaType.TEXT_PLAIN)
-    @ApiOperation(value = "Export platform logs as CSV",
-            notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Platform logs as CSV"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({@Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ)})
-    public Response exportPlatformLogsAsCSV(
-            @BeanParam LogsParam param) {
+    @ApiOperation(
+        value = "Export platform logs as CSV",
+        notes = "User must have the MANAGEMENT_PLATFORM[READ] permission to use this service"
+    )
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "Platform logs as CSV"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PLATFORM, acls = RolePermissionAction.READ) })
+    public Response exportPlatformLogsAsCSV(@BeanParam LogsParam param) {
         final SearchLogResponse searchLogResponse = getPlatformLogs(param);
         return Response
-                .ok(logsService.exportAsCsv(searchLogResponse))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", "platform", System.currentTimeMillis()))
-                .build();
+            .ok(logsService.exportAsCsv(searchLogResponse))
+            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=logs-%s-%s.csv", "platform", System.currentTimeMillis()))
+            .build();
     }
 }

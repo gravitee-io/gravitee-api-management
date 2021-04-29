@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -34,19 +38,14 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -101,8 +100,7 @@ public class ApiMapperTest {
 
         apiEntity.setCategories(new HashSet<>(Arrays.asList(API_CATEGORY, API_CATEGORY_HIDDEN)));
 
-        apiEntity.setEntrypoints(
-                Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
+        apiEntity.setEntrypoints(Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("meta", API);
@@ -168,7 +166,6 @@ public class ApiMapperTest {
         assertNotNull(ratingSummary);
         assertEquals(Double.valueOf(4.2), ratingSummary.getAverage());
         assertEquals(BigDecimal.valueOf(10), ratingSummary.getCount());
-
     }
 
     @Test
@@ -216,7 +213,6 @@ public class ApiMapperTest {
 
         RatingSummary ratingSummary = responseApi.getRatingSummary();
         assertNull(ratingSummary);
-
     }
 
     @Test

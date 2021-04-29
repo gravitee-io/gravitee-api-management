@@ -15,13 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import io.gravitee.rest.api.service.impl.configuration.flow.FlowServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -35,7 +35,8 @@ public class FlowServiceTest {
     @Test
     public void shouldGetSchema() {
         assertNotNull(flowService.getSchema());
-        assertEquals("{\n" +
+        assertEquals(
+            "{\n" +
             "  \"type\": \"object\",\n" +
             "  \"id\": \"apim\",\n" +
             "  \"properties\": {\n" +
@@ -96,7 +97,8 @@ public class FlowServiceTest {
             "  },\n" +
             "  \"required\": [],\n" +
             "  \"disabled\": []\n" +
-            "}\n", flowService.getSchema());
+            "}\n",
+            flowService.getSchema()
+        );
     }
-
 }

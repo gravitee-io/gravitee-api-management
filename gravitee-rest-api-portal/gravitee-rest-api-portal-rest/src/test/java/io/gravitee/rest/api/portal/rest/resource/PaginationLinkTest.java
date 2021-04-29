@@ -15,25 +15,22 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.doReturn;
+
 import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
-
+import java.net.URI;
+import java.net.URISyntaxException;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.doReturn;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -43,8 +40,7 @@ import static org.mockito.Mockito.doReturn;
 public class PaginationLinkTest {
 
     @InjectMocks
-    AbstractResource paginatedResourceForTest = new AbstractResource() {
-    };
+    AbstractResource paginatedResourceForTest = new AbstractResource() {};
 
     @Mock
     UriInfo uriInfo;
@@ -71,8 +67,7 @@ public class PaginationLinkTest {
         String expectedNext = "/linkwithParams?q=query&page=4&size=15";
         String expectedLast = "/linkwithParams?q=query&page=8&size=15";
 
-        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext,
-                expectedLast);
+        testGenericPaginatedLinks(page, size, totalItems, expectedSelf, expectedFirst, expectedPrev, expectedNext, expectedLast);
     }
 
     @Test
@@ -284,7 +279,16 @@ public class PaginationLinkTest {
         assertNull(links);
     }
 
-    private void testGenericPaginatedLinks(Integer page, Integer size, Integer totalItems, String expectedSelf, String expectedFirst, String expectedPrev, String expectedNext, String expectedLast) {
+    private void testGenericPaginatedLinks(
+        Integer page,
+        Integer size,
+        Integer totalItems,
+        String expectedSelf,
+        String expectedFirst,
+        String expectedPrev,
+        String expectedNext,
+        String expectedLast
+    ) {
         Links links = paginatedResourceForTest.computePaginatedLinks(page, size, totalItems);
         assertEquals(expectedSelf, links.getSelf());
         assertEquals(expectedFirst, links.getFirst());
@@ -292,5 +296,4 @@ public class PaginationLinkTest {
         assertEquals(expectedNext, links.getNext());
         assertEquals(expectedLast, links.getLast());
     }
-
 }

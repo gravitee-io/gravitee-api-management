@@ -15,20 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.portal.rest.model.Page;
-import io.gravitee.rest.api.portal.rest.model.PageLinks;
-import io.gravitee.rest.api.portal.rest.model.PagesResponse;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
@@ -37,6 +23,19 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.portal.rest.model.Page;
+import io.gravitee.rest.api.portal.rest.model.PageLinks;
+import io.gravitee.rest.api.portal.rest.model.PagesResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -65,11 +64,13 @@ public class PagesResourceTest extends AbstractResourceTest {
         markdownTemplatePage.setType(PageType.MARKDOWN_TEMPLATE.name());
         doReturn(Arrays.asList(publishedPage, markdownTemplatePage)).when(pageService).search(any(), isNull());
 
-        when(accessControlService.canAccessPageFromPortal(any(PageEntity.class))).thenAnswer(invocationOnMock -> {
-            PageEntity  page = invocationOnMock.getArgument(0);
-            return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
-        });
-
+        when(accessControlService.canAccessPageFromPortal(any(PageEntity.class)))
+            .thenAnswer(
+                invocationOnMock -> {
+                    PageEntity page = invocationOnMock.getArgument(0);
+                    return !PageType.MARKDOWN_TEMPLATE.name().equals(page.getType());
+                }
+            );
 
         final Response response = target().request().get();
 
@@ -128,5 +129,4 @@ public class PagesResourceTest extends AbstractResourceTest {
         assertNotNull(pages);
         assertEquals(0, pages.size());
     }
-
 }

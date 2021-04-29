@@ -25,11 +25,10 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -52,14 +51,14 @@ public class PageResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPageByPageId(
-            @HeaderParam("Accept-Language") String acceptLang,
-            @PathParam("pageId") String pageId,
-            @QueryParam("include") List<String> include) {
+        @HeaderParam("Accept-Language") String acceptLang,
+        @PathParam("pageId") String pageId,
+        @QueryParam("include") List<String> include
+    ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
         if (accessControlService.canAccessPageFromPortal(pageEntity)) {
-
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
             }
@@ -71,10 +70,12 @@ public class PageResource extends AbstractResource {
                 page.setContent(pageEntity.getContent());
             }
 
-            page.setLinks(pageMapper.computePageLinks(
+            page.setLinks(
+                pageMapper.computePageLinks(
                     PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), pageId),
                     PortalApiLinkHelper.pagesURL(uriInfo.getBaseUriBuilder(), page.getParent())
-                    ));
+                )
+            );
             return Response.ok(page).build();
         } else {
             throw new UnauthorizedAccessException();
@@ -86,7 +87,6 @@ public class PageResource extends AbstractResource {
     @Produces(MediaType.TEXT_PLAIN)
     @RequirePortalAuth
     public Response getPageContentByPageId(@PathParam("pageId") String pageId) {
-
         PageEntity pageEntity = pageService.findById(pageId, null);
 
         if (accessControlService.canAccessPageFromPortal(pageEntity)) {
@@ -96,5 +96,4 @@ public class PageResource extends AbstractResource {
             throw new UnauthorizedAccessException();
         }
     }
-
 }

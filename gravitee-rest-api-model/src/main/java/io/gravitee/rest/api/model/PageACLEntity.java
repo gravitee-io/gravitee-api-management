@@ -39,5 +39,4 @@ public class PageACLEntity {
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
     }
-
 }

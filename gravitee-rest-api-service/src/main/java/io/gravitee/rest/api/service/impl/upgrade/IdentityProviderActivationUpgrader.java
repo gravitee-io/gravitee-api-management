@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
+
     private final Logger logger = LoggerFactory.getLogger(IdentityProviderActivationUpgrader.class);
 
     @Autowired
@@ -40,17 +41,28 @@ public class IdentityProviderActivationUpgrader implements Upgrader, Ordered {
     @Override
     public boolean upgrade() {
         // initialize roles.
-        final ActivationTarget defaultEnvTarget = new ActivationTarget(GraviteeContext.getDefaultEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT);
-        final ActivationTarget defaultOrgTarget = new ActivationTarget(GraviteeContext.getDefaultOrganization(), IdentityProviderActivationReferenceType.ORGANIZATION);
+        final ActivationTarget defaultEnvTarget = new ActivationTarget(
+            GraviteeContext.getDefaultEnvironment(),
+            IdentityProviderActivationReferenceType.ENVIRONMENT
+        );
+        final ActivationTarget defaultOrgTarget = new ActivationTarget(
+            GraviteeContext.getDefaultOrganization(),
+            IdentityProviderActivationReferenceType.ORGANIZATION
+        );
 
-        if (this.identityProviderActivationService.findAllByTarget(defaultOrgTarget).isEmpty() &&
-                this.identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()) {
+        if (
+            this.identityProviderActivationService.findAllByTarget(defaultOrgTarget).isEmpty() &&
+            this.identityProviderActivationService.findAllByTarget(defaultEnvTarget).isEmpty()
+        ) {
             logger.info("    No activation found. Active all idp on all target by default if enabled.");
-            this.identityProviderService.findAll().forEach(idp -> {
-                if (idp.isEnabled()) {
-                    this.identityProviderActivationService.activateIdpOnTargets(idp.getId(), defaultOrgTarget, defaultEnvTarget);
-                }
-            });
+            this.identityProviderService.findAll()
+                .forEach(
+                    idp -> {
+                        if (idp.isEnabled()) {
+                            this.identityProviderActivationService.activateIdpOnTargets(idp.getId(), defaultOrgTarget, defaultEnvTarget);
+                        }
+                    }
+                );
         }
         return true;
     }

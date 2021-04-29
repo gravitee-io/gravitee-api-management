@@ -15,16 +15,13 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
-
+import io.gravitee.common.util.RelaxedPropertySource;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.StandardEnvironment;
-
-import io.gravitee.common.util.RelaxedPropertySource;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,7 +30,7 @@ import io.gravitee.common.util.RelaxedPropertySource;
  */
 public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
 
-    private static final String[] PROPERTY_PREFIXES = new String[] {"gravitee.", "gravitee_", "GRAVITEE." , "GRAVITEE_"};
+    private static final String[] PROPERTY_PREFIXES = new String[] { "gravitee.", "gravitee_", "GRAVITEE.", "GRAVITEE_" };
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
@@ -42,8 +39,9 @@ public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProce
         Map<String, Object> systemEnvironment = environment.getSystemEnvironment();
         Map<String, Object> prefixlessSystemEnvironment = new HashMap<>(systemEnvironment.size());
         systemEnvironment
-                .keySet()
-                .forEach(key -> {
+            .keySet()
+            .forEach(
+                key -> {
                     String prefixKey = key;
                     for (String propertyPrefix : PROPERTY_PREFIXES) {
                         if (key.startsWith(propertyPrefix)) {
@@ -52,8 +50,13 @@ public class EnvironmentBeanFactoryPostProcessor implements BeanFactoryPostProce
                         }
                     }
                     prefixlessSystemEnvironment.put(prefixKey, systemEnvironment.get(key));
-                });
-        environment.getPropertySources().replace(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
-                new RelaxedPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, prefixlessSystemEnvironment));
+                }
+            );
+        environment
+            .getPropertySources()
+            .replace(
+                StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME,
+                new RelaxedPropertySource(StandardEnvironment.SYSTEM_ENVIRONMENT_PROPERTY_SOURCE_NAME, prefixlessSystemEnvironment)
+            );
     }
 }

@@ -25,6 +25,11 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.codec.binary.Hex;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -32,18 +37,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class PageRevisionServiceImpl extends TransactionalService implements PageRevisionService {
+
     private static final Logger logger = LoggerFactory.getLogger(PageRevisionServiceImpl.class);
 
     private static final String HASH_ALGO = "sha-256";
@@ -59,14 +59,13 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         logger.debug("get all page revisions with pageable {}", pageable);
         try {
             io.gravitee.common.data.domain.Page<PageRevision> revisions = pageRevisionRepository.findAll(pageable);
-            List<PageRevisionEntity> revisionEntities = revisions.getContent()
-                    .stream()
-                    .map(this::convert)
-                    .collect(Collectors.toList());
-            return new io.gravitee.common.data.domain.Page<PageRevisionEntity>(revisionEntities,
-                    revisions.getPageNumber(),
-                    revisionEntities.size(),
-                    revisions.getTotalElements());
+            List<PageRevisionEntity> revisionEntities = revisions.getContent().stream().map(this::convert).collect(Collectors.toList());
+            return new io.gravitee.common.data.domain.Page<PageRevisionEntity>(
+                revisionEntities,
+                revisions.getPageNumber(),
+                revisionEntities.size(),
+                revisions.getTotalElements()
+            );
         } catch (TechnicalException e) {
             logger.warn("An error occurs while trying to get the page revisions {}", pageable, e);
             throw new TechnicalManagementException("An error occurs while trying to get all page revisions", e);
@@ -112,7 +111,7 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
             logger.debug("Create page revision for page {}", page.getId());
 
             PageType type = PageType.valueOf(page.getType());
-            if(!(type == PageType.MARKDOWN || type == PageType.SWAGGER || type == PageType.TRANSLATION)) {
+            if (!(type == PageType.MARKDOWN || type == PageType.SWAGGER || type == PageType.TRANSLATION)) {
                 throw new TechnicalManagementException("Invalid page type for revision");
             }
 
@@ -141,9 +140,7 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         PageRevision revision = new PageRevision();
 
         revision.setPageId(page.getId());
-        revision.setRevision(findLastByPageId(page.getId())
-                .map(rev -> rev.getRevision() + 1)
-                .orElse(1));
+        revision.setRevision(findLastByPageId(page.getId()).map(rev -> rev.getRevision() + 1).orElse(1));
 
         revision.setName(page.getName());
         revision.setContent(page.getContent());

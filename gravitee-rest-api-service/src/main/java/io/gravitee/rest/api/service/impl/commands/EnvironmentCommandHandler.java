@@ -51,7 +51,6 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
 
     @Override
     public Single<EnvironmentReply> handle(EnvironmentCommand command) {
-
         EnvironmentPayload environmentPayload = command.getPayload();
 
         try {
@@ -61,11 +60,20 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             newEnvironment.setDescription(environmentPayload.getDescription());
             newEnvironment.setDomainRestrictions(environmentPayload.getDomainRestrictions());
 
-            final EnvironmentEntity environment = environmentService.createOrUpdate(environmentPayload.getOrganizationId(), environmentPayload.getId(), newEnvironment);
+            final EnvironmentEntity environment = environmentService.createOrUpdate(
+                environmentPayload.getOrganizationId(),
+                environmentPayload.getId(),
+                newEnvironment
+            );
             logger.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
             return Single.just(new EnvironmentReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {
-            logger.error("Error occurred when handling environment [{}] with id [{}].", environmentPayload.getName(), environmentPayload.getId(), e);
+            logger.error(
+                "Error occurred when handling environment [{}] with id [{}].",
+                environmentPayload.getName(),
+                environmentPayload.getId(),
+                e
+            );
             return Single.just(new EnvironmentReply(command.getId(), CommandStatus.ERROR));
         }
     }

@@ -22,6 +22,5 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
  * @author GraviteeSource Team
  */
 public interface FetcherConfigurationFactory {
-
     <T extends FetcherConfiguration> T create(Class<T> fetcherConfigurationClass, String configuration);
 }

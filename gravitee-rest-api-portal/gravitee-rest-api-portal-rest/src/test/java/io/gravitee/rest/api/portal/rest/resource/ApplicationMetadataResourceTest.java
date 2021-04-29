@@ -15,30 +15,29 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApplicationMetadataEntity;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.NewApplicationMetadataEntity;
 import io.gravitee.rest.api.model.UpdateApplicationMetadataEntity;
-import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.service.exceptions.ApplicationMetadataNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -75,36 +74,46 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
         when(referenceMetadataMapper.convert(any(), any())).thenCallRealMethod();
         when(referenceMetadataMapper.convert(any(), any(), any())).thenCallRealMethod();
 
-        doReturn(Arrays.asList(applicationMetadataEntity1, applicationMetadataEntity2)).when(applicationMetadataService).findAllByApplication(APPLICATION);
+        doReturn(Arrays.asList(applicationMetadataEntity1, applicationMetadataEntity2))
+            .when(applicationMetadataService)
+            .findAllByApplication(APPLICATION);
         doReturn(applicationMetadataEntity1).when(applicationMetadataService).findByIdAndApplication(METADATA_1, APPLICATION);
         doReturn(null).when(applicationMetadataService).findByIdAndApplication(METADATA_2, APPLICATION);
 
-
-        when(applicationMetadataService.create(any())).thenAnswer((invocation) -> {
-            NewApplicationMetadataEntity newApplicationMetadataEntity = invocation.getArgument(0);
-            if (newApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
-                throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
-            }
-            return applicationMetadataEntity1;
-        });
-        when(applicationMetadataService.update(any())).thenAnswer((invocation) -> {
-            UpdateApplicationMetadataEntity updateApplicationMetadataEntity = invocation.getArgument(0);
-            if (updateApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
-                throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
-            }
-            if (updateApplicationMetadataEntity.getKey().equals(UNKNOWN_METADATA)) {
-                throw new ApplicationMetadataNotFoundException(updateApplicationMetadataEntity.getApplicationId(), UNKNOWN_METADATA);
-            }
-            return applicationMetadataEntity1;
-        });
-
+        when(applicationMetadataService.create(any()))
+            .thenAnswer(
+                invocation -> {
+                    NewApplicationMetadataEntity newApplicationMetadataEntity = invocation.getArgument(0);
+                    if (newApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
+                        throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
+                    }
+                    return applicationMetadataEntity1;
+                }
+            );
+        when(applicationMetadataService.update(any()))
+            .thenAnswer(
+                invocation -> {
+                    UpdateApplicationMetadataEntity updateApplicationMetadataEntity = invocation.getArgument(0);
+                    if (updateApplicationMetadataEntity.getApplicationId().equals(UNKNOWN_APPLICATION)) {
+                        throw new ApplicationNotFoundException(UNKNOWN_APPLICATION);
+                    }
+                    if (updateApplicationMetadataEntity.getKey().equals(UNKNOWN_METADATA)) {
+                        throw new ApplicationMetadataNotFoundException(
+                            updateApplicationMetadataEntity.getApplicationId(),
+                            UNKNOWN_METADATA
+                        );
+                    }
+                    return applicationMetadataEntity1;
+                }
+            );
 
         doThrow(ApplicationNotFoundException.class).when(applicationMetadataService).findAllByApplication(UNKNOWN_APPLICATION);
         doThrow(ApplicationNotFoundException.class).when(applicationMetadataService).findByIdAndApplication(any(), eq(UNKNOWN_APPLICATION));
         doThrow(ApplicationNotFoundException.class).when(applicationMetadataService).delete(any(), eq(UNKNOWN_APPLICATION));
-        doThrow(ApplicationMetadataNotFoundException.class).when(applicationMetadataService).findByIdAndApplication(UNKNOWN_METADATA, APPLICATION);
+        doThrow(ApplicationMetadataNotFoundException.class)
+            .when(applicationMetadataService)
+            .findByIdAndApplication(UNKNOWN_METADATA, APPLICATION);
         doThrow(ApplicationMetadataNotFoundException.class).when(applicationMetadataService).delete(eq(UNKNOWN_METADATA), any());
-
     }
 
     @Test
@@ -132,7 +141,6 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
 
         Links links = metadataResponse.getLinks();
         assertNotNull(links);
-
     }
 
     @Test
@@ -153,7 +161,6 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoMetadataAndNoLink() {
-
         doReturn(Collections.emptyList()).when(applicationMetadataService).findAllByApplication(any());
 
         //Test with default limit
@@ -175,7 +182,6 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
 
         links = metadataResponse.getLinks();
         assertNull(links);
-
     }
 
     @Test
@@ -199,13 +205,16 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
     @Test
     public void shouldCreateMetadata() {
         ReferenceMetadataInput metadataInput = new ReferenceMetadataInput()
-                .name(METADATA_1_NAME)
-                .defaultValue(METADATA_1_DEFAULT_VALUE)
-                .format(ReferenceMetadataFormatType.valueOf(METADATA_1_FORMAT))
-                .value(METADATA_1_VALUE);
+            .name(METADATA_1_NAME)
+            .defaultValue(METADATA_1_DEFAULT_VALUE)
+            .format(ReferenceMetadataFormatType.valueOf(METADATA_1_FORMAT))
+            .value(METADATA_1_VALUE);
         final Response response = target(APPLICATION).path("metadata").request().post(Entity.json(metadataInput));
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(target(APPLICATION).path("metadata").path(METADATA_1).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+            target(APPLICATION).path("metadata").path(METADATA_1).getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
 
         ArgumentCaptor<NewApplicationMetadataEntity> newMetadataEntityCaptor = ArgumentCaptor.forClass(NewApplicationMetadataEntity.class);
 
@@ -221,14 +230,16 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
     @Test
     public void shouldUpdateMetadata() {
         ReferenceMetadataInput metadataInput = new ReferenceMetadataInput()
-                .name(METADATA_1_NAME)
-                .defaultValue(METADATA_1_DEFAULT_VALUE)
-                .format(ReferenceMetadataFormatType.valueOf(METADATA_1_FORMAT))
-                .value(METADATA_1_VALUE);
+            .name(METADATA_1_NAME)
+            .defaultValue(METADATA_1_DEFAULT_VALUE)
+            .format(ReferenceMetadataFormatType.valueOf(METADATA_1_FORMAT))
+            .value(METADATA_1_VALUE);
         final Response response = target(APPLICATION).path("metadata").path(METADATA_1).request().put(Entity.json(metadataInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        ArgumentCaptor<UpdateApplicationMetadataEntity> updateMetadataEntityCaptor = ArgumentCaptor.forClass(UpdateApplicationMetadataEntity.class);
+        ArgumentCaptor<UpdateApplicationMetadataEntity> updateMetadataEntityCaptor = ArgumentCaptor.forClass(
+            UpdateApplicationMetadataEntity.class
+        );
 
         Mockito.verify(applicationMetadataService).update(updateMetadataEntityCaptor.capture());
         final UpdateApplicationMetadataEntity uodateMetadataEntityCaptorValue = updateMetadataEntityCaptor.getValue();
@@ -239,7 +250,6 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
         assertEquals(METADATA_1_DEFAULT_VALUE, uodateMetadataEntityCaptorValue.getDefaultValue());
         assertEquals(MetadataFormat.valueOf(METADATA_1_FORMAT), uodateMetadataEntityCaptorValue.getFormat());
     }
-
 
     //404 GET /metadata
     @Test
@@ -258,16 +268,23 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
     //404 PUT /metadata/{metadataId}
     @Test
     public void shouldHaveNotFoundWhileUpdatingNewMetadataUnknownApplication() {
-        final Response response = target(UNKNOWN_APPLICATION).path("metadata").path(METADATA_1).request().put(Entity.json(new ReferenceMetadataInput()));
+        final Response response = target(UNKNOWN_APPLICATION)
+            .path("metadata")
+            .path(METADATA_1)
+            .request()
+            .put(Entity.json(new ReferenceMetadataInput()));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
     public void shouldHaveNotFoundWhileUpdatingNewMetadataUnknownMetadata() {
-        final Response response = target(APPLICATION).path("metadata").path(UNKNOWN_METADATA).request().put(Entity.json(new ReferenceMetadataInput()));
+        final Response response = target(APPLICATION)
+            .path("metadata")
+            .path(UNKNOWN_METADATA)
+            .request()
+            .put(Entity.json(new ReferenceMetadataInput()));
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-
 
     //404 DELETE /metadata/{metadataId}
     @Test
@@ -294,5 +311,4 @@ public class ApplicationMetadataResourceTest extends AbstractResourceTest {
         final Response response = target(APPLICATION).path("metadata").path(UNKNOWN_METADATA).request().get();
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
-
 }

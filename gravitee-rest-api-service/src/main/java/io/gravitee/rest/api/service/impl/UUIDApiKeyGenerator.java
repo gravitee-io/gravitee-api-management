@@ -15,11 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl;
 
-import org.springframework.stereotype.Component;
-
 import io.gravitee.rest.api.service.ApiKeyGenerator;
-
 import java.util.UUID;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

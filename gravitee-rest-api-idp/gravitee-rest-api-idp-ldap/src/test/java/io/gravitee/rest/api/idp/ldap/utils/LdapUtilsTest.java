@@ -18,8 +18,6 @@ package io.gravitee.rest.api.idp.ldap.utils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team

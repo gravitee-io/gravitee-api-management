@@ -27,12 +27,11 @@ import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
-
+import java.util.Collections;
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -55,10 +54,11 @@ public class ApiPageResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getPageByApiIdAndPageId(
-            @HeaderParam("Accept-Language") String acceptLang,
-            @PathParam("apiId") String apiId,
-            @PathParam("pageId") String pageId,
-            @QueryParam("include") List<String> include) {
+        @HeaderParam("Accept-Language") String acceptLang,
+        @PathParam("apiId") String apiId,
+        @PathParam("pageId") String pageId,
+        @QueryParam("include") List<String> include
+    ) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
         if (accessControlService.canAccessApiFromPortal(apiId)) {
@@ -67,7 +67,6 @@ public class ApiPageResource extends AbstractResource {
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
             if (accessControlService.canAccessPageFromPortal(pageEntity)) {
-
                 pageService.transformSwagger(pageEntity, apiId);
 
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -80,10 +79,12 @@ public class ApiPageResource extends AbstractResource {
                     page.setContent(pageEntity.getContent());
                 }
 
-                page.setLinks(pageMapper.computePageLinks(
+                page.setLinks(
+                    pageMapper.computePageLinks(
                         PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, pageId),
                         PortalApiLinkHelper.apiPagesURL(uriInfo.getBaseUriBuilder(), apiId, page.getParent())
-                        ));
+                    )
+                );
                 return Response.ok(page).build();
             } else {
                 throw new UnauthorizedAccessException();
@@ -96,8 +97,7 @@ public class ApiPageResource extends AbstractResource {
     @Path("content")
     @Produces(MediaType.TEXT_PLAIN)
     @RequirePortalAuth
-    public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId,
-            @PathParam("pageId") String pageId) {
+    public Response getPageContentByApiIdAndPageId(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         final ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(Collections.singletonList(apiId));
         if (accessControlService.canAccessApiFromPortal(apiId)) {
@@ -111,5 +111,4 @@ public class ApiPageResource extends AbstractResource {
         }
         throw new ApiNotFoundException(apiId);
     }
-
 }

@@ -16,10 +16,11 @@
 package io.gravitee.rest.api.model.descriptor;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GraviteeDescriptorPageEntity {
+
     private String src;
     private String dest;
     private String name;

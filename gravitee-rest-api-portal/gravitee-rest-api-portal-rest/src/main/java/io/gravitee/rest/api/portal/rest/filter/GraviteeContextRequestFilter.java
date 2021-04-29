@@ -15,17 +15,15 @@
  */
 package io.gravitee.rest.api.portal.rest.filter;
 
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
-
 import javax.annotation.Priority;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -42,5 +40,4 @@ public class GraviteeContextRequestFilter implements ContainerRequestFilter {
         MultivaluedMap<String, String> pathsParams = requestContext.getUriInfo().getPathParameters();
         GraviteeContext.setCurrentEnvironment(pathsParams.getFirst("envId"));
     }
-
 }

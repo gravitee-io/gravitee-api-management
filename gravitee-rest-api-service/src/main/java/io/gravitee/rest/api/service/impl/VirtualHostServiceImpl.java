@@ -27,12 +27,6 @@ import io.gravitee.rest.api.service.VirtualHostService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -42,6 +36,11 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,7 +55,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
 
     private static final char URI_PATH_SEPARATOR_CHAR = '/';
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(VirtualHostServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VirtualHostServiceImpl.class);
 
     @Autowired
     private ApiRepository apiRepository;
@@ -69,7 +68,6 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
 
     @Override
     public Collection<VirtualHost> sanitizeAndValidate(Collection<VirtualHost> virtualHosts, String apiId) {
-
         // Sanitize virtual hosts
         Collection<VirtualHost> sanitizedVirtualHosts = virtualHosts.stream().map(this::sanitize).collect(Collectors.toList());
 
@@ -77,47 +75,62 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         validateDomainRestrictions(sanitizedVirtualHosts);
 
         // Get all the API of the currentEnvironment, except the one to update
-        Set<ApiEntity> apis = apiRepository.search(null)
-                .stream()
-                .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
-                .map(this::convert)
-                .collect(Collectors.toSet());
+        Set<ApiEntity> apis = apiRepository
+            .search(null)
+            .stream()
+            .filter(api -> !api.getId().equals(apiId) && api.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
+            .map(this::convert)
+            .collect(Collectors.toSet());
 
         // Extract all the virtual hosts with a host
-        Map<String, List<String>> registeredVirtualHosts = apis.stream().flatMap(new Function<ApiEntity, Stream<VirtualHost>>() {
-            @Override
-            public Stream<VirtualHost> apply(ApiEntity api) {
-                return api.getProxy().getVirtualHosts()
-                        .stream()
-                        .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty());
-            }
-        }).collect(Collectors.groupingBy(VirtualHost::getHost, Collectors.mapping(VirtualHost::getPath, Collectors.toList())));
+        Map<String, List<String>> registeredVirtualHosts = apis
+            .stream()
+            .flatMap(
+                new Function<ApiEntity, Stream<VirtualHost>>() {
+                    @Override
+                    public Stream<VirtualHost> apply(ApiEntity api) {
+                        return api
+                            .getProxy()
+                            .getVirtualHosts()
+                            .stream()
+                            .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty());
+                    }
+                }
+            )
+            .collect(Collectors.groupingBy(VirtualHost::getHost, Collectors.mapping(VirtualHost::getPath, Collectors.toList())));
 
         // Extract all the virtual hosts with a single path
-        List<String> registeredContextPaths = apis.stream().flatMap(new Function<ApiEntity, Stream<String>>() {
-            @Override
-            public Stream<String> apply(ApiEntity api) {
-                return api.getProxy().getVirtualHosts()
-                        .stream()
-                        .filter(virtualHost -> virtualHost.getHost() == null)
-                        .map(VirtualHost::getPath);
-            }
-        }).collect(Collectors.toList());
+        List<String> registeredContextPaths = apis
+            .stream()
+            .flatMap(
+                new Function<ApiEntity, Stream<String>>() {
+                    @Override
+                    public Stream<String> apply(ApiEntity api) {
+                        return api
+                            .getProxy()
+                            .getVirtualHosts()
+                            .stream()
+                            .filter(virtualHost -> virtualHost.getHost() == null)
+                            .map(VirtualHost::getPath);
+                    }
+                }
+            )
+            .collect(Collectors.toList());
 
         // Check only virtual hosts with a host and compare to registered virtual hosts
-        if (! registeredVirtualHosts.isEmpty()) {
+        if (!registeredVirtualHosts.isEmpty()) {
             sanitizedVirtualHosts
-                    .stream()
-                    .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
-                    .forEach(virtualHost -> compare(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost())));
+                .stream()
+                .filter(virtualHost -> virtualHost.getHost() != null && !virtualHost.getHost().isEmpty())
+                .forEach(virtualHost -> compare(virtualHost.getPath(), registeredVirtualHosts.get(virtualHost.getHost())));
         }
 
         // Then check remaining virtual hosts without a host and compare to registered context paths
-        if (! registeredContextPaths.isEmpty()) {
+        if (!registeredContextPaths.isEmpty()) {
             sanitizedVirtualHosts
-                    .stream()
-                    .filter(virtualHost -> virtualHost.getHost() == null)
-                    .forEach(virtualHost -> compare(virtualHost.getPath(), registeredContextPaths));
+                .stream()
+                .filter(virtualHost -> virtualHost.getHost() == null)
+                .forEach(virtualHost -> compare(virtualHost.getPath(), registeredContextPaths));
         }
         return sanitizedVirtualHosts;
     }
@@ -126,7 +139,7 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         final EnvironmentEntity currentEnv = environmentService.findById(GraviteeContext.getCurrentEnvironment());
         final List<String> domainRestrictions = currentEnv.getDomainRestrictions();
         if (domainRestrictions != null && !domainRestrictions.isEmpty()) {
-            for(VirtualHost vHost: virtualHosts) {
+            for (VirtualHost vHost : virtualHosts) {
                 String host = vHost.getHost();
                 if (!StringUtils.isEmpty(host)) {
                     String hostWithoutPort = host.split(":")[0];
@@ -148,16 +161,14 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
         }
 
         for (String domainRestriction : domainRestrictions) {
-
             InternetDomainName domainIDN = InternetDomainName.from(domain);
             InternetDomainName parentIDN = InternetDomainName.from(domainRestriction);
 
-            if(domainIDN.equals(parentIDN)) {
+            if (domainIDN.equals(parentIDN)) {
                 return true;
             }
 
             while (!isSubDomain && domainIDN.hasParent()) {
-
                 isSubDomain = parentIDN.equals(domainIDN);
                 domainIDN = domainIDN.parent();
             }
@@ -192,10 +203,8 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
     }
 
     private void compare(String path, List<String> paths) {
-        boolean match = paths!= null && paths
-                .stream()
-                .anyMatch(registeredPath -> path.startsWith(registeredPath) ||
-                        registeredPath.startsWith(path));
+        boolean match =
+            paths != null && paths.stream().anyMatch(registeredPath -> path.startsWith(registeredPath) || registeredPath.startsWith(path));
 
         if (match) {
             throw new ApiContextPathAlreadyExistsException(path);
@@ -208,15 +217,16 @@ public class VirtualHostServiceImpl extends TransactionalService implements Virt
 
         if (api.getDefinition() != null) {
             try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(api.getDefinition(),
-                        io.gravitee.definition.model.Api.class);
+                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
+                    api.getDefinition(),
+                    io.gravitee.definition.model.Api.class
+                );
                 apiEntity.setProxy(apiDefinition.getProxy());
 
                 // Sanitize virtual hosts
-                apiEntity.getProxy().setVirtualHosts(apiEntity.getProxy().getVirtualHosts()
-                        .stream()
-                        .map(this::sanitize)
-                        .collect(Collectors.toList()));
+                apiEntity
+                    .getProxy()
+                    .setVirtualHosts(apiEntity.getProxy().getVirtualHosts().stream().map(this::sanitize).collect(Collectors.toList()));
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while getting API definition", ioe);
             }

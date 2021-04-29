@@ -66,8 +66,7 @@ public class UserMembership {
         if (this == o) return true;
         if (!(o instanceof UserMembership)) return false;
         UserMembership that = (UserMembership) o;
-        return Objects.equals(reference, that.reference) &&
-                Objects.equals(type, that.type);
+        return Objects.equals(reference, that.reference) && Objects.equals(type, that.type);
     }
 
     @Override
@@ -77,9 +76,6 @@ public class UserMembership {
 
     @Override
     public String toString() {
-        return "UserMembership{" +
-                "reference='" + reference + '\'' +
-                ", type=" + type +
-                '}';
+        return "UserMembership{" + "reference='" + reference + '\'' + ", type=" + type + '}';
     }
 }

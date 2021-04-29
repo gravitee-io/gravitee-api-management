@@ -16,5 +16,7 @@
 package io.gravitee.rest.api.model.parameters;
 
 public enum KeyScope {
-    ENVIRONMENT, ORGANIZATION, SYSTEM;
+    ENVIRONMENT,
+    ORGANIZATION,
+    SYSTEM,
 }

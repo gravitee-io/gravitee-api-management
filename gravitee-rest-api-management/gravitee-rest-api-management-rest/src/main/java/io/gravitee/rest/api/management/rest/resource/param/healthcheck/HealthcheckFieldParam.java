@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param.healthcheck;
 
-import javax.ws.rs.WebApplicationException;
-
 import io.gravitee.rest.api.management.rest.resource.param.AbstractParam;
+import javax.ws.rs.WebApplicationException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,7 +26,7 @@ public class HealthcheckFieldParam extends AbstractParam<HealthcheckFieldParam.H
 
     public enum HealthcheckField {
         ENDPOINT,
-        GATEWAY
+        GATEWAY,
     }
 
     public HealthcheckFieldParam(String param) throws WebApplicationException {
@@ -40,10 +39,8 @@ public class HealthcheckFieldParam extends AbstractParam<HealthcheckFieldParam.H
             if (param != null) {
                 return HealthcheckField.valueOf(param.toUpperCase());
             }
-        } catch (IllegalArgumentException iae) {
-        }
+        } catch (IllegalArgumentException iae) {}
 
         return null;
     }
-
 }

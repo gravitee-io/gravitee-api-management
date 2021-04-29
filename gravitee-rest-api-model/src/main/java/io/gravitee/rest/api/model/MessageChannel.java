@@ -20,5 +20,7 @@ package io.gravitee.rest.api.model;
  * @author GraviteeSource Team
  */
 public enum MessageChannel {
-    MAIL, PORTAL, HTTP
+    MAIL,
+    PORTAL,
+    HTTP,
 }

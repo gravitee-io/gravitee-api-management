@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.reset;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.rest.model.ApiMembership;
 import io.gravitee.rest.api.management.rest.model.RoleMembership;
@@ -22,17 +26,12 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.reset;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -59,16 +58,23 @@ public class RoleUsersResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertNull(response.getHeaders().getFirst(HttpHeaders.LOCATION));
 
-        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(MembershipService.MembershipReference.class);
-        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(MembershipService.MembershipRole.class);
-        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(MembershipService.MembershipMember.class);
+        ArgumentCaptor<MembershipService.MembershipReference> memberShipRefCaptor = ArgumentCaptor.forClass(
+            MembershipService.MembershipReference.class
+        );
+        ArgumentCaptor<MembershipService.MembershipRole> memberShipRoleCaptor = ArgumentCaptor.forClass(
+            MembershipService.MembershipRole.class
+        );
+        ArgumentCaptor<MembershipService.MembershipMember> memberShipUserCaptor = ArgumentCaptor.forClass(
+            MembershipService.MembershipMember.class
+        );
 
-        Mockito.verify(membershipService).addRoleToMemberOnReference(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
+        Mockito
+            .verify(membershipService)
+            .addRoleToMemberOnReference(memberShipRefCaptor.capture(), memberShipUserCaptor.capture(), memberShipRoleCaptor.capture());
         assertEquals(GraviteeContext.getCurrentOrganization(), memberShipRefCaptor.getValue().getId());
         assertEquals(MembershipReferenceType.ORGANIZATION, memberShipRefCaptor.getValue().getType());
         assertEquals(ROLE, memberShipRoleCaptor.getValue().getName());
         assertEquals(RoleScope.ORGANIZATION, memberShipRoleCaptor.getValue().getScope());
         assertEquals(USER_NAME, memberShipUserCaptor.getValue().getMemberId());
     }
-
 }

@@ -25,17 +25,23 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OpenAPIDocViewer {
+
     private OpenAPIDocViewer.OpenAPIDocType openAPIDocType;
 
-    public OpenAPIDocViewer() { openAPIDocType = new OpenAPIDocViewer.OpenAPIDocType(); }
+    public OpenAPIDocViewer() {
+        openAPIDocType = new OpenAPIDocViewer.OpenAPIDocType();
+    }
 
-    public OpenAPIDocViewer.OpenAPIDocType getOpenAPIDocType() { return openAPIDocType; }
+    public OpenAPIDocViewer.OpenAPIDocType getOpenAPIDocType() {
+        return openAPIDocType;
+    }
 
     public void setOpenAPIDocType(OpenAPIDocViewer.OpenAPIDocType openAPIDocType) {
         this.openAPIDocType = openAPIDocType;
     }
 
     public static class OpenAPIDocType {
+
         @ParameterKey(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED)
         private Enabled swagger;
 

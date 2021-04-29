@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.model.Visibility.PUBLIC;
+
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
@@ -23,16 +25,13 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
-
-import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 
 /**
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
@@ -78,7 +77,6 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     }
 
     private boolean canAccessPage(ApiEntity apiEntity, PageEntity pageEntity) {
-
         if (!pageEntity.isPublished()) {
             return false;
         }
@@ -97,24 +95,25 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         if (accessControls == null || accessControls.isEmpty()) {
             return true;
         } else {
-
             Set<GroupEntity> userGroups = groupService.findByUser(getAuthenticatedUsername());
             Set<RoleEntity> contextualUserRoles = getContextualUserRoles(apiEntity);
 
-            return accessControls.stream()
-                .anyMatch(acl -> {
-                    if (AccessControlReferenceType.ROLE.name().equals(acl.getReferenceType())) {
-                        boolean roleMatched = contextualUserRoles.stream()
-                            .anyMatch((role) -> role.getId().equals(acl.getReferenceId()));
-                        return pageEntity.isExcludedAccessControls() ? !roleMatched : roleMatched;
-                    } else if (AccessControlReferenceType.GROUP.name().equals(acl.getReferenceType())) {
-                        boolean groupMatched = userGroups.stream().anyMatch((group) -> group.getId().equals(acl.getReferenceId()));
-                        return pageEntity.isExcludedAccessControls() ? !groupMatched : groupMatched;
-                    } else {
-                        logger.warn("ACL reference type [{}] not found", acl.getReferenceType());
+            return accessControls
+                .stream()
+                .anyMatch(
+                    acl -> {
+                        if (AccessControlReferenceType.ROLE.name().equals(acl.getReferenceType())) {
+                            boolean roleMatched = contextualUserRoles.stream().anyMatch(role -> role.getId().equals(acl.getReferenceId()));
+                            return pageEntity.isExcludedAccessControls() ? !roleMatched : roleMatched;
+                        } else if (AccessControlReferenceType.GROUP.name().equals(acl.getReferenceType())) {
+                            boolean groupMatched = userGroups.stream().anyMatch(group -> group.getId().equals(acl.getReferenceId()));
+                            return pageEntity.isExcludedAccessControls() ? !groupMatched : groupMatched;
+                        } else {
+                            logger.warn("ACL reference type [{}] not found", acl.getReferenceType());
+                        }
+                        return false;
                     }
-                    return false;
-                });
+                );
         }
     }
 
@@ -145,15 +144,23 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
     }
 
     private boolean canEditEnvPage() {
-        return isAuthenticated() &&
-            (isAdmin() || permissionService.hasPermission(RolePermission.ENVIRONMENT_DOCUMENTATION, null,
-                RolePermissionAction.UPDATE,
-                RolePermissionAction.CREATE,
-                RolePermissionAction.DELETE));
+        return (
+            isAuthenticated() &&
+            (
+                isAdmin() ||
+                permissionService.hasPermission(
+                    RolePermission.ENVIRONMENT_DOCUMENTATION,
+                    null,
+                    RolePermissionAction.UPDATE,
+                    RolePermissionAction.CREATE,
+                    RolePermissionAction.DELETE
+                )
+            )
+        );
     }
 
     private boolean canEditApiPage(ApiEntity api) {
-        if(api == null) {
+        if (api == null) {
             return false;
         }
         boolean canEditApiPage = false;
@@ -171,7 +178,6 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         return canEditApiPage;
     }
 
-
     private boolean canEditApiPage(MemberEntity member) {
         // if not member => not displayable
         if (member == null) {
@@ -179,37 +185,47 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
         }
 
         // only members which could modify a page can see an unpublished page
-        return roleService.hasPermission(member.getPermissions(), ApiPermission.DOCUMENTATION,
-            new RolePermissionAction[]{RolePermissionAction.UPDATE, RolePermissionAction.CREATE,
-                RolePermissionAction.DELETE});
+        return roleService.hasPermission(
+            member.getPermissions(),
+            ApiPermission.DOCUMENTATION,
+            new RolePermissionAction[] { RolePermissionAction.UPDATE, RolePermissionAction.CREATE, RolePermissionAction.DELETE }
+        );
     }
 
     private Set<RoleEntity> getContextualUserRoles(ApiEntity api) {
         if (api != null) {
-            Set<RoleEntity> roles = this.membershipService.getRoles(
-                MembershipReferenceType.API,
-                api.getId(),
-                MembershipMemberType.USER,
-                getAuthenticatedUsername());
+            Set<RoleEntity> roles =
+                this.membershipService.getRoles(
+                        MembershipReferenceType.API,
+                        api.getId(),
+                        MembershipMemberType.USER,
+                        getAuthenticatedUsername()
+                    );
 
             if (api.getGroups() != null && !api.getGroups().isEmpty()) {
-
-                api.getGroups().forEach(groupId -> {
-                    MemberEntity member = membershipService.getUserMember(MembershipReferenceType.GROUP, groupId, getAuthenticatedUsername());
-                    if (member != null) {
-                        roles.addAll(member.getRoles());
-                    }
-                });
-
+                api
+                    .getGroups()
+                    .forEach(
+                        groupId -> {
+                            MemberEntity member = membershipService.getUserMember(
+                                MembershipReferenceType.GROUP,
+                                groupId,
+                                getAuthenticatedUsername()
+                            );
+                            if (member != null) {
+                                roles.addAll(member.getRoles());
+                            }
+                        }
+                    );
             }
             return roles;
         } else {
             return this.membershipService.getRoles(
-                MembershipReferenceType.ENVIRONMENT,
-                GraviteeContext.getCurrentEnvironment(),
-                MembershipMemberType.USER,
-                getAuthenticatedUsername());
+                    MembershipReferenceType.ENVIRONMENT,
+                    GraviteeContext.getCurrentEnvironment(),
+                    MembershipMemberType.USER,
+                    getAuthenticatedUsername()
+                );
         }
     }
-
 }

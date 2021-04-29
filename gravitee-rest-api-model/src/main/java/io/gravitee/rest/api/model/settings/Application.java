@@ -43,6 +43,7 @@ public class Application {
     }
 
     public static class ApplicationTypes {
+
         @JsonProperty("simple")
         @ParameterKey(Key.APPLICATION_TYPE_SIMPLE_ENABLED)
         private Enabled simpleType;
@@ -105,6 +106,7 @@ public class Application {
     }
 
     public static class ClientRegistration {
+
         @ParameterKey(Key.APPLICATION_REGISTRATION_ENABLED)
         private Boolean enabled;
 

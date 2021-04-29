@@ -16,9 +16,12 @@
 package io.gravitee.rest.api.service.notification;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum HookScope {
-    API, APPLICATION, PORTAL, TEMPLATES_FOR_ACTION
+    API,
+    APPLICATION,
+    PORTAL,
+    TEMPLATES_FOR_ACTION,
 }

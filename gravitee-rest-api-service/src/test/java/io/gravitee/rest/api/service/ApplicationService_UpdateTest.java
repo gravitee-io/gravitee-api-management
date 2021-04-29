@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.model.*;
@@ -35,23 +40,16 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ClientIdAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
-
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -113,7 +111,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getDescription()).thenReturn("My description");
         when(application.getType()).thenReturn(ApplicationType.SIMPLE);
         when(applicationRepository.update(any())).thenReturn(application);
-        
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = new MembershipEntity();
@@ -126,8 +124,8 @@ public class ApplicationService_UpdateTest {
 
         final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
 
-        verify(applicationRepository).update(argThat(application -> APPLICATION_NAME.equals(application.getName()) &&
-            application.getUpdatedAt() != null));
+        verify(applicationRepository)
+            .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
@@ -178,7 +176,7 @@ public class ApplicationService_UpdateTest {
         when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
         when(existingApplication.getDescription()).thenReturn("My description");
         when(applicationRepository.update(any())).thenReturn(application);
-        
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
 
         MembershipEntity po = new MembershipEntity();
@@ -191,14 +189,14 @@ public class ApplicationService_UpdateTest {
 
         final ApplicationEntity applicationEntity = applicationService.update(APPLICATION_ID, existingApplication);
 
-        verify(applicationRepository).update(argThat(application -> APPLICATION_NAME.equals(application.getName()) &&
-                application.getUpdatedAt() != null));
+        verify(applicationRepository)
+            .update(argThat(application -> APPLICATION_NAME.equals(application.getName()) && application.getUpdatedAt() != null));
 
         assertNotNull(applicationEntity);
         assertEquals(APPLICATION_NAME, applicationEntity.getName());
     }
 
-    @Test (expected = ClientIdAlreadyExistsException.class)
+    @Test(expected = ClientIdAlreadyExistsException.class)
     public void shouldNotUpdateBecauseDifferentApplication() throws TechnicalException {
         Application other = mock(Application.class);
         when(other.getId()).thenReturn("other-app");

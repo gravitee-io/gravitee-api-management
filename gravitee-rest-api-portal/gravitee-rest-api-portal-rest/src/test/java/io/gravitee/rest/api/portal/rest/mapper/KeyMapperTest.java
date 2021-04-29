@@ -21,21 +21,19 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.portal.rest.model.Key;
+import io.gravitee.rest.api.service.PlanService;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.time.Instant;
 import java.util.Date;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.portal.rest.model.Key;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -115,7 +113,5 @@ public class KeyMapperTest {
         assertEquals(UNKNOWN_PLAN, key.getPlan());
         assertEquals(Boolean.FALSE, key.getRevoked());
         assertNull(key.getRevokedAt());
-
     }
-
 }

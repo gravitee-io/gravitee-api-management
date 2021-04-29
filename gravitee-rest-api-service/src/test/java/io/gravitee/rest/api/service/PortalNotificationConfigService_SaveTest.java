@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
@@ -22,21 +28,13 @@ import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
 import io.gravitee.rest.api.service.impl.PortalNotificationConfigServiceImpl;
-
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -71,7 +69,6 @@ public class PortalNotificationConfigService_SaveTest {
 
     @Test
     public void shouldUpdate() throws TechnicalException {
-
         PortalNotificationConfig cfg = mock(PortalNotificationConfig.class);
         when(cfg.getReferenceType()).thenReturn(NotificationReferenceType.API);
         when(cfg.getReferenceId()).thenReturn("123");
@@ -84,8 +81,7 @@ public class PortalNotificationConfigService_SaveTest {
         when(cfgEntity.getUser()).thenReturn("user");
         when(cfgEntity.getHooks()).thenReturn(Arrays.asList("A", "B", "C"));
 
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).
-                thenReturn(of(cfg));
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(of(cfg));
         when(portalNotificationConfigRepository.update(any(PortalNotificationConfig.class))).thenReturn(cfg);
 
         final PortalNotificationConfigEntity entity = portalNotificationConfigService.save(cfgEntity);
@@ -101,10 +97,8 @@ public class PortalNotificationConfigService_SaveTest {
         verify(portalNotificationConfigRepository, never()).create(any());
     }
 
-
     @Test
     public void shouldCreate() throws TechnicalException {
-
         PortalNotificationConfig cfg = mock(PortalNotificationConfig.class);
         when(cfg.getReferenceType()).thenReturn(NotificationReferenceType.API);
         when(cfg.getReferenceId()).thenReturn("123");
@@ -117,8 +111,7 @@ public class PortalNotificationConfigService_SaveTest {
         when(cfgEntity.getUser()).thenReturn("user");
         when(cfgEntity.getHooks()).thenReturn(Arrays.asList("A", "B", "C"));
 
-        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).
-                thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(empty());
         when(portalNotificationConfigRepository.create(any(PortalNotificationConfig.class))).thenReturn(cfg);
 
         final PortalNotificationConfigEntity entity = portalNotificationConfigService.save(cfgEntity);
@@ -133,5 +126,4 @@ public class PortalNotificationConfigService_SaveTest {
         verify(portalNotificationConfigRepository, never()).delete(any());
         verify(portalNotificationConfigRepository, never()).update(any());
     }
-
 }

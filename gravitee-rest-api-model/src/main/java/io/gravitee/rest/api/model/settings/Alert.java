@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Alert {
+
     @ParameterKey(Key.ALERT_ENABLED)
     private Boolean enabled;
 

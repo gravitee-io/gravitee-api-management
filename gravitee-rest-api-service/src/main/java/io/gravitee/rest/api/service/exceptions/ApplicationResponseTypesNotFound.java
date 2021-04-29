@@ -33,5 +33,4 @@ public class ApplicationResponseTypesNotFound extends AbstractNotFoundException 
     public Map<String, String> getParameters() {
         return null;
     }
-
 }

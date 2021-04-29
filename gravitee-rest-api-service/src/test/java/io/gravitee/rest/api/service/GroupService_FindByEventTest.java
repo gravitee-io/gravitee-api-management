@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.GroupEvent.API_CREATE;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.management.model.GroupEvent;
@@ -22,21 +27,14 @@ import io.gravitee.repository.management.model.GroupEventRule;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.impl.GroupServiceImpl;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.GroupEvent.API_CREATE;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -56,7 +54,6 @@ public class GroupService_FindByEventTest {
 
     @Test
     public void shouldGetGroupsByEvents() throws Exception {
-
         Group grp1 = new Group();
         grp1.setId("grp1");
         grp1.setName("grp1");
@@ -70,7 +67,7 @@ public class GroupService_FindByEventTest {
         findAll.add(grp2);
         when(groupRepository.findAllByEnvironment(Mockito.any())).thenReturn(findAll);
 
-        when(membershipService.getRoles(any(),  any(),  any(),  any())).thenReturn(Collections.emptySet());
+        when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
 
         Set<GroupEntity> groupEntities = groupService.findByEvent(API_CREATE);
 
@@ -83,7 +80,6 @@ public class GroupService_FindByEventTest {
 
     @Test
     public void shouldNotGetGroupsByEvents() throws Exception {
-
         Group grp1 = new Group();
         grp1.setId("grp1");
         grp1.setEventRules(Collections.singletonList(new GroupEventRule(GroupEvent.APPLICATION_CREATE)));
@@ -94,7 +90,6 @@ public class GroupService_FindByEventTest {
         findAll.add(grp1);
         findAll.add(grp2);
         when(groupRepository.findAllByEnvironment(any())).thenReturn(findAll);
-
 
         Set<GroupEntity> groupEntities = groupService.findByEvent(API_CREATE);
 

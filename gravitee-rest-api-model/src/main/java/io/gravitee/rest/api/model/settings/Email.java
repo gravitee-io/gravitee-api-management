@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Email {
+
     @ParameterKey(Key.EMAIL_ENABLED)
     private Boolean enabled;
 
@@ -128,6 +129,7 @@ public class Email {
     }
 
     public static class EmailProperties {
+
         @ParameterKey(Key.EMAIL_PROPERTIES_AUTH_ENABLED)
         private Boolean auth;
 

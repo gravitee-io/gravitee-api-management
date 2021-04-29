@@ -20,9 +20,8 @@ package io.gravitee.rest.api.model.analytics.query;
  * @author GraviteeSource Team
  */
 public enum AggregationType {
-
     FIELD,
     AVG,
     MIN,
-    MAX;
+    MAX,
 }

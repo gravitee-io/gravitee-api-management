@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.rest.api.model.*;
-
 import java.util.List;
 
 /**
@@ -26,7 +25,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface RatingService {
-
     RatingEntity create(NewRatingEntity rating);
 
     RatingEntity createAnswer(NewRatingAnswerEntity answer);

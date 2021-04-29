@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.portal.rest.security;
 
-import javax.ws.rs.NameBinding;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import javax.ws.rs.NameBinding;
 
 /**
  * This annotation is used to protect public resources when the administration requires login on the portal.
@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * @author GraviteeSource Team
  */
 @NameBinding
-@Target({ElementType.METHOD})
+@Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequirePortalAuth {
 }

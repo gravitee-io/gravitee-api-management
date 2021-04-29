@@ -27,7 +27,7 @@ import io.gravitee.rest.api.idp.memory.lookup.InMemoryIdentityLookup;
  */
 public class InMemoryIdentityProvider implements IdentityProvider {
 
-    public final static String PROVIDER_TYPE = "memory";
+    public static final String PROVIDER_TYPE = "memory";
 
     @Override
     public String type() {
@@ -43,5 +43,4 @@ public class InMemoryIdentityProvider implements IdentityProvider {
     public Class<? extends IdentityLookup> identityLookup() {
         return InMemoryIdentityLookup.class;
     }
-
 }

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.services.dictionary.provider.http.configuration;
 
 import io.vertx.core.http.HttpMethod;
-
 import java.util.List;
 
 /**

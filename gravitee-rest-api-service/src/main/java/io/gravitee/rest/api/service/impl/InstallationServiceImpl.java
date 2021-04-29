@@ -22,17 +22,16 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -40,6 +39,7 @@ import java.util.Optional;
  */
 @Component
 public class InstallationServiceImpl implements InstallationService {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(InstallationServiceImpl.class);
 
     @Value("${cockpit.url:https://cockpit.gravitee.io}")
@@ -91,7 +91,6 @@ public class InstallationServiceImpl implements InstallationService {
             throw new TechnicalManagementException("Error while updating installation", ex);
         }
         throw new InstallationNotFoundException("");
-
     }
 
     private InstallationEntity createInstallation() {

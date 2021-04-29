@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import java.util.Map;
-
 import static java.util.Collections.singletonMap;
+
+import java.util.Map;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -35,6 +35,7 @@ public class InstallationNotFoundException extends AbstractNotFoundException {
     public String getMessage() {
         return "Installation [" + installationId + "] can not be found.";
     }
+
     @Override
     public String getTechnicalCode() {
         return "installation.notFound";

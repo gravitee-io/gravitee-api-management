@@ -19,21 +19,25 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
-public class IdentityProviderActivationRepositoryProxy extends AbstractProxy<IdentityProviderActivationRepository> implements IdentityProviderActivationRepository {
-
+public class IdentityProviderActivationRepositoryProxy
+    extends AbstractProxy<IdentityProviderActivationRepository>
+    implements IdentityProviderActivationRepository {
 
     @Override
-    public Optional<IdentityProviderActivation> findById(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public Optional<IdentityProviderActivation> findById(
+        String identityProviderId,
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException {
         return target.findById(identityProviderId, referenceId, referenceType);
     }
 
@@ -48,7 +52,10 @@ public class IdentityProviderActivationRepositoryProxy extends AbstractProxy<Ide
     }
 
     @Override
-    public Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException {
         return target.findAllByReferenceIdAndReferenceType(referenceId, referenceType);
     }
 
@@ -58,7 +65,8 @@ public class IdentityProviderActivationRepositoryProxy extends AbstractProxy<Ide
     }
 
     @Override
-    public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException {
         target.delete(identityProviderId, referenceId, referenceType);
     }
 
@@ -68,7 +76,8 @@ public class IdentityProviderActivationRepositoryProxy extends AbstractProxy<Ide
     }
 
     @Override
-    public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException {
         target.deleteByReferenceIdAndReferenceType(referenceId, referenceType);
     }
 }

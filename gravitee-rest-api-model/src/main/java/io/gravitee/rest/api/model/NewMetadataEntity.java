@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -72,10 +72,7 @@ public class NewMetadataEntity {
         if (this == o) return true;
         if (!(o instanceof NewMetadataEntity)) return false;
         NewMetadataEntity that = (NewMetadataEntity) o;
-        return hidden == that.hidden &&
-                Objects.equals(name, that.name) &&
-                format == that.format &&
-                Objects.equals(value, that.value);
+        return hidden == that.hidden && Objects.equals(name, that.name) && format == that.format && Objects.equals(value, that.value);
     }
 
     @Override
@@ -85,11 +82,8 @@ public class NewMetadataEntity {
 
     @Override
     public String toString() {
-        return "NewMetadataEntity{" +
-                "name='" + name + '\'' +
-                ", format=" + format +
-                ", value='" + value + '\'' +
-                ", hidden=" + hidden +
-                '}';
+        return (
+            "NewMetadataEntity{" + "name='" + name + '\'' + ", format=" + format + ", value='" + value + '\'' + ", hidden=" + hidden + '}'
+        );
     }
 }

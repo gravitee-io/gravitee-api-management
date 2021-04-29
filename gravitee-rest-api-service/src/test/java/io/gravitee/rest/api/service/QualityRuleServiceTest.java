@@ -15,23 +15,6 @@
  */
 package io.gravitee.rest.api.service;
 
-import com.google.common.collect.ImmutableMap;
-import io.gravitee.rest.api.model.quality.*;
-import io.gravitee.rest.api.service.exceptions.QualityRuleNotFoundException;
-import io.gravitee.rest.api.service.impl.QualityRuleServiceImpl;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiQualityRuleRepository;
-import io.gravitee.repository.management.api.QualityRuleRepository;
-import io.gravitee.repository.management.model.QualityRule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Date;
-import java.util.List;
-
 import static io.gravitee.repository.management.model.Audit.AuditProperties.QUALITY_RULE;
 import static java.util.Collections.singleton;
 import static java.util.Optional.empty;
@@ -39,6 +22,22 @@ import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
+
+import com.google.common.collect.ImmutableMap;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiQualityRuleRepository;
+import io.gravitee.repository.management.api.QualityRuleRepository;
+import io.gravitee.repository.management.model.QualityRule;
+import io.gravitee.rest.api.model.quality.*;
+import io.gravitee.rest.api.service.exceptions.QualityRuleNotFoundException;
+import io.gravitee.rest.api.service.impl.QualityRuleServiceImpl;
+import java.util.Date;
+import java.util.List;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -54,8 +53,10 @@ public class QualityRuleServiceTest {
 
     @Mock
     private ApiQualityRuleRepository apiQualityRuleRepository;
+
     @Mock
     private QualityRuleRepository qualityRuleRepository;
+
     @Mock
     private AuditService auditService;
 
@@ -133,25 +134,31 @@ public class QualityRuleServiceTest {
         assertNotNull(qualityRuleEntity.getCreatedAt());
         assertNotNull(qualityRuleEntity.getUpdatedAt());
 
-
         final QualityRule qualityRule = new QualityRule();
         qualityRule.setName("NAME");
         qualityRule.setDescription("DESC");
         qualityRule.setWeight(1);
 
-        verify(qualityRuleRepository, times(1)).create(argThat(argument ->
-                "NAME".equals(argument.getName()) &&
+        verify(qualityRuleRepository, times(1))
+            .create(
+                argThat(
+                    argument ->
+                        "NAME".equals(argument.getName()) &&
                         "DESC".equals(argument.getDescription()) &&
                         Integer.valueOf(1).equals(argument.getWeight()) &&
                         !argument.getId().isEmpty() &&
                         argument.getCreatedAt() != null &&
-                        argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createEnvironmentAuditLog(
+                        argument.getUpdatedAt() != null
+                )
+            );
+        verify(auditService, times(1))
+            .createEnvironmentAuditLog(
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_CREATED),
                 any(Date.class),
                 isNull(),
-                any());
+                any()
+            );
     }
 
     @Test
@@ -181,25 +188,31 @@ public class QualityRuleServiceTest {
         assertNotNull(qualityRuleEntity.getCreatedAt());
         assertNotNull(qualityRuleEntity.getUpdatedAt());
 
-
         final QualityRule qualityRule = new QualityRule();
         qualityRule.setName("NAME");
         qualityRule.setDescription("DESC");
         qualityRule.setWeight(1);
 
-        verify(qualityRuleRepository, times(1)).update(argThat(argument ->
-                "NAME".equals(argument.getName()) &&
+        verify(qualityRuleRepository, times(1))
+            .update(
+                argThat(
+                    argument ->
+                        "NAME".equals(argument.getName()) &&
                         "DESC".equals(argument.getDescription()) &&
                         Integer.valueOf(1).equals(argument.getWeight()) &&
                         QUALITY_RULE_ID.equals(argument.getId()) &&
                         argument.getCreatedAt() == null &&
-                        argument.getUpdatedAt() != null));
-        verify(auditService, times(1)).createEnvironmentAuditLog(
+                        argument.getUpdatedAt() != null
+                )
+            );
+        verify(auditService, times(1))
+            .createEnvironmentAuditLog(
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
                 any(Date.class),
                 any(),
-                any());
+                any()
+            );
     }
 
     @Test(expected = QualityRuleNotFoundException.class)
@@ -220,12 +233,14 @@ public class QualityRuleServiceTest {
         qualityRuleService.delete(QUALITY_RULE_ID);
 
         verify(qualityRuleRepository, times(1)).delete(QUALITY_RULE_ID);
-        verify(auditService, times(1)).createEnvironmentAuditLog(
+        verify(auditService, times(1))
+            .createEnvironmentAuditLog(
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
                 eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
                 any(Date.class),
                 isNull(),
-                eq(qualityRule));
+                eq(qualityRule)
+            );
         verify(apiQualityRuleRepository, times(1)).deleteByQualityRule(QUALITY_RULE_ID);
     }
 }

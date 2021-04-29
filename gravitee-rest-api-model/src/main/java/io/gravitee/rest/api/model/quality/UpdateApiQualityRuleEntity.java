@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.quality;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 /**
@@ -26,8 +25,10 @@ import java.util.Objects;
 public class UpdateApiQualityRuleEntity {
 
     private String api;
+
     @JsonProperty("quality_rule")
     private String qualityRule;
+
     private boolean checked;
 
     public String getApi() {
@@ -59,8 +60,7 @@ public class UpdateApiQualityRuleEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UpdateApiQualityRuleEntity that = (UpdateApiQualityRuleEntity) o;
-        return Objects.equals(api, that.api) &&
-                Objects.equals(qualityRule, that.qualityRule);
+        return Objects.equals(api, that.api) && Objects.equals(qualityRule, that.qualityRule);
     }
 
     @Override
@@ -70,10 +70,6 @@ public class UpdateApiQualityRuleEntity {
 
     @Override
     public String toString() {
-        return "NewApiQualityRuleEntity{" +
-                "api='" + api + '\'' +
-                ", qualityRule='" + qualityRule + '\'' +
-                ", checked=" + checked +
-                '}';
+        return "NewApiQualityRuleEntity{" + "api='" + api + '\'' + ", qualityRule='" + qualityRule + '\'' + ", checked=" + checked + '}';
     }
 }

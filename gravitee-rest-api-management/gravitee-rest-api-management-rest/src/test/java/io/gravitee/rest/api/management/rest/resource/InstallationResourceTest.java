@@ -15,13 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import javax.ws.rs.core.Response;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -39,5 +38,4 @@ public class InstallationResourceTest extends AbstractResourceTest {
 
         assertEquals(response.readEntity(String.class), OK_200, response.getStatus());
     }
-
 }

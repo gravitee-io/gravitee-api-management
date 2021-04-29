@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.configuration.identity.google;
 
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderType;
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
-
 import java.util.*;
 
 public class GoogleIdentityProviderEntity extends SocialIdentityProviderEntity {

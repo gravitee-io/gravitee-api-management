@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.common.http.HttpStatusCode;
-
-import java.util.Map;
-
 import static java.util.Collections.singletonMap;
+
+import io.gravitee.common.http.HttpStatusCode;
+import java.util.Map;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -35,7 +34,7 @@ public class PlanGeneralConditionRevisionException extends AbstractManagementExc
 
     @Override
     public String getMessage() {
-        return "The revision of general condition's of plan \""+ plan +"\" is outdated";
+        return "The revision of general condition's of plan \"" + plan + "\" is outdated";
     }
 
     @Override

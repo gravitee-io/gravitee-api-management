@@ -15,24 +15,23 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Error;
-import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.Links;
-import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-import javax.ws.rs.core.Response;
-import java.util.*;
-
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
+
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.CategoryEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.portal.rest.model.CategoriesResponse;
+import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.Links;
+import java.util.*;
+import javax.ws.rs.core.Response;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,26 +45,26 @@ public class CategoriesResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "categories";
     }
-    
+
     @Before
     public void init() {
         resetAllMocks();
-        
+
         Set<ApiEntity> mockApis = new HashSet<>();
         doReturn(mockApis).when(apiService).findPublishedByUser(any());
-        
+
         CategoryEntity category1 = new CategoryEntity();
         category1.setId("1");
         category1.setHidden(false);
         category1.setOrder(2);
         doReturn(1L).when(categoryService).getTotalApisByCategory(mockApis, category1);
-        
+
         CategoryEntity category2 = new CategoryEntity();
         category2.setId("2");
         category2.setHidden(false);
         category2.setOrder(3);
         doReturn(0L).when(categoryService).getTotalApisByCategory(mockApis, category2);
-        
+
         CategoryEntity category3 = new CategoryEntity();
         category3.setId("3");
         category3.setHidden(true);
@@ -77,28 +76,26 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         doReturn(existingCategories).when(categoryService).findAll();
 
         Mockito.when(categoryMapper.convert(any(), any())).thenCallRealMethod();
-        
     }
-    
+
     @Test
     public void shouldGetNotHiddenCategories() {
         // every category contains one API
-        doReturn(1L).when(categoryService).getTotalApisByCategory(any(), any()) ;
+        doReturn(1L).when(categoryService).getTotalApisByCategory(any(), any());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         Mockito.verify(apiService).findPublishedByUser(any());
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
         assertEquals(2, categoriesResponse.getData().size());
-        
     }
-    
+
     @Test
     public void shouldGetNoCategory() {
         final Response response = target().queryParam("page", 10).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
-        
+
         ErrorResponse errorResponse = response.readEntity(ErrorResponse.class);
         List<Error> errors = errorResponse.getErrors();
         assertNotNull(errors);
@@ -108,38 +105,36 @@ public class CategoriesResourceTest extends AbstractResourceTest {
         assertEquals("400", error.getStatus());
         assertEquals("Pagination is not valid", error.getMessage());
     }
-    
+
     @Test
     public void shouldGetNoPublishedApiAndNoLink() {
-
         doReturn(new ArrayList<>()).when(categoryService).findAll();
-        
+
         //Test with default limit
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        
+
         CategoriesResponse categoriesResponse = response.readEntity(CategoriesResponse.class);
         assertEquals(0, categoriesResponse.getData().size());
-        
+
         Links links = categoriesResponse.getLinks();
         assertNull(links);
-        
+
         //Test with small limit
         final Response anotherResponse = target().queryParam("page", 2).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, anotherResponse.getStatus());
-        
+
         categoriesResponse = anotherResponse.readEntity(CategoriesResponse.class);
         assertEquals(0, categoriesResponse.getData().size());
-        
+
         links = categoriesResponse.getLinks();
         assertNull(links);
-
     }
 
     @Test
     public void shouldGetNothingIfAllCategoriesEmpty() {
         // 0 APIs returned for user in any categories
-        doReturn(0L).when(categoryService).getTotalApisByCategory(any(), any()) ;
+        doReturn(0L).when(categoryService).getTotalApisByCategory(any(), any());
 
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());

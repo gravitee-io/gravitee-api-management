@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.param.Aggregation;
 import io.gravitee.rest.api.management.rest.resource.param.AnalyticsParam;
@@ -40,35 +44,31 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.jetbrains.annotations.NotNull;
-
-import javax.inject.Inject;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
+import javax.inject.Inject;
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Environment Analytics"})
-public class EnvironmentAnalyticsResource extends AbstractResource  {
+@Api(tags = { "Environment Analytics" })
+public class EnvironmentAnalyticsResource extends AbstractResource {
 
     public static final String API_FIELD = "api";
     public static final String APPLICATION_FIELD = "application";
     public static final String STATE_FIELD = "state";
     public static final String LIFECYCLE_STATE_FIELD = "lifecycle_state";
+
     @Inject
     private AnalyticsService analyticsService;
 
@@ -84,11 +84,10 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get environment analytics")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Environment analytics"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "Environment analytics"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
     public Response getPlatformAnalytics(@BeanParam AnalyticsParam analyticsParam) {
-
         analyticsParam.validate();
 
         Analytics analytics = null;
@@ -100,14 +99,18 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
             List<String> ids;
             if (APPLICATION_FIELD.equals(analyticsParam.getField())) {
                 fieldName = APPLICATION_FIELD;
-                ids = applicationService.findByUser(getAuthenticatedUser())
+                ids =
+                    applicationService
+                        .findByUser(getAuthenticatedUser())
                         .stream()
                         .map(ApplicationListItem::getId)
                         .filter(appId -> permissionService.hasPermission(APPLICATION_ANALYTICS, appId, READ))
                         .collect(Collectors.toList());
             } else {
                 fieldName = API_FIELD;
-                ids = apiService.findByUser(getAuthenticatedUser(), null, false)
+                ids =
+                    apiService
+                        .findByUser(getAuthenticatedUser(), null, false)
                         .stream()
                         .map(ApiEntity::getId)
                         .filter(apiId -> permissionService.hasPermission(API_ANALYTICS, apiId, READ))
@@ -123,20 +126,16 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
 
         switch (analyticsParam.getTypeParam().getValue()) {
             case DATE_HISTO:
-                analytics = !isAdmin() && extraFilter == null ?
-                        new HistogramAnalytics() : executeDateHisto(analyticsParam, extraFilter);
+                analytics = !isAdmin() && extraFilter == null ? new HistogramAnalytics() : executeDateHisto(analyticsParam, extraFilter);
                 break;
             case GROUP_BY:
-                analytics = !isAdmin() && extraFilter == null ?
-                        new TopHitsAnalytics() : executeGroupBy(analyticsParam, extraFilter);
+                analytics = !isAdmin() && extraFilter == null ? new TopHitsAnalytics() : executeGroupBy(analyticsParam, extraFilter);
                 break;
             case COUNT:
-                analytics = !isAdmin() && extraFilter == null ?
-                        new StatsAnalytics() : executeCount(analyticsParam, extraFilter);
+                analytics = !isAdmin() && extraFilter == null ? new StatsAnalytics() : executeCount(analyticsParam, extraFilter);
                 break;
             case STATS:
-                analytics = !isAdmin() && extraFilter == null ?
-                        new StatsAnalytics() : executeStats(analyticsParam, extraFilter);
+                analytics = !isAdmin() && extraFilter == null ? new StatsAnalytics() : executeStats(analyticsParam, extraFilter);
                 break;
         }
 
@@ -195,18 +194,22 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
         List<Aggregation> aggregations = analyticsParam.getAggregations();
         if (aggregations != null) {
             List<io.gravitee.rest.api.model.analytics.query.Aggregation> aggregationList = aggregations
-                    .stream()
-                    .map((Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation -> new io.gravitee.rest.api.model.analytics.query.Aggregation() {
-                        @Override
-                        public AggregationType type() {
-                            return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
-                        }
+                .stream()
+                .map(
+                    (Function<Aggregation, io.gravitee.rest.api.model.analytics.query.Aggregation>) aggregation ->
+                        new io.gravitee.rest.api.model.analytics.query.Aggregation() {
+                            @Override
+                            public AggregationType type() {
+                                return AggregationType.valueOf(aggregation.getType().name().toUpperCase());
+                            }
 
-                        @Override
-                        public String field() {
-                            return aggregation.getField();
+                            @Override
+                            public String field() {
+                                return aggregation.getField();
+                            }
                         }
-                    }).collect(Collectors.toList());
+                )
+                .collect(Collectors.toList());
 
             query.setAggregations(aggregationList);
         }
@@ -232,8 +235,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
 
         List<Range> ranges = analyticsParam.getRanges();
         if (ranges != null) {
-            Map<Double, Double> rangeMap = ranges.stream().collect(
-                    Collectors.toMap(Range::getFrom, Range::getTo));
+            Map<Double, Double> rangeMap = ranges.stream().collect(Collectors.toMap(Range::getFrom, Range::getTo));
 
             query.setGroups(rangeMap);
         }
@@ -241,14 +243,14 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
         addExtraFilter(query, extraFilter);
 
         switch (analyticsParam.getField()) {
-            case STATE_FIELD: {
-                return getTopHitsAnalytics(api -> api.getState().name());
-            }
-
+            case STATE_FIELD:
+                {
+                    return getTopHitsAnalytics(api -> api.getState().name());
+                }
             case LIFECYCLE_STATE_FIELD:
-            {
-                return getTopHitsAnalytics(api -> api.getLifecycleState().name());
-            }
+                {
+                    return getTopHitsAnalytics(api -> api.getLifecycleState().name());
+                }
             default:
                 return analyticsService.execute(query);
         }
@@ -256,14 +258,10 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
 
     @NotNull
     private TopHitsAnalytics getTopHitsAnalytics(Function<ApiEntity, String> groupingByFunction) {
-        Set<ApiEntity> apis = isAdmin() ?
-                new HashSet<>(apiService.search(new ApiQuery()))
-                : apiService.findByUser(getAuthenticatedUser(), new ApiQuery(), false);
-        Map<String, Long> collect = apis.stream()
-                .collect(Collectors.groupingBy(
-                groupingByFunction,
-                Collectors.counting()
-        ));
+        Set<ApiEntity> apis = isAdmin()
+            ? new HashSet<>(apiService.search(new ApiQuery()))
+            : apiService.findByUser(getAuthenticatedUser(), new ApiQuery(), false);
+        Map<String, Long> collect = apis.stream().collect(Collectors.groupingBy(groupingByFunction, Collectors.counting()));
         TopHitsAnalytics topHitsAnalytics = new TopHitsAnalytics();
         topHitsAnalytics.setValues(collect);
         return topHitsAnalytics;
@@ -272,7 +270,7 @@ public class EnvironmentAnalyticsResource extends AbstractResource  {
     private void addExtraFilter(AbstractQuery query, String extraFilter) {
         if (query.getQuery() == null || query.getQuery().isEmpty()) {
             query.setQuery(extraFilter);
-        } else if (extraFilter != null && ! extraFilter.isEmpty()) {
+        } else if (extraFilter != null && !extraFilter.isEmpty()) {
             query.setQuery(query.getQuery() + " AND " + extraFilter);
         } else {
             query.setQuery(query.getQuery());

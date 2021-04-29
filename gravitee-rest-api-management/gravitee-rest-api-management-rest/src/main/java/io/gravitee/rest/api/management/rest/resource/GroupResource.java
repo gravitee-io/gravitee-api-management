@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
+
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.GroupEntity;
@@ -26,24 +29,20 @@ import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
-
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.*;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
-import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
-import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Groups"})
+@Api(tags = { "Groups" })
 public class GroupResource extends AbstractResource {
 
     @Context
@@ -59,25 +58,23 @@ public class GroupResource extends AbstractResource {
     @GET
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "Get a group")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Group definition", response = GroupEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")
-    })
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public GroupEntity getGroup() {
         return groupService.findById(group);
     }
 
     @DELETE
     @ApiOperation(value = "Delete an existing group")
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Group successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE)
-    })
+    @ApiResponses(
+        { @ApiResponse(code = 204, message = "Group successfully deleted"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.DELETE) })
     public Response deleteGroup() {
         checkRights();
         groupService.delete(group);
@@ -88,18 +85,30 @@ public class GroupResource extends AbstractResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "Update an existing group")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions(
+        {
             @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE),
-            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE)
-    })
-    public GroupEntity updateGroup(
-            @ApiParam(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
+            @Permission(value = RolePermission.GROUP_MEMBER, acls = RolePermissionAction.UPDATE),
+        }
+    )
+    public GroupEntity updateGroup(@ApiParam(name = "group", required = true) @Valid @NotNull final UpdateGroupEntity updateGroupEntity) {
         final GroupEntity groupEntity = checkRights();
         // check if user is a 'simple group admin' or a platform admin
-        if (!permissionService.hasPermission(RolePermission.ENVIRONMENT_GROUP, GraviteeContext.getCurrentEnvironment(), CREATE, UPDATE, DELETE)) {
+        if (
+            !permissionService.hasPermission(
+                RolePermission.ENVIRONMENT_GROUP,
+                GraviteeContext.getCurrentEnvironment(),
+                CREATE,
+                UPDATE,
+                DELETE
+            )
+        ) {
             updateGroupEntity.setMaxInvitation(groupEntity.getMaxInvitation());
             updateGroupEntity.setLockApiRole(groupEntity.isLockApiRole());
             updateGroupEntity.setLockApplicationRole(groupEntity.isLockApplicationRole());
@@ -119,13 +128,10 @@ public class GroupResource extends AbstractResource {
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "List APIs or applications linked to this group")
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroupMemberships(@QueryParam("type") String type) {
         if ("api".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApis(group)).build();
-
         } else if ("application".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApplications(group)).build();
         }
@@ -137,12 +143,13 @@ public class GroupResource extends AbstractResource {
     @Path("/memberships")
     @Produces(APPLICATION_JSON)
     @ApiOperation(value = "Associate a group to existing APIs or Applications")
-    @ApiResponses({
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Group successfully updated", response = GroupEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.UPDATE) })
     public GroupEntity addGroupMember(@QueryParam("type") String type) {
         final GroupEntity groupEntity = checkRights();
 

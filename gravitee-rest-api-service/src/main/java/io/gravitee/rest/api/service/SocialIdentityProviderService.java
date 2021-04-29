@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
-
 import java.util.Set;
 
 /**
@@ -25,7 +24,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface SocialIdentityProviderService {
-
     Set<SocialIdentityProviderEntity> findAll(IdentityProviderActivationService.ActivationTarget target);
 
     SocialIdentityProviderEntity findById(String id, IdentityProviderActivationService.ActivationTarget target);

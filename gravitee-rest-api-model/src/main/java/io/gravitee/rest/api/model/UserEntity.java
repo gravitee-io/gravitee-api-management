@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +29,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = {"displayName"}, allowGetters = true)
+@JsonIgnoreProperties(value = { "displayName" }, allowGetters = true)
 public class UserEntity implements Indexable {
 
     /**
@@ -118,6 +118,12 @@ public class UserEntity implements Indexable {
 
     private Map<String, Object> customFields;
 
+    @JsonIgnore
+    private String referenceType;
+
+    @JsonIgnore
+    private String referenceId;
+
     @Override
     public String getId() {
         return id;
@@ -126,6 +132,26 @@ public class UserEntity implements Indexable {
     @Override
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public String getReferenceType() {
+        return this.referenceType;
+    }
+
+    @Override
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    @Override
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    @Override
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public String getFirstname() {
@@ -313,24 +339,52 @@ public class UserEntity implements Indexable {
 
     @Override
     public String toString() {
-        return "UserEntity{" +
-                "id='" + id + '\'' +
-                ", firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", password='" + password + '\'' +
-                ", email='" + email + '\'' +
-                ", roles=" + roles +
-                ", envRoles=" + envRoles +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                ", picture='" + picture + '\'' +
-                ", source='" + source + '\'' +
-                ", sourceId='" + sourceId + '\'' +
-                ", lastConnectionAt=" + lastConnectionAt +
-                ", primaryOwner=" + primaryOwner +
-                ", status='" + status + '\'' +
-                ", loginCount=" + loginCount +
-                ", nbActiveTokens=" + nbActiveTokens +
-                '}';
+        return (
+            "UserEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", firstname='" +
+            firstname +
+            '\'' +
+            ", lastname='" +
+            lastname +
+            '\'' +
+            ", password='" +
+            password +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", roles=" +
+            roles +
+            ", envRoles=" +
+            envRoles +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", picture='" +
+            picture +
+            '\'' +
+            ", source='" +
+            source +
+            '\'' +
+            ", sourceId='" +
+            sourceId +
+            '\'' +
+            ", lastConnectionAt=" +
+            lastConnectionAt +
+            ", primaryOwner=" +
+            primaryOwner +
+            ", status='" +
+            status +
+            '\'' +
+            ", loginCount=" +
+            loginCount +
+            ", nbActiveTokens=" +
+            nbActiveTokens +
+            '}'
+        );
     }
 }

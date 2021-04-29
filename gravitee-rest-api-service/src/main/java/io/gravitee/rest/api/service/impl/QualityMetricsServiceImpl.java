@@ -28,14 +28,13 @@ import io.gravitee.rest.api.service.QualityRuleService;
 import io.gravitee.rest.api.service.exceptions.ApiQualityMetricsDisableException;
 import io.gravitee.rest.api.service.quality.ApiQualityMetric;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -47,10 +46,13 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
 
     @Autowired
     private ParameterService parameterService;
+
     @Autowired
     private ApiQualityMetricLoader apiQualityMetricLoader;
+
     @Autowired
     private ApiQualityRuleService apiQualityRuleService;
+
     @Autowired
     private QualityRuleService qualityRuleService;
 
@@ -63,19 +65,19 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
     }
 
     private Map<String, Integer> getWeights() {
-        List<Key> keys = apiQualityMetricLoader.getApiQualityMetrics()
-                .stream()
-                .map(ApiQualityMetric::getWeightKey)
-                .collect(Collectors.toList());
+        List<Key> keys = apiQualityMetricLoader
+            .getApiQualityMetrics()
+            .stream()
+            .map(ApiQualityMetric::getWeightKey)
+            .collect(Collectors.toList());
 
         return Collections.unmodifiableMap(
-                parameterService.findAll(keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
-                        .entrySet()
-                        .stream()
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                e -> e.getValue().get(0))
-                        )) ;
+            parameterService
+                .findAll(keys, Integer::parseInt, ParameterReferenceType.ENVIRONMENT)
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get(0)))
+        );
     }
 
     @Override
@@ -90,12 +92,10 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         }
 
         Map<String, Integer> weights = getWeights()
-                .entrySet()
-                .stream()
-                .filter(e -> e.getValue() > 0)
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue));
+            .entrySet()
+            .stream()
+            .filter(e -> e.getValue() > 0)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         ApiQualityMetricsEntity result = new ApiQualityMetricsEntity();
         result.setMetricsPassed(new HashMap<>(weights.size()));
@@ -112,7 +112,7 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
                 score += weight.getValue() * (passed ? 1 : 0);
                 maxScore += weight.getValue();
             }
-            result.setScore( (int)((score / maxScore) * 100) / 100d);
+            result.setScore((int) ((score / maxScore) * 100) / 100d);
         }
 
         // manual quality rules
@@ -121,9 +121,11 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
             final List<ApiQualityRuleEntity> apiQualityRules = apiQualityRuleService.findByApi(apiEntity.getId());
             for (final QualityRuleEntity qualityRule : qualityRules) {
                 if (qualityRule.getWeight() > 0) {
-                    final ApiQualityRuleEntity apiQualityRule = apiQualityRules.stream()
-                            .filter(aqr -> apiEntity.getId().equals(aqr.getApi())
-                                    && qualityRule.getId().equals(aqr.getQualityRule())).findFirst().orElse(null);
+                    final ApiQualityRuleEntity apiQualityRule = apiQualityRules
+                        .stream()
+                        .filter(aqr -> apiEntity.getId().equals(aqr.getApi()) && qualityRule.getId().equals(aqr.getQualityRule()))
+                        .findFirst()
+                        .orElse(null);
                     final boolean checked = apiQualityRule != null && apiQualityRule.isChecked();
                     result.getMetricsPassed().put(qualityRule.getId(), checked);
                     score += qualityRule.getWeight() * (checked ? 1 : 0);
@@ -136,4 +138,3 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         return result;
     }
 }
-

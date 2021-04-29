@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -45,5 +44,4 @@ public class MaintenanceModeException extends AbstractManagementException {
     public String getMessage() {
         return "The server is currently in maintenance mode. Please retry later or contact your administrator.";
     }
-
 }

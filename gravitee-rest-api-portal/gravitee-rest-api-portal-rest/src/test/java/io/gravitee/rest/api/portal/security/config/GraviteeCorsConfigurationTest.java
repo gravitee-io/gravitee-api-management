@@ -15,35 +15,36 @@
  */
 package io.gravitee.rest.api.portal.security.config;
 
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
+import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
-
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
-
 @RunWith(MockitoJUnitRunner.class)
 public class GraviteeCorsConfigurationTest {
 
-    private final static String REFERENCE_ID = "DEFAULT";
-    private final static ParameterReferenceType REFERENCE_TYPE = ParameterReferenceType.ENVIRONMENT;
+    private static final String REFERENCE_ID = "DEFAULT";
+    private static final ParameterReferenceType REFERENCE_TYPE = ParameterReferenceType.ENVIRONMENT;
 
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private EventManager eventManager;
+
     private GraviteeCorsConfiguration graviteeCorsConfiguration;
 
     @Before
@@ -55,7 +56,6 @@ public class GraviteeCorsConfigurationTest {
 
     @Test
     public void shouldConstructAndInitializeFields() {
-
         when(parameterService.find(Key.PORTAL_HTTP_CORS_ALLOW_METHODS, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(null);
 
         graviteeCorsConfiguration = new GraviteeCorsConfiguration(parameterService, eventManager, REFERENCE_ID);

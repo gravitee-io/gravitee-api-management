@@ -15,21 +15,20 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import org.junit.Before;
-import org.junit.Test;
-
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -90,16 +89,19 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         when(apiKeyService.renew(anyString(), anyString())).thenReturn(fakeApiKeyEntity);
         when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(true);
 
-        Response response = envTarget(SUBSCRIPTION_ID)
-                .queryParam("customApiKey", "atLeast10CharsButLessThan64")
-                .request()
-                .post(null);
+        Response response = envTarget(SUBSCRIPTION_ID).queryParam("customApiKey", "atLeast10CharsButLessThan64").request().post(null);
 
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(fakeApiKeyEntity, response.readEntity(ApiKeyEntity.class));
         assertEquals(
-                envTarget(SUBSCRIPTION_ID).path("keys").path(FAKE_KEY).queryParam("customApiKey", "atLeast10CharsButLessThan64").getUri().toString(),
-                response.getHeaders().getFirst(HttpHeaders.LOCATION));
+            envTarget(SUBSCRIPTION_ID)
+                .path("keys")
+                .path(FAKE_KEY)
+                .queryParam("customApiKey", "atLeast10CharsButLessThan64")
+                .getUri()
+                .toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
     }
 
     @Test
@@ -107,10 +109,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         when(apiKeyService.renew(anyString(), anyString())).thenReturn(fakeApiKeyEntity);
         when(parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)).thenReturn(false);
 
-        Response response = envTarget(SUBSCRIPTION_ID)
-                .queryParam("customApiKey", "atLeast10CharsButLessThan64")
-                .request()
-                .post(null);
+        Response response = envTarget(SUBSCRIPTION_ID).queryParam("customApiKey", "atLeast10CharsButLessThan64").request().post(null);
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
@@ -119,62 +118,51 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
     public void shouldRenewApiKeyWithoutCustomApiKey() {
         when(apiKeyService.renew(anyString(), isNull())).thenReturn(fakeApiKeyEntity);
 
-        Response response = envTarget(SUBSCRIPTION_ID)
-                .request()
-                .post(null);
+        Response response = envTarget(SUBSCRIPTION_ID).request().post(null);
 
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(response.readEntity(ApiKeyEntity.class), fakeApiKeyEntity);
-        assertEquals(envTarget(SUBSCRIPTION_ID).path("keys").path(FAKE_KEY).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertEquals(
+            envTarget(SUBSCRIPTION_ID).path("keys").path(FAKE_KEY).getUri().toString(),
+            response.getHeaders().getFirst(HttpHeaders.LOCATION)
+        );
     }
 
     @Test
     public void shouldProcess() {
-
         ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
         processSubscriptionEntity.setId(SUBSCRIPTION_ID);
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any()))
-                .thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any())).thenReturn(fakeSubscriptionEntity);
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process")
-                .request()
-                .post(Entity.json(processSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     @Test
     public void shouldNotProcessIfBadId() {
-
         ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
         processSubscriptionEntity.setId("badId");
         processSubscriptionEntity.setCustomApiKey("customApiKey");
 
-        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any()))
-                .thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any())).thenReturn(fakeSubscriptionEntity);
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process")
-                .request()
-                .post(Entity.json(processSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void shouldNotProcessIfNotValidApiKey() {
-
         ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
         processSubscriptionEntity.setId(SUBSCRIPTION_ID);
         processSubscriptionEntity.setCustomApiKey("customApiKey;^");
 
-        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any()))
-                .thenReturn(fakeSubscriptionEntity);
+        when(subscriptionService.process(any(ProcessSubscriptionEntity.class), any())).thenReturn(fakeSubscriptionEntity);
 
-        Response response = envTarget(SUBSCRIPTION_ID + "/_process")
-                .request()
-                .post(Entity.json(processSubscriptionEntity));
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }

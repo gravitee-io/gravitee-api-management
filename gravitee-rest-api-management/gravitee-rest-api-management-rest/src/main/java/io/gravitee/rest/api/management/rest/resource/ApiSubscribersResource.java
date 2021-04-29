@@ -25,21 +25,20 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.annotations.*;
-
+import java.util.Collection;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Subscriptions"})
+@Api(tags = { "API Subscriptions" })
 public class ApiSubscribersResource extends AbstractResource {
 
     @Inject
@@ -58,14 +57,23 @@ public class ApiSubscribersResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List subscribers for the API",
-            notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Paged result of API subscribers", response = ApplicationEntity.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(value = "List subscribers for the API", notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "Paged result of API subscribers",
+                response = ApplicationEntity.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     public Collection<ApplicationEntity> getApiSubscribers() {
-        if (!hasPermission(RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
-                !hasPermission(RolePermission.API_LOG, api, RolePermissionAction.READ)) {
+        if (
+            !hasPermission(RolePermission.API_SUBSCRIPTION, api, RolePermissionAction.READ) &&
+            !hasPermission(RolePermission.API_LOG, api, RolePermissionAction.READ)
+        ) {
             throw new ForbiddenAccessException();
         }
 
@@ -73,11 +81,12 @@ public class ApiSubscribersResource extends AbstractResource {
         subscriptionQuery.setApi(api);
 
         Collection<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery);
-        return subscriptions.stream()
-                .map(SubscriptionEntity::getApplication)
-                .distinct()
-                .map(application -> applicationService.findById(application))
-                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
-                .collect(Collectors.toList());
+        return subscriptions
+            .stream()
+            .map(SubscriptionEntity::getApplication)
+            .distinct()
+            .map(application -> applicationService.findById(application))
+            .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+            .collect(Collectors.toList());
     }
 }

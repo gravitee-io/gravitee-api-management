@@ -23,7 +23,9 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @author GraviteeSource Team
  */
 public class PageSourceEntity {
+
     private String type;
+
     @JsonRawValue
     public String configuration;
 

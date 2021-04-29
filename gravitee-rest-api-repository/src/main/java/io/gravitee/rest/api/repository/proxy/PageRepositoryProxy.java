@@ -21,10 +21,9 @@ import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,7 +33,6 @@ import java.util.Optional;
  */
 @Component
 public class PageRepositoryProxy extends AbstractProxy<PageRepository> implements PageRepository {
-
 
     @Override
     public Page create(Page page) throws TechnicalException {
@@ -56,7 +54,6 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
         return target.update(page);
     }
 
-
     @Override
     public List<Page> search(PageCriteria criteria) throws TechnicalException {
         return target.search(criteria);
@@ -64,7 +61,7 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
 
     @Override
     public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
-            throws TechnicalException {
+        throws TechnicalException {
         return target.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType);
     }
 

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.definition.model.VirtualHost;
-
 import java.util.Collection;
 
 /**
@@ -24,7 +23,6 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface VirtualHostService {
-
     /**
      * This method sanitizes the virtual host definitions and verifies that the given virtual hosts are valid among all the existing
      * virtual hosts for all the APIs.

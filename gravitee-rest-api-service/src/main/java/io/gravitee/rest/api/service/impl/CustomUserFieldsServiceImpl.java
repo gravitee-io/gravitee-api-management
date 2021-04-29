@@ -15,6 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.USER_FIELD;
+import static io.gravitee.repository.management.model.CustomUserField.AuditEvent.*;
+import static io.gravitee.repository.management.model.CustomUserFieldReferenceType.ENVIRONMENT;
+import static io.gravitee.repository.management.model.CustomUserFieldReferenceType.ORGANIZATION;
+import static io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer.formatKeyValue;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
@@ -31,22 +37,15 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldAlreadyExistException;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.USER_FIELD;
-import static io.gravitee.repository.management.model.CustomUserField.AuditEvent.*;
-import static io.gravitee.repository.management.model.CustomUserFieldReferenceType.ENVIRONMENT;
-import static io.gravitee.repository.management.model.CustomUserFieldReferenceType.ORGANIZATION;
-import static io.gravitee.rest.api.service.sanitizer.CustomFieldSanitizer.formatKeyValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -78,7 +77,8 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             final String refId = GraviteeContext.getCurrentOrganization();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("Create custom user field [key={}, refId={}]", newFieldEntity.getKey(), refId);
-            Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(formatKeyValue(newFieldEntity.getKey()), refId, refType);
+            Optional<CustomUserField> existingRecord =
+                this.customUserFieldsRepository.findById(formatKeyValue(newFieldEntity.getKey()), refId, refType);
             if (existingRecord.isPresent()) {
                 throw new CustomUserFieldAlreadyExistException(newFieldEntity.getKey());
             } else {
@@ -106,7 +106,8 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
             final String refId = GraviteeContext.getCurrentOrganization();
             final CustomUserFieldReferenceType refType = ORGANIZATION;
             LOGGER.debug("Update custom user field [key={}, refId={}]", updateFieldEntity.getKey(), refId);
-            Optional<CustomUserField> existingRecord = this.customUserFieldsRepository.findById(formatKeyValue(updateFieldEntity.getKey()), refId, refType);
+            Optional<CustomUserField> existingRecord =
+                this.customUserFieldsRepository.findById(formatKeyValue(updateFieldEntity.getKey()), refId, refType);
             if (existingRecord.isPresent()) {
                 CustomUserField fieldToUpdate = map(updateFieldEntity);
                 fieldToUpdate.setKey(existingRecord.get().getKey());
@@ -140,9 +141,11 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
                 customUserFieldsRepository.delete(formatKeyValue(key), refId, refType);
                 createAuditLog(CUSTOM_USER_FIELD_DELETED, new Date(), existingRecord.get(), null);
                 // remove all instance of this field from UserMetadata
-                this.userMetadataService.deleteAllByCustomFieldId(existingRecord.get().getKey(),
+                this.userMetadataService.deleteAllByCustomFieldId(
+                        existingRecord.get().getKey(),
                         existingRecord.get().getReferenceId(),
-                        existingRecord.get().getReferenceType());
+                        existingRecord.get().getReferenceType()
+                    );
             }
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to create CustomUserField", e);
@@ -168,21 +171,9 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
         String key = oldValue != null ? oldValue.getKey() : newValue.getKey();
         CustomUserFieldReferenceType type = oldValue != null ? oldValue.getReferenceType() : newValue.getReferenceType();
         if (type == ORGANIZATION) {
-            auditService.createOrganizationAuditLog(
-                    Collections.singletonMap(USER_FIELD, key),
-                    event,
-                    createdAt,
-                    oldValue,
-                    newValue
-            );
+            auditService.createOrganizationAuditLog(Collections.singletonMap(USER_FIELD, key), event, createdAt, oldValue, newValue);
         } else if (type == ENVIRONMENT) {
-            auditService.createEnvironmentAuditLog(
-                    Collections.singletonMap(USER_FIELD, key),
-                    event,
-                    createdAt,
-                    oldValue,
-                    newValue
-            );
+            auditService.createEnvironmentAuditLog(Collections.singletonMap(USER_FIELD, key), event, createdAt, oldValue, newValue);
         }
     }
 
@@ -218,5 +209,4 @@ public class CustomUserFieldsServiceImpl extends TransactionalService implements
         }
         return result;
     }
-
 }

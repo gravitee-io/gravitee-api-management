@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.FetcherEntity;
-
 import java.util.Set;
 
 /**
@@ -25,6 +24,5 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface FetcherService extends PluginService<FetcherEntity> {
-
     Set<FetcherEntity> findAll(boolean onlyFilesFetchers);
 }

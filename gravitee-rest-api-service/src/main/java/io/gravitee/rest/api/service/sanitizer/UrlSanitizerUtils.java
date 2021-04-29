@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.sanitizer;
 
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
-
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URL;
@@ -31,9 +30,17 @@ import java.util.List;
 public class UrlSanitizerUtils {
 
     public static void checkAllowed(String url, List<String> whitelist, boolean allowPrivate) {
-
         if (whitelist != null && !whitelist.isEmpty()) {
-            if (whitelist.stream().noneMatch(whitelistUrl -> whitelistUrl.endsWith("/") ? url.startsWith(whitelistUrl) : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/')))) {
+            if (
+                whitelist
+                    .stream()
+                    .noneMatch(
+                        whitelistUrl ->
+                            whitelistUrl.endsWith("/")
+                                ? url.startsWith(whitelistUrl)
+                                : (url.equals(whitelistUrl) || url.startsWith(whitelistUrl + '/'))
+                    )
+            ) {
                 throw new UrlForbiddenException();
             }
         } else if (!allowPrivate && UrlSanitizerUtils.isPrivate(url)) {
@@ -42,19 +49,18 @@ public class UrlSanitizerUtils {
     }
 
     public static boolean isPrivate(String url) {
-
         try {
             InetAddress inetAddress = Inet6Address.getByName(new URL(url).getHost());
 
-            return inetAddress.isSiteLocalAddress()
-                    || inetAddress.isAnyLocalAddress()
-                    || inetAddress.isLoopbackAddress()
-                    || inetAddress.isLinkLocalAddress()
-                    || inetAddress.isMulticastAddress()
-                    || isPrivateOwasp(inetAddress.getHostAddress());
-
+            return (
+                inetAddress.isSiteLocalAddress() ||
+                inetAddress.isAnyLocalAddress() ||
+                inetAddress.isLoopbackAddress() ||
+                inetAddress.isLinkLocalAddress() ||
+                inetAddress.isMulticastAddress() ||
+                isPrivateOwasp(inetAddress.getHostAddress())
+            );
         } catch (Exception e) {
-
             throw new InvalidDataException("Url [" + url + "] is invalid");
         }
     }
@@ -63,7 +69,6 @@ public class UrlSanitizerUtils {
      * Check ip address is private using owasp algorithm.
      */
     private static boolean isPrivateOwasp(String ipAddress) {
-
         List<String> ipPrefixes = new ArrayList<>();
 
         // Add prefix for loopback addresses.

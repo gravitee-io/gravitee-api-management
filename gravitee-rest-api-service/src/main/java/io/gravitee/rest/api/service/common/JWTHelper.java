@@ -20,9 +20,11 @@ package io.gravitee.rest.api.service.common;
  * @author GraviteeSource Team
  */
 public interface JWTHelper {
-
     enum ACTION {
-        RESET_PASSWORD, USER_REGISTRATION, GROUP_INVITATION, USER_CREATION
+        RESET_PASSWORD,
+        USER_REGISTRATION,
+        GROUP_INVITATION,
+        USER_CREATION,
     }
 
     interface Claims {

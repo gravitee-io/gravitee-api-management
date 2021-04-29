@@ -15,16 +15,14 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.application.registration.client;
 
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.discovery.DiscoveryResponse;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.InitialAccessTokenProvider;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-
-import io.gravitee.rest.api.service.impl.configuration.application.registration.client.discovery.DiscoveryResponse;
-import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.InitialAccessTokenProvider;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,7 +35,10 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
     private final Map<String, String> attributes = new HashMap<>();
     private final Map<String, Object> metadata = new HashMap<>();
 
-    public DiscoveryBasedDynamicClientRegistrationProviderClient(String discoveryEndpoint, InitialAccessTokenProvider initialAccessTokenProvider) {
+    public DiscoveryBasedDynamicClientRegistrationProviderClient(
+        String discoveryEndpoint,
+        InitialAccessTokenProvider initialAccessTokenProvider
+    ) {
         this.discoveryEndpoint = discoveryEndpoint;
         this.initialAccessTokenProvider = initialAccessTokenProvider;
         initialize();
@@ -47,22 +48,28 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
         httpClient = HttpClients.createDefault();
 
         try {
-            DiscoveryResponse discovery = httpClient.execute(new HttpGet(discoveryEndpoint), response -> {
-                int status = response.getStatusLine().getStatusCode();
-                if (status >= 200 && status < 300) {
-                    HttpEntity entity = response.getEntity();
+            DiscoveryResponse discovery = httpClient.execute(
+                new HttpGet(discoveryEndpoint),
+                response -> {
+                    int status = response.getStatusLine().getStatusCode();
+                    if (status >= 200 && status < 300) {
+                        HttpEntity entity = response.getEntity();
 
-                    if (entity != null) {
-                        return mapper.readValue(EntityUtils.toString(entity), DiscoveryResponse.class);
+                        if (entity != null) {
+                            return mapper.readValue(EntityUtils.toString(entity), DiscoveryResponse.class);
+                        } else {
+                            throw new DynamicClientRegistrationException("OIDC Discovery response is not well-formed");
+                        }
                     } else {
-                        throw new DynamicClientRegistrationException("OIDC Discovery response is not well-formed");
+                        logger.error(
+                            "Unexpected response status from OIDC Discovery endpoint: status[{}] message[{}]",
+                            status,
+                            EntityUtils.toString(response.getEntity())
+                        );
+                        throw new DynamicClientRegistrationException("Unexpected response status from OIDC Discovery endpoint");
                     }
-                } else {
-                    logger.error("Unexpected response status from OIDC Discovery endpoint: status[{}] message[{}]",
-                            status, EntityUtils.toString(response.getEntity()));
-                    throw new DynamicClientRegistrationException("Unexpected response status from OIDC Discovery endpoint");
                 }
-            });
+            );
 
             registrationEndpoint = discovery.getRegistrationEndpoint();
             attributes.put("token_endpoint", discovery.getTokenEndpoint());
@@ -70,7 +77,10 @@ public class DiscoveryBasedDynamicClientRegistrationProviderClient extends Dynam
             metadata.put("token_endpoint", discovery.getTokenEndpoint());
         } catch (Exception ex) {
             logger.error("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
-            throw new DynamicClientRegistrationException("Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(), ex);
+            throw new DynamicClientRegistrationException(
+                "Unexpected error while getting OIDC metadata from Discovery endpoint: " + ex.getMessage(),
+                ex
+            );
         }
     }
 

@@ -15,6 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.rest.api.model.ApiQualityMetricsEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -26,6 +33,8 @@ import io.gravitee.rest.api.service.impl.QualityMetricsServiceImpl;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricCategories;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricLogo;
+import java.util.*;
+import java.util.function.Function;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,18 +42,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.*;
-import java.util.function.Function;
-
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -55,14 +54,19 @@ public class QualityMetricsServiceTest {
 
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private ApiQualityMetricLoader apiQualityMetricLoader;
+
     @Mock
     private ApiQualityMetricLogo apiQualityMetricLogo;
+
     @Mock
     private ApiQualityMetricCategories apiQualityMetricCategories;
+
     @Mock
     private QualityRuleService qualityRuleService;
+
     @Mock
     private ApiQualityRuleService apiQualityRuleService;
 
@@ -86,7 +90,8 @@ public class QualityMetricsServiceTest {
     @Test
     public void shouldReturnEmptyEntityWithoutConfiguration() {
         when(parameterService.findAsBoolean(Key.API_QUALITY_METRICS_ENABLED, ParameterReferenceType.ENVIRONMENT)).thenReturn(Boolean.TRUE);
-        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class))).thenReturn(Collections.emptyMap());
+        when(parameterService.findAll(anyList(), any(Function.class), any(ParameterReferenceType.class)))
+            .thenReturn(Collections.emptyMap());
         ApiEntity api = mock(ApiEntity.class);
 
         ApiQualityMetricsEntity metrics = srv.getMetrics(api);

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Date;
 import java.util.Map;
 
@@ -25,8 +24,8 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class GroupMemberEntity {
-    public GroupMemberEntity() {
-    }
+
+    public GroupMemberEntity() {}
 
     public GroupMemberEntity(MemberEntity memberEntity) {
         this.id = memberEntity.getId();
@@ -38,8 +37,10 @@ public class GroupMemberEntity {
     private String id;
     private String displayName;
     private Map<String, String> roles;
+
     @JsonProperty("created_at")
     private Date createdAt;
+
     @JsonProperty("updated_at")
     private Date updatedAt;
 

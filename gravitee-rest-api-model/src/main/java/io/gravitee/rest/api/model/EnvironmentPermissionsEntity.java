@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.model;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -75,9 +75,7 @@ public class EnvironmentPermissionsEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EnvironmentPermissionsEntity that = (EnvironmentPermissionsEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(hrids, that.hrids) &&
-                Objects.equals(name, that.name);
+        return Objects.equals(id, that.id) && Objects.equals(hrids, that.hrids) && Objects.equals(name, that.name);
     }
 
     @Override
@@ -87,11 +85,20 @@ public class EnvironmentPermissionsEntity {
 
     @Override
     public String toString() {
-        return "EnvironmentEntity{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids + '\'' +
-                ", name='" + name + '\'' +
-                ", permissions='" + permissions +
-                '}';
+        return (
+            "EnvironmentEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hrids=" +
+            hrids +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", permissions='" +
+            permissions +
+            '}'
+        );
     }
 }

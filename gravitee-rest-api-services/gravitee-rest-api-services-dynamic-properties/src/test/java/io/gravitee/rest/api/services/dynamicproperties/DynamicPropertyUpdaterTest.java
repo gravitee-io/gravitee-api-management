@@ -19,16 +19,14 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.services.dynamicproperties.DynamicPropertyUpdater;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
-
+import java.util.Collection;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,28 +52,33 @@ public class DynamicPropertyUpdaterTest {
 
     @Test
     public void shouldNotUpdatePropertiesBecauseOfProviderException() {
-        Mockito.when(provider.get())
-                .thenReturn(
-                    CompletableFuture
-                            .completedFuture((Collection<DynamicProperty>) Collections.<DynamicProperty>emptyList())
-                            .whenComplete((dynamicProperties, throwable) -> {
-                                throw new IllegalStateException();
-                            })
-                );
+        Mockito
+            .when(provider.get())
+            .thenReturn(
+                CompletableFuture
+                    .completedFuture((Collection<DynamicProperty>) Collections.<DynamicProperty>emptyList())
+                    .whenComplete(
+                        (dynamicProperties, throwable) -> {
+                            throw new IllegalStateException();
+                        }
+                    )
+            );
 
         poller.handle(1L);
     }
 
     @Test
     public void shouldUpdateProperties() {
-        Mockito.when(provider.get())
-                .thenReturn(
-                        CompletableFuture
-                                .supplyAsync(() -> {
-                                    DynamicProperty property = new DynamicProperty("my-key", "my-value");
-                                    return Collections.singletonList(property);
-                                })
-                );
+        Mockito
+            .when(provider.get())
+            .thenReturn(
+                CompletableFuture.supplyAsync(
+                    () -> {
+                        DynamicProperty property = new DynamicProperty("my-key", "my-value");
+                        return Collections.singletonList(property);
+                    }
+                )
+            );
 
         poller.handle(1L);
     }

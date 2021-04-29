@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.param;
 
 import io.swagger.annotations.ApiParam;
-
 import javax.ws.rs.QueryParam;
 
 /**
@@ -64,14 +63,12 @@ public class ApisParam {
     @ApiParam(value = "filter by tag")
     @QueryParam("tag")
     private String tag;
+
     @QueryParam("portal")
     private boolean portal;
 
     @QueryParam("order")
-    @ApiParam(
-            value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ",
-            example = "-name"
-    )
+    @ApiParam(value = "The field used to sort results. Can be asc or desc (prefix with minus '-') ", example = "-name")
     private OrderParam order;
 
     public String getCategory() {
@@ -165,5 +162,4 @@ public class ApisParam {
     public OrderParam.Order getOrder() {
         return (order == null) ? null : order.getValue();
     }
-
 }

@@ -34,12 +34,13 @@ public class DirectionParam extends AbstractParam<DirectionParam.Direction> {
         }
 
         public static Direction fromString(String value) {
-
             try {
                 return Direction.valueOf(value.toUpperCase());
             } catch (Exception e) {
-                throw new IllegalArgumentException(String.format(
-                        "Invalid value '%s' for directions given! Has to be either 'desc' or 'asc' (case insensitive).", value), e);
+                throw new IllegalArgumentException(
+                    String.format("Invalid value '%s' for directions given! Has to be either 'desc' or 'asc' (case insensitive).", value),
+                    e
+                );
             }
         }
     }
@@ -54,8 +55,7 @@ public class DirectionParam extends AbstractParam<DirectionParam.Direction> {
             if (param != null) {
                 return DirectionParam.Direction.fromString(param);
             }
-        } catch (IllegalArgumentException iae) {
-        }
+        } catch (IllegalArgumentException iae) {}
 
         return Direction.ASC;
     }

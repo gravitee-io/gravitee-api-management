@@ -22,11 +22,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class AccessControlEntity {
+
     private String referenceId;
     private String referenceType;
 
-    public AccessControlEntity() {
-    }
+    public AccessControlEntity() {}
 
     public AccessControlEntity(String referenceId, String referenceType) {
         this.referenceId = referenceId;
@@ -54,8 +54,7 @@ public class AccessControlEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AccessControlEntity accessControl = (AccessControlEntity) o;
-        return Objects.equals(referenceId, accessControl.referenceId) &&
-            Objects.equals(referenceType, accessControl.referenceType);
+        return Objects.equals(referenceId, accessControl.referenceId) && Objects.equals(referenceType, accessControl.referenceType);
     }
 
     @Override
@@ -65,10 +64,6 @@ public class AccessControlEntity {
 
     @Override
     public String toString() {
-        return "AccessControlEntity{" +
-            "referenceId='" + referenceId + '\'' +
-            ", referenceType='" + referenceType + '\'' +
-            '}';
+        return "AccessControlEntity{" + "referenceId='" + referenceId + '\'' + ", referenceType='" + referenceType + '\'' + '}';
     }
-
 }

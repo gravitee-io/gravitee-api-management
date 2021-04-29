@@ -21,15 +21,14 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
 import io.gravitee.rest.api.service.Upgrader;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,6 +37,7 @@ import java.util.Set;
  */
 @Component
 public class DefaultCategoryUpgrader implements Upgrader, Ordered {
+
     /**
      * Logger.
      */
@@ -45,6 +45,7 @@ public class DefaultCategoryUpgrader implements Upgrader, Ordered {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
     @Autowired
     private ApiRepository apiRepository;
 
@@ -55,14 +56,11 @@ public class DefaultCategoryUpgrader implements Upgrader, Ordered {
         try {
             categories = categoryRepository.findAll();
 
-            Optional<Category> optionalKeyLessCategory = categories.
-                    stream().
-                    filter(c -> c.getKey() == null || c.getKey().isEmpty()).
-                    findFirst();
-            Optional<Category> optionalCategoryWithoutCreationDate = categories.
-                    stream().
-                    filter(c -> c.getCreatedAt() == null).
-                    findFirst();
+            Optional<Category> optionalKeyLessCategory = categories
+                .stream()
+                .filter(c -> c.getKey() == null || c.getKey().isEmpty())
+                .findFirst();
+            Optional<Category> optionalCategoryWithoutCreationDate = categories.stream().filter(c -> c.getCreatedAt() == null).findFirst();
 
             final boolean keyLessCategoriesExist = optionalKeyLessCategory.isPresent();
             final boolean categoriesWithoutCreationDateExist = optionalCategoryWithoutCreationDate.isPresent();

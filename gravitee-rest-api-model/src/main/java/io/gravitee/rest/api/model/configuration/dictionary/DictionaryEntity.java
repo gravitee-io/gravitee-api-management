@@ -17,7 +17,6 @@ package io.gravitee.rest.api.model.configuration.dictionary;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.component.Lifecycle;
-
 import java.util.Date;
 import java.util.Map;
 
@@ -83,7 +82,6 @@ public class DictionaryEntity {
     public void setDescription(String description) {
         this.description = description;
     }
-
 
     public Date getCreatedAt() {
         return createdAt;

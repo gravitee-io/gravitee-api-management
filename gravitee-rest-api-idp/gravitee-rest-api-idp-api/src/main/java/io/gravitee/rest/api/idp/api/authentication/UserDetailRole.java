@@ -18,10 +18,11 @@ package io.gravitee.rest.api.idp.api.authentication;
 import java.util.Map;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UserDetailRole {
+
     private String scope;
     private String name;
     private Map<String, char[]> permissions;
@@ -29,6 +30,7 @@ public class UserDetailRole {
     public String getScope() {
         return scope;
     }
+
     public void setScope(String scope) {
         this.scope = scope;
     }
@@ -44,6 +46,7 @@ public class UserDetailRole {
     public Map<String, char[]> getPermissions() {
         return permissions;
     }
+
     public void setPermissions(Map<String, char[]> permissions) {
         this.permissions = permissions;
     }

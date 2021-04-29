@@ -15,11 +15,17 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageSource;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.ImportPageEntity;
@@ -30,6 +36,8 @@ import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -39,14 +47,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -55,7 +55,7 @@ import static org.mockito.Mockito.*;
 public class PageService_ImportDirectoryTest {
 
     @InjectMocks
-    private PageServiceImpl pageService = Mockito.mock( PageServiceImpl.class, CALLS_REAL_METHODS );
+    private PageServiceImpl pageService = Mockito.mock(PageServiceImpl.class, CALLS_REAL_METHODS);
 
     @Mock
     private PageRepository pageRepository;
@@ -106,7 +106,8 @@ public class PageService_ImportDirectoryTest {
         Class<PageService_ImportDirectoryMockFetcher> mockFetcherClass = PageService_ImportDirectoryMockFetcher.class;
         when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
         PageService_MockFilesFetcherConfiguration fetcherConfiguration = new PageService_MockFilesFetcherConfiguration();
-        when(fetcherConfigurationFactory.create(eq(PageService_MockFilesFetcherConfiguration.class), anyString())).thenReturn(fetcherConfiguration);
+        when(fetcherConfigurationFactory.create(eq(PageService_MockFilesFetcherConfiguration.class), anyString()))
+            .thenReturn(fetcherConfiguration);
         AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
         Page newPage = mock(Page.class);
@@ -117,6 +118,8 @@ public class PageService_ImportDirectoryTest {
         when(newPage.isPublished()).thenReturn(Boolean.TRUE);
         when(newPage.getSource()).thenReturn(ps);
         when(newPage.getType()).thenReturn("MARKDOWN");
+        when(newPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);
+        when(newPage.getReferenceId()).thenReturn("envId");
         when(newPage.getVisibility()).thenReturn("PUBLIC");
         when(pageRepository.create(any())).thenReturn(newPage);
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
@@ -133,47 +136,95 @@ public class PageService_ImportDirectoryTest {
         verify(pageRepository, times(3)).create(argThat(pageToCreate -> "FOLDER".equals(pageToCreate.getType())));
 
         // /src
-        verify(pageRepository).create(argThat(pageToCreate -> "src".equals(pageToCreate.getName())
-                && "FOLDER".equals(pageToCreate.getType())
-                && null == pageToCreate.getParentId()));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "src".equals(pageToCreate.getName()) &&
+                        "FOLDER".equals(pageToCreate.getType()) &&
+                        null == pageToCreate.getParentId()
+                )
+            );
         // /src/doc
-        verify(pageRepository).create(argThat(pageToCreate -> "doc".equals(pageToCreate.getName())
-                && "FOLDER".equals(pageToCreate.getType())
-                && null != pageToCreate.getParentId()));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "doc".equals(pageToCreate.getName()) &&
+                        "FOLDER".equals(pageToCreate.getType()) &&
+                        null != pageToCreate.getParentId()
+                )
+            );
         // /src/folder.with.dot/
-        verify(pageRepository).create(argThat(pageToCreate -> "folder.with.dot".equals(pageToCreate.getName())
-                && "FOLDER".equals(pageToCreate.getType())
-                && null != pageToCreate.getParentId()));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "folder.with.dot".equals(pageToCreate.getName()) &&
+                        "FOLDER".equals(pageToCreate.getType()) &&
+                        null != pageToCreate.getParentId()
+                )
+            );
 
         // //////////////////////
         // verify files creation
         // //////////////////////
-        verify(pageRepository, times(5)).create(argThat(pageToCreate -> pageToCreate.getType() != null && !"FOLDER".equals(pageToCreate.getType())));
+        verify(pageRepository, times(5))
+            .create(argThat(pageToCreate -> pageToCreate.getType() != null && !"FOLDER".equals(pageToCreate.getType())));
 
         // /src/doc/m1.md
-        verify(pageRepository).create(argThat(pageToCreate -> "m1".equals(pageToCreate.getName())
-                && "MARKDOWN".equals(pageToCreate.getType())
-                && null != pageToCreate.getParentId()));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "m1".equals(pageToCreate.getName()) &&
+                        "MARKDOWN".equals(pageToCreate.getType()) &&
+                        null != pageToCreate.getParentId()
+                )
+            );
 
         // /swagger.json
-        verify(pageRepository).create(argThat(pageToCreate -> "swagger".equals(pageToCreate.getName())
-                && "SWAGGER".equals(pageToCreate.getType())
-                && null == pageToCreate.getParentId()));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "swagger".equals(pageToCreate.getName()) &&
+                        "SWAGGER".equals(pageToCreate.getType()) &&
+                        null == pageToCreate.getParentId()
+                )
+            );
 
         // /src/doc/sub.m11.md
-        verify(pageRepository).create(argThat(pageToCreate -> "sub.m11".equals(pageToCreate.getName())
-                && "MARKDOWN".equals(pageToCreate.getType())
-                && null != pageToCreate.getParentId()));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "sub.m11".equals(pageToCreate.getName()) &&
+                        "MARKDOWN".equals(pageToCreate.getType()) &&
+                        null != pageToCreate.getParentId()
+                )
+            );
 
         // /src/doc/m2.yaml
-        verify(pageRepository).create(argThat(pageToCreate -> "m2".equals(pageToCreate.getName())
-                && "SWAGGER".equals(pageToCreate.getType())
-                && null != pageToCreate.getParentId()));
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "m2".equals(pageToCreate.getName()) &&
+                        "SWAGGER".equals(pageToCreate.getType()) &&
+                        null != pageToCreate.getParentId()
+                )
+            );
         // /src/folder.with.dot/m2.MD
-        verify(pageRepository).create(argThat(pageToCreate -> "m2".equals(pageToCreate.getName())
-                && "MARKDOWN".equals(pageToCreate.getType())
-                && null != pageToCreate.getParentId()));
-
+        verify(pageRepository)
+            .create(
+                argThat(
+                    pageToCreate ->
+                        "m2".equals(pageToCreate.getName()) &&
+                        "MARKDOWN".equals(pageToCreate.getType()) &&
+                        null != pageToCreate.getParentId()
+                )
+            );
 
         verify(pageRevisionService, times(5)).create(any());
     }

@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.monitoring;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 
 /**
@@ -27,8 +26,10 @@ public class MonitoringProcess {
 
     @JsonProperty("cpu_percent")
     private int cpuPercent;
+
     @JsonProperty("open_file_descriptors")
     private int openFileDescriptors;
+
     @JsonProperty("max_file_descriptors")
     private int maxFileDescriptors;
 
@@ -61,8 +62,7 @@ public class MonitoringProcess {
         if (this == o) return true;
         if (!(o instanceof MonitoringProcess)) return false;
         MonitoringProcess that = (MonitoringProcess) o;
-        return openFileDescriptors == that.openFileDescriptors &&
-                maxFileDescriptors == that.maxFileDescriptors;
+        return openFileDescriptors == that.openFileDescriptors && maxFileDescriptors == that.maxFileDescriptors;
     }
 
     @Override
@@ -72,9 +72,6 @@ public class MonitoringProcess {
 
     @Override
     public String toString() {
-        return "MonitoringProcess{" +
-                "openFileDescriptors=" + openFileDescriptors +
-                ", maxFileDescriptors=" + maxFileDescriptors +
-                '}';
+        return "MonitoringProcess{" + "openFileDescriptors=" + openFileDescriptors + ", maxFileDescriptors=" + maxFileDescriptors + '}';
     }
 }

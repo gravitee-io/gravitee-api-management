@@ -36,14 +36,12 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.*;
-
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -99,15 +97,14 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public StatsAnalytics execute(final StatsQuery query) {
         try {
             final StatsResponse response = analyticsRepository.query(
-                    QueryBuilders.stats()
-                            .query(query.getQuery())
-                            .timeRange(
-                                    DateRangeBuilder.between(query.getFrom(), query.getTo()),
-                                    IntervalBuilder.interval(query.getInterval())
-                            )
-                            .root(query.getRootField(), query.getRootIdentifier())
-                            .field(query.getField())
-                            .build());
+                QueryBuilders
+                    .stats()
+                    .query(query.getQuery())
+                    .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
+                    .root(query.getRootField(), query.getRootIdentifier())
+                    .field(query.getField())
+                    .build()
+            );
 
             return convert(response, query);
         } catch (AnalyticsException ae) {
@@ -120,14 +117,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     public HitsAnalytics execute(CountQuery query) {
         try {
             CountResponse response = analyticsRepository.query(
-                    QueryBuilders.count()
-                            .query(query.getQuery())
-                            .timeRange(
-                                    DateRangeBuilder.between(query.getFrom(), query.getTo()),
-                                    IntervalBuilder.interval(query.getInterval())
-                            )
-                            .root(query.getRootField(), query.getRootIdentifier())
-                            .build());
+                QueryBuilders
+                    .count()
+                    .query(query.getQuery())
+                    .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
+                    .root(query.getRootField(), query.getRootIdentifier())
+                    .build()
+            );
 
             return convert(response);
         } catch (AnalyticsException ae) {
@@ -139,19 +135,19 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public HistogramAnalytics execute(DateHistogramQuery query) {
         try {
-            DateHistogramQueryBuilder queryBuilder = QueryBuilders.dateHistogram()
-                    .query(query.getQuery())
-                    .timeRange(
-                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
-                            IntervalBuilder.interval(query.getInterval())
-                    )
-                    .root(query.getRootField(), query.getRootIdentifier());
+            DateHistogramQueryBuilder queryBuilder = QueryBuilders
+                .dateHistogram()
+                .query(query.getQuery())
+                .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
+                .root(query.getRootField(), query.getRootIdentifier());
 
             if (query.getAggregations() != null) {
-                query.getAggregations().stream()
-                        .forEach(aggregation ->
-                                queryBuilder.aggregation(
-                                        AggregationType.valueOf(aggregation.type().name()), aggregation.field()));
+                query
+                    .getAggregations()
+                    .stream()
+                    .forEach(
+                        aggregation -> queryBuilder.aggregation(AggregationType.valueOf(aggregation.type().name()), aggregation.field())
+                    );
             }
 
             DateHistogramResponse response = analyticsRepository.query(queryBuilder.build());
@@ -165,14 +161,12 @@ public class AnalyticsServiceImpl implements AnalyticsService {
     @Override
     public TopHitsAnalytics execute(GroupByQuery query) {
         try {
-            GroupByQueryBuilder queryBuilder = QueryBuilders.groupBy()
-                    .query(query.getQuery())
-                    .timeRange(
-                            DateRangeBuilder.between(query.getFrom(), query.getTo()),
-                            IntervalBuilder.interval(query.getInterval())
-                    )
-                    .root(query.getRootField(), query.getRootIdentifier())
-                    .field(query.getField());
+            GroupByQueryBuilder queryBuilder = QueryBuilders
+                .groupBy()
+                .query(query.getQuery())
+                .timeRange(DateRangeBuilder.between(query.getFrom(), query.getTo()), IntervalBuilder.interval(query.getInterval()))
+                .root(query.getRootField(), query.getRootIdentifier())
+                .field(query.getField());
 
             if (query.getGroups() != null) {
                 query.getGroups().forEach(queryBuilder::range);
@@ -180,10 +174,13 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
             if (query.getOrder() != null) {
                 final GroupByQuery.Order order = query.getOrder();
-                queryBuilder.sort(SortBuilder.on(
+                queryBuilder.sort(
+                    SortBuilder.on(
                         order.getField(),
                         order.isOrder() ? Order.ASC : Order.DESC,
-                        (order.getType() == null) ? SortType.AVG : SortType.valueOf(order.getType().toUpperCase())));
+                        (order.getType() == null) ? SortType.AVG : SortType.valueOf(order.getType().toUpperCase())
+                    )
+                );
             }
 
             GroupByResponse response = analyticsRepository.query(queryBuilder.build());
@@ -210,12 +207,16 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 buckets.add(analyticsBucket);
             }
             analytics.setValues(buckets);
-
         }
         return analytics;
     }
 
-    private Bucket convertBucket(List<Long> timestamps, long from, long interval, io.gravitee.repository.analytics.query.response.histogram.Bucket bucket) {
+    private Bucket convertBucket(
+        List<Long> timestamps,
+        long from,
+        long interval,
+        io.gravitee.repository.analytics.query.response.histogram.Bucket bucket
+    ) {
         Bucket analyticsBucket = new Bucket();
         analyticsBucket.setName(bucket.name());
         analyticsBucket.setField(bucket.field());
@@ -250,8 +251,8 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             Bucket analyticsDataBucket = new Bucket();
             analyticsDataBucket.setName(dataBucket.getKey());
 
-            Number [] values = new Number [timestamps.size()];
-            for (int i = 0; i <timestamps.size(); i++) {
+            Number[] values = new Number[timestamps.size()];
+            for (int i = 0; i < timestamps.size(); i++) {
                 values[i] = 0;
             }
             for (Data data : dataBucket.getValue()) {
@@ -293,33 +294,50 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
         // Set results
         topHitsAnalytics.setValues(
-            groupByResponse.values()
-                    .stream()
-                    .collect(Collectors.toMap(
-                            // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
-                            // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
-                            bucket -> UNKNOWN_SERVICE.equals(bucket.name()) ? UNKNOWN_SERVICE_MAPPED : bucket.name(),
-                            GroupByResponse.Bucket::value,
-                            (v1,v2) ->{ throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));},
-                            LinkedHashMap::new)));
+            groupByResponse
+                .values()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        // https://stackoverflow.com/questions/5525795/does-javascript-guarantee-object-property-order/5525820#5525820
+                        // because javascript does not preserve the order, we have to convert all "1" keys to a non int value
+                        bucket -> UNKNOWN_SERVICE.equals(bucket.name()) ? UNKNOWN_SERVICE_MAPPED : bucket.name(),
+                        GroupByResponse.Bucket::value,
+                        (v1, v2) -> {
+                            throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
+                        },
+                        LinkedHashMap::new
+                    )
+                )
+        );
 
         String fieldName = groupByResponse.getField();
 
         if (fieldName != null && !fieldName.isEmpty()) {
-
             // Prepare metadata
             Map<String, Map<String, String>> metadata = new HashMap<>();
             if (topHitsAnalytics.getValues() != null) {
                 int i = 0;
                 for (String key : topHitsAnalytics.getValues().keySet()) {
-                    switch(fieldName) {
-                        case FIELD_API: metadata.put(key, getAPIMetadata(key)); break;
-                        case FIELD_APPLICATION: metadata.put(key, getApplicationMetadata(key)); break;
-                        case FIELD_PLAN: metadata.put(key, getPlanMetadata(key)); break;
-                        case FIELD_TENANT: metadata.put(key, getTenantMetadata(key)); break;
-                        case FIELD_GEOIP_COUNTRY_ISO_CODE: metadata.put(key, getCountryName(key)); break;
+                    switch (fieldName) {
+                        case FIELD_API:
+                            metadata.put(key, getAPIMetadata(key));
+                            break;
+                        case FIELD_APPLICATION:
+                            metadata.put(key, getApplicationMetadata(key));
+                            break;
+                        case FIELD_PLAN:
+                            metadata.put(key, getPlanMetadata(key));
+                            break;
+                        case FIELD_TENANT:
+                            metadata.put(key, getTenantMetadata(key));
+                            break;
+                        case FIELD_GEOIP_COUNTRY_ISO_CODE:
+                            metadata.put(key, getCountryName(key));
+                            break;
                         default:
-                            metadata.put(key, getGenericMetadata(key)); break;
+                            metadata.put(key, getGenericMetadata(key));
+                            break;
                     }
                     metadata.get(key).put("order", String.valueOf(i));
                     i++;

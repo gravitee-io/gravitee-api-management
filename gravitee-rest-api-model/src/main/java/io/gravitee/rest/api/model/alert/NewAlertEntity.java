@@ -16,9 +16,8 @@
 package io.gravitee.rest.api.model.alert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -28,11 +27,15 @@ public class NewAlertEntity {
 
     @NotNull
     private String name;
+
     private String description;
+
     @JsonProperty("reference_type")
     private AlertReferenceType referenceType;
+
     @JsonProperty("reference_id")
     private String referenceId;
+
     private AlertType type;
     private boolean enabled;
     private MetricType metricType;
@@ -134,38 +137,69 @@ public class NewAlertEntity {
         if (this == o) return true;
         if (!(o instanceof NewAlertEntity)) return false;
         NewAlertEntity that = (NewAlertEntity) o;
-        return enabled == that.enabled &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                referenceType == that.referenceType &&
-                Objects.equals(referenceId, that.referenceId) &&
-                type == that.type &&
-                metricType == that.metricType &&
-                Objects.equals(metric, that.metric) &&
-                thresholdType == that.thresholdType &&
-                Objects.equals(threshold, that.threshold) &&
-                Objects.equals(plan, that.plan);
+        return (
+            enabled == that.enabled &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            referenceType == that.referenceType &&
+            Objects.equals(referenceId, that.referenceId) &&
+            type == that.type &&
+            metricType == that.metricType &&
+            Objects.equals(metric, that.metric) &&
+            thresholdType == that.thresholdType &&
+            Objects.equals(threshold, that.threshold) &&
+            Objects.equals(plan, that.plan)
+        );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, referenceType, referenceId, type, enabled, metricType, metric, thresholdType, threshold, plan);
+        return Objects.hash(
+            name,
+            description,
+            referenceType,
+            referenceId,
+            type,
+            enabled,
+            metricType,
+            metric,
+            thresholdType,
+            threshold,
+            plan
+        );
     }
 
     @Override
     public String toString() {
-        return "NewAlertEntity{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", referenceType=" + referenceType +
-                ", referenceId='" + referenceId + '\'' +
-                ", type=" + type +
-                ", enabled=" + enabled +
-                ", metricType=" + metricType +
-                ", metric=" + metric +
-                ", thresholdType=" + thresholdType +
-                ", threshold=" + threshold +
-                ", plan='" + plan + '\'' +
-                '}';
+        return (
+            "NewAlertEntity{" +
+            "name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", type=" +
+            type +
+            ", enabled=" +
+            enabled +
+            ", metricType=" +
+            metricType +
+            ", metric=" +
+            metric +
+            ", thresholdType=" +
+            thresholdType +
+            ", threshold=" +
+            threshold +
+            ", plan='" +
+            plan +
+            '\'' +
+            '}'
+        );
     }
 }

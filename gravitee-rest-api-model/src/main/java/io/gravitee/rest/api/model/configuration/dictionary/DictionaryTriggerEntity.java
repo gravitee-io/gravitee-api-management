@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.configuration.dictionary;
 
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,8 +52,7 @@ public class DictionaryTriggerEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DictionaryTriggerEntity that = (DictionaryTriggerEntity) o;
-        return rate == that.rate &&
-                unit == that.unit;
+        return rate == that.rate && unit == that.unit;
     }
 
     @Override

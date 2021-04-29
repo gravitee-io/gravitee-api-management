@@ -16,18 +16,18 @@
 package io.gravitee.rest.api.model.notification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GenericNotificationConfigEntity {
 
     @JsonProperty("config_type")
     private NotificationConfigType configType;
+
     private String id;
     private String name;
     private String referenceType;
@@ -124,16 +124,36 @@ public class GenericNotificationConfigEntity {
 
     @Override
     public String toString() {
-        return "GenericNotificationConfigEntity{" +
-                "id='" + id + '\'' +
-                ", configType='" + configType + '\'' +
-                ", name='" + name + '\'' +
-                ", notifier='" + notifier + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", hooks='" + hooks + '\'' +
-                ", useSystemProxy='" + useSystemProxy + '\'' +
-                ", config='" + config + '\'' +
-                '}';
+        return (
+            "GenericNotificationConfigEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", configType='" +
+            configType +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", notifier='" +
+            notifier +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", hooks='" +
+            hooks +
+            '\'' +
+            ", useSystemProxy='" +
+            useSystemProxy +
+            '\'' +
+            ", config='" +
+            config +
+            '\'' +
+            '}'
+        );
     }
 }

@@ -28,17 +28,16 @@ import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.filtering.FilteringService;
-
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -62,18 +61,21 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public Response getApis(@BeanParam PaginationParam paginationParam, @BeanParam ApisParam apisParam) {
-
         boolean isCategoryMode = (apisParam.getCategory() != null && apisParam.getFilter() == null);
 
         String categoryFilter = apisParam.getCategory();
-        if(!isCategoryMode && categoryFilter != null) {
+        if (!isCategoryMode && categoryFilter != null) {
             apisParam.setCategory(null);
         }
 
         Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(apisParam));
 
-        FilteringService.FilterType filter = apisParam.getFilter() != null ? FilteringService.FilterType.valueOf(apisParam.getFilter().name()) : null;
-        FilteringService.FilterType excludeFilter = apisParam.getExcludedFilter() != null ? FilteringService.FilterType.valueOf(apisParam.getExcludedFilter().name()) : null;
+        FilteringService.FilterType filter = apisParam.getFilter() != null
+            ? FilteringService.FilterType.valueOf(apisParam.getFilter().name())
+            : null;
+        FilteringService.FilterType excludeFilter = apisParam.getExcludedFilter() != null
+            ? FilteringService.FilterType.valueOf(apisParam.getExcludedFilter().name())
+            : null;
 
         FilteredEntities<ApiEntity> filteredApis = filteringService.filterApis(apis, filter, excludeFilter);
         List<ApiEntity> filteredApisList = filteredApis.getFilteredItems();
@@ -89,7 +91,10 @@ public class ApisResource extends AbstractResource {
                 // If it is, then the HL API becomes the promoted API
                 String highlightedApiId = this.categoryService.findById(categoryFilter).getHighlightApi();
                 if (highlightedApiId != null) {
-                    Optional<ApiEntity> highlightedApiInResult = filteredApisList.stream().filter(api -> api.getId().equals(highlightedApiId)).findFirst();
+                    Optional<ApiEntity> highlightedApiInResult = filteredApisList
+                        .stream()
+                        .filter(api -> api.getId().equals(highlightedApiId))
+                        .findFirst();
                     if (highlightedApiInResult.isPresent()) {
                         promotedApiId = highlightedApiInResult.get().getId();
                     }
@@ -102,16 +107,13 @@ public class ApisResource extends AbstractResource {
             } else if (apisParam.getPromoted() == Boolean.FALSE) {
                 // All filtered API except the promoted API have to be returned
                 if (!isCategoryMode && categoryFilter != null) {
-                    resultStream = resultStream.filter(api -> api.getCategories() !=null && api.getCategories().contains(categoryFilter));
+                    resultStream = resultStream.filter(api -> api.getCategories() != null && api.getCategories().contains(categoryFilter));
                 }
                 resultStream = resultStream.filter(api -> !api.getId().equals(finalPromotedApiId));
             }
         }
 
-        List<Api> apisList = resultStream
-                .map(apiMapper::convert)
-                .map(this::addApiLinks)
-                .collect(Collectors.toList());
+        List<Api> apisList = resultStream.map(apiMapper::convert).map(this::addApiLinks).collect(Collectors.toList());
 
         return createListResponse(apisList, paginationParam, filteredApis.getMetadata());
     }
@@ -120,17 +122,22 @@ public class ApisResource extends AbstractResource {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    public Response searchApis(@NotNull(message = "Input must not be null.") @QueryParam("q") String query,
-                               @BeanParam PaginationParam paginationParam) {
-        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(),
-                createQueryFromParam(null));
+    public Response searchApis(
+        @NotNull(message = "Input must not be null.") @QueryParam("q") String query,
+        @BeanParam PaginationParam paginationParam
+    ) {
+        Collection<ApiEntity> apis = apiService.findPublishedByUser(getAuthenticatedUserOrNull(), createQueryFromParam(null));
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apis.stream().map(ApiEntity::getId).collect(Collectors.toSet()));
 
         try {
-            List<Api> apisList = apiService.search(query, filters).stream().map(apiMapper::convert)
-                    .map(this::addApiLinks).collect(Collectors.toList());
+            List<Api> apisList = apiService
+                .search(query, filters)
+                .stream()
+                .map(apiMapper::convert)
+                .map(this::addApiLinks)
+                .collect(Collectors.toList());
             return createListResponse(apisList, paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
@@ -152,7 +159,6 @@ public class ApisResource extends AbstractResource {
         return apiQuery;
     }
 
-
     private Api addApiLinks(Api api) {
         final OffsetDateTime updatedAt = api.getUpdatedAt();
         Date updateDate = null;
@@ -160,8 +166,7 @@ public class ApisResource extends AbstractResource {
             long epochMilli = updatedAt.toInstant().toEpochMilli();
             updateDate = new Date(epochMilli);
         }
-        return api.links(apiMapper
-                .computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate));
+        return api.links(apiMapper.computeApiLinks(PortalApiLinkHelper.apisURL(uriInfo.getBaseUriBuilder(), api.getId()), updateDate));
     }
 
     @Path("{apiId}")

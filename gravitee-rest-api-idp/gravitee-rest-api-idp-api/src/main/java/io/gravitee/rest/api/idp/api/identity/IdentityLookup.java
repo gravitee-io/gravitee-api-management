@@ -22,7 +22,6 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface IdentityLookup extends Comparable<IdentityLookup> {
-
     boolean canHandle(IdentityReference identityReference);
 
     User retrieve(IdentityReference identityReference);
@@ -36,7 +35,7 @@ public interface IdentityLookup extends Comparable<IdentityLookup> {
     default boolean allowEmailInSearchResults() {
         return false;
     }
-    
+
     int getOrder();
 
     @Override

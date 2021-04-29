@@ -15,18 +15,16 @@
  */
 package io.gravitee.rest.api.service;
 
-import java.util.List;
-
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.api.header.NewApiHeaderEntity;
 import io.gravitee.rest.api.model.api.header.UpdateApiHeaderEntity;
+import java.util.List;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApiHeaderService {
-
     ApiHeaderEntity create(NewApiHeaderEntity newEntity);
 
     void delete(String apiHeaderId);

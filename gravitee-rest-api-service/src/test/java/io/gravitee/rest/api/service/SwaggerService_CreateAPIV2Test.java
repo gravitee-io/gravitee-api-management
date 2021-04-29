@@ -15,22 +15,21 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -47,7 +46,10 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
     protected void validate(SwaggerApiEntity api) {
         assertEquals("1.2.3", api.getVersion());
         assertEquals("Gravitee.io Swagger API", api.getName());
-        assertEquals("https://demo.gravitee.io/gateway/echo", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
+        assertEquals(
+            "https://demo.gravitee.io/gateway/echo",
+            api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget()
+        );
         validatePolicies(api, 2, 4, asList("/pets", "/pets/:petId"));
     }
 
@@ -59,14 +61,19 @@ public class SwaggerService_CreateAPIV2Test extends SwaggerService_CreateAPITest
     }
 
     @Override
-    protected void validateRules(SwaggerApiEntity api, String path, int expectedRuleSize, List<HttpMethod> firstRuleMethods, String firstRuleDescription) {
+    protected void validateRules(
+        SwaggerApiEntity api,
+        String path,
+        int expectedRuleSize,
+        List<HttpMethod> firstRuleMethods,
+        String firstRuleDescription
+    ) {
         List<Flow> flows = api.getFlows().stream().filter(flow1 -> flow1.getPath().equals(path)).collect(Collectors.toList());
-//        assertEquals(1, flows.size());
+        //        assertEquals(1, flows.size());
         assertEquals(expectedRuleSize, flows.get(0).getPre().size());
         assertTrue(flows.get(0).getMethods().containsAll(firstRuleMethods));
         Step step = flows.get(0).getPre().get(0);
         assertNotNull(step);
         assertEquals(firstRuleDescription, step.getDescription());
     }
-
 }

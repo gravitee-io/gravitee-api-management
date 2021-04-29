@@ -28,8 +28,12 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
  * @author GraviteeSource Team
  */
 public interface TicketService {
-
-    TicketEntity create(String username, NewTicketEntity ticketEntity, final String referenceId, final ParameterReferenceType referenceType);
+    TicketEntity create(
+        String username,
+        NewTicketEntity ticketEntity,
+        final String referenceId,
+        final ParameterReferenceType referenceType
+    );
 
     Page<TicketEntity> search(TicketQuery query, Sortable sortable, Pageable pageable);
 

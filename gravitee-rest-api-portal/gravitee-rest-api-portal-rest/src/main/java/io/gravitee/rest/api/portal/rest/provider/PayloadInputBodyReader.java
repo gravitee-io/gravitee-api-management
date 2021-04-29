@@ -16,13 +16,6 @@
 package io.gravitee.rest.api.portal.rest.provider;
 
 import io.gravitee.rest.api.portal.rest.model.PayloadInput;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,6 +25,12 @@ import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Optional;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.MessageBodyReader;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -45,9 +44,14 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
     }
 
     @Override
-    public PayloadInput readFrom(Class<PayloadInput> aClass, Type type, Annotation[] annotations, MediaType mediaType,
-                                 MultivaluedMap<String, String> multivaluedMap, InputStream inputStream)
-            throws IOException, WebApplicationException {
+    public PayloadInput readFrom(
+        Class<PayloadInput> aClass,
+        Type type,
+        Annotation[] annotations,
+        MediaType mediaType,
+        MultivaluedMap<String, String> multivaluedMap,
+        InputStream inputStream
+    ) throws IOException, WebApplicationException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             final String line = br.readLine();
             final PayloadInput payloadInput = new PayloadInput();
@@ -64,8 +68,7 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
     }
 
     private String getParam(final List<NameValuePair> params, final String paramName) {
-        final Optional<NameValuePair> optionalParam =
-                params.stream().filter(param -> paramName.equals(param.getName())).findAny();
+        final Optional<NameValuePair> optionalParam = params.stream().filter(param -> paramName.equals(param.getName())).findAny();
         return optionalParam.map(NameValuePair::getValue).orElse(null);
     }
 }

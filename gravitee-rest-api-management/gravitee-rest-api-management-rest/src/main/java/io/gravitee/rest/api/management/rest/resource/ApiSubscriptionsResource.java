@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static java.lang.String.format;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Pageable;
@@ -33,8 +35,9 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.validator.CustomApiKey;
 import io.swagger.annotations.*;
-import org.apache.commons.lang3.StringUtils;
-
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -43,18 +46,14 @@ import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.lang.String.format;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Subscriptions"})
+@Api(tags = { "API Subscriptions" })
 public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
@@ -85,39 +84,47 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List subscriptions for the API",
-            notes = "User must have the READ_SUBSCRIPTION permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "List subscriptions for the API", notes = "User must have the READ_SUBSCRIPTION permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Paged result of API's subscriptions", response = PagedResult.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public PagedResult<SubscriptionEntity> getApiSubscriptions(
-            @BeanParam SubscriptionParam subscriptionParam,
-            @Valid @BeanParam Pageable pageable,
-            @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam("expand") List<String> expand) {
+        @BeanParam SubscriptionParam subscriptionParam,
+        @Valid @BeanParam Pageable pageable,
+        @ApiParam(allowableValues = "keys", value = "Expansion of data to return in subscriptions") @QueryParam(
+            "expand"
+        ) List<String> expand
+    ) {
         // Transform query parameters to a subscription query
         SubscriptionQuery subscriptionQuery = subscriptionParam.toQuery();
         subscriptionQuery.setApi(api);
 
-        Page<SubscriptionEntity> subscriptions = subscriptionService
-                .search(subscriptionQuery, pageable.toPageable());
+        Page<SubscriptionEntity> subscriptions = subscriptionService.search(subscriptionQuery, pageable.toPageable());
 
         if (expand != null && !expand.isEmpty()) {
             for (String e : expand) {
                 switch (e) {
                     case "keys":
-                        subscriptions.getContent().forEach(subscriptionEntity -> {
-                            final List<String> keys = apiKeyService.findBySubscription(subscriptionEntity.getId())
-                                    .stream()
-                                    .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
-                                    .map(ApiKeyEntity::getKey)
-                                    .collect(Collectors.toList());
-                            subscriptionEntity.setKeys(keys);
-                        });
+                        subscriptions
+                            .getContent()
+                            .forEach(
+                                subscriptionEntity -> {
+                                    final List<String> keys = apiKeyService
+                                        .findBySubscription(subscriptionEntity.getId())
+                                        .stream()
+                                        .filter(apiKeyEntity -> !apiKeyEntity.isExpired() && !apiKeyEntity.isRevoked())
+                                        .map(ApiKeyEntity::getKey)
+                                        .collect(Collectors.toList());
+                                    subscriptionEntity.setKeys(keys);
+                                }
+                            );
                         break;
-                    default: break;
+                    default:
+                        break;
                 }
             }
         }
@@ -129,28 +136,25 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Subscribe to a plan",
-            notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Subscribe to a plan", notes = "User must have the MANAGE_SUBSCRIPTIONS permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 201, message = "Subscription successfully created", response = Subscription.class),
             @ApiResponse(code = 400, message = "Bad custom API Key format or custom API Key definition disabled"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.CREATE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.CREATE) })
     public Response createSubscriptionToApi(
-            @ApiParam(name = "application", required = true)
-            @NotNull @QueryParam("application") String application,
-            @ApiParam(name = "plan", required = true)
-            @NotNull @QueryParam("plan") String plan,
-            @ApiParam(name = "customApiKey")
-            @CustomApiKey @QueryParam("customApiKey") String customApiKey) {
-
-        if (StringUtils.isNotEmpty(customApiKey)  &&
-                !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("You are not allowed to provide a custom API Key")
-                    .build();
+        @ApiParam(name = "application", required = true) @NotNull @QueryParam("application") String application,
+        @ApiParam(name = "plan", required = true) @NotNull @QueryParam("plan") String plan,
+        @ApiParam(name = "customApiKey") @CustomApiKey @QueryParam("customApiKey") String customApiKey
+    ) {
+        if (
+            StringUtils.isNotEmpty(customApiKey) &&
+            !parameterService.findAsBoolean(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED, ParameterReferenceType.ENVIRONMENT)
+        ) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
 
         NewSubscriptionEntity newSubscriptionEntity = new NewSubscriptionEntity(plan, application);
@@ -168,27 +172,29 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         return Response
-                .created(this.getRequestUriBuilder().path(subscription.getId()).replaceQueryParam("application", null).replaceQueryParam("plan", null).build())
-                .entity(convert(subscription))
-                .build();
+            .created(
+                this.getRequestUriBuilder()
+                    .path(subscription.getId())
+                    .replaceQueryParam("application", null)
+                    .replaceQueryParam("plan", null)
+                    .build()
+            )
+            .entity(convert(subscription))
+            .build();
     }
 
     @GET
     @Path("export")
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Export API logs as CSV")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "API logs as CSV"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({@Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ)})
-    public Response exportApiSubscriptionsLogsAsCSV(
-            @BeanParam SubscriptionParam subscriptionParam,
-            @Valid @BeanParam Pageable pageable) {
+    @ApiResponses({ @ApiResponse(code = 200, message = "API logs as CSV"), @ApiResponse(code = 500, message = "Internal server error") })
+    @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
+    public Response exportApiSubscriptionsLogsAsCSV(@BeanParam SubscriptionParam subscriptionParam, @Valid @BeanParam Pageable pageable) {
         final PagedResult<SubscriptionEntity> subscriptions = getApiSubscriptions(subscriptionParam, pageable, null);
         return Response
-                .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
-                .build();
+            .ok(subscriptionService.exportAsCsv(subscriptions.getData(), subscriptions.getMetadata()))
+            .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=subscriptions-%s-%s.csv", api, System.currentTimeMillis()))
+            .build();
     }
 
     @Path("{subscription}")
@@ -209,25 +215,25 @@ public class ApiSubscriptionsResource extends AbstractResource {
         subscription.setReason(subscriptionEntity.getReason());
         subscription.setStatus(subscriptionEntity.getStatus());
         subscription.setSubscribedBy(
-                new Subscription.User(subscriptionEntity.getSubscribedBy(),
-                        userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
-                ));
+            new Subscription.User(
+                subscriptionEntity.getSubscribedBy(),
+                userService.findById(subscriptionEntity.getSubscribedBy()).getDisplayName()
+            )
+        );
 
         PlanEntity plan = planService.findById(subscriptionEntity.getPlan());
         subscription.setPlan(new Subscription.Plan(plan.getId(), plan.getName()));
 
         ApplicationEntity application = applicationService.findById(subscriptionEntity.getApplication());
         subscription.setApplication(
-                new Subscription.Application(
-                        application.getId(),
-                        application.getName(),
-                        application.getType(),
-                        application.getDescription(),
-                        new Subscription.User(
-                                application.getPrimaryOwner().getId(),
-                                application.getPrimaryOwner().getDisplayName()
-                        )
-                ));
+            new Subscription.Application(
+                application.getId(),
+                application.getName(),
+                application.getType(),
+                application.getDescription(),
+                new Subscription.User(application.getPrimaryOwner().getId(), application.getPrimaryOwner().getDisplayName())
+            )
+        );
 
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
 

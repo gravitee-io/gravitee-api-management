@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -28,6 +28,7 @@ public class NewEntryPointEntity {
     @NotNull
     @Size(min = 1)
     private String value;
+
     @NotNull
     @Size(min = 1)
     private String[] tags;
@@ -53,8 +54,7 @@ public class NewEntryPointEntity {
         if (this == o) return true;
         if (!(o instanceof NewEntryPointEntity)) return false;
         NewEntryPointEntity that = (NewEntryPointEntity) o;
-        return Objects.equals(value, that.value) &&
-                Objects.equals(tags, that.tags);
+        return Objects.equals(value, that.value) && Objects.equals(tags, that.tags);
     }
 
     @Override
@@ -64,9 +64,6 @@ public class NewEntryPointEntity {
 
     @Override
     public String toString() {
-        return "EntryPointEntity{" +
-                "value='" + value + '\'' +
-                ", tags=" + tags +
-                '}';
+        return "EntryPointEntity{" + "value='" + value + '\'' + ", tags=" + tags + '}';
     }
 }

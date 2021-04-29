@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.idp.core.authentication.impl;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+
 import io.gravitee.rest.api.idp.api.identity.IdentityLookup;
 import io.gravitee.rest.api.idp.api.identity.IdentityReference;
 import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.idp.api.identity.User;
 import io.gravitee.rest.api.idp.core.authentication.IdentityManager;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,8 +47,11 @@ public class CompositeIdentityManager implements IdentityManager {
         LOGGER.debug("Looking for a user: reference[{}]", reference);
         try {
             IdentityReference identityReference = referenceSerializer.deserialize(reference);
-            LOGGER.debug("Lookup identity information from reference: source[{}] id[{}]",
-                    identityReference.getSource(), identityReference.getReference());
+            LOGGER.debug(
+                "Lookup identity information from reference: source[{}] id[{}]",
+                identityReference.getSource(),
+                identityReference.getReference()
+            );
             for (final IdentityLookup identityLookup : identityLookups) {
                 if (identityLookup.canHandle(identityReference)) {
                     final User user = identityLookup.retrieve(identityReference);
@@ -72,10 +74,12 @@ public class CompositeIdentityManager implements IdentityManager {
                 Collection<User> lookupUsers = identityLookup.search(query);
                 if (lookupUsers != null) {
                     boolean allowEmailInSearchResults = identityLookup.allowEmailInSearchResults();
-                    users.addAll(lookupUsers
+                    users.addAll(
+                        lookupUsers
                             .stream()
                             .map(user -> new DefaultSearchableUser(user, allowEmailInSearchResults))
-                            .collect(Collectors.toSet()));
+                            .collect(Collectors.toSet())
+                    );
                 }
             }
         }
@@ -91,6 +95,7 @@ public class CompositeIdentityManager implements IdentityManager {
     }
 
     private class DefaultSearchableUser implements SearchableUser {
+
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -101,12 +106,9 @@ public class CompositeIdentityManager implements IdentityManager {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
 
             DefaultSearchableUser other = (DefaultSearchableUser) obj;
             return identityReference.equals(other.identityReference);
@@ -115,7 +117,7 @@ public class CompositeIdentityManager implements IdentityManager {
         private final User user;
         private final boolean allowEmail;
         private final IdentityReference identityReference;
-        
+
         DefaultSearchableUser(User user, boolean allowEmail) {
             this.user = user;
             this.allowEmail = allowEmail;
@@ -154,7 +156,7 @@ public class CompositeIdentityManager implements IdentityManager {
 
         @Override
         public String getEmail() {
-            if(this.allowEmail) {
+            if (this.allowEmail) {
                 return user.getEmail();
             } else {
                 return null;

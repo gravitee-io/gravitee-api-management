@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.spec.converter;
 
 import io.swagger.v3.oas.models.OpenAPI;
-
 import java.io.InputStream;
 
 /**
@@ -28,5 +27,4 @@ public interface OpenAPIConverter {
 
     OpenAPI toOpenAPI(InputStream uri);
     OpenAPI toOpenAPI(String content);
-
 }

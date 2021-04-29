@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -92,12 +92,22 @@ public class UpdateMetadataEntity {
 
     @Override
     public String toString() {
-        return "UpdateMetadataEntity{" +
-                "key='" + key + '\'' +
-                ", name='" + name + '\'' +
-                ", format=" + format +
-                ", value='" + value + '\'' +
-                ", hidden=" + hidden +
-                '}';
+        return (
+            "UpdateMetadataEntity{" +
+            "key='" +
+            key +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", format=" +
+            format +
+            ", value='" +
+            value +
+            '\'' +
+            ", hidden=" +
+            hidden +
+            '}'
+        );
     }
 }

@@ -15,13 +15,12 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.Map;
 import java.util.Objects;
 
-import io.gravitee.rest.api.model.permissions.RoleScope;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class UserRoleEntity {
@@ -34,6 +33,7 @@ public class UserRoleEntity {
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -41,6 +41,7 @@ public class UserRoleEntity {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -48,6 +49,7 @@ public class UserRoleEntity {
     public RoleScope getScope() {
         return scope;
     }
+
     public void setScope(RoleScope scope) {
         this.scope = scope;
     }
@@ -55,6 +57,7 @@ public class UserRoleEntity {
     public Map<String, char[]> getPermissions() {
         return permissions;
     }
+
     public void setPermissions(Map<String, char[]> permissions) {
         this.permissions = permissions;
     }

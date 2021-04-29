@@ -21,10 +21,8 @@ import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.count.CountQuery;
 import io.gravitee.rest.api.repository.vertx.VertxCompletableFuture;
 import io.vertx.core.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.concurrent.CompletableFuture;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,22 +45,25 @@ public class AnalyticsRepositoryProbe implements Probe {
     public CompletableFuture<Result> check() {
         Future<Result> future = Future.future();
 
-        vertx.executeBlocking(new Handler<Promise<Result>>() {
-            @Override
-            public void handle(Promise<Result> event) {
-                try {
-                    analyticsRepository.query(new CountQuery());
-                    event.complete(Result.healthy());
-                } catch (Exception ex) {
-                    event.complete(Result.unhealthy(ex));
+        vertx.executeBlocking(
+            new Handler<Promise<Result>>() {
+                @Override
+                public void handle(Promise<Result> event) {
+                    try {
+                        analyticsRepository.query(new CountQuery());
+                        event.complete(Result.healthy());
+                    } catch (Exception ex) {
+                        event.complete(Result.unhealthy(ex));
+                    }
+                }
+            },
+            new Handler<AsyncResult<Result>>() {
+                @Override
+                public void handle(AsyncResult<Result> event) {
+                    future.complete(event.result());
                 }
             }
-        }, new Handler<AsyncResult<Result>>() {
-            @Override
-            public void handle(AsyncResult<Result> event) {
-                future.complete(event.result());
-            }
-        });
+        );
 
         return VertxCompletableFuture.from(vertx, future);
     }

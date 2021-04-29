@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.am.AMIdentityProviderEntity;
@@ -23,18 +27,12 @@ import io.gravitee.rest.api.model.configuration.identity.google.GoogleIdentityPr
 import io.gravitee.rest.api.model.configuration.identity.oidc.OIDCIdentityProviderEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.ConfigurationIdentitiesResponse;
-import org.junit.Test;
-import org.mockito.internal.util.collections.Sets;
-
-import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
+import javax.ws.rs.core.Response;
+import org.junit.Test;
+import org.mockito.internal.util.collections.Sets;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -64,7 +62,6 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
 
     private String serverUrl = "SERVER_URL";
 
-
     @Test
     public void shouldGetConfigurationIdentities() {
         resetAllMocks();
@@ -74,9 +71,16 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
 
         doReturn(Sets.newSet(activatedIdp)).when(identityProviderActivationService).findAllByTarget(any());
 
-        doReturn(Sets.newSet(mockAMIdentityProviderEntity(), mockGoogleIdentityProviderEntity(), mockGitHubIdentityProviderEntity(), mockOIDCIdentityProviderEntity()))
-                .when(socialIdentityProviderService)
-                .findAll(any());
+        doReturn(
+            Sets.newSet(
+                mockAMIdentityProviderEntity(),
+                mockGoogleIdentityProviderEntity(),
+                mockGitHubIdentityProviderEntity(),
+                mockOIDCIdentityProviderEntity()
+            )
+        )
+            .when(socialIdentityProviderService)
+            .findAll(any());
 
         PortalSettingsEntity configEntity = new PortalSettingsEntity();
         doReturn(configEntity).when(configService).getPortalSettings();
@@ -89,9 +93,7 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
 
         ConfigurationIdentitiesResponse configurationIdentitiesResponse = response.readEntity(ConfigurationIdentitiesResponse.class);
         assertEquals(4, configurationIdentitiesResponse.getData().size());
-
     }
-
 
     private Object mockGitHubIdentityProviderEntity() {
         GitHubIdentityProviderEntity providerEntity = new GitHubIdentityProviderEntity();
@@ -106,7 +108,6 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         return providerEntity;
     }
 
-
     private Object mockGoogleIdentityProviderEntity() {
         GoogleIdentityProviderEntity providerEntity = new GoogleIdentityProviderEntity();
         providerEntity.setClientId(IDP_CLIENT_ID);
@@ -119,7 +120,6 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         providerEntity.setRoleMappings(new ArrayList<>());
         return providerEntity;
     }
-
 
     private Object mockAMIdentityProviderEntity() {
         AMIdentityProviderEntity providerEntity = new AMIdentityProviderEntity(serverUrl);
@@ -137,7 +137,6 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         providerEntity.setUserProfileMapping(new HashMap<>());
         return providerEntity;
     }
-
 
     private Object mockOIDCIdentityProviderEntity() {
         OIDCIdentityProviderEntity providerEntity = new OIDCIdentityProviderEntity();
@@ -161,5 +160,3 @@ public class ConfigurationIdentitiesResourceTest extends AbstractResourceTest {
         return providerEntity;
     }
 }
-
-

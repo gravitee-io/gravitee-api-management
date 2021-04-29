@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
-
 import java.util.*;
 
 /**
@@ -41,13 +41,17 @@ public class PageEntity implements Indexable {
     private boolean homepage;
     private String parentId;
     private String parentPath;
+
     @JsonProperty("excluded_groups")
     private List<String> excludedGroups;
+
     private boolean excludedAccessControls;
     private Set<AccessControlEntity> accessControls;
-    private List<String> messages ;
+    private List<String> messages;
+
     @JsonProperty("attached_media")
     private List<PageMediaEntity> attachedMedia;
+
     private Map<String, String> metadata;
     private List<PageEntity> translations;
 
@@ -60,6 +64,12 @@ public class PageEntity implements Indexable {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private PageRevisionId contentRevisionId;
 
+    @JsonIgnore
+    private String referenceType;
+
+    @JsonIgnore
+    private String referenceId;
+
     @Override
     public String getId() {
         return id;
@@ -68,6 +78,26 @@ public class PageEntity implements Indexable {
     @Override
     public void setId(String id) {
         this.id = id;
+    }
+
+    @Override
+    public String getReferenceType() {
+        return this.referenceType;
+    }
+
+    @Override
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    @Override
+    public String getReferenceId() {
+        return referenceId;
+    }
+
+    @Override
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
     }
 
     public String getName() {
@@ -117,7 +147,6 @@ public class PageEntity implements Indexable {
     public void setPublished(boolean published) {
         this.published = published;
     }
-
 
     public Date getLastModificationDate() {
         return lastModificationDate;
@@ -272,36 +301,76 @@ public class PageEntity implements Indexable {
         return Objects.hash(id);
     }
 
-	@Override
-	public String toString() {
-		return "PageEntity{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", type='" + type + '\'' +
-				", content='" + content + '\'' +
-				", order=" + order +
-				", lastContributor='" + lastContributor + '\'' +
-				", published=" + published +
-				", visibility=" + visibility +
-				", lastModificationDate=" + lastModificationDate +
-				", contentType='" + contentType + '\'' +
-				", source=" + source +
-				", configuration=" + configuration +
-				", homepage=" + homepage +
-				", parentId='" + parentId + '\'' +
-                ", parentPath='" + parentPath + '\'' +
-                ", excludedGroups=" + excludedGroups +
-                ", excludedAccessControls='" + excludedAccessControls + '\'' +
-                ", accessControls='" + accessControls + '\'' +
-                ", attachedMedia=" + attachedMedia +
-                ", metadata='" + metadata + '\'' +
-                ", translations='" + translations + '\'' +
-				", generalConditions='" + generalConditions + '\'' +
-				", contentRevisionId='" + contentRevisionId + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "PageEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", type='" +
+            type +
+            '\'' +
+            ", content='" +
+            content +
+            '\'' +
+            ", order=" +
+            order +
+            ", lastContributor='" +
+            lastContributor +
+            '\'' +
+            ", published=" +
+            published +
+            ", visibility=" +
+            visibility +
+            ", lastModificationDate=" +
+            lastModificationDate +
+            ", contentType='" +
+            contentType +
+            '\'' +
+            ", source=" +
+            source +
+            ", configuration=" +
+            configuration +
+            ", homepage=" +
+            homepage +
+            ", parentId='" +
+            parentId +
+            '\'' +
+            ", parentPath='" +
+            parentPath +
+            '\'' +
+            ", excludedGroups=" +
+            excludedGroups +
+            ", excludedAccessControls='" +
+            excludedAccessControls +
+            '\'' +
+            ", accessControls='" +
+            accessControls +
+            '\'' +
+            ", attachedMedia=" +
+            attachedMedia +
+            ", metadata='" +
+            metadata +
+            '\'' +
+            ", translations='" +
+            translations +
+            '\'' +
+            ", generalConditions='" +
+            generalConditions +
+            '\'' +
+            ", contentRevisionId='" +
+            contentRevisionId +
+            '\'' +
+            '}'
+        );
+    }
 
-	public static class PageRevisionId {
+    public static class PageRevisionId {
+
         private final String pageId;
         private final int revision;
 
@@ -323,8 +392,7 @@ public class PageEntity implements Indexable {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             PageRevisionId that = (PageRevisionId) o;
-            return revision == that.revision &&
-                Objects.equals(pageId, that.pageId);
+            return revision == that.revision && Objects.equals(pageId, that.pageId);
         }
 
         @Override
@@ -334,10 +402,7 @@ public class PageEntity implements Indexable {
 
         @Override
         public String toString() {
-            return "PageRevisionId{" +
-                    "pageId='" + pageId + '\'' +
-                    ", revision=" + revision +
-                    '}';
+            return "PageRevisionId{" + "pageId='" + pageId + '\'' + ", revision=" + revision + '}';
         }
     }
 }

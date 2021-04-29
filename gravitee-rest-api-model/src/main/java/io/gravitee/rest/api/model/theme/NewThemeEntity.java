@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.model.theme;
 
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Guillaume CUSNIEUX (azize at graviteesource.com)
@@ -102,9 +102,7 @@ public class NewThemeEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NewThemeEntity theme = (NewThemeEntity) o;
-        return Objects.equals(name, theme.name)
-                && Objects.equals(enabled, theme.enabled)
-                && Objects.equals(definition, theme.definition);
+        return Objects.equals(name, theme.name) && Objects.equals(enabled, theme.enabled) && Objects.equals(definition, theme.definition);
     }
 
     @Override
@@ -114,10 +112,6 @@ public class NewThemeEntity {
 
     @Override
     public String toString() {
-        return "NewThemeEntity{" +
-                "name='" + name + '\'' +
-                ", enabled='" + enabled + '\'' +
-                ", definition='" + definition + '\'' +
-                '}';
+        return "NewThemeEntity{" + "name='" + name + '\'' + ", enabled='" + enabled + '\'' + ", definition='" + definition + '\'' + '}';
     }
 }

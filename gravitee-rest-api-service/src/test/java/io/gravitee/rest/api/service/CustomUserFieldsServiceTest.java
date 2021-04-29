@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
@@ -26,6 +29,13 @@ import io.gravitee.rest.api.service.exceptions.CustomUserFieldAlreadyExistExcept
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldException;
 import io.gravitee.rest.api.service.exceptions.CustomUserFieldNotFoundException;
 import io.gravitee.rest.api.service.impl.CustomUserFieldsServiceImpl;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,23 +45,13 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
 public class CustomUserFieldsServiceTest {
+
     private static final String ORG_ID = "DEFAULT";
     private static final CustomUserFieldReferenceType REF_TYPE = CustomUserFieldReferenceType.ORGANIZATION;
 
@@ -152,7 +152,9 @@ public class CustomUserFieldsServiceTest {
     @Test(expected = CustomUserFieldException.class)
     public void shouldNotCreateInvalidKey_tooLong() throws Exception {
         final CustomUserFieldEntity newFieldEntity = new CustomUserFieldEntity();
-        newFieldEntity.setKey("abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794");
+        newFieldEntity.setKey(
+            "abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794abcdefghijklmnopqrstuvwxz_-5648521389794"
+        );
         newFieldEntity.setLabel("New Field Label");
         newFieldEntity.setRequired(true);
         newFieldEntity.setValues(Arrays.asList("test"));
@@ -251,13 +253,15 @@ public class CustomUserFieldsServiceTest {
         final CustomUserField existingField2 = mock(CustomUserField.class);
         when(existingField2.getKey()).thenReturn("key2");
         when(existingField2.getFormat()).thenReturn(MetadataFormat.STRING);
-        when(customUserFieldsRepository.findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE)).thenReturn(Arrays.asList(existingField1, existingField2));
+        when(customUserFieldsRepository.findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE))
+            .thenReturn(Arrays.asList(existingField1, existingField2));
 
         List<CustomUserFieldEntity> entities = service.listAllFields();
 
         verify(customUserFieldsRepository).findByReferenceIdAndReferenceType(ORG_ID, REF_TYPE);
         assertNotNull("Fields", entities);
-        Assertions.assertThat(entities.stream().map(CustomUserFieldEntity::getKey).collect(Collectors.toList()))
-        .containsExactlyInAnyOrder("key1", "key2");
+        Assertions
+            .assertThat(entities.stream().map(CustomUserFieldEntity::getKey).collect(Collectors.toList()))
+            .containsExactlyInAnyOrder("key1", "key2");
     }
 }

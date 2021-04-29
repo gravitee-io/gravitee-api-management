@@ -19,11 +19,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.el.spel.context.SecuredMethodResolver;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
-import org.springframework.stereotype.Component;
-
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -32,6 +27,10 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -73,11 +72,9 @@ public class SpelServiceImpl implements SpelService {
             Map<String, Object> types = buildTypes();
             parse.appendField("_types", types);
             return parse;
-        } catch (ParseException | UnsupportedEncodingException e) {
-        }
+        } catch (ParseException | UnsupportedEncodingException e) {}
         return null;
     }
-
 
     private Map<String, Object> buildTypes() {
         Map<String, Object> types = new HashMap<>();
@@ -86,10 +83,10 @@ public class SpelServiceImpl implements SpelService {
     }
 
     private Map<String, Object> buildType(Class<?> classz) {
-
         Map type = new HashMap<>();
 
-        List<Object> methods = Arrays.stream(securedMethodResolver.getMethods(classz))
+        List<Object> methods = Arrays
+            .stream(securedMethodResolver.getMethods(classz))
             .filter(f -> Modifier.isPublic(f.getModifiers()))
             .map((Function<Method, Object>) method -> new MethodWrapper(method))
             .collect(Collectors.toList());
@@ -98,10 +95,12 @@ public class SpelServiceImpl implements SpelService {
     }
 
     private static class MethodWrapper extends HashMap {
+
         public MethodWrapper(Method method) {
             this.put("name", method.getName());
             this.put("returnType", method.getReturnType().getSimpleName());
-            List<Object> params = Arrays.stream(method.getParameters())
+            List<Object> params = Arrays
+                .stream(method.getParameters())
                 .map((Function<Parameter, Object>) parameter -> new ParameterWrapper(parameter))
                 .collect(Collectors.toList());
             if (params.size() > 0) {
@@ -117,5 +116,4 @@ public class SpelServiceImpl implements SpelService {
             this.put("type", parameter.getType().getSimpleName());
         }
     }
-
 }

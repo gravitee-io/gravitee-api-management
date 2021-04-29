@@ -52,24 +52,21 @@ public class AlertAnalyticsParam {
 
     public void validate() throws WebApplicationException {
         if (from == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'from' is not valid")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'from' is not valid").build()
+            );
         }
 
         if (to == -1) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("Query parameter 'to' is not valid")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("Query parameter 'to' is not valid").build()
+            );
         }
 
         if (from >= to) {
-            throw new WebApplicationException(Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity("'from' query parameter value must be greater than 'to'")
-                    .build());
+            throw new WebApplicationException(
+                Response.status(Response.Status.BAD_REQUEST).entity("'from' query parameter value must be greater than 'to'").build()
+            );
         }
     }
 }

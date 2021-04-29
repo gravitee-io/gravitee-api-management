@@ -44,8 +44,7 @@ public class IdentityReference {
         if (this == o) return true;
         if (!(o instanceof IdentityReference)) return false;
         IdentityReference that = (IdentityReference) o;
-        return Objects.equals(source, that.source) &&
-                Objects.equals(reference, that.reference);
+        return Objects.equals(source, that.source) && Objects.equals(reference, that.reference);
     }
 
     @Override
@@ -55,9 +54,6 @@ public class IdentityReference {
 
     @Override
     public String toString() {
-        return "IdentityReference{" +
-                "source='" + source + '\'' +
-                ", reference='" + reference + '\'' +
-                '}';
+        return "IdentityReference{" + "source='" + source + '\'' + ", reference='" + reference + '\'' + '}';
     }
 }

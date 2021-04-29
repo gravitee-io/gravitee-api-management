@@ -20,7 +20,6 @@ import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.NewCategoryEntity;
 import io.gravitee.rest.api.model.UpdateCategoryEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-
 import java.util.List;
 import java.util.Set;
 

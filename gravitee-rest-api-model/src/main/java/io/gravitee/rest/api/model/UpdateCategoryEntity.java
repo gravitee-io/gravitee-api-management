@@ -17,10 +17,9 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
+import java.util.Objects;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -31,9 +30,11 @@ import java.util.Objects;
 public class UpdateCategoryEntity {
 
     private String id;
+
     @NotNull
     @Size(min = 1)
     private String name;
+
     private String description;
     private boolean defaultCategory;
     private boolean hidden;
@@ -42,6 +43,7 @@ public class UpdateCategoryEntity {
     private String picture;
     private String background;
     private String page;
+
     @JsonProperty("picture_url")
     private String pictureUrl;
 
@@ -148,15 +150,33 @@ public class UpdateCategoryEntity {
 
     @Override
     public String toString() {
-        return "UpdateCategoryEntity{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", defaultCategory='" + defaultCategory + '\'' +
-                ", hidden='" + hidden + '\'' +
-                ", order='" + order + '\'' +
-                ", page='" + page + '\'' +
-                ", pictureUrl='" + pictureUrl + '\'' +
-                '}';
+        return (
+            "UpdateCategoryEntity{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", defaultCategory='" +
+            defaultCategory +
+            '\'' +
+            ", hidden='" +
+            hidden +
+            '\'' +
+            ", order='" +
+            order +
+            '\'' +
+            ", page='" +
+            page +
+            '\'' +
+            ", pictureUrl='" +
+            pictureUrl +
+            '\'' +
+            '}'
+        );
     }
 }

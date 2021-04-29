@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiService {
-
     ApiEntity findById(String apiId);
 
     Set<ApiEntity> findAll();
@@ -149,7 +147,7 @@ public interface ApiService {
     ApiEntity acceptReview(String apiId, String userId, ReviewEntity reviewEntity);
     ApiEntity rejectReview(String apiId, String userId, ReviewEntity reviewEntity);
 
-    ApiEntity duplicate(String apiId, DuplicateApiEntity duplicateApiEntity);
+    ApiEntity duplicate(ApiEntity apiEntity, DuplicateApiEntity duplicateApiEntity);
 
     InlinePictureEntity getBackground(String apiId);
 

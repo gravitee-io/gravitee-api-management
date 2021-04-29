@@ -15,6 +15,10 @@
  */
 package io.gravitee.rest.api.service.spring;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.repository.management.model.Parameter;
@@ -22,6 +26,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,17 +35,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
-
 @RunWith(MockitoJUnitRunner.class)
 public class GraviteeJavaMailManagerTest {
 
     @Mock
     private ParameterService parameterService;
+
     @Mock
     private EventManager eventManager;
 
@@ -79,18 +79,25 @@ public class GraviteeJavaMailManagerTest {
         verify(parameterService, times(1)).find(Key.EMAIL_PASSWORD, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1)).find(Key.EMAIL_PROTOCOL, "DEFAULT", ParameterReferenceType.ENVIRONMENT);
         verify(parameterService, times(1))
-                .findAll(argThat((List<Key> o) ->
-                                o.contains(Key.EMAIL_PROPERTIES_AUTH_ENABLED)
-                                        && o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE)
-                                        && o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)),
-                        eq("DEFAULT"),
-                        eq(ParameterReferenceType.ENVIRONMENT));
+            .findAll(
+                argThat(
+                    (List<Key> o) ->
+                        o.contains(Key.EMAIL_PROPERTIES_AUTH_ENABLED) &&
+                        o.contains(Key.EMAIL_PROPERTIES_STARTTLS_ENABLE) &&
+                        o.contains(Key.EMAIL_PROPERTIES_SSL_TRUST)
+                ),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            );
     }
 
     @Test
     public void shouldSetFieldsOnEvent() {
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
         assertNotNull(mailSender);
 
         graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host")));
@@ -114,15 +121,24 @@ public class GraviteeJavaMailManagerTest {
 
     @Test
     public void shouldNotSetFieldsOnEventWithAnotherRef() {
-
         GraviteeContext.setCurrentEnvironment("DEFAULT");
-        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        JavaMailSenderImpl mailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
 
         GraviteeContext.setCurrentEnvironment("ANOTHER_ENVIRONMENT");
-        JavaMailSenderImpl otherMailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender("DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        JavaMailSenderImpl otherMailSender = (JavaMailSenderImpl) graviteeJavaMailManager.getOrCreateMailSender(
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
 
-        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT)));
-        graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_PORT, buildParameter("125", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT)));
+        graviteeJavaMailManager.onEvent(
+            new SimpleEvent<>(Key.EMAIL_HOST, buildParameter("host", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT))
+        );
+        graviteeJavaMailManager.onEvent(
+            new SimpleEvent<>(Key.EMAIL_PORT, buildParameter("125", "ANOTHER_ENVIRONMENT", ParameterReferenceType.ENVIRONMENT))
+        );
         graviteeJavaMailManager.onEvent(new SimpleEvent<>(Key.EMAIL_USERNAME, buildParameter("usernameDefault")));
 
         assertNull(mailSender.getHost());
@@ -132,7 +148,7 @@ public class GraviteeJavaMailManagerTest {
         assertEquals(125, otherMailSender.getPort());
 
         assertEquals("usernameDefault", mailSender.getUsername());
-        assertNull( otherMailSender.getUsername());
+        assertNull(otherMailSender.getUsername());
     }
 
     private Parameter buildParameter(String value, String referenceId, ParameterReferenceType referenceType) {

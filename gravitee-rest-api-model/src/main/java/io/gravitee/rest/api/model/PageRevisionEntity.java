@@ -39,7 +39,7 @@ public class PageRevisionEntity {
             return false;
         }
         PageRevisionEntity that = (PageRevisionEntity) o;
-        return Objects.equals(pageId, that.pageId) && Objects.equals(revision, that.revision) ;
+        return Objects.equals(pageId, that.pageId) && Objects.equals(revision, that.revision);
     }
 
     public String getPageId() {
@@ -102,16 +102,30 @@ public class PageRevisionEntity {
         return Objects.hash(pageId, revision);
     }
 
-	@Override
-	public String toString() {
-		return "PageEntity{" +
-				" name='" + name + '\'' +
-				", pageId='" + pageId + '\'' +
-				", revision=" + revision +
-				", content='" + content + '\'' +
-				", hash='" + hash + '\'' +
-				", contributor='" + contributor + '\'' +
-				", modificationDate=" + modificationDate +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "PageEntity{" +
+            " name='" +
+            name +
+            '\'' +
+            ", pageId='" +
+            pageId +
+            '\'' +
+            ", revision=" +
+            revision +
+            ", content='" +
+            content +
+            '\'' +
+            ", hash='" +
+            hash +
+            '\'' +
+            ", contributor='" +
+            contributor +
+            '\'' +
+            ", modificationDate=" +
+            modificationDate +
+            '}'
+        );
+    }
 }

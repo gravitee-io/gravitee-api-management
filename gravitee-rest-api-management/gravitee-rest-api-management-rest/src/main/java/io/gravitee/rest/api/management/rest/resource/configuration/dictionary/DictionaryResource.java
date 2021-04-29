@@ -16,32 +16,30 @@
 package io.gravitee.rest.api.management.rest.resource.configuration.dictionary;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
+import io.gravitee.rest.api.management.rest.security.Permission;
+import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.management.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.rest.resource.param.LifecycleActionParam;
-import io.gravitee.rest.api.management.rest.security.Permission;
-import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.swagger.annotations.*;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"Configuration", "Dictionaries"})
+@Api(tags = { "Configuration", "Dictionaries" })
 public class DictionaryResource extends AbstractResource {
 
     @Autowired
@@ -49,17 +47,18 @@ public class DictionaryResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a dictionary",
-            notes = "User must have the DICTIONARY[READ] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "A dictionary"),
-            @ApiResponse(code = 500, message = "Internal server error")})
+    @ApiOperation(value = "Get a dictionary", notes = "User must have the DICTIONARY[READ] permission to use this service")
+    @ApiResponses({ @ApiResponse(code = 200, message = "A dictionary"), @ApiResponse(code = 500, message = "Internal server error") })
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.READ))
-    public DictionaryEntity getDictionary(
-            @PathParam("dictionary") String dictionary) {
+    public DictionaryEntity getDictionary(@PathParam("dictionary") String dictionary) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
         // remove provider informations for readonlyUsers
-        boolean notReadOnly = hasPermission(RolePermission.ENVIRONMENT_DICTIONARY, RolePermissionAction.CREATE, RolePermissionAction.UPDATE, RolePermissionAction.DELETE);
+        boolean notReadOnly = hasPermission(
+            RolePermission.ENVIRONMENT_DICTIONARY,
+            RolePermissionAction.CREATE,
+            RolePermissionAction.UPDATE,
+            RolePermissionAction.DELETE
+        );
         if (!notReadOnly) {
             dictionaryEntity.setProvider(null);
             dictionaryEntity.setTrigger(null);
@@ -70,15 +69,18 @@ public class DictionaryResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update a dictionary",
-            notes = "User must have the DICTIONARY[UPDATE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Update a dictionary", notes = "User must have the DICTIONARY[UPDATE] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Updated dictionary", response = DictionaryEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public DictionaryEntity updateDictionary(
-            @PathParam("dictionary") String dictionary,
-            @ApiParam(name = "dictionary", required = true) @Valid @NotNull final UpdateDictionaryEntity updatedDictionary) {
+        @PathParam("dictionary") String dictionary,
+        @ApiParam(name = "dictionary", required = true) @Valid @NotNull final UpdateDictionaryEntity updatedDictionary
+    ) {
         return dictionaryService.update(dictionary, updatedDictionary);
     }
 
@@ -86,11 +88,15 @@ public class DictionaryResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("_deploy")
     @ApiOperation(
-            value = "Deploy dictionary to API gateway",
-            notes = "User must have the DICTIONARY[UPDATE] permission to use this service")
-    @ApiResponses({
+        value = "Deploy dictionary to API gateway",
+        notes = "User must have the DICTIONARY[UPDATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Dictionary successfully deployed", response = DictionaryEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public Response deployDictionary(@PathParam("dictionary") String dictionary) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
@@ -98,27 +104,28 @@ public class DictionaryResource extends AbstractResource {
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
             dictionaryEntity = dictionaryService.deploy(dictionary);
             return Response
-                    .ok(dictionaryEntity)
-                    .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
-                    .lastModified(dictionaryEntity.getUpdatedAt())
-                    .build();
+                .ok(dictionaryEntity)
+                .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
+                .lastModified(dictionaryEntity.getUpdatedAt())
+                .build();
         }
 
-        return Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity("An automatic dictionary can not be deployed manually")
-                .build();
+        return Response.status(Response.Status.BAD_REQUEST).entity("An automatic dictionary can not be deployed manually").build();
     }
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("_undeploy")
     @ApiOperation(
-            value = "Undeploy dictionary to API gateway",
-            notes = "User must have the DICTIONARY[UPDATE] permission to use this service")
-    @ApiResponses({
+        value = "Undeploy dictionary to API gateway",
+        notes = "User must have the DICTIONARY[UPDATE] permission to use this service"
+    )
+    @ApiResponses(
+        {
             @ApiResponse(code = 200, message = "Dictionary successfully undeployed", response = DictionaryEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error")})
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public Response undeployDictionary(@PathParam("dictionary") String dictionary) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
@@ -126,27 +133,24 @@ public class DictionaryResource extends AbstractResource {
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
             dictionaryEntity = dictionaryService.undeploy(dictionary);
             return Response
-                    .ok(dictionaryEntity)
-                    .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
-                    .lastModified(dictionaryEntity.getUpdatedAt())
-                    .build();
+                .ok(dictionaryEntity)
+                .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
+                .lastModified(dictionaryEntity.getUpdatedAt())
+                .build();
         }
 
-        return Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity("An automatic dictionary can not be undeployed manually")
-                .build();
+        return Response.status(Response.Status.BAD_REQUEST).entity("An automatic dictionary can not be undeployed manually").build();
     }
 
     @DELETE
-    @ApiOperation(value = "Delete a dictionary",
-            notes = "User must have the DICTIONARY[DELETE] permission to use this service")
-    @ApiResponses({
+    @ApiOperation(value = "Delete a dictionary", notes = "User must have the DICTIONARY[DELETE] permission to use this service")
+    @ApiResponses(
+        {
             @ApiResponse(code = 204, message = "Dictionary successfully deleted"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE)
-    })
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.APPLICATION_DEFINITION, acls = RolePermissionAction.DELETE) })
     public Response deleteDictionary(@PathParam("dictionary") String dictionary) {
         dictionaryService.delete(dictionary);
         return Response.noContent().build();
@@ -155,19 +159,18 @@ public class DictionaryResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-            value = "Manage the dictionary's lifecycle",
-            notes = "User must have the DICTIONARY[LIFECYCLE] permission to use this service")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Dictionary state updated"),
-            @ApiResponse(code = 500, message = "Internal server error")})
-    @Permissions({
-            @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE)
-    })
+        value = "Manage the dictionary's lifecycle",
+        notes = "User must have the DICTIONARY[LIFECYCLE] permission to use this service"
+    )
+    @ApiResponses(
+        { @ApiResponse(code = 200, message = "Dictionary state updated"), @ApiResponse(code = 500, message = "Internal server error") }
+    )
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE) })
     public Response doLifecycleAction(
-            @Context HttpHeaders headers,
-            @ApiParam(required = true, allowableValues = "START, STOP")
-            @QueryParam("action") LifecycleActionParam action,
-            @PathParam("dictionary") String dictionary) {
+        @Context HttpHeaders headers,
+        @ApiParam(required = true, allowableValues = "START, STOP") @QueryParam("action") LifecycleActionParam action,
+        @PathParam("dictionary") String dictionary
+    ) {
         DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.DYNAMIC) {
@@ -186,16 +189,13 @@ public class DictionaryResource extends AbstractResource {
             }
 
             return Response
-                    .ok(dictionaryEntity)
-                    .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
-                    .lastModified(dictionaryEntity.getUpdatedAt())
-                    .build();
+                .ok(dictionaryEntity)
+                .tag(Long.toString(dictionaryEntity.getUpdatedAt().getTime()))
+                .lastModified(dictionaryEntity.getUpdatedAt())
+                .build();
         }
 
-        return Response
-                .status(Response.Status.BAD_REQUEST)
-                .entity("A manual dictionary can not be started/stopped manually")
-                .build();
+        return Response.status(Response.Status.BAD_REQUEST).entity("A manual dictionary can not be started/stopped manually").build();
     }
 
     private void checkLifecycle(DictionaryEntity dictionary, LifecycleActionParam.LifecycleAction action) {

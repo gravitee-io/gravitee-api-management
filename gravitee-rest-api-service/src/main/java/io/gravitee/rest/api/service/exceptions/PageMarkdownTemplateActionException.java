@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-
 import java.util.Map;
 
 /**
@@ -24,6 +23,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class PageMarkdownTemplateActionException extends AbstractManagementException {
+
     private final String action;
 
     public PageMarkdownTemplateActionException(String action) {

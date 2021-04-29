@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>19.2.3</version>
+        <version>19.2.4</version>
     </parent>
 
     <groupId>io.gravitee.rest.api</groupId>
@@ -36,9 +36,9 @@
         <gravitee-node.version>1.12.0</gravitee-node.version>
         <spring.version>5.2.5.RELEASE</spring.version>
         <gravitee-common.version>1.20.0</gravitee-common.version>
-        <gravitee-definition.version>1.27.1</gravitee-definition.version>
+        <gravitee-definition.version>1.28.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-plugin.version>1.16.0</gravitee-plugin.version>
-        <gravitee-repository.version>3.8.0</gravitee-repository.version>
+        <gravitee-repository.version>3.9.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.20.1</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.5.0</gravitee-expression-language.version>
@@ -50,7 +50,7 @@
         <gravitee-cockpit-api.version>1.4.0</gravitee-cockpit-api.version>
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-        <spring.security.version>5.3.1.RELEASE</spring.security.version>
+        <spring.security.version>5.3.9.RELEASE</spring.security.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.30</freemarker.version>
@@ -379,4 +379,27 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <version>0.12</version>
+                <configuration>
+                    <nodeVersion>12.13.0</nodeVersion>
+                    <prettierJavaVersion>1.0.1</prettierJavaVersion>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

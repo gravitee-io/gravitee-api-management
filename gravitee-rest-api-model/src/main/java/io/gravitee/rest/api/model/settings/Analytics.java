@@ -25,12 +25,14 @@ import io.gravitee.rest.api.model.parameters.Key;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Analytics {
+
     @ParameterKey(Key.ANALYTICS_CLIENT_TIMEOUT)
     private Long clientTimeout;
 
     public Long getClientTimeout() {
         return clientTimeout;
     }
+
     public void setClientTimeout(Long clientTimeout) {
         this.clientTimeout = clientTimeout;
     }

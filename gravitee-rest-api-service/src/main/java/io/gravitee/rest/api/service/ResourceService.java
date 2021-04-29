@@ -21,6 +21,4 @@ import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ResourceService extends PluginService<PluginEntity> {
-
-}
+public interface ResourceService extends PluginService<PluginEntity> {}

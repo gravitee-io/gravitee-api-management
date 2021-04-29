@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.idp.repository.lookup;
 
 import io.gravitee.rest.api.idp.api.identity.User;
-import io.gravitee.rest.api.idp.repository.RepositoryIdentityProvider;
 import io.gravitee.rest.api.model.UserEntity;
 
 /**
@@ -68,6 +67,6 @@ public class RepositoryUser implements User {
 
     @Override
     public String getReference() {
-       return userEntity.getSourceId();
+        return userEntity.getSourceId();
     }
 }

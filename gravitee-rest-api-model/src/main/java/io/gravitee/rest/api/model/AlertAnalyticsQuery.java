@@ -40,6 +40,7 @@ public class AlertAnalyticsQuery {
     }
 
     public static class Builder {
+
         private long from, to;
 
         public AlertAnalyticsQuery build() {
@@ -62,8 +63,7 @@ public class AlertAnalyticsQuery {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AlertAnalyticsQuery that = (AlertAnalyticsQuery) o;
-        return from == that.from &&
-                to == that.to;
+        return from == that.from && to == that.to;
     }
 
     @Override
@@ -73,9 +73,6 @@ public class AlertAnalyticsQuery {
 
     @Override
     public String toString() {
-        return "AlertEventQuery{" +
-                ", from=" + from +
-                ", to=" + to +
-                '}';
+        return "AlertEventQuery{" + ", from=" + from + ", to=" + to + '}';
     }
 }

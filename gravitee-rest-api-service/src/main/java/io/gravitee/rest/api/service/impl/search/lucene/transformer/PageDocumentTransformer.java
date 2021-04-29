@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import io.gravitee.rest.api.model.ApiPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -32,19 +33,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class PageDocumentTransformer implements DocumentTransformer<PageEntity> {
 
-    private final static String FIELD_ID = "id";
-    private final static String FIELD_TYPE = "type";
-    private final static String FIELD_API = "api";
-    private final static String FIELD_TYPE_VALUE = "page";
-    private final static String FIELD_NAME = "name";
-    private final static String FIELD_NAME_LOWERCASE = "name_lowercase";
-    private final static String FIELD_NAME_SPLIT = "name_split";
-    private final static String FIELD_CONTENT = "content";
+    private static final String FIELD_ID = "id";
+    private static final String FIELD_TYPE = "type";
+    private static final String FIELD_API = "api";
+    private static final String FIELD_TYPE_VALUE = "page";
+    private static final String FIELD_NAME = "name";
+    private static final String FIELD_NAME_LOWERCASE = "name_lowercase";
+    private static final String FIELD_NAME_SPLIT = "name_split";
+    private static final String FIELD_CONTENT = "content";
 
     @Override
     public Document transform(PageEntity page) {
         Document doc = new Document();
 
+        doc.add(new StringField(FIELD_REFERENCE_TYPE, page.getReferenceType(), Field.Store.NO));
+        doc.add(new StringField(FIELD_REFERENCE_ID, page.getReferenceId(), Field.Store.NO));
         doc.add(new StringField(FIELD_ID, page.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
         if (page.getName() != null) {
@@ -57,8 +60,8 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
             doc.add(new TextField(FIELD_CONTENT, page.getContent(), Field.Store.NO));
         }
 
-        if (page instanceof ApiPageEntity && ((ApiPageEntity)page).getApi() != null) {
-            doc.add(new StringField(FIELD_API, ((ApiPageEntity)page).getApi(), Field.Store.YES));
+        if (page instanceof ApiPageEntity && ((ApiPageEntity) page).getApi() != null) {
+            doc.add(new StringField(FIELD_API, ((ApiPageEntity) page).getApi(), Field.Store.YES));
         }
 
         return doc;

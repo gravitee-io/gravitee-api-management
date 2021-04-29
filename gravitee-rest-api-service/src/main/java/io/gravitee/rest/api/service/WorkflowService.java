@@ -19,7 +19,6 @@ import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.WorkflowType;
-
 import java.util.List;
 
 /**
@@ -27,7 +26,13 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface WorkflowService {
-    Workflow create(WorkflowReferenceType referenceType, String referenceId, WorkflowType type, String user,
-                    WorkflowState state, String comment);
+    Workflow create(
+        WorkflowReferenceType referenceType,
+        String referenceId,
+        WorkflowType type,
+        String user,
+        WorkflowState state,
+        String comment
+    );
     List<Workflow> findByReferenceAndType(WorkflowReferenceType referenceType, String referenceId, WorkflowType type);
 }

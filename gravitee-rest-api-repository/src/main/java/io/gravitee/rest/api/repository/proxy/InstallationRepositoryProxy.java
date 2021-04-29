@@ -18,16 +18,16 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
+import java.util.Optional;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
 public class InstallationRepositoryProxy extends AbstractProxy<InstallationRepository> implements InstallationRepository {
+
     @Override
     public Optional<Installation> find() throws TechnicalException {
         return target.find();

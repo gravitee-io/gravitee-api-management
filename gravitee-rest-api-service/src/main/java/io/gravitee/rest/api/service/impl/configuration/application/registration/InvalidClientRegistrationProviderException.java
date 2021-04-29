@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.configuration.application.registration
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
-
 import java.util.Map;
 
 /**

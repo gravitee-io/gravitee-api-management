@@ -15,9 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
-
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -25,14 +26,20 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface OrganizationService {
-
     Long count();
 
     OrganizationEntity findById(String organizationId);
 
     OrganizationEntity createOrUpdate(String organizationId, UpdateOrganizationEntity organizationEntity);
-    
+
     void delete(String organizationId);
-    
+
     void initialize();
+
+    /**
+     * Find all existing organizations.
+     *
+     * @return the list of all organizations.
+     */
+    Collection<Organization> findAll();
 }

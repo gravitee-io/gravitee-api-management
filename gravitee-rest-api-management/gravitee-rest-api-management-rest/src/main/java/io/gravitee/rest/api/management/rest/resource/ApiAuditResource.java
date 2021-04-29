@@ -29,18 +29,17 @@ import io.gravitee.rest.api.service.AuditService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.reflections.Reflections;
-
+import java.util.*;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import java.util.*;
+import org.reflections.Reflections;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Api(tags = {"API Audits"})
+@Api(tags = { "API Audits" })
 public class ApiAuditResource extends AbstractResource {
 
     private static final List<Audit.AuditEvent> events = new ArrayList<>();
@@ -54,15 +53,11 @@ public class ApiAuditResource extends AbstractResource {
     private String api;
 
     @GET
-    @ApiOperation(value = "Retrieve audit logs for the API",
-            notes = "User must have the API_AUDIT[READ] permission to use this service")
+    @ApiOperation(value = "Retrieve audit logs for the API", notes = "User must have the API_AUDIT[READ] permission to use this service")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })
     public MetadataPage<AuditEntity> getApiAudits(@BeanParam AuditParam param) {
-
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
         query.setTo(param.getTo());
@@ -82,17 +77,16 @@ public class ApiAuditResource extends AbstractResource {
 
     @Path("/events")
     @GET
-    @ApiOperation(value = "List available audit event type for API",
-            notes = "User must have the API_AUDIT[READ] permission to use this service")
+    @ApiOperation(
+        value = "List available audit event type for API",
+        notes = "User must have the API_AUDIT[READ] permission to use this service"
+    )
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({
-            @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ)
-    })
+    @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })
     public Response getApiAuditEvents() {
         if (events.isEmpty()) {
-            Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf =
-                    new Reflections("io.gravitee.repository.management.model")
-                            .getSubTypesOf(Audit.ApiAuditEvent.class);
+            Set<Class<? extends Audit.ApiAuditEvent>> subTypesOf = new Reflections("io.gravitee.repository.management.model")
+            .getSubTypesOf(Audit.ApiAuditEvent.class);
             for (Class<? extends Audit.ApiAuditEvent> clazz : subTypesOf) {
                 if (clazz.isEnum()) {
                     events.addAll(Arrays.asList(clazz.getEnumConstants()));

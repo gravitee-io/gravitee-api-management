@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.model.alert;
 
 public enum ThresholdType {
-    COUNT("Count"), PERCENT_RATE("Percent rate");
+    COUNT("Count"),
+    PERCENT_RATE("Percent rate");
 
     private String description;
 

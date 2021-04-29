@@ -56,9 +56,7 @@ public class EntrypointEntity {
         if (this == o) return true;
         if (!(o instanceof EntrypointEntity)) return false;
         EntrypointEntity that = (EntrypointEntity) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(value, that.value) &&
-                Objects.equals(tags, that.tags);
+        return Objects.equals(id, that.id) && Objects.equals(value, that.value) && Objects.equals(tags, that.tags);
     }
 
     @Override
@@ -68,10 +66,6 @@ public class EntrypointEntity {
 
     @Override
     public String toString() {
-        return "EntrypointEntity{" +
-                "id='" + id + '\'' +
-                ", value='" + value + '\'' +
-                ", tags=" + tags +
-                '}';
+        return "EntrypointEntity{" + "id='" + id + '\'' + ", value='" + value + '\'' + ", tags=" + tags + '}';
     }
 }

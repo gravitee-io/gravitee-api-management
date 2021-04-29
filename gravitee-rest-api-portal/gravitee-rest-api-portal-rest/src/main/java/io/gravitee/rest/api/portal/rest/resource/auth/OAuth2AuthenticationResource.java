@@ -28,14 +28,12 @@ import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
-import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 import javax.net.ssl.SSLContext;
@@ -50,11 +48,13 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Set;
+import org.glassfish.jersey.internal.util.collection.MultivaluedStringMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -75,6 +75,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     private Client client;
 
     private static final String ACCESS_TOKEN_PROPERTY = "access_token";
+    private static final String ID_TOKEN_PROPERTY = "id_token";
 
     @PostConstruct
     public void initClient() throws NoSuchAlgorithmException, KeyManagementException {
@@ -82,7 +83,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         final ClientBuilder builder = JerseyClientBuilder.newBuilder(environment);
         if (trustAllEnabled) {
             SSLContext sc = SSLContext.getInstance("TLSv1.2");
-            sc.init(null, new TrustManager[]{new BlindTrustManager()}, null);
+            sc.init(null, new TrustManager[] { new BlindTrustManager() }, null);
             builder.sslContext(sc);
         }
 
@@ -93,10 +94,17 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @Path("_exchange")
     @Produces(MediaType.APPLICATION_JSON)
     public Response tokenExchange(
-            @PathParam(value = "identity") final String identity,
-            @QueryParam(value = "token") final String token,
-            @Context final HttpServletResponse servletResponse) {
-        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity, new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT));
+        @PathParam(value = "identity") final String identity,
+        @QueryParam(value = "token") final String token,
+        @Context final HttpServletResponse servletResponse
+    ) {
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(
+            identity,
+            new IdentityProviderActivationService.ActivationTarget(
+                GraviteeContext.getCurrentEnvironment(),
+                IdentityProviderActivationReferenceType.ENVIRONMENT
+            )
+        );
 
         if (identityProvider != null) {
             if (identityProvider.getTokenIntrospectionEndpoint() != null) {
@@ -104,14 +112,19 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                 final MultivaluedStringMap introspectData = new MultivaluedStringMap();
                 introspectData.add(TOKEN, token);
                 Response response = client
-                        //TODO: what is the correct introspection URL here ?
-                        .target(identityProvider.getTokenIntrospectionEndpoint())
-                        .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                        .header(HttpHeaders.AUTHORIZATION,
-                                String.format("Basic %s",
-                                        Base64.getEncoder().encodeToString(
-                                                (identityProvider.getClientId() + ':' + identityProvider.getClientSecret()).getBytes())))
-                        .post(Entity.form(introspectData));
+                    //TODO: what is the correct introspection URL here ?
+                    .target(identityProvider.getTokenIntrospectionEndpoint())
+                    .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        String.format(
+                            "Basic %s",
+                            Base64
+                                .getEncoder()
+                                .encodeToString((identityProvider.getClientId() + ':' + identityProvider.getClientSecret()).getBytes())
+                        )
+                    )
+                    .post(Entity.form(introspectData));
                 introspectData.clear();
 
                 if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -119,25 +132,25 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
                     boolean active = introspectPayload.path("active").asBoolean(true);
 
                     if (active) {
-                        return authenticateUser(identityProvider, servletResponse, token, null);
+                        return authenticateUser(identityProvider, servletResponse, token, null, null);
                     } else {
-                        return Response
-                                .status(Response.Status.UNAUTHORIZED)
-                                .entity(introspectPayload)
-                                .build();
+                        return Response.status(Response.Status.UNAUTHORIZED).entity(introspectPayload).build();
                     }
                 } else {
-                    LOGGER.error("Token exchange failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+                    LOGGER.error(
+                        "Token exchange failed with status {}: {}\n{}",
+                        response.getStatus(),
+                        response.getStatusInfo(),
+                        getResponseEntityAsString(response)
+                    );
                 }
 
-                return Response
-                        .status(response.getStatusInfo())
-                        .entity(response.getEntity())
-                        .build();
+                return Response.status(response.getStatusInfo()).entity(response.getEntity()).build();
             } else {
-                return Response.status(Response.Status.BAD_REQUEST)
-                        .entity("Token exchange is not supported for this identity provider")
-                        .build();
+                return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity("Token exchange is not supported for this identity provider")
+                    .build();
             }
         }
 
@@ -147,11 +160,17 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     public Response exchangeAuthorizationCode(
-            @PathParam(value = "identity") String identity,
-            @Valid @NotNull(message = "Input must not be null.") final PayloadInput payloadInput,
-            @Context final HttpServletResponse servletResponse) throws IOException {
-
-        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(identity, new IdentityProviderActivationService.ActivationTarget(GraviteeContext.getCurrentEnvironment(), IdentityProviderActivationReferenceType.ENVIRONMENT));
+        @PathParam(value = "identity") String identity,
+        @Valid @NotNull(message = "Input must not be null.") final PayloadInput payloadInput,
+        @Context final HttpServletResponse servletResponse
+    ) throws IOException {
+        SocialIdentityProviderEntity identityProvider = socialIdentityProviderService.findById(
+            identity,
+            new IdentityProviderActivationService.ActivationTarget(
+                GraviteeContext.getCurrentEnvironment(),
+                IdentityProviderActivationReferenceType.ENVIRONMENT
+            )
+        );
 
         if (identityProvider != null) {
             // Step 1. Exchange authorization code for access token.
@@ -163,20 +182,26 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
             accessData.add(CODE_VERIFIER_KEY, payloadInput.getCodeVerifier());
             accessData.add(GRANT_TYPE_KEY, payloadInput.getGrantType());
 
-            Response response = client.target(identityProvider.getTokenEndpoint())
-                    .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                    .post(Entity.form(accessData));
+            Response response = client
+                .target(identityProvider.getTokenEndpoint())
+                .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.form(accessData));
             accessData.clear();
 
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                final String accessToken = (String) getResponseEntity(response).get(ACCESS_TOKEN_PROPERTY);
-                return authenticateUser(identityProvider, servletResponse, accessToken, payloadInput.getState());
+                final Map<String, Object> responseEntity = getResponseEntity(response);
+                final String accessToken = (String) responseEntity.get(ACCESS_TOKEN_PROPERTY);
+                final String idToken = (String) responseEntity.get(ID_TOKEN_PROPERTY);
+                return authenticateUser(identityProvider, servletResponse, accessToken, idToken, payloadInput.getState());
             } else {
-                LOGGER.error("Exchange authorization code failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), getResponseEntityAsString(response));
+                LOGGER.error(
+                    "Exchange authorization code failed with status {}: {}\n{}",
+                    response.getStatus(),
+                    response.getStatusInfo(),
+                    getResponseEntityAsString(response)
+                );
             }
-            return Response
-                    .status(Response.Status.UNAUTHORIZED)
-                    .build();
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -187,31 +212,39 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
      *
      * @return
      */
-    private Response authenticateUser(final SocialIdentityProviderEntity socialProvider,
-                                      final HttpServletResponse servletResponse,
-                                      final String accessToken,
-                                      final String state) {
+    private Response authenticateUser(
+        final SocialIdentityProviderEntity socialProvider,
+        final HttpServletResponse servletResponse,
+        final String accessToken,
+        final String idToken,
+        final String state
+    ) {
         // Step 2. Retrieve profile information about the authenticated end-user.
         Response response = client
-                .target(socialProvider.getUserInfoEndpoint())
-                .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
-                .header(HttpHeaders.AUTHORIZATION, String.format(socialProvider.getAuthorizationHeader(), accessToken))
-                .get();
-
+            .target(socialProvider.getUserInfoEndpoint())
+            .request(javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE)
+            .header(HttpHeaders.AUTHORIZATION, String.format(socialProvider.getAuthorizationHeader(), accessToken))
+            .get();
 
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(socialProvider, servletResponse, userInfo, state);
+            return processUser(socialProvider, servletResponse, userInfo, state, accessToken, idToken);
         } else {
             LOGGER.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
-
         }
 
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(final SocialIdentityProviderEntity socialProvider, final HttpServletResponse servletResponse, final String userInfo, final String state) {
+    private Response processUser(
+        final SocialIdentityProviderEntity socialProvider,
+        final HttpServletResponse servletResponse,
+        final String userInfo,
+        final String state,
+        final String accessToken,
+        final String idToken
+    ) {
         UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(socialProvider, userInfo);
         String userId = user.getId();
 
@@ -222,7 +255,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         userDetails.setEmail(user.getEmail());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
-        return connectUser(userId, state, servletResponse);
+        return connectUser(userId, state, servletResponse, accessToken, idToken);
     }
-
 }

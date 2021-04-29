@@ -24,18 +24,14 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.documentation.PageQuery;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.Upgrader;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-
+import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,37 +53,68 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     @Autowired
     private SearchEngineService searchEngineService;
 
+    @Autowired
+    private OrganizationService organizationService;
+
+    @Autowired
+    private EnvironmentService environmentService;
+
     @Override
     public boolean upgrade() {
-        // Index APIs
-        Set<ApiEntity> apis = apiService.findAll();
-        apis.forEach(apiEntity -> {
-            // API
-            ApiEntity toIndex = apiService.fetchMetadataForApi(apiEntity);
-            searchEngineService.index(toIndex, true);
+        try {
+            organizationService
+                .findAll()
+                .forEach(
+                    organization ->
+                        environmentService
+                            .findByOrganization(organization.getId())
+                            .forEach(
+                                environment -> {
+                                    GraviteeContext.setCurrentOrganization(organization.getId());
+                                    GraviteeContext.setCurrentEnvironment(environment.getId());
 
-            // Pages
-            List<PageEntity> apiPages = pageService.search(new PageQuery.Builder().api(apiEntity.getId()).published(true).build(), true);
-            apiPages.forEach(page -> {
-                try {
-                    if (!PageType.FOLDER.name().equals(page.getType())
-                            && !PageType.ROOT.name().equals(page.getType())
-                            && !PageType.SYSTEM_FOLDER.name().equals(page.getType())
-                            && !PageType.LINK.name().equals(page.getType())) {
-                        pageService.transformSwagger(page, apiEntity.getId());
-                        searchEngineService.index(page, true);
-                    }
-                } catch (Exception ignored) {}
-            });
-        });
+                                    // Index APIs
+                                    Set<ApiEntity> apis = apiService.findAll();
+                                    apis.forEach(
+                                        apiEntity -> {
+                                            // API
+                                            searchEngineService.index(apiEntity, true);
 
-        // Index users
-        Page<UserEntity> users = userService.search(
-                new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
-                new PageableImpl(1, Integer.MAX_VALUE));
-        users.getContent().forEach(userEntity ->
-                searchEngineService.index(userEntity, true)
-        );
+                                            // Pages
+                                            List<PageEntity> apiPages = pageService.search(
+                                                new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
+                                                true
+                                            );
+                                            apiPages.forEach(
+                                                page -> {
+                                                    try {
+                                                        if (
+                                                            !PageType.FOLDER.name().equals(page.getType()) &&
+                                                            !PageType.ROOT.name().equals(page.getType()) &&
+                                                            !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
+                                                            !PageType.LINK.name().equals(page.getType())
+                                                        ) {
+                                                            pageService.transformSwagger(page, apiEntity.getId());
+                                                            searchEngineService.index(page, true);
+                                                        }
+                                                    } catch (Exception ignored) {}
+                                                }
+                                            );
+                                        }
+                                    );
+
+                                    // Index users
+                                    Page<UserEntity> users = userService.search(
+                                        new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
+                                        new PageableImpl(1, Integer.MAX_VALUE)
+                                    );
+                                    users.getContent().forEach(userEntity -> searchEngineService.index(userEntity, true));
+                                }
+                            )
+                );
+        } finally {
+            GraviteeContext.cleanContext();
+        }
 
         return true;
     }

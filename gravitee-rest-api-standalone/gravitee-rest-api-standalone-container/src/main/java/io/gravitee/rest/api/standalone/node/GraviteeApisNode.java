@@ -21,7 +21,6 @@ import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
 import io.gravitee.rest.api.service.InitializerService;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
-
 import java.util.List;
 
 /**

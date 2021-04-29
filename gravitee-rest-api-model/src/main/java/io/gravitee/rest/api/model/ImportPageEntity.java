@@ -16,11 +16,10 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -28,94 +27,97 @@ import java.util.Set;
  */
 public class ImportPageEntity {
 
-	@NotNull
-	private PageType type;
-	private boolean published;
-	@NotNull
-	private Visibility visibility;
-	private String lastContributor;
-	private PageSourceEntity source;
-	private Map<String, String> configuration;
+    @NotNull
+    private PageType type;
 
-	@JsonProperty("excluded_groups")
-	private List<String> excludedGroups;
+    private boolean published;
 
-	private boolean excludedAccessControls;
-	private Set<AccessControlEntity> accessControls;
+    @NotNull
+    private Visibility visibility;
 
-	public PageType getType() {
-		return type;
-	}
+    private String lastContributor;
+    private PageSourceEntity source;
+    private Map<String, String> configuration;
 
-	public void setType(PageType type) {
-		this.type = type;
-	}
+    @JsonProperty("excluded_groups")
+    private List<String> excludedGroups;
 
-	public boolean isPublished() {
-		return published;
-	}
+    private boolean excludedAccessControls;
+    private Set<AccessControlEntity> accessControls;
 
-	public void setPublished(boolean published) {
-		this.published = published;
-	}
+    public PageType getType() {
+        return type;
+    }
 
-	public String getLastContributor() {
-		return lastContributor;
-	}
+    public void setType(PageType type) {
+        this.type = type;
+    }
 
-	public void setLastContributor(String lastContributor) {
-		this.lastContributor = lastContributor;
-	}
+    public boolean isPublished() {
+        return published;
+    }
 
-	public PageSourceEntity getSource() {
-		return source;
-	}
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
 
-	public void setSource(PageSourceEntity source) {
-		this.source = source;
-	}
+    public String getLastContributor() {
+        return lastContributor;
+    }
 
-	public Map<String, String> getConfiguration() {
-		return configuration;
-	}
+    public void setLastContributor(String lastContributor) {
+        this.lastContributor = lastContributor;
+    }
 
-	public void setConfiguration(Map<String, String> configuration) {
-		this.configuration = configuration;
-	}
+    public PageSourceEntity getSource() {
+        return source;
+    }
 
-	public Set<AccessControlEntity> getAccessControls() {
-		return accessControls;
-	}
+    public void setSource(PageSourceEntity source) {
+        this.source = source;
+    }
 
-	public void setAccessControls(Set<AccessControlEntity> accessControls) {
-		this.accessControls = accessControls;
-	}
+    public Map<String, String> getConfiguration() {
+        return configuration;
+    }
 
-	public boolean isExcludedAccessControls() {
-		return excludedAccessControls;
-	}
+    public void setConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
+    }
 
-	public void setExcludedAccessControls(boolean excludedAccessControls) {
-		this.excludedAccessControls = excludedAccessControls;
-	}
+    public Set<AccessControlEntity> getAccessControls() {
+        return accessControls;
+    }
 
-	public Visibility getVisibility() {
-		return visibility;
-	}
+    public void setAccessControls(Set<AccessControlEntity> accessControls) {
+        this.accessControls = accessControls;
+    }
 
-	public void setVisibility(Visibility visibility) {
-		this.visibility = visibility;
-	}
+    public boolean isExcludedAccessControls() {
+        return excludedAccessControls;
+    }
 
-	public List<String> getExcludedGroups() {
-		return excludedGroups;
-	}
+    public void setExcludedAccessControls(boolean excludedAccessControls) {
+        this.excludedAccessControls = excludedAccessControls;
+    }
 
-	public void setExcludedGroups(List<String> excludedGroups) {
-		this.excludedGroups = excludedGroups;
-	}
+    public Visibility getVisibility() {
+        return visibility;
+    }
 
-	@Override
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
+    }
+
+    public List<String> getExcludedGroups() {
+        return excludedGroups;
+    }
+
+    public void setExcludedGroups(List<String> excludedGroups) {
+        this.excludedGroups = excludedGroups;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Page{");
         sb.append("type='").append(type).append('\'');
@@ -125,5 +127,4 @@ public class ImportPageEntity {
         sb.append('}');
         return sb.toString();
     }
-
 }

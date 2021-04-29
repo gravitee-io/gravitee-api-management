@@ -15,10 +15,10 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import java.util.Map;
-
 import static io.gravitee.common.http.HttpStatusCode.CONFLICT_409;
 import static io.gravitee.common.http.HttpStatusCode.SERVICE_UNAVAILABLE_503;
+
+import java.util.Map;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)

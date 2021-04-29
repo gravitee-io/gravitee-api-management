@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.application.registration;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.CLIENT_REGISTRATION_PROVIDER;
+import static java.util.Collections.singletonMap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -43,12 +46,6 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.ClientCredentialsInitialAccessTokenProvider;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.InitialAccessTokenProvider;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.PlainInitialAccessTokenProvider;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
@@ -56,9 +53,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Audit.AuditProperties.CLIENT_REGISTRATION_PROVIDER;
-import static java.util.Collections.singletonMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -81,22 +79,17 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final Cache<String, DynamicClientRegistrationProviderClient> clients = CacheBuilder
-            .newBuilder()
-            .expireAfterWrite(5, TimeUnit.MINUTES)
-            .build();
+        .newBuilder()
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .build();
 
     @Override
     public Set<ClientRegistrationProviderEntity> findAll() {
         try {
-            return clientRegistrationProviderRepository
-                    .findAll()
-                    .stream()
-                    .map(this::convert)
-                    .collect(Collectors.toSet());
+            return clientRegistrationProviderRepository.findAll().stream().map(this::convert).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to retrieve client registration providers", ex);
-            throw new TechnicalManagementException(
-                    "An error occurs while trying to retrieve client registration providers", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve client registration providers", ex);
         }
     }
 
@@ -108,18 +101,27 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             Set<ClientRegistrationProviderEntity> clientRegistrationProviders = this.findAll();
             // For now, we are supporting only a single client registration provider.
             if (clientRegistrationProviders.size() == 1) {
-                throw new IllegalStateException("Until now, supports only a single client registration provider. " +
-                        "Please update the existing one: " + clientRegistrationProviders.iterator().next().getName());
+                throw new IllegalStateException(
+                    "Until now, supports only a single client registration provider. " +
+                    "Please update the existing one: " +
+                    clientRegistrationProviders.iterator().next().getName()
+                );
             }
 
             Optional<ClientRegistrationProvider> optClientRegistrationProvider = clientRegistrationProviderRepository.findById(
-                    IdGenerator.generate(newClientRegistrationProvider.getName()));
+                IdGenerator.generate(newClientRegistrationProvider.getName())
+            );
             if (optClientRegistrationProvider.isPresent()) {
                 throw new ClientRegistrationProviderAlreadyExistsException(newClientRegistrationProvider.getName());
             }
 
-            if (newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN
-                    && (newClientRegistrationProvider.getInitialAccessToken() == null || newClientRegistrationProvider.getInitialAccessToken().isEmpty())) {
+            if (
+                newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN &&
+                (
+                    newClientRegistrationProvider.getInitialAccessToken() == null ||
+                    newClientRegistrationProvider.getInitialAccessToken().isEmpty()
+                )
+            ) {
                 throw new EmptyInitialAccessTokenException();
             }
 
@@ -130,8 +132,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             clientRegistrationProvider.setId(RandomString.generate());
 
-            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(
-                    true, convert(clientRegistrationProvider));
+            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(true, convert(clientRegistrationProvider));
 
             // Ensure that the client credentials are valid
             registrationProviderClient.getInitialAccessToken();
@@ -142,14 +143,17 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationProvider.setCreatedAt(new Date());
             clientRegistrationProvider.setUpdatedAt(clientRegistrationProvider.getCreatedAt());
 
-            ClientRegistrationProvider createdClientRegistrationProvider = clientRegistrationProviderRepository.create(clientRegistrationProvider);
+            ClientRegistrationProvider createdClientRegistrationProvider = clientRegistrationProviderRepository.create(
+                clientRegistrationProvider
+            );
 
             auditService.createEnvironmentAuditLog(
-                    singletonMap(CLIENT_REGISTRATION_PROVIDER, createdClientRegistrationProvider.getId()),
-                    ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
-                    createdClientRegistrationProvider.getUpdatedAt(),
-                    null,
-                    createdClientRegistrationProvider);
+                singletonMap(CLIENT_REGISTRATION_PROVIDER, createdClientRegistrationProvider.getId()),
+                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
+                createdClientRegistrationProvider.getUpdatedAt(),
+                null,
+                createdClientRegistrationProvider
+            );
 
             return convert(createdClientRegistrationProvider);
         } catch (TechnicalException ex) {
@@ -169,8 +173,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 throw new ClientRegistrationProviderNotFoundException(updateClientRegistrationProvider.getName());
             }
 
-            if (updateClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN
-                    && (updateClientRegistrationProvider.getInitialAccessToken() == null || updateClientRegistrationProvider.getInitialAccessToken().isEmpty())) {
+            if (
+                updateClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.INITIAL_ACCESS_TOKEN &&
+                (
+                    updateClientRegistrationProvider.getInitialAccessToken() == null ||
+                    updateClientRegistrationProvider.getInitialAccessToken().isEmpty()
+                )
+            ) {
                 throw new EmptyInitialAccessTokenException();
             }
 
@@ -181,8 +190,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             clientRegistrationProvider.setId(id);
 
-            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(
-                    true, convert(clientRegistrationProvider));
+            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(true, convert(clientRegistrationProvider));
 
             // Ensure that the client credentials are valid
             registrationProviderClient.getInitialAccessToken();
@@ -194,15 +202,18 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationProvider.setCreatedAt(clientProviderToUpdate.getCreatedAt());
             clientRegistrationProvider.setUpdatedAt(new Date());
 
-            ClientRegistrationProvider updatedClientRegistrationProvider = clientRegistrationProviderRepository.update(clientRegistrationProvider);
+            ClientRegistrationProvider updatedClientRegistrationProvider = clientRegistrationProviderRepository.update(
+                clientRegistrationProvider
+            );
 
             // Audit
             auditService.createEnvironmentAuditLog(
-                    singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
-                    ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
-                    clientRegistrationProvider.getUpdatedAt(),
-                    clientProviderToUpdate,
-                    updatedClientRegistrationProvider);
+                singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
+                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_CREATED,
+                clientRegistrationProvider.getUpdatedAt(),
+                clientProviderToUpdate,
+                updatedClientRegistrationProvider
+            );
 
             return convert(updatedClientRegistrationProvider);
         } catch (TechnicalException ex) {
@@ -212,17 +223,19 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     private void renewClientSecretSupport(ClientRegistrationProvider provider) {
-        if ( provider.isRenewClientSecretSupport() ) {
+        if (provider.isRenewClientSecretSupport()) {
             HttpMethod method = HttpMethod.valueOf(provider.getRenewClientSecretMethod().toUpperCase());
-            if ( method != HttpMethod.POST && method != HttpMethod.PUT && method != HttpMethod.PATCH ) {
+            if (method != HttpMethod.POST && method != HttpMethod.PUT && method != HttpMethod.PATCH) {
                 throw new InvalidRenewClientSecretException();
             }
 
-            if ( provider.getRenewClientSecretEndpoint() == null ||
-                    (
-                        !provider.getRenewClientSecretEndpoint().startsWith("http://") &&
-                        !provider.getRenewClientSecretEndpoint().startsWith("https://")
-                    )) {
+            if (
+                provider.getRenewClientSecretEndpoint() == null ||
+                (
+                    !provider.getRenewClientSecretEndpoint().startsWith("http://") &&
+                    !provider.getRenewClientSecretEndpoint().startsWith("https://")
+                )
+            ) {
                 throw new InvalidRenewClientSecretException();
             }
         }
@@ -243,7 +256,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find a client registration provider using its ID {}", id, ex);
             throw new TechnicalManagementException(
-                    "An error occurs while trying to delete a client registration provider using its ID " + id, ex);
+                "An error occurs while trying to delete a client registration provider using its ID " + id,
+                ex
+            );
         }
     }
 
@@ -261,15 +276,18 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationProviderRepository.delete(id);
 
             auditService.createEnvironmentAuditLog(
-                    Collections.singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
-                    ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED,
-                    new Date(),
-                    clientRegistrationProvider.get(),
-                    null);
+                Collections.singletonMap(CLIENT_REGISTRATION_PROVIDER, id),
+                ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED,
+                new Date(),
+                clientRegistrationProvider.get(),
+                null
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a client registration provider using its ID {}", id, ex);
             throw new TechnicalManagementException(
-                    "An error occurs while trying to delete a client registration provider using its ID " + id, ex);
+                "An error occurs while trying to delete a client registration provider using its ID " + id,
+                ex
+            );
         }
     }
 
@@ -285,12 +303,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         ClientRegistrationProviderEntity provider = providers.iterator().next();
 
         // Get provider client
-        DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false,
-                provider);
+        DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false, provider);
 
         ClientRegistrationRequest clientRegistrationRequest = convert(application);
 
-        if (provider.getSoftwareId() != null && ! provider.getSoftwareId().isEmpty()) {
+        if (provider.getSoftwareId() != null && !provider.getSoftwareId().isEmpty()) {
             clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
         }
 
@@ -298,25 +315,29 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     private DynamicClientRegistrationProviderClient getDCRClient(
-            final boolean forceRefresh,
-            final ClientRegistrationProviderEntity clientRegistrationProvider) {
+        final boolean forceRefresh,
+        final ClientRegistrationProviderEntity clientRegistrationProvider
+    ) {
         // Get provider client
         try {
             InitialAccessTokenProvider atProvider;
 
             if (clientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
-                atProvider = new ClientCredentialsInitialAccessTokenProvider(
+                atProvider =
+                    new ClientCredentialsInitialAccessTokenProvider(
                         clientRegistrationProvider.getClientId(),
                         clientRegistrationProvider.getClientSecret(),
-                        clientRegistrationProvider.getScopes());
+                        clientRegistrationProvider.getScopes()
+                    );
             } else {
                 atProvider = new PlainInitialAccessTokenProvider(clientRegistrationProvider.getInitialAccessToken());
             }
 
             if (forceRefresh) {
-                DiscoveryBasedDynamicClientRegistrationProviderClient registrationProviderClient =
-                        new DiscoveryBasedDynamicClientRegistrationProviderClient(
-                                clientRegistrationProvider.getDiscoveryEndpoint(), atProvider);
+                DiscoveryBasedDynamicClientRegistrationProviderClient registrationProviderClient = new DiscoveryBasedDynamicClientRegistrationProviderClient(
+                    clientRegistrationProvider.getDiscoveryEndpoint(),
+                    atProvider
+                );
 
                 // Provider ID may be null when we are trying to test a client registration provider
                 if (clientRegistrationProvider.getId() != null) {
@@ -325,9 +346,14 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
                 return registrationProviderClient;
             } else {
-                return clients.get(clientRegistrationProvider.getId(),
-                        () -> new DiscoveryBasedDynamicClientRegistrationProviderClient(
-                        clientRegistrationProvider.getDiscoveryEndpoint(), atProvider));
+                return clients.get(
+                    clientRegistrationProvider.getId(),
+                    () ->
+                        new DiscoveryBasedDynamicClientRegistrationProviderClient(
+                            clientRegistrationProvider.getDiscoveryEndpoint(),
+                            atProvider
+                        )
+                );
             }
         } catch (Exception ex) {
             LOGGER.error("Unexpected error while getting a dynamic client registration client", ex);
@@ -339,12 +365,16 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     public ClientRegistrationResponse update(String previousRegistrationResponse, UpdateApplicationEntity application) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
-                    previousRegistrationResponse, ClientRegistrationResponse.class);
+                previousRegistrationResponse,
+                ClientRegistrationResponse.class
+            );
 
-            if (registrationResponse.getRegistrationAccessToken() == null
-                    || registrationResponse.getRegistrationAccessToken().isEmpty()
-                    || registrationResponse.getRegistrationClientUri() == null
-                    || registrationResponse.getRegistrationClientUri().isEmpty()) {
+            if (
+                registrationResponse.getRegistrationAccessToken() == null ||
+                registrationResponse.getRegistrationAccessToken().isEmpty() ||
+                registrationResponse.getRegistrationClientUri() == null ||
+                registrationResponse.getRegistrationClientUri().isEmpty()
+            ) {
                 throw new RegisteredClientNotUpdatableException();
             }
             // Update an OAuth client
@@ -357,19 +387,18 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             ClientRegistrationProviderEntity provider = providers.iterator().next();
 
             // Get provider client
-            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false,
-                    provider);
+            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false, provider);
 
-            ClientRegistrationRequest registrationRequest = mapper.readValue(
-                    previousRegistrationResponse, ClientRegistrationRequest.class);
+            ClientRegistrationRequest registrationRequest = mapper.readValue(previousRegistrationResponse, ClientRegistrationRequest.class);
 
             registrationRequest.setSoftwareId(provider.getSoftwareId());
 
             return registrationProviderClient.update(
-                    registrationResponse.getRegistrationAccessToken(),
-                    registrationResponse.getRegistrationClientUri(),
-                    convert(registrationRequest, application),
-                    application.getSettings().getoAuthClient().getClientId());
+                registrationResponse.getRegistrationAccessToken(),
+                registrationResponse.getRegistrationClientUri(),
+                convert(registrationRequest, application),
+                application.getSettings().getoAuthClient().getClientId()
+            );
         } catch (Exception ex) {
             LOGGER.error("Unexpected error while updating a client", ex);
             return null;
@@ -380,12 +409,16 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     public ClientRegistrationResponse renewClientSecret(String previousRegistrationResponse) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
-                    previousRegistrationResponse, ClientRegistrationResponse.class);
+                previousRegistrationResponse,
+                ClientRegistrationResponse.class
+            );
 
-            if (registrationResponse.getRegistrationAccessToken() == null
-                    || registrationResponse.getRegistrationAccessToken().isEmpty()
-                    || registrationResponse.getRegistrationClientUri() == null
-                    || registrationResponse.getRegistrationClientUri().isEmpty()) {
+            if (
+                registrationResponse.getRegistrationAccessToken() == null ||
+                registrationResponse.getRegistrationAccessToken().isEmpty() ||
+                registrationResponse.getRegistrationClientUri() == null ||
+                registrationResponse.getRegistrationClientUri().isEmpty()
+            ) {
                 throw new RegisteredClientNotUpdatableException();
             }
 
@@ -398,8 +431,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             ClientRegistrationProviderEntity provider = providers.iterator().next();
 
             // Get provider client
-            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false,
-                    provider);
+            DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(false, provider);
 
             String renewClientSecretEndpoint = provider.getRenewClientSecretEndpoint();
 
@@ -408,13 +440,14 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             if (registrationProviderClient instanceof DiscoveryBasedDynamicClientRegistrationProviderClient) {
                 ((DiscoveryBasedDynamicClientRegistrationProviderClient) registrationProviderClient).getMetadata()
-                        .forEach((s, o) -> templateEngine.getTemplateContext().setVariable(s, o));
+                    .forEach((s, o) -> templateEngine.getTemplateContext().setVariable(s, o));
             }
 
             return registrationProviderClient.renewClientSecret(
-                    provider.getRenewClientSecretMethod(),
-                    templateEngine.getValue(renewClientSecretEndpoint, String.class),
-                    registrationResponse.getRegistrationAccessToken());
+                provider.getRenewClientSecretMethod(),
+                templateEngine.getValue(renewClientSecretEndpoint, String.class),
+                registrationResponse.getRegistrationAccessToken()
+            );
         } catch (IOException ioe) {
             LOGGER.error("Unexpected error while updating a client", ioe);
             return null;
@@ -459,8 +492,10 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         entity.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
         entity.setSoftwareId(clientRegistrationProvider.getSoftwareId());
 
-        if (clientRegistrationProvider.getInitialAccessTokenType() == null ||
-                clientRegistrationProvider.getInitialAccessTokenType() == ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS) {
+        if (
+            clientRegistrationProvider.getInitialAccessTokenType() == null ||
+            clientRegistrationProvider.getInitialAccessTokenType() == ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS
+        ) {
             entity.setInitialAccessTokenType(InitialAccessTokenType.CLIENT_CREDENTIALS);
             entity.setClientId(clientRegistrationProvider.getClientId());
             entity.setClientSecret(clientRegistrationProvider.getClientSecret());
