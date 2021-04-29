@@ -398,6 +398,7 @@ import AlertTriggerNodeHealthcheckComponent from '../components/alerts/alert/tri
 import AlertTriggerApplicationQuotaComponent from '../components/alerts/alert/triggers/trigger-application-quota.component';
 import AlertTriggerProjectionsComponent from '../components/alerts/alert/triggers/projections/trigger-projections.component';
 import AlertTriggerProjectionComponent from '../components/alerts/alert/triggers/projections/trigger-projection.component';
+import AlertTriggerTimeframesComponent from '../components/alerts/alert/triggers/trigger-timeframe.component';
 
 import CircularPercentageComponent from '../components/circularPercentage/circularPercentage.component';
 import CircularPercentageController from '../components/circularPercentage/circularPercentage.controller';
@@ -1066,6 +1067,7 @@ graviteeManagementModule.component('gvAlertTriggerNodeHealthcheck', AlertTrigger
 graviteeManagementModule.component('gvAlertTriggerApplicationQuota', AlertTriggerApplicationQuotaComponent);
 graviteeManagementModule.component('gvAlertTriggerProjections', AlertTriggerProjectionsComponent);
 graviteeManagementModule.component('gvAlertTriggerProjection', AlertTriggerProjectionComponent);
+graviteeManagementModule.component('gvAlertTriggerTimeframe', AlertTriggerTimeframesComponent);
 
 // CircularPercentageComponent
 graviteeManagementModule.component('circularPercentage', CircularPercentageComponent);

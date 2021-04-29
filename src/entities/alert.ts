@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { deepEqual } from '@gravitee/ui-components/src/lib/utils';
 
 export enum Scope {
   API,
@@ -97,6 +98,7 @@ export class Alert {
   filters: any[];
   template: boolean;
   event_rules: any;
+  notificationPeriods: Array<Period>;
 
   constructor(
     name: string,
@@ -381,5 +383,23 @@ export class Conditions {
 
   static findByType(type: string): Condition {
     return Conditions.CONDITIONS.find((condition) => condition.type === type);
+  }
+}
+
+export class Period {
+  days: Array<number>;
+  beginHour: number;
+  endHour: number;
+  zoneId: string;
+
+  constructor(param: { days: Array<number>; beginHour: number; endHour: number; zoneId: string }) {
+    this.days = param.days;
+    this.beginHour = param.beginHour;
+    this.endHour = param.endHour;
+    this.zoneId = param.zoneId;
+  }
+
+  equals({ days, beginHour, endHour }) {
+    return deepEqual(days, this.days, true) && this.beginHour === beginHour && this.endHour === endHour;
   }
 }

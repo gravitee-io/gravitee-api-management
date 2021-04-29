@@ -16,7 +16,7 @@
 
 -->
 <div class="gv-sub-content">
-  <div class="gv-forms gv-forms-fluid" layout="column">
+  <div class="gv-alerts-alert gv-forms gv-forms-fluid" layout="column">
     <div class="gv-forms" layout="column">
       <div class="gv-forms-header">
         <h1 ng-if="$ctrl.updateMode">[{{ $ctrl.titlePrefix }}] {{$ctrl.alert.name}}</h1>
@@ -31,7 +31,7 @@
       </div>
 
       <form name="$ctrl.formAlert" ng-submit="$ctrl.save($ctrl.alert)" novalidate>
-        <md-tabs md-dynamic-height md-selected="$ctrl.selectedTab">
+        <md-tabs md-dynamic-height="$ctrl.resize" md-selected="$ctrl.selectedTab" md-stretch-tabs="always">
           <md-tab md-on-select="$ctrl.currentTab=$ctrl.selectTab(0)">
             <md-tab-label>Alert</md-tab-label>
             <md-tab-body>
@@ -39,7 +39,7 @@
                 <h3>General</h3>
                 <div class="gv-form-content" layout="column">
                   <div layout-gt-sm="row">
-                    <md-input-container class="md-block" flex="50">
+                    <md-input-container class="md-block" flex="70">
                       <label>Name</label>
                       <input
                         ng-model="$ctrl.alert.name"
@@ -58,11 +58,9 @@
                       </div>
                     </md-input-container>
 
-                    <div flex></div>
-
                     <md-input-container
                       class="md-block"
-                      flex="20"
+                      flex="30"
                       ng-if="$ctrl.alert.template === undefined || $ctrl.alert.template === false"
                     >
                       <md-checkbox
@@ -77,23 +75,21 @@
                   </div>
 
                   <div layout-gt-sm="row">
-                    <md-input-container class="md-block">
+                    <md-input-container class="md-block" flex="70">
                       <label>Rule</label>
                       <md-select ng-model="$ctrl.alert.type" required ng-disabled="$ctrl.updateMode" ng-change="$ctrl.onRuleChange()">
                         <md-optgroup label="{{group}}" ng-repeat="group in $ctrl.groups">
                           <md-option ng-value="rule.source + '@' + rule.type" ng-repeat="rule in $ctrl.rules | filter: {category: group}"
-                            >{{rule.description}}</md-option
-                          >
+                            >{{rule.description}}
+                          </md-option>
                         </md-optgroup>
                       </md-select>
                     </md-input-container>
 
-                    <div flex></div>
-
                     <md-input-container class="md-block" flex="30">
                       <label>Severity</label>
                       <md-select ng-model="$ctrl.alert.severity" required>
-                        <md-option ng-value="severity" ng-repeat="severity in $ctrl.severities">{{severity}}</md-option>
+                        <md-option ng-value="severity" ng-repeat="severity in $ctrl.severities"> {{severity}} </md-option>
                       </md-select>
                     </md-input-container>
                   </div>
@@ -110,27 +106,31 @@
               <div ng-if="($ctrl.template && !$ctrl.updateMode) || $ctrl.alert.template">
                 <h2>Template</h2>
                 <div class="gv-form-content" layout="column">
-                  <md-input-container class="md-block" flex="20" ng-if="$ctrl.alert.reference_type === 2 && !$ctrl.updateMode">
-                    <md-checkbox
-                      ng-model="$ctrl.alert.template"
-                      ng-disabled="$ctrl.updateMode"
-                      aria-label="Define as template"
-                      class="md-primary md-align-top-left"
-                      flex
-                    >
-                      Define as template
-                    </md-checkbox>
-                  </md-input-container>
+                  <div layout-gt-sm="row">
+                    <md-input-container class="md-block" flex="50" ng-if="$ctrl.alert.reference_type === 2 && !$ctrl.updateMode">
+                      <md-checkbox
+                        ng-model="$ctrl.alert.template"
+                        ng-disabled="$ctrl.updateMode"
+                        aria-label="Define as template"
+                        class="md-primary md-align-top-left"
+                        flex
+                      >
+                        Define as template
+                      </md-checkbox>
+                    </md-input-container>
 
-                  <md-checkbox
-                    ng-model="$ctrl.apiByDefault"
-                    ng-click="$event.stopPropagation()"
-                    aria-label="Associate to every new API"
-                    class="md-primary md-align-top-left"
-                    flex
-                  >
-                    Create automatically the alert for every new API
-                  </md-checkbox>
+                    <md-input-container clas="md-block" flex="50">
+                      <md-checkbox
+                        ng-model="$ctrl.apiByDefault"
+                        ng-click="$event.stopPropagation()"
+                        aria-label="Associate to every new API"
+                        class="md-primary md-align-top-left"
+                        flex
+                      >
+                        Create automatically the alert for every new API
+                      </md-checkbox>
+                    </md-input-container>
+                  </div>
 
                   <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
                     <md-button
@@ -144,16 +144,17 @@
                 </div>
               </div>
 
-              <div layout-gt-sm="column">
+              <gv-alert-trigger-timeframe alert="$ctrl.alert" form="$ctrl.formAlert"></gv-alert-trigger-timeframe>
+
+              <div>
                 <div class="gv-forms-header">
                   <h3>Condition</h3>
                   <div class="ipsum">Field metrics and condition for the rule</div>
                 </div>
 
                 <div class="gv-form-content" layout="column">
-                  <div style="margin-bottom: 5px" ng-if="$ctrl.alert.type === undefined">
-                    <span style="font-style: italic">Select a rule before setting the condition.</span>
-                    <br />
+                  <div class="gv-alerts-alert_trigger-msg" ng-if="$ctrl.alert.type == null">
+                    Select a rule before setting the condition.
                   </div>
 
                   <gv-alert-trigger-missing-data

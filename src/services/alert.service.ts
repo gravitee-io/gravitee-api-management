@@ -67,6 +67,7 @@ class AlertService {
       dampening: alert.dampening,
       template: alert.template,
       event_rules: alert.event_rules,
+      notificationPeriods: alert.notificationPeriods,
     });
   }
 
@@ -88,6 +89,7 @@ class AlertService {
       dampening: alert.dampening,
       template: alert.template,
       event_rules: alert.event_rules,
+      notificationPeriods: alert.notificationPeriods,
     });
   }
 
