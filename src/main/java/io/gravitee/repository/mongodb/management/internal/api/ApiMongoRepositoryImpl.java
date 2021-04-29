@@ -15,11 +15,16 @@
  */
 package io.gravitee.repository.mongodb.management.internal.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -27,6 +32,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -36,6 +42,8 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
  * @author GraviteeSource Team
  */
 public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
+
+    private final Logger logger = LoggerFactory.getLogger(ApiMongoRepositoryImpl.class);
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -94,6 +102,22 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         }
 
         List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
+        if (criteria != null && criteria.getContextPath() != null && ! criteria.getContextPath().isEmpty()) {
+            apis = apis.stream()
+                    .filter(apiMongo -> {
+                        try {
+                            io.gravitee.definition.model.Api apiDefinition = new GraviteeMapper().readValue(apiMongo.getDefinition(), io.gravitee.definition.model.Api.class);
+                            VirtualHost searchedVHost = new VirtualHost();
+                            searchedVHost.setPath(criteria.getContextPath());
+                            return apiDefinition.getProxy().getVirtualHosts().contains(searchedVHost);
+                        } catch (JsonProcessingException e) {
+                            logger.error("Problem occured while parsing api definition", e);
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+        }
+
         long total = mongoTemplate.count(query, ApiMongo.class);
 
         return new Page<>(apis,
