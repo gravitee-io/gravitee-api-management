@@ -20,6 +20,7 @@ import io.gravitee.alert.api.condition.Filter;
 import io.gravitee.alert.api.trigger.Dampening;
 import io.gravitee.alert.api.trigger.Trigger;
 import io.gravitee.notifier.api.Notification;
+import io.gravitee.notifier.api.Period;
 import java.util.List;
 import java.util.Map;
 
@@ -144,6 +145,16 @@ public class AlertTriggerEntityWrapper extends AlertTriggerEntity {
     @Override
     public void setDescription(String description) {
         trigger.setDescription(description);
+    }
+
+    @Override
+    public List<Period> getNotificationPeriods() {
+        return trigger.getNotificationPeriods();
+    }
+
+    @Override
+    public void setNotificationPeriods(List<Period> notificationPeriods) {
+        trigger.setNotificationPeriods(notificationPeriods);
     }
 
     @Override

@@ -42,9 +42,9 @@
         <gravitee-gateway-api.version>1.20.1</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.5.0</gravitee-expression-language.version>
-        <gravitee-alert-api.version>1.6.0</gravitee-alert-api.version>
+        <gravitee-alert-api.version>1.7.1-SNAPSHOT</gravitee-alert-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
-        <gravitee-notifier-api.version>1.2.1</gravitee-notifier-api.version>
+        <gravitee-notifier-api.version>1.4.1-SNAPSHOT</gravitee-notifier-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
         <gravitee-resource-cache-provider-api.version>1.0.0</gravitee-resource-cache-provider-api.version>
         <gravitee-cockpit-api.version>1.4.0</gravitee-cockpit-api.version>
