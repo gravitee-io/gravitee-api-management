@@ -28,11 +28,9 @@ import '@gravitee/ui-components/wc/gv-table';
 @Component({
   selector: 'app-user-notification',
   templateUrl: './user-notification.component.html',
-  styleUrls: ['./user-notification.component.css']
+  styleUrls: ['./user-notification.component.css'],
 })
-
 export class UserNotificationComponent implements OnInit, OnDestroy {
-
   static NEW = 'gv-notifications:onNew';
   static REMOVE = 'gv-notifications:onRemove';
 
@@ -52,13 +50,13 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
     private config: ConfigurationService,
     private eventService: EventService,
     private ref: ChangeDetectorRef,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     this.pageSizes = this.config.get('pagination.size.values');
-    this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE] ?
-      parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10) : this.config.get('pagination.size.default');
+    this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE]
+      ? parseInt(this.route.snapshot.queryParams[SearchQueryParam.SIZE], 10)
+      : this.config.get('pagination.size.default');
     this.format = (key) => this.translateService.get(key).toPromise();
     this.options = {
       data: [
@@ -82,7 +80,7 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
             title: i18n('user.notifications.read'),
           },
         },
-      ]
+      ],
     };
     this.loadNotifications();
     this.eventService.subscribe(({ type }) => {
@@ -97,14 +95,17 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
   }
 
   loadNotifications() {
-    return this.userService.getCurrentUserNotifications({
-      size: this.size,
-      page: this.route.snapshot.queryParams[SearchQueryParam.PAGE] || 1,
-    }).toPromise().then(response => {
-      this.notifications = response.data;
-      this.total = response.metadata.pagination ? response.metadata.pagination.total : 0;
-      this.buildPaginationData();
-    });
+    return this.userService
+      .getCurrentUserNotifications({
+        size: this.size,
+        page: this.route.snapshot.queryParams[SearchQueryParam.PAGE] || 1,
+      })
+      .toPromise()
+      .then((response) => {
+        this.notifications = response.data;
+        this.total = response.metadata.pagination ? response.metadata.pagination.total : 0;
+        this.buildPaginationData();
+      });
   }
 
   private buildPaginationData() {
@@ -114,17 +115,20 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
       last: totalPages,
       current_page: this.route.snapshot.queryParams[SearchQueryParam.PAGE] || 1,
       total_pages: totalPages,
-      total: this.total
+      total: this.total,
     };
   }
 
   markAsRead(notificationId) {
-    this.userService.deleteCurrentUserNotificationByNotificationId({ notificationId }).toPromise().then(() => {
-      this.eventService.dispatch(new GvEvent(UserNotificationComponent.REMOVE));
-      this.loadNotifications().then(() => {
-        this.ref.detectChanges();
+    this.userService
+      .deleteCurrentUserNotificationByNotificationId({ notificationId })
+      .toPromise()
+      .then(() => {
+        this.eventService.dispatch(new GvEvent(UserNotificationComponent.REMOVE));
+        this.loadNotifications().then(() => {
+          this.ref.detectChanges();
+        });
       });
-    });
   }
 
   @HostListener(':gv-pagination:paginate', ['$event.detail'])
@@ -134,22 +138,26 @@ export class UserNotificationComponent implements OnInit, OnDestroy {
       queryParams[SearchQueryParam.PAGE] = page;
       queryParams[SearchQueryParam.SIZE] = this.size;
       queryParams.log = null;
-      this.router.navigate([], {
-        queryParams,
-        queryParamsHandling: 'merge',
-      }).then(() => {
-        this.loadNotifications();
-      });
+      this.router
+        .navigate([], {
+          queryParams,
+          queryParamsHandling: 'merge',
+        })
+        .then(() => {
+          this.loadNotifications();
+        });
     }
   }
 
   onSelectSize(size) {
-    this.router.navigate([], {
-      queryParams: { size, page: null, log: null },
-      queryParamsHandling: 'merge',
-    }).then(() => {
-      this.size = size;
-      this.loadNotifications();
-    });
+    this.router
+      .navigate([], {
+        queryParams: { size, page: null, log: null },
+        queryParamsHandling: 'merge',
+      })
+      .then(() => {
+        this.size = size;
+        this.loadNotifications();
+      });
   }
 }

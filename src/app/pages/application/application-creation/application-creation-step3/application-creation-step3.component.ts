@@ -28,10 +28,9 @@ import { distinctUntilChanged } from 'rxjs/operators';
   styleUrls: ['../application-creation.component.css'],
 })
 export class ApplicationCreationStep3Component implements OnInit {
-
   @Output() updated = new EventEmitter<any[]>();
   @Input() subscribeList: any[];
-  @Output() changeStep = new EventEmitter<{step: number, fragment: string}>();
+  @Output() changeStep = new EventEmitter<{ step: number; fragment: string }>();
   // tslint:disable-next-line:ban-types
   @Input() hasValidClientId: Function;
 
@@ -51,11 +50,12 @@ export class ApplicationCreationStep3Component implements OnInit {
 
   private updateStepsTimer: any;
 
-  constructor(private formBuilder: FormBuilder,
-              private apiService: ApiService,
-              private activatedRoute: ActivatedRoute,
-              private translateService: TranslateService,
-              private ref: ChangeDetectorRef,
+  constructor(
+    private formBuilder: FormBuilder,
+    private apiService: ApiService,
+    private activatedRoute: ActivatedRoute,
+    private translateService: TranslateService,
+    private ref: ChangeDetectorRef,
   ) {
     this.apiList = [];
     this.subscribeList = [];
@@ -74,11 +74,8 @@ export class ApplicationCreationStep3Component implements OnInit {
       general_conditions_accepted: new FormControl(null),
     });
 
-    this.planForm.valueChanges
-    .pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId))
-    .subscribe(() => {
+    this.planForm.valueChanges.pipe(distinctUntilChanged((prev, curr) => prev.planId === curr.planId)).subscribe(() => {
       if (this.hasGeneralConditions) {
-
         this.planForm.get('general_conditions_accepted').setValidators(Validators.requiredTrue);
 
         const pageId = this.selectedPlan.general_conditions;
@@ -88,18 +85,20 @@ export class ApplicationCreationStep3Component implements OnInit {
             _api = this.activatedRoute.snapshot.queryParamMap.get('api');
           }
 
-          this.apiService.getPageByApiIdAndPageId({
-            apiId: _api,
-            pageId:this.selectedPlan.general_conditions,
-            include: ['content'] }).toPromise()
-          .then((page) => {
-            this.generalConditions.set(page.id, page);
-            this.currentGeneralConditions = page;
-          });
+          this.apiService
+            .getPageByApiIdAndPageId({
+              apiId: _api,
+              pageId: this.selectedPlan.general_conditions,
+              include: ['content'],
+            })
+            .toPromise()
+            .then((page) => {
+              this.generalConditions.set(page.id, page);
+              this.currentGeneralConditions = page;
+            });
         } else {
           this.currentGeneralConditions = this.generalConditions.get(pageId);
         }
-
       } else {
         this.planForm.get('general_conditions_accepted').clearValidators();
       }
@@ -110,58 +109,63 @@ export class ApplicationCreationStep3Component implements OnInit {
     });
 
     this.planForm.valueChanges
-    .pipe(distinctUntilChanged((prev, curr) => prev.general_conditions_accepted === curr.general_conditions_accepted))
-    .subscribe(() => {
-      this._generalConditionsAccepted = this.planForm.get('general_conditions_accepted').value;
-      this.ref.detectChanges();
-    });
+      .pipe(distinctUntilChanged((prev, curr) => prev.general_conditions_accepted === curr.general_conditions_accepted))
+      .subscribe(() => {
+        this._generalConditionsAccepted = this.planForm.get('general_conditions_accepted').value;
+        this.ref.detectChanges();
+      });
 
     if (this.activatedRoute.snapshot.queryParamMap.has('api')) {
       const apiId = this.activatedRoute.snapshot.queryParamMap.get('api');
-      this.apiService.getApiByApiId({ apiId })
+      this.apiService
+        .getApiByApiId({ apiId })
         .toPromise()
         .then((api) => this.loadPlans(api));
     }
 
-    this.translateService.get([
-      i18n('apiSubscribe.apps.comment'),
-      i18n('applicationCreation.subscription.comment'),
-      i18n('applicationCreation.subscription.remove'),
-    ]).toPromise().then(translations => {
-      const values = Object.values(translations);
-      this.subscriptionListOptions = {
-        data: [
-          { field: 'api.name', label: 'Api' },
-          { field: 'plan.name', label: 'Plan' },
-          {
-            field: 'request',
-            label: values[1],
-            type: 'gv-text',
-            attributes: {
-              rows: 2,
-              required: (item) => item.requiredComment,
-              placeholder: (item) => item.plan.comment_question || values[0],
+    this.translateService
+      .get([
+        i18n('apiSubscribe.apps.comment'),
+        i18n('applicationCreation.subscription.comment'),
+        i18n('applicationCreation.subscription.remove'),
+      ])
+      .toPromise()
+      .then((translations) => {
+        const values = Object.values(translations);
+        this.subscriptionListOptions = {
+          data: [
+            { field: 'api.name', label: 'Api' },
+            { field: 'plan.name', label: 'Plan' },
+            {
+              field: 'request',
+              label: values[1],
+              type: 'gv-text',
+              attributes: {
+                rows: 2,
+                required: (item) => item.requiredComment,
+                placeholder: (item) => item.plan.comment_question || values[0],
+              },
+              width: '300px',
             },
-            width: '300px'
-          },
-          {
-            type: 'gv-icon',
-            width: '25px',
-            attributes: {
-              shape: 'general:trash',
-              clickable: true,
-              onClick: (item) => this.removePlan(item.plan),
-              title: values[2]
+            {
+              type: 'gv-icon',
+              width: '25px',
+              attributes: {
+                shape: 'general:trash',
+                clickable: true,
+                onClick: (item) => this.removePlan(item.plan),
+                title: values[2],
+              },
             },
-          },
-        ]
-      };
-    });
+          ],
+        };
+      });
   }
 
   onSearchApi({ detail }) {
     this.plans = [];
-    return this.apiService.searchApis(new SearchRequestParams(detail, 5))
+    return this.apiService
+      .searchApis(new SearchRequestParams(detail, 5))
       .toPromise()
       .then((apisResponse: ApisResponse) => {
         if (apisResponse.data.length) {
@@ -177,13 +181,12 @@ export class ApplicationCreationStep3Component implements OnInit {
       });
   }
 
-
   get selectedApiName() {
     return this.selectedApi ? this.selectedApi.name : '';
   }
 
   goToStep2() {
-    this.changeStep.emit({ step: 2 , fragment: 'appClientId' })
+    this.changeStep.emit({ step: 2, fragment: 'appClientId' });
   }
 
   onRequestChange($event: any) {
@@ -203,12 +206,12 @@ export class ApplicationCreationStep3Component implements OnInit {
   }
 
   get generalConditionsAccepted() {
-    return (!this.hasGeneralConditions || this._generalConditionsAccepted);
+    return !this.hasGeneralConditions || this._generalConditionsAccepted;
   }
 
   get generalConditionsAcceptedAndPlanSubscribed() {
     // 'canAddPlan' is used to keep the GCU displayed until the user click on subscribe button
-    return (!this.hasGeneralConditions || (this.canAddPlan && this._generalConditionsAccepted));
+    return !this.hasGeneralConditions || (this.canAddPlan && this._generalConditionsAccepted);
   }
 
   requireComment() {
@@ -231,7 +234,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   private async loadPlans(api) {
     if (api) {
       const plans = await this.apiService.getApiPlansByApiId({ apiId: api.id, size: -1 }).toPromise();
-      this.plans = plans.data.filter((plan) => (plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS));
+      this.plans = plans.data.filter((plan) => plan.security.toUpperCase() !== Plan.SecurityEnum.KEYLESS);
       if (this.selectedPlan == null && this.plans.length > 0) {
         this.planForm.get('planId').setValue(this.plans[0].id);
       }
@@ -254,12 +257,12 @@ export class ApplicationCreationStep3Component implements OnInit {
         api: this.selectedApi,
         plan: this.selectedPlan,
         requiredComment: this.requireComment(),
-        request: ''
+        request: '',
       };
 
       if (this.hasGeneralConditions) {
-          _subscription.general_conditions_accepted = this.planForm.get('general_conditions_accepted').value;
-          _subscription.general_conditions_content_revision = this.currentGeneralConditions.contentRevisionId;
+        _subscription.general_conditions_accepted = this.planForm.get('general_conditions_accepted').value;
+        _subscription.general_conditions_content_revision = this.currentGeneralConditions.contentRevisionId;
       }
 
       this.subscribeList = [...this.subscribeList, _subscription];
@@ -276,5 +279,4 @@ export class ApplicationCreationStep3Component implements OnInit {
     this.updated.emit(this.subscribeList);
     this.ref.detectChanges();
   }
-
 }

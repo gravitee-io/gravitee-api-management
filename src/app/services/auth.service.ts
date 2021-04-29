@@ -23,10 +23,9 @@ import { AuthenticationService, PortalService } from '../../../projects/portal-w
 import { Router } from '@angular/router';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-
   private authenticationService: AuthenticationService;
   private portalService: PortalService;
   private router: Router;
@@ -68,7 +67,7 @@ export class AuthService {
           this.notificationService.error(i18n('login.notification.error'));
           resolve(false);
         },
-        () => resolve(true)
+        () => resolve(true),
       );
     });
   }
@@ -94,14 +93,17 @@ export class AuthService {
   }
 
   private _logout(resolve) {
-    this.authenticationService.logout().toPromise().then(() => {
-      this.currentUserService.revokeUser();
-      if (this.getProviderId()) {
-        this.oauthService.logOut();
-        this.removeProviderId();
-      }
-      this.router.navigate(['']);
-    })
+    this.authenticationService
+      .logout()
+      .toPromise()
+      .then(() => {
+        this.currentUserService.revokeUser();
+        if (this.getProviderId()) {
+          this.oauthService.logOut();
+          this.removeProviderId();
+        }
+        this.router.navigate(['']);
+      })
       .catch(() => resolve(false))
       .finally(() => resolve(true));
   }
@@ -114,26 +116,41 @@ export class AuthService {
       tokenEndpoint: this.configurationService.get('baseURL') + '/auth/oauth2/' + provider.id,
       requireHttps: false,
       issuer: provider.tokenIntrospectionEndpoint,
-      logoutUrl: provider.userLogoutEndpoint + redirectUri,
+      logoutUrl: provider.userLogoutEndpoint,
+      postLogoutRedirectUri: redirectUri,
       scope: provider.scopes.join(' '),
       responseType: 'code',
       redirectUri,
+      /*
+       added because with our current OIDC configuration, we don't know the real issuer.
+       For example, with keycloak, the issuer is "https://[host]:[port]/auth/realms/[realm_id].
+       But in our configuration, we only have these endpoints:
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/token
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/token/introspect
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/auth
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/userinfo
+        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/logout
+       */
+      skipIssuerCheck: true,
     });
   }
 
   private _fetchProviderAndConfigure(): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
-      this.portalService.getPortalIdentityProvider({ identityProviderId: this.getProviderId() }).toPromise().then(
-        (identityProvider) => {
-          if (identityProvider) {
-            this._configure(identityProvider);
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        },
-        () => resolve(false)
-      );
+      this.portalService
+        .getPortalIdentityProvider({ identityProviderId: this.getProviderId() })
+        .toPromise()
+        .then(
+          (identityProvider) => {
+            if (identityProvider) {
+              this._configure(identityProvider);
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          },
+          () => resolve(false),
+        );
     });
   }
 

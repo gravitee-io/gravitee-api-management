@@ -29,15 +29,11 @@ import { ScrollService } from '../../services/scroll.service';
   animations: [
     trigger('grow', [
       transition('void <=> *', []),
-      transition('* <=> *', [
-        style({ height: '{{startHeight}}px', opacity: 0 }),
-        animate('.5s ease'),
-      ], { params: { startHeight: 0 } })
-    ])
-  ]
+      transition('* <=> *', [style({ height: '{{startHeight}}px', opacity: 0 }), animate('.5s ease')], { params: { startHeight: 0 } }),
+    ]),
+  ],
 })
 export class GvDocumentationComponent implements AfterViewInit {
-
   @Input() set pages(pages: Page[]) {
     clearTimeout(this.loadingTimer);
     if (pages && pages.length) {
@@ -49,7 +45,7 @@ export class GvDocumentationComponent implements AfterViewInit {
         if (pageId) {
           pageToDisplay = this.getFirstPage(pages, pageId);
         } else if (folderId) {
-          const folderPages = pages.filter(p => p.parent === folderId);
+          const folderPages = pages.filter((p) => p.parent === folderId);
           pageToDisplay = this.getFirstPage(folderPages);
         } else {
           pageToDisplay = this.getFirstPage(pages);
@@ -68,12 +64,7 @@ export class GvDocumentationComponent implements AfterViewInit {
     }, 700);
   }
 
-  constructor(
-    private notificationService: NotificationService,
-    private route: ActivatedRoute,
-    private router: Router,
-  ) {
-  }
+  constructor(private notificationService: NotificationService, private route: ActivatedRoute, private router: Router) {}
 
   static PAGE_PADDING_TOP_BOTTOM = 44;
   static PAGE_COMPONENT = 'app-gv-page';
@@ -96,7 +87,9 @@ export class GvDocumentationComponent implements AfterViewInit {
   static updateMenuHeight(menuElement) {
     if (menuElement) {
       const viewportHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-      menuElement.style.height = `${viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM)}px`;
+      menuElement.style.height = `${
+        viewportHeight - (ScrollService.getHeaderHeight() + 2 * GvDocumentationComponent.PAGE_PADDING_TOP_BOTTOM)
+      }px`;
     }
   }
 
@@ -120,7 +113,6 @@ export class GvDocumentationComponent implements AfterViewInit {
         return scrollTop + ScrollService.getHeaderHeight();
       }
     }
-
   }
 
   static reset(menuElement) {
@@ -135,9 +127,9 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   private initTree(pages: Page[], selectedPage?: string) {
     let pagesMap: any[] = pages;
-    pagesMap.forEach(page => {
+    pagesMap.forEach((page) => {
       if (page.parent) {
-        const parentPage = pagesMap.find(element => element.id === page.parent);
+        const parentPage = pagesMap.find((element) => element.id === page.parent);
         if (parentPage) {
           if (parentPage.children) {
             parentPage.children.push(page);
@@ -148,14 +140,14 @@ export class GvDocumentationComponent implements AfterViewInit {
       }
     });
     pagesMap = pagesMap
-      .filter(page => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || (page.parent && page.parent === this.rootDir))
+      .filter((page) => (!page.parent && page.type.toUpperCase() !== Page.TypeEnum.ROOT) || (page.parent && page.parent === this.rootDir))
       .sort((p1, p2) => p1.order - p2.order);
     return this.buildMenu(pagesMap, selectedPage);
   }
 
   private buildMenu(pages: any[], selectedPage?: string) {
     const result: TreeItem[] = [];
-    pages.forEach(page => {
+    pages.forEach((page) => {
       const name = page.name;
       let treeItem;
       if (page.children) {
@@ -175,7 +167,7 @@ export class GvDocumentationComponent implements AfterViewInit {
   expandMenu(menu: TreeItem[], parents?: TreeItem[], firstLevel: boolean = true) {
     menu.forEach((menuItem) => {
       if (menuItem === this.currentMenuItem && parents) {
-        parents.forEach(parent => parent.expanded = true);
+        parents.forEach((parent) => (parent.expanded = true));
       } else {
         if (menuItem.children) {
           if (parents && !firstLevel) {

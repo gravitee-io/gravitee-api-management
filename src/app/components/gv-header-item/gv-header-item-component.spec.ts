@@ -27,15 +27,8 @@ describe('GvHeaderItemComponent', () => {
   const createComponent = createComponentFactory({
     component: GvHeaderItemComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-        imports: [
-          RouterTestingModule,
-          TranslateTestingModule,
-          HttpClientTestingModule,
-          UserTestingModule
-        ],
-        providers: [
-          mockProvider(ApiService)
-        ]
+    imports: [RouterTestingModule, TranslateTestingModule, HttpClientTestingModule, UserTestingModule],
+    providers: [mockProvider(ApiService)],
   });
 
   let spectator: Spectator<GvHeaderItemComponent>;
@@ -49,5 +42,4 @@ describe('GvHeaderItemComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

@@ -17,7 +17,6 @@ import { createServiceFactory, mockProvider, SpectatorService } from '@ngneat/sp
 import { TranslationService } from './translation.service';
 
 describe('TranslationService', () => {
-
   let service: SpectatorService<TranslationService>;
   const createService = createServiceFactory({
     service: TranslationService,

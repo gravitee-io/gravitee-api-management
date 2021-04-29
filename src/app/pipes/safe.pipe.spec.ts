@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-
 import { createPipeFactory, SpectatorPipe } from '@ngneat/spectator';
 import { SafePipe } from './safe.pipe';
 
 describe('SafePipe', () => {
-
   let spectator: SpectatorPipe<SafePipe>;
   const createPipe = createPipeFactory({
     pipe: SafePipe,
@@ -45,17 +43,17 @@ describe('SafePipe', () => {
 
   it('should safe Script', () => {
     const value = 'var foo = bar*2;';
-    spectator = createPipe(`{{ value | safe:'script' }}`,{
+    spectator = createPipe(`{{ value | safe:'script' }}`, {
       hostProps: {
-        value
-      }
+        value,
+      },
     });
     expect(spectator.element).toHaveText(value);
   });
 
   it('should safe Resource URL', () => {
     spectator = createPipe(`{{ '/assets/foo/bar' | safe:'resourceUrl' }}`);
-    expect(spectator.element).toHaveText('/assets/foo/bar' );
+    expect(spectator.element).toHaveText('/assets/foo/bar');
   });
 
   it('should safe style', () => {
@@ -67,5 +65,4 @@ describe('SafePipe', () => {
     spectator = createPipe(`{{ 'http://foo.bar' | safe:'url' }}`);
     expect(spectator.element).toHaveText('http://foo.bar');
   });
-
 });

@@ -24,7 +24,7 @@ import {
   GetSubscriptionsRequestParams,
   PermissionsService,
   Subscription,
-  SubscriptionService
+  SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ActivatedRoute, Router } from '@angular/router';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
@@ -37,10 +37,9 @@ import StatusEnum = Subscription.StatusEnum;
 @Component({
   selector: 'app-application-subscriptions',
   templateUrl: './application-subscriptions.component.html',
-  styleUrls: ['./application-subscriptions.component.css']
+  styleUrls: ['./application-subscriptions.component.css'],
 })
 export class ApplicationSubscriptionsComponent implements OnInit {
-
   subscriptions: Array<Subscription>;
   options: any;
   format: any;
@@ -71,8 +70,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     private permissionsService: PermissionsService,
     private ref: ChangeDetectorRef,
     private ngZone: NgZone,
-  ) {
-  }
+  ) {}
 
   ngOnInit() {
     const application = this.route.snapshot.data.application;
@@ -86,26 +84,33 @@ export class ApplicationSubscriptionsComponent implements OnInit {
         selectable: true,
         data: [
           {
-            field: 'api', type: 'image',
+            field: 'api',
+            type: 'image',
             alt: (item) => this.metadata[item.api] && getPictureDisplayName(this.metadata[item.api]),
-            format: (item) => this.metadata[item] && this.metadata[item].pictureUrl
+            format: (item) => this.metadata[item] && this.metadata[item].pictureUrl,
           },
           {
-            field: 'api', label: i18n('application.subscriptions.api'),
+            field: 'api',
+            label: i18n('application.subscriptions.api'),
             tag: (item) => this.metadata[item.api] && this.metadata[item.api].version,
-            format: (item) => this.metadata[item] && this.metadata[item].name
+            format: (item) => this.metadata[item] && this.metadata[item].name,
           },
           {
-            field: 'plan', label: i18n('application.subscriptions.plan'),
-            format: (item) => this.metadata[item] && this.metadata[item].name
+            field: 'plan',
+            label: i18n('application.subscriptions.plan'),
+            format: (item) => this.metadata[item] && this.metadata[item].name,
           },
           { field: 'created_at', type: 'date', label: i18n('application.subscriptions.created_at'), width: '160px' },
           {
-            field: 'subscribed_by', label: i18n('application.subscriptions.subscribed_by'),
-            format: (item) => this.metadata[item] && this.metadata[item].name, width: '190px'
+            field: 'subscribed_by',
+            label: i18n('application.subscriptions.subscribed_by'),
+            format: (item) => this.metadata[item] && this.metadata[item].name,
+            width: '190px',
           },
           {
-            field: 'status', label: i18n('application.subscriptions.status'), width: '80px',
+            field: 'status',
+            label: i18n('application.subscriptions.status'),
+            width: '80px',
             format: (key) => {
               const statusKey = 'common.status.' + key.toUpperCase();
               return this.translateService.get(statusKey).toPromise();
@@ -125,49 +130,56 @@ export class ApplicationSubscriptionsComponent implements OnInit {
           {
             type: 'gv-button',
             width: '25px',
-            condition: (item) => this.metadata[item.api] &&  this.metadata[item.api].state === 'published',
+            condition: (item) => this.metadata[item.api] && this.metadata[item.api].state === 'published',
             attributes: {
               link: true,
               href: (item) => `/catalog/api/${item.api}`,
               title: i18n('application.subscriptions.navigateToApi'),
               icon: 'communication:share',
               onClick: (item, e) => this.goToApi(item.api),
-            }
+            },
           },
-        ]
+        ],
       };
 
-      this.applicationService.getSubscriberApisByApplicationId({ applicationId: application.id, size: -1 }).toPromise().then(apis => {
-        this.apisOptions = [];
-        apis.data.forEach(api => {
-          this.apisOptions.push({ label: api.name + ' (' + api.version + ')', value: api.id });
+      this.applicationService
+        .getSubscriberApisByApplicationId({ applicationId: application.id, size: -1 })
+        .toPromise()
+        .then((apis) => {
+          this.apisOptions = [];
+          apis.data.forEach((api) => {
+            this.apisOptions.push({ label: api.name + ' (' + api.version + ')', value: api.id });
+          });
         });
-      });
 
-      const statusKeys = Object.keys(StatusEnum).map(s => 'common.status.' + s);
-      this.translateService.get(statusKeys).toPromise().then(translatedKeys => {
-        this.statusOptions = Object.keys(StatusEnum).map((s, i) => {
-          return { label: Object.values(translatedKeys)[i], value: s };
+      const statusKeys = Object.keys(StatusEnum).map((s) => 'common.status.' + s);
+      this.translateService
+        .get(statusKeys)
+        .toPromise()
+        .then((translatedKeys) => {
+          this.statusOptions = Object.keys(StatusEnum).map((s, i) => {
+            return { label: Object.values(translatedKeys)[i], value: s };
+          });
+          this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
+          this.search(true);
         });
-        this.form.patchValue({ status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING] });
-        this.search(true);
-      });
-
     }
   }
 
   canRenew(subscription: Subscription) {
-    return subscription && this.canUpdate
-      && [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`].includes(subscription.status.toUpperCase());
+    return subscription && this.canUpdate && [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`].includes(subscription.status.toUpperCase());
   }
 
   canRevoke(subscription: Subscription) {
-    return subscription && this.canDelete
-      && [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`, `${StatusEnum.PENDING}`].includes(subscription.status.toUpperCase());
+    return (
+      subscription &&
+      this.canDelete &&
+      [`${StatusEnum.ACCEPTED}`, `${StatusEnum.PAUSED}`, `${StatusEnum.PENDING}`].includes(subscription.status.toUpperCase())
+    );
   }
 
   goToApi(apiId: string) {
-    this.ngZone.run(() => this.router.navigate(['/catalog/api/', apiId ]));
+    this.ngZone.run(() => this.router.navigate(['/catalog/api/', apiId]));
   }
 
   search(displaySubscription?) {
@@ -180,45 +192,58 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       requestParameters.statuses = this.form.value.status;
     }
     this.isSearching = true;
-    this.subscriptionService.getSubscriptions(requestParameters).toPromise().then(response => {
-      this.subscriptions = response.data;
-      this.metadata = response.metadata;
-      if (displaySubscription && this.route.snapshot.queryParams.subscription) {
-        const subscription = this.subscriptions.find(s => s.id === this.route.snapshot.queryParams.subscription);
-        this.selectedSubscriptions = [subscription.id];
-        this.onSelectSubscription(subscription);
-      } else {
-        this.selectedSubscriptions = [];
-        this.onSelectSubscription(null);
-      }
-    }).finally(() => this.isSearching = false);
+    this.subscriptionService
+      .getSubscriptions(requestParameters)
+      .toPromise()
+      .then((response) => {
+        this.subscriptions = response.data;
+        this.metadata = response.metadata;
+        if (displaySubscription && this.route.snapshot.queryParams.subscription) {
+          const subscription = this.subscriptions.find((s) => s.id === this.route.snapshot.queryParams.subscription);
+          this.selectedSubscriptions = [subscription.id];
+          this.onSelectSubscription(subscription);
+        } else {
+          this.selectedSubscriptions = [];
+          this.onSelectSubscription(null);
+        }
+      })
+      .finally(() => (this.isSearching = false));
   }
 
   reset() {
     this.form.reset({
-      status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING]
+      status: [StatusEnum.ACCEPTED, StatusEnum.PAUSED, StatusEnum.PENDING],
     });
   }
 
   closeSubscription(subscriptionId) {
-    this.subscriptionService.closeSubscription({ subscriptionId }).toPromise().then(() => {
-      this.notificationService.success(i18n('application.subscriptions.success.close'));
-      this.search(false);
-    });
+    this.subscriptionService
+      .closeSubscription({ subscriptionId })
+      .toPromise()
+      .then(() => {
+        this.notificationService.success(i18n('application.subscriptions.success.close'));
+        this.search(false);
+      });
   }
 
   renewSubscription(subscriptionId) {
-    this.subscriptionService.renewKeySubscription({ subscriptionId }).toPromise().then(() => {
-      this.notificationService.success(i18n('application.subscriptions.success.renew'));
-      this.search(true);
-    });
+    this.subscriptionService
+      .renewKeySubscription({ subscriptionId })
+      .toPromise()
+      .then(() => {
+        this.notificationService.success(i18n('application.subscriptions.success.renew'));
+        this.search(true);
+      });
   }
 
   revokeApiKey(subscriptionId, keyId) {
-    this.subscriptionService.revokeKeySubscription({ subscriptionId, keyId }).toPromise().then(() => {
-      this.notificationService.success(i18n('application.subscriptions.apiKey.success.revoke'));
-      this.search(true);
-    });
+    this.subscriptionService
+      .revokeKeySubscription({ subscriptionId, keyId })
+      .toPromise()
+      .then(() => {
+        this.notificationService.success(i18n('application.subscriptions.apiKey.success.revoke'));
+        this.search(true);
+      });
   }
 
   onSelectSubscription(subscription: Subscription) {
@@ -226,10 +251,11 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     if (subscription) {
       this.selectedSubscription = subscription;
       if (!this.selectedSubscription.keys || !this.selectedSubscription.keys[0]) {
-        this.subscriptionService.getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] })
+        this.subscriptionService
+          .getSubscriptionById({ subscriptionId: subscription.id, include: ['keys'] })
           .toPromise()
-          .then(sub => {
-            this.subscriptions.find(s => s.id === subscription.id).keys = sub.keys;
+          .then((sub) => {
+            this.subscriptions.find((s) => s.id === subscription.id).keys = sub.keys;
             this.ref.detectChanges();
           });
       }
@@ -240,7 +266,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   getValidApiKeys(sub: Subscription) {
     if (sub && sub.keys) {
-      const validApiKeys = sub.keys.filter(apiKey => this.isApiKeyValid(apiKey));
+      const validApiKeys = sub.keys.filter((apiKey) => this.isApiKeyValid(apiKey));
       if (validApiKeys && validApiKeys.length > 0) {
         return validApiKeys;
       }
@@ -249,7 +275,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   getExpiredApiKeys(sub: Subscription) {
     if (sub && sub.keys) {
-      const expiredApiKeys = sub.keys.filter(apiKey => !this.isApiKeyValid(apiKey));
+      const expiredApiKeys = sub.keys.filter((apiKey) => !this.isApiKeyValid(apiKey));
       if (expiredApiKeys && expiredApiKeys.length > 0) {
         return expiredApiKeys;
       }
@@ -262,7 +288,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
 
   apiKeyEnded(apiKey) {
     const endAt = this.endAt(apiKey);
-    return endAt && (new Date(endAt) < new Date());
+    return endAt && new Date(endAt) < new Date();
   }
 
   isApiKeyValid(apiKey) {

@@ -21,15 +21,11 @@ import { SafePipe } from '../../../pipes/safe.pipe';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('UserAccountComponent', () => {
-
   const createComponent = createComponentFactory({
     component: UserAccountComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      UserTestingModule,
-      ReactiveFormsModule,
-    ],
-    declarations: [ SafePipe],
+    imports: [UserTestingModule, ReactiveFormsModule],
+    declarations: [SafePipe],
   });
 
   let spectator: Spectator<UserAccountComponent>;
@@ -43,5 +39,4 @@ describe('UserAccountComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

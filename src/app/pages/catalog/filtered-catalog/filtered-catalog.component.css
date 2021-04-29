@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 .catalog__category__documentation {
-  width: 100%
+  width: 100%;
 }
 
 .catalog__category__documentation.hidden {
@@ -24,11 +24,13 @@
   padding-bottom: 3rem;
 }
 
-.catalog__category__documentation.hidden .hideDoc, .catalog__category__documentation:not(.hidden) .showDoc {
+.catalog__category__documentation.hidden .hideDoc,
+.catalog__category__documentation:not(.hidden) .showDoc {
   display: none;
 }
 
-.catalog__category__documentation.hidden .showDoc, .catalog__category__documentation:not(.hidden) .hideDoc {
+.catalog__category__documentation.hidden .showDoc,
+.catalog__category__documentation:not(.hidden) .hideDoc {
   display: block;
 }
 
@@ -44,7 +46,8 @@
   flex: 1;
 }
 
-gv-promote, app-gv-page {
+gv-promote,
+app-gv-page {
   flex: 1 1 auto;
 }
 
@@ -99,7 +102,6 @@ gv-row {
 }
 
 @media only screen and (max-device-width: 1280px) {
-
   .catalog__section__top {
     display: flex;
     flex-direction: column;
@@ -110,7 +112,8 @@ gv-row {
     margin-top: 1rem;
   }
 
-  gv-promote-api, app-gv-page {
+  gv-promote-api,
+  app-gv-page {
     display: none;
   }
 
@@ -130,5 +133,4 @@ gv-row {
   .categories__section > gv {
     flex: 0 1 auto;
   }
-
 }

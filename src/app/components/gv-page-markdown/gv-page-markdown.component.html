@@ -27,10 +27,10 @@
   </div>
 </ng-container>
 <div class="gv-page-container markdown">
-  <div *ngIf="page && page.media && page.media.length >0">
+  <div *ngIf="page && page.media && page.media.length > 0">
     <ul class="attached-resources">
       <li *ngFor="let media of page.media">
-        <gv-link title="{{media.name}}" icon="finance:file" (:gv-link:click)="openMedia(media.link)"></gv-link>
+        <gv-link title="{{ media.name }}" icon="finance:file" (:gv-link:click)="openMedia(media.link)"></gv-link>
       </li>
     </ul>
   </div>

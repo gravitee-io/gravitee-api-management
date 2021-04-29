@@ -15,5 +15,5 @@
  */
 export enum ItemResourceTypeEnum {
   API = 'api',
-  APPLICATION = 'application'
+  APPLICATION = 'application',
 }

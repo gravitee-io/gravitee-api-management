@@ -24,20 +24,11 @@ import { UserTestingModule } from '../../test/user-testing-module';
 import { GvContactComponent } from './gv-contact.component';
 
 describe('GvContactComponent', () => {
-
   const createComponent = createComponentFactory({
     component: GvContactComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      FormsModule,
-      ReactiveFormsModule,
-      HttpClientTestingModule,
-      RouterTestingModule,
-      UserTestingModule
-    ],
-    providers: [
-      mockProvider(NotificationService),
-    ]
+    imports: [FormsModule, ReactiveFormsModule, HttpClientTestingModule, RouterTestingModule, UserTestingModule],
+    providers: [mockProvider(NotificationService)],
   });
 
   let spectator: Spectator<GvContactComponent>;

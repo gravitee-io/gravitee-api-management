@@ -22,7 +22,7 @@ describe('GvDocumentationComponent', () => {
   const createComponent = createComponentFactory({
     component: GvDocumentationComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [RouterTestingModule]
+    imports: [RouterTestingModule],
   });
 
   let spectator: Spectator<GvDocumentationComponent>;
@@ -33,14 +33,13 @@ describe('GvDocumentationComponent', () => {
     component = spectator.component;
   });
 
-
   it('should create', () => {
     expect(component).toBeTruthy();
   });
 
   it('should not call onPageChange if link have data-pageId ', () => {
     const page = { id: 'my-page' };
-    component._pages = [ page ];
+    component._pages = [page];
     component.onPageChange = jest.fn();
     const linkToPage = document.createElement('gv-button');
     linkToPage.dataset.pageId = page.id;
@@ -52,10 +51,9 @@ describe('GvDocumentationComponent', () => {
     expect(component.onPageChange).toBeCalledWith(page);
   });
 
-
   it('should not call onPageChange if link not have data-pageId ', () => {
     const pageId = 'my-page';
-    component._pages = [ { id: pageId }];
+    component._pages = [{ id: pageId }];
     component.onPageChange = jest.fn();
     const linkToPage = document.createElement('gv-button');
     spectator.element.appendChild(linkToPage);
@@ -64,5 +62,4 @@ describe('GvDocumentationComponent', () => {
 
     expect(component.onPageChange).toBeCalledTimes(0);
   });
-
 });

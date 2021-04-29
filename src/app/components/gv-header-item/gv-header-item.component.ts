@@ -38,15 +38,15 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
   private currentRoute: ActivatedRoute;
   private _subscribeUrl: string;
 
-  constructor(public router: Router,
-              public activatedRoute: ActivatedRoute,
-              public navRouteService: NavRouteService,
-              public currentUserService: CurrentUserService,
-              public portalService: PortalService,
-              public eventService: EventService,
-              private applicationResolver: ApplicationResolver,
-  ) {
-  }
+  constructor(
+    public router: Router,
+    public activatedRoute: ActivatedRoute,
+    public navRouteService: NavRouteService,
+    public currentUserService: CurrentUserService,
+    public portalService: PortalService,
+    public eventService: EventService,
+    private applicationResolver: ApplicationResolver,
+  ) {}
 
   ngOnInit() {
     this.loadData();
@@ -94,7 +94,7 @@ export class GvHeaderItemComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.currentUserService.get().subscribe(newCurrentUser => {
+    this.currentUserService.get().subscribe((newCurrentUser) => {
       this.currentUser = newCurrentUser;
     });
   }

@@ -22,16 +22,11 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { AuthService } from '../../services/auth.service';
 
 describe('LogoutComponent', () => {
-
   const createComponent = createComponentFactory({
     component: LogoutComponent,
-    imports: [
-      RouterTestingModule, HttpClientTestingModule
-    ],
+    imports: [RouterTestingModule, HttpClientTestingModule],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    providers: [
-      mockProvider(AuthService),
-    ]
+    providers: [mockProvider(AuthService)],
   });
 
   let spectator: Spectator<LogoutComponent>;
@@ -45,5 +40,4 @@ describe('LogoutComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

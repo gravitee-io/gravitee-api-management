@@ -16,11 +16,10 @@
 
 -->
 <div class="page__content page__content-with-aside">
-
   <div class="main">
     <div class="page__box">
       <div class="page__box-title">
-        <h3 class="title">{{ "application.subscriptions.title" | translate}}</h3>
+        <h3 class="title">{{ 'application.subscriptions.title' | translate }}</h3>
         <gv-button link (:gv-button:click)="reset()">
           {{ 'common.reset' | translate }}
         </gv-button>
@@ -29,15 +28,24 @@
       <div class="page__box-content">
         <form class="form" [formGroup]="form" (ngSubmit)="search()">
           <div class="grid form__control">
-            <gv-select label="{{ 'application.subscriptions.filters.api.title' | translate }}"
-                       placeholder="{{ 'application.subscriptions.filters.api.label' | translate }}"
-                       [options]="apisOptions"
-                       formControlName="api" name="api" ngDefaultControl></gv-select>
+            <gv-select
+              label="{{ 'application.subscriptions.filters.api.title' | translate }}"
+              placeholder="{{ 'application.subscriptions.filters.api.label' | translate }}"
+              [options]="apisOptions"
+              formControlName="api"
+              name="api"
+              ngDefaultControl
+            ></gv-select>
 
-            <gv-select label="{{ 'application.subscriptions.filters.status.title' | translate }}"
-                       placeholder="{{ 'application.subscriptions.filters.status.label' | translate }}"
-                       [options]="statusOptions" multiple
-                       formControlName="status" name="status" ngDefaultControl></gv-select>
+            <gv-select
+              label="{{ 'application.subscriptions.filters.status.title' | translate }}"
+              placeholder="{{ 'application.subscriptions.filters.status.label' | translate }}"
+              [options]="statusOptions"
+              multiple
+              formControlName="status"
+              name="status"
+              ngDefaultControl
+            ></gv-select>
           </div>
 
           <div class="form__actions">
@@ -49,68 +57,79 @@
       </div>
 
       <div class="page__box-footer page__box-footer_subscriptions">
-        <gv-table order="api" [items]="subscriptions" [options]="options" [format]="format"
-                  [selected]="selectedSubscriptions"
-                  (:gv-table:select)="onSelectSubscription($event.detail.items[0])"></gv-table>
+        <gv-table
+          order="api"
+          [items]="subscriptions"
+          [options]="options"
+          [format]="format"
+          [selected]="selectedSubscriptions"
+          (:gv-table:select)="onSelectSubscription($event.detail.items[0])"
+        ></gv-table>
       </div>
-
     </div>
   </div>
 
   <aside class="aside form">
     <div class="page__box" *ngIf="canRenew(selectedSubscription) || canRevoke(selectedSubscription)">
       <div class="page__box-title">
-        <h4 class="title">{{ "application.subscriptions.selected.title" | translate}}</h4>
+        <h4 class="title">{{ 'application.subscriptions.selected.title' | translate }}</h4>
       </div>
       <div class="page__box-content">
-          <div class="page__box-row">
-            <span>{{'application.subscriptions.processed_at' | translate}}</span>
-            {{ selectedSubscription.processed_at | localizedDate: 'shortDate': '--' }}
-          </div>
-          <div class="page__box-row">
-            <span>{{'application.subscriptions.start_at' | translate}}</span>
-            {{ selectedSubscription.start_at | localizedDate: 'shortDate': '--' }}
-          </div>
+        <div class="page__box-row">
+          <span>{{ 'application.subscriptions.processed_at' | translate }}</span>
+          {{ selectedSubscription.processed_at | localizedDate: 'shortDate':'--' }}
+        </div>
+        <div class="page__box-row">
+          <span>{{ 'application.subscriptions.start_at' | translate }}</span>
+          {{ selectedSubscription.start_at | localizedDate: 'shortDate':'--' }}
+        </div>
       </div>
       <div class="page__box-footer form__actions">
-        <gv-confirm *ngIf="canRenew(selectedSubscription)"
-                    [message]="'application.subscriptions.renew.message' | translate"
-                    (:gv-confirm:ok)="renewSubscription(selectedSubscription.id)">
+        <gv-confirm
+          *ngIf="canRenew(selectedSubscription)"
+          [message]="'application.subscriptions.renew.message' | translate"
+          (:gv-confirm:ok)="renewSubscription(selectedSubscription.id)"
+        >
           <gv-button primary>{{ 'application.subscriptions.renew.title' | translate }}</gv-button>
         </gv-confirm>
-        <gv-confirm *ngIf="canRevoke(selectedSubscription)"
-                    [message]="'application.subscriptions.close.message' | translate"
-                    danger
-                    (:gv-confirm:ok)="closeSubscription(selectedSubscription.id)">
+        <gv-confirm
+          *ngIf="canRevoke(selectedSubscription)"
+          [message]="'application.subscriptions.close.message' | translate"
+          danger
+          (:gv-confirm:ok)="closeSubscription(selectedSubscription.id)"
+        >
           <gv-button link>{{ 'application.subscriptions.close.title' | translate }}</gv-button>
         </gv-confirm>
       </div>
     </div>
     <div class="page__box" *ngIf="getValidApiKeys(selectedSubscription)">
       <div class="page__box-title">
-        <h4 class="title">{{'application.subscriptions.apiKey.title' | translate}}</h4>
+        <h4 class="title">{{ 'application.subscriptions.apiKey.title' | translate }}</h4>
       </div>
 
       <div class="page__box-content" *ngFor="let apiKey of getValidApiKeys(selectedSubscription)">
         <gv-input clipboard [value]="apiKey.id"></gv-input>
 
         <div class="page__box-row">
-          <span>{{'application.subscriptions.apiKey.created_at' | translate}}</span>
-          {{apiKey.created_at | localizedDate}}
+          <span>{{ 'application.subscriptions.apiKey.created_at' | translate }}</span>
+          {{ apiKey.created_at | localizedDate }}
         </div>
 
         <div *ngIf="endAt(apiKey)" class="page__box-row">
-          <span>{{'application.subscriptions.apiKey.end_at' | translate}}</span>
+          <span>{{ 'application.subscriptions.apiKey.end_at' | translate }}</span>
           <gv-relative-time [datetime]="endAt(apiKey)"></gv-relative-time>
         </div>
 
         <div class="confirm__right">
-          <gv-confirm [message]="'application.subscriptions.apiKey.revoke.message' | translate"
-                      danger
-                      (:gv-confirm:ok)="revokeApiKey(selectedSubscriptions[0], apiKey.id)"
-                      [cancelLabel]="'common.cancel' | translate" [okLabel]="'common.ok' | translate">
+          <gv-confirm
+            [message]="'application.subscriptions.apiKey.revoke.message' | translate"
+            danger
+            (:gv-confirm:ok)="revokeApiKey(selectedSubscriptions[0], apiKey.id)"
+            [cancelLabel]="'common.cancel' | translate"
+            [okLabel]="'common.ok' | translate"
+          >
             <gv-button *ngIf="canUpdate" link>
-              {{'application.subscriptions.apiKey.revoke.label' | translate}}
+              {{ 'application.subscriptions.apiKey.revoke.label' | translate }}
             </gv-button>
           </gv-confirm>
         </div>
@@ -118,8 +137,8 @@
 
       <div class="page__box-footer" id="expired-keys">
         <gv-button *ngIf="getExpiredApiKeys(selectedSubscription)" link (:gv-button:click)="toggleDisplayExpired()">
-          <span *ngIf="displayExpiredApiKeys">{{'application.subscriptions.apiKey.expired.hide' | translate}}</span>
-          <span *ngIf="!displayExpiredApiKeys">{{'application.subscriptions.apiKey.expired.show' | translate}}</span>
+          <span *ngIf="displayExpiredApiKeys">{{ 'application.subscriptions.apiKey.expired.hide' | translate }}</span>
+          <span *ngIf="!displayExpiredApiKeys">{{ 'application.subscriptions.apiKey.expired.show' | translate }}</span>
         </gv-button>
       </div>
 
@@ -127,17 +146,15 @@
         <div class="page__box-footer" *ngFor="let apiKey of getExpiredApiKeys(selectedSubscription)">
           <gv-input [value]="apiKey.id" disabled></gv-input>
           <div class="page__box-row">
-            <span>{{'application.subscriptions.apiKey.created_at' | translate}}</span>{{apiKey.created_at | localizedDate}}
+            <span>{{ 'application.subscriptions.apiKey.created_at' | translate }}</span
+            >{{ apiKey.created_at | localizedDate }}
           </div>
           <div class="page__box-row">
-            <span>{{'application.subscriptions.apiKey.ended_at' | translate}}</span>{{endAt(apiKey) | localizedDate: 'longDate'}}
+            <span>{{ 'application.subscriptions.apiKey.ended_at' | translate }}</span
+            >{{ endAt(apiKey) | localizedDate: 'longDate' }}
           </div>
         </div>
       </div>
-
     </div>
-
   </aside>
-
 </div>
-

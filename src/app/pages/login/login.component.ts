@@ -31,11 +31,9 @@ import { ReCaptchaService } from '../../services/recaptcha.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
 })
-
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
-
   loginForm: FormGroup;
   registrationEnabled: boolean;
   loginEnabled: boolean;
@@ -52,15 +50,12 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     private authService: AuthService,
     private activatedRoute: ActivatedRoute,
     private reCaptchaService: ReCaptchaService,
-  ) {
-
-
-  }
+  ) {}
 
   ngOnInit() {
     this.firstClickHandler = this.onFirstClick.bind(this);
 
-    this.loginForm = this.formBuilder.group({ username: '', password: '', });
+    this.loginForm = this.formBuilder.group({ username: '', password: '' });
     this.loginEnabled = this.config.hasFeature(FeatureEnum.localLogin);
     this.registrationEnabled = this.config.hasFeature(FeatureEnum.userRegistration);
     this.redirectUrl = this.activatedRoute.snapshot.queryParams.redirectUrl || '';
@@ -70,7 +65,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       (error) => {
         console.error('something wrong occurred with identity providers: ' + error.statusText);
-      }
+      },
     );
     this.reCaptchaService.displayBadge();
   }
@@ -88,7 +83,6 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.loginForm) {
       window.addEventListener('click', this.firstClickHandler);
     }
-
   }
 
   ngOnDestroy() {
@@ -97,14 +91,14 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   login() {
     if (this.isFormValid()) {
-      this.reCaptchaService.execute('login').then(() =>{
+      this.reCaptchaService.execute('login').then(() => {
         this.authService.login(this.loginForm.value.username, this.loginForm.value.password, this.redirectUrl).then(
-          () => {
-          },
+          () => {},
           () => {
             this.loginForm.setValue({ username: this.loginForm.value.username, password: '' });
-          }
-        )});
+          },
+        );
+      });
     }
   }
 
@@ -118,7 +112,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getProviderStyle(provider) {
     if (provider.color) {
-    return `--gv-button-${provider.type}--bgc:${provider.color};`
+      return `--gv-button-${provider.type}--bgc:${provider.color};`;
     }
     return '';
   }

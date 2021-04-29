@@ -27,13 +27,10 @@ describe('SinglePageComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ SinglePageComponent, GvPageComponent ],
-      imports: [ HttpClientTestingModule, RouterTestingModule ],
-      schemas: [
-        CUSTOM_ELEMENTS_SCHEMA,
-      ]
-    })
-    .compileComponents();
+      declarations: [SinglePageComponent, GvPageComponent],
+      imports: [HttpClientTestingModule, RouterTestingModule],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    }).compileComponents();
   }));
 
   beforeEach(() => {

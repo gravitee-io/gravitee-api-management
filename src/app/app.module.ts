@@ -115,12 +115,12 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
       loader: {
         provide: TranslateLoader,
         useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/i18n/'),
-        deps: [HttpClient]
+        deps: [HttpClient],
       },
       compiler: {
         provide: TranslateCompiler,
-        useClass: TranslateMessageFormatCompiler
-      }
+        useClass: TranslateMessageFormatCompiler,
+      },
     }),
   ],
   providers: [
@@ -128,34 +128,24 @@ import { TicketsHistoryComponent } from './components/gv-tickets-history/tickets
       provide: APP_INITIALIZER,
       useFactory: initApp,
       deps: [ConfigurationService, AuthService, CurrentUserService, TranslationService, ReCaptchaService],
-      multi: true
+      multi: true,
     },
     {
       provide: BASE_PATH,
       useFactory: (config: ConfigurationService) => config.get('baseURL'),
-      deps: [ConfigurationService]
+      deps: [ConfigurationService],
     },
     { provide: MESSAGE_FORMAT_CONFIG, useValue: { locales: environment.locales } },
     { provide: HTTP_INTERCEPTORS, useClass: ApiRequestInterceptor, multi: true },
     CookieService,
   ],
-  schemas: [
-    CUSTOM_ELEMENTS_SCHEMA
-  ],
-  bootstrap: [
-    AppComponent
-  ],
-  exports: [
-    TranslateModule,
-    SharedModule,
-  ]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  bootstrap: [AppComponent],
+  exports: [TranslateModule, SharedModule],
 })
 export class AppModule {
-
   constructor(router: Router, viewportScroller: ViewportScroller) {
-    router.events.pipe(
-      filter((e): e is Scroll => e instanceof Scroll)
-    ).subscribe(e => {
+    router.events.pipe(filter((e): e is Scroll => e instanceof Scroll)).subscribe((e) => {
       if (e.position) {
         // backward navigation
         viewportScroller.scrollToPosition(e.position);
@@ -167,12 +157,17 @@ export class AppModule {
   }
 }
 
-export function initApp(configurationService: ConfigurationService, authService: AuthService, currentUserService: CurrentUserService,
-                        translationService: TranslationService, reCaptchaService: ReCaptchaService) {
-  return () => configurationService.load().then(() => {
-      return authService.load().then(() => currentUserService.load().then(() => translationService.load()
-        .then(() => reCaptchaService.load())));
-    }
-  );
-
+export function initApp(
+  configurationService: ConfigurationService,
+  authService: AuthService,
+  currentUserService: CurrentUserService,
+  translationService: TranslationService,
+  reCaptchaService: ReCaptchaService,
+) {
+  return () =>
+    configurationService.load().then(() => {
+      return authService
+        .load()
+        .then(() => currentUserService.load().then(() => translationService.load().then(() => reCaptchaService.load())));
+    });
 }

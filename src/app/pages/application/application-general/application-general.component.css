@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../../../../src/css/form.css";
+@import '../../../../../src/css/form.css';
 
 .grid {
   display: grid;
@@ -37,7 +37,6 @@ gv-identity-picture {
   display: flex;
   flex-direction: row;
 }
-
 
 .grid-content {
   display: grid;

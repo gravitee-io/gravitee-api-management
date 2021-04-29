@@ -21,16 +21,10 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { ApplicationCreationStep2Component } from './application-creation-step2.component';
 
 describe('ApplicationCreationStep2Component', () => {
-
   const createComponent = createComponentFactory({
     component: ApplicationCreationStep2Component,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    imports: [
-      HttpClientTestingModule,
-      RouterTestingModule,
-      FormsModule,
-      ReactiveFormsModule
-    ]
+    imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
   });
 
   let spectator: Spectator<ApplicationCreationStep2Component>;
@@ -44,7 +38,7 @@ describe('ApplicationCreationStep2Component', () => {
       requires_redirect_uris: false,
       allowed_grant_types: [],
       default_grant_types: [],
-      mandatory_grant_types: []
+      mandatory_grant_types: [],
     },
     {
       id: 'browser',
@@ -56,39 +50,32 @@ describe('ApplicationCreationStep2Component', () => {
           code: 'authorization_code',
           type: 'authorization_code',
           name: 'Authorization Code',
-          response_types: [
-            'code'
-          ]
+          response_types: ['code'],
         },
         {
           code: 'implicit',
           type: 'implicit',
           name: 'Implicit',
-          response_types: [
-            'token',
-            'id_token'
-          ]
-        }
+          response_types: ['token', 'id_token'],
+        },
       ],
       default_grant_types: [
         {
           code: 'implicit',
           type: 'implicit',
           name: 'Implicit',
-          response_types: [
-            'token',
-            'id_token'
-          ]
-        }
+          response_types: ['token', 'id_token'],
+        },
       ],
-      mandatory_grant_types: []
-    }].map((o) => ({ ...o, title: o.name, icon: '' }));
+      mandatory_grant_types: [],
+    },
+  ].map((o) => ({ ...o, title: o.name, icon: '' }));
 
   beforeEach(() => {
     spectator = createComponent({
       props: {
-        allowedTypes
-      }
+        allowedTypes,
+      },
     });
     component = spectator.component;
   });
@@ -96,5 +83,4 @@ describe('ApplicationCreationStep2Component', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

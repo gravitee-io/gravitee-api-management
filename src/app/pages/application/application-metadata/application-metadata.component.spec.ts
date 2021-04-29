@@ -22,11 +22,10 @@ import { ApplicationMetadataComponent } from './application-metadata.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 
 describe('ApplicationMetadataComponent', () => {
-
   const createComponent = createComponentFactory({
     component: ApplicationMetadataComponent,
     imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
-    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+    schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 
   let spectator: Spectator<ApplicationMetadataComponent>;

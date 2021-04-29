@@ -30,13 +30,12 @@ import { NavRouteService } from '../../services/nav-route.service';
 @Component({
   selector: 'app-gv-analytics-filters',
   templateUrl: './gv-analytics-filters.component.html',
-  styleUrls: ['./gv-analytics-filters.component.css']
+  styleUrls: ['./gv-analytics-filters.component.css'],
 })
 export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDestroy {
-
   @Input() dashboard: Dashboard;
   @Input() withURI: boolean;
-  @Input() link: { label: string, relativePath: string, icon: string };
+  @Input() link: { label: string; relativePath: string; icon: string };
   @Output() export: EventEmitter<any> = new EventEmitter();
   @Input() exportDisabled: boolean;
   @Input() exportLoading: boolean;
@@ -56,8 +55,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     public route: ActivatedRoute,
     public analyticsService: AnalyticsService,
     private navRouteService: NavRouteService,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.analyticsForm = this.formBuilder.group({
@@ -91,12 +89,11 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     });
 
     this.route.queryParams.subscribe((queryParams) => {
-
       if (!this.route.snapshot.queryParams.timeframe && !(this.route.snapshot.queryParams.from && this.route.snapshot.queryParams.to)) {
         this.router.navigate([], {
           queryParams: { timeframe: '1d' },
           queryParamsHandling: 'merge',
-          fragment: this.analyticsService.fragment
+          fragment: this.analyticsService.fragment,
         });
       }
 
@@ -123,14 +120,21 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
           if (typeof queryParam === 'string') {
             this.tags.push(q + ': ' + queryParam);
           } else {
-            queryParam.forEach(qp => {
+            queryParam.forEach((qp) => {
               this.tags.push(q + ': ' + qp);
             });
           }
         });
-      if (queryParams._id || queryParams.transaction || queryParams.method ||
-        queryParams.uri || queryParams['response-time'] || queryParams.status ||
-        queryParams.api || queryParams.body) {
+      if (
+        queryParams._id ||
+        queryParams.transaction ||
+        queryParams.method ||
+        queryParams.uri ||
+        queryParams['response-time'] ||
+        queryParams.status ||
+        queryParams.api ||
+        queryParams.body
+      ) {
         this.advancedFiltersDisplayed = true;
       }
     });
@@ -139,7 +143,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     this.maxDateTimer = setInterval(() => {
       this.maxDate = new Date().getTime();
     }, 30000);
-
   }
 
   ngOnDestroy(): void {
@@ -148,25 +151,29 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
 
   ngAfterViewInit() {
     if (this.route.snapshot.params.applicationId) {
-      this.applicationService.getSubscriberApisByApplicationId({ applicationId: this.route.snapshot.params.applicationId, size: -1 })
-        .toPromise().then(apis => {
-        this.apisOptions = apis.data.map(api => {
-          return { label: api.name + ' (' + api.version + ')', value: api.id };
+      this.applicationService
+        .getSubscriberApisByApplicationId({ applicationId: this.route.snapshot.params.applicationId, size: -1 })
+        .toPromise()
+        .then((apis) => {
+          this.apisOptions = apis.data.map((api) => {
+            return { label: api.name + ' (' + api.version + ')', value: api.id };
+          });
         });
-      });
     }
   }
 
   @HostListener(':gv-option:select', ['$event.detail'])
   _onChangeDisplay({ id }) {
     const queryParams: any = { timeframe: id, ...this.analyticsService.getRemovableQueryParams() };
-    this.router.navigate([], {
-      queryParams,
-      queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
-    }).then(() => {
-      this.search();
-    });
+    this.router
+      .navigate([], {
+        queryParams,
+        queryParamsHandling: 'merge',
+        fragment: this.analyticsService.fragment,
+      })
+      .then(() => {
+        this.search();
+      });
   }
 
   onTagRemove(tag) {
@@ -194,13 +201,12 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     this.router.navigate([], {
       queryParams,
       queryParamsHandling: 'merge',
-      fragment: this.analyticsService.fragment
+      fragment: this.analyticsService.fragment,
     });
   }
 
   search() {
     if (this.analyticsForm.valid) {
-
       const queryParams: any = {
         _id: this.analyticsForm.value.requestId || null,
         transaction: this.analyticsForm.value.transactionId || null,
@@ -212,7 +218,7 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         body: this.analyticsForm.value.payloads || null,
         from: this.analyticsForm.value.range[0],
         to: this.analyticsForm.value.range[1],
-        timeframe: this.analyticsForm.value.timeframe
+        timeframe: this.analyticsForm.value.timeframe,
       };
 
       this.navRouteService.navigateForceRefresh([], {
@@ -220,7 +226,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
         queryParamsHandling: 'merge',
         fragment: this.analyticsService.fragment,
       });
-
     }
   }
 
@@ -234,19 +239,21 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
     }
     // keep analytics params
     Object.keys(this.route.snapshot.queryParams)
-      .filter(q => this.analyticsService.queryParams.includes(q))
-      .forEach(q => {
+      .filter((q) => this.analyticsService.queryParams.includes(q))
+      .forEach((q) => {
         queryParams[q] = this.route.snapshot.queryParams[q];
       });
     this.router.navigate([], {
       queryParams,
-      fragment: this.analyticsService.fragment
+      fragment: this.analyticsService.fragment,
     });
   }
 
   goTo(relativePath: string) {
     this.router.navigate([relativePath], {
-      relativeTo: this.route, queryParamsHandling: 'merge', queryParams: this.analyticsService.getRemovableQueryParams()
+      relativeTo: this.route,
+      queryParamsHandling: 'merge',
+      queryParams: this.analyticsService.getRemovableQueryParams(),
     });
   }
 

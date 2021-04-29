@@ -24,10 +24,9 @@ import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.c
 @Component({
   selector: 'app-gv-markdown-toc',
   templateUrl: './gv-markdown-toc.component.html',
-  styleUrls: ['./gv-markdown-toc.component.css']
+  styleUrls: ['./gv-markdown-toc.component.css'],
 })
 export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit {
-
   tocList: TocModel[];
   currentAnchor: string;
   pageServiceSubscription: Subscription;
@@ -46,16 +45,15 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
     private router: Router,
     private scrollService: ScrollService,
     private element: ElementRef,
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
-    this.route.fragment.subscribe(anchor => {
+    this.route.fragment.subscribe((anchor) => {
       if (!this.scrollInProgress) {
         this.currentAnchor = anchor;
       }
     });
-    this.pageServiceSubscription = this.pageService.get().subscribe(page => {
+    this.pageServiceSubscription = this.pageService.get().subscribe((page) => {
       if (page && page.content) {
         this.tocList = this._buildTocModel(page.content);
       }
@@ -66,14 +64,12 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
     GvDocumentationComponent.reset(this.element.nativeElement);
   }
 
-
   @HostListener('window:resize')
   onResize() {
     window.requestAnimationFrame(() => {
       GvDocumentationComponent.updateMenuHeight(this.element.nativeElement);
     });
   }
-
 
   @HostListener('window:scroll')
   onScroll() {
@@ -97,13 +93,14 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   _buildTocModel(content: string): TocModel[] {
     const nodeMap = [];
 
-    const tokens = marked.lexer(content)
+    const tokens = marked
+      .lexer(content)
       .filter((item) => item.type === 'heading' && item.depth > 1)
       .map((item) => ({
         anchor: this._computeAnchor(item),
         text: this._computeText(item),
         children: [],
-        level: item.depth
+        level: item.depth,
       }));
 
     for (let index = 0; index < tokens.length; index++) {
@@ -135,7 +132,7 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   _unescape(html) {
-    const unescapeTest = /&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig;
+    const unescapeTest = /&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/gi;
 
     // explicitly match decimal, hex, and named HTML entities
     return html.replace(unescapeTest, (_, n) => {
@@ -144,14 +141,11 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
         return ':';
       }
       if (n.charAt(0) === '#') {
-        return n.charAt(1) === 'x'
-          ? String.fromCharCode(parseInt(n.substring(2), 16))
-          : String.fromCharCode(+n.substring(1));
+        return n.charAt(1) === 'x' ? String.fromCharCode(parseInt(n.substring(2), 16)) : String.fromCharCode(+n.substring(1));
       }
       return '';
     });
   }
-
 }
 
 class TocModel {

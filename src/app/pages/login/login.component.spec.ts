@@ -26,7 +26,6 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 describe('LoginComponent', () => {
-
   const createComponent = createComponentFactory({
     component: LoginComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -36,7 +35,7 @@ describe('LoginComponent', () => {
       mockProvider(FeatureGuardService),
       mockProvider(ConfigurationService),
       mockProvider(OAuthService),
-    ]
+    ],
   });
 
   let spectator: Spectator<LoginComponent>;
@@ -50,5 +49,4 @@ describe('LoginComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
 });

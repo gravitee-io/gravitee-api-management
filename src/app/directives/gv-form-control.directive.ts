@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 import { AfterViewInit, Directive, ElementRef } from '@angular/core';
-import {
-  NgControl,
-  NgControlStatus,
-} from '@angular/forms';
+import { NgControl, NgControlStatus } from '@angular/forms';
 
 @Directive({
-  selector: 'gv-input[formControl],gv-input[formControlName],' +
+  selector:
+    'gv-input[formControl],gv-input[formControlName],' +
     'gv-text[formControl],gv-text[formControlName],' +
     'gv-select[formControl],gv-select[formControlName],' +
     'gv-date-picker[formControl],gv-date-picker[formControlName],' +
-    '[gvControl]'
+    '[gvControl]',
 })
 export class GvFormControlDirective extends NgControlStatus implements AfterViewInit {
-
   private control: NgControl;
 
   constructor(control: NgControl, private elementRef: ElementRef) {

@@ -23,7 +23,6 @@ function isNullOrEmpty(value: string | Array<string>) {
 }
 
 export class GvValidators {
-
   static dateRange = (control: AbstractControl): { [key: string]: any } | null => {
     let error = null;
     if (control.value) {
@@ -33,9 +32,7 @@ export class GvValidators {
         const from = control.value[0];
         const to = control.value[1];
 
-        if ((from && !to) ||
-          (!from && to) ||
-          from && to && from === to) {
+        if ((from && !to) || (!from && to) || (from && to && from === to)) {
           error = { dateRangeError: { value: control.value } };
         }
       }
@@ -43,13 +40,11 @@ export class GvValidators {
     return error;
   };
 
-
   static oneRequired(field: AbstractControl): ValidatorFn {
     return (control: AbstractControl): { [key: string]: any } | null => {
       const forbidden = isNullOrEmpty(control.value) && isNullOrEmpty(field.value);
       return forbidden ? { oneRequired: { value: control.value } } : null;
     };
-
   }
 
   static sameValueValidator(field: AbstractControl): ValidatorFn {
@@ -58,6 +53,4 @@ export class GvValidators {
       return forbidden ? { passwordError: { value: control.value } } : null;
     };
   }
-
-
 }

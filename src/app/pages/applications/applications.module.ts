@@ -71,19 +71,15 @@ import { ApplicationsComponent } from './applications.component';
       loader: {
         provide: TranslateLoader,
         useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
-        deps: [HttpClient]
+        deps: [HttpClient],
       },
       compiler: {
         provide: TranslateCompiler,
-        useClass: TranslateMessageFormatCompiler
-      }
+        useClass: TranslateMessageFormatCompiler,
+      },
     }),
   ],
-  exports: [
-    SharedModule,
-  ],
-  schemas: [
-    CUSTOM_ELEMENTS_SCHEMA
-  ],
+  exports: [SharedModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class ApplicationsModule { }
+export class ApplicationsModule {}

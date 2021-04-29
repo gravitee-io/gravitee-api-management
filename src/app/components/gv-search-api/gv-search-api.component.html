@@ -15,9 +15,17 @@
     limitations under the License.
 
 -->
-<gv-autocomplete #searchAutocomplete [options]="options"
-                 (:gv-autocomplete:search)="onSearch($event)"
-                 (:gv-autocomplete:select)="onSelect($event)">
-    <gv-input style="width: 100%;" (:gv-input:submit)="onSubmit($event)" [attr.value]="query"
-          type="search" [attr.placeholder]="'catalog.search' | translate"></gv-input>
+<gv-autocomplete
+  #searchAutocomplete
+  [options]="options"
+  (:gv-autocomplete:search)="onSearch($event)"
+  (:gv-autocomplete:select)="onSelect($event)"
+>
+  <gv-input
+    style="width: 100%"
+    (:gv-input:submit)="onSubmit($event)"
+    [attr.value]="query"
+    type="search"
+    [attr.placeholder]="'catalog.search' | translate"
+  ></gv-input>
 </gv-autocomplete>

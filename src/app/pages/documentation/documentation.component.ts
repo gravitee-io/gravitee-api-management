@@ -22,16 +22,11 @@ import { ActivatedRoute } from '@angular/router';
   templateUrl: './documentation.component.html',
 })
 export class DocumentationComponent implements OnInit {
-
   pages: Page[];
   rootDir: string;
   fragment: string;
 
-  constructor(
-    private portalService: PortalService,
-    private activeRoute: ActivatedRoute
-  ) {
-  }
+  constructor(private portalService: PortalService, private activeRoute: ActivatedRoute) {}
 
   ngOnInit() {
     this.fragment = this.activeRoute.snapshot.fragment;
@@ -44,7 +39,7 @@ export class DocumentationComponent implements OnInit {
       this.portalService
         .getPages({ homepage: false, size: -1, parent: this.rootDir })
         .toPromise()
-        .then(pagesResponse => {
+        .then((pagesResponse) => {
           this.pages = pagesResponse.data;
         });
     });

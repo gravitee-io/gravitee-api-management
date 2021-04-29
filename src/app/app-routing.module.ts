@@ -75,7 +75,7 @@ export const routes: Routes = [
       {
         path: 'api/:apiId',
         data: {
-          menu: { slots: { top: GvHeaderItemComponent }, hiddenPaths: ['subscribe'] }
+          menu: { slots: { top: GvHeaderItemComponent }, hiddenPaths: ['subscribe'] },
         },
         resolve: {
           api: ApiResolver,
@@ -90,7 +90,7 @@ export const routes: Routes = [
               menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'general:clipboard',
               title: i18n('route.catalogApi'),
-              animation: { type: 'slide', group: 'api', index: 1 }
+              animation: { type: 'slide', group: 'api', index: 1 },
             },
             resolve: {
               apiHomepage: ApiHomepageResolver,
@@ -103,8 +103,8 @@ export const routes: Routes = [
               menu: { slots: { 'right-transition': GvSearchApiComponent } },
               icon: 'home:library',
               title: i18n('route.catalogApiDocumentation'),
-              animation: { type: 'fade' }
-            }
+              animation: { type: 'fade' },
+            },
           },
           {
             path: 'contact',
@@ -116,8 +116,8 @@ export const routes: Routes = [
               title: i18n('route.catalogApiContact'),
               expectedFeature: FeatureEnum.contact,
               expectedRole: Role.AUTH_USER,
-              animation: { type: 'slide', group: 'api', index: 3 }
-            }
+              animation: { type: 'slide', group: 'api', index: 3 },
+            },
           },
           {
             path: 'tickets',
@@ -127,8 +127,8 @@ export const routes: Routes = [
               icon: 'communication:snoozed-mail',
               expectedFeature: FeatureEnum.contact,
               expectedRole: Role.AUTH_USER,
-              animation: { type: 'slide', group: 'user', index: 4 }
-            }
+              animation: { type: 'slide', group: 'user', index: 4 },
+            },
           },
           {
             path: 'subscribe',
@@ -136,9 +136,9 @@ export const routes: Routes = [
             canActivate: [SubscribeGuardService],
             data: {
               title: i18n('route.catalogApiSubscribe'),
-            }
+            },
           },
-        ]
+        ],
       },
       {
         path: 'categories',
@@ -149,8 +149,8 @@ export const routes: Routes = [
           title: i18n('route.catalogCategories'),
           icon: 'layout:layout-arrange',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
-          animation: { type: 'slide', group: 'catalog', index: 1 }
-        }
+          animation: { type: 'slide', group: 'catalog', index: 1 },
+        },
       },
       {
         path: 'categories/:categoryId',
@@ -169,8 +169,8 @@ export const routes: Routes = [
           icon: 'code:git#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.ALL,
-          animation: { type: 'slide', group: 'catalog', index: 2 }
-        }
+          animation: { type: 'slide', group: 'catalog', index: 2 },
+        },
       },
       {
         path: 'featured',
@@ -180,8 +180,8 @@ export const routes: Routes = [
           icon: 'home:flower#2',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.FEATURED,
-          animation: { type: 'slide', group: 'catalog', index: 3 }
-        }
+          animation: { type: 'slide', group: 'catalog', index: 3 },
+        },
       },
       {
         path: 'starred',
@@ -193,8 +193,8 @@ export const routes: Routes = [
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.STARRED,
           expectedFeature: FeatureEnum.rating,
-          animation: { type: 'slide', group: 'catalog', index: 4 }
-        }
+          animation: { type: 'slide', group: 'catalog', index: 4 },
+        },
       },
       {
         path: 'trendings',
@@ -204,13 +204,14 @@ export const routes: Routes = [
           icon: 'home:fireplace',
           menu: { slots: { 'right-transition': GvSearchApiComponent } },
           filterApiQuery: FilterApiQuery.TRENDINGS,
-          animation: { type: 'slide', group: 'catalog', index: 5 }
-        }
-      }
-    ]
+          animation: { type: 'slide', group: 'catalog', index: 5 },
+        },
+      },
+    ],
   },
   {
-    path: 'user', data: { menu: { hiddenPaths: ['login', 'logout'] } },
+    path: 'user',
+    data: { menu: { hiddenPaths: ['login', 'logout'] } },
     children: [
       {
         path: 'login',
@@ -219,8 +220,8 @@ export const routes: Routes = [
         data: {
           title: i18n('route.login'),
           expectedRole: Role.GUEST,
-          animation: { type: 'fade' }
-        }
+          animation: { type: 'fade' },
+        },
       },
       {
         path: 'account',
@@ -230,7 +231,7 @@ export const routes: Routes = [
           title: i18n('route.user'),
           icon: 'general:user',
           expectedRole: Role.AUTH_USER,
-          animation: { type: 'slide', group: 'user', index: 1 }
+          animation: { type: 'slide', group: 'user', index: 1 },
         },
       },
       {
@@ -242,8 +243,8 @@ export const routes: Routes = [
           icon: 'communication:contact#1',
           expectedFeature: FeatureEnum.contact,
           expectedRole: Role.AUTH_USER,
-          animation: { type: 'slide', group: 'user', index: 2 }
-        }
+          animation: { type: 'slide', group: 'user', index: 2 },
+        },
       },
       {
         path: 'tickets',
@@ -254,8 +255,8 @@ export const routes: Routes = [
           icon: 'communication:snoozed-mail',
           expectedFeature: FeatureEnum.contact,
           expectedRole: Role.AUTH_USER,
-          animation: { type: 'slide', group: 'user', index: 3 }
-        }
+          animation: { type: 'slide', group: 'user', index: 3 },
+        },
       },
       {
         path: 'notifications',
@@ -265,8 +266,8 @@ export const routes: Routes = [
           title: i18n('route.notifications'),
           icon: 'general:notifications#2',
           expectedRole: Role.AUTH_USER,
-          animation: { type: 'slide', group: 'user', index: 4 }
-        }
+          animation: { type: 'slide', group: 'user', index: 4 },
+        },
       },
       {
         path: 'logout',
@@ -276,65 +277,66 @@ export const routes: Routes = [
           title: i18n('route.logout'),
           separator: true,
           icon: 'home:door-open',
-          expectedRole: Role.AUTH_USER
-        }
+          expectedRole: Role.AUTH_USER,
+        },
       },
       {
         path: 'registration',
         component: RegistrationComponent,
         canActivate: [AuthGuardService],
-        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
       },
       {
         path: 'registration/confirm/:token',
         component: RegistrationConfirmationComponent,
         canActivate: [AuthGuardService],
-        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
       },
       {
         path: 'resetPassword',
         component: ResetPasswordComponent,
         canActivate: [AuthGuardService],
-        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
       },
       {
         path: 'resetPassword/confirm/:token',
         component: ResetPasswordConfirmationComponent,
         canActivate: [AuthGuardService],
-        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } }
-      }
-    ]
+        data: { expectedRole: Role.GUEST, animation: { type: 'fade' } },
+      },
+    ],
   },
   {
     path: 'documentation',
     children: [
       { path: '', redirectTo: 'root', pathMatch: 'full' },
       { path: ':rootDir', component: DocumentationComponent, data: { animation: { type: 'fade' } } },
-    ]
+    ],
   },
 
   { path: 'pages/:pageId', component: SinglePageComponent },
   {
     path: 'applications',
-    loadChildren: () => import('./pages/applications/applications.module').then(m => m.ApplicationsModule),
+    loadChildren: () => import('./pages/applications/applications.module').then((m) => m.ApplicationsModule),
     canActivate: [AuthGuardService, PermissionGuardService],
     data: {
       title: i18n('route.applications'),
       menu: { hiddenPaths: ['creation'] },
       expectedRole: Role.AUTH_USER,
       animation: {},
-      expectedPermissions: ['APPLICATION-R']
+      expectedPermissions: ['APPLICATION-R'],
     },
   },
   { path: 'cookies', component: CookiesComponent, data: { title: i18n('route.cookies') } },
-  { path: '**', component: NotFoundComponent, data: { title: i18n('route.notFound') } }
+  { path: '**', component: NotFoundComponent, data: { title: i18n('route.notFound') } },
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {
-    scrollPositionRestoration: 'disabled'
-  })],
-  exports: [RouterModule]
+  imports: [
+    RouterModule.forRoot(routes, {
+      scrollPositionRestoration: 'disabled',
+    }),
+  ],
+  exports: [RouterModule],
 })
-export class AppRoutingModule {
-}
+export class AppRoutingModule {}

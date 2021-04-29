@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@import "../../../../../src/css/form.css";
+@import '../../../../../src/css/form.css';
 
 .grid {
   display: grid;
@@ -47,11 +47,14 @@ gv-identity-picture {
   width: 60px;
 }
 
-.groupMembersTable, .hideTable, .groupMembers.show .showTable {
+.groupMembersTable,
+.hideTable,
+.groupMembers.show .showTable {
   display: none;
 }
 
-.groupMembers.show .groupMembersTable, .groupMembers.show .hideTable {
+.groupMembers.show .groupMembersTable,
+.groupMembers.show .hideTable {
   display: block;
 }
 
