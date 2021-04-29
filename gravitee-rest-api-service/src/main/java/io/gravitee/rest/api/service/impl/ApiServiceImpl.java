@@ -2776,6 +2776,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             builder.ids(query.getIds().toArray(new String[0]));
         }
 
+        if (!isBlank(query.getContextPath())) {
+            builder.contextPath(query.getContextPath());
+        }
         return builder;
     }
 
