@@ -100,4 +100,11 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         // Should count 3 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update and DEFAULT-ORG-findById)
         Assert.assertEquals("Organization count should be 3",3L, count);
     }
+
+    @Test
+    public void shouldFindAll() throws Exception {
+        final Collection<Organization> organizations = organizationRepository.findAll();
+        // Should count 3 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update and DEFAULT-ORG-findById)
+        Assert.assertEquals("Organization count should be 3",3L, organizations.size());
+    }
 }
