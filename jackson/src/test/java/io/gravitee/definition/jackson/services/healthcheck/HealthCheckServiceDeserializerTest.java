@@ -132,5 +132,6 @@ public class HealthCheckServiceDeserializerTest extends AbstractTest {
         Api api = load("/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-disabled.json", Api.class);
         HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
         Assert.assertNotNull(healthCheckService);
+        Assert.assertNull(healthCheckService.getSchedule());
     }
 }
