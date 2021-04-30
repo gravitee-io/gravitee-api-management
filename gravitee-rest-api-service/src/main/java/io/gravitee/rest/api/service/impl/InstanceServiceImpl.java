@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,7 +60,8 @@ public class InstanceServiceImpl implements InstanceService {
     @Value("${gateway.unknown-expire-after:604800}") // default value : 7 days
     private long unknownExpireAfterInSec;
 
-    public static final String ENVIRONMENT_HRIDS_PROPERTY = "environment_hrids";
+    public static final String ENVIRONMENTS_HRIDS_PROPERTY = "environments_hrids";
+    public static final String ORGANIZATIONS_HRIDS_PROPERTY = "organizations_hrids";
 
     private static final List<EventType> instancesAllState = new ArrayList<>();
 
@@ -140,20 +142,26 @@ public class InstanceServiceImpl implements InstanceService {
 
             EventEntity event = eventService.findById(eventId);
             List<String> environments = Stream
-                .of(event.getProperties().get(ENVIRONMENT_HRIDS_PROPERTY).split(", "))
+                .of(event.getProperties().get(ENVIRONMENTS_HRIDS_PROPERTY).split(", "))
+                .filter(env -> !StringUtils.isEmpty(env))
                 .collect(Collectors.toList());
 
-            return convert(event, environments);
+            List<String> organizations = Stream
+                .of(event.getProperties().get(ORGANIZATIONS_HRIDS_PROPERTY).split(", "))
+                .filter(org -> !StringUtils.isEmpty(org))
+                .collect(Collectors.toList());
+
+            return convert(event, environments, organizations);
         } catch (EventNotFoundException enfe) {
             throw new InstanceNotFoundException(eventId);
         }
     }
 
     private InstanceEntity convert(EventEntity event) {
-        return convert(event, null);
+        return convert(event, null, null);
     }
 
-    private InstanceEntity convert(EventEntity event, List<String> environments) {
+    private InstanceEntity convert(EventEntity event, List<String> environments, List<String> organizations) {
         Instant nowMinusXMinutes = Instant.now().minus(5, ChronoUnit.MINUTES);
 
         Map<String, String> props = event.getProperties();
@@ -162,6 +170,7 @@ public class InstanceServiceImpl implements InstanceService {
         instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
         instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
         instance.setEnvironments(environments);
+        instance.setOrganizations(organizations);
 
         if (event.getPayload() != null) {
             try {
