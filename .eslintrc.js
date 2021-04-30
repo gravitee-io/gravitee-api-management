@@ -44,7 +44,6 @@ module.exports = {
     'no-useless-escape': 'warn',
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
-    'no-irregular-whitespace': 'warn',
     'no-case-declarations': 'warn',
     "@typescript-eslint/dot-notation": "warn",
     "@typescript-eslint/no-unused-expressions": "warn",
