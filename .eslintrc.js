@@ -15,11 +15,11 @@ module.exports = {
   extends: [
     'angular',
     "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended"
+    "plugin:@typescript-eslint/eslint-recommended",
+    "prettier"
   ],
   "reportUnusedDisableDirectives": true,
   "rules": {
-    "indent": ["warn", 2],
     'angular/no-service-method': 'off',
     'angular/module-getter': 'off',
     'angular/definedundefined': 'warn',
@@ -31,6 +31,7 @@ module.exports = {
     'angular/typecheck-string': 'warn',
     'angular/typecheck-function': 'warn',
     'angular/window-service': 'warn',
+    "angular/controller-as-route": "warn",
     'angular/controller-name': 'warn',
     'angular/module-setter': 'warn',
     'angular/interval-service': 'warn',
@@ -46,36 +47,13 @@ module.exports = {
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
     'no-irregular-whitespace': 'warn',
-    'brace-style': 'warn',
     'no-case-declarations': 'warn',
     "@typescript-eslint/dot-notation": "warn",
-    "angular/controller-as-route": "warn",
     "@typescript-eslint/no-unused-expressions": "warn",
-    "@typescript-eslint/member-delimiter-style": [
-      "warn",
-      {
-        "multiline": {
-          "delimiter": "none",
-          "requireLast": true
-        },
-        "singleline": {
-          "delimiter": "semi",
-          "requireLast": false
-        }
-      }
-    ],
     "@typescript-eslint/member-ordering": "warn",
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-empty-function": "warn",
     "@typescript-eslint/no-var-requires": "warn",
-    "@typescript-eslint/quotes": [
-      "warn",
-      "single"
-    ],
-    "@typescript-eslint/semi": "warn",
-    "@typescript-eslint/type-annotation-spacing": "warn",
-    "curly": "error",
-    "eol-last": "error",
     "eqeqeq": [
       "warn",
       "smart"
@@ -86,12 +64,6 @@ module.exports = {
     "jsdoc/check-alignment": "error",
     "jsdoc/check-indentation": "warn",
     "jsdoc/newline-after-description": "error",
-    "max-len": [
-      "off",
-      {
-        "code": 140
-      }
-    ],
     "no-caller": "error",
     "no-console": [
       "warn",
@@ -123,7 +95,6 @@ module.exports = {
     "no-eval": "error",
     "no-fallthrough": "error",
     "no-new-wrappers": "error",
-    "no-trailing-spaces": "error",
     "no-underscore-dangle": "off",
     "no-unused-labels": "error",
     "radix": "warn",
