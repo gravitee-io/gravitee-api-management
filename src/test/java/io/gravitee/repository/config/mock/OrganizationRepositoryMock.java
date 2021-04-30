@@ -25,6 +25,7 @@ import java.util.Optional;
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.internal.util.collections.Sets.newSet;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -76,5 +77,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
 
         when(organizationRepository.count()).thenReturn(3L);
         when(organizationRepository.findAll()).thenReturn(Arrays.asList(orgCreate, orgUpdated, orgFindById));
+
+        when(organizationRepository.findByHrids(newSet("def", "ate"))).thenReturn(newSet(orgFindById, orgUpdated));
     }
 }

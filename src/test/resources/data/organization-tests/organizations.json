@@ -1,14 +1,17 @@
 [
    {
       "id": "DEFAULT-ORG-update",
-      "name": "Default org for update"
+      "name": "Default org for update",
+      "hrids": ["upd", "ate"]
    },
    {
       "id": "DEFAULT-ORG-delete",
-      "name": "Default org for delete"
+      "name": "Default org for delete",
+      "hrids": ["del", "ete"]
    },
    {
       "id": "DEFAULT-ORG-findById",
-      "name": "Default org for findById"
+      "name": "Default org for findById",
+      "hrids": ["def", "ault"]
    }
 ]

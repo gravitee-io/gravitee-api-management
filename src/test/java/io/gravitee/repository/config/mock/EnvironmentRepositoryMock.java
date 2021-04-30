@@ -80,6 +80,9 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         
         when(EnvironmentRepository.findAll()).thenReturn(allEnvironments);
         when(EnvironmentRepository.findByOrganization("DEFAULT-ORG")).thenReturn(orgEnvironments);
-        when(EnvironmentRepository.findByHrids(Sets.newSet("def", "find"))).thenReturn(newSet(envCreate, envFindById));
+        when(EnvironmentRepository.findByOrganizationsAndHrids(Sets.newSet("DEFAULT-ORG", "ANOTHER-ORG"), Sets.newSet("def", "find"))).thenReturn(newSet(envCreate, envFindById));
+        when(EnvironmentRepository.findByOrganizationsAndHrids(Sets.newSet(), Sets.newSet("def", "find"))).thenReturn(newSet(envCreate, envFindById));
+        when(EnvironmentRepository.findByOrganizationsAndHrids(Sets.newSet("DEFAULT-ORG"), Sets.newSet())).thenReturn(newSet(envFindById));
+        when(EnvironmentRepository.findByOrganizationsAndHrids(Sets.newSet(), Sets.newSet())).thenReturn(newSet());
     }
 }

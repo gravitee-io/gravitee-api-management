@@ -110,12 +110,44 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldFindByHrids() throws Exception {
+    public void shouldFindByOrganizationsAndHrids() throws Exception {
+        Set<String> organizations = new HashSet<>();
+        organizations.add("DEFAULT-ORG");
+        organizations.add("ANOTHER-ORG");
         Set<String> hrids = new HashSet<>();
         hrids.add("def");
         hrids.add("find");
-        Set<Environment> orgEnvironments = environmentRepository.findByHrids(hrids);
-        Assert.assertTrue("No environment found", !orgEnvironments.isEmpty());
-        Assert.assertEquals(2, orgEnvironments.size());
+        Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
+        Assert.assertTrue("No environment found", !environments.isEmpty());
+        Assert.assertEquals(2, environments.size());
+    }
+
+    @Test
+    public void shouldFindByEmptyOrganizationsAndHrids() throws Exception {
+        Set<String> organizations = new HashSet<>();
+        Set<String> hrids = new HashSet<>();
+        hrids.add("def");
+        hrids.add("find");
+        Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
+        Assert.assertTrue("No environment found", !environments.isEmpty());
+        Assert.assertEquals(2, environments.size());
+    }
+
+    @Test
+    public void shouldFindByOrganizationsAndEmptyHrids() throws Exception {
+        Set<String> organizations = new HashSet<>();
+        organizations.add("DEFAULT-ORG");
+        Set<String> hrids = new HashSet<>();
+        Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
+        Assert.assertTrue("No environment found", !environments.isEmpty());
+        Assert.assertEquals(1, environments.size());
+    }
+
+    @Test
+    public void shouldFindByEmptyOrganizationsAndEmptyHrids() throws Exception {
+        Set<String> organizations = new HashSet<>();
+        Set<String> hrids = new HashSet<>();
+        Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
+        Assert.assertTrue("Environment found", environments.isEmpty());
     }
 }

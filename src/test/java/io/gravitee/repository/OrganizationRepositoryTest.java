@@ -107,4 +107,14 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         // Should count 3 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update and DEFAULT-ORG-findById)
         Assert.assertEquals("Organization count should be 3",3L, organizations.size());
     }
+
+    @Test
+    public void shouldFindByHrids() throws Exception {
+        final HashSet<String> hrids = new HashSet<>();
+        hrids.add("def");
+        hrids.add("ate");
+        final Set<Organization> organizations = organizationRepository.findByHrids(hrids);
+        Assert.assertTrue("No organization found", !organizations.isEmpty());
+        Assert.assertEquals(2, organizations.size());
+    }
 }
