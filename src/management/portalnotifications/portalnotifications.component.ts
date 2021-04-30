@@ -82,7 +82,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
           this.lastNbNotification = vm.user.notifications.data.length;
         } else {
           if (vm.user.notifications.data.length > 0 && this.lastNbNotification < vm.user.notifications.data.length) {
-            for (var i = this.lastNbNotification; i < vm.user.notifications.data.length; i++) {
+            for (let i = this.lastNbNotification; i < vm.user.notifications.data.length; i++) {
               this.windowNotification(vm.user.notifications.data[i].title, vm.user.notifications.data[i].message);
             }
             this.lastNbNotification = vm.user.notifications.data.length;

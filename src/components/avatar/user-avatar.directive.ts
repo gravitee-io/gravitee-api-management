@@ -23,8 +23,8 @@ class UserAvatarDirective {
       link: function (scope, element, attrs, ctrl) {
         attrs.$observe('ngSrc', function () {
           if (attrs.graviteeUserAvatar) {
-            var deferred = ctrl.$q.defer();
-            var image = new Image();
+            const deferred = ctrl.$q.defer();
+            const image = new Image();
             image.onerror = function () {
               deferred.resolve(false);
               // Default image

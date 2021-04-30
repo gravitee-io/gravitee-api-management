@@ -34,7 +34,7 @@ class InstanceMonitoringController {
     this.instanceStarted = this.instance.state === 'started';
 
     if (this.instanceStarted) {
-      var that = this;
+      const that = this;
       this.interval = setInterval(function () {
         that.InstancesService.getMonitoringData(that.$stateParams.instanceId, that.instance.id).then(function (response) {
           that.monitoringData = response.data;
@@ -59,7 +59,7 @@ class InstanceMonitoringController {
     if (typeof precision === 'undefined') {
       precision = 1;
     }
-    var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+    const units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
       number = Math.floor(Math.log(bytes) / Math.log(1024));
     return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) + ' ' + units[number];
   }

@@ -43,9 +43,9 @@ class TenantsController {
   newTenant(event) {
     event.stopPropagation();
 
-    var that = this;
+    const that = this;
 
-    var promise = this.$mdEditDialog.small({
+    const promise = this.$mdEditDialog.small({
       placeholder: 'Add a name',
       save: (input) => {
         const tenant = { name: input.$modelValue };
@@ -59,7 +59,7 @@ class TenantsController {
     });
 
     promise.then(function (ctrl) {
-      var input = ctrl.getInput();
+      const input = ctrl.getInput();
 
       input.$viewChangeListeners.push(function () {
         input.$setValidity('empty', input.$modelValue.length !== 0);
@@ -71,9 +71,9 @@ class TenantsController {
   editName(event, tenant) {
     event.stopPropagation();
 
-    var that = this;
+    const that = this;
 
-    var promise = this.$mdEditDialog.small({
+    const promise = this.$mdEditDialog.small({
       modelValue: tenant.name,
       placeholder: 'Add a name',
       save: function (input) {
@@ -89,7 +89,7 @@ class TenantsController {
     });
 
     promise.then(function (ctrl) {
-      var input = ctrl.getInput();
+      const input = ctrl.getInput();
 
       input.$viewChangeListeners.push(function () {
         input.$setValidity('empty', input.$modelValue.length !== 0);
@@ -100,7 +100,7 @@ class TenantsController {
   editDescription(event, tenant) {
     event.stopPropagation();
 
-    var that = this;
+    const that = this;
 
     this.$mdEditDialog.small({
       modelValue: tenant.description,
@@ -119,7 +119,7 @@ class TenantsController {
   }
 
   saveTenants() {
-    var that = this;
+    const that = this;
 
     this.$q
       .all([this.TenantService.create(that.tenantsToCreate), this.TenantService.update(that.tenantsToUpdate)])
@@ -136,7 +136,7 @@ class TenantsController {
   }
 
   deleteTenant(tenant) {
-    var that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DeleteTenantDialogController',

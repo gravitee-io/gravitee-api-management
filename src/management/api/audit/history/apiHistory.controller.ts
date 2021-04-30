@@ -296,7 +296,7 @@ class ApiHistoryController {
   }
 
   rollback(_apiPayload) {
-    var _apiDefinition = JSON.parse(_apiPayload.definition);
+    const _apiDefinition = JSON.parse(_apiPayload.definition);
     delete _apiDefinition.id;
     delete _apiDefinition.deployed_at;
     _apiDefinition.description = _apiPayload.description;

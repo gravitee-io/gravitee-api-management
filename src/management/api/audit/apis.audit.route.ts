@@ -52,7 +52,7 @@ function apisAuditRouterConfig($stateProvider) {
       controllerAs: 'apiHistoryCtrl',
       resolve: {
         resolvedEvents: function ($stateParams, ApiService) {
-          var eventTypes = 'PUBLISH_API';
+          const eventTypes = 'PUBLISH_API';
           return ApiService.getApiEvents($stateParams.apiId, eventTypes);
         },
       },

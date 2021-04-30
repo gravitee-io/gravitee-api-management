@@ -45,7 +45,7 @@ class TagsController {
   }
 
   deleteTag(tag) {
-    var that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DeleteTagDialogController',

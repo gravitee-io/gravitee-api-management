@@ -29,7 +29,7 @@ angular
         '$scope',
         function ($scope) {
           $scope.getCodemirrorOptions = function () {
-            var opts = angular.copy($scope.form.codemirrorOptions);
+            const opts = angular.copy($scope.form.codemirrorOptions);
             opts.onLoad = function (cm) {
               $scope.cm = cm;
             };

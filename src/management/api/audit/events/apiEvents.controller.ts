@@ -28,8 +28,8 @@ class ApiEventsController {
 
   initTimeline(events) {
     _.forEach(events, (event) => {
-      var eventTimelineType = this.getEventTypeTimeline(event.type);
-      var eventTimeline = {
+      const eventTimelineType = this.getEventTypeTimeline(event.type);
+      const eventTimeline = {
         event: event,
         badgeClass: eventTimelineType.badgeClass,
         badgeIconClass: eventTimelineType.icon,
@@ -47,7 +47,7 @@ class ApiEventsController {
   }
 
   getEventTypeTimeline(eventType): any {
-    var eventTypeTimeline: any = {};
+    const eventTypeTimeline: any = {};
     switch (eventType) {
       case 'start_api':
         eventTypeTimeline.icon = 'glyphicon-play';

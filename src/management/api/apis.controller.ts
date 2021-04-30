@@ -187,7 +187,7 @@ export class ApisController {
   }
 
   showImportDialog() {
-    var that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogApiImportController',

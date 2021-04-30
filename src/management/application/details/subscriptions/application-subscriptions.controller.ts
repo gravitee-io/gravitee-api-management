@@ -157,7 +157,7 @@ class ApplicationSubscriptionsController {
   }
 
   generateAPIKey(applicationId, subscription) {
-    var _this = this;
+    const _this = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -181,7 +181,7 @@ class ApplicationSubscriptionsController {
   }
 
   revoke(subscription, apiKey) {
-    var _this = this;
+    const _this = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',

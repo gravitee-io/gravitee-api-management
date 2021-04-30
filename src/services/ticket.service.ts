@@ -41,9 +41,9 @@ class TicketService {
   }
 
   private buildURLWithQuery(query: TicketsQuery, url) {
-    var keys = Object.keys(query);
+    const keys = Object.keys(query);
     _.forEach(keys, function (key) {
-      var val = query[key];
+      const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }

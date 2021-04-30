@@ -167,10 +167,10 @@ class LogsTimeframeController {
   }
 
   setTimestamp(timestamp) {
-    var momentDate = moment.unix(timestamp);
+    const momentDate = moment.unix(timestamp);
 
-    var startDate = Math.floor(momentDate.startOf('day').valueOf() / 1000);
-    var endDate = Math.floor(momentDate.endOf('day').valueOf() / 1000);
+    const startDate = Math.floor(momentDate.startOf('day').valueOf() / 1000);
+    const endDate = Math.floor(momentDate.endOf('day').valueOf() / 1000);
 
     this.update({
       interval: 1000 * 60 * 5,

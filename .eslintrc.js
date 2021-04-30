@@ -41,7 +41,6 @@ module.exports = {
     'no-bitwise': 'warn',
     'no-unused-vars': 'warn',
     'no-redeclare': 'warn',
-    'no-var': 'warn',
     'no-useless-escape': 'warn',
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',

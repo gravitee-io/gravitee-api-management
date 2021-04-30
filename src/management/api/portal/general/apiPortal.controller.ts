@@ -267,9 +267,9 @@ class ApiPortalController {
 
   editWeight(event, endpoint) {
     event.stopPropagation(); // in case autoselect is enabled
-    var _that = this;
+    const _that = this;
 
-    var editDialog = {
+    const editDialog = {
       modelValue: endpoint.weight,
       placeholder: 'Weight',
       save: function (input) {
@@ -286,9 +286,9 @@ class ApiPortalController {
       },
     };
 
-    var promise = this.$mdEditDialog.large(editDialog);
+    const promise = this.$mdEditDialog.large(editDialog);
     promise.then(function (ctrl) {
-      var input = ctrl.getInput();
+      const input = ctrl.getInput();
 
       input.$viewChangeListeners.push(function () {
         input.$setValidity('test', input.$modelValue !== 'test');
@@ -297,7 +297,7 @@ class ApiPortalController {
   }
 
   removeEndpoints() {
-    var _that = this;
+    const _that = this;
     const that = this;
     this.$mdDialog
       .show({
@@ -385,7 +385,7 @@ class ApiPortalController {
   }
 
   showImportDialog() {
-    var that = this;
+    const that = this;
     this.PolicyService.listSwaggerPolicies().then((policies) => {
       this.$mdDialog
         .show({

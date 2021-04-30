@@ -35,7 +35,7 @@ class ComponentCtrl implements ng.IComponentController {
     private NotificationService: NotificationService,
   ) {
     'ngInject';
-    var lastElement = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;
+    const lastElement = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;
   }
 
   $onChanges() {
@@ -49,7 +49,7 @@ class ComponentCtrl implements ng.IComponentController {
     if (mediaURL.includes('{:envId}')) {
       mediaURL = mediaURL.replace('{:envId}', this.Constants.org.currentEnv.id);
     }
-    var toolbarItems = [
+    const toolbarItems = [
       'heading',
       'bold',
       'italic',

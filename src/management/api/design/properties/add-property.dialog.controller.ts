@@ -21,7 +21,7 @@ function DialogAddPropertyController($scope, $mdDialog) {
   };
 
   this.save = function () {
-    var property = {
+    const property = {
       key: $scope.property.name,
       value: $scope.property.value,
     };

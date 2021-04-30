@@ -155,7 +155,7 @@ class ApiProxyController {
   }
 
   removeEndpoints() {
-    var _that = this;
+    const _that = this;
     const that = this;
     this.$mdDialog
       .show({

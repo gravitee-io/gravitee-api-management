@@ -80,7 +80,7 @@ angular
   .config([
     'schemaFormDecoratorsProvider',
     function (decoratorsProvider) {
-      var base = 'directives/decorators/bootstrap/';
+      const base = 'directives/decorators/bootstrap/';
 
       decoratorsProvider.defineDecorator(
         'bootstrapDecorator',

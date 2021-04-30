@@ -128,7 +128,7 @@ class ApiListPlansController {
 
   applyFilters() {
     this.countPlansByStatus();
-    var that = this;
+    const that = this;
     this.filteredPlans = _.sortBy(
       _.filter(this.plans, function (plan: any) {
         return _.includes(that.selectedStatus, plan.status);

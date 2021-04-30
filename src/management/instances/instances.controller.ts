@@ -63,7 +63,7 @@ class InstancesController {
 
   getOSIcon(osName) {
     if (osName) {
-      var lowerOSName = osName.toLowerCase();
+      const lowerOSName = osName.toLowerCase();
       if (lowerOSName.indexOf('mac') >= 0) {
         return 'apple';
       } else if (lowerOSName.indexOf('nix') >= 0 || lowerOSName.indexOf('nux') >= 0 || lowerOSName.indexOf('aix') >= 0) {

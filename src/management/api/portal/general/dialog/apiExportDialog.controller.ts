@@ -37,7 +37,7 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
   $scope.graviteeVersion = Build.version;
 
   $scope.export = function () {
-    var excludes = _.map(
+    const excludes = _.map(
       _.filter($scope.filteredFields, (fl: any) => {
         return !fl.checked;
       }),

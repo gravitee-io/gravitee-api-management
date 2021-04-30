@@ -42,7 +42,7 @@ const ImportComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = () => {
-      var that = this;
+      const that = this;
       this.importFileMode = true;
       this.importURLMode = false;
       this.enableFileImport = false;
@@ -104,7 +104,7 @@ const ImportComponent: ng.IComponentOptions = {
       }
 
       if (this.importFileMode && this.importAPIFile) {
-        var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
+        const extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
           case 'yml':
           case 'yaml':
@@ -135,7 +135,7 @@ const ImportComponent: ng.IComponentOptions = {
     this.isSwaggerDescriptor = () => {
       try {
         if (this.enableFileImport) {
-          var fileContent = JSON.parse(this.importAPIFile.content);
+          const fileContent = JSON.parse(this.importAPIFile.content);
           return (
             fileContent.hasOwnProperty('swagger') || fileContent.hasOwnProperty('swaggerVersion') || fileContent.hasOwnProperty('openapi')
           );
@@ -160,7 +160,7 @@ const ImportComponent: ng.IComponentOptions = {
 
     this.isWsdl = () => {
       if (this.importFileMode) {
-        var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
+        const extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
           case 'wsdl':
           case 'xml':
@@ -184,7 +184,7 @@ const ImportComponent: ng.IComponentOptions = {
       this.importTriggered = true;
 
       if (this.importFileMode) {
-        var extension = this.importAPIFile.name.split('.').pop().toLowerCase();
+        const extension = this.importAPIFile.name.split('.').pop().toLowerCase();
         switch (extension) {
           case 'yml':
           case 'yaml':
@@ -222,9 +222,9 @@ const ImportComponent: ng.IComponentOptions = {
     };
 
     this.importGraviteeIODefinition = () => {
-      var id = this.isForUpdate() ? this.apiId : null;
-      var apiDefinition = this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL;
-      var isUpdate = this.isForUpdate();
+      const id = this.isForUpdate() ? this.apiId : null;
+      const apiDefinition = this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL;
+      const isUpdate = this.isForUpdate();
       ApiService.import(id, apiDefinition, this.definitionVersion).then(function (api) {
         if (isUpdate) {
           NotificationService.show('API updated');

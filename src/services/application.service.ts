@@ -156,11 +156,11 @@ class ApplicationService {
    * Analytics
    */
   analytics(application, request) {
-    var url = `${this.Constants.env.baseURL}/applications/` + application + '/analytics?';
+    let url = `${this.Constants.env.baseURL}/applications/` + application + '/analytics?';
 
-    var keys = Object.keys(request);
+    const keys = Object.keys(request);
     _.forEach(keys, function (key) {
-      var val = request[key];
+      const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
@@ -253,9 +253,9 @@ class ApplicationService {
    * Logs
    */
   private buildURLWithQuery(query: LogsQuery, url) {
-    var keys = Object.keys(query);
+    const keys = Object.keys(query);
     _.forEach(keys, function (key) {
-      var val = query[key];
+      const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }

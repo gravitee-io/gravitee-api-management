@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare var grecaptcha: any;
+declare let grecaptcha: any;
 
 class ReCaptchaService {
   private readonly headerName: string = 'X-Recaptcha-Token';
