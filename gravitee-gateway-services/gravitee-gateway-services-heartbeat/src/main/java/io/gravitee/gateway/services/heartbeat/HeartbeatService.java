@@ -33,9 +33,11 @@ import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.Organization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -65,7 +67,8 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
     final static String EVENT_STOPPED_AT_PROPERTY = "stopped_at";
     final static String EVENT_ID_PROPERTY = "id";
     final static String EVENT_STATE_PROPERTY = "create";
-    final static String EVENT_ENVIRONEMENT_HRIDS_PROPERTY = "create";
+    final static String EVENT_ENVIRONMENTS_HRIDS_PROPERTY = "environments_hrids";
+    final static String EVENT_ORGANIZATIONS_HRIDS_PROPERTY = "organizations_hrids";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -110,6 +113,9 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
     @Autowired
     private EnvironmentRepository environmentRepository;
 
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
     // How to avoid duplicate
     private IQueue<Event> queue;
 
@@ -125,7 +131,7 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
             super.doStart();
             LOGGER.info("Start gateway heartbeat");
 
-            heartbeatEvent = prepareEvent(getTargetedEnvironments());
+            heartbeatEvent = prepareEvent();
             queue.add(heartbeatEvent);
 
             // Remove the state to not include it in the underlying repository as it's just used for internal
@@ -193,12 +199,11 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
         }
     }
 
-    private Event prepareEvent(TargetedEnvironments targetedEnvironments) {
+    private Event prepareEvent() throws TechnicalException {
         Event event = new Event();
         event.setId(UUID.toString(UUID.random()));
         event.setType(EventType.GATEWAY_STARTED);
         event.setCreatedAt(new Date());
-        event.setEnvironments(targetedEnvironments.getIds());
         event.setUpdatedAt(event.getCreatedAt());
         final Map<String, String> properties = new HashMap<>();
         properties.put(EVENT_STATE_PROPERTY, "create");
@@ -207,7 +212,7 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
         final String now = Long.toString(event.getCreatedAt().getTime());
         properties.put(EVENT_STARTED_AT_PROPERTY, now);
         properties.put(EVENT_LAST_HEARTBEAT_PROPERTY, now);
-        properties.put(EVENT_ENVIRONEMENT_HRIDS_PROPERTY, String.join(", ", targetedEnvironments.getHrids()));
+        prepareOrganizationsAndEnvironmentsProperties(event, properties);
         event.setProperties(properties);
 
         InstanceEventPayload instance = createInstanceInfo();
@@ -277,51 +282,35 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
         return Collections.emptyMap();
     }
 
-    private TargetedEnvironments getTargetedEnvironments() throws TechnicalException {
+    private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties) throws TechnicalException {
+        final Optional<List<String>> optOrganizationsList = gatewayConfiguration.organizations();
         final Optional<List<String>> optEnvironmentsList = gatewayConfiguration.environments();
 
-        if (optEnvironmentsList.isPresent()) {
-            List<String> environmentsHrids = optEnvironmentsList.get();
-            Set<Environment> environments = environmentRepository.findByHrids(new HashSet<>(environmentsHrids));
+        Set<String> organizationsHrids = optOrganizationsList.map(HashSet::new).orElseGet(HashSet::new);
+        Set<String> environmentsHrids = optEnvironmentsList.map(HashSet::new).orElseGet(HashSet::new);
 
-            Set<String> targetedHrids = new HashSet<>(environmentsHrids);
+        Set<String> organizationsIds = new HashSet<>();
+        if (!organizationsHrids.isEmpty()) {
+            final Set<Organization> orgs = organizationRepository.findByHrids(organizationsHrids);
+            organizationsIds = orgs.stream().map(Organization::getId).collect(Collectors.toSet());
 
-            if (environmentsHrids.size() != environments.size()) {
-                final Set<String> returnedHrids = environments.stream().flatMap(env -> env.getHrids().stream()).collect(Collectors.toSet());
-                final Set<String> notFoundHrids = new HashSet<>(environmentsHrids);
-                notFoundHrids.removeAll(returnedHrids);
-                targetedHrids.removeAll(notFoundHrids);
-                LOGGER.warn("No environment found for hrids {}", notFoundHrids);
-            }
-
-            return new TargetedEnvironments(
-                    environments.stream().map(Environment::getId).collect(Collectors.toSet()),
-                    targetedHrids
-            );
-        }
-        return new TargetedEnvironments(Collections.singleton("DEFAULT"));
-    }
-
-    private static class TargetedEnvironments {
-        private Set<String> ids;
-        private Set<String> hrids;
-
-        public TargetedEnvironments(Set<String> ids) {
-            this.ids = ids;
-            this.hrids = new HashSet<>();
         }
 
-        public TargetedEnvironments(Set<String> ids, Set<String> hrids) {
-            this.ids = ids;
-            this.hrids = hrids;
+        Set<Environment> environments;
+        if (organizationsIds.isEmpty() && environmentsHrids.isEmpty()) {
+            environments = environmentRepository.findAll();
+        } else {
+            environments = environmentRepository.findByOrganizationsAndHrids(organizationsIds, environmentsHrids);
         }
 
-        public Set<String> getIds() {
-            return ids;
-        }
+        Set<String> environmentsIds = environments
+                .stream()
+                .map(Environment::getId)
+                .collect(Collectors.toSet());
 
-        public Set<String> getHrids() {
-            return hrids;
-        }
+        event.setEnvironments(environmentsIds);
+
+        properties.put(EVENT_ENVIRONMENTS_HRIDS_PROPERTY, String.join(", ", environmentsHrids));
+        properties.put(EVENT_ORGANIZATIONS_HRIDS_PROPERTY, String.join(", ", organizationsHrids));
     }
 }
