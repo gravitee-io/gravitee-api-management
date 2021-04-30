@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.CollectionUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.Types;
@@ -161,18 +162,26 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     }
 
     @Override
-    public Set<Environment> findByHrids(Set<String> hrids) throws TechnicalException {
-        LOGGER.debug("JdbcEnvironmentRepository.findByHrids({})", hrids);
+    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids) throws TechnicalException {
+        LOGGER.debug("findByOrganizationsAndHrids.findByHrids({}, {})", organizations, hrids);
+
+        if (CollectionUtils.isEmpty(organizations) && CollectionUtils.isEmpty(hrids)) {
+            return new HashSet<>();
+        }
 
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
                 .append(" env")
                 .append(" join ").append(ENVIRONMENT_HRIDS).append(" eh on env.id = eh.environment_id");
 
-        getOrm().buildInCondition(true, query, "eh.hrid", hrids);
+        final boolean first = getOrm().buildInCondition(true, query, "env.organization_id", organizations);
+        getOrm().buildInCondition(first, query, "eh.hrid", hrids);
 
         try {
             List<Environment> environments = jdbcTemplate.query(query.toString(),
-                    (PreparedStatement ps) -> getOrm().setArguments(ps, hrids, 1),
+                    (PreparedStatement ps) -> {
+                        int idx = getOrm().setArguments(ps, organizations, 1);
+                        getOrm().setArguments(ps, hrids, idx);
+                    },
                     getOrm().getRowMapper()
             );
             for(Environment env: environments) {
@@ -181,8 +190,8 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             }
             return new HashSet<>(environments);
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find environments by hrids:", ex);
-            throw new TechnicalException("Failed to find environments by hrids", ex);
+            LOGGER.error("Failed to find environments by organizations and hrids:", ex);
+            throw new TechnicalException("Failed to find environments by organizations and hrids", ex);
         }
     }
 

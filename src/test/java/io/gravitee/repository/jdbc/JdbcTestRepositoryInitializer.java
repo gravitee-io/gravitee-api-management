@@ -90,6 +90,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "media",
             "notification_templates",
             "organizations",
+            "organization_hrids",
             "organization_domain_restrictions",
             "parameters",
             "pages",

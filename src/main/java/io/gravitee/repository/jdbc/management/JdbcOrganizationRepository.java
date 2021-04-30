@@ -15,20 +15,22 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Organization;
+import java.sql.PreparedStatement;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -101,6 +103,32 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         } catch (Exception e) {
             LOGGER.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
+        }
+    }
+
+    @Override
+    public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
+        LOGGER.debug("JdbcOrganizationRepository.findByHrids({})", hrids);
+
+        final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
+                .append(" org")
+                .append(" join ").append(ORGANIZATION_HRIDS).append(" oh on org.id = oh.organization_id");
+
+        getOrm().buildInCondition(true, query, "oh.hrid", hrids);
+
+        try {
+            List<Organization> organizations = jdbcTemplate.query(query.toString(),
+                    (PreparedStatement ps) -> getOrm().setArguments(ps, hrids, 1),
+                    getOrm().getRowMapper()
+            );
+            for(Organization org: organizations) {
+                this.addDomainRestrictions(org);
+                this.addHrids(org);
+            }
+            return new HashSet<>(organizations);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find organization by hrids:", ex);
+            throw new TechnicalException("Failed to find environments by hrids", ex);
         }
     }
 
