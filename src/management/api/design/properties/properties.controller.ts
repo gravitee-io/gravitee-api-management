@@ -122,7 +122,7 @@ class ApiPropertiesController {
   }
 
   showPropertyModal() {
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogAddPropertyController',

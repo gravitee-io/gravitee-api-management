@@ -156,7 +156,7 @@ class ApiProxyController {
 
   removeEndpoints() {
     var _that = this;
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -200,7 +200,7 @@ class ApiProxyController {
   }
 
   delete(id) {
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -274,7 +274,7 @@ class ApiProxyController {
   }
 
   deleteGroup(groupname) {
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -326,7 +326,7 @@ class ApiProxyController {
 
   switchVirtualHostMode() {
     if (this.virtualHostModeEnabled) {
-      let that = this;
+      const that = this;
       this.$mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -408,11 +408,11 @@ class ApiProxyController {
   onFocus(inputId: string) {
     const input: HTMLInputElement = document.querySelector('#' + inputId);
     if (input.value) {
-      for (let domainRegex of this.domainRegexList) {
-        let match = input.value.match(domainRegex);
+      for (const domainRegex of this.domainRegexList) {
+        const match = input.value.match(domainRegex);
 
         if (match) {
-          let index = input.value.indexOf(match[0]);
+          const index = input.value.indexOf(match[0]);
           if (input.selectionStart > index) {
             input.setSelectionRange(index, index);
           }

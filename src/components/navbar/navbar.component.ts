@@ -174,7 +174,7 @@ export const NavbarComponent: ng.IComponentOptions = {
 
     vm.authenticate = function () {
       OrganizationService.listSocialIdentityProviders().then((response) => {
-        let providers = response.data;
+        const providers = response.data;
         if (vm.localLoginDisabled && providers.length === 1) {
           AuthenticationService.authenticate(providers[0]);
         } else {

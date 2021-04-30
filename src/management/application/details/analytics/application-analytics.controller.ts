@@ -32,7 +32,7 @@ class ApplicationAnalyticsController {
     this.DashboardService.list('APPLICATION', true).then((response) => {
       this.dashboards = _.filter(response.data, 'enabled');
 
-      let dashboardId = this.$state.params.dashboard;
+      const dashboardId = this.$state.params.dashboard;
       if (dashboardId) {
         this.dashboard = _.find(this.dashboards, { id: dashboardId });
         if (!this.dashboard) {

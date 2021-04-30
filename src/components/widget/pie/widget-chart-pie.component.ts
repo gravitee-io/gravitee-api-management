@@ -43,7 +43,7 @@ const WidgetChartPieComponent: ng.IComponentOptions = {
           }),
         };
 
-        let series = {
+        const series = {
           values: changes.data.currentValue ? changes.data.currentValue.values : {},
         };
 

@@ -19,11 +19,11 @@ import { StateService } from '@uirouter/core';
 export const submenuFilter = function ($state: StateService, UserService: UserService, Constants) {
   'ngInject';
   return function (menuItems) {
-    let universeLevels: string[] = $state.current.name.split('.').splice(0, 2);
-    let hasId = 'apiId' in $state.params || 'applicationId' in $state.params || 'instanceId' in $state.params;
+    const universeLevels: string[] = $state.current.name.split('.').splice(0, 2);
+    const hasId = 'apiId' in $state.params || 'applicationId' in $state.params || 'instanceId' in $state.params;
 
     if (universeLevels.indexOf('configuration') !== -1 || hasId) {
-      let universe: string = `${universeLevels.join('.')}.`;
+      const universe: string = `${universeLevels.join('.')}.`;
       const result = menuItems.filter(
         (cState) =>
           !cState.abstract &&

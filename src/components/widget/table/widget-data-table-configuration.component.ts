@@ -50,9 +50,9 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
       }
 
       if (this.chart.request.order) {
-        let splittedOrder = this.chart.request.order.split(':');
-        let aggregate = splittedOrder[0];
-        let projection = splittedOrder[1];
+        const splittedOrder = this.chart.request.order.split(':');
+        const aggregate = splittedOrder[0];
+        const projection = splittedOrder[1];
         if ('-' === aggregate.charAt(0)) {
           this.order = '-';
           this.aggregate = aggregate.substring(1);

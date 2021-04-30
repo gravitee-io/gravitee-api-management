@@ -315,7 +315,7 @@ class ApiHistoryController {
 
   showRollbackAPIConfirm(ev, api) {
     ev.stopPropagation();
-    let self = this;
+    const self = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',

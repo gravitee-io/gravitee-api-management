@@ -22,11 +22,11 @@ import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
 
-let initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
-let $http: ng.IHttpService = initInjector.get('$http');
-let $q: ng.IQService = initInjector.get('$q');
-let $window: ng.IWindowService = initInjector.get('$window');
-let configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
+const initInjector: ng.auto.IInjectorService = angular.injector(['ng']);
+const $http: ng.IHttpService = initInjector.get('$http');
+const $q: ng.IQService = initInjector.get('$q');
+const $window: ng.IWindowService = initInjector.get('$window');
+const configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
 let ConstantsJSON: any;
 
 fetchData()
@@ -40,13 +40,13 @@ function fetchData() {
     .all([$http.get('constants.json', configNoCache), $http.get('build.json', configNoCache)])
     .then((responses: any) => {
       ConstantsJSON = responses[0].data;
-      let build = responses[1].data;
+      const build = responses[1].data;
       angular.module('gravitee-management').constant('Build', build);
       ConstantsJSON = computeBaseURLs(ConstantsJSON);
       return $http.get(`${ConstantsJSON.org.baseURL}/console`);
     })
     .then((responses: any) => {
-      let constants = _.assign(ConstantsJSON);
+      const constants = _.assign(ConstantsJSON);
       constants.org.settings = responses.data;
 
       angular.module('gravitee-management').constant('Constants', constants);
@@ -71,17 +71,15 @@ function computeBaseURLs(constants: any): any {
     constants.baseURL = constants.baseURL.slice(0, -1);
   }
 
-  let basePath;
-  let orgEnvIndex = constants.baseURL.indexOf('/organizations');
+  const orgEnvIndex = constants.baseURL.indexOf('/organizations');
   if (orgEnvIndex >= 0) {
     constants.baseURL = constants.baseURL.substr(0, orgEnvIndex);
   }
-  basePath = constants.baseURL;
 
   constants.org = {};
   preselectEnvironment();
-  let organizationId = preselectOrganization();
-  constants.org.baseURL = `${basePath}/organizations/${organizationId}`;
+  const organizationId = preselectOrganization();
+  constants.org.baseURL = `${constants.baseURL}/organizations/${organizationId}`;
   constants.env = {};
   // we use a placeholder here ({:envId}) that will be replaced in management.interceptor
   constants.env.baseURL = `${constants.org.baseURL}/environments/{:envId}`;
@@ -98,9 +96,9 @@ function preselectEnvironment() {
 }
 
 function preselectOrganization() {
-  let organizationParam = new URL(document.location.toString()).searchParams.get('organization');
+  const organizationParam = new URL(document.location.toString()).searchParams.get('organization');
   let orgId = 'DEFAULT';
-  let lastOrganization = $window.localStorage.getItem('gv-last-organization-loaded');
+  const lastOrganization = $window.localStorage.getItem('gv-last-organization-loaded');
   if (organizationParam) {
     orgId = organizationParam.replace(/\/$/, '');
     window.history.replaceState({}, '', `${window.location.origin}/${window.location.hash}`);

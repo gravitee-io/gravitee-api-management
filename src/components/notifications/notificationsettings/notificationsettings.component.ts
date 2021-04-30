@@ -78,7 +78,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     };
 
     vm.save = () => {
-      let cfg = new NotificationConfig();
+      const cfg = new NotificationConfig();
       cfg.id = vm.selectedNotificationSetting.id;
       cfg.name = vm.selectedNotificationSetting.name;
       cfg.config_type = vm.selectedNotificationSetting.config_type;
@@ -109,7 +109,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     };
 
     vm.delete = () => {
-      let alert = this.$mdDialog.confirm({
+      const alert = this.$mdDialog.confirm({
         title: 'Warning',
         content: 'Are you sure you want to remove this notification?',
         ok: 'OK',
@@ -140,7 +140,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
           notifiers: vm.resolvedNotifiers,
         })
         .then(function (newConfig) {
-          let cfg = new NotificationConfig();
+          const cfg = new NotificationConfig();
           cfg.name = newConfig.name;
           cfg.config_type = 'GENERIC';
           cfg.referenceId = vm.currentReferenceId;

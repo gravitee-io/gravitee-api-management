@@ -45,7 +45,7 @@ function DialogApiExportController($scope, $mdDialog, ApiService, apiId, base64,
     );
     ApiService.export(apiId, excludes, $scope.data.exportVersion)
       .then((response) => {
-        let link = document.createElement('a');
+        const link = document.createElement('a');
         document.body.appendChild(link);
         link.href = 'data:application/json;charset=utf-8;base64,' + base64.encode(JSON.stringify(response.data, null, 2));
         let fileName = response.data.name + ' ' + response.data.version;

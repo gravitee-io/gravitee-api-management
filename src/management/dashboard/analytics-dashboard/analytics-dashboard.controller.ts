@@ -45,7 +45,7 @@ class AnalyticsDashboardController {
     this.selectedEventTypes = [];
     this.dashboards = _.filter(this.dashboards, 'enabled');
 
-    let dashboardId = this.$state.params.dashboard;
+    const dashboardId = this.$state.params.dashboard;
     if (dashboardId) {
       this.dashboard = _.find(this.dashboards, { id: dashboardId });
       if (!this.dashboard) {
@@ -98,7 +98,7 @@ class AnalyticsDashboardController {
   }
 
   selectEvent(eventType) {
-    let idx = this.selectedEventTypes.indexOf(eventType);
+    const idx = this.selectedEventTypes.indexOf(eventType);
     if (idx > -1) {
       this.selectedEventTypes.splice(idx, 1);
     } else {
@@ -109,7 +109,7 @@ class AnalyticsDashboardController {
 
   searchEvents() {
     // set apis
-    let apis = this.selectedAPIs
+    const apis = this.selectedAPIs
       .map(function (api) {
         return api.id;
       })

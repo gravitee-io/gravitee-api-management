@@ -51,9 +51,9 @@ class ApiListPlansController {
   }
 
   $onInit() {
-    let that = this;
+    const that = this;
 
-    let d = document.querySelector('.plans');
+    const d = document.querySelector('.plans');
     this.dragularService([d], {
       moves: function () {
         return that.dndEnabled;
@@ -64,7 +64,7 @@ class ApiListPlansController {
     });
 
     this.$scope.$on('dragulardrop', function (e, el, target, source, dragularList, index, targetModel, dropIndex) {
-      let movedPlan = that.filteredPlans[index];
+      const movedPlan = that.filteredPlans[index];
       movedPlan.order = dropIndex + 1;
 
       that.ApiService.savePlan(that.api, movedPlan).then(function () {
@@ -98,7 +98,7 @@ class ApiListPlansController {
 
   list() {
     this.ApiService.getApiPlans(this.$stateParams.apiId).then((response) => {
-      let that = this;
+      const that = this;
       this.$scope.$applyAsync(() => {
         that.plans.length = 0;
         Array.prototype.push.apply(that.plans, response.data);
@@ -183,7 +183,7 @@ class ApiListPlansController {
         })
         .then((response) => {
           if (response) {
-            let that = this;
+            const that = this;
             this.ApiService.closePlan(this.api, plan.id).then(function () {
               that.NotificationService.show('Plan ' + plan.name + ' has been closed');
               that.$rootScope.$broadcast('planChangeSuccess', { state: 'closed' });

@@ -69,7 +69,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
   }
 
   searchAlertAnalytics() {
-    let contextualInformationFromReferenceType = this.getContextualInformationFromReferenceType();
+    const contextualInformationFromReferenceType = this.getContextualInformationFromReferenceType();
     if (contextualInformationFromReferenceType.hasPermission) {
       this.series = this.AlertService.getAnalytics(
         this.customTimeframe.from,

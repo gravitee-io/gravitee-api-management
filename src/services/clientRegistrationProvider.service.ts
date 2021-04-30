@@ -30,7 +30,7 @@ class ClientRegistrationProviderService {
 
   get(id: string): IPromise<ClientRegistrationProvider> {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/registration/providers/` + id).then((response) => {
-      let clientRegistrationProvider = response.data;
+      const clientRegistrationProvider = response.data;
       clientRegistrationProvider.scopes = clientRegistrationProvider.scopes || [];
       return clientRegistrationProvider;
     });
@@ -57,7 +57,7 @@ class ClientRegistrationProviderService {
         software_id: clientRegistrationProvider.software_id,
       })
       .then((response) => {
-        let clientRegistrationProvider = response.data;
+        const clientRegistrationProvider = response.data;
         clientRegistrationProvider.scopes = clientRegistrationProvider.scopes || [];
         return clientRegistrationProvider;
       });

@@ -27,10 +27,10 @@ function DialogReviewController($scope, $mdDialog, api, QualityRuleService: Qual
   };
 
   this.confirm = function (accept: boolean) {
-    let promises = [];
+    const promises = [];
     _.forEach(this.qualityRules, (qualityRule) => {
-      let apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
-      let checked: boolean = apiQualityRule && apiQualityRule.checked;
+      const apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
+      const checked: boolean = apiQualityRule && apiQualityRule.checked;
       if (!apiQualityRule || apiQualityRule.new) {
         promises.push(QualityRuleService.createApiRule(api.id, qualityRule.id, checked));
       } else {
@@ -46,7 +46,7 @@ function DialogReviewController($scope, $mdDialog, api, QualityRuleService: Qual
   };
 
   this.toggleQualityRule = (qualityRule: QualityRule) => {
-    let apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
+    const apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
     if (apiQualityRule) {
       apiQualityRule.checked = !apiQualityRule.checked;
     } else {
@@ -60,7 +60,7 @@ function DialogReviewController($scope, $mdDialog, api, QualityRuleService: Qual
   };
 
   this.isChecked = (qualityRule: QualityRule) => {
-    let apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
+    const apiQualityRule: any = _.find(this.apiQualityRules, { quality_rule: qualityRule.id });
     return apiQualityRule && apiQualityRule.checked;
   };
 }

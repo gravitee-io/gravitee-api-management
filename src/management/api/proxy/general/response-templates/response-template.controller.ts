@@ -49,7 +49,7 @@ class ApiResponseTemplateController {
 
     if (this.api.response_templates && this.api.response_templates[this.$stateParams.key]) {
       Object.keys(this.api.response_templates[this.$stateParams.key]).forEach((type) => {
-        let template = this.api.response_templates[this.$stateParams.key][type];
+        const template = this.api.response_templates[this.$stateParams.key][type];
         this.templates.push({
           type: type,
           status: template.status,
@@ -108,7 +108,7 @@ class ApiResponseTemplateController {
   }
 
   querySearchTemplateKey(query) {
-    let keys = query ? this.keys.filter(this.createFilterForTemplateKey(query)) : this.keys;
+    const keys = query ? this.keys.filter(this.createFilterForTemplateKey(query)) : this.keys;
     if (query && !_.includes(keys, query)) {
       this.selectedTemplateKey = query;
     }
@@ -135,7 +135,7 @@ class ApiResponseTemplateController {
   }
 
   update() {
-    let apiResponseTemplates = this.api.response_templates || {};
+    const apiResponseTemplates = this.api.response_templates || {};
 
     if (this.templates.length > 0) {
       apiResponseTemplates[this.templateKey] = _.mapValues(

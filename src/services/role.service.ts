@@ -44,7 +44,7 @@ class RoleService {
 
   get(roleScope, roleName) {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName).then((response) => {
-      let role = response.data;
+      const role = response.data;
       role.scope = _.toUpper(role.scope);
       return role;
     });
@@ -61,7 +61,7 @@ class RoleService {
 
   create(role) {
     return this.$http.post(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles', role).then((response) => {
-      let role = response.data;
+      const role = response.data;
       role.scope = _.toUpper(role.scope);
       return role;
     });
@@ -71,7 +71,7 @@ class RoleService {
     return this.$http
       .put(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles/' + role.name, role)
       .then((response) => {
-        let role = response.data;
+        const role = response.data;
         role.scope = _.toUpper(role.scope);
         return role;
       });

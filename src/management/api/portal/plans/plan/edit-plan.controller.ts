@@ -100,7 +100,7 @@ class ApiEditPlanController {
           _.forEach(policy, (value, property) => {
             if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
               policy.id = property;
-              let policyDef = this.policies.find((policyDef) => policyDef.id === policy.id);
+              const policyDef = this.policies.find((policyDef) => policyDef.id === policy.id);
               if (policyDef) {
                 policy.name = policyDef.name;
               }

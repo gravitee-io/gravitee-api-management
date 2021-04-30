@@ -59,7 +59,7 @@ const UserDetailComponent: ng.IComponentOptions = {
         _.filter(this.selectedUser.roles, (role) => role.scope === 'organization'),
         (role) => role.id,
       );
-      let envRoles = {};
+      const envRoles = {};
       Object.keys(this.selectedUser.envRoles).forEach((envId) => {
         envRoles[envId] = _.map(this.selectedUser.envRoles[envId], (role) => role.id);
       });
@@ -85,7 +85,7 @@ const UserDetailComponent: ng.IComponentOptions = {
 
         let counter = 0;
         for (const key of Object.keys(this.selectedUser.customFields)) {
-          let value = this.selectedUser.customFields[key];
+          const value = this.selectedUser.customFields[key];
           if (counter % 2 === 0) {
             item.key1 = key;
             item.value1 = value;
@@ -154,12 +154,12 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.updateGroupRole = (group) => {
-      let member = {
+      const member = {
         id: this.selectedUser.id,
         roles: group.roles,
       };
 
-      let promise = GroupService.addOrUpdateMember(group.id, [member]);
+      const promise = GroupService.addOrUpdateMember(group.id, [member]);
       if (promise) {
         promise.then(() => {
           NotificationService.show('Role has been updated');
@@ -183,7 +183,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.addGroupDialog = () => {
-      let that = this;
+      const that = this;
       GroupService.list().then((groups) => {
         $mdDialog
           .show({
@@ -227,7 +227,7 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.loadUserApis = () => {
       UserService.getMemberships(this.selectedUser.id, 'api').then((response) => {
-        let newApiList = [];
+        const newApiList = [];
         _.forEach(response.data.metadata, (apiMetadata: any, apiId: string) => {
           newApiList.push({
             id: apiId,
@@ -242,7 +242,7 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.loadUserApplications = () => {
       UserService.getMemberships(this.selectedUser.id, 'application').then((response) => {
-        let newAppList = [];
+        const newAppList = [];
         _.forEach(response.data.metadata, (appMetadata: any, appId: string) => {
           if (!appMetadata.status || appMetadata.status !== 'archived') {
             newAppList.push({
@@ -257,7 +257,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.loadUserEnvironments = () => {
-      let userEnvironments = [];
+      const userEnvironments = [];
       Object.keys(this.selectedUser.envRoles).forEach((env) => {
         userEnvironments.push({
           name: env,
@@ -268,14 +268,14 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.backToUsers = () => {
-      let page = $window.localStorage.usersTablePage || 1;
-      let query = $window.localStorage.usersTableQuery || undefined;
+      const page = $window.localStorage.usersTablePage || 1;
+      const query = $window.localStorage.usersTableQuery || undefined;
       $state.go('organization.settings.users', { q: query, page: page });
     };
 
     this.accept = (ev: Event) => {
       ev.stopPropagation();
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -299,7 +299,7 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.reject = (ev: Event) => {
       ev.stopPropagation();
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',

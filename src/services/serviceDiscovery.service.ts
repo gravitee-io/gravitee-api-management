@@ -19,7 +19,7 @@ class ServiceDiscoveryService {
   }
 
   list() {
-    let url = `${this.Constants.env.baseURL}/services-discovery/`;
+    const url = `${this.Constants.env.baseURL}/services-discovery/`;
     return this.$http.get(url);
   }
 

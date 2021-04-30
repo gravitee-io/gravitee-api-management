@@ -52,7 +52,7 @@ class InstancesController {
       this.$scope.showHistory = !this.$scope.showHistory;
 
       if (this.$scope.showHistory) {
-        let now = Date.now();
+        const now = Date.now();
         this.$state.params.from = now - 1000 * 60 * 60 * 24;
         this.$state.params.to = now + 1000 * 60;
       } else {

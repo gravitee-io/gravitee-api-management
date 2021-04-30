@@ -44,7 +44,7 @@ class MetadataController {
     } else if ($state.params.applicationId) {
       this.referenceType = 'Application';
     }
-    let permissionPrefix = this.referenceType ? this.referenceType.toLowerCase() : 'environment';
+    const permissionPrefix = this.referenceType ? this.referenceType.toLowerCase() : 'environment';
     this.canCreate = this.UserService.isUserHasPermissions([permissionPrefix + '-metadata-c']);
     this.canUpdate = this.UserService.isUserHasPermissions([permissionPrefix + '-metadata-u']);
     this.canDelete = this.UserService.isUserHasPermissions([permissionPrefix + '-metadata-d']);

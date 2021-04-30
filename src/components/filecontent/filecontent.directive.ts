@@ -21,7 +21,7 @@ const FileContentDirective: ng.IDirective = {
   },
   link: function (scope: any, element: ng.IRootElementService) {
     element.bind('change', function (changeEvent: any) {
-      let reader = new FileReader();
+      const reader = new FileReader();
       const file = changeEvent.target.files[0];
       reader.onload = function (loadEvent: any) {
         scope.$apply(function () {

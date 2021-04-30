@@ -52,7 +52,7 @@ class CategoriesController {
   }
 
   toggleVisibility(category) {
-    let that = this;
+    const that = this;
     category.hidden = !category.hidden;
     this.CategoryService.update(category).then(() => {
       that.NotificationService.show('Category ' + category.name + ' has been saved.');
@@ -79,7 +79,7 @@ class CategoriesController {
   }
 
   deleteCategory(category) {
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DeleteCategoryDialogController',
@@ -113,7 +113,7 @@ class CategoriesController {
   }
 
   private save() {
-    let that = this;
+    const that = this;
     this.CategoryService.updateCategories(that.categoriesToUpdate).then(() => {
       that.NotificationService.show('Categories saved with success');
       that.categoriesToUpdate = [];

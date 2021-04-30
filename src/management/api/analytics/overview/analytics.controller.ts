@@ -27,7 +27,7 @@ class ApiAnalyticsController {
     this.api = resolvedApi.data;
     this.dashboards = _.filter(this.dashboards, 'enabled');
 
-    let dashboardId = this.$state.params.dashboard;
+    const dashboardId = this.$state.params.dashboard;
     if (dashboardId) {
       this.dashboard = _.find(this.dashboards, { id: dashboardId });
       if (!this.dashboard) {

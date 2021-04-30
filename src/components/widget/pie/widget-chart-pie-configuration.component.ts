@@ -29,7 +29,7 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
       this.data = [];
       if (this.chart.request) {
         if (this.chart.request.ranges) {
-          let ranges = this.chart.request.ranges.split('%3B');
+          const ranges = this.chart.request.ranges.split('%3B');
           let i = 0;
           _.forEach(ranges, (range) => {
             if (range) {
@@ -71,7 +71,7 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
       this.chart.request.ranges = '';
       this.chart.labels = [];
       this.chart.colors = [];
-      let last = _.last(this.data);
+      const last = _.last(this.data);
       _.forEach(this.data, (data) => {
         this.chart.request.ranges += data.min + ':' + data.max + (last === data ? '' : '%3B');
         this.chart.labels.push(data.label);

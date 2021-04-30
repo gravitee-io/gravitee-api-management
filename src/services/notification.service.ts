@@ -20,8 +20,8 @@ class NotificationService {
 
   show(message: any, errorStatus?: number) {
     const vm = this;
-    let msg = message.statusText || message;
-    let preconditionFailed = errorStatus === 412;
+    const msg = message.statusText || message;
+    const preconditionFailed = errorStatus === 412;
     vm.$mdToast
       .show(
         vm.$mdToast

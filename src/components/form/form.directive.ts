@@ -17,7 +17,7 @@ class FormDirective {
   constructor() {
     'ngInject';
 
-    let directive = {
+    const directive = {
       restrict: 'A',
       require: 'ngModel',
       link: function (scope, elm, attrs, ctrl) {

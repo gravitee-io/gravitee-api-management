@@ -68,7 +68,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this.delete = (provider: IdentityProvider) => {
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',

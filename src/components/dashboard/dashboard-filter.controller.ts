@@ -46,7 +46,7 @@ class DashboardFilterController {
 
   $onInit() {
     // init filters based on stateParams
-    let queryFilters = this.AnalyticsService.getQueryFilters();
+    const queryFilters = this.AnalyticsService.getQueryFilters();
     if (queryFilters) {
       this.decodeQueryFilters(queryFilters);
     } else {
@@ -55,15 +55,15 @@ class DashboardFilterController {
   }
 
   addFieldFilter(filter, run: boolean = true) {
-    let field = this.fields[filter.field] || { filters: {} };
+    const field = this.fields[filter.field] || { filters: {} };
 
     field.filters[filter.key] = {
       value: filter.name,
       onRemove: filter.events !== undefined && filter.events.remove,
     };
 
-    let label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + " = '" + filter.name + "'";
-    let query =
+    const label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + " = '" + filter.name + "'";
+    const query =
       '(' +
       _.map(_.keys(field.filters), (key) =>
         filter.field.includes('path') || filter.field.includes('host')
@@ -95,13 +95,13 @@ class DashboardFilterController {
   }
 
   deleteChips(chip) {
-    let index = chip.key.lastIndexOf('_');
+    const index = chip.key.lastIndexOf('_');
     this.lastSource = chip.source;
     this.removeFilter(chip.key.substring(0, index), chip.key.substring(index + 1), false);
   }
 
   removeFilter(field, key, silent) {
-    let filters = _.remove(this.filters, (current) => {
+    const filters = _.remove(this.filters, (current) => {
       return current.key === field + '_' + key;
     });
 
@@ -109,9 +109,9 @@ class DashboardFilterController {
       this.lastSource = filters[0].source;
     }
 
-    let fieldObject = this.fields[field] || { filters: {} };
+    const fieldObject = this.fields[field] || { filters: {} };
 
-    let fieldFilter = fieldObject.filters[key];
+    const fieldFilter = fieldObject.filters[key];
     if (fieldFilter) {
       delete fieldObject.filters[key];
       // Is there a registered event ?
@@ -141,7 +141,7 @@ class DashboardFilterController {
 
   createAndSendQuery(silent) {
     // Create a query with all the current filters
-    let query = Object.keys(this.fields)
+    const query = Object.keys(this.fields)
       .map((field) => this.fields[field].query)
       .join(' AND ');
 
@@ -161,14 +161,14 @@ class DashboardFilterController {
   }
 
   private decodeQueryFilters(queryFilters) {
-    let filters = Object.keys(queryFilters);
+    const filters = Object.keys(queryFilters);
     let lastFilter;
     filters.forEach((filter) => {
-      let k = filter;
-      let v = queryFilters[filter];
+      const k = filter;
+      const v = queryFilters[filter];
 
       v.forEach((value) => {
-        let filter: any = {};
+        const filter: any = {};
         filter.key = value;
         filter.name = value;
         filter.field = k;

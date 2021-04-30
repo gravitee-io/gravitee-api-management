@@ -134,7 +134,7 @@ class LogsFiltersController {
 
   $onInit() {
     // init filters based on stateParams
-    let q = this.$state.params.q;
+    const q = this.$state.params.q;
     if (q) {
       this.decodeQueryFilters(q);
       _.forEach(this.displayModes, (displayMode) => {
@@ -162,7 +162,7 @@ class LogsFiltersController {
     }
   }
   search() {
-    let query = this.buildQuery(this.filters);
+    const query = this.buildQuery(this.filters);
     // Update the query parameter
     this.$state.transitionTo(
       this.$state.current,
@@ -198,11 +198,11 @@ class LogsFiltersController {
   }
 
   private decodeQueryFilters(query) {
-    let filters = query.split('AND');
+    const filters = query.split('AND');
     for (let i = 0; i < filters.length; i++) {
-      let filter = filters[i].replace(/[()]/g, '');
-      let k = filter.split(':')[0].trim();
-      let v = filter
+      const filter = filters[i].replace(/[()]/g, '');
+      const k = filter.split(':')[0].trim();
+      const v = filter
         .substring(filter.indexOf(':') + 1)
         .split('OR')
         .map((x) => x.trim());
@@ -214,7 +214,7 @@ class LogsFiltersController {
           this.filters.application = v;
           break;
         case 'path':
-          let value = v[0].replace(/\\"/g, '');
+          const value = v[0].replace(/\\"/g, '');
           if (this.api) {
             this.filters.uri = this.api.proxy.virtual_hosts[0].path + value;
           } else {
@@ -272,8 +272,8 @@ class LogsFiltersController {
 
   private isEmpty(map) {
     // eslint:disable-next-line:forin
-    for (let key in map) {
-      let val = map[key];
+    for (const key in map) {
+      const val = map[key];
       if (val !== undefined && val.length > 0) {
         return false;
       }
@@ -283,9 +283,9 @@ class LogsFiltersController {
 
   private buildQuery(filters): string {
     let query = '';
-    let keys = _.filter(Object.keys(filters), (key) => filters[key] !== undefined && filters[key].length > 0);
+    const keys = _.filter(Object.keys(filters), (key) => filters[key] !== undefined && filters[key].length > 0);
     let index = 0;
-    let that = this;
+    const that = this;
     _.forEach(keys, (key) => {
       let val = filters[key];
 
@@ -308,7 +308,7 @@ class LogsFiltersController {
       if (key === 'body') {
         val = '*' + val + '*';
       }
-      let params = val.constructor === Array && val.length > 1 ? LogsFiltersController.convert(val) : val;
+      const params = val.constructor === Array && val.length > 1 ? LogsFiltersController.convert(val) : val;
       query += that.map(key, that.fields, true) + ':' + params;
       if (index + 1 < keys.length) {
         query += ' AND ';

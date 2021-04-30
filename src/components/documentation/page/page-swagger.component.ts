@@ -68,7 +68,7 @@ const PageSwaggerComponent: ng.IComponentOptions = {
         contentAsJson = jsyaml.safeLoad(this.page.content);
       }
 
-      let cfg: any = {
+      const cfg: any = {
         dom_id: '#swagger-container',
         presets: [SwaggerUIBundle.presets.apis],
         layout: 'BaseLayout',

@@ -28,7 +28,7 @@ class IdentityProviderService {
 
   get(id: string): IPromise<IdentityProvider> {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/identities/` + id).then((response) => {
-      let identityProvider = response.data;
+      const identityProvider = response.data;
       identityProvider.configuration = identityProvider.configuration || {};
       identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];
 
@@ -63,7 +63,7 @@ class IdentityProviderService {
         syncMappings: identityProvider.syncMappings,
       })
       .then((response) => {
-        let identityProvider = response.data;
+        const identityProvider = response.data;
 
         identityProvider.configuration = identityProvider.configuration || {};
         identityProvider.configuration.scopes = identityProvider.configuration.scopes || [];

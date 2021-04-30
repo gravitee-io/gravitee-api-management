@@ -377,7 +377,7 @@ class ThemeController {
   };
 
   restoreDefaultTheme = () => {
-    let confirm = this.$mdDialog.confirm({
+    const confirm = this.$mdDialog.confirm({
       title: 'Restore default theme?',
       content: 'Are you sure you want to restore the default theme? All your changes will be deleted.',
       ok: 'RESTORE',
@@ -473,7 +473,7 @@ class ThemeController {
       const reader = new FileReader();
       reader.readAsText(file);
       reader.onload = (event) => {
-        let jsonFromFile = JSON.parse(event.target.result as string);
+        const jsonFromFile = JSON.parse(event.target.result as string);
 
         // force to false, to force the user to validate the imported theme before saving and enabling it.
         jsonFromFile.enabled = false;

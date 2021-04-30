@@ -63,14 +63,14 @@ class GroupService {
 
   create(newGroup): ng.IPromise<any> {
     if (newGroup) {
-      let grpEntity = GroupService._mapToEntity(newGroup);
+      const grpEntity = GroupService._mapToEntity(newGroup);
       return this.$http.post(`${this.Constants.env.baseURL}/configuration/groups`, grpEntity);
     }
   }
 
   update(updatedGroup): ng.IPromise<any> {
     if (updatedGroup.id && updatedGroup) {
-      let grpEntity = GroupService._mapToEntity(updatedGroup);
+      const grpEntity = GroupService._mapToEntity(updatedGroup);
       return this.$http.put([`${this.Constants.env.baseURL}/configuration/groups`, updatedGroup.id].join('/'), grpEntity);
     }
   }
@@ -82,7 +82,7 @@ class GroupService {
   }
 
   updateEventRules(group, defaultApi, defaultApplication) {
-    let eventRules = [];
+    const eventRules = [];
     if (defaultApi) {
       eventRules.push({ event: 'API_CREATE' });
     }
@@ -94,13 +94,13 @@ class GroupService {
   }
 
   addOrUpdateMember(group, members: any[]): ng.IPromise<any> {
-    let groupRole = [];
+    const groupRole = [];
     // at least one role is mandatory
-    let body = [];
+    const body = [];
     _.forEach(members, (member) => {
-      let rolenames = _.filter(_.values(member.roles), (rolename) => !_.isEmpty(rolename));
+      const rolenames = _.filter(_.values(member.roles), (rolename) => !_.isEmpty(rolename));
       if (rolenames.length > 0) {
-        let roleScopes = _.keys(member.roles);
+        const roleScopes = _.keys(member.roles);
         _.forEach(roleScopes, (roleScope) => {
           groupRole.push({
             scope: roleScope,

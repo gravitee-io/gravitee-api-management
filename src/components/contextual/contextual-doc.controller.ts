@@ -33,7 +33,7 @@ class ContextualDocController {
     this.changeDocumentationPage($state.current);
 
     // watch for transition changes
-    let that = this;
+    const that = this;
     $transitions.onFinish({}, function (trans) {
       that.changeDocumentationPage(trans.to());
     });

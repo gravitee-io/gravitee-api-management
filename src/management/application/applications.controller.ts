@@ -70,7 +70,7 @@ class ApplicationsController {
       if (_.startsWith(order, '-')) {
         applications.reverse();
       }
-      let applicationsLength = this.applicationsToDisplay ? this.applicationsToDisplay.length : 0;
+      const applicationsLength = this.applicationsToDisplay ? this.applicationsToDisplay.length : 0;
       this.applicationsToDisplay = _.take(applications, 20 + applicationsLength);
     }
   };
@@ -92,7 +92,7 @@ class ApplicationsController {
 
   showRestoreConfirm(ev, applicationId: string, applicationName: string) {
     ev.stopPropagation();
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',

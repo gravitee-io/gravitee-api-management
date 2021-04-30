@@ -128,7 +128,7 @@ class TenantsController {
         //      that.loadTenants();
         that.tenantsToCreate = [];
         that.tenantsToUpdate = [];
-        let createResult = resultArray[0];
+        const createResult = resultArray[0];
         if (createResult) {
           that.tenants = _.unionBy(createResult.data, that.tenants, 'name');
         }

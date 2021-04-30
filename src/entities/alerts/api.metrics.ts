@@ -43,7 +43,7 @@ export class ApiMetrics extends Metrics {
   );
 
   static ERROR_KEY: ApiMetrics = new ApiMetrics('error.key', 'Error Key', [StringCondition.TYPE], true, undefined, () => {
-    let keys: Tuple[] = [];
+    const keys: Tuple[] = [];
     [
       'API_KEY_MISSING',
       'API_KEY_INVALID',
@@ -103,7 +103,7 @@ export class ApiMetrics extends Metrics {
     true,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let tenants: Tuple[] = [];
+      const tenants: Tuple[] = [];
 
       // PLATFORM: Search for all registered tenants
       ($injector.get('TenantService') as TenantService).list().then((result) => {
@@ -123,7 +123,7 @@ export class ApiMetrics extends Metrics {
     true,
     [Scope.APPLICATION, Scope.PLATFORM],
     (type: number, id: string, $injector: any) => {
-      let apis: Tuple[] = [];
+      const apis: Tuple[] = [];
 
       if (type === 2) {
         // PLATFORM: Search for all registered APIs
@@ -152,7 +152,7 @@ export class ApiMetrics extends Metrics {
     true,
     [Scope.API, Scope.PLATFORM],
     (type: number, id: string, $injector: any) => {
-      let applications: Tuple[] = [];
+      const applications: Tuple[] = [];
 
       if (type === 0) {
         // API: Search for all subscribed applications
@@ -174,7 +174,7 @@ export class ApiMetrics extends Metrics {
     true,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let plans: Tuple[] = [];
+      const plans: Tuple[] = [];
 
       if (type === 0) {
         // API: Search for all published plans
@@ -186,7 +186,7 @@ export class ApiMetrics extends Metrics {
       } else if (type === 1) {
         // APPLICATION: Search for all subscribed plan
         ($injector.get('ApplicationService') as ApplicationService).listSubscriptions(id).then((result) => {
-          let keyPlans = _.keys(_.keyBy(result.data.data, (sub) => sub.plan));
+          const keyPlans = _.keys(_.keyBy(result.data.data, (sub) => sub.plan));
           _.each(keyPlans, (plan) => {
             plans.push(new Tuple(plan, result.data.metadata[plan].name));
           });

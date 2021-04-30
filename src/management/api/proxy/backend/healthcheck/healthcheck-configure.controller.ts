@@ -45,7 +45,7 @@ class ApiHealthCheckConfigureController {
 
     if (this.$stateParams.endpointName !== undefined) {
       // Health-check for specific endpoint
-      let group: any = _.find(this.api.proxy.groups, { name: $stateParams.groupName });
+      const group: any = _.find(this.api.proxy.groups, { name: $stateParams.groupName });
       this.endpoint = _.find(group.endpoints, { name: $stateParams.endpointName });
       this.rootHealthcheckEnabled = this.api.services && this.api.services['health-check'] && this.api.services['health-check'].enabled;
 
@@ -65,8 +65,8 @@ class ApiHealthCheckConfigureController {
     }
 
     this.healthcheck = this.healthcheck || { enabled: false, inherit: false, trigger: {}, schedule: '*/1 * * * * *' };
-    let inherit = this.endpoint !== undefined && this.healthcheck.inherit;
-    let enabled = this.healthcheck.enabled;
+    const inherit = this.endpoint !== undefined && this.healthcheck.inherit;
+    const enabled = this.healthcheck.enabled;
 
     if (inherit) {
       this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || { enabled: false, trigger: {} });
@@ -174,7 +174,7 @@ class ApiHealthCheckConfigureController {
   }
 
   backToHealthcheck() {
-    let query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
+    const query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
     this.$state.go('management.apis.detail.proxy.healthcheck.visualize', {
       page: query.page,
       size: query.size,

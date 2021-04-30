@@ -47,8 +47,8 @@ function DialogAddMemberController(
 
   $scope.addMembers = function () {
     for (var i = 0; i < $scope.usersSelected.length; i++) {
-      let member = $scope.usersSelected[i];
-      let membership = {
+      const member = $scope.usersSelected[i];
+      const membership = {
         id: member.id,
         reference: member.reference,
         role: $scope.role.name,

@@ -82,7 +82,7 @@ class ApplicationGeneralController {
 
   showDeleteApplicationConfirm(ev) {
     ev.stopPropagation();
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmAndValidateController',

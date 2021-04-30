@@ -30,7 +30,7 @@ class InstanceEnvironmentController {
   }
 
   sort(systemProperties) {
-    let systemPropertiesProvider = {};
+    const systemPropertiesProvider = {};
     _.forEach(_.sortBy(_.keys(systemProperties)), function (key) {
       systemPropertiesProvider[key] = systemProperties[key];
     });
@@ -39,7 +39,7 @@ class InstanceEnvironmentController {
 
   filter() {
     this.instance.systemProperties = {};
-    let lowerFilter = this.filterSystemProperty.toLowerCase();
+    const lowerFilter = this.filterSystemProperty.toLowerCase();
     _.forEach(this.systemPropertiesProvider, (value, key) => {
       if (_.includes(key.toLowerCase(), lowerFilter) || _.includes(value.toLowerCase(), lowerFilter)) {
         this.instance.systemProperties[key] = value;

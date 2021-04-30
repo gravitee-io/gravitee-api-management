@@ -70,9 +70,9 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
       },
     };
 
-    let that = this;
+    const that = this;
     function getDefaultSettingsMenu(): string {
-      for (let entry of _.keys(that.settingsMenu)) {
+      for (const entry of _.keys(that.settingsMenu)) {
         if (that.settingsMenu[entry].perm) {
           return that.settingsMenu[entry].goTo;
         }

@@ -142,7 +142,7 @@ class LogComponentController {
   }
 
   getMimeType(log): string | null {
-    let contentTypes: string[] | null | undefined = log.headers != null ? log.headers['Content-Type'] : null;
+    const contentTypes: string[] | null | undefined = log.headers != null ? log.headers['Content-Type'] : null;
     if (Array.isArray(contentTypes)) {
       return contentTypes[0].split(';', 1)[0];
     }

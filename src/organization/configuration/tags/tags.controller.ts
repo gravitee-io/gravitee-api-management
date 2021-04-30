@@ -97,7 +97,7 @@ class TagsController {
   }
 
   deleteEntrypointsByTag(tag) {
-    let promises = [];
+    const promises = [];
     _.forEach(this.entrypoints, (entrypoint) => {
       if (_.includes(entrypoint.tags, tag.id)) {
         promises.push(

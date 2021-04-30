@@ -39,7 +39,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
 
     this.$onChanges = (changes) => {
       if (changes.data) {
-        let data = changes.data.currentValue;
+        const data = changes.data.currentValue;
         this.series = { values: [] };
         this.gvChartLine = $element.children()[0];
 
@@ -62,14 +62,14 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     };
 
     this.prepareData = (data) => {
-      let timestamp = data.timestamp;
+      const timestamp = data.timestamp;
       this.events = data.events && data.events.content;
 
       data.values.forEach((value, idx) => {
         let label = this.parent.widget.chart.labels ? this.parent.widget.chart.labels[idx] : '';
 
         if (value.buckets.length === 0) {
-          let bucketCount = (data.timestamp.to - data.timestamp.from) / data.timestamp.interval;
+          const bucketCount = (data.timestamp.to - data.timestamp.from) / data.timestamp.interval;
 
           this.series.values.push({
             name: label,
@@ -82,7 +82,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
           value.buckets.forEach((bucket) => {
             if (bucket) {
               let isFieldRequest = this.parent.widget.chart.request.aggs.split('%3B')[idx].includes('field:');
-              let query = this.parent.widget.chart.request.query;
+              const query = this.parent.widget.chart.request.query;
               if (
                 bucket.name === '1' ||
                 bucket.name.match('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
@@ -147,10 +147,10 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     };
 
     this.onSelect = (event) => {
-      let selected = event.detail.chart.series[event.detail.index];
+      const selected = event.detail.chart.series[event.detail.index];
 
       if (this.parent.widget.chart.selectable) {
-        let query = this.parent.widget.chart.request.query;
+        const query = this.parent.widget.chart.request.query;
         if (query && query.includes(selected.name)) {
           this.updateQuery(selected, false);
         } else {

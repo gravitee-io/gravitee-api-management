@@ -107,7 +107,7 @@ class UserService {
   }
 
   refreshEnvironmentPermissions(): ng.IPromise<User> {
-    let that = this;
+    const that = this;
 
     return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then((response) => {
       that.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(response);
@@ -116,7 +116,7 @@ class UserService {
   }
 
   current(): ng.IPromise<User> {
-    let that = this;
+    const that = this;
     if (!this.currentUser || !this.currentUser.authenticated) {
       const promises: ng.IPromise<IHttpResponse<any>>[] = [
         this.$http.get(`${this.Constants.org.baseURL}/user/`, {
@@ -126,7 +126,7 @@ class UserService {
       ];
 
       const applicationRegex = /applications\/([\w|\-]+)/;
-      let applicationId = applicationRegex.exec(this.$location.$$path);
+      const applicationId = applicationRegex.exec(this.$location.$$path);
       if (this.Constants.org.currentEnv && !that.isLogout && applicationId && applicationId[1] !== 'create') {
         promises.push(this.ApplicationService.getPermissions(applicationId[1]));
       }
@@ -153,7 +153,7 @@ class UserService {
             _.forEach(_.keys(role.permissions), function (permission) {
               _.forEach(role.permissions[permission], function (right) {
                 if (role.scope === 'ORGANIZATION') {
-                  let permissionName = role.scope + '-' + permission + '-' + right;
+                  const permissionName = role.scope + '-' + permission + '-' + right;
                   that.currentUser.userPermissions.push(_.toLower(permissionName));
                 }
               });
@@ -168,7 +168,7 @@ class UserService {
               this.currentUser.userApplicationPermissions = [];
               _.forEach(_.keys(apiOrApplicationResponse.data), function (permission) {
                 _.forEach(apiOrApplicationResponse.data[permission], function (right) {
-                  let permissionName = 'APPLICATION-' + permission + '-' + right;
+                  const permissionName = 'APPLICATION-' + permission + '-' + right;
                   that.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
                 });
               });
@@ -176,7 +176,7 @@ class UserService {
               this.currentUser.userApiPermissions = [];
               _.forEach(_.keys(apiOrApplicationResponse.data), function (permission) {
                 _.forEach(apiOrApplicationResponse.data[permission], function (right) {
-                  let permissionName = 'API-' + permission + '-' + right;
+                  const permissionName = 'API-' + permission + '-' + right;
                   that.currentUser.userApiPermissions.push(_.toLower(permissionName));
                 });
               });
@@ -209,11 +209,11 @@ class UserService {
   reloadPermissions() {
     const rights: string[] = this.RoleService.listRights();
     this.RoleService.listScopes().then((permissionsByScope) => {
-      let allPermissions: string[] = [];
+      const allPermissions: string[] = [];
       _.forEach(permissionsByScope, function (permissions, scope) {
         _.forEach(permissions, function (permission) {
           _.forEach(rights, function (right) {
-            let permissionName = scope + '-' + permission + '-' + right;
+            const permissionName = scope + '-' + permission + '-' + right;
             allPermissions.push(_.toLower(permissionName));
           });
         });
@@ -337,12 +337,12 @@ class UserService {
       return [];
     }
 
-    let permissions = [] as string[];
+    const permissions = [] as string[];
 
     response.data.forEach((envWithPermissions) => {
       Object.keys(envWithPermissions.permissions).forEach((permission) => {
         envWithPermissions.permissions[permission].forEach((right) => {
-          let permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
+          const permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
           permissions.push(permissionName);
         });
       });

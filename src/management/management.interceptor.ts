@@ -81,7 +81,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
               sessionExpired = true;
               // session expired
               notificationService.showError(error, 'Session expired, redirecting to home...');
-              let redirectUri = $location.$$path;
+              const redirectUri = $location.$$path;
               $timeout(function () {
                 userService.removeCurrentUserData();
                 $injector.get('$rootScope').$broadcast('graviteeUserRefresh', {});
@@ -170,10 +170,10 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   const reCaptchaInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
-        let reCaptchaService: ReCaptchaService = $injector.get('ReCaptchaService');
+        const reCaptchaService: ReCaptchaService = $injector.get('ReCaptchaService');
 
         if (reCaptchaService && reCaptchaService.isEnabled()) {
-          let currentReCaptchaToken = reCaptchaService.getCurrentToken();
+          const currentReCaptchaToken = reCaptchaService.getCurrentToken();
           if (currentReCaptchaToken) {
             config.headers[reCaptchaService.getHeaderName()] = currentReCaptchaToken;
           }
@@ -201,7 +201,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   const replaceEnvInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
-        let constants: any = $injector.get('Constants');
+        const constants: any = $injector.get('Constants');
         if (config.url.includes('{:envId}')) {
           config.url = config.url.replace('{:envId}', constants.org.currentEnv.id);
         }

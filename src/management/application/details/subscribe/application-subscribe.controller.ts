@@ -39,7 +39,7 @@ class ApplicationSubscribeController {
   }
 
   $onInit = () => {
-    let subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
+    const subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
     _.forEach(subscriptionsByAPI, (subscriptions, api) => {
       // @ts-ignore
       this.subscribedAPIs.push(
@@ -57,11 +57,11 @@ class ApplicationSubscribeController {
 
   onSelectAPI = (api) => {
     if (api) {
-      let authorizedSecurity = this.getAuthorizedSecurity();
+      const authorizedSecurity = this.getAuthorizedSecurity();
       this.ApiService.getApiPlans(api.id, 'published').then((response) => {
         this.plans = _.filter(response.data, (plan) => {
           plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
-          let subscription = _.find(this.subscriptions.data, { plan: plan.id });
+          const subscription = _.find(this.subscriptions.data, { plan: plan.id });
           // @ts-ignore
           plan.pending = subscription && 'pending' === subscription.status;
           return _.includes(authorizedSecurity, plan.security);
@@ -75,7 +75,7 @@ class ApplicationSubscribeController {
   };
 
   getAuthorizedSecurity = (): string[] => {
-    let authorizedSecurity = ['api_key'];
+    const authorizedSecurity = ['api_key'];
     if (this.application.settings) {
       if (this.application.settings.oauth || (this.application.settings.app && this.application.settings.app.client_id)) {
         authorizedSecurity.push('jwt', 'oauth2');
@@ -86,7 +86,7 @@ class ApplicationSubscribeController {
 
   onSubscribe(api, plan) {
     if (plan.comment_required) {
-      let confirm = this.$mdDialog
+      const confirm = this.$mdDialog
         .prompt()
         .title('Subscription message')
         .placeholder(plan.comment_message ? plan.comment_message : 'Fill a message to the API owner')
@@ -114,7 +114,7 @@ class ApplicationSubscribeController {
   }
 
   onUnsubscribe(api, plan) {
-    let alert = this.$mdDialog.confirm({
+    const alert = this.$mdDialog.confirm({
       title: 'Close subscription?',
       content: 'Are you sure you want to close this subscription?',
       ok: 'CLOSE',

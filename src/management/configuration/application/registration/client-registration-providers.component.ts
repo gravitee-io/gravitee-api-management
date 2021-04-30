@@ -85,7 +85,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
     };
 
     this.saveApplicationType = (type: string) => {
-      let appType = {
+      const appType = {
         application: {
           types: {
             [type]: {

@@ -22,7 +22,7 @@ import ApiService from '../../../../services/api.service';
 import { PagedResult } from '../../../../entities/pagedResult';
 import { StateService } from '@uirouter/core';
 
-let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
+const defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 
 export class SubscriptionQuery {
   status?: string[] = defaultStatus;
@@ -99,7 +99,7 @@ class ApplicationSubscriptionsController {
 
   buildQuery() {
     let query = '?page=' + this.query.page + '&size=' + this.query.size + '&';
-    let parameters: any = {};
+    const parameters: any = {};
 
     if (this.query.status !== undefined) {
       parameters.status = this.query.status.join(',');
@@ -121,7 +121,7 @@ class ApplicationSubscriptionsController {
   }
 
   doSearch() {
-    let query = this.buildQuery();
+    const query = this.buildQuery();
     this.$state.transitionTo(
       this.$state.current,
       _.merge(this.$state.params, {

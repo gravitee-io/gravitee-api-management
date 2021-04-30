@@ -20,7 +20,7 @@ class PortalService {
   }
 
   searchApis(query?: string, opts?: any) {
-    let url = `${this.Constants.env.baseURL}/portal/` + 'apis/_search?q=' + query;
+    const url = `${this.Constants.env.baseURL}/portal/` + 'apis/_search?q=' + query;
     return this.$http.post(url, {}, opts);
   }
 }

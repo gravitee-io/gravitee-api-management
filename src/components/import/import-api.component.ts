@@ -191,7 +191,7 @@ const ImportComponent: ng.IComponentOptions = {
             this.importSwagger();
             break;
           case 'json':
-            let isSwagger = this.isSwaggerDescriptor();
+            const isSwagger = this.isSwaggerDescriptor();
             if (isSwagger !== null) {
               if (isSwagger) {
                 this.importSwagger();
@@ -256,7 +256,7 @@ const ImportComponent: ng.IComponentOptions = {
 
     this.importApiSpecification = (format) => {
       this.error = null;
-      let swagger: any = {
+      const swagger: any = {
         with_documentation: this.importCreateDocumentation,
         with_path_mapping: this.importCreatePathMapping,
         with_policy_paths: this.importCreatePolicyPaths,

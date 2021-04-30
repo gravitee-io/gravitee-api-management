@@ -28,7 +28,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       // Get the metric field according to the condition property
-      let metric = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);
+      const metric = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);
 
       if (metric.loader) {
         let referenceId;

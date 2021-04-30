@@ -111,7 +111,7 @@ const AlertComponent: ng.IComponentOptions = {
       return service.then((response) => {
         this.formAlert.$setPristine();
         NotificationService.show('Alert has been saved successfully');
-        let alert = response.data;
+        const alert = response.data;
         $state.go('^.alert', { alertId: alert.id }, { reload: true });
         return alert;
       });
@@ -152,7 +152,7 @@ const AlertComponent: ng.IComponentOptions = {
     };
 
     this.onRuleChange = () => {
-      let rule: Rule = _.find(this.rules, (rule) => rule.source + '@' + rule.type === this.alert.type);
+      const rule: Rule = _.find(this.rules, (rule) => rule.source + '@' + rule.type === this.alert.type);
       this.alert.source = rule.source;
       if (this.alert.filters) {
         this.alert.filters.length = 0;

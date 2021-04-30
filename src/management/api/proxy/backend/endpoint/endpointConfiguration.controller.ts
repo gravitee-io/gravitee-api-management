@@ -82,7 +82,7 @@ class ApiEndpointController {
       }
     }
 
-    let group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
+    const group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
 
     if (!_.includes(group.endpoints, this.endpoint)) {
       group.endpoints = group.endpoints || [];
@@ -109,7 +109,7 @@ class ApiEndpointController {
   }
 
   backToEndpointsConfiguration() {
-    let group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
+    const group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
     group.endpoints = _.cloneDeep(this.initialEndpoints);
     this.$state.go('management.apis.detail.proxy.endpoints');
   }

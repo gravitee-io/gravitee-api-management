@@ -42,8 +42,8 @@ const PageSidenavDirective: ng.IDirective = {
     }
 
     ctr.$timeout(function () {
-      let sidenav = angular.element(document.getElementById('sidenav'));
-      let page = document.getElementById('page-content');
+      const sidenav = angular.element(document.getElementById('sidenav'));
+      const page = document.getElementById('page-content');
 
       let content: Element = undefined;
       if (scope.page.type === 'SWAGGER') {
@@ -53,8 +53,8 @@ const PageSidenavDirective: ng.IDirective = {
       }
 
       if (content !== undefined) {
-        let h1Elements = content.querySelectorAll('h1');
-        let h2Elements = content.querySelectorAll('h2');
+        const h1Elements = content.querySelectorAll('h1');
+        const h2Elements = content.querySelectorAll('h2');
 
         /*
         //TODO: create an intermediate section to activate sidenav item
@@ -86,7 +86,7 @@ const PageSidenavDirective: ng.IDirective = {
         });
 
         scope.scrollTo = function (anchor) {
-          let scrollElt = anchor;
+          const scrollElt = anchor;
           ctr.$document.scrollToElementAnimated(scrollElt, 54).catch(function () {});
         };
       }

@@ -40,7 +40,7 @@ class ChartDirective {
           },
         });
 
-        let chartElement = element[0];
+        const chartElement = element[0];
 
         if (scope.type && scope.type.startsWith('area')) {
           initSynchronizedCharts();
@@ -144,8 +144,8 @@ class ChartDirective {
             }
             newOptions.yAxis = _.merge(newOptions.yAxis, { title: { text: '' } });
 
-            let containerElement = element.parent().parent()[0];
-            let parentElement = element.parent()[0];
+            const containerElement = element.parent().parent()[0];
+            const parentElement = element.parent()[0];
 
             newOptions.chart = _.merge(newOptions.chart, {
               type: scope.type,
@@ -172,7 +172,7 @@ class ChartDirective {
                   // TODO: check this
                   // let s = '<b>' + Highcharts.dateFormat('%A, %b %d, %H:%M', new Date(this.x)) + '</b>';
                   const nbCol = Math.trunc(this.points.filter((p) => p.y).length / 10);
-                  let dateFormat = newOptions.dateFormat || '%A, %b %d, %H:%M';
+                  const dateFormat = newOptions.dateFormat || '%A, %b %d, %H:%M';
                   let s = '<div><b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b></div>';
                   s += '<div class="' + (nbCol >= 2 ? 'gv-tooltip gv-tooltip-' + (nbCol > 5 ? 5 : nbCol) : '') + '">';
                   if (
@@ -183,7 +183,7 @@ class ChartDirective {
                     let i = 0;
                     _.forEach(this.points, function (point) {
                       if (point.y) {
-                        let name =
+                        const name =
                           ' ' +
                           (point.series.options.labelPrefix
                             ? point.series.options.labelPrefix + ' ' + point.series.name
@@ -284,7 +284,7 @@ class ChartDirective {
                 };
               }
             } else if (scope.type && scope.type === 'sparkline') {
-              let maxValue = _.max(newOptions.series[0].data);
+              const maxValue = _.max(newOptions.series[0].data);
               newOptions = _.merge(newOptions, {
                 chart: {
                   backgroundColor: null,

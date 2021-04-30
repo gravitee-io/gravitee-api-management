@@ -119,7 +119,7 @@ class DictionaryController {
   }
 
   getPropertiesPage = (reverse: boolean) => {
-    let properties = this.dictProperties
+    const properties = this.dictProperties
       .sort((entry, entry2) => {
         if (reverse) {
           return entry2.key.localeCompare(entry.key);
@@ -297,7 +297,7 @@ class DictionaryController {
 
   computeProperties = () => {
     return Object.entries((this.dictionary && this.dictionary.properties) || {}).map((entry) => {
-      let result: any = {};
+      const result: any = {};
       result.key = entry[0];
       result.value = entry[1];
       return result;

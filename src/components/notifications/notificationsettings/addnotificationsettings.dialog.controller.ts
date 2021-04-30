@@ -26,7 +26,7 @@ function DialogAddNotificationSettingsController($scope, $mdDialog: angular.mate
   };
 
   this.save = function () {
-    let cfg = {
+    const cfg = {
       name: this.name,
       notifierId: this.selectedNotifier.id,
     };

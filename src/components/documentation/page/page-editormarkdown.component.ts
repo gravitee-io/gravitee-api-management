@@ -71,9 +71,9 @@ class ComponentCtrl implements ng.IComponentController {
       'codeblock',
     ];
 
-    let $http = this.$http;
-    let Constants = this.Constants;
-    let maxSize = this.maxSize;
+    const $http = this.$http;
+    const Constants = this.Constants;
+    const maxSize = this.maxSize;
 
     if (Constants.env.settings.portal.uploadMedia.enabled) {
       // toolbarItems
@@ -105,7 +105,7 @@ class ComponentCtrl implements ng.IComponentController {
           },
           hooks: {
             addImageBlobHook: function (blob, callback) {
-              let fd = new FormData();
+              const fd = new FormData();
               fd.append('file', blob);
 
               if (blob.size > Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {

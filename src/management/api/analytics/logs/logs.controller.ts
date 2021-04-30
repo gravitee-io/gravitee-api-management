@@ -52,7 +52,7 @@ class ApiLogsController {
       plans: plans.data,
     };
 
-    let hasTenants = _.chain(this.api.proxy.groups)
+    const hasTenants = _.chain(this.api.proxy.groups)
       .map((group) => group.endpoints)
       .find((endpoint) => _.has(endpoint, 'tenants'));
 
@@ -115,7 +115,7 @@ class ApiLogsController {
 
   exportAsCSV() {
     this.ApiService.exportLogsAsCSV(this.api.id, this.query).then((response) => {
-      let hiddenElement = document.createElement('a');
+      const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
       hiddenElement.target = '_self';
       let fileName = 'logs-' + this.api.name + '-' + this.api.version + '-' + _.now();

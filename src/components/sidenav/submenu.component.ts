@@ -41,7 +41,7 @@ export const SubmenuComponent: ng.IComponentOptions = {
 
     this.sidenavService = SidenavService;
 
-    let that = this;
+    const that = this;
     $transitions.onSuccess({}, function () {
       that.reload();
     });
@@ -56,7 +56,7 @@ export const SubmenuComponent: ng.IComponentOptions = {
         ApiService.getPermissions($state.params.apiId).then((permissions) => {
           _.forEach(_.keys(permissions.data), function (permission) {
             _.forEach(permissions.data[permission], function (right) {
-              let permissionName = 'API-' + permission + '-' + right;
+              const permissionName = 'API-' + permission + '-' + right;
               UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
             });
           });
@@ -67,7 +67,7 @@ export const SubmenuComponent: ng.IComponentOptions = {
         ApplicationService.getPermissions($state.params.applicationId).then((permissions) => {
           _.forEach(_.keys(permissions.data), function (permission) {
             _.forEach(permissions.data[permission], function (right) {
-              let permissionName = 'APPLICATION-' + permission + '-' + right;
+              const permissionName = 'APPLICATION-' + permission + '-' + right;
               UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
             });
           });
@@ -78,14 +78,14 @@ export const SubmenuComponent: ng.IComponentOptions = {
       }
     };
 
-    let reloadPermissionsAndSubmenu = function () {
+    const reloadPermissionsAndSubmenu = function () {
       UserService.reloadPermissions();
       that.submenuItems = $filter<any>('currentSubmenus')(that.allMenuItems);
     };
 
     this.isActive = function (menuItem) {
-      let menuItemSplitted = menuItem.name.split('.');
-      let currentStateSplitted = $state.current.name.split('.');
+      const menuItemSplitted = menuItem.name.split('.');
+      const currentStateSplitted = $state.current.name.split('.');
       return (
         menuItemSplitted[0] === currentStateSplitted[0] &&
         menuItemSplitted[1] === currentStateSplitted[1] &&

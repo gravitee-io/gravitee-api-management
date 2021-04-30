@@ -28,7 +28,7 @@ class ComponentCtrl implements ng.IComponentController {
 
   $onChanges() {
     const initialValue = this.page && this.page.content ? this.page.content : '';
-    let ast = remark.parse(initialValue);
+    const ast = remark.parse(initialValue);
 
     let content = '';
     let sectionOpen = false;
@@ -45,9 +45,9 @@ class ComponentCtrl implements ng.IComponentController {
         sectionValue += '</section>';
       }
 
-      let value = this.findChildrenValue(child.children);
+      const value = this.findChildrenValue(child.children);
       if (value) {
-        let id = value.replace(new RegExp(' ', 'g'), '').toLowerCase();
+        const id = value.replace(new RegExp(' ', 'g'), '').toLowerCase();
         sectionValue += "<section id='" + id + "'>";
       } else {
         sectionValue += '<section>';

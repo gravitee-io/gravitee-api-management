@@ -192,7 +192,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.remove = (page: any) => {
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -242,7 +242,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
-      let pageList = _.filter(
+      const pageList = _.filter(
         pagesToFilter,
         (p) =>
           p.type === 'MARKDOWN' ||
@@ -491,7 +491,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.addAttachedResource = () => {
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'FileChooserDialogController',
@@ -506,7 +506,7 @@ const EditPageComponent: ng.IComponentOptions = {
         .then(function (response: any) {
           if (response.file) {
             // upload new media to portal or api
-            let fd = new FormData();
+            const fd = new FormData();
             let fileName = response.file.name;
             if (response.filename) {
               fileName = response.filename;
@@ -522,7 +522,7 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.removeAttachedResource = (resource: any) => {
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',

@@ -17,7 +17,7 @@ class EmptyStateDirective {
   constructor() {
     'ngInject';
 
-    let directive = {
+    const directive = {
       restrict: 'E',
       scope: {
         icon: '@icon',

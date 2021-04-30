@@ -24,7 +24,7 @@ const ThemeElementDirective: ng.IDirective = {
   restrict: 'A',
   link: function (scope, elem, attr, ctr: { Theme }) {
     if (attr.gvThemeElement) {
-      let splittedTheme: string[] = attr.gvThemeElement.split('.');
+      const splittedTheme: string[] = attr.gvThemeElement.split('.');
       let style: any = ctr.Theme;
 
       splittedTheme.forEach((value: string) => {

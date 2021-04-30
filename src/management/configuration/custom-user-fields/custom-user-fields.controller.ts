@@ -36,7 +36,7 @@ class CustomUserFieldsController {
   ) {
     'ngInject';
 
-    let permissionPrefix = 'organization-custom_user_fields';
+    const permissionPrefix = 'organization-custom_user_fields';
     this.canCreate = this.UserService.isUserHasPermissions([permissionPrefix + '-c']);
     this.canUpdate = this.UserService.isUserHasPermissions([permissionPrefix + '-u']);
     this.canDelete = this.UserService.isUserHasPermissions([permissionPrefix + '-d']);

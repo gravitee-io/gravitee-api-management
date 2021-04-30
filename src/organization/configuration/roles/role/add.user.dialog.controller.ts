@@ -43,10 +43,10 @@ function DialogAddUserRoleController(
   };
 
   this.addUsers = function () {
-    let promises: Array<any> = [];
+    const promises: Array<any> = [];
     for (let i = 0; i < this.usersSelected.length; i++) {
-      let member = this.usersSelected[i];
-      let membership = {
+      const member = this.usersSelected[i];
+      const membership = {
         id: member.id,
         reference: member.reference,
       };

@@ -79,7 +79,7 @@ class HomeDashboardController {
         this.UserService.currentUser.userEnvironmentPermissions.includes('environment-platform-r'))
     ) {
       // set apis
-      let apis = this.selectedAPIs.map((api) => api.id).join(',');
+      const apis = this.selectedAPIs.map((api) => api.id).join(',');
       // set event types
       let types: any = this.eventTypes;
       if (this.selectedEventTypes.length > 0) {

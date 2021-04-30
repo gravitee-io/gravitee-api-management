@@ -70,10 +70,10 @@ class ApplicationMembersController {
     this.groupMembers = {};
     this.groupIdsWithMembers = [];
     if (this.application.groups) {
-      let self = this;
+      const self = this;
       _.forEach(this.application.groups, (grp) => {
         this.GroupService.getMembers(grp).then((members) => {
-          let filteredMembers = _.filter(members.data, (m: any) => {
+          const filteredMembers = _.filter(members.data, (m: any) => {
             return m.roles.APPLICATION;
           });
           if (filteredMembers.length > 0) {
@@ -107,7 +107,7 @@ class ApplicationMembersController {
   }
 
   deleteMember(member) {
-    let index = this.members.indexOf(member);
+    const index = this.members.indexOf(member);
     this.ApplicationService.deleteMember(this.application.id, member.id).then(() => {
       this.members.splice(index, 1);
       this.NotificationService.show(`${member.displayName} has been removed`);
@@ -116,7 +116,7 @@ class ApplicationMembersController {
 
   showDeleteMemberConfirm(ev, member) {
     ev.stopPropagation();
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -137,7 +137,7 @@ class ApplicationMembersController {
   }
 
   showAddMemberModal(ev) {
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogAddMemberController',
@@ -215,7 +215,7 @@ class ApplicationMembersController {
   }
 
   private transferOwnership(newRole: string) {
-    let ownership = {
+    const ownership = {
       id: this.usersSelected[0].id,
       reference: this.usersSelected[0].reference,
       role: newRole,

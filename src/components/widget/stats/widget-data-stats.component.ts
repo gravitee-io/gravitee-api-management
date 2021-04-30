@@ -31,16 +31,16 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
       checkFallback();
     };
     const checkFallback = () => {
-      let gvStats = $element.children()[0];
+      const gvStats = $element.children()[0];
 
-      let stats = {};
+      const stats = {};
       if (Object.values(this.data).some((data) => data !== 0)) {
         this.chartData.forEach((data) => {
           stats[data.key] = this.data[data.key];
         });
       }
 
-      let options = this.chartData.map((data) => {
+      const options = this.chartData.map((data) => {
         return {
           key: data.key,
           unit: data.unit,

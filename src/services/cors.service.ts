@@ -44,7 +44,7 @@ class CorsService {
           }
         });
     } else {
-      let validator = new RegExp(this.allowOriginPattern, 'ig');
+      const validator = new RegExp(this.allowOriginPattern, 'ig');
 
       if (!validator.test(chip)) {
         this.$mdDialog
@@ -84,7 +84,7 @@ class CorsService {
   };
 
   createFilterFor = (query: string) => {
-    let lowercaseQuery = query.toLowerCase();
+    const lowercaseQuery = query.toLowerCase();
 
     return function filterFn(header) {
       return header.toLowerCase().indexOf(lowercaseQuery) === 0;

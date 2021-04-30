@@ -128,7 +128,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     resume() {
-      let msg = 'The application will again be able to consume your API.';
+      const msg = 'The application will again be able to consume your API.';
 
       this.$mdDialog
         .show({

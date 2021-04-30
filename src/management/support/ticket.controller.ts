@@ -47,7 +47,7 @@ class SupportTicketController {
         .then((response) => (this.apis = response.data))
         .then((apis) => {
           if ($stateParams.apiId) {
-            let api = _.find(apis, { id: $stateParams.apiId });
+            const api = _.find(apis, { id: $stateParams.apiId });
             if (api) {
               this.ticket = {
                 api: $stateParams.apiId,

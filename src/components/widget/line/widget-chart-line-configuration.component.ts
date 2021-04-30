@@ -58,7 +58,7 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
     this.onDataChanged = () => {
       this.chart.request.aggs = '';
       this.chart.labels = [];
-      let last = _.last(this.data);
+      const last = _.last(this.data);
       _.forEach(this.data, (data) => {
         this.chart.request.aggs += data + (last === data ? '' : '%3B');
         this.chart.labels.push(_.find(this.fields, (f) => f.aggValue === data).label);

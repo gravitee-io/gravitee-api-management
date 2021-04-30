@@ -100,7 +100,7 @@ class DocumentationService {
   };
 
   partialUpdate = (propKey: string, propValue: any, pageId: string, apiId?: string): IHttpPromise<any> => {
-    let prop = {};
+    const prop = {};
     prop[propKey] = propValue;
     return this.$http.patch(this.url(apiId, pageId), prop);
   };
@@ -109,11 +109,11 @@ class DocumentationService {
     let url: string = this.url(apiId);
     if (q || translated) {
       // add query parameters
-      let queryParams: string[] = [];
+      const queryParams: string[] = [];
       if (q) {
         const keys = Object.keys(q);
         _.forEach(keys, (key) => {
-          let val = q[key];
+          const val = q[key];
           if (val !== undefined && val !== '') {
             queryParams.push(key + '=' + val);
           }
@@ -159,8 +159,8 @@ class DocumentationService {
 
   get(apiId: string, pageId?: string, portal?: boolean, translated?: boolean) {
     if (pageId) {
-      let url: string = this.url(apiId, pageId);
-      let params: any = {};
+      const url: string = this.url(apiId, pageId);
+      const params: any = {};
       if (portal && portal !== undefined) {
         params.portal = portal;
       }
@@ -172,8 +172,8 @@ class DocumentationService {
   }
 
   getApiHomepage(apiId: string): IPromise<any> {
-    let deferred = this.$q.defer();
-    let that = this;
+    const deferred = this.$q.defer();
+    const that = this;
     this.$http
       .get(this.url(apiId), { params: { homepage: true } })
       .then(function (response) {
@@ -189,7 +189,7 @@ class DocumentationService {
   }
 
   import(newPage: any, apiId?: string): IHttpPromise<any> {
-    let entity = new ImportPageEntity();
+    const entity = new ImportPageEntity();
     entity.type = newPage.type;
     entity.published = newPage.published;
     entity.lastContributor = newPage.lastContributor;

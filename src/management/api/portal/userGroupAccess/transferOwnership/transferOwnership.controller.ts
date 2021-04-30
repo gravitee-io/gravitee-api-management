@@ -67,10 +67,10 @@ class ApiTransferOwnershipController {
     this.groupMembers = {};
     this.groupIdsWithMembers = [];
     if (this.api.groups) {
-      let self = this;
+      const self = this;
       _.forEach(this.api.groups, (grp) => {
         GroupService.getMembers(grp).then((members) => {
-          let filteredMembers = _.filter(members.data, (m: any) => {
+          const filteredMembers = _.filter(members.data, (m: any) => {
             return m.roles.API;
           });
 

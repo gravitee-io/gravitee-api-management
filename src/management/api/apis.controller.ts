@@ -97,7 +97,7 @@ export class ApisController {
     this.canceler.resolve();
     this.canceler = this.$q.defer();
 
-    let promOpts = { timeout: this.canceler.promise };
+    const promOpts = { timeout: this.canceler.promise };
     this.$state.transitionTo(this.$state.current, { q: this.query }, { notify: false });
 
     this.ApiService.searchApis(query, 1, this.currentOrder, promOpts).then((response) => {

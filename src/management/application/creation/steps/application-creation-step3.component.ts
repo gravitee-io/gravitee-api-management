@@ -26,13 +26,13 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
 
     this.onSelectAPI = (api) => {
       if (api) {
-        let authorizedSecurity = this.getAuthorizedSecurity();
+        const authorizedSecurity = this.getAuthorizedSecurity();
         ApiService.getApiPlans(api.id, 'published').then((response) => {
-          let filteredPlans = _.filter(response.data, (plan) => {
+          const filteredPlans = _.filter(response.data, (plan) => {
             return _.includes(authorizedSecurity, plan.security);
           });
           this.plans = _.map(filteredPlans, (plan) => {
-            let selectedPlan = _.find(this.parent.selectedPlans, { id: plan.id });
+            const selectedPlan = _.find(this.parent.selectedPlans, { id: plan.id });
             if (selectedPlan) {
               return selectedPlan;
             }
@@ -47,7 +47,7 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     };
 
     this.getAuthorizedSecurity = (): string[] => {
-      let authorizedSecurity = ['api_key'];
+      const authorizedSecurity = ['api_key'];
       if (this.parent.application.settings) {
         if (
           this.parent.application.settings.oauth ||
@@ -60,9 +60,9 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     };
 
     this.getSelectedAPIs = (): any[] => {
-      let selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id');
+      const selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id');
       _.map(selectedAPIs, (api: any) => {
-        let selectedPlans = _.filter(this.parent.selectedPlans, (plan) => {
+        const selectedPlans = _.filter(this.parent.selectedPlans, (plan) => {
           return plan.apis.indexOf(api.id) !== -1;
         });
         api.plans = _.join(_.map(selectedPlans, 'name'), ', ');

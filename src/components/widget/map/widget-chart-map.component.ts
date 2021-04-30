@@ -41,7 +41,7 @@ const WidgetChartMapComponent: ng.IComponentOptions = {
       this.gvChartMap = $element.children()[0];
 
       if (changes.data) {
-        let series = {
+        const series = {
           values: changes.data.currentValue ? changes.data.currentValue.values : [],
         };
 

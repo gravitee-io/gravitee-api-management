@@ -52,7 +52,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
     };
 
     this.onConditionChange = () => {
-      let condition = Conditions.findByType(this.condition.type);
+      const condition = Conditions.findByType(this.condition.type);
       if (condition !== undefined) {
         this.operators = condition.getOperators();
 

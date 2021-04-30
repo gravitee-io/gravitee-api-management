@@ -21,7 +21,7 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as moment from 'moment';
 
-let defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
+const defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 
 export class SubscriptionQuery {
   status?: string[] = defaultStatus;
@@ -116,7 +116,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     buildQuery() {
       let query = '?page=' + this.query.page + '&size=' + this.query.size + '&';
-      let parameters: any = {};
+      const parameters: any = {};
 
       if (this.query.status !== undefined) {
         parameters.status = this.query.status.join(',');
@@ -142,7 +142,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     }
 
     doSearch() {
-      let query = this.buildQuery();
+      const query = this.buildQuery();
       this.$state.transitionTo(
         this.$state.current,
         _.merge(this.$state.params, {
@@ -174,7 +174,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
         }).then((result) => {
           if (result.data.values && result.data.values.length) {
             _.forEach(this.subscriptions.data, (subscription) => {
-              let subBucket = _.find(result.data.values[0].buckets, (bucket) => {
+              const subBucket = _.find(result.data.values[0].buckets, (bucket) => {
                 return bucket.name === subscription.id;
               });
               let subBucketData;
@@ -201,7 +201,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
     showAddSubscriptionModal() {
       this.ApiService.getPublishedApiPlans(this.api.id).then((response) => {
         // Allow only subscribable plan
-        let plans = _.filter(response.data, (plan: any) => {
+        const plans = _.filter(response.data, (plan: any) => {
           return plan.security !== 'key_less';
         });
 
@@ -219,7 +219,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
           .then((data) => {
             if (data && data.applicationId && data.planId) {
               this.ApiService.subscribe(this.api.id, data.applicationId, data.planId, data.customApiKey).then((response) => {
-                let subscription = response.data;
+                const subscription = response.data;
                 this.NotificationService.show('A new subscription has been created.');
                 this.$state.go(
                   'management.apis.detail.portal.subscriptions.subscription',
@@ -234,7 +234,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
 
     exportAsCSV() {
       this.ApiService.exportSubscriptionsAsCSV(this.api.id, this.buildQuery()).then((response) => {
-        let hiddenElement = document.createElement('a');
+        const hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
         hiddenElement.target = '_self';
         let fileName = 'subscriptions-' + this.api.name + '-' + this.api.version + '-' + _.now();

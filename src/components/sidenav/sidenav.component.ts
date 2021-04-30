@@ -65,8 +65,8 @@ export const SidenavComponent: ng.IComponentOptions = {
     };
 
     this.isActive = function (menuItem) {
-      let menuItemSplitted = menuItem.name.split('.');
-      let currentStateSplitted = $state.current.name.split('.');
+      const menuItemSplitted = menuItem.name.split('.');
+      const currentStateSplitted = $state.current.name.split('.');
       return menuItemSplitted[0] === currentStateSplitted[0] && menuItemSplitted[1] === currentStateSplitted[1];
     };
 

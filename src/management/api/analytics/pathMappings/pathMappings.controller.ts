@@ -76,7 +76,7 @@ class ApiPathMappingsController {
       .then(
         (pathMapping) => {
           if (pathMapping && !_.includes(this.api.path_mappings, pathMapping)) {
-            let pathMappingIndex = index === undefined ? this.api.path_mappings.length : index;
+            const pathMappingIndex = index === undefined ? this.api.path_mappings.length : index;
             this.api.path_mappings[pathMappingIndex] = pathMapping;
             this.update();
           }

@@ -264,7 +264,7 @@ class ApplicationService {
   }
 
   private cloneQuery(query: LogsQuery) {
-    let clonedQuery = _.clone(query);
+    const clonedQuery = _.clone(query);
     if (_.startsWith(clonedQuery.field, '-')) {
       clonedQuery.order = false;
       clonedQuery.field = clonedQuery.field.substring(1);

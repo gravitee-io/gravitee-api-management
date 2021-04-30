@@ -26,7 +26,7 @@ class ApiHealthCheckLogController {
 
   getMimeType(log) {
     if (log.headers !== undefined && log.headers['Content-Type'] !== undefined) {
-      let contentType = log.headers['Content-Type'][0];
+      const contentType = log.headers['Content-Type'][0];
       return contentType.split(';', 1)[0];
     }
 
@@ -34,7 +34,7 @@ class ApiHealthCheckLogController {
   }
 
   backToHealthcheck() {
-    let query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
+    const query = JSON.parse(this.$window.localStorage.lastHealthCheckQuery);
     this.$state.go('management.apis.detail.proxy.healthcheck.visualize', {
       page: query.page,
       size: query.size,

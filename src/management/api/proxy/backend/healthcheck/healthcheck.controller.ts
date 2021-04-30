@@ -133,16 +133,16 @@ class ApiHealthCheckController {
     ];
 
     this.$q.all(promises).then((responses) => {
-      let i = 0,
-        series = [];
+      let i = 0;
+      const series = [];
       _.forEach(responses, (response) => {
-        let values = response.data.values;
+        const values = response.data.values;
         if (values && values.length > 0) {
           _.forEach(values, (value) => {
             _.forEach(value.buckets, (bucket) => {
               if (bucket) {
                 // eslint:disable-next-line:triple-equals
-                let responseTimeLine = i == 0;
+                const responseTimeLine = i == 0;
                 series.push({
                   name: 'Average of ' + (responseTimeLine ? 'response time' : 'availability'),
                   data: bucket.data,
@@ -173,7 +173,7 @@ class ApiHealthCheckController {
         }
         i++;
       });
-      let timestamp = responses[0] && responses[0].data && responses[0].data.timestamp;
+      const timestamp = responses[0] && responses[0].data && responses[0].data.timestamp;
       this.chartData = {
         plotOptions: {
           series: {

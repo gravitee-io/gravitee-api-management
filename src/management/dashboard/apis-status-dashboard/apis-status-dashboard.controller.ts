@@ -87,8 +87,8 @@ class ApisStatusDashboardController {
       return this.$q.all(promises).then((responses) => {
         const availabilityResponse = responses[0];
 
-        let values = availabilityResponse.data.values;
-        let timestamp = availabilityResponse && availabilityResponse.data && availabilityResponse.data.timestamp;
+        const values = availabilityResponse.data.values;
+        const timestamp = availabilityResponse && availabilityResponse.data && availabilityResponse.data.timestamp;
 
         if (values && values.length > 0) {
           values.forEach((value) => {

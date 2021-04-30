@@ -73,7 +73,7 @@ class CategoryController {
     if (this.pages && this.pages.length > 0) {
       this.pages.unshift({});
     }
-    let self = this;
+    const self = this;
     this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
       if (!self.category) {
         self.category = {};
@@ -94,13 +94,13 @@ class CategoryController {
   }
 
   save() {
-    let that = this;
-    let categoryFunction = this.createMode ? this.CategoryService.create(this.category) : this.CategoryService.update(this.category);
+    const that = this;
+    const categoryFunction = this.createMode ? this.CategoryService.create(this.category) : this.CategoryService.update(this.category);
     categoryFunction.then((response) => {
-      let category = response.data;
+      const category = response.data;
       // update category's apis
-      let apiFunctions = this.addedAPIs.map((api) => {
-        let apiCategories = api.categories || [];
+      const apiFunctions = this.addedAPIs.map((api) => {
+        const apiCategories = api.categories || [];
         apiCategories.push(category.id);
         api.categories = apiCategories;
         return that.ApiService.update(api);
@@ -113,16 +113,16 @@ class CategoryController {
   }
 
   searchAPI(searchText) {
-    let that = this;
+    const that = this;
     if (that.allApis) {
-      let apisFound = _.filter(that.allApis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
+      const apisFound = _.filter(that.allApis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
       return that.$filter('filter')(apisFound, searchText);
     } else {
       return this.ApiService.list().then(function (response) {
         // Map the response object to the data object.
-        let apis = response.data;
+        const apis = response.data;
         that.allApis = apis;
-        let apisFound = _.filter(apis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
+        const apisFound = _.filter(apis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
         return that.$filter('filter')(apisFound, searchText);
       });
     }
@@ -156,7 +156,7 @@ class CategoryController {
           if (this.categoryApis && this.categoryApis.some((a) => a.id === api.id)) {
             // we need to retrieve the API to get the all information required for the update
             this.ApiService.get(api.id).then((response) => {
-              let apiFound = response.data;
+              const apiFound = response.data;
               _.remove(apiFound.categories, (c) => c === this.category.key);
               this.ApiService.update(apiFound).then(() => {
                 this.NotificationService.show("API '" + api.name + "' detached with success");

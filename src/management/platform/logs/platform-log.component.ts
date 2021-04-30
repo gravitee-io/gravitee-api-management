@@ -57,7 +57,7 @@ const PlatformLogComponent: ng.IComponentOptions = {
 
     this.getMimeType = function (log) {
       if (log.headers['Content-Type'] !== undefined) {
-        let contentType = log.headers['Content-Type'][0];
+        const contentType = log.headers['Content-Type'][0];
         return contentType.split(';', 1)[0];
       }
 

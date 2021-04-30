@@ -59,7 +59,7 @@ export class User {
       return false;
     }
 
-    let allPermissions = _.concat(
+    const allPermissions = _.concat(
       this.userPermissions,
       this.userEnvironmentPermissions,
       this.userApiPermissions,

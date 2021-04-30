@@ -117,7 +117,7 @@ const GroupComponent: ng.IComponentOptions = {
           NotificationService.show("Group '" + this.group.name + "' has been created");
         });
       } else {
-        let roles: any = {};
+        const roles: any = {};
 
         if (this.selectedApiRole) {
           roles.API = this.selectedApiRole;

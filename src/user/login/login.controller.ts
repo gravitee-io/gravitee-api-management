@@ -60,13 +60,13 @@ class LoginController {
   }
 
   authenticate(identityProvider: string) {
-    let nonce = this.AuthenticationService.nonce(32);
+    const nonce = this.AuthenticationService.nonce(32);
 
     const redirectUri = this.getRedirectUri();
 
     this.$window.localStorage[nonce] = JSON.stringify({ redirectUri });
 
-    let provider = _.find(this.identityProviders, { id: identityProvider }) as IdentityProvider;
+    const provider = _.find(this.identityProviders, { id: identityProvider }) as IdentityProvider;
     this.AuthenticationService.authenticate(provider, nonce);
   }
 
@@ -97,7 +97,7 @@ class LoginController {
     if (redirectUri && !redirectUri.includes('/newsletter')) {
       this.$window.location.href = redirectUri;
     } else {
-      let route = this.RouterService.getLastRoute();
+      const route = this.RouterService.getLastRoute();
       if (
         route.from &&
         route.from.name !== '' &&

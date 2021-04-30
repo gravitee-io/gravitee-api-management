@@ -125,7 +125,7 @@ class ApiResourcesController {
   }
 
   deleteResource(resourceIdx) {
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',

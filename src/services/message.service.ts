@@ -63,7 +63,7 @@ class MessageService {
     httpHeaders: any[],
   ) {
     if (url) {
-      let params = {};
+      const params = {};
       for (let idx = 0; idx < httpHeaders.length; idx++) {
         if (httpHeaders[idx].key !== '') {
           params[httpHeaders[idx].key] = httpHeaders[idx].value;

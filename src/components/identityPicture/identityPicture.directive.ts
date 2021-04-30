@@ -20,7 +20,7 @@ class IdentityPictureDirective {
   constructor() {
     'ngInject';
 
-    let directive = {
+    const directive = {
       restrict: 'E',
       require: 'gvThemeElement',
       scope: {

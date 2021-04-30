@@ -298,7 +298,7 @@ class ApiPortalController {
 
   removeEndpoints() {
     var _that = this;
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -336,7 +336,7 @@ class ApiPortalController {
   }
 
   delete(id) {
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmAndValidateController',
@@ -445,7 +445,7 @@ class ApiPortalController {
    * Create filter function for a query string
    */
   createFilterFor(query) {
-    let lowercaseQuery = query.toLowerCase();
+    const lowercaseQuery = query.toLowerCase();
 
     return function filterFn(item) {
       return item.toLowerCase().indexOf(lowercaseQuery) !== -1;
@@ -457,7 +457,7 @@ class ApiPortalController {
   }
 
   changeLifecycle() {
-    let started = this.api.state === 'started';
+    const started = this.api.state === 'started';
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -492,7 +492,7 @@ class ApiPortalController {
   }
 
   changeApiLifecycle(lifecycleState: string) {
-    let clonedApi = _.cloneDeep(this.api);
+    const clonedApi = _.cloneDeep(this.api);
     clonedApi.lifecycle_state = lifecycleState;
     let actionLabel = lifecycleState.slice(0, -1);
     actionLabel = actionLabel.replace('publishe', 'publish');

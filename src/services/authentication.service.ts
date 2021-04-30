@@ -65,17 +65,17 @@ class AuthenticationService {
           }
           this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });
 
-          let state = response.data.state;
+          const state = response.data.state;
 
           if (state !== undefined) {
-            let nonce = JSON.parse(this.$window.localStorage[state]);
+            const nonce = JSON.parse(this.$window.localStorage[state]);
             if (nonce.redirectUri) {
               this.$window.location.href = nonce.redirectUri;
               return;
             }
           }
 
-          let route = this.RouterService.getLastRoute();
+          const route = this.RouterService.getLastRoute();
           if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
             this.$state.go(route.from.name, route.fromParams);
           } else {
@@ -88,7 +88,7 @@ class AuthenticationService {
 
   nonce(length: number) {
     let text = '';
-    let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (let i = 0; i < length; i++) {
       text += possible.charAt(Math.floor(Math.random() * possible.length));
     }

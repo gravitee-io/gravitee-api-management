@@ -34,7 +34,7 @@ class ReCaptchaService {
   }
 
   load() {
-    let self = this;
+    const self = this;
 
     return new Promise<void>((resolve, reject) => {
       if (this.enabled && !document.getElementById(this.scriptId)) {

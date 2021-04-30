@@ -42,7 +42,6 @@ module.exports = {
     'no-unused-vars': 'warn',
     'no-redeclare': 'warn',
     'no-var': 'warn',
-    'prefer-const': 'warn',
     'no-useless-escape': 'warn',
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',

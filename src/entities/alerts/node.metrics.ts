@@ -40,7 +40,7 @@ export class NodeMetrics extends Metrics {
     true,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let applications: Tuple[] = [];
+      const applications: Tuple[] = [];
 
       NodeType.TYPES.forEach((app) => {
         applications.push(new Tuple(app.application, app.name));
@@ -108,7 +108,7 @@ export class NodeLifecycleMetrics extends Metrics {
     true,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let applications: Tuple[] = [];
+      const applications: Tuple[] = [];
 
       NodeType.TYPES.forEach((app) => {
         applications.push(new Tuple(app.application, app.name));
@@ -125,7 +125,7 @@ export class NodeLifecycleMetrics extends Metrics {
     true,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let events: Tuple[] = [];
+      const events: Tuple[] = [];
       events.push(new Tuple('NODE_START', 'Start'));
       events.push(new Tuple('NODE_STOP', 'Stop'));
       return events;
@@ -149,7 +149,7 @@ export class NodeHealthcheckMetrics extends Metrics {
     undefined,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let applications: Tuple[] = [];
+      const applications: Tuple[] = [];
 
       NodeType.TYPES.forEach((app) => {
         applications.push(new Tuple(app.application, app.name));
@@ -166,7 +166,7 @@ export class NodeHealthcheckMetrics extends Metrics {
     undefined,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let events: Tuple[] = [];
+      const events: Tuple[] = [];
       events.push(new Tuple('true', 'Healthy'));
       events.push(new Tuple('false', 'Unhealthy'));
       return events;

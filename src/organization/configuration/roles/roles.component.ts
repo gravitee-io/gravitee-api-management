@@ -48,7 +48,7 @@ const RolesComponent: ng.IComponentOptions = {
     };
 
     this.deleteRole = (role) => {
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',

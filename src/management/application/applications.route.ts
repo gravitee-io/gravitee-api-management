@@ -113,7 +113,7 @@ function applicationsConfig($stateProvider) {
           if (resolvedApplicationPermissions && resolvedApplicationPermissions.data) {
             _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
               _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
-                let permissionName = 'APPLICATION-' + permission + '-' + right;
+                const permissionName = 'APPLICATION-' + permission + '-' + right;
                 UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
               });
             });

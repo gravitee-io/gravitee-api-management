@@ -97,7 +97,7 @@ class PlatformLogsController {
 
   exportAsCSV() {
     this.AnalyticsService.exportLogsAsCSV(this.query).then((response) => {
-      let hiddenElement = document.createElement('a');
+      const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + response.data;
       hiddenElement.target = '_self';
       let fileName = 'logs-platform-' + _.now();

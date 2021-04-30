@@ -96,7 +96,7 @@ class ApplicationLogsController {
 
   exportAsCSV() {
     this.ApplicationService.exportLogsAsCSV(this.application.id, this.query).then((response) => {
-      let hiddenElement = document.createElement('a');
+      const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + response.data;
       hiddenElement.target = '_self';
       let fileName = 'logs-' + this.application.name + '-' + _.now();

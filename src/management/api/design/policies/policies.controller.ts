@@ -101,7 +101,7 @@ class ApiPoliciesController {
         _.forEach(policy, (value, property) => {
           if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
             policy.policyId = property;
-            let currentPolicy = this.policiesMap[policy.policyId];
+            const currentPolicy = this.policiesMap[policy.policyId];
             if (currentPolicy) {
               policy.name = currentPolicy.name;
               policy.type = currentPolicy.type;
@@ -254,7 +254,7 @@ class ApiPoliciesController {
     ev.stopPropagation();
     this.selectedApiPolicy = null;
     const hashKey = this.apiPoliciesByPath[path][index].$$hashKey;
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -341,7 +341,7 @@ class ApiPoliciesController {
 
     const that = this;
 
-    let api = this.$scope.$parent.apiCtrl.api;
+    const api = this.$scope.$parent.apiCtrl.api;
     return this.ApiService.update(api).then((updatedApi) => {
       that.NotificationService.show("API '" + updatedApi.data.name + "' saved");
       that.pathsToCompare = that.generatePathsToCompare();
@@ -395,7 +395,7 @@ class ApiPoliciesController {
 
   removePath(path) {
     this.selectedApiPolicy = {};
-    let that = this;
+    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -447,7 +447,7 @@ class ApiPoliciesController {
   }
 
   sortedPaths() {
-    let paths = _.keys(this.apiPoliciesByPath);
+    const paths = _.keys(this.apiPoliciesByPath);
     return _.sortBy(paths, (path) => {
       return this.clearPathParam(path);
     });

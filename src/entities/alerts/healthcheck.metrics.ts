@@ -18,7 +18,7 @@ import { CompareCondition, Metrics, StringCondition, ThresholdCondition, Thresho
 import TenantService from '../../services/tenant.service';
 
 const statusloader = (type: number, id: string, $injector: any) => {
-  let events: Tuple[] = [];
+  const events: Tuple[] = [];
   events.push(new Tuple('DOWN', 'Down'));
   events.push(new Tuple('TRANSITIONALLY_DOWN', 'Transitionally down'));
   events.push(new Tuple('TRANSITIONALLY_UP', 'Transitionally up'));
@@ -60,7 +60,7 @@ export class HealthcheckMetrics extends Metrics {
     false,
     undefined,
     (type: number, id: string, $injector: any) => {
-      let tenants: Tuple[] = [];
+      const tenants: Tuple[] = [];
 
       // PLATFORM: Search for all registered tenants
       ($injector.get('TenantService') as TenantService).list().then((result) => {

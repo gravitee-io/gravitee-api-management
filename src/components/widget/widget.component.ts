@@ -50,7 +50,7 @@ const WidgetComponent: ng.IComponentOptions = {
       this.changeTimeframe(timeframe);
     });
 
-    let unregisterFn = $scope.$on('onQueryFilterChange', (event, query) => {
+    const unregisterFn = $scope.$on('onQueryFilterChange', (event, query) => {
       if (this.widget.chart && this.widget.chart.request) {
         this.widget.chart.request.query = query.query;
         this.reload();
@@ -83,12 +83,12 @@ const WidgetComponent: ng.IComponentOptions = {
       this.fetchData = true;
 
       // Prepare arguments
-      let chartRequest = _.cloneDeep(this.widget.chart.request);
+      const chartRequest = _.cloneDeep(this.widget.chart.request);
       let field = this.widget.chart.request.field;
       if (this.widget.chart.request.aggs && this.widget.chart.request.aggs.includes('field:')) {
         field = this.widget.chart.request.aggs.replace('field:', '');
       }
-      let queryFilters = this.AnalyticsService.getQueryFilters();
+      const queryFilters = this.AnalyticsService.getQueryFilters();
       if (queryFilters) {
         let filters;
         if (Object.keys(queryFilters).find((q) => q === field)) {
@@ -111,7 +111,7 @@ const WidgetComponent: ng.IComponentOptions = {
         }
       }
 
-      let args = [this.widget.root, chartRequest];
+      const args = [this.widget.root, chartRequest];
 
       if (!this.widget.root) {
         args.splice(0, 1);

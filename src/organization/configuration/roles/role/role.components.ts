@@ -59,7 +59,7 @@ const RoleComponent: ng.IComponentOptions = {
         savePromise = RoleService.create(this._viewToModel());
       }
 
-      let that = this;
+      const that = this;
       savePromise.then(function (savedRole) {
         that.role = savedRole;
         that._modelToView();
@@ -72,7 +72,7 @@ const RoleComponent: ng.IComponentOptions = {
     };
 
     this._viewToModel = () => {
-      let roleCopy = _.clone(this.role);
+      const roleCopy = _.clone(this.role);
       roleCopy.permissions = _(roleCopy.permissions)
         .mapValues((value) => {
           return _(value)
@@ -86,7 +86,7 @@ const RoleComponent: ng.IComponentOptions = {
     this._modelToView = () => {
       this.role.permissions = _(this.role.permissions)
         .mapValues((value) => {
-          let values = _.values(value);
+          const values = _.values(value);
           return _.zipObject(
             values,
             _.map(values, () => true),

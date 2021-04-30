@@ -39,26 +39,26 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
 
     this.$onChanges = (changes) => {
       if (changes.data) {
-        let data = changes.data.currentValue;
+        const data = changes.data.currentValue;
         this.paging = 1;
         this.results = _.map(data.values, (value, key) => {
           let percent;
           if (_.includes(value, '/')) {
-            let splittedValue = value.split('/');
+            const splittedValue = value.split('/');
             value = parseInt(splittedValue[0], 10);
             percent = parseFloat(splittedValue[1]);
           }
-          let result = {
+          const result = {
             key: key,
             value: value,
             percent: percent,
             metadata: data && data.metadata ? { ...data.metadata[key], order: +data.metadata[key].order } : undefined,
           };
-          let widget = this.widget || this.parent.widget;
+          const widget = this.widget || this.parent.widget;
           if (widget) {
-            let queryFilters = this.AnalyticsService.getQueryFilters();
+            const queryFilters = this.AnalyticsService.getQueryFilters();
             if (queryFilters) {
-              let queryFilter = queryFilters[widget.chart.request.field];
+              const queryFilter = queryFilters[widget.chart.request.field];
               if (queryFilter && queryFilter.includes(key)) {
                 setTimeout(() => {
                   this.selected.push(result);
@@ -71,7 +71,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       }
     };
 
-    let that = this;
+    const that = this;
     this.selectItem = function (item) {
       that.updateQuery(item, true);
     };

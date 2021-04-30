@@ -44,11 +44,11 @@ export class Condition {
 
   toCondition() {
     if (this.type.id === 'logging-duration') {
-      let end = moment().add(moment.duration(this.param1, this.param2));
+      const end = moment().add(moment.duration(this.param1, this.param2));
       return `${this.type.statement} <= ${end}l`;
     }
     if (this.type.id === 'logging-end-date') {
-      let end = this.param1;
+      const end = this.param1;
       return `${this.type.statement} <= ${end}l`;
     } else if (this.type.id !== 'request-header' && this.type.id !== 'request-param') {
       return `${this.type.statement} ${this.operator} '${this.value}'`;
@@ -80,7 +80,7 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   $scope.types.push(new ConditionType('End date', 'logging-end-date', '#request.timestamp'));
 
   this.addCondition = () => {
-    let type: ConditionType = _.find($scope.types, (conditionType: ConditionType) => conditionType.id === $scope.selectedType);
+    const type: ConditionType = _.find($scope.types, (conditionType: ConditionType) => conditionType.id === $scope.selectedType);
     if (type !== undefined) {
       $scope.conditions.push(new Condition(type, '==', ''));
     }
@@ -96,7 +96,7 @@ function DialogConfigureLoggingEditorController($scope, $mdDialog, plans, subscr
   };
 
   this.save = () => {
-    let condition = _($scope.conditions)
+    const condition = _($scope.conditions)
       .map((condition) => condition.toCondition())
       .join(' && ');
 

@@ -59,7 +59,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.createHeader = () => {
-      let that = this;
+      const that = this;
       this.$mdDialog
         .show({
           controller: 'NewApiPortalHeaderDialogController',
@@ -74,7 +74,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.updateHeader = (header: ApiPortalHeader) => {
-      let that = this;
+      const that = this;
       this.$mdDialog
         .show({
           controller: 'UpdateApiPortalHeaderDialogController',
@@ -91,7 +91,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.deleteHeader = (header: ApiPortalHeader) => {
-      let that = this;
+      const that = this;
       this.$mdDialog
         .show({
           controller: 'DialogConfirmController',

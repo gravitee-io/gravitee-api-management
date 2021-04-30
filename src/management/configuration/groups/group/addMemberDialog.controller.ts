@@ -53,10 +53,10 @@ function DialogAddGroupMemberController(
   };
 
   this.addMembers = () => {
-    let members = [];
+    const members = [];
     for (let i = 0; i < this.usersSelected.length; i++) {
-      let member = this.usersSelected[i];
-      let membership = {
+      const member = this.usersSelected[i];
+      const membership = {
         id: member.id,
         reference: member.reference,
         displayName: !member.firstname || !member.lastname ? member.username : member.firstname + ' ' + member.lastname,

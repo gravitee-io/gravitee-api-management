@@ -35,17 +35,17 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
     addPolicy() {
       this.editablePolicy = null;
-      let policySchema = this.parent.policies.find((policy) => policy.id === this.selectedPolicy);
+      const policySchema = this.parent.policies.find((policy) => policy.id === this.selectedPolicy);
 
       // Configure the policy with default values
-      let policy = {
+      const policy = {
         id: policySchema.id,
         name: policySchema.name,
         enabled: true,
         description: policySchema.description,
       };
 
-      let idx = this.parent.planPolicies.push(policy);
+      const idx = this.parent.planPolicies.push(policy);
 
       // Restore selected policy to empty
       this.selectedPolicy = null;
@@ -80,7 +80,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
       } else {
         this.editablePolicy = this.parent.planPolicies[index];
 
-        let model = this.editablePolicy && this.editablePolicy[this.editablePolicy.id];
+        const model = this.editablePolicy && this.editablePolicy[this.editablePolicy.id];
 
         this.policyDefinition = model ? model : {};
         this.editablePolicy[this.editablePolicy.id] = this.policyDefinition;
@@ -120,7 +120,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
     removePolicy(index, path, ev) {
       ev.stopPropagation();
-      let that = this;
+      const that = this;
       this.$mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -150,7 +150,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
     gotoNextStep() {
       // Clean policy definition from plan policies
-      let policies = JSON.parse(JSON.stringify(this.parent.planPolicies));
+      const policies = JSON.parse(JSON.stringify(this.parent.planPolicies));
       policies.forEach((policy) => {
         delete policy.$$hashKey;
         delete policy.id;

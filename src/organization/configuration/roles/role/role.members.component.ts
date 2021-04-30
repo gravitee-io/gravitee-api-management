@@ -44,7 +44,7 @@ const RoleMembersComponent: ng.IComponentOptions = {
     };
 
     this.loadMoreMembers = () => {
-      let loadedMembersLength = this.loadedMembers ? this.loadedMembers.length : 0;
+      const loadedMembersLength = this.loadedMembers ? this.loadedMembers.length : 0;
       this.loadedMembers = _.take(this.members, 20 + loadedMembersLength);
     };
 

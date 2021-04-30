@@ -53,10 +53,10 @@ class ApiMembersController {
     this.groupMembers = {};
     this.groupIdsWithMembers = [];
     if (this.api.groups) {
-      let self = this;
+      const self = this;
       _.forEach(this.api.groups, (grp) => {
         GroupService.getMembers(grp).then((members) => {
-          let filteredMembers = _.filter(members.data, (m: any) => {
+          const filteredMembers = _.filter(members.data, (m: any) => {
             return m.roles.API;
           });
 
@@ -89,7 +89,7 @@ class ApiMembersController {
   }
 
   deleteMember(member) {
-    let index = this.members.indexOf(member);
+    const index = this.members.indexOf(member);
     this.ApiService.deleteMember(this.api.id, member.id).then(() => {
       this.members.splice(index, 1);
       this.NotificationService.show('Member ' + member.displayName + ' has been removed');
@@ -129,7 +129,7 @@ class ApiMembersController {
 
   showDeleteMemberConfirm(ev, member) {
     ev.stopPropagation();
-    let self = this;
+    const self = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',

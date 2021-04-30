@@ -139,7 +139,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.generateBreadcrumb = () => {
-      let result = [];
+      const result = [];
       if (this.rootDir) {
         this.addParentToBreadcrumb(this.rootDir, result);
       }
@@ -193,7 +193,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.generateCreateShortCutFolder = () => {
-      let result = [];
+      const result = [];
       if (this.folders || this.systemFolders) {
         const allFolders = _.concat(this.folders, this.systemFolders);
         _.forEach(allFolders, (f) => {
@@ -240,7 +240,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.generateMoveToFolder = (pageId: string, pageType: string) => {
-      let result = [];
+      const result = [];
       if (this.folders || this.systemFolders) {
         const allFolders = _.concat(this.folders, this.systemFolders);
 
@@ -280,8 +280,8 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.getFolderPath = (folderId: string, pageToMoveId: string) => {
-      let hierarchyNames = [];
-      let folder = this.getFolder(folderId);
+      const hierarchyNames = [];
+      const folder = this.getFolder(folderId);
       hierarchyNames.push(folder.name);
       this.getFolderParentName(folderId, hierarchyNames, pageToMoveId);
       if (hierarchyNames.length === 0) {
@@ -314,7 +314,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.addParentToBreadcrumb = (id: string, breadcrumb: any[]) => {
-      let folder = this.getFolder(id);
+      const folder = this.getFolder(id);
       if (folder) {
         breadcrumb.push(folder);
         if (folder.parentId) {
@@ -371,7 +371,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.remove = (page: any) => {
-      let that = this;
+      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -443,7 +443,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.hasExternalDoc = () => {
-      let externalPages = this.pages.filter((page) => page.hasOwnProperty('source'));
+      const externalPages = this.pages.filter((page) => page.hasOwnProperty('source'));
       return externalPages.length > 0;
     };
 

@@ -95,7 +95,7 @@ class ApplicationCreationController {
   }
 
   create() {
-    let alert = this.$mdDialog.confirm({
+    const alert = this.$mdDialog.confirm({
       title: 'Create application?',
       content:
         'The application ' + this.application.name + (this.applicationType ? ' of type ' + this.applicationType : '') + ' will be created.',
@@ -105,8 +105,8 @@ class ApplicationCreationController {
 
     this.$mdDialog.show(alert).then(() => {
       this.ApplicationService.create(this.application).then((response) => {
-        let application = response.data;
-        let promises = _.map(this.selectedPlans, (plan) =>
+        const application = response.data;
+        const promises = _.map(this.selectedPlans, (plan) =>
           this.ApplicationService.subscribe(application.id, plan.id, this.messageByPlan[plan.id]),
         );
         this.$q.all(promises).then(() => {
@@ -131,7 +131,7 @@ class ApplicationCreationController {
 
   onSubscribe(api, plan) {
     if (plan.comment_required) {
-      let confirm = this.$mdDialog
+      const confirm = this.$mdDialog
         .prompt()
         .title('Subscription message')
         .placeholder(plan.comment_message ? plan.comment_message : 'Fill a message to the API owner')
@@ -162,14 +162,14 @@ class ApplicationCreationController {
   onUnsubscribe(api, plan) {
     plan.alreadySubscribed = false;
     _.remove(this.selectedPlans, { id: plan.id });
-    let index = _.findIndex(this.selectedAPIs, { id: api.id });
+    const index = _.findIndex(this.selectedAPIs, { id: api.id });
     this.selectedAPIs.splice(index, 1);
     this.steps[2].title = this.getReadableApiSubscriptions();
   }
 
   getReadableApiSubscriptions(): string {
-    let plansByApi = _.groupBy(this.selectedPlans, 'apis');
-    let multipleApis = _.keys(plansByApi).length > 1;
+    const plansByApi = _.groupBy(this.selectedPlans, 'apis');
+    const multipleApis = _.keys(plansByApi).length > 1;
     return (
       `Subscribed to API${multipleApis ? 's:' : ''} ` +
       _.map(plansByApi, (plans, api) => {

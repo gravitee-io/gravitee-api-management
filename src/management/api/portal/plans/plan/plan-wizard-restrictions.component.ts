@@ -65,9 +65,9 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
         this.PolicyService.getSchema(policy.id).then((schema) => {
           policy.schema = schema.data;
           if (!this.parent.isV2()) {
-            let idx = this.parent.planPolicies.findIndex((pathPolicy) => pathPolicy[policy.id] != null);
+            const idx = this.parent.planPolicies.findIndex((pathPolicy) => pathPolicy[policy.id] != null);
             if (idx !== -1) {
-              let restrictionPolicy = this.parent.planPolicies.splice(idx, 1)[0];
+              const restrictionPolicy = this.parent.planPolicies.splice(idx, 1)[0];
               policy.enabled = true;
               policy.model = restrictionPolicy[policy.id];
             } else {
@@ -92,7 +92,7 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
       _(this.policies)
         .filter((policy) => policy.enabled)
         .map((policy) => {
-          let restrictPolicy = {
+          const restrictPolicy = {
             methods: this.methods,
             enabled: true,
           };

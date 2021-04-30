@@ -17,7 +17,7 @@ class UserAvatarDirective {
   constructor() {
     'ngInject';
 
-    let directive = {
+    const directive = {
       restrict: 'A',
       controller: UserAvatarController,
       link: function (scope, element, attrs, ctrl) {

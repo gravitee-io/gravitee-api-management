@@ -19,7 +19,7 @@ class FetcherService {
   }
 
   list(onlyImportFromDirectory?: boolean) {
-    let url = `${this.Constants.env.baseURL}/fetchers/?expand=schema` + (onlyImportFromDirectory ? '&import=true' : '');
+    const url = `${this.Constants.env.baseURL}/fetchers/?expand=schema` + (onlyImportFromDirectory ? '&import=true' : '');
     return this.$http.get(url);
   }
 }

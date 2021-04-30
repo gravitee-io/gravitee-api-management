@@ -56,7 +56,7 @@ class UserController {
         this.tokens = response.data;
       });
       if (this.user.groupsByEnvironment) {
-        let groupsByEnvironmentKeys = Object.keys(this.user.groupsByEnvironment);
+        const groupsByEnvironmentKeys = Object.keys(this.user.groupsByEnvironment);
         if (groupsByEnvironmentKeys.length === 1) {
           this.groups = Object.values(this.user.groupsByEnvironment)[0].join(' - ');
         } else {
@@ -88,7 +88,7 @@ class UserController {
   }
 
   deleteMyAccount() {
-    let that = this;
+    const that = this;
     return this.$mdDialog
       .show({
         controller: 'DialogConfirmAndValidateController',

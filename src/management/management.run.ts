@@ -76,14 +76,14 @@ function runBlock(
     (trans) => {
       const params = Object.assign({}, trans.params());
       const stateService = trans.router.stateService;
-      let toState = trans.to();
+      const toState = trans.to();
 
       let shouldReload = true;
       if (!params.environmentId) {
         shouldReload = false;
         params.environmentId = EnvironmentService.getFirstHridOrElseId(Constants.org.currentEnv);
       }
-      let targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments, params.environmentId);
+      const targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments, params.environmentId);
       if (targetEnv) {
         Constants.org.currentEnv = targetEnv;
         return UserService.refreshEnvironmentPermissions().then(() => {
@@ -101,7 +101,7 @@ function runBlock(
     (trans) => {
       const params = Object.assign({}, trans.params());
       const stateService = trans.router.stateService;
-      let toState = trans.to();
+      const toState = trans.to();
 
       if (UserService.currentUser && UserService.currentUser.id && !Constants.org.currentEnv) {
         return EnvironmentService.list()
@@ -150,10 +150,10 @@ function runBlock(
     // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
     ReCaptchaService.hideBadge();
 
-    let fromState = trans.from();
-    let toState = trans.to();
+    const fromState = trans.from();
+    const toState = trans.to();
 
-    let notEligibleForUserCreation =
+    const notEligibleForUserCreation =
       !Constants.org.settings.management.userCreation.enabled && (fromState.name === 'registration' || fromState === 'confirm');
 
     if (notEligibleForUserCreation) {

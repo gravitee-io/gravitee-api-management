@@ -76,13 +76,13 @@ class AnalyticsService {
   }
 
   getQueryFilters() {
-    let q = this.$stateParams.q;
+    const q = this.$stateParams.q;
     if (q) {
       const queryFilters = {};
       q.split(/\s(OR|AND)\s/).forEach((q) => {
         if (q.includes(':')) {
-          let keyParam = this.cleanParam(q.substring(0, q.indexOf(':')));
-          let valueParam = this.cleanParam(q.substring(q.indexOf(':') + 1));
+          const keyParam = this.cleanParam(q.substring(0, q.indexOf(':')));
+          const valueParam = this.cleanParam(q.substring(q.indexOf(':') + 1));
           if (queryFilters[keyParam]) {
             queryFilters[keyParam].push(valueParam);
           } else {
@@ -139,7 +139,7 @@ class AnalyticsService {
   }
 
   private cloneQuery(query: LogsQuery) {
-    let clonedQuery = _.clone(query);
+    const clonedQuery = _.clone(query);
     if (_.startsWith(clonedQuery.field, '-')) {
       clonedQuery.order = false;
       clonedQuery.field = clonedQuery.field.substring(1);

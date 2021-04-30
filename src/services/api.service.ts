@@ -519,7 +519,7 @@ class ApiService {
   }
 
   subscribe(apiId: string, applicationId: string, planId: string, customApiKey: string): ng.IHttpPromise<any> {
-    let params = {
+    const params = {
       params: {
         plan: planId,
         application: applicationId,
@@ -545,7 +545,7 @@ class ApiService {
   }
 
   renewApiKey(apiId, subscriptionId, customApiKey): ng.IPromise<any> {
-    let params = {
+    const params = {
       params: {
         customApiKey: customApiKey,
       },
@@ -595,9 +595,9 @@ class ApiService {
   apiHealthLogs(api: string, query: LogsQuery): ng.IPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/` + api + '/health/logs?';
 
-    let keys = Object.keys(query);
+    const keys = Object.keys(query);
     _.forEach(keys, function (key) {
-      let val = query[key];
+      const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
       }
@@ -693,7 +693,7 @@ class ApiService {
   }
 
   isEndpointNameAlreadyUsed(api: any, name: string, onCreate: boolean) {
-    let endpointsName: String[] = [];
+    const endpointsName: String[] = [];
     _.forEach(api.proxy.groups, (group) => {
       endpointsName.push(group.name);
       _.forEach(group.endpoints, (endpoint) => {
@@ -764,7 +764,7 @@ class ApiService {
   }
 
   private cloneQuery(query: LogsQuery) {
-    let clonedQuery = _.clone(query);
+    const clonedQuery = _.clone(query);
     if (_.startsWith(clonedQuery.field, '-')) {
       clonedQuery.order = false;
       clonedQuery.field = clonedQuery.field.substring(1);

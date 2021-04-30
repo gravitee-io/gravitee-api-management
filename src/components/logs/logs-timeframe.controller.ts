@@ -38,7 +38,7 @@ class LogsTimeframeController {
   constructor(private $scope, private $rootScope, private $state: StateService, private $timeout: ng.ITimeoutService) {
     'ngInject';
 
-    let that = this;
+    const that = this;
 
     this.timeframes = [
       {
@@ -117,7 +117,7 @@ class LogsTimeframeController {
 
     // Event received when a zoom is done on a chart
     this.unRegisterTimeframeZoom = this.$rootScope.$on('timeframeZoom', function (event, zoom) {
-      let diff = zoom.to - zoom.from;
+      const diff = zoom.to - zoom.from;
 
       let timeframe = _.findLast(that.timeframes, function (timeframe: Timeframe) {
         return timeframe.range < diff;
@@ -196,18 +196,18 @@ class LogsTimeframeController {
   }
 
   update(timeframeParam) {
-    let that = this;
+    const that = this;
 
-    let timeframe = {
+    const timeframe = {
       interval: parseInt(timeframeParam.interval, 10),
       from: parseInt(timeframeParam.from, 10),
       to: parseInt(timeframeParam.to, 10),
     };
 
     // Select the best timeframe
-    let diff = timeframe.to - timeframe.from;
+    const diff = timeframe.to - timeframe.from;
 
-    let tf = _.findLast(that.timeframes, function (tframe: Timeframe) {
+    const tf = _.findLast(that.timeframes, function (tframe: Timeframe) {
       return tframe.range <= diff;
     });
 
@@ -215,7 +215,7 @@ class LogsTimeframeController {
 
     // timeframeChange event is dynamically initialized, so we have to define a timeout to correctly fired it
     this.$timeout(function () {
-      let event = {
+      const event = {
         interval: that.timeframe.interval,
         from: timeframe.from,
         to: timeframe.to,
@@ -240,10 +240,10 @@ class LogsTimeframeController {
   }
 
   updateRangeDate() {
-    let from = this.pickerStartDate.startOf('minute').unix() * 1000;
-    let to = this.pickerEndDate.endOf('minute').unix() * 1000;
+    const from = this.pickerStartDate.startOf('minute').unix() * 1000;
+    const to = this.pickerEndDate.endOf('minute').unix() * 1000;
 
-    let diff = to - from;
+    const diff = to - from;
 
     let timeframe = _.findLast(this.timeframes, function (timeframe: Timeframe) {
       return timeframe.range < diff;

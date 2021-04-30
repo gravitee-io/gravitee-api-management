@@ -41,9 +41,9 @@ class RegistrationController {
   }
 
   register() {
-    let scope = this.$scope;
-    let notificationService = this.NotificationService;
-    let self = this;
+    const scope = this.$scope;
+    const notificationService = this.NotificationService;
+    const self = this;
 
     this.ReCaptchaService.execute('register').then(() =>
       this.UserService.register(this.user).then(

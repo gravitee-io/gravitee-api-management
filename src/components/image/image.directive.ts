@@ -21,7 +21,7 @@ class ImageDirective {
   constructor() {
     'ngInject';
 
-    let directive = {
+    const directive = {
       restrict: 'E',
       require: 'graviteeIdentityPicture',
       scope: {

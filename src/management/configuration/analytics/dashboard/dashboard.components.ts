@@ -67,7 +67,7 @@ const DashboardComponent: ng.IComponentOptions = {
 
     this.save = () => {
       let savePromise;
-      let clonedDashboard = _.cloneDeep(this.dashboard);
+      const clonedDashboard = _.cloneDeep(this.dashboard);
       if (clonedDashboard.definition) {
         _.forEach(clonedDashboard.definition, (widget) => {
           if (widget.chart) {

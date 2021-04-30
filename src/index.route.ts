@@ -26,14 +26,12 @@ function reinitToDefaultOrganization($window: angular.IWindowService, Constants)
     Constants.baseURL = Constants.baseURL.slice(0, -1);
   }
 
-  let basePath;
-  let orgEnvIndex = Constants.baseURL.indexOf('/organizations');
+  const orgEnvIndex = Constants.baseURL.indexOf('/organizations');
   if (orgEnvIndex >= 0) {
     Constants.baseURL = Constants.baseURL.substr(0, orgEnvIndex);
   }
-  basePath = Constants.baseURL;
 
-  Constants.org.baseURL = `${basePath}/organizations/DEFAULT`;
+  Constants.org.baseURL = `${Constants.baseURL}/organizations/DEFAULT`;
   Constants.env.baseURL = `${Constants.org.baseURL}/environments/{:envId}`;
 }
 
@@ -88,8 +86,8 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
             .get()
             .filter((state: any) => !state.abstract && state.data && state.data.menu)
             .filter((routeMenuItem) => {
-              let isMenuItem = routeMenuItem.data.menu.firstLevel;
-              let isMenuAllowed =
+              const isMenuItem = routeMenuItem.data.menu.firstLevel;
+              const isMenuAllowed =
                 !routeMenuItem.data.perms || !routeMenuItem.data.perms.only || graviteeUser.allowedTo(routeMenuItem.data.perms.only);
               return isMenuItem && isMenuAllowed;
             });
@@ -158,7 +156,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           $state.go('login');
           $rootScope.$broadcast('graviteeUserRefresh', {});
           $rootScope.$broadcast('graviteeUserCancelScheduledServices');
-          let userLogoutEndpoint = $window.localStorage.getItem('user-logout-url');
+          const userLogoutEndpoint = $window.localStorage.getItem('user-logout-url');
           $window.localStorage.removeItem('user-logout-url');
           reinitToDefaultOrganization($window, Constants);
           if (userLogoutEndpoint != null) {

@@ -96,7 +96,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
     }
 
     onSecurityTypeChange() {
-      let securityType: any = _.find(this.securityTypes, { id: this.parent.plan.security });
+      const securityType: any = _.find(this.securityTypes, { id: this.parent.plan.security });
       if (securityType && securityType.policy) {
         this.PolicyService.getSchema(securityType.policy).then((schema) => {
           this.securitySchema = schema.data;

@@ -122,7 +122,7 @@ const NewPageComponent: ng.IComponentOptions = {
     this.isMarkdownTemplate = (): boolean => PageType.MARKDOWN_TEMPLATE === this.page.type;
 
     this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
-      let pageList = _.filter(
+      const pageList = _.filter(
         pagesToFilter,
         (p) =>
           p.type === 'MARKDOWN' ||
