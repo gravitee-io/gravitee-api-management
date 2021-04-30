@@ -26,8 +26,9 @@ import io.gravitee.gateway.services.sync.subscriptions.SubscriptionsCacheService
 import io.gravitee.node.api.healthcheck.ProbeManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
-import io.vertx.core.net.impl.HandlerHolder;
+import io.gravitee.repository.management.model.Organization;
 import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -95,6 +95,9 @@ public class SyncService extends AbstractService implements Runnable {
 
     @Autowired
     private EnvironmentRepository environmentRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
 
     @Autowired
     private GatewayConfiguration configuration;
@@ -166,21 +169,52 @@ public class SyncService extends AbstractService implements Runnable {
     }
 
     private Set<Environment> getTargetedEnvironments() throws TechnicalException {
+        final Optional<List<String>> optOrganizationsList = configuration.organizations();
         final Optional<List<String>> optEnvironmentsList = configuration.environments();
 
-        if (optEnvironmentsList.isPresent()) {
-            List<String> environmentsHrids = optEnvironmentsList.get();
-            Set<Environment> environments = environmentRepository.findByHrids(new HashSet<>(environmentsHrids));
+        Set<String> organizationsIds = new HashSet<>();
+        Set<String> environmentsHrids = new HashSet<>();
 
-            if (environmentsHrids.size() != environments.size()) {
-                final Set<String> hrids = new HashSet<>(environmentsHrids);
-                final Set<String> returnedHrids = environments.stream().flatMap(env -> env.getHrids().stream()).collect(Collectors.toSet());
-                hrids.removeAll(returnedHrids);
-                logger.warn("No environment found for hrids {}", hrids);
-            }
+        if (optOrganizationsList.isPresent()) {
+            List<String> organizationsHrids = optOrganizationsList.get();
+            final Set<Organization> organizations = organizationRepository.findByHrids(new HashSet<>(organizationsHrids));
+            organizationsIds = organizations.stream().map(Organization::getId).collect(Collectors.toSet());
 
-            return environments;
+            checkOrganizations(organizationsHrids, organizations);
         }
-        return new HashSet<>();
+
+        if (optEnvironmentsList.isPresent()) {
+            environmentsHrids = new HashSet<>(optEnvironmentsList.get());
+        }
+
+        Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizationsIds, environmentsHrids);
+
+        checkEnvironments(environmentsHrids, environments);
+
+        return environments;
+    }
+
+    private void checkOrganizations(List<String> organizationsHrids, Set<Organization> organizations) {
+        if (organizationsHrids.size() != organizations.size()) {
+            final Set<String> hrids = new HashSet<>(organizationsHrids);
+            final Set<String> returnedHrids = organizations.stream().flatMap(org -> org.getHrids().stream()).collect(Collectors.toSet());
+            hrids.removeAll(returnedHrids);
+            logger.warn("No organization found for hrids {}", hrids);
+        }
+    }
+
+    private void checkEnvironments(Set<String> environmentsHrids, Set<Environment> environments) {
+
+        final Set<String> returnedHrids = environments
+                .stream()
+                .flatMap(env -> env.getHrids().stream())
+                .filter(environmentsHrids::contains)
+                .collect(Collectors.toSet());
+
+        if (environmentsHrids.size() != returnedHrids.size()) {
+            final Set<String> hrids = new HashSet<>(environmentsHrids);
+            hrids.removeAll(returnedHrids);
+            logger.warn("No environment found for hrids {}", hrids);
+        }
     }
 }

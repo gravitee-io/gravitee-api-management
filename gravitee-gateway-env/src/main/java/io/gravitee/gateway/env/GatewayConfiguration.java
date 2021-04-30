@@ -40,10 +40,14 @@ public class GatewayConfiguration implements InitializingBean {
     static final String ENVIRONMENTS_SYSTEM_PROPERTY = "environments";
     private static final String ENVIRONMENTS_SEPARATOR = ",";
 
+    static final String ORGANIZATION_SYSTEM_PROPERTY = "organizations";
+    private static final String ORGANIZATIONS_SEPARATOR = ",";
+
     private Optional<List<String>> shardingTags;
     private Optional<String> zone;
     private Optional<String> tenant;
     private Optional<List<String>> environments;
+    private Optional<List<String>> organizations;
 
     @Autowired
     private Environment environment;
@@ -52,6 +56,7 @@ public class GatewayConfiguration implements InitializingBean {
         this.initShardingTags();
         this.initZone();
         this.initTenant();
+        this.initOrganizations();
         this.initEnvironments();
         this.initVertxWebsocket();
     }
@@ -112,6 +117,21 @@ public class GatewayConfiguration implements InitializingBean {
 
     public Optional<String> tenant() {
         return tenant;
+    }
+
+    private void initOrganizations() {
+        String systemPropertyOrganizations = System.getProperty(ORGANIZATION_SYSTEM_PROPERTY);
+        String orgs = systemPropertyOrganizations == null ?
+                environment.getProperty(ORGANIZATION_SYSTEM_PROPERTY) : systemPropertyOrganizations;
+        if (orgs != null && ! orgs.isEmpty()) {
+            organizations = Optional.of(Arrays.asList(orgs.split(ORGANIZATIONS_SEPARATOR)));
+        } else {
+            organizations = Optional.empty();
+        }
+    }
+
+    public Optional<List<String>> organizations() {
+        return organizations;
     }
 
     private void initEnvironments() {
