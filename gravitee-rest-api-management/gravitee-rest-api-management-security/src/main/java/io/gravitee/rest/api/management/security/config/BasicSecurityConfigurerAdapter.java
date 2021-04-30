@@ -360,17 +360,6 @@ public class BasicSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
             // Configuration
             .antMatchers(uriPrefix + "/configuration/**")
             .authenticated()
-            // Portal
-            .antMatchers(HttpMethod.GET, uriPrefix + "/portal/**")
-            .permitAll()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/portal/apis/_search")
-            .permitAll()
-            .antMatchers(HttpMethod.POST, uriPrefix + "/portal/**")
-            .authenticated()
-            .antMatchers(HttpMethod.PUT, uriPrefix + "/portal/**")
-            .authenticated()
-            .antMatchers(HttpMethod.DELETE, uriPrefix + "/portal/**")
-            .authenticated()
             // Entrypoints
             .antMatchers(HttpMethod.GET, uriPrefix + "/entrypoints/**")
             .permitAll()
