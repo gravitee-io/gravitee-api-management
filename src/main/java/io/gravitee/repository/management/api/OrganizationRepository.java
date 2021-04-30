@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Organization;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -26,6 +27,6 @@ import java.util.Collection;
  */
 public interface OrganizationRepository extends CrudRepository<Organization, String>{
     Long count() throws TechnicalException;
-
+    Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException;
     Collection<Organization> findAll() throws TechnicalException;
 }
