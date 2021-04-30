@@ -213,7 +213,7 @@ class LogsFiltersController {
         case 'application':
           this.filters.application = v;
           break;
-        case 'path':
+        case 'path': {
           const value = v[0].replace(/\\"/g, '');
           if (this.api) {
             this.filters.uri = this.api.proxy.virtual_hosts[0].path + value;
@@ -221,6 +221,7 @@ class LogsFiltersController {
             this.filters.uri = value;
           }
           break;
+        }
         case 'uri':
           this.filters.uri = v[0].replace(/\*|\\\\/g, '');
           break;

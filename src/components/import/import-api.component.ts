@@ -190,7 +190,7 @@ const ImportComponent: ng.IComponentOptions = {
           case 'yaml':
             this.importSwagger();
             break;
-          case 'json':
+          case 'json': {
             const isSwagger = this.isSwaggerDescriptor();
             if (isSwagger !== null) {
               if (isSwagger) {
@@ -200,6 +200,7 @@ const ImportComponent: ng.IComponentOptions = {
               }
             }
             break;
+          }
           case 'wsdl':
           case 'xml':
             this.importWSDL();

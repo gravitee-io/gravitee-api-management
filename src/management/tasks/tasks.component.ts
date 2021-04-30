@@ -28,20 +28,22 @@ const TasksComponent: ng.IComponentOptions = {
 
     this.taskMessage = (task) => {
       switch (task.type) {
-        case 'subscription_approval':
+        case 'subscription_approval': {
           const appName = this.tasks.metadata[task.data.application].name;
           const planName = this.tasks.metadata[task.data.plan].name;
           const apiId = this.tasks.metadata[task.data.plan].api;
           const apiName = this.tasks.metadata[apiId].name;
           return 'The application "' + appName + '" requests a subscription for API: ' + apiName + ' (plan: ' + planName + ')';
+        }
         case 'in_review':
           return 'The API "' + this.tasks.metadata[task.data.referenceId].name + '" is ready to be reviewed';
-        case 'request_for_changes':
+        case 'request_for_changes': {
           let message = 'The API "' + this.tasks.metadata[task.data.referenceId].name + '" need changes';
           if (task.data.comment) {
             message += ': ' + task.data.comment;
           }
           return message;
+        }
         case 'user_registration_approval':
           return 'The registration of the user "' + task.data.displayName + '" has to be validated';
         default:
