@@ -25,7 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -126,8 +128,18 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     }
 
     @Override
-    public Set<Environment> findByHrids(Set<String> hrids) throws TechnicalException {
-        final Set<EnvironmentMongo> environments = internalEnvironmentRepo.findByHrids(hrids);
+    public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids) throws TechnicalException {
+
+        Set<EnvironmentMongo> environments = new HashSet<>();
+
+        if (!CollectionUtils.isEmpty(organizations) && !CollectionUtils.isEmpty(hrids)) {
+            environments = internalEnvironmentRepo.findByOrganizationsAndHrids(organizations, hrids);
+        } else if (!CollectionUtils.isEmpty(organizations)) {
+            environments = internalEnvironmentRepo.findByOrganizations(organizations);
+        } else if (!CollectionUtils.isEmpty(hrids)) {
+            environments = internalEnvironmentRepo.findByHrids(hrids);
+        }
+
         return environments.stream()
                 .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
                 .collect(Collectors.toSet());

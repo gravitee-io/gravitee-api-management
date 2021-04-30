@@ -35,6 +35,12 @@ public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentM
 
     @Query("{ hrids: {$in: ?0} }")
     Set<EnvironmentMongo> findByHrids(Set<String> hrids);
+
+    @Query("{ organizationId: {$in: ?0} }")
+    Set<EnvironmentMongo> findByOrganizations(Set<String> organizations);
+
+    @Query("{ organizationId: {$in: ?0}, hrids: {$in: ?1} }")
+    Set<EnvironmentMongo> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids);
 }
 
 
