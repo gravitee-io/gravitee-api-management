@@ -62,8 +62,13 @@
             <td md-cell>Tenant</td>
             <td md-cell>{{$ctrl.instance.tenant}}</td>
           </tr>
+          <tr md-row ng-if="$ctrl.instance.organizations && $ctrl.instance.organizations.length > 0">
+            <td md-cell><gv-icon shape="design:component" style="--gv-icon--s: 24px"></gv-icon></td>
+            <td md-cell>Organizations</td>
+            <td md-cell>{{$ctrl.instance.organizations}}</td>
+          </tr>
           <tr md-row ng-if="$ctrl.instance.environments && $ctrl.instance.environments.length > 0">
-            <td md-cell><gv-icon shape="general:settings#1"  style="--gv-icon--s: 24px"></gv-icon></td>
+            <td md-cell><gv-icon shape="general:settings#1" style="--gv-icon--s: 24px"></gv-icon></td>
             <td md-cell>Environments</td>
             <td md-cell>{{$ctrl.instance.environments}}</td>
           </tr>
