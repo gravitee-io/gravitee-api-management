@@ -199,6 +199,14 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                     context.request().metrics().getApiResponseTimeMs());
         }
         context.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
+
+        // Ensure we are consuming everything from the inbound queue
+        if (!context.request().ended()) {
+            context.request().bodyHandler(__ -> { });
+            context.request().endHandler(__ -> { });
+            context.request().resume();
+        }
+
         errorProcessorChain
                 .create()
                 .handler(__ -> handler.handle(context))
