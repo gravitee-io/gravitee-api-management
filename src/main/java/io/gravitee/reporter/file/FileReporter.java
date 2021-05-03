@@ -75,7 +75,8 @@ public class FileReporter extends AbstractService implements Reporter {
                         vertx,
                         type,
                         formatter,
-                        configuration.getFilename() + '.' + configuration.getOutputType().getExtension()
+                        configuration.getFilename() + '.' + configuration.getOutputType().getExtension(),
+                        configuration
                     )
                 );
             }
@@ -98,7 +99,7 @@ public class FileReporter extends AbstractService implements Reporter {
     protected void doStop() throws Exception {
         if (enabled) {
             CompositeFuture
-                .join(writers.values().stream().map(VertxFileWriter::close).collect(Collectors.toList()))
+                .join(writers.values().stream().map(VertxFileWriter::stop).collect(Collectors.toList()))
                 .setHandler(
                     event -> {
                         if (event.succeeded()) {
