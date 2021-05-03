@@ -18,6 +18,7 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -51,7 +52,12 @@ public class HttpTagRepository extends AbstractRepository implements TagReposito
     }
 
     @Override
-    public Set<Tag> findAll() throws TechnicalException {
+    public Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
