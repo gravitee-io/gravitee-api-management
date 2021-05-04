@@ -19,6 +19,8 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.List;
 public class UrlSanitizerUtils {
 
     public static void checkAllowed(String url, List<String> whitelist, boolean allowPrivate) {
+        checkUriSyntax(url);
         if (whitelist != null && !whitelist.isEmpty()) {
             if (
                 whitelist
@@ -62,6 +65,14 @@ public class UrlSanitizerUtils {
             );
         } catch (Exception e) {
             throw new InvalidDataException("Url [" + url + "] is invalid");
+        }
+    }
+
+    public static void checkUriSyntax(String url) {
+        try {
+            new URI(url);
+        } catch (URISyntaxException e) {
+            throw new UrlForbiddenException();
         }
     }
 
