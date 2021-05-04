@@ -15,9 +15,9 @@
  */
 import * as _ from 'lodash';
 import * as angular from 'angular';
-import moment = require('moment');
 import { StateService } from '@uirouter/core';
 import { Moment } from 'moment';
+import moment = require('moment');
 
 // eslint:disable-next-line:interface-name
 interface Timeframe {
@@ -55,8 +55,6 @@ class DashboardTimeframeController {
     private $interval: ng.IIntervalService,
   ) {
     'ngInject';
-
-    const that = this;
 
     this.displayModes = [
       {
@@ -177,15 +175,15 @@ class DashboardTimeframeController {
     this.unRegisterTimeframeZoom = this.$rootScope.$on('timeframeZoom', (event, zoom) => {
       const diff = zoom.to - zoom.from;
 
-      let timeframe = _.findLast(that.timeframes, (timeframe: Timeframe) => {
+      let timeframe = _.findLast(this.timeframes, (timeframe: Timeframe) => {
         return timeframe.range < diff;
       });
 
       if (!timeframe) {
-        timeframe = that.timeframes[0];
+        timeframe = this.timeframes[0];
       }
 
-      that.update({
+      this.update({
         interval: timeframe.interval,
         from: zoom.from,
         to: zoom.to,
@@ -194,7 +192,7 @@ class DashboardTimeframeController {
 
     this.$scope.$on('$destroy', () => {
       // Make sure that the interval is destroyed too
-      that.stopAutoRefresh();
+      this.stopAutoRefresh();
     });
   }
 
@@ -285,8 +283,6 @@ class DashboardTimeframeController {
   }
 
   update(timeframeParam) {
-    const that = this;
-
     const timeframe = {
       interval: parseInt(timeframeParam.interval, 10),
       from: parseInt(timeframeParam.from, 10),
@@ -296,21 +292,21 @@ class DashboardTimeframeController {
     // Select the best timeframe
     const diff = timeframe.to - timeframe.from;
 
-    const tf = _.findLast(that.timeframes, (tframe: Timeframe) => {
+    const tf = _.findLast(this.timeframes, (tframe: Timeframe) => {
       return tframe.range <= diff;
     });
 
-    this.timeframe = tf ? tf : that.timeframes[0];
+    this.timeframe = tf ? tf : this.timeframes[0];
 
     // timeframeChange event is dynamically initialized, so we have to define a timeout to correctly fired it
     this.$timeout(() => {
       const event = {
-        interval: that.timeframe.interval,
+        interval: this.timeframe.interval,
         from: timeframe.from,
         to: timeframe.to,
       };
 
-      that.onTimeframeChange({ timeframe: event });
+      this.onTimeframeChange({ timeframe: event });
     }, 200);
 
     this.current = {

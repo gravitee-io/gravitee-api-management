@@ -155,8 +155,6 @@ class ApiProxyController {
   }
 
   removeEndpoints() {
-    const _that = this;
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -171,8 +169,8 @@ class ApiProxyController {
       })
       .then((response) => {
         if (response) {
-          _(_that.$scope.selected).forEach((endpoint) => {
-            _(_that.api.proxy.groups).forEach((group) => {
+          _(this.$scope.selected).forEach((endpoint) => {
+            _(this.api.proxy.groups).forEach((group) => {
               _(group.endpoints).forEach((endpoint2, index, object) => {
                 if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
                   // @ts-ignore
@@ -182,7 +180,7 @@ class ApiProxyController {
             });
           });
 
-          that.update(that.api);
+          this.update(this.api);
         }
       });
   }
@@ -200,7 +198,6 @@ class ApiProxyController {
   }
 
   delete(id) {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -215,9 +212,9 @@ class ApiProxyController {
       })
       .then((response) => {
         if (response) {
-          that.ApiService.delete(id).then(() => {
-            that.NotificationService.show("API '" + that.initialApi.name + "' has been removed");
-            that.$state.go('management.apis.list', {}, { reload: true });
+          this.ApiService.delete(id).then(() => {
+            this.NotificationService.show("API '" + this.initialApi.name + "' has been removed");
+            this.$state.go('management.apis.list', {}, { reload: true });
           });
         }
       });
@@ -274,7 +271,6 @@ class ApiProxyController {
   }
 
   deleteGroup(groupname) {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -289,11 +285,11 @@ class ApiProxyController {
       })
       .then((response) => {
         if (response) {
-          _(that.api.proxy.groups).forEach((group, index, object) => {
+          _(this.api.proxy.groups).forEach((group, index, object) => {
             if (group.name !== undefined && group.name === groupname) {
               // @ts-ignore
               object.splice(index, 1);
-              that.update(that.api);
+              this.update(this.api);
             }
           });
         }
@@ -326,7 +322,6 @@ class ApiProxyController {
 
   switchVirtualHostMode() {
     if (this.virtualHostModeEnabled) {
-      const that = this;
       this.$mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -342,12 +337,12 @@ class ApiProxyController {
         .then((response) => {
           if (response) {
             // Keep only the first virtual_host and remove the host
-            that.api.proxy.virtual_hosts.splice(1);
-            that.api.proxy.virtual_hosts[0].host = undefined;
+            this.api.proxy.virtual_hosts.splice(1);
+            this.api.proxy.virtual_hosts[0].host = undefined;
 
-            that.virtualHostModeEnabled = !that.virtualHostModeEnabled;
+            this.virtualHostModeEnabled = !this.virtualHostModeEnabled;
 
-            that.update(that.api);
+            this.update(this.api);
           }
         });
     } else if (this.formApi.$dirty) {

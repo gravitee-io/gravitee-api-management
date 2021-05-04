@@ -220,10 +220,9 @@ class ApiPortalController {
 
   $onInit() {
     this.computeQualityMetrics();
-    const self = this;
     this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
-      self.api.picture = args.image;
-      self.formApi.$setDirty();
+      this.api.picture = args.image;
+      this.formApi.$setDirty();
     });
   }
 
@@ -267,14 +266,12 @@ class ApiPortalController {
 
   editWeight(event, endpoint) {
     event.stopPropagation(); // in case autoselect is enabled
-    const _that = this;
-
     const editDialog = {
       modelValue: endpoint.weight,
       placeholder: 'Weight',
-      save: function (input) {
+      save: (input) => {
         endpoint.weight = input.$modelValue;
-        _that.formApi.$setDirty();
+        this.formApi.$setDirty();
       },
       targetEvent: event,
       title: 'Endpoint weight',
@@ -297,8 +294,6 @@ class ApiPortalController {
   }
 
   removeEndpoints() {
-    const _that = this;
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -313,8 +308,8 @@ class ApiPortalController {
       })
       .then((response) => {
         if (response) {
-          _(_that.$scope.selected).forEach((endpoint) => {
-            _(_that.api.proxy.endpoints).forEach((endpoint2, index, object) => {
+          _(this.$scope.selected).forEach((endpoint) => {
+            _(this.api.proxy.endpoints).forEach((endpoint2, index, object) => {
               if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
                 // @ts-ignore
                 object.splice(index, 1);
@@ -322,7 +317,7 @@ class ApiPortalController {
             });
           });
 
-          that.update(that.api);
+          this.update(this.api);
         }
       });
   }
@@ -336,7 +331,6 @@ class ApiPortalController {
   }
 
   delete(id) {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmAndValidateController',
@@ -354,9 +348,9 @@ class ApiPortalController {
       })
       .then((response) => {
         if (response) {
-          that.ApiService.delete(id).then(() => {
-            that.NotificationService.show('API ' + that.initialApi.name + ' has been removed');
-            that.$state.go('management.apis.list', {}, { reload: true });
+          this.ApiService.delete(id).then(() => {
+            this.NotificationService.show('API ' + this.initialApi.name + ' has been removed');
+            this.$state.go('management.apis.list', {}, { reload: true });
           });
         }
       });
@@ -385,7 +379,6 @@ class ApiPortalController {
   }
 
   showImportDialog() {
-    const that = this;
     this.PolicyService.listSwaggerPolicies().then((policies) => {
       this.$mdDialog
         .show({
@@ -401,7 +394,7 @@ class ApiPortalController {
         })
         .then((response) => {
           if (response) {
-            that.onApiUpdate(response.data);
+            this.onApiUpdate(response.data);
           }
         });
     });

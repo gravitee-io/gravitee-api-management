@@ -25,73 +25,72 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
   template: require('./portalnotifications.html'),
   controller: function (UserNotificationService: UserNotificationService, $scope: IScope, $interval: IIntervalService) {
     'ngInject';
-    const vm = this;
-    vm.notificationsScheduler = null;
+    this.notificationsScheduler = null;
 
-    vm.$onInit = () => {
+    this.$onInit = () => {
       this.lastNbNotification = -1;
       // schedule an automatic refresh of the user notifications
-      if (!vm.notificationsScheduler) {
-        vm.refreshUserNotifications();
-        vm.notificationsScheduler = $interval(() => {
-          vm.refreshUserNotifications();
+      if (!this.notificationsScheduler) {
+        this.refreshUserNotifications();
+        this.notificationsScheduler = $interval(() => {
+          this.refreshUserNotifications();
         }, UserNotificationService.getNotificationSchedulerInSeconds() * 1000);
       }
     };
 
-    vm.delete = (notification: UserNotification) => {
+    this.delete = (notification: UserNotification) => {
       this.lastNbNotification--;
       UserNotificationService.delete(notification).then(() => {
-        vm.refreshUserNotifications();
+        this.refreshUserNotifications();
       });
     };
 
-    vm.deleteAll = ($event) => {
+    this.deleteAll = ($event) => {
       this.lastNbNotification = -1;
       $event.preventDefault();
       UserNotificationService.deleteAll().then(() => {
-        vm.refreshUserNotifications();
+        this.refreshUserNotifications();
       });
     };
 
     $scope.$on('graviteeUserCancelScheduledServices', () => {
-      vm.cancelRefreshUserNotifications();
+      this.cancelRefreshUserNotifications();
     });
 
-    vm.cancelRefreshUserNotifications = function () {
-      if (vm.notificationsScheduler) {
-        $interval.cancel(vm.notificationsScheduler);
-        vm.notificationsScheduler = undefined;
+    this.cancelRefreshUserNotifications = () => {
+      if (this.notificationsScheduler) {
+        $interval.cancel(this.notificationsScheduler);
+        this.notificationsScheduler = undefined;
       }
     };
 
-    vm.getUserNotificationsCount = () => {
-      if (vm.user.notifications) {
-        return vm.user.notifications.page.total_elements;
+    this.getUserNotificationsCount = () => {
+      if (this.user.notifications) {
+        return this.user.notifications.page.total_elements;
       }
       return 0;
     };
 
-    vm.refreshUserNotifications = () => {
+    this.refreshUserNotifications = () => {
       UserNotificationService.getNotifications().then((response) => {
         const result = new PagedResult();
         result.populate(response.data);
-        UserNotificationService.fillUserNotifications(vm.user, result);
+        UserNotificationService.fillUserNotifications(this.user, result);
 
         if (this.lastNbNotification < 0) {
-          this.lastNbNotification = vm.user.notifications.data.length;
+          this.lastNbNotification = this.user.notifications.data.length;
         } else {
-          if (vm.user.notifications.data.length > 0 && this.lastNbNotification < vm.user.notifications.data.length) {
-            for (let i = this.lastNbNotification; i < vm.user.notifications.data.length; i++) {
-              this.windowNotification(vm.user.notifications.data[i].title, vm.user.notifications.data[i].message);
+          if (this.user.notifications.data.length > 0 && this.lastNbNotification < this.user.notifications.data.length) {
+            for (let i = this.lastNbNotification; i < this.user.notifications.data.length; i++) {
+              this.windowNotification(this.user.notifications.data[i].title, this.user.notifications.data[i].message);
             }
-            this.lastNbNotification = vm.user.notifications.data.length;
+            this.lastNbNotification = this.user.notifications.data.length;
           }
         }
       });
     };
 
-    vm.windowNotification = (title: string, message: string) => {
+    this.windowNotification = (title: string, message: string) => {
       if ('Notification' in window) {
         Notification.requestPermission().then(() => {
           // eslint:disable-next-line:no-unused-expression

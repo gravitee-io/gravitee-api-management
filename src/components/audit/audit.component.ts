@@ -26,30 +26,28 @@ const AuditComponent: ng.IComponentOptions = {
   },
   controller: function (AuditService: AuditService) {
     'ngInject';
-    const vm = this;
-
-    vm.$onInit = () => {
-      vm.events = _.map(vm.events, (ev: string) => {
+    this.$onInit = () => {
+      this.events = _.map(this.events, (ev: string) => {
         return ev.toUpperCase();
       });
-      vm.query = new AuditQuery();
-      vm.onPaginate = vm.onPaginate.bind(this);
-      AuditService.list(null, vm.api).then((response) => vm.handleAuditResponseData(response.data));
-      vm.queryLogType = 'all';
+      this.query = new AuditQuery();
+      this.onPaginate = this.onPaginate.bind(this);
+      AuditService.list(null, this.api).then((response) => this.handleAuditResponseData(response.data));
+      this.queryLogType = 'all';
     };
 
-    vm.handleAuditResponseData = (responseData) => {
-      vm.auditLogs = responseData.content;
-      vm.metadata = responseData.metadata;
-      vm.enhanceAuditLogs(vm.auditLogs);
-      vm.query.page = responseData.pageNumber;
-      vm.result = {
+    this.handleAuditResponseData = (responseData) => {
+      this.auditLogs = responseData.content;
+      this.metadata = responseData.metadata;
+      this.enhanceAuditLogs(this.auditLogs);
+      this.query.page = responseData.pageNumber;
+      this.result = {
         size: responseData.pageElements,
         total: responseData.totalElements,
       };
     };
 
-    vm.enhanceAuditLogs = (auditLogs) => {
+    this.enhanceAuditLogs = (auditLogs) => {
       _.forEach(auditLogs, (log) => {
         log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
         log.displayPatch = false;
@@ -57,45 +55,45 @@ const AuditComponent: ng.IComponentOptions = {
       });
     };
 
-    vm.onPaginate = () => {
-      AuditService.list(vm.query, vm.api).then((response) => {
-        vm.handleAuditResponseData(response.data);
+    this.onPaginate = () => {
+      AuditService.list(this.query, this.api).then((response) => {
+        this.handleAuditResponseData(response.data);
       });
     };
 
-    vm.getNameByReference = (ref: { type: string; id: string }) => {
-      if (vm.metadata[ref.type + ':' + ref.id + ':name']) {
-        return vm.metadata[ref.type + ':' + ref.id + ':name'];
+    this.getNameByReference = (ref: { type: string; id: string }) => {
+      if (this.metadata[ref.type + ':' + ref.id + ':name']) {
+        return this.metadata[ref.type + ':' + ref.id + ':name'];
       }
       return ref.id;
     };
 
-    vm.getDisplayableProperties = (properties) => {
-      return _.mapValues(properties, (v, k) => vm.metadata[k + ':' + v + ':name']);
+    this.getDisplayableProperties = (properties) => {
+      return _.mapValues(properties, (v, k) => this.metadata[k + ':' + v + ':name']);
     };
 
-    vm.onOrgEnvFilterChange = () => {
-      if (vm.queryLogType === 'env') {
-        vm.query.orgLog = false;
-        vm.query.envLog = true;
-      } else if (vm.queryLogType === 'org') {
-        vm.query.orgLog = true;
-        vm.query.envLog = false;
+    this.onOrgEnvFilterChange = () => {
+      if (this.queryLogType === 'env') {
+        this.query.orgLog = false;
+        this.query.envLog = true;
+      } else if (this.queryLogType === 'org') {
+        this.query.orgLog = true;
+        this.query.envLog = false;
       } else {
-        vm.query.orgLog = false;
-        vm.query.envLog = false;
+        this.query.orgLog = false;
+        this.query.envLog = false;
       }
     };
 
-    vm.search = () => {
-      vm.query.page = 1;
-      if (vm.query.mgmt) {
-        vm.query.api = null;
-        vm.query.application = null;
+    this.search = () => {
+      this.query.page = 1;
+      if (this.query.mgmt) {
+        this.query.api = null;
+        this.query.application = null;
       }
 
-      AuditService.list(vm.query, vm.api).then((response) => {
-        vm.handleAuditResponseData(response.data);
+      AuditService.list(this.query, this.api).then((response) => {
+        this.handleAuditResponseData(response.data);
       });
     };
   },

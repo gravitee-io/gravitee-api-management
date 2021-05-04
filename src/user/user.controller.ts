@@ -88,7 +88,6 @@ class UserController {
   }
 
   deleteMyAccount() {
-    const that = this;
     return this.$mdDialog
       .show({
         controller: 'DialogConfirmAndValidateController',
@@ -106,9 +105,9 @@ class UserController {
       })
       .then((response) => {
         if (response) {
-          return that.UserService.removeCurrentUser().then(() => {
-            that.$state.go('logout');
-            that.NotificationService.show('You have been successfully deleted');
+          return this.UserService.removeCurrentUser().then(() => {
+            this.$state.go('logout');
+            this.NotificationService.show('You have been successfully deleted');
           });
         }
       });

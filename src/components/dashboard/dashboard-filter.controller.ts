@@ -34,12 +34,11 @@ class DashboardFilterController {
     this.fields = {};
     this.filters = [];
 
-    const that = this;
     $rootScope.$on('filterItemChange', (event, filter) => {
       if (filter.mode === 'add') {
-        that.addFieldFilter(filter);
+        this.addFieldFilter(filter);
       } else if (filter.mode === 'remove') {
-        that.removeFieldFilter(filter);
+        this.removeFieldFilter(filter);
       }
     });
   }

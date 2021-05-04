@@ -48,7 +48,6 @@ module.exports = {
     '@typescript-eslint/naming-convention': 'off',
     '@typescript-eslint/no-empty-function': 'warn',
     '@typescript-eslint/no-var-requires': 'warn',
-    '@typescript-eslint/no-this-alias': 'warn',
     '@typescript-eslint/no-inferrable-types': 'warn',
     '@typescript-eslint/ban-types': 'warn',
     '@typescript-eslint/ban-ts-comment': 'warn',

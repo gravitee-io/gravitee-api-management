@@ -51,26 +51,22 @@ class ApiListPlansController {
   }
 
   $onInit() {
-    const that = this;
-
     const d = document.querySelector('.plans');
     this.dragularService([d], {
-      moves: function () {
-        return that.dndEnabled;
-      },
+      moves: () => this.dndEnabled,
       scope: this.$scope,
       containersModel: this.plans,
       nameSpace: 'plan',
     });
 
     this.$scope.$on('dragulardrop', (e, el, target, source, dragularList, index, targetModel, dropIndex) => {
-      const movedPlan = that.filteredPlans[index];
+      const movedPlan = this.filteredPlans[index];
       movedPlan.order = dropIndex + 1;
 
-      that.ApiService.savePlan(that.api, movedPlan).then(() => {
+      this.ApiService.savePlan(this.api, movedPlan).then(() => {
         // sync list from server because orders has been changed
-        that.list();
-        that.NotificationService.show('Plans have been reordered successfully');
+        this.list();
+        this.NotificationService.show('Plans have been reordered successfully');
       });
     });
 
@@ -98,12 +94,11 @@ class ApiListPlansController {
 
   list() {
     this.ApiService.getApiPlans(this.$stateParams.apiId).then((response) => {
-      const that = this;
       this.$scope.$applyAsync(() => {
-        that.plans.length = 0;
-        Array.prototype.push.apply(that.plans, response.data);
+        this.plans.length = 0;
+        Array.prototype.push.apply(this.plans, response.data);
 
-        that.applyFilters();
+        this.applyFilters();
       });
     });
   }
@@ -128,10 +123,9 @@ class ApiListPlansController {
 
   applyFilters() {
     this.countPlansByStatus();
-    const that = this;
     this.filteredPlans = _.sortBy(
       _.filter(this.plans, (plan: any) => {
-        return _.includes(that.selectedStatus, plan.status);
+        return _.includes(this.selectedStatus, plan.status);
       }),
       'order',
     );
@@ -183,13 +177,12 @@ class ApiListPlansController {
         })
         .then((response) => {
           if (response) {
-            const that = this;
             this.ApiService.closePlan(this.api, plan.id).then(() => {
-              that.NotificationService.show('Plan ' + plan.name + ' has been closed');
-              that.$rootScope.$broadcast('planChangeSuccess', { state: 'closed' });
-              that.$scope.$parent.apiCtrl.checkAPISynchronization({ id: that.$stateParams.apiId });
-              that.selectedStatus = ['closed'];
-              that.list();
+              this.NotificationService.show('Plan ' + plan.name + ' has been closed');
+              this.$rootScope.$broadcast('planChangeSuccess', { state: 'closed' });
+              this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
+              this.selectedStatus = ['closed'];
+              this.list();
             });
           }
         });

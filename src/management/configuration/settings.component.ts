@@ -122,15 +122,13 @@ const SettingsComponent: ng.IComponentOptions = {
       },
     };
 
-    const that = this;
-
-    function getDefaultSettingsMenu(): string {
-      for (const entry of _.keys(that.settingsMenu)) {
-        if (that.settingsMenu[entry].perm) {
-          return that.settingsMenu[entry].goTo;
+    const getDefaultSettingsMenu = (): string => {
+      for (const entry of _.keys(this.settingsMenu)) {
+        if (this.settingsMenu[entry].perm) {
+          return this.settingsMenu[entry].goTo;
         }
       }
-    }
+    };
 
     $transitions.onBefore({}, (trans) => {
       if (trans.to().name === 'management.settings') {

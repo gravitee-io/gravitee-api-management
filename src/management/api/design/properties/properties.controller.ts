@@ -122,7 +122,6 @@ class ApiPropertiesController {
   }
 
   showPropertyModal() {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogAddPropertyController',
@@ -131,13 +130,13 @@ class ApiPropertiesController {
         clickOutsideToClose: true,
       })
       .then((property) => {
-        if (that.api.properties === undefined) {
-          that.api.properties = [];
+        if (this.api.properties === undefined) {
+          this.api.properties = [];
         }
 
         if (property) {
-          that.api.properties.push(property);
-          that.update();
+          this.api.properties.push(property);
+          this.update();
         }
       });
   }

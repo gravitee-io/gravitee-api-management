@@ -157,7 +157,6 @@ class ApplicationSubscriptionsController {
   }
 
   generateAPIKey(applicationId, subscription) {
-    const _this = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -172,16 +171,15 @@ class ApplicationSubscriptionsController {
       })
       .then((response) => {
         if (response) {
-          _this.ApplicationService.renewApiKey(applicationId, subscription.id).then(() => {
-            _this.NotificationService.show('A new API Key has been generated');
-            _this.listApiKeys(subscription);
+          this.ApplicationService.renewApiKey(applicationId, subscription.id).then(() => {
+            this.NotificationService.show('A new API Key has been generated');
+            this.listApiKeys(subscription);
           });
         }
       });
   }
 
   revoke(subscription, apiKey) {
-    const _this = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -195,9 +193,9 @@ class ApplicationSubscriptionsController {
       })
       .then((response) => {
         if (response) {
-          _this.ApplicationService.revokeApiKey(_this.application.id, subscription.id, apiKey).then(() => {
-            _this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');
-            _this.listApiKeys(subscription);
+          this.ApplicationService.revokeApiKey(this.application.id, subscription.id, apiKey).then(() => {
+            this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');
+            this.listApiKeys(subscription);
           });
         }
       });

@@ -83,7 +83,6 @@ class ComponentCtrl implements ng.IComponentController {
       this.tuiEditor.remove();
     }
 
-    const that = this;
     this.tuiEditor = new Editor(
       Object.assign(
         {
@@ -102,12 +101,12 @@ class ComponentCtrl implements ng.IComponentController {
             },
           },
           hooks: {
-            addImageBlobHook: function (blob, callback) {
+            addImageBlobHook: (blob, callback) => {
               const fd = new FormData();
               fd.append('file', blob);
 
               if (blob.size > Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
-                that.NotificationService.showError(
+                this.NotificationService.showError(
                   `File uploaded is too big, you're limited at ${Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`,
                 );
                 return false;
@@ -141,25 +140,25 @@ class ComponentCtrl implements ng.IComponentController {
     );
 
     this.tuiEditor.eventManager.listen('addLinkToPage', () => {
-      that.$mdDialog
+      this.$mdDialog
         .show({
           controller: 'SelectPageDialogController',
           controllerAs: 'ctrl',
           template: require('../dialog/selectpage.dialog.html'),
           clickOutsideToClose: true,
           locals: {
-            pages: that.pagesToLink,
+            pages: this.pagesToLink,
             title: 'Create a link to a page',
           },
         })
         .then((page) => {
           if (page) {
-            if (that.$state.params.apiId) {
-              const pageLinkTag = `[${page.name}](/#!/apis/${that.$state.params.apiId}/documentation/${page.id})`;
-              that.tuiEditor.insertText(pageLinkTag);
+            if (this.$state.params.apiId) {
+              const pageLinkTag = `[${page.name}](/#!/apis/${this.$state.params.apiId}/documentation/${page.id})`;
+              this.tuiEditor.insertText(pageLinkTag);
             } else {
               const pageLinkTag = `[${page.name}](/#!/settings/pages/${page.id})`;
-              that.tuiEditor.insertText(pageLinkTag);
+              this.tuiEditor.insertText(pageLinkTag);
             }
           }
         });

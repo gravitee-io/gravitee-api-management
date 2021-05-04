@@ -70,20 +70,19 @@ class ApiPoliciesController {
       this.pathsToCompare = this.generatePathsToCompare();
     });
 
-    const that = this;
     this.$scope.$on(
       'dragulardrop',
       (event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) => {
         if (dropzoneObjList !== null) {
           // Automatically display the configuration associated to the dragged policy
-          that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
+          this.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
             // Automatically save if there is no json schema configuration attached to the dragged policy.
             if (schema.id === 'empty') {
-              that.savePaths();
+              this.savePaths();
             }
           });
         } else {
-          that.savePaths();
+          this.savePaths();
         }
       },
     );
@@ -254,7 +253,6 @@ class ApiPoliciesController {
     ev.stopPropagation();
     this.selectedApiPolicy = null;
     const hashKey = this.apiPoliciesByPath[path][index].$$hashKey;
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -268,13 +266,13 @@ class ApiPoliciesController {
       })
       .then((response) => {
         if (response) {
-          _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
+          _.forEach(this.apiPoliciesByPath[path], (policy, idx) => {
             if (policy.$$hashKey === hashKey) {
-              that.apiPoliciesByPath[path].splice(idx, 1);
+              this.apiPoliciesByPath[path].splice(idx, 1);
               return false;
             }
           });
-          that.savePaths();
+          this.savePaths();
         }
       });
   }
@@ -284,8 +282,6 @@ class ApiPoliciesController {
     this.selectedApiPolicy = null;
 
     const policy = this.apiPoliciesByPath[path][index];
-    const that = this;
-
     this.$mdDialog
       .show({
         controller: 'DialogEditPolicyController',
@@ -299,7 +295,7 @@ class ApiPoliciesController {
       .then(
         (description) => {
           policy.description = description;
-          that.savePaths();
+          this.savePaths();
         },
         () => {
           // You cancelled the dialog
@@ -339,15 +335,13 @@ class ApiPoliciesController {
       });
     });
 
-    const that = this;
-
     const api = this.$scope.$parent.apiCtrl.api;
     return this.ApiService.update(api).then((updatedApi) => {
-      that.NotificationService.show("API '" + updatedApi.data.name + "' saved");
-      that.pathsToCompare = that.generatePathsToCompare();
+      this.NotificationService.show("API '" + updatedApi.data.name + "' saved");
+      this.pathsToCompare = this.generatePathsToCompare();
 
-      that.httpMethodsUpdated = false;
-      that.$rootScope.$broadcast('apiChangeSuccess', { api: updatedApi.data });
+      this.httpMethodsUpdated = false;
+      this.$rootScope.$broadcast('apiChangeSuccess', { api: updatedApi.data });
     });
   }
 
@@ -395,7 +389,6 @@ class ApiPoliciesController {
 
   removePath(path) {
     this.selectedApiPolicy = {};
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -409,9 +402,9 @@ class ApiPoliciesController {
       })
       .then((response) => {
         if (response) {
-          delete that.apiPoliciesByPath[path];
-          that.pathsInitialized[path] = false;
-          that.savePaths();
+          delete this.apiPoliciesByPath[path];
+          this.pathsInitialized[path] = false;
+          this.savePaths();
         }
       });
   }

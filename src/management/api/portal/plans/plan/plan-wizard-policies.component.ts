@@ -120,7 +120,6 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
     removePolicy(index, path, ev) {
       ev.stopPropagation();
-      const that = this;
       this.$mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -134,8 +133,8 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
         })
         .then((response) => {
           if (response) {
-            that.editablePolicy = null;
-            that.parent.planPolicies.splice(index, 1);
+            this.editablePolicy = null;
+            this.parent.planPolicies.splice(index, 1);
           }
         });
     }

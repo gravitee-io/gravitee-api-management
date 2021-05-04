@@ -33,14 +33,13 @@ class ContextualDocController {
     this.changeDocumentationPage($state.current);
 
     // watch for transition changes
-    const that = this;
     $transitions.onFinish({}, (trans) => {
-      that.changeDocumentationPage(trans.to());
+      this.changeDocumentationPage(trans.to());
     });
 
     // watch for open documentation events
     $rootScope.$on('openContextualDocumentation', () => {
-      that.openDocumentation();
+      this.openDocumentation();
       this.changeDocumentationPage($state.current);
     });
   }

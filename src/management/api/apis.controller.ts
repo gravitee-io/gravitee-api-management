@@ -187,7 +187,6 @@ export class ApisController {
   }
 
   showImportDialog() {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogApiImportController',
@@ -200,7 +199,7 @@ export class ApisController {
       })
       .then((response) => {
         if (response) {
-          that.$state.go('apis.admin.general', { apiId: response.data.id }, { reload: true });
+          this.$state.go('apis.admin.general', { apiId: response.data.id }, { reload: true });
         }
       });
   }

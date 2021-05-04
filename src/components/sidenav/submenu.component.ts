@@ -41,16 +41,15 @@ export const SubmenuComponent: ng.IComponentOptions = {
 
     this.sidenavService = SidenavService;
 
-    const that = this;
     $transitions.onSuccess({}, () => {
-      that.reload();
+      this.reload();
     });
 
-    this.$onInit = function () {
-      that.reload();
+    this.$onInit = () => {
+      this.reload();
     };
 
-    this.reload = function () {
+    this.reload = () => {
       if ($state.params.apiId && !UserService.currentUser.userApiPermissions) {
         UserService.currentUser.userApiPermissions = [];
         ApiService.getPermissions($state.params.apiId).then((permissions) => {
@@ -78,9 +77,9 @@ export const SubmenuComponent: ng.IComponentOptions = {
       }
     };
 
-    const reloadPermissionsAndSubmenu = function () {
+    const reloadPermissionsAndSubmenu = () => {
       UserService.reloadPermissions();
-      that.submenuItems = $filter<any>('currentSubmenus')(that.allMenuItems);
+      this.submenuItems = $filter<any>('currentSubmenus')(this.allMenuItems);
     };
 
     this.isActive = function (menuItem) {

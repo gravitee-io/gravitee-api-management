@@ -21,9 +21,9 @@ import StringService from './string.service';
 import { UrlService } from '@uirouter/angularjs';
 import { PagedResult } from '../entities/pagedResult';
 import Base64Service from './base64.service';
-import _ = require('lodash');
 import EnvironmentService from './environment.service';
 import { IHttpResponse } from 'angular';
+import _ = require('lodash');
 
 class UserService {
   /**
@@ -107,16 +107,13 @@ class UserService {
   }
 
   refreshEnvironmentPermissions(): ng.IPromise<User> {
-    const that = this;
-
     return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then((response) => {
-      that.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(response);
-      return this.$q.resolve<User>(that.currentUser);
+      this.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(response);
+      return this.$q.resolve<User>(this.currentUser);
     });
   }
 
   current(): ng.IPromise<User> {
-    const that = this;
     if (!this.currentUser || !this.currentUser.authenticated) {
       const promises: ng.IPromise<IHttpResponse<any>>[] = [
         this.$http.get(`${this.Constants.org.baseURL}/user/`, {
@@ -127,13 +124,13 @@ class UserService {
 
       const applicationRegex = /applications\/([\w|\-]+)/;
       const applicationId = applicationRegex.exec(this.$location.$$path);
-      if (this.Constants.org.currentEnv && !that.isLogout && applicationId && applicationId[1] !== 'create') {
+      if (this.Constants.org.currentEnv && !this.isLogout && applicationId && applicationId[1] !== 'create') {
         promises.push(this.ApplicationService.getPermissions(applicationId[1]));
       }
 
       const apiRegex = /apis\/([\w|\-]+)/;
       const apiId = apiRegex.exec(this.$location.$$path);
-      if (this.Constants.org.currentEnv && !that.isLogout && apiId && apiId[1] !== 'new') {
+      if (this.Constants.org.currentEnv && !this.isLogout && apiId && apiId[1] !== 'new') {
         promises.push(this.ApiService.getPermissions(apiId[1]));
       }
 
@@ -146,15 +143,15 @@ class UserService {
       return this.$q
         .all(promises)
         .then((response) => {
-          that.currentUser = Object.assign(new User(), response[0].data);
+          this.currentUser = Object.assign(new User(), response[0].data);
 
-          that.currentUser.userPermissions = [];
-          _.forEach(that.currentUser.roles, (role) => {
+          this.currentUser.userPermissions = [];
+          _.forEach(this.currentUser.roles, (role) => {
             _.forEach(_.keys(role.permissions), (permission) => {
               _.forEach(role.permissions[permission], (right) => {
                 if (role.scope === 'ORGANIZATION') {
                   const permissionName = role.scope + '-' + permission + '-' + right;
-                  that.currentUser.userPermissions.push(_.toLower(permissionName));
+                  this.currentUser.userPermissions.push(_.toLower(permissionName));
                 }
               });
             });
@@ -169,7 +166,7 @@ class UserService {
               _.forEach(_.keys(apiOrApplicationResponse.data), (permission) => {
                 _.forEach(apiOrApplicationResponse.data[permission], (right) => {
                   const permissionName = 'APPLICATION-' + permission + '-' + right;
-                  that.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+                  this.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
                 });
               });
             } else if (_.includes(apiOrApplicationResponse.config.url, 'apis')) {
@@ -177,16 +174,16 @@ class UserService {
               _.forEach(_.keys(apiOrApplicationResponse.data), (permission) => {
                 _.forEach(apiOrApplicationResponse.data[permission], (right) => {
                   const permissionName = 'API-' + permission + '-' + right;
-                  that.currentUser.userApiPermissions.push(_.toLower(permissionName));
+                  this.currentUser.userApiPermissions.push(_.toLower(permissionName));
                 });
               });
             }
           }
 
-          that.reloadPermissions();
+          this.reloadPermissions();
 
-          that.currentUser.authenticated = true;
-          return this.$q.resolve<User>(that.currentUser);
+          this.currentUser.authenticated = true;
+          return this.$q.resolve<User>(this.currentUser);
         })
         .catch(() => {
           // Returns an unauthenticated user
@@ -195,10 +192,10 @@ class UserService {
           return this.$q.resolve<User>(this.currentUser);
         })
         .finally(() => {
-          if (!that.routerInitialized) {
-            that.$urlService.sync();
-            that.$urlService.listen();
-            that.routerInitialized = true;
+          if (!this.routerInitialized) {
+            this.$urlService.sync();
+            this.$urlService.listen();
+            this.routerInitialized = true;
           }
         });
     } else {

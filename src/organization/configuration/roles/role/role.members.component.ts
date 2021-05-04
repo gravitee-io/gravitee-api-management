@@ -80,7 +80,6 @@ const RoleMembersComponent: ng.IComponentOptions = {
     };
 
     this.addUserRole = () => {
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogAddUserRoleController',
@@ -94,7 +93,7 @@ const RoleMembersComponent: ng.IComponentOptions = {
         })
         .then((usernames) => {
           if (usernames && usernames.length > 0) {
-            that.reloadMembers();
+            this.reloadMembers();
           }
         });
     };

@@ -40,64 +40,62 @@ export const NavbarComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
 
-    const vm = this;
-
-    vm.refreshUser = (user) => {
-      vm.newsletterProposed =
+    this.refreshUser = (user) => {
+      this.newsletterProposed =
         (user && !user.firstLogin) || !!$window.localStorage.getItem('newsletterProposed') || !Constants.org.settings.newsletter.enabled;
     };
 
-    vm.$state = $state;
-    vm.tasksScheduler = null;
-    vm.$rootScope = $rootScope;
-    vm.displayContextualDocumentationButton = false;
-    vm.visible = true;
-    vm.localLoginDisabled = !Constants.org.settings.authentication.localLogin.enabled || false;
-    vm.refreshUser(UserService.currentUser);
+    this.$state = $state;
+    this.tasksScheduler = null;
+    this.$rootScope = $rootScope;
+    this.displayContextualDocumentationButton = false;
+    this.visible = true;
+    this.localLoginDisabled = !Constants.org.settings.authentication.localLogin.enabled || false;
+    this.refreshUser(UserService.currentUser);
 
     $scope.$on('graviteePortalUrlRefresh', (event, portalURL) => {
-      vm.portalURL = portalURL;
+      this.portalURL = portalURL;
     });
 
     $scope.$on('graviteeUserRefresh', (event, { user, refresh }) => {
       if (refresh) {
         UserService.current()
           .then((user) => {
-            vm.startTasks(user);
-            vm.refreshUser(user);
+            this.startTasks(user);
+            this.refreshUser(user);
           })
-          .catch(() => delete vm.graviteeUser);
+          .catch(() => delete this.graviteeUser);
       } else if (user && user.authenticated) {
-        vm.startTasks(user);
-        vm.refreshUser(user);
+        this.startTasks(user);
+        this.refreshUser(user);
       } else {
-        delete vm.graviteeUser;
+        delete this.graviteeUser;
       }
     });
 
-    vm.startTasks = function (user) {
+    this.startTasks = (user) => {
       if (user.authenticated) {
-        vm.graviteeUser = user;
+        this.graviteeUser = user;
         // schedule an automatic refresh of the user tasks
-        if (!vm.tasksScheduler) {
-          vm.refreshUserTasks();
-          vm.tasksScheduler = $interval(() => {
-            vm.refreshUserTasks();
+        if (!this.tasksScheduler) {
+          this.refreshUserTasks();
+          this.tasksScheduler = $interval(() => {
+            this.refreshUserTasks();
           }, TaskService.getTaskSchedulerInSeconds() * 1000);
         }
       }
     };
 
     $scope.$on('graviteeUserTaskRefresh', () => {
-      vm.refreshUserTasks();
+      this.refreshUserTasks();
     });
 
     $scope.$on('graviteeUserCancelScheduledServices', () => {
-      vm.cancelRefreshUserTasks();
+      this.cancelRefreshUserTasks();
     });
 
     $transitions.onFinish({}, (trans) => {
-      vm.displayContextualDocumentationButton =
+      this.displayContextualDocumentationButton =
         !trans.to().name.startsWith('portal') &&
         !trans.to().name.startsWith('support') &&
         !trans.to().name.startsWith('login') &&
@@ -105,77 +103,67 @@ export const NavbarComponent: ng.IComponentOptions = {
         !trans.to().name.startsWith('confirm') &&
         !trans.to().name.startsWith('user');
 
-      vm.visible = trans.to().name !== 'login' && trans.to().name !== 'registration' && trans.to().name !== 'confirm';
+      this.visible = trans.to().name !== 'login' && trans.to().name !== 'registration' && trans.to().name !== 'confirm';
     });
 
-    vm.$onInit = function () {
-      vm.supportEnabled = Constants.org.settings.management.support.enabled;
+    this.$onInit = () => {
+      this.supportEnabled = Constants.org.settings.management.support.enabled;
       $scope.$emit('graviteeUserRefresh', { user: undefined, refresh: true });
-      vm.portalURL = Constants.env.settings ? Constants.env.settings.portal.url : undefined;
+      this.portalURL = Constants.env.settings ? Constants.env.settings.portal.url : undefined;
     };
 
-    vm.userShortName = function () {
-      if (vm.graviteeUser.firstname && vm.graviteeUser.lastname) {
-        const capitalizedFirstName = vm.graviteeUser.firstname[0].toUpperCase() + vm.graviteeUser.firstname.slice(1);
-        const shotLastName = vm.graviteeUser.lastname[0].toUpperCase();
+    this.userShortName = () => {
+      if (this.graviteeUser.firstname && this.graviteeUser.lastname) {
+        const capitalizedFirstName = this.graviteeUser.firstname[0].toUpperCase() + this.graviteeUser.firstname.slice(1);
+        const shotLastName = this.graviteeUser.lastname[0].toUpperCase();
         return `${capitalizedFirstName} ${shotLastName}.`;
       } else {
-        return vm.graviteeUser.displayName;
+        return this.graviteeUser.displayName;
       }
     };
 
-    vm.isUserManagement = function () {
-      return vm.graviteeUser.isAdmin();
+    this.isUserManagement = () => this.graviteeUser.isAdmin();
+
+    this.isAppManagement = () => this.graviteeUser.allowedTo(['environment-application-r']);
+
+    this.getLogo = () => Constants.org.settings.theme.logo;
+
+    this.getUserPicture = () => UserService.currentUserPicture();
+
+    this.openContextualDocumentation = () => {
+      this.$rootScope.$broadcast('openContextualDocumentation');
     };
 
-    vm.isAppManagement = function () {
-      return vm.graviteeUser.allowedTo(['environment-application-r']);
-    };
+    this.hasAlert = () => this.getUserTaskCount() > 0;
 
-    vm.getLogo = function () {
-      return Constants.org.settings.theme.logo;
-    };
-
-    vm.getUserPicture = function () {
-      return UserService.currentUserPicture();
-    };
-
-    vm.openContextualDocumentation = function () {
-      vm.$rootScope.$broadcast('openContextualDocumentation');
-    };
-
-    vm.hasAlert = function () {
-      return this.getUserTaskCount() > 0;
-    };
-
-    vm.getUserTaskCount = function () {
-      if (vm.graviteeUser.tasks) {
-        return vm.graviteeUser.tasks.page.total_elements;
+    this.getUserTaskCount = () => {
+      if (this.graviteeUser.tasks) {
+        return this.graviteeUser.tasks.page.total_elements;
       }
       return 0;
     };
 
-    vm.refreshUserTasks = function () {
-      if (vm.$rootScope.isWindowFocused) {
+    this.refreshUserTasks = () => {
+      if (this.$rootScope.isWindowFocused) {
         TaskService.getTasks().then((response) => {
           const result = new PagedResult();
           result.populate(response.data);
-          vm.graviteeUser = TaskService.fillUserTasks(result);
+          this.graviteeUser = TaskService.fillUserTasks(result);
         });
       }
     };
 
-    vm.cancelRefreshUserTasks = function () {
-      if (vm.tasksScheduler) {
-        $interval.cancel(vm.tasksScheduler);
-        vm.tasksScheduler = undefined;
+    this.cancelRefreshUserTasks = () => {
+      if (this.tasksScheduler) {
+        $interval.cancel(this.tasksScheduler);
+        this.tasksScheduler = undefined;
       }
     };
 
-    vm.authenticate = function () {
+    this.authenticate = () => {
       OrganizationService.listSocialIdentityProviders().then((response) => {
         const providers = response.data;
-        if (vm.localLoginDisabled && providers.length === 1) {
+        if (this.localLoginDisabled && providers.length === 1) {
           AuthenticationService.authenticate(providers[0]);
         } else {
           this.$state.go('login');

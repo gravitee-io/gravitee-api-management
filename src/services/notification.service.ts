@@ -19,12 +19,11 @@ class NotificationService {
   }
 
   show(message: any, errorStatus?: number) {
-    const vm = this;
     const msg = message.statusText || message;
     const preconditionFailed = errorStatus === 412;
-    vm.$mdToast
+    this.$mdToast
       .show(
-        vm.$mdToast
+        this.$mdToast
           .simple()
           .action(preconditionFailed ? 'Refresh' : '')
           .textContent(preconditionFailed ? 'The API version is outdated and must be refreshed (current modifications will be lost)' : msg)
@@ -34,7 +33,7 @@ class NotificationService {
       )
       .then((response) => {
         if (response === 'ok') {
-          vm.$state.go(vm.$state.current, {}, { reload: true });
+          this.$state.go(this.$state.current, {}, { reload: true });
         }
       })
       .catch(() => {});

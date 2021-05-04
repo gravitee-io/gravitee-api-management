@@ -52,10 +52,9 @@ class CategoriesController {
   }
 
   toggleVisibility(category) {
-    const that = this;
     category.hidden = !category.hidden;
     this.CategoryService.update(category).then(() => {
-      that.NotificationService.show('Category ' + category.name + ' has been saved.');
+      this.NotificationService.show('Category ' + category.name + ' has been saved.');
     });
   }
 
@@ -79,7 +78,6 @@ class CategoriesController {
   }
 
   deleteCategory(category) {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DeleteCategoryDialogController',
@@ -90,9 +88,9 @@ class CategoriesController {
       })
       .then((deleteCategory) => {
         if (deleteCategory) {
-          that.CategoryService.delete(category).then(() => {
-            that.NotificationService.show("Category '" + category.name + "' deleted with success");
-            _.remove(that.categories, category);
+          this.CategoryService.delete(category).then(() => {
+            this.NotificationService.show("Category '" + category.name + "' deleted with success");
+            _.remove(this.categories, category);
           });
         }
       });
@@ -113,10 +111,9 @@ class CategoriesController {
   }
 
   private save() {
-    const that = this;
-    this.CategoryService.updateCategories(that.categoriesToUpdate).then(() => {
-      that.NotificationService.show('Categories saved with success');
-      that.categoriesToUpdate = [];
+    this.CategoryService.updateCategories(this.categoriesToUpdate).then(() => {
+      this.NotificationService.show('Categories saved with success');
+      this.categoriesToUpdate = [];
     });
   }
 }

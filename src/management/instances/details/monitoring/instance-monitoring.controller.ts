@@ -34,11 +34,10 @@ class InstanceMonitoringController {
     this.instanceStarted = this.instance.state === 'started';
 
     if (this.instanceStarted) {
-      const that = this;
       this.interval = setInterval(() => {
-        that.InstancesService.getMonitoringData(that.$stateParams.instanceId, that.instance.id).then((response) => {
-          that.monitoringData = response.data;
-          that.buildChartData();
+        this.InstancesService.getMonitoringData(this.$stateParams.instanceId, this.instance.id).then((response) => {
+          this.monitoringData = response.data;
+          this.buildChartData();
         });
       }, 5000);
     }

@@ -39,76 +39,77 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
     $rootScope: IScope,
   ) {
     'ngInject';
-    const vm = this;
     this.$rootScope = $rootScope;
-    vm.$mdDialog = $mdDialog;
+    this.$mdDialog = $mdDialog;
 
-    vm.$onInit = () => {
-      vm.hooksByCategory = _.groupBy(vm.resolvedHooks, 'category');
-      vm.hooksCategories = _.keysIn(vm.hooksByCategory);
+    this.$onInit = () => {
+      this.hooksByCategory = _.groupBy(this.resolvedHooks, 'category');
+      this.hooksCategories = _.keysIn(this.hooksByCategory);
 
-      vm.selectNotificationSetting(_.find(vm.notificationSettings, { id: $state.params.notificationId }) || vm.notificationSettings[0]);
+      this.selectNotificationSetting(
+        _.find(this.notificationSettings, { id: $state.params.notificationId }) || this.notificationSettings[0],
+      );
 
       if ($state.params.apiId) {
-        vm.currentReferenceId = $state.params.apiId;
+        this.currentReferenceId = $state.params.apiId;
       } else if ($state.params.applicationId) {
-        vm.currentReferenceId = $state.params.applicationId;
+        this.currentReferenceId = $state.params.applicationId;
       } else {
-        vm.currentReferenceId = 'DEFAULT';
+        this.currentReferenceId = 'DEFAULT';
       }
     };
 
-    vm.selectNotificationSetting = (n, reload) => {
-      vm.selectedNotificationSetting = n;
-      vm.hookStatus = {};
-      _.forEach(vm.resolvedHooks, (hook: Hook) => {
-        vm.hookStatus[hook.id] = vm.selectedNotificationSetting.hooks.indexOf(hook.id) >= 0;
+    this.selectNotificationSetting = (n, reload) => {
+      this.selectedNotificationSetting = n;
+      this.hookStatus = {};
+      _.forEach(this.resolvedHooks, (hook: Hook) => {
+        this.hookStatus[hook.id] = this.selectedNotificationSetting.hooks.indexOf(hook.id) >= 0;
       });
-      if (vm.selectedNotificationSetting.notifier) {
-        vm.selectedNotifier = _.filter(vm.resolvedNotifiers, {
-          id: vm.selectedNotificationSetting.notifier,
+      if (this.selectedNotificationSetting.notifier) {
+        this.selectedNotifier = _.filter(this.resolvedNotifiers, {
+          id: this.selectedNotificationSetting.notifier,
         })[0];
       } else {
-        vm.selectedNotifier = undefined;
+        this.selectedNotifier = undefined;
       }
       $timeout(() => {
-        $state.params.notificationId = vm.selectedNotificationSetting.id || 'portal';
+        $state.params.notificationId = this.selectedNotificationSetting.id || 'portal';
         $state.transitionTo($state.current, $state.params, { reload: reload });
       });
     };
 
-    vm.save = () => {
+    this.save = () => {
       const cfg = new NotificationConfig();
-      cfg.id = vm.selectedNotificationSetting.id;
-      cfg.name = vm.selectedNotificationSetting.name;
-      cfg.config_type = vm.selectedNotificationSetting.config_type;
-      cfg.referenceType = vm.selectedNotificationSetting.referenceType;
-      cfg.referenceId = vm.selectedNotificationSetting.referenceId;
-      if (vm.selectedNotifier) {
-        cfg.notifier = vm.selectedNotifier.id;
+      cfg.id = this.selectedNotificationSetting.id;
+      cfg.name = this.selectedNotificationSetting.name;
+      cfg.config_type = this.selectedNotificationSetting.config_type;
+      cfg.referenceType = this.selectedNotificationSetting.referenceType;
+      cfg.referenceId = this.selectedNotificationSetting.referenceId;
+      if (this.selectedNotifier) {
+        cfg.notifier = this.selectedNotifier.id;
       }
-      cfg.config = vm.selectedNotificationSetting.config;
-      cfg.useSystemProxy = vm.selectedNotificationSetting.useSystemProxy;
+      cfg.config = this.selectedNotificationSetting.config;
+      cfg.useSystemProxy = this.selectedNotificationSetting.useSystemProxy;
       cfg.hooks = [];
-      _.forEach(vm.hookStatus, (k, v) => {
+      _.forEach(this.hookStatus, (k, v) => {
         if (k) {
           cfg.hooks.push(v);
         }
       });
       NotificationSettingsService.update(cfg).then((response) => {
-        const idx = _.findIndex(vm.notificationSettings, { id: response.data.id });
+        const idx = _.findIndex(this.notificationSettings, { id: response.data.id });
         // portal notification has no id
         if (idx < 0) {
-          vm.notificationSettings[0] = response.data;
+          this.notificationSettings[0] = response.data;
         } else {
-          vm.notificationSettings[idx] = response.data;
+          this.notificationSettings[idx] = response.data;
         }
         NotificationService.show('Notifications saved with success');
-        vm.formNotification.$setPristine();
+        this.formNotification.$setPristine();
       });
     };
 
-    vm.delete = () => {
+    this.delete = () => {
       const alert = this.$mdDialog.confirm({
         title: 'Warning',
         content: 'Are you sure you want to remove this notification?',
@@ -117,36 +118,36 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       });
       this.$mdDialog.show(alert).then(() => {
         NotificationSettingsService.delete(
-          vm.resolvedHookScope,
-          vm.selectedNotificationSetting.referenceId,
-          vm.selectedNotificationSetting.id,
+          this.resolvedHookScope,
+          this.selectedNotificationSetting.referenceId,
+          this.selectedNotificationSetting.id,
         ).then(() => {
           NotificationService.show('Notification deleted with success');
-          vm.notificationSettings = _.filter(vm.notificationSettings, (n: any) => {
-            return vm.selectedNotificationSetting.id !== n.id;
+          this.notificationSettings = _.filter(this.notificationSettings, (n: any) => {
+            return this.selectedNotificationSetting.id !== n.id;
           });
-          vm.selectNotificationSetting(vm.notificationSettings[0], true);
+          this.selectNotificationSetting(this.notificationSettings[0], true);
         });
       });
     };
 
-    vm.addDialog = () => {
-      vm.$mdDialog
+    this.addDialog = () => {
+      this.$mdDialog
         .show({
           controller: 'DialogAddNotificationSettingsController',
           controllerAs: 'dialogAddNotificationSettingsController',
           template: require('./addnotificationsettings.dialog.html'),
           clickOutsideToClose: true,
-          notifiers: vm.resolvedNotifiers,
+          notifiers: this.resolvedNotifiers,
         })
         .then((newConfig) => {
           const cfg = new NotificationConfig();
           cfg.name = newConfig.name;
           cfg.config_type = 'GENERIC';
-          cfg.referenceId = vm.currentReferenceId;
+          cfg.referenceId = this.currentReferenceId;
           cfg.notifier = newConfig.notifierId;
           cfg.hooks = [];
-          switch (vm.resolvedHookScope) {
+          switch (this.resolvedHookScope) {
             case Scope.APPLICATION:
               cfg.referenceType = 'APPLICATION';
               break;
@@ -160,16 +161,16 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
               break;
           }
           NotificationSettingsService.create(cfg).then((response) => {
-            vm.notificationSettings.push(response.data);
-            vm.selectNotificationSetting(response.data);
+            this.notificationSettings.push(response.data);
+            this.selectNotificationSetting(response.data);
           });
         });
     };
 
-    vm.validate = () => {
+    this.validate = () => {
       return (
-        vm.selectedNotificationSetting.config_type === 'portal' ||
-        (vm.selectedNotificationSetting.config && vm.selectedNotificationSetting.config !== '')
+        this.selectedNotificationSetting.config_type === 'portal' ||
+        (this.selectedNotificationSetting.config && this.selectedNotificationSetting.config !== '')
       );
     };
   },

@@ -190,7 +190,6 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.remove = (page: any) => {
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -204,9 +203,9 @@ const EditPageComponent: ng.IComponentOptions = {
         })
         .then((response: any) => {
           if (response) {
-            DocumentationService.remove(page.id, that.apiId).then(() => {
+            DocumentationService.remove(page.id, this.apiId).then(() => {
               NotificationService.show('Translation ' + page.name + ' has been removed');
-              that.refreshTranslations();
+              this.refreshTranslations();
             });
           }
         });
@@ -489,7 +488,6 @@ const EditPageComponent: ng.IComponentOptions = {
     };
 
     this.addAttachedResource = () => {
-      const that = this;
       $mdDialog
         .show({
           controller: 'FileChooserDialogController',
@@ -512,15 +510,14 @@ const EditPageComponent: ng.IComponentOptions = {
             fd.append('file', response.file);
             fd.append('fileName', fileName);
 
-            DocumentationService.addMedia(fd, that.page.id, that.apiId)
-              .then(() => that.reset())
+            DocumentationService.addMedia(fd, this.page.id, this.apiId)
+              .then(() => this.reset())
               .then(() => NotificationService.show(fileName + ' has been attached'));
           }
         });
     };
 
     this.removeAttachedResource = (resource: any) => {
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -534,12 +531,12 @@ const EditPageComponent: ng.IComponentOptions = {
         })
         .then((response) => {
           if (response) {
-            that.page.attached_media = that.page.attached_media.filter(
+            this.page.attached_media = this.page.attached_media.filter(
               (media) =>
                 !(media.mediaHash === resource.hash && media.mediaName === resource.fileName && media.attachedAt === resource.createAt),
             );
-            DocumentationService.update(that.page, that.apiId)
-              .then(() => that.reset())
+            DocumentationService.update(this.page, this.apiId)
+              .then(() => this.reset())
               .then(() => NotificationService.show(resource.fileName + ' has been removed from page'));
           }
         });

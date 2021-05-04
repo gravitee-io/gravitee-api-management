@@ -45,7 +45,6 @@ class TagsController {
   }
 
   deleteTag(tag) {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DeleteTagDialogController',
@@ -57,14 +56,14 @@ class TagsController {
       .then((deleteTag) => {
         if (deleteTag) {
           if (tag.id) {
-            that.TagService.delete(tag).then(() => {
+            this.TagService.delete(tag).then(() => {
               this.deleteEntrypointsByTag(tag).then(() => {
-                that.NotificationService.show("Tag '" + tag.name + "' deleted with success");
-                _.remove(that.tags, tag);
+                this.NotificationService.show("Tag '" + tag.name + "' deleted with success");
+                _.remove(this.tags, tag);
               });
             });
           } else {
-            _.remove(that.tags, tag);
+            _.remove(this.tags, tag);
           }
         }
       });

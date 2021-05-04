@@ -34,8 +34,6 @@ class ReCaptchaService {
   }
 
   load() {
-    const self = this;
-
     return new Promise<void>((resolve, reject) => {
       if (this.enabled && !document.getElementById(this.scriptId)) {
         if (!this.siteKey) {
@@ -48,8 +46,8 @@ class ReCaptchaService {
           script.onload = () => {
             grecaptcha.ready(() => {
               resolve();
-              self.loaded = true;
-              self.displayOrHideBadge();
+              this.loaded = true;
+              this.displayOrHideBadge();
             });
           };
           document.head.appendChild(script);

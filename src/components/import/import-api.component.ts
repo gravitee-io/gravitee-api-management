@@ -42,7 +42,6 @@ const ImportComponent: ng.IComponentOptions = {
     'ngInject';
 
     this.$onInit = () => {
-      const that = this;
       this.importFileMode = true;
       this.importURLMode = false;
       this.enableFileImport = false;
@@ -66,7 +65,7 @@ const ImportComponent: ng.IComponentOptions = {
       this.computeRightToImport();
       $scope.$watch('$ctrl.importAPIFile.content', (data) => {
         if (data) {
-          that.enableFileImport = true;
+          this.enableFileImport = true;
         }
       });
     };

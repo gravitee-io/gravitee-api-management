@@ -22,8 +22,8 @@ import DocumentationService, {
   SystemFolderName,
 } from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
-import _ = require('lodash');
 import { IScope } from 'angular';
+import _ = require('lodash');
 
 interface IDocumentationManagementScope extends IScope {
   renameFolder: boolean;
@@ -371,7 +371,6 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     };
 
     this.remove = (page: any) => {
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -386,12 +385,12 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
         })
         .then((response) => {
           if (response) {
-            DocumentationService.remove(page.id, that.apiId).then(() => {
+            DocumentationService.remove(page.id, this.apiId).then(() => {
               NotificationService.show('Page ' + page.name + ' has been removed');
-              that.refresh();
-              that.refreshCurrentFolder();
-              if (that.currentTranslation.id === page.id) {
-                delete that.currentTranslation;
+              this.refresh();
+              this.refreshCurrentFolder();
+              if (this.currentTranslation.id === page.id) {
+                delete this.currentTranslation;
               }
             });
           }

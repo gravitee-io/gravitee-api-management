@@ -53,7 +53,6 @@ class ApiMembersController {
     this.groupMembers = {};
     this.groupIdsWithMembers = [];
     if (this.api.groups) {
-      const self = this;
       _.forEach(this.api.groups, (grp) => {
         GroupService.getMembers(grp).then((members) => {
           const filteredMembers = _.filter(members.data, (m: any) => {
@@ -61,20 +60,19 @@ class ApiMembersController {
           });
 
           if (filteredMembers.length > 0) {
-            self.groupMembers[grp] = filteredMembers;
-            self.groupIdsWithMembers.push(grp);
+            this.groupMembers[grp] = filteredMembers;
+            this.groupIdsWithMembers.push(grp);
           }
         });
       });
     }
 
-    const that = this;
     RoleService.list('API').then((roles) => {
-      that.roles = roles;
-      that.newPORoles = _.filter(roles, (role: any) => {
+      this.roles = roles;
+      this.newPORoles = _.filter(roles, (role: any) => {
         return role.name !== 'PRIMARY_OWNER';
       });
-      that.newPORole = _.find(roles, (role: any) => {
+      this.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
     });
@@ -129,7 +127,6 @@ class ApiMembersController {
 
   showDeleteMemberConfirm(ev, member) {
     ev.stopPropagation();
-    const self = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -143,7 +140,7 @@ class ApiMembersController {
       })
       .then((response) => {
         if (response) {
-          self.deleteMember(member);
+          this.deleteMember(member);
         }
       });
   }

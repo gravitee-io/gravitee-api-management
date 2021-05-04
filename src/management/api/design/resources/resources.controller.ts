@@ -125,7 +125,6 @@ class ApiResourcesController {
   }
 
   deleteResource(resourceIdx) {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -140,8 +139,8 @@ class ApiResourcesController {
       })
       .then((response) => {
         if (response) {
-          that.$scope.$parent.apiCtrl.api.resources.splice(resourceIdx, 1);
-          that.updateApi();
+          this.$scope.$parent.apiCtrl.api.resources.splice(resourceIdx, 1);
+          this.updateApi();
         }
       });
   }
@@ -157,15 +156,13 @@ class ApiResourcesController {
   }
 
   updateApi() {
-    const that = this;
-
     let api = this.$scope.$parent.apiCtrl.api;
     return this.ApiService.update(api).then(({ data }) => {
-      that.closeResourcePanel();
-      that.$rootScope.$broadcast('apiChangeSuccess', { api: data });
-      that.NotificationService.show("API '" + data.name + "' saved");
+      this.closeResourcePanel();
+      this.$rootScope.$broadcast('apiChangeSuccess', { api: data });
+      this.NotificationService.show("API '" + data.name + "' saved");
 
-      that.$timeout(() => {
+      this.$timeout(() => {
         api = data;
       });
     });

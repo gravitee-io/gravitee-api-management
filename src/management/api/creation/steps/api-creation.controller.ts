@@ -505,9 +505,8 @@ class ApiCreationController {
       cancel: 'Cancel',
     });
 
-    const that = this;
     this.$mdDialog.show(alert).then(() => {
-      _.remove(that.api.pages, (_page: any) => {
+      _.remove(this.api.pages, (_page: any) => {
         return _page.fileName === page.fileName;
       });
     });

@@ -71,20 +71,19 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
       }
     };
 
-    const that = this;
-    this.selectItem = function (item) {
-      that.updateQuery(item, true);
+    this.selectItem = (item) => {
+      this.updateQuery(item, true);
     };
 
-    this.deselectItem = function (item) {
-      that.updateQuery(item, false);
+    this.deselectItem = (item) => {
+      this.updateQuery(item, false);
     };
 
-    this.updateQuery = function (item, add) {
-      that.$scope.$emit('filterItemChange', {
-        widget: that.widget.$uid,
-        field: that.widget.chart.request.field,
-        fieldLabel: that.widget.chart.request.fieldLabel,
+    this.updateQuery = (item, add) => {
+      this.$scope.$emit('filterItemChange', {
+        widget: this.widget.$uid,
+        field: this.widget.chart.request.field,
+        fieldLabel: this.widget.chart.request.fieldLabel,
         key: item.key,
         name: item.metadata.name,
         mode: add ? 'add' : 'remove',

@@ -48,7 +48,6 @@ const RolesComponent: ng.IComponentOptions = {
     };
 
     this.deleteRole = (role) => {
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -64,7 +63,7 @@ const RolesComponent: ng.IComponentOptions = {
           if (response) {
             RoleService.delete(role).then(() => {
               NotificationService.show("Role '" + role.name + "' deleted with success");
-              _.remove(that.rolesByScope[role.scope], role);
+              _.remove(this.rolesByScope[role.scope], role);
             });
           }
         });

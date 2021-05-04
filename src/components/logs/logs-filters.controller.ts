@@ -286,7 +286,6 @@ class LogsFiltersController {
     let query = '';
     const keys = _.filter(Object.keys(filters), (key) => filters[key] !== undefined && filters[key].length > 0);
     let index = 0;
-    const that = this;
     _.forEach(keys, (key) => {
       let val = filters[key];
 
@@ -310,7 +309,7 @@ class LogsFiltersController {
         val = '*' + val + '*';
       }
       const params = val.constructor === Array && val.length > 1 ? LogsFiltersController.convert(val) : val;
-      query += that.map(key, that.fields, true) + ':' + params;
+      query += this.map(key, this.fields, true) + ':' + params;
       if (index + 1 < keys.length) {
         query += ' AND ';
       }

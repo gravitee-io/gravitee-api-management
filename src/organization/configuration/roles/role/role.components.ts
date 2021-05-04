@@ -59,14 +59,13 @@ const RoleComponent: ng.IComponentOptions = {
         savePromise = RoleService.create(this._viewToModel());
       }
 
-      const that = this;
       savePromise.then((savedRole) => {
-        that.role = savedRole;
-        that._modelToView();
-        that.formRole.$setPristine();
-        NotificationService.show(`Role ${that.editMode ? 'updated' : 'created'} with success`);
-        if (!that.editMode) {
-          $state.go('organization.settings.roleedit', { roleScope: that.role.scope, role: that.role.name });
+        this.role = savedRole;
+        this._modelToView();
+        this.formRole.$setPristine();
+        NotificationService.show(`Role ${this.editMode ? 'updated' : 'created'} with success`);
+        if (!this.editMode) {
+          $state.go('organization.settings.roleedit', { roleScope: this.role.scope, role: this.role.name });
         }
       });
     };

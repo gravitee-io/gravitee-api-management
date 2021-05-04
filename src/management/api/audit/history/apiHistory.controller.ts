@@ -23,7 +23,7 @@ import '@gravitee/ui-components/wc/gv-popover';
 import * as _ from 'lodash';
 import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
-import { propertyProviders, configurationInformation } from '../../design/policy-studio/policy-studio.controller';
+import { configurationInformation, propertyProviders } from '../../design/policy-studio/policy-studio.controller';
 
 enum Modes {
   Diff = 'Diff',
@@ -302,20 +302,17 @@ class ApiHistoryController {
     _apiDefinition.description = _apiPayload.description;
     _apiDefinition.visibility = _apiPayload.visibility;
 
-    const that = this;
+    this.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
+      this.NotificationService.show('Api rollback !');
 
-    that.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
-      that.NotificationService.show('Api rollback !');
-
-      that.ApiService.get(that.api.id).then((response) => {
-        that.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
+      this.ApiService.get(this.api.id).then((response) => {
+        this.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
       });
     });
   }
 
   showRollbackAPIConfirm(ev, api) {
     ev.stopPropagation();
-    const self = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -329,7 +326,7 @@ class ApiHistoryController {
       })
       .then((response) => {
         if (response) {
-          self.rollback(api);
+          this.rollback(api);
         }
       });
   }

@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 import * as angular from 'angular';
-
-import _ = require('lodash');
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 import GroupService from '../../../../services/group.service';
 import UserService from '../../../../services/user.service';
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
 
 class ApplicationMembersController {
   private application: any;
@@ -49,13 +48,12 @@ class ApplicationMembersController {
   ) {
     'ngInject';
 
-    const that = this;
     RoleService.list('APPLICATION').then((roles) => {
-      that.roles = roles;
-      that.newPORoles = _.filter(roles, (role: any) => {
+      this.roles = roles;
+      this.newPORoles = _.filter(roles, (role: any) => {
         return role.name !== 'PRIMARY_OWNER';
       });
-      that.newPORole = _.find(roles, (role: any) => {
+      this.newPORole = _.find(roles, (role: any) => {
         return role.default;
       });
     });
@@ -70,15 +68,14 @@ class ApplicationMembersController {
     this.groupMembers = {};
     this.groupIdsWithMembers = [];
     if (this.application.groups) {
-      const self = this;
       _.forEach(this.application.groups, (grp) => {
         this.GroupService.getMembers(grp).then((members) => {
           const filteredMembers = _.filter(members.data, (m: any) => {
             return m.roles.APPLICATION;
           });
           if (filteredMembers.length > 0) {
-            self.groupMembers[grp] = filteredMembers;
-            self.groupIdsWithMembers.push(grp);
+            this.groupMembers[grp] = filteredMembers;
+            this.groupIdsWithMembers.push(grp);
           }
         });
       });
@@ -116,7 +113,6 @@ class ApplicationMembersController {
 
   showDeleteMemberConfirm(ev, member) {
     ev.stopPropagation();
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -131,13 +127,12 @@ class ApplicationMembersController {
       })
       .then((response) => {
         if (response) {
-          that.deleteMember(member);
+          this.deleteMember(member);
         }
       });
   }
 
   showAddMemberModal(ev) {
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogAddMemberController',
@@ -146,14 +141,14 @@ class ApplicationMembersController {
         targetEvent: ev,
         clickOutsideToClose: true,
         locals: {
-          application: that.application,
-          members: that.members,
+          application: this.application,
+          members: this.members,
         },
       })
       .then(
         (application) => {
           if (application) {
-            that.$state.go('management.applications.application.members', { applicationId: that.application.id }, { reload: true });
+            this.$state.go('management.applications.application.members', { applicationId: this.application.id }, { reload: true });
           }
         },
         () => {

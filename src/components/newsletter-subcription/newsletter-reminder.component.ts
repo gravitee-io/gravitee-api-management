@@ -22,7 +22,6 @@ const NewsletterReminderComponent: ng.IComponentOptions = {
   bindings: {},
   controller: function ($element, Constants: any, UserService: UserService, $scope: IScope, NotificationService: NotificationService) {
     'ngInject';
-    const vm = this;
     this.displayNewsletterSubscription = false;
     this.user = null;
     this.error = false;
@@ -37,7 +36,7 @@ const NewsletterReminderComponent: ng.IComponentOptions = {
       }
     });
 
-    vm._loadUser = () => {
+    this._loadUser = () => {
       UserService.current()
         .then((user) => {
           this.setUser(user);
@@ -45,11 +44,11 @@ const NewsletterReminderComponent: ng.IComponentOptions = {
         .catch(() => this.setUser(null));
     };
 
-    vm.$onInit = () => {
+    this.$onInit = () => {
       this._loadUser();
     };
 
-    vm.setUser = (user) => {
+    this.setUser = (user) => {
       if (user != null) {
         this.displayNewsletterSubscription = user.displayNewsletterSubscription;
         if (this.displayNewsletterSubscription) {
@@ -64,11 +63,11 @@ const NewsletterReminderComponent: ng.IComponentOptions = {
       }
     };
 
-    vm.close = () => {
+    this.close = () => {
       $element.removeClass('newsletter-open');
     };
 
-    vm.subscribe = () => {
+    this.subscribe = () => {
       if (this.email != null && this.email.trim() !== '') {
         UserService.subscribeNewsletter(this.email).then((user) => {
           this.setUser(user);
@@ -79,7 +78,7 @@ const NewsletterReminderComponent: ng.IComponentOptions = {
       }
     };
 
-    vm.unsubscribe = () => {
+    this.unsubscribe = () => {
       this.user.newsletter = false;
       UserService.save(this.user).then((user) => {
         this.setUser(user);

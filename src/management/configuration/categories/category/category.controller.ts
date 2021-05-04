@@ -73,13 +73,12 @@ class CategoryController {
     if (this.pages && this.pages.length > 0) {
       this.pages.unshift({});
     }
-    const self = this;
     this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
-      if (!self.category) {
-        self.category = {};
+      if (!this.category) {
+        this.category = {};
       }
-      self.category.picture = args.image;
-      self.formChanged = true;
+      this.category.picture = args.image;
+      this.formChanged = true;
     });
     this.initialCategory = _.cloneDeep(this.category);
   }
@@ -94,7 +93,6 @@ class CategoryController {
   }
 
   save() {
-    const that = this;
     const categoryFunction = this.createMode ? this.CategoryService.create(this.category) : this.CategoryService.update(this.category);
     categoryFunction.then((response) => {
       const category = response.data;
@@ -103,27 +101,26 @@ class CategoryController {
         const apiCategories = api.categories || [];
         apiCategories.push(category.id);
         api.categories = apiCategories;
-        return that.ApiService.update(api);
+        return this.ApiService.update(api);
       });
-      that.$q.all(apiFunctions).then(() => {
-        that.NotificationService.show('Category ' + category.name + ' has been saved.');
-        that.$state.go('management.settings.category', { categoryId: category.key }, { reload: true });
+      this.$q.all(apiFunctions).then(() => {
+        this.NotificationService.show('Category ' + category.name + ' has been saved.');
+        this.$state.go('management.settings.category', { categoryId: category.key }, { reload: true });
       });
     });
   }
 
   searchAPI(searchText) {
-    const that = this;
-    if (that.allApis) {
-      const apisFound = _.filter(that.allApis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
-      return that.$filter('filter')(apisFound, searchText);
+    if (this.allApis) {
+      const apisFound = _.filter(this.allApis, (api) => !this.selectedAPIs.some((a) => a.id === api.id));
+      return this.$filter('filter')(apisFound, searchText);
     } else {
       return this.ApiService.list().then((response) => {
         // Map the response object to the data object.
         const apis = response.data;
-        that.allApis = apis;
-        const apisFound = _.filter(apis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
-        return that.$filter('filter')(apisFound, searchText);
+        this.allApis = apis;
+        const apisFound = _.filter(apis, (api) => !this.selectedAPIs.some((a) => a.id === api.id));
+        return this.$filter('filter')(apisFound, searchText);
       });
     }
   }

@@ -173,12 +173,11 @@ class DocumentationService {
 
   getApiHomepage(apiId: string): IPromise<any> {
     const deferred = this.$q.defer();
-    const that = this;
     this.$http
       .get(this.url(apiId), { params: { homepage: true } })
       .then((response) => {
         if ((<any[]>response.data).length > 0) {
-          that.get(apiId, response.data[0].id, true).then((response) => deferred.resolve(response));
+          this.get(apiId, response.data[0].id, true).then((response) => deferred.resolve(response));
         } else {
           deferred.resolve({});
         }

@@ -41,14 +41,13 @@ class ApplicationsController {
     'ngInject';
     this.selectedApplications = [];
 
-    const that = this;
     UserService.current().then((user) => {
       if (UserService.isUserHasPermissions(['environment-application-c'])) {
-        that.subMessage = 'Start creating an application';
+        this.subMessage = 'Start creating an application';
       } else if (!user.username) {
-        that.subMessage = 'Login to get access to your applications';
+        this.subMessage = 'Login to get access to your applications';
       } else {
-        that.subMessage = '';
+        this.subMessage = '';
       }
     });
     this.tabs = ['active', 'archived'];
@@ -92,7 +91,6 @@ class ApplicationsController {
 
   showRestoreConfirm(ev, applicationId: string, applicationName: string) {
     ev.stopPropagation();
-    const that = this;
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -108,7 +106,7 @@ class ApplicationsController {
       })
       .then((response) => {
         if (response) {
-          that.restoreApplication(applicationId);
+          this.restoreApplication(applicationId);
         }
       });
   }

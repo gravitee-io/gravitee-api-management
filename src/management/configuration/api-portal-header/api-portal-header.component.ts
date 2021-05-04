@@ -59,7 +59,6 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.createHeader = () => {
-      const that = this;
       this.$mdDialog
         .show({
           controller: 'NewApiPortalHeaderDialogController',
@@ -69,12 +68,11 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         })
         .then((newHeader) => {
           NotificationService.show("Header '" + newHeader.name + "' saved");
-          ApiHeaderService.list().then((response) => (that.apiPortalHeaders = response.data));
+          ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
         });
     };
 
     this.updateHeader = (header: ApiPortalHeader) => {
-      const that = this;
       this.$mdDialog
         .show({
           controller: 'UpdateApiPortalHeaderDialogController',
@@ -86,12 +84,11 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         })
         .then((updatedHeader) => {
           NotificationService.show("Header '" + updatedHeader.name + "' saved");
-          ApiHeaderService.list().then((response) => (that.apiPortalHeaders = response.data));
+          ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
         });
     };
 
     this.deleteHeader = (header: ApiPortalHeader) => {
-      const that = this;
       this.$mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -108,7 +105,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
           if (response) {
             ApiHeaderService.delete(header).then(() => {
               NotificationService.show("Header '" + header.name + "' deleted");
-              ApiHeaderService.list().then((response) => (that.apiPortalHeaders = response.data));
+              ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
             });
           }
         });

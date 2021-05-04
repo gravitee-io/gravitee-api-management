@@ -183,7 +183,6 @@ const UserDetailComponent: ng.IComponentOptions = {
     };
 
     this.addGroupDialog = () => {
-      const that = this;
       GroupService.list().then((groups) => {
         $mdDialog
           .show({
@@ -198,7 +197,7 @@ const UserDetailComponent: ng.IComponentOptions = {
             },
           })
           .then((groupWithRole) => {
-            that.updateGroupRole(groupWithRole);
+            this.updateGroupRole(groupWithRole);
           });
       });
     };
@@ -275,7 +274,6 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.accept = (ev: Event) => {
       ev.stopPropagation();
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -283,7 +281,7 @@ const UserDetailComponent: ng.IComponentOptions = {
           template: require('../../../components/dialog/confirmWarning.dialog.html'),
           clickOutsideToClose: true,
           locals: {
-            title: 'Are you sure you want to accept the registration request of "' + that.selectedUser.displayName + '"?',
+            title: 'Are you sure you want to accept the registration request of "' + this.selectedUser.displayName + '"?',
             confirmButton: 'Accept',
           },
         })
@@ -299,7 +297,6 @@ const UserDetailComponent: ng.IComponentOptions = {
 
     this.reject = (ev: Event) => {
       ev.stopPropagation();
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -307,7 +304,7 @@ const UserDetailComponent: ng.IComponentOptions = {
           template: require('../../../components/dialog/confirmWarning.dialog.html'),
           clickOutsideToClose: true,
           locals: {
-            title: 'Are you sure you want to reject the registration request of "' + that.selectedUser.displayName + '"?',
+            title: 'Are you sure you want to reject the registration request of "' + this.selectedUser.displayName + '"?',
             confirmButton: 'Reject',
           },
         })

@@ -104,11 +104,10 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
 
       this.parent.vm.stepData[2].data = this.parent.plan;
       if (!this.parent.hasPoliciesStep()) {
-        const me = this;
         const pre = this.parent.restrictionsPolicies.map((restriction) => {
           const { enabled, ...rest } = restriction;
           const policyId = Object.keys(rest)[0];
-          const policy = me.policies.find((policy) => policy.id === policyId);
+          const policy = this.policies.find((policy) => policy.id === policyId);
           const name = policy.title;
           const description = policy.description;
           const configuration = restriction[policyId];
