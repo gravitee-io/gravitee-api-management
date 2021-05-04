@@ -1,28 +1,27 @@
 module.exports = {
-  "env": {
-    "browser": true,
-    "node": true
+  env: {
+    browser: true,
+    node: true,
   },
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": "tsconfig.json",
-    "sourceType": "module"
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: './tsconfig.json',
+    sourceType: 'module',
   },
-  "plugins": [
-    "eslint-plugin-jsdoc",
-    "@typescript-eslint"
-  ],
+  ignorePatterns: ['.eslintrc.js'],
+  plugins: ['eslint-plugin-jsdoc', '@typescript-eslint'],
   extends: [
     'angular',
-    "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "prettier"
+    'eslint:recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
   ],
-  "reportUnusedDisableDirectives": true,
-  "rules": {
+  reportUnusedDisableDirectives: true,
+  rules: {
     'angular/no-service-method': 'off',
     'angular/module-getter': 'off',
-    'angular/definedundefined': 'warn',
+    'angular/definedundefined': 'off',
     'angular/document-service': 'off',
     'angular/no-private-call': 'warn',
     'angular/json-functions': 'warn',
@@ -31,7 +30,7 @@ module.exports = {
     'angular/typecheck-string': 'warn',
     'angular/typecheck-function': 'warn',
     'angular/window-service': 'warn',
-    "angular/controller-as-route": "warn",
+    'angular/controller-as-route': 'warn',
     'angular/controller-name': 'warn',
     'angular/module-setter': 'warn',
     'angular/interval-service': 'warn',
@@ -39,69 +38,69 @@ module.exports = {
     'angular/di': 'warn',
     'angular/on-watch': 'warn',
     'no-bitwise': 'warn',
-    'no-unused-vars': 'warn',
     'no-redeclare': 'warn',
     'no-useless-escape': 'warn',
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
-    "@typescript-eslint/dot-notation": "warn",
-    "@typescript-eslint/no-unused-expressions": "warn",
-    "@typescript-eslint/member-ordering": "warn",
-    "@typescript-eslint/naming-convention": "off",
-    "@typescript-eslint/no-empty-function": "warn",
-    "@typescript-eslint/no-var-requires": "warn",
-    "eqeqeq": [
-      "warn",
-      "smart"
-    ],
-    "guard-for-in": "warn",
-    "id-blacklist": "off",
-    "id-match": "off",
-    "jsdoc/check-alignment": "error",
-    "jsdoc/check-indentation": "warn",
-    "jsdoc/newline-after-description": "error",
-    "no-caller": "error",
-    "no-console": [
-      "warn",
+    '@typescript-eslint/dot-notation': 'warn',
+    '@typescript-eslint/no-unused-expressions': 'warn',
+    '@typescript-eslint/member-ordering': 'warn',
+    '@typescript-eslint/naming-convention': 'off',
+    '@typescript-eslint/no-empty-function': 'warn',
+    '@typescript-eslint/no-var-requires': 'warn',
+    '@typescript-eslint/no-this-alias': 'warn',
+    '@typescript-eslint/no-inferrable-types': 'warn',
+    '@typescript-eslint/ban-types': 'warn',
+    '@typescript-eslint/ban-ts-comment': 'warn',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    eqeqeq: ['warn', 'smart'],
+    'guard-for-in': 'warn',
+    'id-blacklist': 'off',
+    'id-match': 'off',
+    'jsdoc/check-alignment': 'error',
+    'jsdoc/check-indentation': 'warn',
+    'jsdoc/newline-after-description': 'error',
+    'no-caller': 'error',
+    'no-console': [
+      'warn',
       {
-        "allow": [
-          "warn",
-          "dir",
-          "timeLog",
-          "assert",
-          "clear",
-          "count",
-          "countReset",
-          "group",
-          "groupEnd",
-          "table",
-          "dirxml",
-          "error",
-          "groupCollapsed",
-          "Console",
-          "profile",
-          "profileEnd",
-          "timeStamp",
-          "context"
-        ]
-      }
+        allow: [
+          'warn',
+          'dir',
+          'timeLog',
+          'assert',
+          'clear',
+          'count',
+          'countReset',
+          'group',
+          'groupEnd',
+          'table',
+          'dirxml',
+          'error',
+          'groupCollapsed',
+          'Console',
+          'profile',
+          'profileEnd',
+          'timeStamp',
+          'context',
+        ],
+      },
     ],
-    "no-debugger": "error",
-    "no-empty": "off",
-    "no-eval": "error",
-    "no-fallthrough": "error",
-    "no-new-wrappers": "error",
-    "no-underscore-dangle": "off",
-    "no-unused-labels": "error",
-    "radix": "warn",
-    "spaced-comment": [
-      "warn",
-      "always",
+    'no-debugger': 'error',
+    'no-empty': 'off',
+    'no-eval': 'error',
+    'no-fallthrough': 'error',
+    'no-new-wrappers': 'error',
+    'no-underscore-dangle': 'off',
+    'no-unused-labels': 'error',
+    radix: 'warn',
+    'spaced-comment': [
+      'warn',
+      'always',
       {
-        "markers": [
-          "/"
-        ]
-      }
-    ]
-  }
+        markers: ['/'],
+      },
+    ],
+  },
 };
