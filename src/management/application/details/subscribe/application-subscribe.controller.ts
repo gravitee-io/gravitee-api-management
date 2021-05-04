@@ -95,16 +95,12 @@ class ApplicationSubscribeController {
         .ok('Confirm')
         .cancel('Cancel');
 
-      this.$mdDialog.show(confirm).then(
-        (message) => {
-          this.ApplicationService.subscribe(this.application.id, plan.id, message).then(() => {
-            this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-            this.$state.reload();
-          });
-          // eslint:disable-next-line:no-empty
-        },
-        () => {},
-      );
+      this.$mdDialog.show(confirm).then((message) => {
+        this.ApplicationService.subscribe(this.application.id, plan.id, message).then(() => {
+          this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
+          this.$state.reload();
+        });
+      });
     } else {
       this.ApplicationService.subscribe(this.application.id, plan.id).then(() => {
         this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
@@ -121,17 +117,12 @@ class ApplicationSubscribeController {
       cancel: 'CANCEL',
     });
 
-    this.$mdDialog.show(alert).then(
-      () => {
-        // @ts-ignore
-        this.ApplicationService.closeSubscription(this.application.id, _.find(this.subscriptions.data, { plan: plan.id }).id).then(() => {
-          this.NotificationService.show('Subscription has been successfully closed');
-          this.$state.reload();
-        });
-        // eslint:disable-next-line:no-empty
-      },
-      () => {},
-    );
+    this.$mdDialog.show(alert).then(() => {
+      this.ApplicationService.closeSubscription(this.application.id, _.find(this.subscriptions.data, { plan: plan.id }).id).then(() => {
+        this.NotificationService.show('Subscription has been successfully closed');
+        this.$state.reload();
+      });
+    });
   }
 }
 

@@ -19,7 +19,7 @@ export class AuditQuery {
   from: Date;
   to: Date;
   page: number;
-  mgmt: boolean = false;
+  mgmt = false;
   api: string = null;
   application: string = null;
   event: string = null;

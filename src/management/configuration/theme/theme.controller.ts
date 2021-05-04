@@ -383,21 +383,17 @@ class ThemeController {
       ok: 'RESTORE',
       cancel: 'CANCEL',
     });
-    this.$mdDialog.show(confirm).then(
-      () => {
-        this.ThemeService.restoreDefaultTheme(this.$scope.theme).then((response) => {
-          const theme: Theme = response.data;
-          this.setTheme(theme);
-          this.onDataChanged();
-          this.$scope.themeForm.$commitViewValue();
-          this.$scope.themeForm.$setSubmitted();
-          this.$scope.themeForm.$setPristine();
-          this.NotificationService.show('The "Gravitee" default theme has been restore.');
-        });
-        // eslint:disable-next-line:no-empty
-      },
-      () => {},
-    );
+    this.$mdDialog.show(confirm).then(() => {
+      this.ThemeService.restoreDefaultTheme(this.$scope.theme).then((response) => {
+        const theme: Theme = response.data;
+        this.setTheme(theme);
+        this.onDataChanged();
+        this.$scope.themeForm.$commitViewValue();
+        this.$scope.themeForm.$setSubmitted();
+        this.$scope.themeForm.$setPristine();
+        this.NotificationService.show('The "Gravitee" default theme has been restore.');
+      });
+    });
   };
 
   getLogoUrl() {

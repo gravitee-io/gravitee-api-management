@@ -21,9 +21,9 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 
 class CategoryController {
-  public searchText: string = '';
+  public searchText = '';
   public categoryForm: any;
-  private createMode: boolean = false;
+  private createMode = false;
   private allApis: any[];
   private initialCategory: any;
   private category: any;
@@ -31,7 +31,7 @@ class CategoryController {
   private pages: any[];
   private selectedAPIs: any[];
   private addedAPIs: any[];
-  private formChanged: boolean = false;
+  private formChanged = false;
 
   constructor(
     private ApiService: ApiService,

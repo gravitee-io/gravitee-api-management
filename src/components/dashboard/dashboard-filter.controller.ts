@@ -53,7 +53,7 @@ class DashboardFilterController {
     }
   }
 
-  addFieldFilter(filter, run: boolean = true) {
+  addFieldFilter(filter, run = true) {
     const field = this.fields[filter.field] || { filters: {} };
 
     field.filters[filter.key] = {

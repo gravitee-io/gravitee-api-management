@@ -19,7 +19,7 @@ class SubscriptionService {
   }
 
   list(plan, application) {
-    let url: string = `${this.Constants.env.baseURL}/subscriptions/`;
+    let url = `${this.Constants.env.baseURL}/subscriptions/`;
     if (plan) {
       url += '?plan=' + plan;
     }

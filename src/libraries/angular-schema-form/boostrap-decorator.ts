@@ -87,7 +87,7 @@ angular
         {
           textarea: { template: base + 'textarea.html', replace: false },
           fieldset: { template: base + 'fieldset.html', replace: false },
-          /*fieldset: {template: base + 'fieldset.html', replace: true, builder: function(args) {
+          /* fieldset: {template: base + 'fieldset.html', replace: true, builder: function(args) {
      var children = args.build(args.form.items, args.path + '.items');
      console.log('fieldset children frag', children.childNodes)
      args.fieldFrag.childNode.appendChild(children);

@@ -78,6 +78,7 @@ class ComponentCtrl implements ng.IComponentController {
       toolbarItems.splice(15, 0, 'image');
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Editor = require('@toast-ui/editor');
     if (this.tuiEditor) {
       this.tuiEditor.remove();

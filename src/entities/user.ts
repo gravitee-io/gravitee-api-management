@@ -31,7 +31,7 @@ export class User {
   public userApplicationPermissions: string[];
   public tasks: PagedResult;
   public notifications: PagedResult;
-  public authenticated: boolean = false;
+  public authenticated = false;
   public firstLogin: boolean;
   public picture: string;
   public picture_url: string;

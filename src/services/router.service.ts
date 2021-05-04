@@ -16,8 +16,6 @@
 class RouterService {
   private last: any = {};
 
-  constructor() {}
-
   setLastRoute(from, fromParams) {
     this.last.from = from;
     this.last.fromParams = fromParams;

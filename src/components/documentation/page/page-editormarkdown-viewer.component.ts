@@ -71,8 +71,8 @@ class ComponentCtrl implements ng.IComponentController {
 
     content = remark.stringify(ast);
 
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Viewer = require('@toast-ui/editor/dist/toastui-editor-viewer');
-    // eslint:disable-next-line:no-unused-expression
     new Viewer(
       Object.assign(
         {
@@ -92,7 +92,7 @@ class ComponentCtrl implements ng.IComponentController {
     );
   }
 
-  findChildrenValue = (children: any, count: number = 0) => {
+  findChildrenValue = (children: any, count = 0) => {
     if (count > 5) {
       return;
     }

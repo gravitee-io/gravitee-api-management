@@ -24,7 +24,7 @@ class ApiEndpointGroupController {
   private group: any;
   private initialGroups: any;
   private discovery: any;
-  private creation: boolean = false;
+  private creation = false;
 
   private serviceDiscoveryJsonSchemaForm: string[];
   private types: any[];

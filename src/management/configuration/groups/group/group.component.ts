@@ -310,22 +310,18 @@ const GroupComponent: ng.IComponentOptions = {
             isApiRoleDisabled: this.isApiRoleDisabled,
           },
         })
-        .then(
-          (email) => {
-            if (email) {
-              GroupService.inviteMember(this.group, email).then((response) => {
-                if (response.data.id) {
-                  NotificationService.show('Invitation successfully sent');
-                } else {
-                  NotificationService.show('Member successfully added');
-                }
-                $state.reload();
-              });
-            }
-          },
-          // you cancelled the dialog
-          () => {},
-        );
+        .then((email) => {
+          if (email) {
+            GroupService.inviteMember(this.group, email).then((response) => {
+              if (response.data.id) {
+                NotificationService.show('Invitation successfully sent');
+              } else {
+                NotificationService.show('Member successfully added');
+              }
+              $state.reload();
+            });
+          }
+        });
     };
 
     this.removeInvitation = (ev, invitation: any) => {
@@ -342,18 +338,14 @@ const GroupComponent: ng.IComponentOptions = {
             confirmButton: 'Remove',
           },
         })
-        .then(
-          (response) => {
-            if (response) {
-              GroupService.deleteInvitation(this.group.id, invitation.id).then(() => {
-                NotificationService.show('Invitation for ' + invitation.email + ' has been successfully removed');
-                $state.reload();
-              });
-            }
-          },
-          // you cancelled the dialog
-          () => {},
-        );
+        .then((response) => {
+          if (response) {
+            GroupService.deleteInvitation(this.group.id, invitation.id).then(() => {
+              NotificationService.show('Invitation for ' + invitation.email + ' has been successfully removed');
+              $state.reload();
+            });
+          }
+        });
     };
 
     this.hasGroupAdmin = () => {

@@ -23,7 +23,7 @@ class ApplicationCreationController {
   application: any;
   enabledApplicationTypes: ApplicationType[];
   private steps: any[];
-  private selectedStep: number = 0;
+  private selectedStep = 0;
   private selectedAPIs: any[] = [];
   private selectedPlans: any[] = [];
   private messageByPlan: any = {};
@@ -140,13 +140,10 @@ class ApplicationCreationController {
         .ok('Confirm')
         .cancel('Cancel');
 
-      this.$mdDialog.show(confirm).then(
-        (message) => {
-          this.messageByPlan[plan.id] = message;
-          this.confirmSubscription(api, plan);
-        },
-        () => {},
-      );
+      this.$mdDialog.show(confirm).then((message) => {
+        this.messageByPlan[plan.id] = message;
+        this.confirmSubscription(api, plan);
+      });
     } else {
       this.confirmSubscription(api, plan);
     }

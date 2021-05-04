@@ -553,20 +553,19 @@ require('diff/dist/diff.min.js');
 require('angular-loading-bar');
 
 // Highcharts
-
-const Highcharts = require('highcharts');
+import * as Highcharts from 'highcharts';
 (<any>window).Highcharts = Highcharts;
-const HighchartsMore = require('../../node_modules/highcharts/highcharts-more.js');
-const SolidGauge = require('../../node_modules/highcharts/modules/solid-gauge.js');
-const NoDataToDisplay = require('../../node_modules/highcharts/modules/no-data-to-display.js');
-const Map = require('../../node_modules/highcharts/modules/map.js');
+import HighchartsMore from 'highcharts/highcharts-more';
+import SolidGauge from 'highcharts/modules/solid-gauge';
+import NoDataToDisplay from 'highcharts/modules/no-data-to-display';
+import Map from 'highcharts/modules/map';
 
 HighchartsMore(Highcharts);
 SolidGauge(Highcharts);
 NoDataToDisplay(Highcharts);
 Map(Highcharts);
 
-require('../../node_modules/@highcharts/map-collection/custom/world.js');
+import '@highcharts/map-collection/custom/world';
 
 (<any>window).jsyaml = jsyaml;
 

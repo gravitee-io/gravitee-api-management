@@ -28,7 +28,7 @@ class ApplicationsController {
   private currentTab: string;
   private tabs: string[];
   private searchApplications: string;
-  private loading: boolean = false;
+  private loading = false;
 
   constructor(
     private UserService: UserService,

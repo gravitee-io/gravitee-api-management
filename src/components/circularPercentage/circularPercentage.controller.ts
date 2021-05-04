@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 class CircularPercentageController {
-  private score: number = 0;
-  private percentage: number = 0;
-  private percentageCircle: number = 100;
+  private score = 0;
+  private percentage = 0;
+  private percentageCircle = 100;
   private qualityMetricCssClass: string;
 
   getScore() {

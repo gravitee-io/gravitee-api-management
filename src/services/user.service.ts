@@ -30,8 +30,8 @@ class UserService {
    * Current authenticated user or empty user if not authenticated.
    */
   public currentUser: User;
-  private routerInitialized: boolean = false;
-  private isLogout: boolean = false;
+  private routerInitialized = false;
+  private isLogout = false;
 
   constructor(
     private $http: ng.IHttpService,

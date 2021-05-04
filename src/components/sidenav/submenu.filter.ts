@@ -23,7 +23,7 @@ export const submenuFilter = function ($state: StateService, UserService: UserSe
     const hasId = 'apiId' in $state.params || 'applicationId' in $state.params || 'instanceId' in $state.params;
 
     if (universeLevels.indexOf('configuration') !== -1 || hasId) {
-      const universe: string = `${universeLevels.join('.')}.`;
+      const universe = `${universeLevels.join('.')}.`;
       const result = menuItems.filter(
         (cState) =>
           !cState.abstract &&

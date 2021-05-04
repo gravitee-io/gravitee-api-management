@@ -24,7 +24,7 @@ class ApiResponseTemplateController {
   private selectedStatusCode: any;
   private templateKey: string;
   private formResponseTemplate: any;
-  private creation: boolean = false;
+  private creation = false;
   private keys: any;
   private templates: any;
   private selectedTemplateKey: any;

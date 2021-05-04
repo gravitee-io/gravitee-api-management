@@ -28,10 +28,8 @@ const DashboardComponent: ng.IComponentOptions = {
   controller: function ($scope) {
     'ngInject';
     this.initialEventCounter = 2;
-    // eslint:disable-next-line:no-unused-expression
-    this.initialTimeFrame;
-    // eslint:disable-next-line:no-unused-expression
-    this.initialQuery;
+    this.initialTimeFrame = undefined;
+    this.initialQuery = undefined;
 
     this.dashboardOptions = {
       margins: [10, 10],

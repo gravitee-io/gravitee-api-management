@@ -42,6 +42,7 @@ class CustomUserFieldsController {
     this.canDelete = this.UserService.isUserHasPermissions([permissionPrefix + '-d']);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   $onInit = () => {};
 
   newField() {

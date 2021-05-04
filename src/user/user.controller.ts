@@ -30,7 +30,7 @@ class UserController {
   private tokens: Array<any>;
 
   private fields: any[] = [];
-  private groups: string = '';
+  private groups = '';
 
   constructor(
     private UserService: UserService,

@@ -19,7 +19,7 @@ import QualityRuleService from '../../../../services/qualityRule.service';
 import { QualityRule } from '../../../../entities/qualityRule';
 
 class ApiQualityRuleController {
-  private createMode: boolean = false;
+  private createMode = false;
   private qualityRule: QualityRule;
 
   constructor(

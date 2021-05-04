@@ -57,7 +57,7 @@ export abstract class Metrics {
   conditions: string[];
   loader: (type: number, id: string, $injector: any) => Tuple[];
   scopes: Scope[];
-  supportPropertyProjection: boolean = false;
+  supportPropertyProjection = false;
 
   static filterByScope(metrics: Metrics[], scope: Scope): Metrics[] {
     return metrics.filter((metric) => metric.scopes === undefined || metric.scopes.indexOf(scope) !== -1);
@@ -158,7 +158,7 @@ export abstract class Condition {
 }
 
 export class ThresholdCondition extends Condition {
-  static TYPE: string = 'threshold';
+  static TYPE = 'threshold';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -177,7 +177,7 @@ export class ThresholdCondition extends Condition {
 }
 
 export class RateCondition extends Condition {
-  static TYPE: string = 'rate';
+  static TYPE = 'rate';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -196,7 +196,7 @@ export class RateCondition extends Condition {
 }
 
 export class FrequencyCondition extends Condition {
-  static TYPE: string = 'frequency';
+  static TYPE = 'frequency';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -225,7 +225,7 @@ class Function {
 }
 
 export class AggregationCondition extends Condition {
-  static TYPE: string = 'aggregation';
+  static TYPE = 'aggregation';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -255,7 +255,7 @@ export class AggregationCondition extends Condition {
 }
 
 export class ThresholdRangeCondition extends Condition {
-  static TYPE: string = 'threshold_range';
+  static TYPE = 'threshold_range';
 
   static BETWEEN: Operator = new Operator('between', 'between');
 
@@ -271,7 +271,7 @@ export class ThresholdRangeCondition extends Condition {
 }
 
 export class CompareCondition extends Condition {
-  static TYPE: string = 'compare';
+  static TYPE = 'compare';
 
   static LT: Operator = new Operator('lt', 'less than');
   static LTE: Operator = new Operator('lte', 'less than or equals to');
@@ -290,7 +290,7 @@ export class CompareCondition extends Condition {
 }
 
 export class StringCondition extends Condition {
-  static TYPE: string = 'string';
+  static TYPE = 'string';
 
   static EQUALS: Operator = new Operator('equals', 'equals to');
   static NOT_EQUALS: Operator = new Operator('not_equals', 'not equals to');
@@ -318,7 +318,7 @@ export class StringCondition extends Condition {
 }
 
 export class StringCompareCondition extends Condition {
-  static TYPE: string = 'string_compare';
+  static TYPE = 'string_compare';
 
   static EQUALS: Operator = new Operator('equals', 'equals to');
   static NOT_EQUALS: Operator = new Operator('not_equals', 'not equals to');

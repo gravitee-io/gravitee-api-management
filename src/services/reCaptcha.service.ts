@@ -19,10 +19,10 @@ class ReCaptchaService {
   private readonly headerName: string = 'X-Recaptcha-Token';
   private readonly scriptId: string = 'reCaptcha';
   private readonly siteKey: string;
-  private readonly enabled: Boolean = false;
-  private loaded: boolean = false;
+  private readonly enabled: boolean = false;
+  private loaded = false;
   private reCaptchaToken: string;
-  private display: boolean = false;
+  private display = false;
 
   constructor(private $http, Constants) {
     'ngInject';
@@ -78,7 +78,7 @@ class ReCaptchaService {
     return this.headerName;
   }
 
-  isEnabled(): Boolean {
+  isEnabled(): boolean {
     return this.enabled;
   }
 

@@ -29,7 +29,7 @@ class DashboardService {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + dashboardId);
   }
 
-  list(referenceType: string, silent: boolean = false) {
+  list(referenceType: string, silent = false) {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + '?reference_type=' + referenceType, {
       silentCall: silent,
     });

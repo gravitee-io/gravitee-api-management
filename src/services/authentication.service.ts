@@ -56,34 +56,31 @@ class AuthenticationService {
       redirectUri: window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname),
     });
 
-    this.$auth
-      .authenticate(provider.id)
-      .then((response) => {
-        this.UserService.current().then((user) => {
-          if (provider.userLogoutEndpoint) {
-            this.$window.localStorage.setItem('user-logout-url', provider.userLogoutEndpoint);
-          }
-          this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });
+    this.$auth.authenticate(provider.id).then((response) => {
+      this.UserService.current().then((user) => {
+        if (provider.userLogoutEndpoint) {
+          this.$window.localStorage.setItem('user-logout-url', provider.userLogoutEndpoint);
+        }
+        this.$rootScope.$broadcast('graviteeUserRefresh', { user: user });
 
-          const state = response.data.state;
+        const state = response.data.state;
 
-          if (state !== undefined) {
-            const nonce = JSON.parse(this.$window.localStorage[state]);
-            if (nonce.redirectUri) {
-              this.$window.location.href = nonce.redirectUri;
-              return;
-            }
+        if (state !== undefined) {
+          const nonce = JSON.parse(this.$window.localStorage[state]);
+          if (nonce.redirectUri) {
+            this.$window.location.href = nonce.redirectUri;
+            return;
           }
+        }
 
-          const route = this.RouterService.getLastRoute();
-          if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
-            this.$state.go(route.from.name, route.fromParams);
-          } else {
-            this.$state.go('management');
-          }
-        });
-      })
-      .catch(() => {});
+        const route = this.RouterService.getLastRoute();
+        if (route.from && route.from.name !== '' && route.from.name !== 'logout' && route.from.name !== 'confirm') {
+          this.$state.go(route.from.name, route.fromParams);
+        } else {
+          this.$state.go('management');
+        }
+      });
+    });
   }
 
   nonce(length: number) {

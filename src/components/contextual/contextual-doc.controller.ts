@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ContextualDocController {
-  public isOpen: boolean = true;
+  public isOpen = true;
   public page: any = {};
   private contextualDocVisibilityKey = 'gv-contextual-doc-visibility';
 

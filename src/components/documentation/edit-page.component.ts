@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -234,7 +235,7 @@ const EditPageComponent: ng.IComponentOptions = {
         }
         return FolderSituation.FOLDER_IN_FOLDER;
       }
-      // eslint:disable-next-line:no-console
+
       console.debug('impossible to determine folder situation : ' + folderId);
     };
 

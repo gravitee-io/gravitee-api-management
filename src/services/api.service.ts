@@ -688,7 +688,7 @@ class ApiService {
   }
 
   isEndpointNameAlreadyUsed(api: any, name: string, onCreate: boolean) {
-    const endpointsName: String[] = [];
+    const endpointsName: string[] = [];
     _.forEach(api.proxy.groups, (group) => {
       endpointsName.push(group.name);
       _.forEach(group.endpoints, (endpoint) => {

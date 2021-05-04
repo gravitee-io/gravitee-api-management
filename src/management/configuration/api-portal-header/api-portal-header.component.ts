@@ -39,7 +39,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     this.settings = _.cloneDeep(Constants.env.settings);
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
-    // eslint:disable-next-line:no-empty
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     this.$onInit = () => {};
 
     this.upward = (header: ApiPortalHeader) => {

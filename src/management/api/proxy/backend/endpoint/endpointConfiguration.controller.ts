@@ -24,7 +24,7 @@ class ApiEndpointController {
   private endpoint: any;
   private initialEndpoints: any;
   private tenants: any;
-  private creation: boolean = false;
+  private creation = false;
   private types: string[];
 
   constructor(

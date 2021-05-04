@@ -26,7 +26,7 @@ interface IApisScope extends ng.IScope {
 }
 
 export class ApisController {
-  private query: string = '';
+  private query = '';
   private order: string = undefined;
   private currentOrder: string = undefined;
   private apis: any;

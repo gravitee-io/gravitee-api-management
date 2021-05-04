@@ -67,7 +67,7 @@ class ApplicationService {
     return this.$http.post(`${this.Constants.env.baseURL}/applications/` + applicationId + '/members/transfer_ownership', ownership);
   }
 
-  list(status: string = 'active'): ng.IHttpPromise<any> {
+  list(status = 'active'): ng.IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/applications/?status=${status}`);
   }
 

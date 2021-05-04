@@ -35,8 +35,7 @@ class NotificationService {
         if (response === 'ok') {
           this.$state.go(this.$state.current, {}, { reload: true });
         }
-      })
-      .catch(() => {});
+      });
   }
 
   showError(error: any, message?: string) {

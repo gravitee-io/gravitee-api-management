@@ -42,7 +42,7 @@ class AlertService {
     return this.$http.get(this.getReferenceURL(referenceType, referenceId) + 'alerts/status');
   }
 
-  listAlerts(referenceId?: string, referenceType?: Scope, withEventCounts: boolean = true): IHttpPromise<any> {
+  listAlerts(referenceId?: string, referenceType?: Scope, withEventCounts = true): IHttpPromise<any> {
     return this.$http.get(`${this.getReferenceURL(referenceType, referenceId)}alerts?event_counts=${withEventCounts}`);
   }
 
