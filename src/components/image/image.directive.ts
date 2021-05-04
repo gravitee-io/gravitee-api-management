@@ -15,7 +15,6 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import * as jdenticon from 'jdenticon';
 
 class ImageDirective {
   constructor() {

@@ -94,7 +94,7 @@ function configurationRouterConfig($stateProvider) {
       url: '/categories/new',
       component: 'category',
       resolve: {
-        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        pages: (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'MARKDOWN';
           q.published = true;
@@ -118,7 +118,7 @@ function configurationRouterConfig($stateProvider) {
         category: (CategoryService: CategoryService, $stateParams) =>
           CategoryService.get($stateParams.categoryId).then((response) => response.data),
         categoryApis: (ApiService: ApiService, $stateParams) => ApiService.list($stateParams.categoryId).then((response) => response.data),
-        pages: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+        pages: (DocumentationService: DocumentationService) => {
           const q = new DocumentationQuery();
           q.type = 'MARKDOWN';
           q.published = true;

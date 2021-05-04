@@ -104,7 +104,7 @@ class CustomUserFieldsController {
       });
   }
 
-  fieldDeletable(_field) {
+  fieldDeletable() {
     return this.canDelete;
   }
 }

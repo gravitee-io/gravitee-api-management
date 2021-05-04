@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import _ = require('lodash');
 import { Rule } from '../../../../entities/alerts/rule.metrics';
 import { AggregationCondition } from '../../../../entities/alert';
 

@@ -144,7 +144,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
 
   let xsrfToken;
 
-  const csrfInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
+  const csrfInterceptor = function ($q: angular.IQService): angular.IHttpInterceptor {
     return {
       request: function (config) {
         if (xsrfToken) {

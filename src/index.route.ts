@@ -80,7 +80,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       },
       resolve: {
         allMenuItems: ($state: StateService) => $state.get(),
-        menuItems: ($state: StateService, graviteeUser: User, Constants: any) => {
+        menuItems: ($state: StateService, graviteeUser: User) => {
           'ngInject';
           return $state
             .get()

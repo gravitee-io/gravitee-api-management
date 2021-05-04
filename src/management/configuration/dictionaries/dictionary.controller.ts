@@ -167,7 +167,7 @@ class DictionaryController {
       })
       .then((response) => {
         if (response) {
-          this.DictionaryService.delete(this.dictionary).then((response) => {
+          this.DictionaryService.delete(this.dictionary).then(() => {
             this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deleted');
             this.$state.go('management.settings.dictionaries.list', {}, { reload: true });
           });

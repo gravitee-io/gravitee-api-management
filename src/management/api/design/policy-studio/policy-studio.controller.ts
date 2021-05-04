@@ -1,5 +1,3 @@
-import { StateService } from '@uirouter/core';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -222,7 +220,7 @@ class ApiPolicyStudioController {
     this.api.properties = definition.properties;
     this.api.services = services;
     this.api.flow_mode = definition['flow-mode'];
-    this.ApiService.update(this.api).then((updatedApi) => {
+    this.ApiService.update(this.api).then(() => {
       this.NotificationService.show('Design of api has been updated');
       this.studio.saved();
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });

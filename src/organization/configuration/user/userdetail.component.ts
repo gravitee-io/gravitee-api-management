@@ -289,7 +289,7 @@ const UserDetailComponent: ng.IComponentOptions = {
         })
         .then((response) => {
           if (response) {
-            UserService.processRegistration(this.selectedUser.id, true).then((response) => {
+            UserService.processRegistration(this.selectedUser.id, true).then(() => {
               NotificationService.show('User ' + this.selectedUser.displayName + ' has been accepted.');
               $state.reload();
             });
@@ -313,7 +313,7 @@ const UserDetailComponent: ng.IComponentOptions = {
         })
         .then((response) => {
           if (response) {
-            UserService.processRegistration(this.selectedUser.id, false).then((response) => {
+            UserService.processRegistration(this.selectedUser.id, false).then(() => {
               NotificationService.show('User ' + this.selectedUser.displayName + ' has been rejected.');
               $state.reload();
             });

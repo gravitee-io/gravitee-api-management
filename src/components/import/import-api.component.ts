@@ -277,7 +277,7 @@ const ImportComponent: ng.IComponentOptions = {
       if (this.isForUpdate()) {
         // @ts-ignore
         ApiService.importSwagger(this.apiId, swagger, this.definitionVersion, { silentCall: true })
-          .then((api) => {
+          .then(() => {
             NotificationService.show('API successfully imported');
             $state.reload();
           })

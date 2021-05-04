@@ -87,7 +87,7 @@ class ApiPathMappingsController {
       );
   }
 
-  showImportPathMappingDialog(index) {
+  showImportPathMappingDialog() {
     this.$mdDialog
       .show({
         controller: DialogImportPathMappingController,

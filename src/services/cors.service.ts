@@ -55,7 +55,7 @@ class CorsService {
               ok: 'Close',
             }),
           )
-          .then((response) => {
+          .then(() => {
             allowOriginArray.splice(index, 1);
           });
       }

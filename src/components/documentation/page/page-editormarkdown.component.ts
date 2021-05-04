@@ -35,7 +35,6 @@ class ComponentCtrl implements ng.IComponentController {
     private NotificationService: NotificationService,
   ) {
     'ngInject';
-    const lastElement = Constants.env.settings.portal.uploadMedia.maxSizeInOctet;
   }
 
   $onChanges() {
@@ -73,7 +72,6 @@ class ComponentCtrl implements ng.IComponentController {
 
     const $http = this.$http;
     const Constants = this.Constants;
-    const maxSize = this.maxSize;
 
     if (Constants.env.settings.portal.uploadMedia.enabled) {
       // toolbarItems
@@ -99,7 +97,7 @@ class ComponentCtrl implements ng.IComponentController {
           exts: ['table', 'scrollSync'],
           toolbarItems: toolbarItems,
           events: {
-            change: (change) => {
+            change: () => {
               this.page.content = this.tuiEditor.getMarkdown();
             },
           },

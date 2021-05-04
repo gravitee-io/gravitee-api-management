@@ -20,7 +20,6 @@ import * as _ from 'lodash';
 import UserService from '../../services/user.service';
 import { StateParams, StateService } from '@uirouter/core';
 import ApiService from '../../services/api.service';
-import DashboardService from '../../services/dashboard.service';
 import ApplicationTypesService from '../../services/applicationTypes.service';
 import MetadataService from '../../services/metadata.service';
 import EnvironmentService from '../../services/environment.service';

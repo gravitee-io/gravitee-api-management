@@ -76,7 +76,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        alerts: (AlertService: AlertService, $stateParams) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
@@ -95,7 +95,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        alerts: (AlertService: AlertService, $stateParams) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),
@@ -114,7 +114,7 @@ function applicationsNotificationsRouterConfig($stateProvider) {
         },
       },
       resolve: {
-        alerts: (AlertService: AlertService, $stateParams) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
+        alerts: (AlertService: AlertService) => AlertService.listAlerts(undefined, 2).then((response) => response.data),
         status: (AlertService: AlertService, $stateParams) =>
           AlertService.getStatus($stateParams.apiId, 2).then((response) => response.data),
         notifiers: (NotifierService: NotifierService) => NotifierService.list().then((response) => response.data),

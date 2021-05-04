@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// eslint-disable-next-line
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
 import EnvironmentService from '../services/environment.service';

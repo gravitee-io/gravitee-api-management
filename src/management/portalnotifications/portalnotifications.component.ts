@@ -41,7 +41,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
 
     vm.delete = (notification: UserNotification) => {
       this.lastNbNotification--;
-      UserNotificationService.delete(notification).then((response) => {
+      UserNotificationService.delete(notification).then(() => {
         vm.refreshUserNotifications();
       });
     };
@@ -49,7 +49,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
     vm.deleteAll = ($event) => {
       this.lastNbNotification = -1;
       $event.preventDefault();
-      UserNotificationService.deleteAll().then((response) => {
+      UserNotificationService.deleteAll().then(() => {
         vm.refreshUserNotifications();
       });
     };

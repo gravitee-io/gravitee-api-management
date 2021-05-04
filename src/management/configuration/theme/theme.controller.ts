@@ -150,7 +150,7 @@ class ThemeController {
     };
     $scope.isDetached = false;
 
-    $scope.$on('themePictureChangeSuccess', (event, args) => {
+    $scope.$on('themePictureChangeSuccess', () => {
       if ($scope.hasPreview()) {
         setTimeout(() => {
           this.onDataChanged();
@@ -320,7 +320,7 @@ class ThemeController {
     });
   }
 
-  open = (force) => {
+  open = () => {
     if (!this.$scope.isDetached) {
       clearInterval(this.connectionRequestInterval);
       this.$scope.isDetached = true;

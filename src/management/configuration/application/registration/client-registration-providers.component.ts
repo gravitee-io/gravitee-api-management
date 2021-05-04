@@ -61,7 +61,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         })
         .then(function (response) {
           if (response) {
-            ClientRegistrationProviderService.delete(provider).then((response) => {
+            ClientRegistrationProviderService.delete(provider).then(() => {
               NotificationService.show("Client registration provider '" + provider.name + "' has been deleted");
               $state.go('management.settings.clientregistrationproviders.list', {}, { reload: true });
             });

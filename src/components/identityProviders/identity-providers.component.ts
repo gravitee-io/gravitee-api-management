@@ -68,7 +68,6 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this.delete = (provider: IdentityProvider) => {
-      const that = this;
       $mdDialog
         .show({
           controller: 'DialogConfirmController',
@@ -83,7 +82,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
         })
         .then(function (response) {
           if (response) {
-            IdentityProviderService.delete(provider).then((response) => {
+            IdentityProviderService.delete(provider).then(() => {
               NotificationService.show("Identity provider '" + provider.name + "' has been deleted");
               $state.go('organization.settings.identityproviders.list', {}, { reload: true });
             });
@@ -113,7 +112,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
             enabled: this.settings.authentication.forceLogin.enabled,
           },
         },
-      }).then((response) => {
+      }).then(() => {
         NotificationService.show('Authentication is now ' + (this.settings.authentication.forceLogin.enabled ? 'mandatory' : 'optional'));
         $state.reload();
       });
@@ -127,7 +126,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
               enabled: this.settings.authentication.localLogin.enabled,
             },
           },
-        }).then((response) => {
+        }).then(() => {
           NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
           $state.reload();
         });
@@ -138,7 +137,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
               enabled: this.settings.authentication.localLogin.enabled,
             },
           },
-        }).then((response) => {
+        }).then(() => {
           NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
           $state.reload();
         });
@@ -159,7 +158,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this._updateHandler = (identityProviderId) => {
-      return (response) => {
+      return () => {
         NotificationService.show(identityProviderId + ' is now ' + (this.activatedIdps[identityProviderId] ? 'enabled' : 'disabled'));
         if (!this.activatedIdps[identityProviderId]) {
           delete this.activatedIdps[identityProviderId];

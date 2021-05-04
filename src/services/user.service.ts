@@ -188,7 +188,7 @@ class UserService {
           that.currentUser.authenticated = true;
           return this.$q.resolve<User>(that.currentUser);
         })
-        .catch((error) => {
+        .catch(() => {
           // Returns an unauthenticated user
           this.currentUser = new User();
           this.currentUser.authenticated = false;

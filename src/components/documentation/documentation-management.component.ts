@@ -459,7 +459,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
           this.refreshCurrentFolder();
         });
       } else {
-        DocumentationService.update(this.currentTranslation, this.apiId).then((response) => {
+        DocumentationService.update(this.currentTranslation, this.apiId).then(() => {
           NotificationService.show("'" + this.currentTranslation.name + "' has been updated");
           this.refreshCurrentFolder();
         });

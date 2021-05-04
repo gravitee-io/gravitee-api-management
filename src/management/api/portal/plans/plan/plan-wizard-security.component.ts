@@ -78,7 +78,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
         const { currentTarget, regexTypes } = event.detail;
         const options = this.parent.api.resources
           .filter((resource) => regexTypes == null || new RegExp(regexTypes).test(resource.type))
-          .map((resource, index) => {
+          .map((resource) => {
             const resourceType = this.parent.resourceTypes.find((type) => type.id === resource.type);
             const row = document.createElement('gv-row');
             const picture = resourceType.icon ? resourceType.icon : null;

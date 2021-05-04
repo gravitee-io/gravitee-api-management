@@ -81,7 +81,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
         })
         .then(function (response) {
           if (response) {
-            DashboardService.delete(dashboard).then((response) => {
+            DashboardService.delete(dashboard).then(() => {
               NotificationService.show("Dashboard '" + dashboard.name + "' has been deleted");
               $state.go($state.current, {}, { reload: true });
             });

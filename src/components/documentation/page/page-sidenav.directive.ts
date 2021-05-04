@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import * as angular from 'angular';
 
 interface IMyScope extends ng.IScope {
   page: any;
@@ -42,7 +41,6 @@ const PageSidenavDirective: ng.IDirective = {
     }
 
     ctr.$timeout(function () {
-      const sidenav = angular.element(document.getElementById('sidenav'));
       const page = document.getElementById('page-content');
 
       let content: Element = undefined;
@@ -53,7 +51,6 @@ const PageSidenavDirective: ng.IDirective = {
       }
 
       if (content !== undefined) {
-        const h1Elements = content.querySelectorAll('h1');
         const h2Elements = content.querySelectorAll('h2');
 
         /*

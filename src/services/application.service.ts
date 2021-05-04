@@ -28,12 +28,6 @@ export class LogsQuery {
   order: boolean;
 }
 
-interface IMember {
-  username: string;
-  type: string;
-  role: string;
-}
-
 interface IMembership {
   id?: string;
   reference?: string;

@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import SidenavService from '../../../../components/sidenav/sidenav.service';
-
 const ApplicationHeaderComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
   },
-  controller: function (SidenavService: SidenavService) {
+  controller: function () {
     'ngInject';
 
     this.$onInit = function () {

@@ -88,21 +88,21 @@ const GroupComponent: ng.IComponentOptions = {
     };
 
     this.updateRole = (member: any) => {
-      GroupService.addOrUpdateMember(this.group.id, [member]).then((response) => {
+      GroupService.addOrUpdateMember(this.group.id, [member]).then(() => {
         NotificationService.show('Member successfully updated');
         $state.reload();
       });
     };
 
     this.associateToApis = () => {
-      GroupService.associate(this.group.id, 'api').then((response) => {
+      GroupService.associate(this.group.id, 'api').then(() => {
         $state.reload();
         NotificationService.show("Group '" + this.group.name + "' has been associated to all APIs");
       });
     };
 
     this.associateToApplications = () => {
-      GroupService.associate(this.group.id, 'application').then((response) => {
+      GroupService.associate(this.group.id, 'application').then(() => {
         $state.reload();
         NotificationService.show("Group '" + this.group.name + "' has been associated to all applications");
       });
@@ -202,7 +202,7 @@ const GroupComponent: ng.IComponentOptions = {
         .then(
           (members) => {
             if (members) {
-              GroupService.addOrUpdateMember(this.group.id, members).then((response) => {
+              GroupService.addOrUpdateMember(this.group.id, members).then(() => {
                 NotificationService.show('Member(s) successfully added');
                 $state.reload();
               });

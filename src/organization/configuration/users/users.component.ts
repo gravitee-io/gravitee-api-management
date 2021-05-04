@@ -59,7 +59,7 @@ const UsersComponent: ng.IComponentOptions = {
         })
         .then((response) => {
           if (response) {
-            UserService.remove(user.id).then((response) => {
+            UserService.remove(user.id).then(() => {
               NotificationService.show('User ' + user.displayName + ' has been removed.');
               $state.reload();
             });

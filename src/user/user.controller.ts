@@ -106,7 +106,7 @@ class UserController {
       })
       .then(function (response) {
         if (response) {
-          return that.UserService.removeCurrentUser().then((response) => {
+          return that.UserService.removeCurrentUser().then(() => {
             that.$state.go('logout');
             that.NotificationService.show('You have been successfully deleted');
           });

@@ -18,7 +18,6 @@ import NotificationService from '../../services/notification.service';
 import DocumentationService, {
   DocumentationQuery,
   FolderSituation,
-  Page,
   PageType,
   SystemFolderName,
 } from '../../services/documentation.service';

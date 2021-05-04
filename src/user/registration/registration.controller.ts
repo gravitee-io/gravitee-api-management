@@ -1,7 +1,6 @@
 import ReCaptchaService from '../../services/reCaptcha.service';
 import NotificationService from '../../services/notification.service';
 import UserService from '../../services/user.service';
-import CustomUserFieldsService from '../../services/custom-user-fields.service';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -43,7 +42,6 @@ class RegistrationController {
   register() {
     const scope = this.$scope;
     const notificationService = this.NotificationService;
-    const self = this;
 
     this.ReCaptchaService.execute('register').then(() =>
       this.UserService.register(this.user).then(

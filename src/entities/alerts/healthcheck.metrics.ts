@@ -17,7 +17,7 @@
 import { CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
 import TenantService from '../../services/tenant.service';
 
-const statusloader = (type: number, id: string, $injector: any) => {
+const statusloader = () => {
   const events: Tuple[] = [];
   events.push(new Tuple('DOWN', 'Down'));
   events.push(new Tuple('TRANSITIONALLY_DOWN', 'Transitionally down'));

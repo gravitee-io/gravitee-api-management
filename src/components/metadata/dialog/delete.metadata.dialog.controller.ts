@@ -43,15 +43,15 @@ function DeleteMetadataDialogController(
 
   this.delete = () => {
     if ($stateParams.apiId) {
-      ApiService.deleteMetadata($stateParams.apiId, metadata.key).then((response) => {
+      ApiService.deleteMetadata($stateParams.apiId, metadata.key).then(() => {
         $mdDialog.hide(true);
       });
     } else if ($stateParams.applicationId) {
-      ApplicationService.deleteMetadata($stateParams.applicationId, metadata.key).then((response) => {
+      ApplicationService.deleteMetadata($stateParams.applicationId, metadata.key).then(() => {
         $mdDialog.hide(true);
       });
     } else {
-      MetadataService.delete(metadata).then((response) => {
+      MetadataService.delete(metadata).then(() => {
         $mdDialog.hide(true);
       });
     }

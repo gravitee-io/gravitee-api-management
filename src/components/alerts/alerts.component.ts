@@ -62,7 +62,7 @@ const AlertsComponent: ng.IComponentOptions = {
         })
         .then(function (response) {
           if (response) {
-            AlertService.delete(alert).then((response) => {
+            AlertService.delete(alert).then(() => {
               NotificationService.show("Alert '" + alert.name + "' has been deleted");
               $state.go($state.current, {}, { reload: true });
             });

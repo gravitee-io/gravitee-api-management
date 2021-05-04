@@ -252,11 +252,6 @@ class ApiService {
   }
 
   importSwagger(apiId: string, swaggerDescriptor: string, definitionVersion?: string, config?): ng.IPromise<any> {
-    const url =
-      `${this.Constants.env.baseURL}/apis/` +
-      (apiId || '') +
-      '/import/swagger' +
-      (definitionVersion ? '?definitionVersion=' + definitionVersion : '');
     const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
     if (apiId) {
       return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/import/swagger${params}`, swaggerDescriptor, config);

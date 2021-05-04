@@ -44,7 +44,7 @@ class NewsletterSubscriptionController {
 
   onSubscribe({ detail }) {
     if (detail && detail.trim() !== '') {
-      this.UserService.subscribeNewsletter(detail).then((user) => {
+      this.UserService.subscribeNewsletter(detail).then(() => {
         this.NotificationService.show('Your newsletter preference has been saved.');
         this._updateState();
       });

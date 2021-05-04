@@ -145,7 +145,7 @@ class ApiListPlansController {
     this.$state.go('management.apis.detail.portal.plans.plan', { planId: plan.id });
   }
 
-  close(plan, ev) {
+  close(plan) {
     this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then((response) => {
       const subscriptions = response.data.page.size;
       let msg = '';
@@ -196,7 +196,7 @@ class ApiListPlansController {
     });
   }
 
-  deprecate(plan, ev) {
+  deprecate(plan) {
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',

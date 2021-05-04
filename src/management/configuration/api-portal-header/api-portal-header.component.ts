@@ -44,7 +44,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
 
     this.upward = (header: ApiPortalHeader) => {
       header.order = header.order - 1;
-      ApiHeaderService.update(header).then((response) => {
+      ApiHeaderService.update(header).then(() => {
         NotificationService.show("Header '" + header.name + "' saved");
         ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
       });
@@ -52,7 +52,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
 
     this.downward = (header: ApiPortalHeader) => {
       header.order = header.order + 1;
-      ApiHeaderService.update(header).then((response) => {
+      ApiHeaderService.update(header).then(() => {
         NotificationService.show("Header '" + header.name + "' saved");
         ApiHeaderService.list().then((response) => (this.apiPortalHeaders = response.data));
       });
@@ -106,7 +106,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
         })
         .then(function (response) {
           if (response) {
-            ApiHeaderService.delete(header).then((response) => {
+            ApiHeaderService.delete(header).then(() => {
               NotificationService.show("Header '" + header.name + "' deleted");
               ApiHeaderService.list().then((response) => (that.apiPortalHeaders = response.data));
             });

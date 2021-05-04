@@ -15,7 +15,6 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import RoleService from '../../services/role.service';
 import DocumentationService, { FolderSituation, PageType, SystemFolderName } from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
@@ -52,7 +51,6 @@ const EditPageComponent: ng.IComponentOptions = {
     $scope: IPageScope,
     $http: ng.IHttpService,
     Constants: any,
-    RoleService: RoleService,
   ) {
     'ngInject';
     this.apiId = $state.params.apiId;
@@ -184,7 +182,7 @@ const EditPageComponent: ng.IComponentOptions = {
           this.refreshTranslations();
         });
       } else {
-        DocumentationService.update(this.currentTranslation, this.apiId).then((response: any) => {
+        DocumentationService.update(this.currentTranslation, this.apiId).then(() => {
           NotificationService.show("'" + this.currentTranslation.name + "' has been updated");
           this.refreshTranslations();
         });
@@ -515,7 +513,7 @@ const EditPageComponent: ng.IComponentOptions = {
             fd.append('fileName', fileName);
 
             DocumentationService.addMedia(fd, that.page.id, that.apiId)
-              .then((response) => that.reset())
+              .then(() => that.reset())
               .then(() => NotificationService.show(fileName + ' has been attached'));
           }
         });
@@ -541,7 +539,7 @@ const EditPageComponent: ng.IComponentOptions = {
                 !(media.mediaHash === resource.hash && media.mediaName === resource.fileName && media.attachedAt === resource.createAt),
             );
             DocumentationService.update(that.page, that.apiId)
-              .then((response) => that.reset())
+              .then(() => that.reset())
               .then(() => NotificationService.show(resource.fileName + ' has been removed from page'));
           }
         });

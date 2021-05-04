@@ -120,7 +120,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
           vm.resolvedHookScope,
           vm.selectedNotificationSetting.referenceId,
           vm.selectedNotificationSetting.id,
-        ).then((response) => {
+        ).then(() => {
           NotificationService.show('Notification deleted with success');
           vm.notificationSettings = _.filter(vm.notificationSettings, (n: any) => {
             return vm.selectedNotificationSetting.id !== n.id;

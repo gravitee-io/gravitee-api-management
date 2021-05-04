@@ -145,7 +145,7 @@ const AlertComponent: ng.IComponentOptions = {
     };
 
     this.associateToApis = () => {
-      AlertService.associate(this.alert, 'api').then((response) => {
+      AlertService.associate(this.alert, 'api').then(() => {
         $state.reload();
         NotificationService.show("Alert '" + this.alert.name + "' has been associated to all APIs");
       });

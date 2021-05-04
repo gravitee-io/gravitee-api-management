@@ -33,22 +33,15 @@ export class NodeType {
 export class NodeMetrics extends Metrics {
   static NODE_HOSTNAME: NodeMetrics = new NodeMetrics('node.hostname', 'Hostname', [StringCondition.TYPE], true);
 
-  static NODE_APPLICATION: NodeMetrics = new NodeMetrics(
-    'node.application',
-    'Type',
-    [StringCondition.TYPE],
-    true,
-    undefined,
-    (type: number, id: string, $injector: any) => {
-      const applications: Tuple[] = [];
+  static NODE_APPLICATION: NodeMetrics = new NodeMetrics('node.application', 'Type', [StringCondition.TYPE], true, undefined, () => {
+    const applications: Tuple[] = [];
 
-      NodeType.TYPES.forEach((app) => {
-        applications.push(new Tuple(app.application, app.name));
-      });
+    NodeType.TYPES.forEach((app) => {
+      applications.push(new Tuple(app.application, app.name));
+    });
 
-      return applications;
-    },
-  );
+    return applications;
+  });
 
   static OS_CPU_PERCENT: NodeMetrics = new NodeMetrics('os.cpu.percent', 'OS CPU (%)', [
     ThresholdCondition.TYPE,
@@ -107,7 +100,7 @@ export class NodeLifecycleMetrics extends Metrics {
     [StringCondition.TYPE],
     true,
     undefined,
-    (type: number, id: string, $injector: any) => {
+    () => {
       const applications: Tuple[] = [];
 
       NodeType.TYPES.forEach((app) => {
@@ -118,19 +111,12 @@ export class NodeLifecycleMetrics extends Metrics {
     },
   );
 
-  static NODE_EVENT: NodeLifecycleMetrics = new NodeLifecycleMetrics(
-    'node.event',
-    'Event',
-    [StringCondition.TYPE],
-    true,
-    undefined,
-    (type: number, id: string, $injector: any) => {
-      const events: Tuple[] = [];
-      events.push(new Tuple('NODE_START', 'Start'));
-      events.push(new Tuple('NODE_STOP', 'Stop'));
-      return events;
-    },
-  );
+  static NODE_EVENT: NodeLifecycleMetrics = new NodeLifecycleMetrics('node.event', 'Event', [StringCondition.TYPE], true, undefined, () => {
+    const events: Tuple[] = [];
+    events.push(new Tuple('NODE_START', 'Start'));
+    events.push(new Tuple('NODE_STOP', 'Stop'));
+    return events;
+  });
 
   static METRICS: NodeLifecycleMetrics[] = [
     NodeLifecycleMetrics.NODE_HOSTNAME,
@@ -148,7 +134,7 @@ export class NodeHealthcheckMetrics extends Metrics {
     [StringCondition.TYPE],
     undefined,
     undefined,
-    (type: number, id: string, $injector: any) => {
+    () => {
       const applications: Tuple[] = [];
 
       NodeType.TYPES.forEach((app) => {
@@ -165,7 +151,7 @@ export class NodeHealthcheckMetrics extends Metrics {
     [StringCondition.TYPE],
     undefined,
     undefined,
-    (type: number, id: string, $injector: any) => {
+    () => {
       const events: Tuple[] = [];
       events.push(new Tuple('true', 'Healthy'));
       events.push(new Tuple('false', 'Unhealthy'));
