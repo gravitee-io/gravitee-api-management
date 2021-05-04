@@ -59,7 +59,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
             confirmButton: 'Delete',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             ClientRegistrationProviderService.delete(provider).then(() => {
               NotificationService.show("Client registration provider '" + provider.name + "' has been deleted");

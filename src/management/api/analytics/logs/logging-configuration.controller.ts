@@ -201,7 +201,7 @@ class ApiLoggingConfigurationController {
             this.$scope.formLogging.$setDirty();
           }
         },
-        function () {
+        () => {
           // Cancel of the dialog
         },
       );

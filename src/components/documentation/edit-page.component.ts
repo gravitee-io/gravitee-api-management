@@ -202,7 +202,7 @@ const EditPageComponent: ng.IComponentOptions = {
             confirmButton: 'Remove',
           },
         })
-        .then(function (response: any) {
+        .then((response: any) => {
           if (response) {
             DocumentationService.remove(page.id, that.apiId).then(() => {
               NotificationService.show('Translation ' + page.name + ' has been removed');
@@ -501,7 +501,7 @@ const EditPageComponent: ng.IComponentOptions = {
             confirmButton: 'Add',
           },
         })
-        .then(function (response: any) {
+        .then((response: any) => {
           if (response.file) {
             // upload new media to portal or api
             const fd = new FormData();
@@ -532,7 +532,7 @@ const EditPageComponent: ng.IComponentOptions = {
             confirmButton: 'Remove',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             that.page.attached_media = that.page.attached_media.filter(
               (media) =>

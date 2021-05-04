@@ -90,7 +90,7 @@ class ThemeController {
       return [];
     };
 
-    $scope.$on('accordion:onReady', function () {
+    $scope.$on('accordion:onReady', () => {
       setTimeout(() => {
         if ($scope.hasPreview()) {
           $scope.accordion.toggle('image');

@@ -149,9 +149,9 @@ class UserService {
           that.currentUser = Object.assign(new User(), response[0].data);
 
           that.currentUser.userPermissions = [];
-          _.forEach(that.currentUser.roles, function (role) {
-            _.forEach(_.keys(role.permissions), function (permission) {
-              _.forEach(role.permissions[permission], function (right) {
+          _.forEach(that.currentUser.roles, (role) => {
+            _.forEach(_.keys(role.permissions), (permission) => {
+              _.forEach(role.permissions[permission], (right) => {
                 if (role.scope === 'ORGANIZATION') {
                   const permissionName = role.scope + '-' + permission + '-' + right;
                   that.currentUser.userPermissions.push(_.toLower(permissionName));
@@ -166,16 +166,16 @@ class UserService {
 
             if (_.includes(apiOrApplicationResponse.config.url, 'applications')) {
               this.currentUser.userApplicationPermissions = [];
-              _.forEach(_.keys(apiOrApplicationResponse.data), function (permission) {
-                _.forEach(apiOrApplicationResponse.data[permission], function (right) {
+              _.forEach(_.keys(apiOrApplicationResponse.data), (permission) => {
+                _.forEach(apiOrApplicationResponse.data[permission], (right) => {
                   const permissionName = 'APPLICATION-' + permission + '-' + right;
                   that.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
                 });
               });
             } else if (_.includes(apiOrApplicationResponse.config.url, 'apis')) {
               this.currentUser.userApiPermissions = [];
-              _.forEach(_.keys(apiOrApplicationResponse.data), function (permission) {
-                _.forEach(apiOrApplicationResponse.data[permission], function (right) {
+              _.forEach(_.keys(apiOrApplicationResponse.data), (permission) => {
+                _.forEach(apiOrApplicationResponse.data[permission], (right) => {
                   const permissionName = 'API-' + permission + '-' + right;
                   that.currentUser.userApiPermissions.push(_.toLower(permissionName));
                 });
@@ -210,9 +210,9 @@ class UserService {
     const rights: string[] = this.RoleService.listRights();
     this.RoleService.listScopes().then((permissionsByScope) => {
       const allPermissions: string[] = [];
-      _.forEach(permissionsByScope, function (permissions, scope) {
-        _.forEach(permissions, function (permission) {
-          _.forEach(rights, function (right) {
+      _.forEach(permissionsByScope, (permissions, scope) => {
+        _.forEach(permissions, (permission) => {
+          _.forEach(rights, (right) => {
             const permissionName = scope + '-' + permission + '-' + right;
             allPermissions.push(_.toLower(permissionName));
           });

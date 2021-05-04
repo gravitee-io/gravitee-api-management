@@ -311,7 +311,7 @@ function apisPortalRouterConfig($stateProvider) {
       resolve: {
         metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
         metadata: function ($stateParams, ApiService) {
-          return ApiService.listApiMetadata($stateParams.apiId).then(function (response) {
+          return ApiService.listApiMetadata($stateParams.apiId).then((response) => {
             return response.data;
           });
         },

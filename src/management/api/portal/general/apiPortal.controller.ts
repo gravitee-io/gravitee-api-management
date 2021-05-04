@@ -221,7 +221,7 @@ class ApiPortalController {
   $onInit() {
     this.computeQualityMetrics();
     const self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
+    this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
       self.api.picture = args.image;
       self.formApi.$setDirty();
     });
@@ -287,10 +287,10 @@ class ApiPortalController {
     };
 
     const promise = this.$mdEditDialog.large(editDialog);
-    promise.then(function (ctrl) {
+    promise.then((ctrl) => {
       const input = ctrl.getInput();
 
-      input.$viewChangeListeners.push(function () {
+      input.$viewChangeListeners.push(() => {
         input.$setValidity('test', input.$modelValue !== 'test');
       });
     });
@@ -311,10 +311,10 @@ class ApiPortalController {
           confirmButton: 'Delete',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
-          _(_that.$scope.selected).forEach(function (endpoint) {
-            _(_that.api.proxy.endpoints).forEach(function (endpoint2, index, object) {
+          _(_that.$scope.selected).forEach((endpoint) => {
+            _(_that.api.proxy.endpoints).forEach((endpoint2, index, object) => {
               if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
                 // @ts-ignore
                 object.splice(index, 1);
@@ -352,7 +352,7 @@ class ApiPortalController {
           confirmButton: 'Yes, delete this API',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           that.ApiService.delete(id).then(() => {
             that.NotificationService.show('API ' + that.initialApi.name + ' has been removed');
@@ -399,7 +399,7 @@ class ApiPortalController {
             definitionVersion: this.$scope.$parent.apiCtrl.api.gravitee,
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             that.onApiUpdate(response.data);
           }

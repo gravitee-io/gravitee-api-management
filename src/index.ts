@@ -138,7 +138,7 @@ function initComponents() {
 }
 
 function bootstrapApplication() {
-  angular.element(document).ready(function () {
+  angular.element(document).ready(() => {
     angular.bootstrap(document, ['gravitee-management'], { strictDi: true });
   });
 }

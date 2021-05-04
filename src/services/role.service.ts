@@ -52,7 +52,7 @@ class RoleService {
 
   list(scope: string) {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + scope + '/roles').then((response) => {
-      return _.map(response.data, function (role: any) {
+      return _.map(response.data, (role: any) => {
         role.scope = _.toUpper(role.scope);
         return role;
       });

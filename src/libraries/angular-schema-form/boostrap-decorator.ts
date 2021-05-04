@@ -134,7 +134,7 @@ angular
       });
     },
   ])
-  .directive('sfFieldset', function () {
+  .directive('sfFieldset', () => {
     return {
       transclude: true,
       scope: true,

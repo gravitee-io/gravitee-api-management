@@ -35,7 +35,7 @@ class DashboardFilterController {
     this.filters = [];
 
     const that = this;
-    $rootScope.$on('filterItemChange', function (event, filter) {
+    $rootScope.$on('filterItemChange', (event, filter) => {
       if (filter.mode === 'add') {
         that.addFieldFilter(filter);
       } else if (filter.mode === 'remove') {

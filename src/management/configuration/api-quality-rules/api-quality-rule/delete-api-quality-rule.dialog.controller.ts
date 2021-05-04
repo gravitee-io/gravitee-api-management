@@ -31,7 +31,7 @@ function DeleteApiQualityRuleDialogController(
   };
 
   this.ok = function () {
-    QualityRuleService.delete(qualityRule).then(function () {
+    QualityRuleService.delete(qualityRule).then(() => {
       $mdDialog.hide(true);
     });
   };

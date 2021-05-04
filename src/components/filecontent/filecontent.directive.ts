@@ -20,11 +20,11 @@ const FileContentDirective: ng.IDirective = {
     filename: '=',
   },
   link: function (scope: any, element: ng.IRootElementService) {
-    element.bind('change', function (changeEvent: any) {
+    element.bind('change', (changeEvent: any) => {
       const reader = new FileReader();
       const file = changeEvent.target.files[0];
       reader.onload = function (loadEvent: any) {
-        scope.$apply(function () {
+        scope.$apply(() => {
           scope.filecontent = loadEvent.target.result;
           scope.filename = file.name;
         });

@@ -46,7 +46,7 @@ class ReCaptchaService {
           script.src = `https://www.google.com/recaptcha/api.js?render=${this.siteKey}`;
           script.async = true;
           script.onload = () => {
-            grecaptcha.ready(function () {
+            grecaptcha.ready(() => {
               resolve();
               self.loaded = true;
               self.displayOrHideBadge();

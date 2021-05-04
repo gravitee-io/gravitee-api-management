@@ -170,7 +170,7 @@ class ApplicationSubscriptionsController {
           confirmButton: 'Renew',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           _this.ApplicationService.renewApiKey(applicationId, subscription.id).then(() => {
             _this.NotificationService.show('A new API Key has been generated');
@@ -193,7 +193,7 @@ class ApplicationSubscriptionsController {
           confirmButton: 'Revoke',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           _this.ApplicationService.revokeApiKey(_this.application.id, subscription.id, apiKey).then(() => {
             _this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');

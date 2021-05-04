@@ -638,7 +638,7 @@ graviteeManagementModule.config(configurationRouterConfig);
 graviteeManagementModule.config(globalNotificationsRouterConfig);
 graviteeManagementModule.config(interceptorConfig);
 graviteeManagementModule.config(delegatorConfig);
-graviteeManagementModule.config(function ($mdThemingProvider: angular.material.IThemingProvider) {
+graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingProvider) => {
   $mdThemingProvider.definePalette('gravitee', {
     '0': '28444F',
     '50': '28444F',
@@ -667,7 +667,7 @@ graviteeManagementModule.config(function ($mdThemingProvider: angular.material.I
   $mdThemingProvider.theme('toast-success');
   $mdThemingProvider.theme('toast-error');
 });
-graviteeManagementModule.config(function ($showdownProvider) {
+graviteeManagementModule.config(($showdownProvider) => {
   $showdownProvider.setOption('tables', true);
   $showdownProvider.loadExtension('highlightjs');
   $showdownProvider.loadExtension('prettify');
@@ -1096,7 +1096,7 @@ graviteeManagementModule.controller('UserAutocompleteController', UserAutocomple
 graviteeManagementModule.component('gvQuickTimeRange', QuickTimeRangeComponent);
 graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeController);
 
-graviteeManagementModule.filter('humanDateFilter', function () {
+graviteeManagementModule.filter('humanDateFilter', () => {
   return function (input) {
     if (input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {
@@ -1107,7 +1107,7 @@ graviteeManagementModule.filter('humanDateFilter', function () {
     }
   };
 });
-graviteeManagementModule.filter('humanDatetimeFilter', function () {
+graviteeManagementModule.filter('humanDatetimeFilter', () => {
   return function (input) {
     if (input) {
       if (!moment().subtract(1, 'weeks').isAfter(input)) {
@@ -1118,19 +1118,19 @@ graviteeManagementModule.filter('humanDatetimeFilter', function () {
     }
   };
 });
-graviteeManagementModule.filter('datetimeFilter', function () {
+graviteeManagementModule.filter('datetimeFilter', () => {
   return function (input) {
     if (input) {
       return moment(input).format('D MMM YYYY HH:mm:ss');
     }
   };
 });
-graviteeManagementModule.filter('apiKeyFilter', function () {
+graviteeManagementModule.filter('apiKeyFilter', () => {
   return function (keys) {
     return keys;
   };
 });
-graviteeManagementModule.filter('floor', function () {
+graviteeManagementModule.filter('floor', () => {
   return function (input) {
     return Math.floor(input);
   };

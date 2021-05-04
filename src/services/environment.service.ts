@@ -30,7 +30,7 @@ class EnvironmentService {
   analytics(request) {
     let url = this.Constants.env.baseURL + '/analytics?';
     const keys = Object.keys(request);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined) {
         url += key + '=' + val + '&';

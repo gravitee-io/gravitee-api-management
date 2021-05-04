@@ -98,7 +98,7 @@ class ApplicationGeneralController {
           confirmButton: 'Yes, delete this application',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           that.delete();
         }

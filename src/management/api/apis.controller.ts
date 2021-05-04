@@ -198,7 +198,7 @@ export class ApisController {
         },
         clickOutsideToClose: true,
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           that.$state.go('apis.admin.general', { apiId: response.data.id }, { reload: true });
         }

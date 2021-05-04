@@ -23,7 +23,7 @@ angular
     },
   ])
 
-  .directive('codemirrorButtons', function () {
+  .directive('codemirrorButtons', () => {
     return {
       controller: [
         '$scope',

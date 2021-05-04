@@ -24,14 +24,14 @@ const DiffDirective: ng.IDirective = {
     newValue: '=',
   },
   link: (scope: any, elem) => {
-    scope.$watch('oldValue', function () {
+    scope.$watch('oldValue', () => {
       const oldValue = scope.oldValue;
       const newValue = scope.newValue;
 
       if (oldValue && newValue) {
         elem.html('');
         const diff = JsDiff.diffJson(oldValue, newValue);
-        diff.forEach(function (part) {
+        diff.forEach((part) => {
           // green for additions, red for deletions
           // grey for common parts
 

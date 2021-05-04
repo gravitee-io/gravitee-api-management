@@ -21,7 +21,7 @@ class AutofocusDirective {
       restrict: 'A',
       require: 'ngModel',
       link: function (scope, elm) {
-        setTimeout(function () {
+        setTimeout(() => {
           elm[0].focus();
         });
       },

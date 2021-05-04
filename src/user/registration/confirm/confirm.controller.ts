@@ -44,7 +44,7 @@ class ConfirmController {
           password: $scope.confirmPassword,
           firstname: $scope.user.firstname,
           lastname: $scope.user.lastname,
-        }).then(function () {
+        }).then(() => {
           $scope.formConfirm.$setPristine();
           NotificationService.show('Your account has been created successfully, you can now login...');
           $state.go('login');

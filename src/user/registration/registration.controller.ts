@@ -45,11 +45,11 @@ class RegistrationController {
 
     this.ReCaptchaService.execute('register').then(() =>
       this.UserService.register(this.user).then(
-        function () {
+        () => {
           scope.formRegistration.$setPristine();
           notificationService.show('Thank you for registering, you will receive an e-mail confirmation in few minutes');
         },
-        function (e) {
+        (e) => {
           notificationService.showError(e);
         },
       ),

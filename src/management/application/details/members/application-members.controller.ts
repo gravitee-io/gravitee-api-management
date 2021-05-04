@@ -50,7 +50,7 @@ class ApplicationMembersController {
     'ngInject';
 
     const that = this;
-    RoleService.list('APPLICATION').then(function (roles) {
+    RoleService.list('APPLICATION').then((roles) => {
       that.roles = roles;
       that.newPORoles = _.filter(roles, (role: any) => {
         return role.name !== 'PRIMARY_OWNER';
@@ -87,7 +87,7 @@ class ApplicationMembersController {
     this.userFilterFn = (user: any) => {
       return (
         user.id === undefined ||
-        _.findIndex(this.members, function (member: any) {
+        _.findIndex(this.members, (member: any) => {
           return member.id === user.id && member.role === 'PRIMARY_OWNER';
         }) === -1
       );
@@ -129,7 +129,7 @@ class ApplicationMembersController {
           confirmButton: 'Remove',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           that.deleteMember(member);
         }
@@ -151,12 +151,12 @@ class ApplicationMembersController {
         },
       })
       .then(
-        function (application) {
+        (application) => {
           if (application) {
             that.$state.go('management.applications.application.members', { applicationId: that.application.id }, { reload: true });
           }
         },
-        function () {
+        () => {
           // You cancelled the dialog
         },
       );

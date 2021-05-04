@@ -28,7 +28,7 @@ const MetadataValidatorDirective: IDirective = {
     ngPattern: '=',
   },
   link: function (scope: IMyScope) {
-    scope.$watch('format', function (newFormat) {
+    scope.$watch('format', (newFormat) => {
       switch (newFormat) {
         case 'numeric':
           scope.ngPattern = /^((\$\{.+\})|\d+(\.\d{1,2})?)$/;

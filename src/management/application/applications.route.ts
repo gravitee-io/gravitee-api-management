@@ -110,8 +110,8 @@ function applicationsConfig($stateProvider) {
         onEnter: function (UserService, resolvedApplicationPermissions) {
           UserService.currentUser.userApplicationPermissions = [];
           if (resolvedApplicationPermissions && resolvedApplicationPermissions.data) {
-            _.forEach(_.keys(resolvedApplicationPermissions.data), function (permission) {
-              _.forEach(resolvedApplicationPermissions.data[permission], function (right) {
+            _.forEach(_.keys(resolvedApplicationPermissions.data), (permission) => {
+              _.forEach(resolvedApplicationPermissions.data[permission], (right) => {
                 const permissionName = 'APPLICATION-' + permission + '-' + right;
                 UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
               });
@@ -150,7 +150,7 @@ function applicationsConfig($stateProvider) {
       resolve: {
         metadataFormats: (MetadataService: MetadataService) => MetadataService.listFormats(),
         metadata: function ($stateParams, ApplicationService) {
-          return ApplicationService.listMetadata($stateParams.applicationId).then(function (response) {
+          return ApplicationService.listMetadata($stateParams.applicationId).then((response) => {
             return response.data;
           });
         },

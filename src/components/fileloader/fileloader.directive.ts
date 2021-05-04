@@ -19,7 +19,7 @@ const FileLoaderDirective: ng.IDirective = {
     fileloader: '=',
   },
   link: function (scope: any, element: ng.IRootElementService) {
-    element.bind('change', function (changeEvent: any) {
+    element.bind('change', (changeEvent: any) => {
       scope.fileloader = changeEvent.target.files[0];
       scope.$apply();
     });

@@ -130,7 +130,7 @@ class ApiPropertiesController {
         template: require('./add-property.dialog.html'),
         clickOutsideToClose: true,
       })
-      .then(function (property) {
+      .then((property) => {
         if (that.api.properties === undefined) {
           that.api.properties = [];
         }

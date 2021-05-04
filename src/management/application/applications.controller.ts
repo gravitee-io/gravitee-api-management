@@ -42,7 +42,7 @@ class ApplicationsController {
     this.selectedApplications = [];
 
     const that = this;
-    UserService.current().then(function (user) {
+    UserService.current().then((user) => {
       if (UserService.isUserHasPermissions(['environment-application-c'])) {
         that.subMessage = 'Start creating an application';
       } else if (!user.username) {
@@ -106,7 +106,7 @@ class ApplicationsController {
             'Every subscription belonging to this application will be restored in PENDING status. Subscriptions can be reactivated as per requirements.',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           that.restoreApplication(applicationId);
         }

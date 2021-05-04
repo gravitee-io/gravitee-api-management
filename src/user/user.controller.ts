@@ -104,7 +104,7 @@ class UserController {
           confirmButton: 'Yes, delete my account',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           return that.UserService.removeCurrentUser().then(() => {
             that.$state.go('logout');

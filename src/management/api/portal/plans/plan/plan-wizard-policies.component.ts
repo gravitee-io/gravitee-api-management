@@ -132,7 +132,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
             confirmButton: 'Remove',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             that.editablePolicy = null;
             that.parent.planPolicies.splice(index, 1);

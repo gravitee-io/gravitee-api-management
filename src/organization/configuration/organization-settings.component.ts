@@ -79,7 +79,7 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
       }
     }
 
-    $transitions.onBefore({}, function (trans) {
+    $transitions.onBefore({}, (trans) => {
       if (trans.to().name === 'organization.settings') {
         return trans.router.stateService.target(getDefaultSettingsMenu());
       }

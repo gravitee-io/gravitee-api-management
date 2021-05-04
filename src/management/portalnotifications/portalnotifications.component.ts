@@ -54,7 +54,7 @@ const PortalNotificationsComponent: ng.IComponentOptions = {
       });
     };
 
-    $scope.$on('graviteeUserCancelScheduledServices', function () {
+    $scope.$on('graviteeUserCancelScheduledServices', () => {
       vm.cancelRefreshUserNotifications();
     });
 

@@ -31,7 +31,7 @@ class InstanceEnvironmentController {
 
   sort(systemProperties) {
     const systemPropertiesProvider = {};
-    _.forEach(_.sortBy(_.keys(systemProperties)), function (key) {
+    _.forEach(_.sortBy(_.keys(systemProperties)), (key) => {
       systemPropertiesProvider[key] = systemProperties[key];
     });
     return systemPropertiesProvider;

@@ -18,7 +18,7 @@ function AddTopApiDialogController($mdDialog: angular.material.IDialogService, A
   'ngInject';
 
   ApiService.list().then((response) => {
-    this.apis = _.filter(response.data, function (api: any) {
+    this.apis = _.filter(response.data, (api: any) => {
       return !_.includes(_.map(topApis, 'api'), api.id);
     });
   });

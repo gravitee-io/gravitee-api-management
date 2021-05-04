@@ -88,15 +88,15 @@ export const NavbarComponent: ng.IComponentOptions = {
       }
     };
 
-    $scope.$on('graviteeUserTaskRefresh', function () {
+    $scope.$on('graviteeUserTaskRefresh', () => {
       vm.refreshUserTasks();
     });
 
-    $scope.$on('graviteeUserCancelScheduledServices', function () {
+    $scope.$on('graviteeUserCancelScheduledServices', () => {
       vm.cancelRefreshUserTasks();
     });
 
-    $transitions.onFinish({}, function (trans) {
+    $transitions.onFinish({}, (trans) => {
       vm.displayContextualDocumentationButton =
         !trans.to().name.startsWith('portal') &&
         !trans.to().name.startsWith('support') &&

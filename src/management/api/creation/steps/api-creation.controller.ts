@@ -227,7 +227,7 @@ class ApiCreationController {
 
   _createAPI(deployAndStart, readyForReview?: boolean) {
     // clear API pages json format
-    _.forEach(this.api.pages, function (page) {
+    _.forEach(this.api.pages, (page) => {
       if (!page.name) {
         page.name = page.fileName;
       }
@@ -237,7 +237,7 @@ class ApiCreationController {
     });
 
     // handle plan publish state
-    _.forEach(this.api.plans, function (plan) {
+    _.forEach(this.api.plans, (plan) => {
       plan.status = deployAndStart ? 'PUBLISHED' : 'STAGING';
     });
 
@@ -506,7 +506,7 @@ class ApiCreationController {
     });
 
     const that = this;
-    this.$mdDialog.show(alert).then(function () {
+    this.$mdDialog.show(alert).then(() => {
       _.remove(that.api.pages, (_page: any) => {
         return _page.fileName === page.fileName;
       });

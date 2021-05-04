@@ -88,9 +88,9 @@ class CategoriesController {
           category: category,
         },
       })
-      .then(function (deleteCategory) {
+      .then((deleteCategory) => {
         if (deleteCategory) {
-          that.CategoryService.delete(category).then(function () {
+          that.CategoryService.delete(category).then(() => {
             that.NotificationService.show("Category '" + category.name + "' deleted with success");
             _.remove(that.categories, category);
           });

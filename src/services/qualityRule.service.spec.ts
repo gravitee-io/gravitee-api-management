@@ -27,7 +27,7 @@ describe('QualityRuleService', () => {
     $httpBackend = _$httpBackend_;
   }));
 
-  afterEach(function () {
+  afterEach(() => {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   });

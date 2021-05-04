@@ -82,7 +82,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
               // session expired
               notificationService.showError(error, 'Session expired, redirecting to home...');
               const redirectUri = $location.$$path;
-              $timeout(function () {
+              $timeout(() => {
                 userService.removeCurrentUserData();
                 $injector.get('$rootScope').$broadcast('graviteeUserRefresh', {});
                 $injector.get('$rootScope').$broadcast('graviteeUserCancelScheduledServices');
@@ -104,7 +104,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
           interceptorFuture.push(() => notificationService.showError(error, errorMessage));
           if (error.status === 403) {
             // if the user try to access a forbidden resource (after redirection for example), do not stay on login form
-            $timeout(function () {
+            $timeout(() => {
               $state.go('management');
             });
           }

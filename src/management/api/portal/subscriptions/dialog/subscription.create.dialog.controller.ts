@@ -64,7 +64,7 @@ function DialogSubscriptionCreateController(
     this.selectedPlanApiKey = null;
     if (this.selectedApp) {
       ApiService.getSubscriptions(this.api.id, '?application=' + this.selectedApp.id + '&status=pending,accepted').then((response) => {
-        this.plansWithSubscriptions = _.map(response.data.data, function (subscription) {
+        this.plansWithSubscriptions = _.map(response.data.data, (subscription) => {
           return subscription.plan;
         });
         if (this.selectedPlan && this.planAlreadyHaveSubscriptions(this.selectedPlan)) {

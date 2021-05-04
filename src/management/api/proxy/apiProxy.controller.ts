@@ -169,11 +169,11 @@ class ApiProxyController {
           confirmButton: 'Delete',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
-          _(_that.$scope.selected).forEach(function (endpoint) {
-            _(_that.api.proxy.groups).forEach(function (group) {
-              _(group.endpoints).forEach(function (endpoint2, index, object) {
+          _(_that.$scope.selected).forEach((endpoint) => {
+            _(_that.api.proxy.groups).forEach((group) => {
+              _(group.endpoints).forEach((endpoint2, index, object) => {
                 if (endpoint2 !== undefined && endpoint2.name === endpoint.name) {
                   // @ts-ignore
                   object.splice(index, 1);
@@ -213,7 +213,7 @@ class ApiProxyController {
           confirmButton: 'Delete',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           that.ApiService.delete(id).then(() => {
             that.NotificationService.show("API '" + that.initialApi.name + "' has been removed");
@@ -287,9 +287,9 @@ class ApiProxyController {
           confirmButton: 'Delete group',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
-          _(that.api.proxy.groups).forEach(function (group, index, object) {
+          _(that.api.proxy.groups).forEach((group, index, object) => {
             if (group.name !== undefined && group.name === groupname) {
               // @ts-ignore
               object.splice(index, 1);
@@ -339,7 +339,7 @@ class ApiProxyController {
             confirmButton: 'Switch',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             // Keep only the first virtual_host and remove the host
             that.api.proxy.virtual_hosts.splice(1);

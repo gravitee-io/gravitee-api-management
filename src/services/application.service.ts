@@ -153,7 +153,7 @@ class ApplicationService {
     let url = `${this.Constants.env.baseURL}/applications/` + application + '/analytics?';
 
     const keys = Object.keys(request);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -248,7 +248,7 @@ class ApplicationService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     const keys = Object.keys(query);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

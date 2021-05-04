@@ -34,7 +34,7 @@ class TopApiService {
     if (topApis && topApis.length) {
       return this.$http.put(
         `${this.Constants.env.baseURL}/configuration/top-apis/`,
-        _.map(topApis, function (topApi: any) {
+        _.map(topApis, (topApi: any) => {
           return { api: topApi.api };
         }),
       );

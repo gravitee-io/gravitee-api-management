@@ -42,7 +42,7 @@ class AnalyticsService {
   analytics(request) {
     let url = `${this.Constants.env.baseURL}/platform/analytics` + '?';
     const keys = Object.keys(request);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined) {
         url += key + '=' + val + '&';
@@ -129,7 +129,7 @@ class AnalyticsService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     const keys = Object.keys(query);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

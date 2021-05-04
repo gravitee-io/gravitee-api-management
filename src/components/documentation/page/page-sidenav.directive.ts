@@ -40,7 +40,7 @@ const PageSidenavDirective: ng.IDirective = {
       scope.offset = 60;
     }
 
-    ctr.$timeout(function () {
+    ctr.$timeout(() => {
       const page = document.getElementById('page-content');
 
       let content: Element = undefined;
@@ -77,14 +77,14 @@ const PageSidenavDirective: ng.IDirective = {
         });
         */
 
-        scope.anchors = _.map(h2Elements, function (elt) {
+        scope.anchors = _.map(h2Elements, (elt) => {
           elt.id = elt.textContent.replace(new RegExp(' ', 'g'), '').toLowerCase();
           return { id: elt.id, title: elt.textContent, elt: elt };
         });
 
         scope.scrollTo = function (anchor) {
           const scrollElt = anchor;
-          ctr.$document.scrollToElementAnimated(scrollElt, 54).catch(function () {});
+          ctr.$document.scrollToElementAnimated(scrollElt, 54).catch(() => {});
         };
       }
     }, 200);

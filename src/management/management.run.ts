@@ -147,7 +147,7 @@ function runBlock(
     { priority: 10 },
   );
 
-  $transitions.onFinish({}, function (trans) {
+  $transitions.onFinish({}, (trans) => {
     // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
     ReCaptchaService.hideBadge();
 
@@ -169,15 +169,15 @@ function runBlock(
     }
   });
 
-  $rootScope.$on('graviteeLogout', function (event, params) {
+  $rootScope.$on('graviteeLogout', (event, params) => {
     $state.go('login', { redirectUri: params.redirectUri });
   });
 
   $rootScope.$watch(
-    function () {
+    () => {
       return $http.pendingRequests.length > 0;
     },
-    function (hasPendingRequests) {
+    (hasPendingRequests) => {
       $rootScope.isLoading = hasPendingRequests;
     },
   );
@@ -185,7 +185,7 @@ function runBlock(
   $rootScope.displayLoader = true;
 
   // force displayLoader value to change on a new digest cycle
-  $timeout(function () {
+  $timeout(() => {
     $rootScope.displayLoader = false;
   });
 

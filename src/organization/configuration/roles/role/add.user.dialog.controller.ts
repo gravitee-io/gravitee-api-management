@@ -34,7 +34,7 @@ function DialogAddUserRoleController(
   this.usersSelected = [];
 
   const that = this;
-  RoleService.listUsers(roleScope, role).then(function (users) {
+  RoleService.listUsers(roleScope, role).then((users) => {
     that.roleUsers = users;
   });
 

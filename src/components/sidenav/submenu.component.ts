@@ -42,7 +42,7 @@ export const SubmenuComponent: ng.IComponentOptions = {
     this.sidenavService = SidenavService;
 
     const that = this;
-    $transitions.onSuccess({}, function () {
+    $transitions.onSuccess({}, () => {
       that.reload();
     });
 
@@ -54,8 +54,8 @@ export const SubmenuComponent: ng.IComponentOptions = {
       if ($state.params.apiId && !UserService.currentUser.userApiPermissions) {
         UserService.currentUser.userApiPermissions = [];
         ApiService.getPermissions($state.params.apiId).then((permissions) => {
-          _.forEach(_.keys(permissions.data), function (permission) {
-            _.forEach(permissions.data[permission], function (right) {
+          _.forEach(_.keys(permissions.data), (permission) => {
+            _.forEach(permissions.data[permission], (right) => {
               const permissionName = 'API-' + permission + '-' + right;
               UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
             });
@@ -65,8 +65,8 @@ export const SubmenuComponent: ng.IComponentOptions = {
       } else if ($state.params.applicationId && !UserService.currentUser.userApplicationPermissions) {
         UserService.currentUser.userApplicationPermissions = [];
         ApplicationService.getPermissions($state.params.applicationId).then((permissions) => {
-          _.forEach(_.keys(permissions.data), function (permission) {
-            _.forEach(permissions.data[permission], function (right) {
+          _.forEach(_.keys(permissions.data), (permission) => {
+            _.forEach(permissions.data[permission], (right) => {
               const permissionName = 'APPLICATION-' + permission + '-' + right;
               UserService.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
             });

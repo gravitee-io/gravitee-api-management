@@ -71,7 +71,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
       } else {
         vm.selectedNotifier = undefined;
       }
-      $timeout(function () {
+      $timeout(() => {
         $state.params.notificationId = vm.selectedNotificationSetting.id || 'portal';
         $state.transitionTo($state.current, $state.params, { reload: reload });
       });
@@ -139,7 +139,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
           clickOutsideToClose: true,
           notifiers: vm.resolvedNotifiers,
         })
-        .then(function (newConfig) {
+        .then((newConfig) => {
           const cfg = new NotificationConfig();
           cfg.name = newConfig.name;
           cfg.config_type = 'GENERIC';

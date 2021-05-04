@@ -47,24 +47,24 @@ class ChartDirective {
         }
 
         let lastOptions;
-        scope.$watch('options', function (newOptions) {
-          setTimeout(function () {
+        scope.$watch('options', (newOptions) => {
+          setTimeout(() => {
             displayChart(newOptions, chartElement);
             lastOptions = newOptions;
           });
         });
 
         function onWindowResized() {
-          setTimeout(function () {
+          setTimeout(() => {
             onResize();
           }, 100);
         }
 
-        angular.element(controller.$window).bind('resize', function () {
+        angular.element(controller.$window).bind('resize', () => {
           onWindowResized();
         });
 
-        scope.$on('onWidgetResize', function () {
+        scope.$on('onWidgetResize', () => {
           onWindowResized();
         });
 
@@ -73,7 +73,7 @@ class ChartDirective {
         }
 
         function initSynchronizedCharts() {
-          element.bind('mousemove touchmove touchstart', function (e) {
+          element.bind('mousemove touchmove touchstart', (e) => {
             let chart, i, event, points;
 
             for (i = 0; i < Highcharts.charts.length; i++) {
@@ -87,7 +87,7 @@ class ChartDirective {
                 points = _.map(chart.series, (serie: any) => {
                   return serie.searchPoint(event, true);
                 });
-                points = _.filter(points, function (point) {
+                points = _.filter(points, (point) => {
                   return point;
                 });
 
@@ -162,7 +162,7 @@ class ChartDirective {
 
             newOptions.series = _.sortBy(newOptions.series, 'name');
 
-            _.forEach(newOptions.series, function (serie) {
+            _.forEach(newOptions.series, (serie) => {
               serie.data = _.sortBy(serie.data, 'name');
             });
 
@@ -181,7 +181,7 @@ class ChartDirective {
                     }).length
                   ) {
                     let i = 0;
-                    _.forEach(this.points, function (point) {
+                    _.forEach(this.points, (point) => {
                       if (point.y) {
                         const name =
                           ' ' +

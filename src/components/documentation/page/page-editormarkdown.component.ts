@@ -140,7 +140,7 @@ class ComponentCtrl implements ng.IComponentController {
       },
     );
 
-    this.tuiEditor.eventManager.listen('addLinkToPage', function () {
+    this.tuiEditor.eventManager.listen('addLinkToPage', () => {
       that.$mdDialog
         .show({
           controller: 'SelectPageDialogController',

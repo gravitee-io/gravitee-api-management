@@ -74,7 +74,7 @@ class CategoryController {
       this.pages.unshift({});
     }
     const self = this;
-    this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
+    this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
       if (!self.category) {
         self.category = {};
       }
@@ -118,7 +118,7 @@ class CategoryController {
       const apisFound = _.filter(that.allApis, (api) => !that.selectedAPIs.some((a) => a.id === api.id));
       return that.$filter('filter')(apisFound, searchText);
     } else {
-      return this.ApiService.list().then(function (response) {
+      return this.ApiService.list().then((response) => {
         // Map the response object to the data object.
         const apis = response.data;
         that.allApis = apis;
@@ -137,7 +137,7 @@ class CategoryController {
     }
     this.searchText = '';
     this.formChanged = true;
-    setTimeout(function () {
+    setTimeout(() => {
       document.getElementById('new-category-apis-autocomplete-id').blur();
     }, 0);
   }

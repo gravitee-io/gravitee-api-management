@@ -60,7 +60,7 @@ const AlertsComponent: ng.IComponentOptions = {
             confirmButton: 'Delete',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             AlertService.delete(alert).then(() => {
               NotificationService.show("Alert '" + alert.name + "' has been deleted");

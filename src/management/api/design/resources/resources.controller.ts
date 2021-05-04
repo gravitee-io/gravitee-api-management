@@ -138,7 +138,7 @@ class ApiResourcesController {
           confirmButton: 'Remove',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           that.$scope.$parent.apiCtrl.api.resources.splice(resourceIdx, 1);
           that.updateApi();
@@ -165,7 +165,7 @@ class ApiResourcesController {
       that.$rootScope.$broadcast('apiChangeSuccess', { api: data });
       that.NotificationService.show("API '" + data.name + "' saved");
 
-      that.$timeout(function () {
+      that.$timeout(() => {
         api = data;
       });
     });

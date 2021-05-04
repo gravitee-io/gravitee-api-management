@@ -27,7 +27,7 @@ class Base64Service {
     // then we convert the percent encodings into raw bytes which
     // can be fed into btoa.
     return btoa(
-      encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
+      encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => {
         return String.fromCharCode(Number('0x' + p1));
       }),
     );
@@ -38,7 +38,7 @@ class Base64Service {
     return decodeURIComponent(
       atob(str)
         .split('')
-        .map(function (c) {
+        .map((c) => {
           return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         })
         .join(''),

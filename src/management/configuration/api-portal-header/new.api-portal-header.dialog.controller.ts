@@ -26,7 +26,7 @@ function NewApiPortalHeaderDialogController(ApiHeaderService: ApiHeaderService, 
   };
 
   this.save = function () {
-    ApiHeaderService.create(this.header).then(function (response) {
+    ApiHeaderService.create(this.header).then((response) => {
       $mdDialog.hide(response.data);
     });
   };

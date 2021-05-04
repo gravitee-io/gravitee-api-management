@@ -32,7 +32,7 @@ class NotificationService {
           .hideDelay(preconditionFailed ? 10000 : 3000)
           .theme(errorStatus ? 'toast-error' : 'toast-success'),
       )
-      .then(function (response) {
+      .then((response) => {
         if (response === 'ok') {
           vm.$state.go(vm.$state.current, {}, { reload: true });
         }

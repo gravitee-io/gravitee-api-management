@@ -28,7 +28,7 @@ function DialogAddMemberApiController(
 ) {
   'ngInject';
 
-  RoleService.list('API').then(function (roles) {
+  RoleService.list('API').then((roles) => {
     $scope.roles = roles;
   });
 
@@ -53,10 +53,10 @@ function DialogAddMemberApiController(
         role: $scope.role.name,
       };
       ApiService.addOrUpdateMember($scope.api.id, membership)
-        .then(function () {
+        .then(() => {
           NotificationService.show('User ' + member.displayName + ' has been added as a member.');
         })
-        .catch(function (error) {
+        .catch((error) => {
           $scope.error = error;
         });
     }

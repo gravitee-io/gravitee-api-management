@@ -83,7 +83,7 @@ class ApiTransferOwnershipController {
     }
 
     const that = this;
-    RoleService.list('API').then(function (roles) {
+    RoleService.list('API').then((roles) => {
       that.roles = roles;
       that.newPORoles = _.filter(roles, (role: any) => {
         return role.name !== 'PRIMARY_OWNER';
@@ -98,7 +98,7 @@ class ApiTransferOwnershipController {
     this.userFilterFn = (user: any) => {
       return (
         user.id === undefined ||
-        _.findIndex(this.members, function (apiMember: any) {
+        _.findIndex(this.members, (apiMember: any) => {
           return apiMember.id === user.id && apiMember.role === 'PRIMARY_OWNER';
         }) === -1
       );

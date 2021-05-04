@@ -110,7 +110,7 @@ class AnalyticsDashboardController {
   searchEvents() {
     // set apis
     const apis = this.selectedAPIs
-      .map(function (api) {
+      .map((api) => {
         return api.id;
       })
       .join(',');

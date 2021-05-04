@@ -62,7 +62,7 @@ const RolesComponent: ng.IComponentOptions = {
         })
         .then((response) => {
           if (response) {
-            RoleService.delete(role).then(function () {
+            RoleService.delete(role).then(() => {
               NotificationService.show("Role '" + role.name + "' deleted with success");
               _.remove(that.rolesByScope[role.scope], role);
             });

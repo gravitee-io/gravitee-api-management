@@ -81,7 +81,7 @@ class ApiPathMappingsController {
             this.update();
           }
         },
-        function () {
+        () => {
           // Cancel of the dialog
         },
       );
@@ -106,7 +106,7 @@ class ApiPathMappingsController {
             });
           }
         },
-        function () {
+        () => {
           // Cancel of the dialog
         },
       );

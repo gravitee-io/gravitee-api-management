@@ -67,7 +67,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
           template: require('./save.api-portal-header.dialog.html'),
           locals: {},
         })
-        .then(function (newHeader) {
+        .then((newHeader) => {
           NotificationService.show("Header '" + newHeader.name + "' saved");
           ApiHeaderService.list().then((response) => (that.apiPortalHeaders = response.data));
         });
@@ -84,7 +84,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
             header: Object.assign({}, header),
           },
         })
-        .then(function (updatedHeader) {
+        .then((updatedHeader) => {
           NotificationService.show("Header '" + updatedHeader.name + "' saved");
           ApiHeaderService.list().then((response) => (that.apiPortalHeaders = response.data));
         });
@@ -104,7 +104,7 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
             confirmButton: 'Delete',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             ApiHeaderService.delete(header).then(() => {
               NotificationService.show("Header '" + header.name + "' deleted");

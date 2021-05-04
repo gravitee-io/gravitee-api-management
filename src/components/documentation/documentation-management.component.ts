@@ -384,7 +384,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
             confirmButton: 'Remove',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             DocumentationService.remove(page.id, that.apiId).then(() => {
               NotificationService.show('Page ' + page.name + ' has been removed');

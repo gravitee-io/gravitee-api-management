@@ -31,7 +31,7 @@ const WidgetComponent: ng.IComponentOptions = {
     this.AnalyticsService = AnalyticsService;
     this.EventsService = EventsService;
 
-    $scope.$on('gridster-resized', function () {
+    $scope.$on('gridster-resized', () => {
       $scope.$broadcast('onWidgetResize');
     });
 
@@ -40,7 +40,7 @@ const WidgetComponent: ng.IComponentOptions = {
         this.customTimeframe = changes.customTimeframe.currentValue;
         this.changeTimeframe(this.customTimeframe);
         // We need to send this event to compute the size of the widget when input data changes.
-        setTimeout(function () {
+        setTimeout(() => {
           $scope.$broadcast('onWidgetResize');
         }, 100);
       }

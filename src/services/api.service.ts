@@ -288,7 +288,7 @@ class ApiService {
     let url = `${this.Constants.env.baseURL}/apis/` + api + '/analytics?';
 
     const keys = Object.keys(request);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -591,7 +591,7 @@ class ApiService {
     let url = `${this.Constants.env.baseURL}/apis/` + api + '/health/logs?';
 
     const keys = Object.keys(query);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -609,7 +609,7 @@ class ApiService {
     let url = `${this.Constants.env.baseURL}/apis/` + api + '/health/average?';
 
     const keys = Object.keys(request);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -749,7 +749,7 @@ class ApiService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     const keys = Object.keys(query);
-    _.forEach(keys, function (key) {
+    _.forEach(keys, (key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

@@ -73,7 +73,7 @@ class ApiPoliciesController {
     const that = this;
     this.$scope.$on(
       'dragulardrop',
-      function (event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) {
+      (event, element, dropzoneElt, draggableElt, draggableObjList, draggableIndex, dropzoneObjList, dropzoneIndex) => {
         if (dropzoneObjList !== null) {
           // Automatically display the configuration associated to the dragged policy
           that.editPolicy(dropzoneIndex, dropzoneElt.attributes['data-path'].value).then((schema) => {
@@ -266,7 +266,7 @@ class ApiPoliciesController {
           confirmButton: 'Remove',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           _.forEach(that.apiPoliciesByPath[path], (policy, idx) => {
             if (policy.$$hashKey === hashKey) {
@@ -297,11 +297,11 @@ class ApiPoliciesController {
         },
       })
       .then(
-        function (description) {
+        (description) => {
           policy.description = description;
           that.savePaths();
         },
-        function () {
+        () => {
           // You cancelled the dialog
         },
       );
@@ -407,7 +407,7 @@ class ApiPoliciesController {
           confirmButton: 'Remove',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           delete that.apiPoliciesByPath[path];
           that.pathsInitialized[path] = false;

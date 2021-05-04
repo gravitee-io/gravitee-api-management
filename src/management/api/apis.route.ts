@@ -83,8 +83,8 @@ function apisRouterConfig($stateProvider: StateProvider) {
         onEnter: function (UserService, resolvedApiPermissions) {
           UserService.currentUser.userApiPermissions = [];
           if (resolvedApiPermissions && resolvedApiPermissions.data) {
-            _.forEach(_.keys(resolvedApiPermissions.data), function (permission) {
-              _.forEach(resolvedApiPermissions.data[permission], function (right) {
+            _.forEach(_.keys(resolvedApiPermissions.data), (permission) => {
+              _.forEach(resolvedApiPermissions.data[permission], (right) => {
                 const permissionName = 'API-' + permission + '-' + right;
                 UserService.currentUser.userApiPermissions.push(_.toLower(permissionName));
               });

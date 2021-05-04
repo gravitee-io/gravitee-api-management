@@ -64,7 +64,7 @@ const ImportComponent: ng.IComponentOptions = {
       this.error = null;
       this.importError = null;
       this.computeRightToImport();
-      $scope.$watch('$ctrl.importAPIFile.content', function (data) {
+      $scope.$watch('$ctrl.importAPIFile.content', (data) => {
         if (data) {
           that.enableFileImport = true;
         }
@@ -226,7 +226,7 @@ const ImportComponent: ng.IComponentOptions = {
       const id = this.isForUpdate() ? this.apiId : null;
       const apiDefinition = this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL;
       const isUpdate = this.isForUpdate();
-      ApiService.import(id, apiDefinition, this.definitionVersion).then(function (api) {
+      ApiService.import(id, apiDefinition, this.definitionVersion).then((api) => {
         if (isUpdate) {
           NotificationService.show('API updated');
           $state.reload();

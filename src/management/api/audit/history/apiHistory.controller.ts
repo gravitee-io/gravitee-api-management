@@ -307,7 +307,7 @@ class ApiHistoryController {
     that.ApiService.rollback(this.api.id, _apiDefinition).then(() => {
       that.NotificationService.show('Api rollback !');
 
-      that.ApiService.get(that.api.id).then(function (response) {
+      that.ApiService.get(that.api.id).then((response) => {
         that.$rootScope.$broadcast('apiChangeSuccess', { api: response.data });
       });
     });
@@ -327,7 +327,7 @@ class ApiHistoryController {
           confirmButton: 'Rollback',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           self.rollback(api);
         }

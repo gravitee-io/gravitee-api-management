@@ -79,7 +79,7 @@ const AnalyticsSettingsComponent: ng.IComponentOptions = {
             confirmButton: 'Delete',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             DashboardService.delete(dashboard).then(() => {
               NotificationService.show("Dashboard '" + dashboard.name + "' has been deleted");

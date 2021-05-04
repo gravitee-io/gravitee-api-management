@@ -60,7 +60,7 @@ const RoleComponent: ng.IComponentOptions = {
       }
 
       const that = this;
-      savePromise.then(function (savedRole) {
+      savePromise.then((savedRole) => {
         that.role = savedRole;
         that._modelToView();
         that.formRole.$setPristine();

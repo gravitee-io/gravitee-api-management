@@ -69,7 +69,7 @@ class ApiMembersController {
     }
 
     const that = this;
-    RoleService.list('API').then(function (roles) {
+    RoleService.list('API').then((roles) => {
       that.roles = roles;
       that.newPORoles = _.filter(roles, (role: any) => {
         return role.name !== 'PRIMARY_OWNER';
@@ -121,7 +121,7 @@ class ApiMembersController {
             });
           }
         },
-        function () {
+        () => {
           // You cancelled the dialog
         },
       );
@@ -141,7 +141,7 @@ class ApiMembersController {
           confirmButton: 'Remove',
         },
       })
-      .then(function (response) {
+      .then((response) => {
         if (response) {
           self.deleteMember(member);
         }

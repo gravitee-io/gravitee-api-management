@@ -58,10 +58,10 @@ class TenantsController {
       },
     });
 
-    promise.then(function (ctrl) {
+    promise.then((ctrl) => {
       const input = ctrl.getInput();
 
-      input.$viewChangeListeners.push(function () {
+      input.$viewChangeListeners.push(() => {
         input.$setValidity('empty', input.$modelValue.length !== 0);
         input.$setValidity('duplicate', !_.includes(_.map(that.tenants, 'name'), input.$modelValue));
       });
@@ -88,10 +88,10 @@ class TenantsController {
       },
     });
 
-    promise.then(function (ctrl) {
+    promise.then((ctrl) => {
       const input = ctrl.getInput();
 
-      input.$viewChangeListeners.push(function () {
+      input.$viewChangeListeners.push(() => {
         input.$setValidity('empty', input.$modelValue.length !== 0);
       });
     });
@@ -123,7 +123,7 @@ class TenantsController {
 
     this.$q
       .all([this.TenantService.create(that.tenantsToCreate), this.TenantService.update(that.tenantsToUpdate)])
-      .then(function (resultArray) {
+      .then((resultArray) => {
         that.NotificationService.show('Tenants saved with success');
         //      that.loadTenants();
         that.tenantsToCreate = [];
@@ -145,10 +145,10 @@ class TenantsController {
           tenant: tenant,
         },
       })
-      .then(function (deleteTenant) {
+      .then((deleteTenant) => {
         if (deleteTenant) {
           if (tenant.id) {
-            that.TenantService.delete(tenant).then(function () {
+            that.TenantService.delete(tenant).then(() => {
               that.NotificationService.show("Tenant '" + tenant.name + "' deleted with success");
               _.remove(that.tenants, tenant);
             });

@@ -29,7 +29,7 @@ function DialogAddMemberController(
 ) {
   'ngInject';
 
-  RoleService.list('APPLICATION').then(function (roles) {
+  RoleService.list('APPLICATION').then((roles) => {
     $scope.roles = roles;
   });
 
@@ -54,10 +54,10 @@ function DialogAddMemberController(
         role: $scope.role.name,
       };
       ApplicationService.addOrUpdateMember($scope.application.id, membership)
-        .then(function () {
+        .then(() => {
           NotificationService.show('User ' + member.displayName + ' has been added as a member.');
         })
-        .catch(function (error) {
+        .catch((error) => {
           $scope.error = error;
         });
     }

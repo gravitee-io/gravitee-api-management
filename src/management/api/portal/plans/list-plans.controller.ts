@@ -63,11 +63,11 @@ class ApiListPlansController {
       nameSpace: 'plan',
     });
 
-    this.$scope.$on('dragulardrop', function (e, el, target, source, dragularList, index, targetModel, dropIndex) {
+    this.$scope.$on('dragulardrop', (e, el, target, source, dragularList, index, targetModel, dropIndex) => {
       const movedPlan = that.filteredPlans[index];
       movedPlan.order = dropIndex + 1;
 
-      that.ApiService.savePlan(that.api, movedPlan).then(function () {
+      that.ApiService.savePlan(that.api, movedPlan).then(() => {
         // sync list from server because orders has been changed
         that.list();
         that.NotificationService.show('Plans have been reordered successfully');
@@ -130,7 +130,7 @@ class ApiListPlansController {
     this.countPlansByStatus();
     const that = this;
     this.filteredPlans = _.sortBy(
-      _.filter(this.plans, function (plan: any) {
+      _.filter(this.plans, (plan: any) => {
         return _.includes(that.selectedStatus, plan.status);
       }),
       'order',
@@ -184,7 +184,7 @@ class ApiListPlansController {
         .then((response) => {
           if (response) {
             const that = this;
-            this.ApiService.closePlan(this.api, plan.id).then(function () {
+            this.ApiService.closePlan(this.api, plan.id).then(() => {
               that.NotificationService.show('Plan ' + plan.name + ' has been closed');
               that.$rootScope.$broadcast('planChangeSuccess', { state: 'closed' });
               that.$scope.$parent.apiCtrl.checkAPISynchronization({ id: that.$stateParams.apiId });
@@ -246,7 +246,7 @@ class ApiListPlansController {
             });
           }
         },
-        function () {
+        () => {
           // You cancelled the dialog
         },
       );

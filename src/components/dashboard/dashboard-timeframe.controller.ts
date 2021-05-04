@@ -174,10 +174,10 @@ class DashboardTimeframeController {
     ];
 
     // Event received when a zoom is done on a chart
-    this.unRegisterTimeframeZoom = this.$rootScope.$on('timeframeZoom', function (event, zoom) {
+    this.unRegisterTimeframeZoom = this.$rootScope.$on('timeframeZoom', (event, zoom) => {
       const diff = zoom.to - zoom.from;
 
-      let timeframe = _.findLast(that.timeframes, function (timeframe: Timeframe) {
+      let timeframe = _.findLast(that.timeframes, (timeframe: Timeframe) => {
         return timeframe.range < diff;
       });
 
@@ -192,7 +192,7 @@ class DashboardTimeframeController {
       });
     });
 
-    this.$scope.$on('$destroy', function () {
+    this.$scope.$on('$destroy', () => {
       // Make sure that the interval is destroyed too
       that.stopAutoRefresh();
     });
@@ -244,7 +244,7 @@ class DashboardTimeframeController {
   }
 
   setTimeframe(timeframeId, update) {
-    this.timeframe = _.find(this.timeframes, function (timeframe: Timeframe) {
+    this.timeframe = _.find(this.timeframes, (timeframe: Timeframe) => {
       return timeframe.id === timeframeId;
     });
 
@@ -296,14 +296,14 @@ class DashboardTimeframeController {
     // Select the best timeframe
     const diff = timeframe.to - timeframe.from;
 
-    const tf = _.findLast(that.timeframes, function (tframe: Timeframe) {
+    const tf = _.findLast(that.timeframes, (tframe: Timeframe) => {
       return tframe.range <= diff;
     });
 
     this.timeframe = tf ? tf : that.timeframes[0];
 
     // timeframeChange event is dynamically initialized, so we have to define a timeout to correctly fired it
-    this.$timeout(function () {
+    this.$timeout(() => {
       const event = {
         interval: that.timeframe.interval,
         from: timeframe.from,
@@ -334,7 +334,7 @@ class DashboardTimeframeController {
 
     const diff = to - from;
 
-    let timeframe = _.findLast(this.timeframes, function (timeframe: Timeframe) {
+    let timeframe = _.findLast(this.timeframes, (timeframe: Timeframe) => {
       return timeframe.range < diff;
     });
 

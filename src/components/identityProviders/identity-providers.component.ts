@@ -80,7 +80,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
             confirmButton: 'Delete',
           },
         })
-        .then(function (response) {
+        .then((response) => {
           if (response) {
             IdentityProviderService.delete(provider).then(() => {
               NotificationService.show("Identity provider '" + provider.name + "' has been deleted");
