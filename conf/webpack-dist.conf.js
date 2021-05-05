@@ -16,7 +16,6 @@
 'use strict';
 
 const webpack = require('webpack');
-const conf = require('./gulp.conf');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -85,7 +84,7 @@ module.exports = {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
-      template: conf.path.src('index.html'),
+      template: path.resolve(__dirname, '..', 'src', 'index.html'),
     }),
     new ExtractTextPlugin('index-[hash].css'),
     new webpack.LoaderOptionsPlugin({
@@ -148,7 +147,7 @@ module.exports = {
     }),
   ],
   output: {
-    path: path.join(process.cwd(), conf.paths.dist),
+    path: path.join(process.cwd(), 'dist'),
     filename: '[name]-[hash].js',
   },
   resolve: {
@@ -158,7 +157,7 @@ module.exports = {
     extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
   },
   entry: {
-    app: `./${conf.path.src('index')}`,
+    app: `./${path.join('src', 'index')}`,
   },
   node: {
     fs: 'empty',

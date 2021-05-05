@@ -100,9 +100,6 @@
     "extract-text-webpack-plugin": "v4.0.0-beta.0",
     "file-loader": "^1.1.11",
     "fork-ts-checker-webpack-plugin": "^6.2.1",
-    "gulp": "^4.0.2",
-    "gulp-hub": "^4.2.0",
-    "gulp-util": "^3.0.8",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
     "http-proxy-middleware": "^1.0.6",
@@ -133,7 +130,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "build:prod": "gulp serve:dist",
+    "build:prod": "webpack -c ./conf/webpack-dist.conf.js",
     "compile": "tsc",
     "lint": "npm run lint:eslint && npm run prettier",
     "lint:eslint": "eslint --ext .json,.ts ./src",

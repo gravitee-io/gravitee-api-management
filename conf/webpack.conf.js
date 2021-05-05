@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 const webpack = require('webpack');
-const conf = require('./gulp.conf');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -67,7 +66,7 @@ module.exports = {
     new webpack.optimize.OccurrenceOrderPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
-      template: conf.path.src('index.html'),
+      template: path.resolve(__dirname, '..', 'src', 'index.html'),
     }),
     new webpack.LoaderOptionsPlugin({
       options: {
@@ -129,7 +128,7 @@ module.exports = {
   ],
   devtool: 'inline-source-map',
   output: {
-    path: path.join(process.cwd(), conf.paths.tmp),
+    path: path.join(process.cwd(), '.tmp'),
     filename: '[name].js',
   },
   resolve: {
@@ -138,7 +137,7 @@ module.exports = {
     },
     extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
   },
-  entry: `./${conf.path.src('index')}`,
+  entry: `./${path.join('src', 'index')}`,
   node: {
     fs: 'empty',
     module: 'empty',
