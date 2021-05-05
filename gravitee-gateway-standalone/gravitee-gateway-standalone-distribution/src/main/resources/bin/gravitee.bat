@@ -20,11 +20,11 @@ for /f %%i in ('dir ..\lib\gravitee-gateway-standalone-bootstrap*.jar /s /b') do
 set GRAVITEE_BOOT_CLASSPATH=%runjar%
 
 if "%GIO_MIN_MEM%" == "" (
-set GIO_MIN_MEM=512m
+set GIO_MIN_MEM=256m
 )
 
 if "%GIO_MAX_MEM%" == "" (
-set GIO_MAX_MEM=512m
+set GIO_MAX_MEM=256m
 )
 
 REM min and max heap sizes should be set to the same value to avoid
