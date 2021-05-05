@@ -22,6 +22,8 @@ const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
+const env = process.env.BACKEND_ENV;
+
 module.exports = {
   mode: 'development',
   module: {
@@ -140,5 +142,15 @@ module.exports = {
   node: {
     fs: 'empty',
     module: 'empty',
+  },
+  devServer: {
+    port: 3000,
+    proxy: {
+      '/management': {
+        target: env ? `https://${env}.gravitee.io` : 'http://localhost:8083',
+        changeOrigin: !!env,
+        secure: false,
+      },
+    },
   },
 };
