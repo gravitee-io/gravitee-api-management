@@ -30,7 +30,7 @@ gulp.task('serve', gulp.series('webpack:watch', 'watch', 'browsersync'));
 gulp.task('serve:demo', gulp.series('webpack:watch', 'watch', 'browsersync:demo'));
 gulp.task('serve:nightly', gulp.series('webpack:watch', 'watch', 'browsersync:nightly'));
 gulp.task('serve:dist', gulp.series('default'));
-gulp.task('default', gulp.series('clean', 'build'));
+gulp.task('default', gulp.series('build'));
 gulp.task('watch', watch);
 gulp.task('compile', compile);
 
