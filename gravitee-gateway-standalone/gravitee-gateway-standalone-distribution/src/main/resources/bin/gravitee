@@ -64,10 +64,10 @@ fi
 GRAVITEE_BOOT_CLASSPATH="$runjar"
 
 if [ "x$GIO_MIN_MEM" = "x" ]; then
-    GIO_MIN_MEM=512m
+    GIO_MIN_MEM=256m
 fi
 if [ "x$GIO_MAX_MEM" = "x" ]; then
-    GIO_MAX_MEM=512m
+    GIO_MAX_MEM=256m
 fi
 
 # min and max heap sizes should be set to the same value to avoid
