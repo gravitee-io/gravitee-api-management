@@ -16,7 +16,6 @@
 const gulp = require('gulp');
 const HubRegistry = require('gulp-hub');
 const browserSync = require('browser-sync');
-const ts = require('gulp-typescript');
 const conf = require('./conf/gulp.conf');
 
 // Load some files into the registry
@@ -32,12 +31,6 @@ gulp.task('serve:nightly', gulp.series('webpack:watch', 'watch', 'browsersync:ni
 gulp.task('serve:dist', gulp.series('default'));
 gulp.task('default', gulp.series('build'));
 gulp.task('watch', watch);
-gulp.task('compile', compile);
-
-function compile() {
-  var tsProject = ts.createProject('tsconfig.json');
-  return gulp.src('src/**/*.ts').pipe(tsProject());
-}
 
 function reloadBrowserSync(cb) {
   browserSync.reload();

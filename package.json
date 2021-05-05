@@ -104,7 +104,6 @@
     "fork-ts-checker-webpack-plugin": "^6.2.1",
     "gulp": "^4.0.2",
     "gulp-hub": "^4.2.0",
-    "gulp-typescript": "^5.0.1",
     "gulp-util": "^3.0.8",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^3.2.0",
@@ -135,7 +134,7 @@
   },
   "scripts": {
     "build:prod": "gulp serve:dist",
-    "compile": "gulp compile",
+    "compile": "tsc",
     "lint": "npm run lint:eslint && npm run prettier",
     "lint:eslint": "eslint --ext .json,.ts ./src",
     "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
