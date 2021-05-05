@@ -15,9 +15,12 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -26,12 +29,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptySet;
@@ -288,6 +293,64 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             LOGGER.error("Failed to find applications by name", ex);
             throw new TechnicalException("Failed to find applications by name", ex);
         }
+    }
+
+    @Override
+    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) {
+        LOGGER.debug("JdbcApplicationRepository.search({})", applicationCriteria);
+        final JdbcHelper.CollatingRowMapper<Application> rowMapper =
+                new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
+
+        String projection ="a.*, am.k as am_k, am.v as am_v";
+
+        final StringBuilder sbQuery = new StringBuilder("select ")
+                .append(projection)
+                .append(" from applications a ")
+                .append(" left join application_metadata am on a.id = am.application_id ");
+
+        if (applicationCriteria != null) {
+            sbQuery.append("where 1 = 1 ");
+            if (!isEmpty(applicationCriteria.getIds())) {
+                sbQuery.append("and a.id in (").append(ORM.buildInClause(applicationCriteria.getIds())).append(") ");
+            }
+            if (!StringUtils.isEmpty(applicationCriteria.getName())) {
+                sbQuery.append("and lower(a.name) like ? ");
+            }
+            if (!StringUtils.isEmpty(applicationCriteria.getStatus())) {
+                sbQuery.append("and a.status = ? ");
+            }
+            if (!StringUtils.isEmpty(applicationCriteria.getEnvironmentId())) {
+                sbQuery.append("and a.environment_id = ? ");
+            }
+        }
+        sbQuery.append("order by a.name");
+
+        jdbcTemplate.query(sbQuery.toString(), (PreparedStatement ps) -> {
+                    int lastIndex = 1;
+                    if (applicationCriteria != null) {
+                        if (!isEmpty(applicationCriteria.getIds())) {
+                            lastIndex = ORM.setArguments(ps, applicationCriteria.getIds(), lastIndex);
+                        }
+                        if (!StringUtils.isEmpty(applicationCriteria.getName())) {
+                            ps.setString(lastIndex++, "%" + applicationCriteria.getName().toLowerCase() + "%");
+                        }
+                        if (!StringUtils.isEmpty(applicationCriteria.getStatus())) {
+                            ps.setString(lastIndex++, applicationCriteria.getStatus().name());
+                        }
+                        if (!StringUtils.isEmpty(applicationCriteria.getEnvironmentId())) {
+                            ps.setString(lastIndex++, applicationCriteria.getEnvironmentId());
+                        }
+                    }
+                }
+                , rowMapper
+        );
+        List<Application> apps = rowMapper.getRows();
+
+        for (final Application application : apps) {
+            addGroups(application);
+        }
+
+        return getResultAsPage(pageable, apps);
     }
 
     @Override
