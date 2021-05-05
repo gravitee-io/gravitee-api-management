@@ -95,8 +95,8 @@ module.exports = {
         },
       },
     }),
-    new CopyWebpackPlugin(
-      [
+    new CopyWebpackPlugin({
+      patterns: [
         {
           from: './constants.json',
           to: '',
@@ -130,11 +130,20 @@ module.exports = {
           to: 'icons',
         },
         { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' },
+        {
+          from: './src/assets',
+          to: 'assets',
+        },
+        {
+          from: './src/libraries',
+          to: 'libraries',
+        },
+        {
+          from: './src/favicon.ico',
+          to: '',
+        },
       ],
-      {
-        copyUnmodified: true,
-      },
-    ),
+    }),
   ],
   output: {
     path: path.join(process.cwd(), conf.paths.dist),

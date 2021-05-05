@@ -25,7 +25,7 @@ const hub = new HubRegistry([conf.path.tasks('*.js')]);
 // Tell gulp to use the tasks just loaded
 gulp.registry(hub);
 
-gulp.task('build', gulp.series(gulp.parallel('other', 'webpack:dist')));
+gulp.task('build', gulp.series('webpack:dist'));
 gulp.task('serve', gulp.series('webpack:watch', 'watch', 'browsersync'));
 gulp.task('serve:demo', gulp.series('webpack:watch', 'watch', 'browsersync:demo'));
 gulp.task('serve:nightly', gulp.series('webpack:watch', 'watch', 'browsersync:nightly'));

@@ -76,8 +76,8 @@ module.exports = {
         },
       },
     }),
-    new CopyWebpackPlugin(
-      [
+    new CopyWebpackPlugin({
+      patterns: [
         {
           from: './constants.json',
           to: '',
@@ -110,11 +110,20 @@ module.exports = {
           from: './node_modules/@gravitee/ui-components/assets/icons',
           to: 'icons',
         },
+        {
+          from: './src/assets',
+          to: 'assets',
+        },
+        {
+          from: './src/libraries',
+          to: 'libraries',
+        },
+        {
+          from: './src/favicon.ico',
+          to: '',
+        },
       ],
-      {
-        copyUnmodified: true,
-      },
-    ),
+    }),
   ],
   devtool: 'inline-source-map',
   output: {
