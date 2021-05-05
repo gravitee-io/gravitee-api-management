@@ -15,8 +15,11 @@
  */
 package io.gravitee.rest.api.repository.proxy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.List;
@@ -70,6 +73,11 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     @Override
     public Set<Application> findByName(String partialName) throws TechnicalException {
         return target.findByName(partialName);
+    }
+
+    @Override
+    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) {
+        return target.search(applicationCriteria, pageable);
     }
 
     @Override

@@ -20,9 +20,11 @@ import static java.util.Collections.emptySet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -182,19 +184,38 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByName(String name) {
+    public Set<ApplicationListItem> findByName(String userName, String name) {
         LOGGER.debug("Find applications by name {}", name);
         try {
             if (name == null || name.trim().isEmpty()) {
                 return emptySet();
             }
-            Set<Application> applications = applicationRepository
-                .findByName(name.trim())
+
+            //find applications where the user is a member
+            Set<String> appIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userName, MembershipReferenceType.APPLICATION)
                 .stream()
-                .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
-                .filter(app -> GraviteeContext.getCurrentEnvironment().equals(app.getEnvironmentId()))
+                .map(MembershipEntity::getReferenceId)
                 .collect(Collectors.toSet());
-            return convertToList(applications);
+            //find user groups
+            List<String> groupIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userName, MembershipReferenceType.GROUP)
+                .stream()
+                .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
+                .map(MembershipEntity::getReferenceId)
+                .collect(Collectors.toList());
+
+            appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(Collectors.toSet()));
+
+            ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+                .status(ApplicationStatus.ACTIVE)
+                .name(name.trim())
+                .environmentId(GraviteeContext.getCurrentEnvironment())
+                .ids(appIds.toArray(new String[0]))
+                .build();
+
+            Page<Application> applications = applicationRepository.search(criteria, null);
+            return convertToList(new HashSet<>(applications.getContent()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);

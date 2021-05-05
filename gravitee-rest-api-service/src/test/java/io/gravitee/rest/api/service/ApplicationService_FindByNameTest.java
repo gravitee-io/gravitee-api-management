@@ -46,7 +46,7 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByNameWhenNull() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByName(null);
+        Set<ApplicationListItem> set = applicationService.findByName(null, null);
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verify(applicationRepository, never()).findByName(any());
@@ -54,7 +54,7 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByNameWhenEmpty() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByName(" ");
+        Set<ApplicationListItem> set = applicationService.findByName(null, " ");
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verify(applicationRepository, never()).findByName(any());
@@ -62,7 +62,7 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByName() throws Exception {
-        Set<ApplicationListItem> set = applicationService.findByName("a");
+        Set<ApplicationListItem> set = applicationService.findByName(null, "a");
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
         verify(applicationRepository, times(1)).findByName("a");
