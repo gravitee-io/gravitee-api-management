@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository.config.mock;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -145,5 +147,16 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
                 thenReturn(new HashSet<>(asList(application, updatedApplication)));
 
         when(applicationRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(applicationRepository.search(
+                new ApplicationCriteria.Builder()
+                        .name("SeArched-app")
+                        .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
+                        .status(ApplicationStatus.ACTIVE)
+                        .environmentId("DEV")
+                        .build(),
+                null
+                )
+        )
+                .thenReturn(new Page<>(singletonList(searchedApp1), 1, 1, 1));
     }
 }
