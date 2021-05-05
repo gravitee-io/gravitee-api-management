@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 
@@ -65,4 +68,12 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @throws TechnicalException
      */
     Set<Application> findByName(String partialName) throws TechnicalException;
+
+    /**
+     * find applications by criteria. criteria.name supports partial name (works like `contains`)
+     * @param applicationCriteria
+     * @return applications
+     * @throws TechnicalException
+     */
+    Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable);
 }
