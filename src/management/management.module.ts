@@ -21,7 +21,6 @@ import 'angular-sanitize';
 import 'angular-local-storage';
 
 import * as traverse from 'traverse';
-import * as marked from 'marked';
 import * as hljs from 'highlight.js';
 // Codemirror
 import * as CodeMirror from 'codemirror';
@@ -489,15 +488,12 @@ import MovedComponent from './configuration/moved/moved.component';
 
 (<any>window).traverse = traverse;
 
-(<any>window).marked = marked;
-
 (<any>window).hljs = hljs;
 
 (<any>window).CodeMirror = CodeMirror;
 
 // eslint:disable:no-var-requires
 require('satellizer');
-require('angular-marked');
 require('angular-highlightjs');
 
 require('codemirror/mode/xml/xml.js');
