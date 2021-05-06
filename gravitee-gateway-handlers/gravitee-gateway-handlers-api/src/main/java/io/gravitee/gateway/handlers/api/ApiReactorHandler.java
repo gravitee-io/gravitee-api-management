@@ -218,9 +218,11 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         context.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
         // Ensure we are consuming everything from the inbound queue
-        context.request().bodyHandler(__ -> {});
-        context.request().endHandler(__ -> {});
-        context.request().resume();
+        if (!context.request().ended()) {
+            context.request().bodyHandler(__ -> { });
+            context.request().endHandler(__ -> { });
+            context.request().resume();
+        }
 
         errorProcessorChain
                 .create()
