@@ -31,7 +31,7 @@ class InstanceMonitoringController {
 
   $onInit() {
     this.buildChartData();
-    this.instanceStarted = this.instance.state === 'started';
+    this.instanceStarted = this.instance.state === 'STARTED';
 
     if (this.instanceStarted) {
       this.interval = setInterval(() => {

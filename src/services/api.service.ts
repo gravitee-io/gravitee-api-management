@@ -218,6 +218,7 @@ class ApiService {
         lifecycle_state: api.lifecycle_state,
         disable_membership_notifications: api.disable_membership_notifications,
         flow_mode: api.flow_mode,
+        gravitee: api.gravitee,
       },
       { headers: { 'If-Match': api.etag } },
     );

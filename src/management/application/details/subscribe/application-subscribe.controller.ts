@@ -58,12 +58,12 @@ class ApplicationSubscribeController {
   onSelectAPI = (api) => {
     if (api) {
       const authorizedSecurity = this.getAuthorizedSecurity();
-      this.ApiService.getApiPlans(api.id, 'published').then((response) => {
+      this.ApiService.getApiPlans(api.id, 'PUBLISHED').then((response) => {
         this.plans = _.filter(response.data, (plan) => {
           plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
           const subscription = _.find(this.subscriptions.data, { plan: plan.id });
           // @ts-ignore
-          plan.pending = subscription && 'pending' === subscription.status;
+          plan.pending = subscription && 'PENDING' === subscription.status;
           return _.includes(authorizedSecurity, plan.security);
         });
         this.selectedAPI = api;
@@ -75,10 +75,10 @@ class ApplicationSubscribeController {
   };
 
   getAuthorizedSecurity = (): string[] => {
-    const authorizedSecurity = ['api_key'];
+    const authorizedSecurity = ['API_KEY'];
     if (this.application.settings) {
       if (this.application.settings.oauth || (this.application.settings.app && this.application.settings.app.client_id)) {
-        authorizedSecurity.push('jwt', 'oauth2');
+        authorizedSecurity.push('JWT', 'OAUTH2');
       }
     }
     return authorizedSecurity;

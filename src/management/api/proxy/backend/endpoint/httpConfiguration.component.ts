@@ -20,11 +20,13 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
     httpConfiguration: '=',
     inheritHttpConfiguration: '<',
     form: '<',
+    isEndpoint: '=',
   },
   controller: class {
     private httpConfiguration: any;
     private inheritHttpConfiguration: any;
     private form: any;
+    private isEndpoint: boolean;
     private proxies: any[];
     private trustStoreTypes: any[];
     private keyStoreTypes: any[];
@@ -131,7 +133,9 @@ const HttpConfigurationComponent: ng.IComponentOptions = {
         ? Object.keys(this.httpConfiguration.headers).map((name) => ({ name, value: this.httpConfiguration.headers[name] }))
         : [];
 
-      this.httpConfiguration.type = this.httpConfiguration.type || 'HTTP';
+      if (this.isEndpoint) {
+        this.httpConfiguration.type = this.httpConfiguration.type || 'HTTP';
+      }
 
       if (!this.httpConfiguration.http) {
         this.httpConfiguration.http = {

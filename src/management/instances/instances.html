@@ -59,8 +59,8 @@
                         </div>
                         <div class="api-box-state" layout-padding>
                           <span
-                            ng-class="{'gravitee-instances-started':instance.state === 'started',
-                                'gravitee-instances-stopped':instance.state === 'stopped'}"
+                            ng-class="{'gravitee-instances-started':instance.state === 'STARTED',
+                                'gravitee-instances-stopped':instance.state === 'STOPPED'}"
                             >{{instance.state}}</span
                           >
                         </div>
@@ -105,8 +105,8 @@
                     </td>
                     <td md-cell>
                       <span
-                        ng-class="{'gravitee-instances-started':instance.state === 'started',
-                                    'gravitee-instances-stopped':instance.state === 'stopped'}"
+                        ng-class="{'gravitee-instances-started':instance.state === 'STARTED',
+                                    'gravitee-instances-stopped':instance.state === 'STOPPED'}"
                         >{{instance.state}}</span
                       >
                     </td>

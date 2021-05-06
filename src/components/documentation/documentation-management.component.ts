@@ -129,7 +129,7 @@ const DocumentationManagementComponent: ng.IComponentOptions = {
     this.changeFolderVisibility = () => {
       DocumentationService.partialUpdate(
         'visibility',
-        this.currentFolder.visibility === 'private' ? 'public' : 'private',
+        this.currentFolder.visibility === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE',
         this.rootDir,
         this.apiId,
       ).then((response) => {

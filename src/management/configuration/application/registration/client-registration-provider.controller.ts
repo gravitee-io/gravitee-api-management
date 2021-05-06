@@ -51,11 +51,11 @@ class ClientRegistrationProviderController {
     this.initialAccessTokenTypes = [];
     this.initialAccessTokenTypes.push({
       name: 'Client Credentials',
-      value: 'client_credentials',
+      value: 'CLIENT_CREDENTIALS',
     });
     this.initialAccessTokenTypes.push({
       name: 'Initial Access Token',
-      value: 'initial_access_token',
+      value: 'INITIAL_ACCESS_TOKEN',
     });
 
     this.updateMode = this.clientRegistrationProvider !== undefined && this.clientRegistrationProvider.id !== undefined;

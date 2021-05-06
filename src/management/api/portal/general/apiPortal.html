@@ -251,10 +251,10 @@
           permission-only="'api-definition-u'"
           ng-if="portalCtrl.canChangeLifecycle()"
         >
-          <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='started'">
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='STARTED'">
             Stop the API. It will no longer be available on all gateways.
           </div>
-          <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='stopped'">
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='STOPPED'">
             Start the API. It will be available on all gateways (depending on sharding tags).
           </div>
           <div>
@@ -262,14 +262,14 @@
               class="md-flat md-warn"
               type="button"
               ng-click="portalCtrl.changeLifecycle()"
-              ng-if="portalCtrl.api.state==='started'"
+              ng-if="portalCtrl.api.state==='STARTED'"
               >Stop the API</md-button
             >
             <md-button
               class="md-flat md-warn"
               type="button"
               ng-click="portalCtrl.changeLifecycle()"
-              ng-if="portalCtrl.api.state==='stopped'"
+              ng-if="portalCtrl.api.state==='STOPPED'"
               >Start the API</md-button
             >
           </div>
@@ -282,7 +282,7 @@
           permission-only="'api-definition-u'"
           ng-if="portalCtrl.canChangeApiLifecycle()"
         >
-          <div class="gv-form-danger-text" ng-if="portalCtrl.api.lifecycle_state==='published'">
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.lifecycle_state==='PUBLISHED'">
             Unpublish the API. It will no longer be available on portal.
           </div>
           <div class="gv-form-danger-text" ng-if="portalCtrl.canPublish()">
@@ -292,15 +292,15 @@
             <md-button
               class="md-flat md-warn"
               type="button"
-              ng-click="portalCtrl.changeApiLifecycle('published')"
+              ng-click="portalCtrl.changeApiLifecycle('PUBLISHED')"
               ng-if="portalCtrl.canPublish()"
               >Publish the API</md-button
             >
             <md-button
               class="md-flat md-warn"
               type="button"
-              ng-click="portalCtrl.changeApiLifecycle('unpublished')"
-              ng-if="portalCtrl.api.lifecycle_state==='published'"
+              ng-click="portalCtrl.changeApiLifecycle('UNPUBLISHED')"
+              ng-if="portalCtrl.api.lifecycle_state==='PUBLISHED'"
               >Unpublish the API</md-button
             >
           </div>
@@ -313,23 +313,23 @@
           permission-only="'api-definition-u'"
           ng-if="!portalCtrl.isDeprecated()"
         >
-          <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='public'">
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='PUBLIC'">
             Make this API private. Only members will see it.
           </div>
-          <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='private'">Make this API public. Everyone can see it.</div>
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='PRIVATE'">Make this API public. Everyone can see it.</div>
           <div>
             <md-button
               class="md-flat md-warn"
               type="button"
               ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
-              ng-if="portalCtrl.api.visibility==='public'"
+              ng-if="portalCtrl.api.visibility==='PUBLIC'"
               >Make Private</md-button
             >
             <md-button
               class="md-flat md-warn"
               type="button"
               ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
-              ng-if="portalCtrl.api.visibility==='private'"
+              ng-if="portalCtrl.api.visibility==='PRIVATE'"
               >Make Public</md-button
             >
           </div>
@@ -344,14 +344,14 @@
         >
           <div class="gv-form-danger-text">Deprecate this API. It will no longer be published on portal.</div>
           <div>
-            <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle('deprecated')">Deprecate</md-button>
+            <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle('DEPRECATED')">Deprecate</md-button>
           </div>
         </div>
 
         <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-d'">
           <div class="gv-form-danger-text">
             Delete this API.
-            <span ng-if="portalCtrl.api.state === 'started' || portalCtrl.api.lifecycle_state==='published'"
+            <span ng-if="portalCtrl.api.state === 'STARTED' || portalCtrl.api.lifecycle_state==='PUBLISHED'"
               >A running or published API cannot be deleted</span
             >
           </div>
@@ -360,7 +360,7 @@
               class="md-flat md-warn"
               type="button"
               ng-click="portalCtrl.delete(portalCtrl.api.id)"
-              ng-disabled="portalCtrl.api.state === 'started' || portalCtrl.api.lifecycle_state==='published'"
+              ng-disabled="portalCtrl.api.state === 'STARTED' || portalCtrl.api.lifecycle_state==='PUBLISHED'"
               >Delete</md-button
             >
           </div>

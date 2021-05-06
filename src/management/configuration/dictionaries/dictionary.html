@@ -73,17 +73,17 @@
 
         <div
           layout-gt-sm="row"
-          ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'dynamic'"
+          ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'DYNAMIC'"
           permission
           permission-only="['environment-dictionary-u']"
         >
           <label>Lifecycle</label>
           <md-input-container class="md-block" flex-gt-sm>
-            <md-button class="md-raised" type="button" ng-click="$ctrl.start()" ng-disabled="$ctrl.dictionary.state === 'started'">
+            <md-button class="md-raised" type="button" ng-click="$ctrl.start()" ng-disabled="$ctrl.dictionary.state === 'STARTED'">
               Start
             </md-button>
 
-            <md-button class="md-raised md-warn" type="button" ng-click="$ctrl.stop()" ng-disabled="$ctrl.dictionary.state === 'stopped'">
+            <md-button class="md-raised md-warn" type="button" ng-click="$ctrl.stop()" ng-disabled="$ctrl.dictionary.state === 'STOPPED'">
               Stop
             </md-button>
           </md-input-container>
@@ -93,7 +93,7 @@
 
     <div
       class="gv-form"
-      ng-if="$ctrl.dictionary.type === 'dynamic'"
+      ng-if="$ctrl.dictionary.type === 'DYNAMIC'"
       permission
       permission-only="['environment-dictionary-c', 'environment-dictionary-u', 'environment-dictionary-d']"
     >
@@ -120,7 +120,7 @@
     </div>
     <div
       class="gv-form"
-      ng-if="$ctrl.dictionary.type === 'dynamic'"
+      ng-if="$ctrl.dictionary.type === 'DYNAMIC'"
       permission
       permission-only="['environment-dictionary-c', 'environment-dictionary-u', 'environment-dictionary-d']"
     >
@@ -253,7 +253,7 @@
 
       <md-button
         class="md-raised md-primary"
-        ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'manual'"
+        ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'MANUAL'"
         permission
         permission-only="['environment-dictionary-u']"
         ng-click="$ctrl.deploy()"
@@ -294,7 +294,7 @@
           <table md-table ng-init="reverse = false">
             <thead md-head md-order="name">
               <tr md-row>
-                <th md-column ng-if="$ctrl.dictionary.type === 'manual'">
+                <th md-column ng-if="$ctrl.dictionary.type === 'MANUAL'">
                   <md-checkbox
                     aria-label="Select all"
                     ng-model="$ctrl.selectAll"
@@ -303,12 +303,12 @@
                 </th>
                 <th md-column md-order-by="name" ng-click="reverse = !reverse">Key</th>
                 <th md-column>Value</th>
-                <th md-column md-column width="80px" nowrap ng-if="$ctrl.dictionary.type === 'manual'"></th>
+                <th md-column md-column width="80px" nowrap ng-if="$ctrl.dictionary.type === 'MANUAL'"></th>
               </tr>
             </thead>
             <tbody md-body>
               <tr md-row ng-repeat="entry in $ctrl.getPropertiesPage(reverse)">
-                <td md-cell ng-if="$ctrl.dictionary.type === 'manual'">
+                <td md-cell ng-if="$ctrl.dictionary.type === 'MANUAL'">
                   <md-checkbox
                     aria-label="Select {{entry.key}}"
                     ng-model="$ctrl.selectedProperties[entry.key]"
@@ -319,7 +319,7 @@
                 <td md-cell ng-click="$ctrl.editProperty($event, entry.key, entry.value)" ng-class="{'gravitee-placeholder': entry.value}">
                   {{entry.value || 'Set value'}}
                 </td>
-                <td md-cell ng-if="$ctrl.dictionary.type === 'manual'">
+                <td md-cell ng-if="$ctrl.dictionary.type === 'MANUAL'">
                   <ng-md-icon
                     permission
                     permission-only="['environment-dictionary-u']"
@@ -347,11 +347,11 @@
           icon="assignment"
           model="Property"
           message="Properties will appear here"
-          sub-message="{{$ctrl.dictionary.type === 'dynamic' ? 'Properties will be updated automatically' : 'Start creating property'}}"
+          sub-message="{{$ctrl.dictionary.type === 'DYNAMIC' ? 'Properties will be updated automatically' : 'Start creating property'}}"
           create-mode="!$ctrl.updateMode"
         ></gravitee-empty-state>
 
-        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.dictionary.type === 'manual'">
+        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.dictionary.type === 'MANUAL'">
           <md-button class="md-raised md-primary" type="submit" permission permission-only="['environment-dictionary-u']">
             Save properties
           </md-button>
@@ -372,7 +372,7 @@
 </div>
 
 <md-button
-  ng-if="$ctrl.dictionary.type === 'manual' && $ctrl.dictionary.id"
+  ng-if="$ctrl.dictionary.type === 'MANUAL' && $ctrl.dictionary.id"
   permission
   permission-only="'environment-dictionary-u'"
   aria-label="Create property"

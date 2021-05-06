@@ -46,16 +46,16 @@
     <div layout="column">
       <div layout="row" layout-align="end">
         <md-button
-          ng-if="$ctrl.plan.security !== 'key_less' || $ctrl.plan.security === undefined"
+          ng-if="$ctrl.plan.security !== 'KEY_LESS' || $ctrl.plan.security === undefined"
           class="md-primary md-raised"
           aria-label="Execute"
           ng-click="$ctrl.subscribe()"
           ng-disabled="!$ctrl.subscribable || $ctrl.plan.alreadySubscribed || $ctrl.plan.general_conditions"
         >
-          {{$ctrl.plan.alreadySubscribed ? 'Subscribed' : ($ctrl.plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
+          {{$ctrl.plan.alreadySubscribed ? 'Subscribed' : ($ctrl.plan.validation === 'AUTO'?'Subscribe': 'Request for subscription')}}
           {{$ctrl.plan.pending ? '(pending)' : ''}}
         </md-button>
-        <md-button ng-if="$ctrl.plan.security === 'key_less'" class="md-primary md-raised" aria-label="Execute" ng-disabled="true">
+        <md-button ng-if="$ctrl.plan.security === 'KEY_LESS'" class="md-primary md-raised" aria-label="Execute" ng-disabled="true">
           No subscription required
         </md-button>
       </div>

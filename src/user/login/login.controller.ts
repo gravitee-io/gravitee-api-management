@@ -116,17 +116,17 @@ class LoginController {
     if (provider.color) {
       return provider.color;
     }
-    if (provider.type === 'oidc') {
+    if (provider.type === 'OIDC') {
       return 'black';
     }
-    if (provider.type === 'graviteeio_am') {
+    if (provider.type === 'GRAVITEEIO_AM') {
       return '#86c3d0';
     }
     return '';
   }
 
   getProviderColor(provider: any) {
-    if (provider.type === 'graviteeio_am') {
+    if (provider.type === 'GRAVITEEIO_AM') {
       return '#383E3F';
     }
     return 'white';

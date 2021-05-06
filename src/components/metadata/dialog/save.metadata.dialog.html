@@ -38,12 +38,14 @@
         <md-input-container>
           <label>Format</label>
           <md-select ng-model="$ctrl.metadata.format" ng-disabled="$ctrl.metadata.key && !$ctrl.referenceId">
-            <md-option ng-repeat="metadataFormat in $ctrl.metadataFormats" ng-value="metadataFormat"> {{metadataFormat}} </md-option>
+            <md-option ng-repeat="metadataFormat in $ctrl.metadataFormats" ng-value="metadataFormat">
+              {{metadataFormat | lowercase}}
+            </md-option>
           </md-select>
         </md-input-container>
 
         <div layout="row">
-          <md-input-container ng-if="$ctrl.metadata.format === 'boolean'" flex>
+          <md-input-container ng-if="$ctrl.metadata.format === 'BOOLEAN'" flex>
             <md-checkbox
               ng-model="$ctrl.metadata.value"
               md-autofocus="{{$ctrl.metadata.key && !$ctrl.referenceId ? 'true' : 'false'}}"
@@ -56,7 +58,7 @@
               Value
             </md-checkbox>
           </md-input-container>
-          <md-input-container ng-if="$ctrl.metadata.format === 'date'" flex>
+          <md-input-container ng-if="$ctrl.metadata.format === 'DATE'" flex>
             <label>Value</label>
             <md-datepicker
               required
@@ -66,7 +68,7 @@
               ng-pattern="pattern"
             ></md-datepicker>
           </md-input-container>
-          <md-input-container ng-if="$ctrl.metadata.format !== 'boolean' && $ctrl.metadata.format !== 'date'" flex>
+          <md-input-container ng-if="$ctrl.metadata.format !== 'BOOLEAN' && $ctrl.metadata.format !== 'DATE'" flex>
             <label>Value</label>
             <input
               type="text"
@@ -81,7 +83,7 @@
             <div class="hint">Supports Freemarker</div>
           </md-input-container>
 
-          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format === 'boolean'" flex>
+          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format === 'BOOLEAN'" flex>
             <md-checkbox
               ng-model="$ctrl.metadata.defaultValue"
               gv-metadata-format="$ctrl.metadata.format"
@@ -94,7 +96,7 @@
               Default value
             </md-checkbox>
           </md-input-container>
-          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format === 'date'">
+          <md-input-container ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format === 'DATE'">
             <label>Default value</label>
             <md-datepicker
               ng-model="$ctrl.metadata.defaultValue"
@@ -104,7 +106,7 @@
             ></md-datepicker>
           </md-input-container>
           <md-input-container
-            ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format !== 'boolean' && $ctrl.metadata.format !== 'date'"
+            ng-if="$ctrl.metadata.key && !$ctrl.metadata.referenceId && $ctrl.metadata.format !== 'BOOLEAN' && $ctrl.metadata.format !== 'DATE'"
           >
             <label>Default value</label>
             <input

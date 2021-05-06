@@ -22,7 +22,7 @@
       <div class="gv-form">
         <h2>Settings</h2>
         <div class="gv-form-content" layout="column">
-          <div ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'">
+          <div ng-if="$ctrl.selectedNotificationSetting.config_type==='GENERIC'">
             <h5>Configure the notifier you want to use:</h5>
             <div layout="column">
               <md-input-container flex>
@@ -74,7 +74,7 @@
               ng-click="$ctrl.delete()"
               permission
               permission-only="['api-notification-d', 'application-notification-d', 'environment-notification-d']"
-              ng-if="$ctrl.selectedNotificationSetting.config_type==='generic'"
+              ng-if="$ctrl.selectedNotificationSetting.config_type==='GENERIC'"
             >
               Delete
             </md-button>

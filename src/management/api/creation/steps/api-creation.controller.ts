@@ -257,7 +257,7 @@ class ApiCreationController {
       .then((api) => {
         if (readyForReview) {
           this.ApiService.askForReview(api.data).then((response) => {
-            api.data.workflow_state = 'in_review';
+            api.data.workflow_state = 'IN_REVIEW';
             api.data.etag = response.headers('etag');
             this.api = api.data;
             this.$rootScope.$broadcast('apiChangeSuccess', { api: api.data });

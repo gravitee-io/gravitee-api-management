@@ -92,9 +92,9 @@
               <md-switch
                 aria-label="Auto validate subscriptions"
                 ng-model="$ctrl.parent.plan.validation"
-                ng-true-value="'auto'"
-                ng-disabled="plan.security == 'key_less'"
-                ng-false-value="'manual'"
+                ng-true-value="'AUTO'"
+                ng-disabled="plan.security == 'KEY_LESS'"
+                ng-false-value="'MANUAL'"
               >
                 Auto validate subscription.
               </md-switch>
@@ -106,7 +106,7 @@
               <md-switch
                 aria-label="Consumer comment"
                 ng-model="$ctrl.parent.plan.comment_required"
-                ng-disabled="plan.security == 'key_less'"
+                ng-disabled="plan.security == 'KEY_LESS'"
               >
                 Consumer must provide a comment when subscribing to the plan.
               </md-switch>

@@ -21,7 +21,7 @@ class MetadataService {
   }
 
   listFormats() {
-    return ['string', 'numeric', 'boolean', 'date', 'mail', 'url'];
+    return ['STRING', 'NUMERIC', 'BOOLEAN', 'DATE', 'MAIL', 'URL'];
   }
 
   list() {

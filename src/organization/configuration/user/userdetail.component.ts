@@ -56,7 +56,7 @@ const UserDetailComponent: ng.IComponentOptions = {
     this.$rootScope = $rootScope;
     this.$onInit = () => {
       $scope.selectedOrganizationRole = _.map(
-        _.filter(this.selectedUser.roles, (role) => role.scope === 'organization'),
+        _.filter(this.selectedUser.roles, (role) => role.scope === 'ORGANIZATION'),
         (role) => role.id,
       );
       const envRoles = {};
@@ -243,7 +243,7 @@ const UserDetailComponent: ng.IComponentOptions = {
       UserService.getMemberships(this.selectedUser.id, 'application').then((response) => {
         const newAppList = [];
         _.forEach(response.data.metadata, (appMetadata: any, appId: string) => {
-          if (!appMetadata.status || appMetadata.status !== 'archived') {
+          if (!appMetadata.status || appMetadata.status !== 'ARCHIVED') {
             newAppList.push({
               id: appId,
               name: appMetadata.name,

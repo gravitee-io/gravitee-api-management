@@ -39,7 +39,7 @@
               <td md-cell><span style="font-weight: bold">Processed at</span></td>
               <td md-cell>{{$ctrl.subscription.processed_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
             </tr>
-            <tr md-row style="height: 30px" ng-if="'rejected' !== $ctrl.subscription.status">
+            <tr md-row style="height: 30px" ng-if="'REJECTED' !== $ctrl.subscription.status">
               <td md-cell><span style="font-weight: bold">Plan</span></td>
               <td md-cell>
                 <span style="font-weight: bold">{{$ctrl.subscription.plan.name}}</span> ({{$ctrl.subscription.plan.security}})
@@ -47,13 +47,13 @@
               <td md-cell><span style="font-weight: bold">Starting at</span></td>
               <td md-cell>{{$ctrl.subscription.starting_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
             </tr>
-            <tr md-row style="height: 30px" ng-if="'rejected' !== $ctrl.subscription.status">
+            <tr md-row style="height: 30px" ng-if="'REJECTED' !== $ctrl.subscription.status">
               <td md-cell><span style="font-weight: bold">Status</span></td>
               <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
               <td md-cell><span style="font-weight: bold">Ending at</span></td>
               <td md-cell>{{$ctrl.subscription.ending_at || '-' | date:'MMM d, y h:mm:ss.sss a'}}</td>
             </tr>
-            <tr md-row style="height: 30px" ng-if="'rejected' === $ctrl.subscription.status">
+            <tr md-row style="height: 30px" ng-if="'REJECTED' === $ctrl.subscription.status">
               <td md-cell><span style="font-weight: bold">Status</span></td>
               <td md-cell>{{$ctrl.subscription.status|uppercase}}</td>
               <td md-cell><span style="font-weight: bold">Closed at</span></td>
@@ -67,11 +67,11 @@
               <td md-cell><span style="font-weight: bold">Message to subscriber</span></td>
               <td md-cell colspan="3">{{$ctrl.subscription.reason}}</td>
             </tr>
-            <tr md-row style="height: 30px" ng-if="'rejected' !== $ctrl.subscription.status && $ctrl.subscription.closed_at">
+            <tr md-row style="height: 30px" ng-if="'REJECTED' !== $ctrl.subscription.status && $ctrl.subscription.closed_at">
               <td md-cell><span style="font-weight: bold">Closed at</span></td>
               <td md-cell colspan="3">{{$ctrl.subscription.closed_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
             </tr>
-            <tr md-row style="height: 30px" ng-if="'rejected' !== $ctrl.subscription.status && $ctrl.subscription.paused_at">
+            <tr md-row style="height: 30px" ng-if="'REJECTED' !== $ctrl.subscription.status && $ctrl.subscription.paused_at">
               <td md-cell><span style="font-weight: bold">Paused at</span></td>
               <td md-cell colspan="3">{{$ctrl.subscription.paused_at | date:'MMM d, y h:mm:ss.sss a'}}</td>
             </tr>
@@ -86,7 +86,7 @@
       <div
         class="md-actions gravitee-api-save-button"
         layout="row"
-        ng-if="$ctrl.subscription.status === 'accepted' || $ctrl.subscription.status === 'pending' || $ctrl.subscription.status === 'paused'"
+        ng-if="$ctrl.subscription.status === 'ACCEPTED' || $ctrl.subscription.status === 'PENDING' || $ctrl.subscription.status === 'PAUSED'"
       >
         <md-button class="md-raised md-warn" ng-click="$ctrl.close()" permission permission-only="'application-subscription-d'">
           <ng-md-icon icon="not_interested" style="fill: white"></ng-md-icon>
@@ -98,8 +98,8 @@
 
   <div
     class="gv-form"
-    ng-if="$ctrl.subscription.status === 'pending' && $ctrl.keys.length > 0
-          || $ctrl.subscription.status !== 'pending' && $ctrl.subscription.status !== 'rejected' && $ctrl.subscription.plan.security === 'api_key'"
+    ng-if="$ctrl.subscription.status === 'PENDING' && $ctrl.keys.length > 0
+          || $ctrl.subscription.status !== 'PENDING' && $ctrl.subscription.status !== 'REJECTED' && $ctrl.subscription.plan.security === 'API_KEY'"
   >
     <h2>Api Keys</h2>
     <div class="gv-form-content" layout="column">
@@ -118,7 +118,7 @@
               <td md-cell style="line-height: 30px">
                 <ng-md-icon icon="{{key.revoked?'clear':'done'}}" ng-style="{'fill': key.revoked ? '#BE2628':'#107F20'}"></ng-md-icon>
                 <code>{{key.key}}</code>
-                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                <span ng-if="!key.revoked && $ctrl.subscription.status === 'ACCEPTED'">
                   <md-tooltip md-direction="right">Copy to clipboard</md-tooltip>
                   <ng-md-icon
                     icon="content_copy"
@@ -132,7 +132,7 @@
               <td md-cell>{{key.created_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
               <td md-cell>{{key.revoked_at || key.expire_at | date:'yyyy-MM-dd HH:mm:ss'}}</td>
               <td md-cell>
-                <span ng-if="!key.revoked && $ctrl.subscription.status === 'accepted'">
+                <span ng-if="!key.revoked && $ctrl.subscription.status === 'ACCEPTED'">
                   <md-tooltip md-direction="left">Revoke</md-tooltip>
                   <ng-md-icon
                     permission
@@ -153,7 +153,7 @@
         layout="row"
         permission
         permission-only="'api-subscription-u'"
-        ng-if="$ctrl.subscription.status === 'accepted'"
+        ng-if="$ctrl.subscription.status === 'ACCEPTED'"
       >
         <md-button class="md-raised md-primary" ng-click="$ctrl.renewApiKey()">
           <ng-md-icon icon="autorenew" style="fill: white"></ng-md-icon>

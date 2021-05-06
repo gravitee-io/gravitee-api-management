@@ -38,27 +38,27 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
       this.securityTypes = _.filter(
         [
           {
-            id: 'oauth2',
+            id: 'OAUTH2',
             name: 'OAuth2',
             policy: 'oauth2',
           },
           {
-            id: 'jwt',
+            id: 'JWT',
             name: 'JWT',
             policy: 'jwt',
           },
           {
-            id: 'api_key',
+            id: 'API_KEY',
             name: 'API Key',
             policy: 'api-key',
           },
           {
-            id: 'key_less',
+            id: 'KEY_LESS',
             name: 'Keyless (public)',
           },
         ],
         (security) => {
-          return Constants.env.settings.plan.security[_.replace(security.id, '_', '')].enabled;
+          return Constants.env.settings.plan.security[_.replace(security.id.toLowerCase(), '_', '')].enabled;
         },
       );
     }

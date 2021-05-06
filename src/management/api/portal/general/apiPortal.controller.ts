@@ -236,17 +236,17 @@ class ApiPortalController {
   }
 
   toggleVisibility() {
-    if (this.api.visibility === 'public') {
-      this.api.visibility = 'private';
+    if (this.api.visibility === 'PUBLIC') {
+      this.api.visibility = 'PRIVATE';
     } else {
-      this.api.visibility = 'public';
+      this.api.visibility = 'PUBLIC';
     }
     this.formApi.$setDirty();
   }
 
   initState() {
-    this.$scope.apiEnabled = this.$scope.$parent.apiCtrl.api.state === 'started';
-    this.$scope.apiPublic = this.$scope.$parent.apiCtrl.api.visibility === 'public';
+    this.$scope.apiEnabled = this.$scope.$parent.apiCtrl.api.state === 'STARTED';
+    this.$scope.apiPublic = this.$scope.$parent.apiCtrl.api.visibility === 'PUBLIC';
 
     // Failover
     this.failoverEnabled = this.api.proxy.failover !== undefined;
@@ -450,7 +450,7 @@ class ApiPortalController {
   }
 
   changeLifecycle() {
-    const started = this.api.state === 'started';
+    const started = this.api.state === 'STARTED';
     this.$mdDialog
       .show({
         controller: 'DialogConfirmController',
@@ -467,14 +467,14 @@ class ApiPortalController {
         if (response) {
           if (started) {
             this.ApiService.stop(this.api).then((response) => {
-              this.api.state = 'stopped';
+              this.api.state = 'STOPPED';
               this.api.etag = response.headers('etag');
               this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
               this.NotificationService.show(`API ${this.api.name} has been stopped with success`);
             });
           } else {
             this.ApiService.start(this.api).then((response) => {
-              this.api.state = 'started';
+              this.api.state = 'STARTED';
               this.api.etag = response.headers('etag');
               this.NotificationService.show(`API ${this.api.name} has been started with success`);
               this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
@@ -487,7 +487,7 @@ class ApiPortalController {
   changeApiLifecycle(lifecycleState: string) {
     const clonedApi = _.cloneDeep(this.api);
     clonedApi.lifecycle_state = lifecycleState;
-    let actionLabel = lifecycleState.slice(0, -1);
+    let actionLabel = lifecycleState.slice(0, -1).toLowerCase();
     actionLabel = actionLabel.replace('publishe', 'publish');
     this.$mdDialog
       .show({
@@ -517,33 +517,33 @@ class ApiPortalController {
   canAskForReview(): boolean {
     return (
       this.Constants.env.settings.apiReview.enabled &&
-      (this.api.workflow_state === 'draft' || this.api.workflow_state === 'request_for_changes' || !this.api.workflow_state)
+      (this.api.workflow_state === 'DRAFT' || this.api.workflow_state === 'REQUEST_FOR_CHANGES' || !this.api.workflow_state)
     );
   }
 
   canChangeLifecycle(): boolean {
     return (
       !this.Constants.env.settings.apiReview.enabled ||
-      (this.Constants.env.settings.apiReview.enabled && (!this.api.workflow_state || this.api.workflow_state === 'review_ok'))
+      (this.Constants.env.settings.apiReview.enabled && (!this.api.workflow_state || this.api.workflow_state === 'REVIEW_OK'))
     );
   }
 
   canChangeApiLifecycle(): boolean {
     if (this.Constants.env.settings.apiReview.enabled) {
-      return !this.api.workflow_state || this.api.workflow_state === 'review_ok';
+      return !this.api.workflow_state || this.api.workflow_state === 'REVIEW_OK';
     } else {
       return (
-        this.api.lifecycle_state === 'created' || this.api.lifecycle_state === 'published' || this.api.lifecycle_state === 'unpublished'
+        this.api.lifecycle_state === 'CREATED' || this.api.lifecycle_state === 'PUBLISHED' || this.api.lifecycle_state === 'UNPUBLISHED'
       );
     }
   }
 
   canPublish(): boolean {
-    return !this.api.lifecycle_state || this.api.lifecycle_state === 'created' || this.api.lifecycle_state === 'unpublished';
+    return !this.api.lifecycle_state || this.api.lifecycle_state === 'CREATED' || this.api.lifecycle_state === 'UNPUBLISHED';
   }
 
   isDeprecated(): boolean {
-    return this.api.lifecycle_state === 'deprecated';
+    return this.api.lifecycle_state === 'DEPRECATED';
   }
 
   askForReview() {
@@ -562,7 +562,7 @@ class ApiPortalController {
       .then((response: boolean) => {
         if (response) {
           this.ApiService.askForReview(this.api).then((response) => {
-            this.api.workflow_state = 'in_review';
+            this.api.workflow_state = 'IN_REVIEW';
             this.api.etag = response.headers('etag');
             this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
             this.NotificationService.show(`Review has been asked for API ${this.api.name}`);

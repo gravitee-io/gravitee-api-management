@@ -19,8 +19,7 @@ import '@gravitee/ui-components/wc/gv-cron-editor';
 
 class ApiHealthCheckConfigureController {
   private api: any;
-  private healthcheck: { enabled: boolean; inherit: boolean; trigger?: any; schedule?: string; steps?: any[]; response?: any };
-  private timeUnits: string[];
+  private healthcheck: { enabled: boolean; inherit: boolean; schedule?: string; steps?: any[]; response?: any };
   private httpMethods: string[];
   private endpoint: any;
   private endpointToDisplay: any;
@@ -64,18 +63,17 @@ class ApiHealthCheckConfigureController {
       this.healthcheck = this.api.services && this.api.services['health-check'];
     }
 
-    this.healthcheck = this.healthcheck || { enabled: false, inherit: false, trigger: {}, schedule: '*/1 * * * * *' };
+    this.healthcheck = this.healthcheck || { enabled: false, inherit: false, schedule: '*/1 * * * * *' };
     const inherit = this.endpoint !== undefined && this.healthcheck.inherit;
     const enabled = this.healthcheck.enabled;
 
     if (inherit) {
-      this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || { enabled: false, trigger: {} });
+      this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || { enabled: false });
     }
 
     this.healthcheck.inherit = inherit;
     this.healthcheck.enabled = enabled;
 
-    this.timeUnits = ['SECONDS', 'MINUTES', 'HOURS', 'DAYS'];
     this.httpMethods = ['GET', 'POST', 'PUT'];
 
     this.initState();
@@ -196,9 +194,10 @@ class ApiHealthCheckConfigureController {
     if (this.endpoint !== undefined) {
       this.endpoint.healthcheck = this.healthcheck;
     } else {
+      // inherit is only available for health check on endpoint
+      delete this.healthcheck.inherit;
       // health-check is disabled, set dummy values
       if (this.healthcheck.enabled === false) {
-        delete this.healthcheck.trigger;
         delete this.healthcheck.steps;
         this.healthcheck.schedule = '*/1 * * * * *';
       }

@@ -169,7 +169,7 @@ const NotificationSettingsComponent: ng.IComponentOptions = {
 
     this.validate = () => {
       return (
-        this.selectedNotificationSetting.config_type === 'portal' ||
+        this.selectedNotificationSetting.config_type === 'PORTAL' ||
         (this.selectedNotificationSetting.config && this.selectedNotificationSetting.config !== '')
       );
     };

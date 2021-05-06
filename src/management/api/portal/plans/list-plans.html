@@ -29,7 +29,7 @@
           ng-repeat="statusFilter in $ctrl.statusFilters"
           style="text-transform: capitalize"
         >
-          {{statusFilter}} <span ng-if="$ctrl.countByStatus[statusFilter]">({{$ctrl.countByStatus[statusFilter]}})</span>
+          {{statusFilter.toLowerCase()}} <span ng-if="$ctrl.countByStatus[statusFilter]">({{$ctrl.countByStatus[statusFilter]}})</span>
         </button>
       </div>
 
@@ -41,13 +41,13 @@
                 <md-toolbar class="md-menu-toolbar">
                   <div class="md-toolbar-tools">
                     <div layout="column">
-                      <h4 ng-class="{italic: plan.status === 'staging', strike: plan.status === 'closed'}">{{plan.name}}</h4>
-                      <span style="font-size: 12px">Authentication: {{plan.security}}</span>
+                      <h4 ng-class="{italic: plan.status === 'STAGING', strike: plan.status === 'CLOSED'}">{{plan.name}}</h4>
+                      <span style="font-size: 12px">Authentication: {{plan.security | lowercase}}</span>
                       <span ng-if="plan.general_conditions" style="font-size: 12px; margin-bottom: 1rem">With general conditions</span>
                       <span style="font-size: 12px" ng-if="plan.tags && plan.tags.length > 0">Deploy on: {{plan.tags.join(', ')}}</span>
                     </div>
                     <span flex></span>
-                    <span ng-if="plan.status !== 'closed'" permission permission-only="'api-plan-u'">
+                    <span ng-if="plan.status !== 'CLOSED'" permission permission-only="'api-plan-u'">
                       <md-tooltip md-direction="top">Configure plan</md-tooltip>
                       <ng-md-icon style="fill: grey" icon="mode_edit" ng-click="$ctrl.editPlan(plan)"></ng-md-icon>
                     </span>
@@ -56,15 +56,15 @@
                       <md-tooltip md-direction="top">Design plan</md-tooltip>
                       <ng-md-icon style="fill: #6ba2c5" icon="palette" ng-click="$ctrl.design(plan)"></ng-md-icon>
                     </span>
-                    <span ng-if="plan.status === 'staging'" permission permission-only="'api-plan-u'">
+                    <span ng-if="plan.status === 'STAGING'" permission permission-only="'api-plan-u'">
                       <md-tooltip md-direction="top">Publish plan</md-tooltip>
                       <ng-md-icon style="fill: #6ba2c5" icon="backup" ng-click="$ctrl.publish(plan)"></ng-md-icon>
                     </span>
-                    <span ng-if="plan.status === 'published'" permission permission-only="'api-plan-u'">
+                    <span ng-if="plan.status === 'PUBLISHED'" permission permission-only="'api-plan-u'">
                       <md-tooltip md-direction="top">Deprecate plan</md-tooltip>
                       <ng-md-icon style="fill: #d3772d" icon="portable_wifi_off" ng-click="$ctrl.deprecate(plan)"></ng-md-icon>
                     </span>
-                    <span ng-if="plan.status !== 'closed'" permission permission-only="'api-plan-u'">
+                    <span ng-if="plan.status !== 'CLOSED'" permission permission-only="'api-plan-u'">
                       <md-tooltip md-direction="top">Close plan</md-tooltip>
                       <ng-md-icon style="fill: #d3091d" icon="close" ng-click="$ctrl.close(plan)"></ng-md-icon>
                     </span>
@@ -84,16 +84,16 @@
               <md-card-footer ng-if="graviteeUser || plan.isPublic">
                 <div layout="row" layout-align="end">
                   <md-button
-                    ng-if="plan.security !== 'key_less' || plan.security === undefined"
+                    ng-if="plan.security !== 'KEY_LESS' || plan.security === undefined"
                     class="md-primary md-raised"
                     aria-label="Execute"
                     ng-click="subscribe(plan)"
                     ng-disabled="plan.status || planEdit"
                   >
-                    {{plan.alreadySubscribed ? 'Subscribed' : (plan.validation === 'auto'?'Subscribe': 'Request for subscription')}}
+                    {{plan.alreadySubscribed ? 'Subscribed' : (plan.validation === 'AUTO'?'Subscribe': 'Request for subscription')}}
                   </md-button>
                   <md-button
-                    ng-if="plan.security === 'key_less'"
+                    ng-if="plan.security === 'KEY_LESS'"
                     class="md-primary md-raised"
                     aria-label="Execute"
                     ng-click="subscribe(plan)"

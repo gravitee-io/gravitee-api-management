@@ -55,7 +55,7 @@
           permission
           permission-only="['environment-documentation-u', 'api-documentation-u']"
         >
-          {{ $ctrl.currentFolder.visibility === 'private' ? 'Make PUBLIC' : 'Make PRIVATE'}}</md-button
+          {{ $ctrl.currentFolder.visibility === 'PRIVATE' ? 'Make PUBLIC' : 'Make PRIVATE'}}</md-button
         >
         <md-button
           type="button"
@@ -335,7 +335,7 @@
               <td md-cell width="24px">
                 <ng-md-icon
                   ng-if="$ctrl.isPage(page.type) || $ctrl.isFolder(page.type)"
-                  icon="{{ page.visibility === 'private' ? 'lock' : 'public' }}"
+                  icon="{{ page.visibility === 'PRIVATE' ? 'lock' : 'public' }}"
                   size="20"
                   style="fill: #cdcdcd"
                 >

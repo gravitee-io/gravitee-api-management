@@ -45,7 +45,7 @@
                 <span
                   permission
                   permission-only="['environment-dictionary-u']"
-                  ng-if="dictionary.type === 'dynamic' && dictionary.state === 'started'"
+                  ng-if="dictionary.type === 'DYNAMIC' && dictionary.state === 'STARTED'"
                   style="color: #429f46"
                 >
                   - Started</span
@@ -53,7 +53,7 @@
                 <span
                   permission
                   permission-only="['environment-dictionary-u']"
-                  ng-if="dictionary.type === 'dynamic' && dictionary.state !== 'started'"
+                  ng-if="dictionary.type === 'DYNAMIC' && dictionary.state !== 'STARTED'"
                   style="color: red"
                 >
                   - Stopped</span

@@ -43,7 +43,7 @@ class ApisStatusDashboardController {
     'ngInject';
 
     this.apis = this.apis.sort((a, b) => (a.name + ' ' + a.version).localeCompare(b.name + ' ' + b.version));
-    this.startedAPIsWithHC = this.apis.filter((api) => this.hasHealthcheck(api) && api.state === 'started');
+    this.startedAPIsWithHC = this.apis.filter((api) => this.hasHealthcheck(api) && api.state === 'STARTED');
 
     this.viewAllApis = this.startedAPIsWithHC.length === this.apis.length;
 
@@ -130,15 +130,15 @@ class ApisStatusDashboardController {
   }
 
   isInError(api) {
-    return this.hasHealthcheck(api) && api.availability >= 0 && api.availability <= 80 && api.state === 'started';
+    return this.hasHealthcheck(api) && api.availability >= 0 && api.availability <= 80 && api.state === 'STARTED';
   }
 
   isInWarning(api) {
-    return this.hasHealthcheck(api) && api.availability > 80 && api.availability <= 95 && api.state === 'started';
+    return this.hasHealthcheck(api) && api.availability > 80 && api.availability <= 95 && api.state === 'STARTED';
   }
 
   isStopped(api) {
-    return api.state === 'stopped';
+    return api.state === 'STOPPED';
   }
 
   getPictureDisplayName(api: { name: string; version: string }): string {

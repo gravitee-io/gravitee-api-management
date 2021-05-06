@@ -31,7 +31,7 @@ function DeleteMetadataDialogController(
     this.referenceType = 'API';
     this.referenceId = $stateParams.apiId;
   } else if ($stateParams.applicationId) {
-    this.referenceType = 'application';
+    this.referenceType = 'APPLICATION';
     this.referenceId = $stateParams.applicationId;
   }
 

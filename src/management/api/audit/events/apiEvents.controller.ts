@@ -49,11 +49,11 @@ class ApiEventsController {
   getEventTypeTimeline(eventType): any {
     const eventTypeTimeline: any = {};
     switch (eventType) {
-      case 'start_api':
+      case 'START_API':
         eventTypeTimeline.icon = 'glyphicon-play';
         eventTypeTimeline.badgeClass = 'info';
         break;
-      case 'stop_api':
+      case 'STOP_API':
         eventTypeTimeline.icon = 'glyphicon-stop';
         eventTypeTimeline.badgeClass = 'danger';
         break;

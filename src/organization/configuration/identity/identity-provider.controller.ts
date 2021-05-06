@@ -56,7 +56,7 @@ class IdentityProviderController {
 
       // Default user mapping configuration for OIDC or Gravitee.io AM providers
 
-      if (this.identityProvider.type === 'oidc' || this.identityProvider.type === 'graviteeio_am') {
+      if (this.identityProvider.type === 'OIDC' || this.identityProvider.type === 'GRAVITEEIO_AM') {
         this.identityProvider.userProfileMapping = {
           id: 'sub',
           firstname: 'given_name',

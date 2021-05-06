@@ -27,7 +27,7 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     this.onSelectAPI = (api) => {
       if (api) {
         const authorizedSecurity = this.getAuthorizedSecurity();
-        ApiService.getApiPlans(api.id, 'published').then((response) => {
+        ApiService.getApiPlans(api.id, 'PUBLISHED').then((response) => {
           const filteredPlans = _.filter(response.data, (plan) => {
             return _.includes(authorizedSecurity, plan.security);
           });
@@ -47,13 +47,13 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
     };
 
     this.getAuthorizedSecurity = (): string[] => {
-      const authorizedSecurity = ['api_key'];
+      const authorizedSecurity = ['API_KEY'];
       if (this.parent.application.settings) {
         if (
           this.parent.application.settings.oauth ||
           (this.parent.application.settings.app && this.parent.application.settings.app.client_id)
         ) {
-          authorizedSecurity.push('jwt', 'oauth2');
+          authorizedSecurity.push('JWT', 'OAUTH2');
         }
       }
       return authorizedSecurity;

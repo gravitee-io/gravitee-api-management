@@ -60,7 +60,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     listApiKeys() {
-      if (this.subscription.plan.security === 'api_key') {
+      if (this.subscription.plan.security === 'API_KEY') {
         // Retrieve api_keys for current current subscription
         this.ApiService.listApiKeys(this.api.id, this.subscription.id).then((response) => {
           this.keys = response.data;
@@ -71,7 +71,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     close() {
       let msg =
         '<code>' + this.subscription.application.name + '</code> will not be able to consume <code>' + this.api.name + '</code> anymore.';
-      if (this.subscription.plan.security === 'api_key') {
+      if (this.subscription.plan.security === 'API_KEY') {
         msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 
@@ -100,7 +100,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
 
     pause() {
       let msg = 'The application will not be able to consume this API anymore.';
-      if (this.subscription.plan.security === 'api_key') {
+      if (this.subscription.plan.security === 'API_KEY') {
         msg += '<br/>All Api-keys associated to this subscription will be paused and could not be used.';
       }
 
@@ -340,7 +340,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     private getApiPlans() {
-      this.ApiService.getApiPlans(this.api.id, 'published', this.subscription.plan.security).then((response) => {
+      this.ApiService.getApiPlans(this.api.id, 'PUBLISHED', this.subscription.plan.security).then((response) => {
         this.plans = response.data;
         this.transferablePlans = _.filter(response.data, (plan) => plan.id !== this.subscription.plan.id);
       });

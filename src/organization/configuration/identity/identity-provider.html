@@ -66,7 +66,7 @@
           </md-input-container>
         </div>
 
-        <div layout-gt-sm="row" ng-if="$ctrl.identityProvider.type === 'oidc' && $ctrl.tokenExchangeEndpoint">
+        <div layout-gt-sm="row" ng-if="$ctrl.identityProvider.type === 'OIDC' && $ctrl.tokenExchangeEndpoint">
           <md-input-container class="md-block" flex-gt-sm>
             <label>Token exchange endpoint</label>
             <input name="exchangeEndpoint" ng-model="$ctrl.tokenExchangeEndpoint" readonly type="text" />
@@ -106,12 +106,12 @@
     </div>
 
     <div ng-switch="$ctrl.identityProvider.type">
-      <gv-identityprovider-google identity-provider="$ctrl.identityProvider" ng-switch-when="google"></gv-identityprovider-google>
-      <gv-identityprovider-github identity-provider="$ctrl.identityProvider" ng-switch-when="github"></gv-identityprovider-github>
-      <gv-identityprovider-oidc identity-provider="$ctrl.identityProvider" ng-switch-when="oidc"></gv-identityprovider-oidc>
+      <gv-identityprovider-google identity-provider="$ctrl.identityProvider" ng-switch-when="GOOGLE"></gv-identityprovider-google>
+      <gv-identityprovider-github identity-provider="$ctrl.identityProvider" ng-switch-when="GITHUB"></gv-identityprovider-github>
+      <gv-identityprovider-oidc identity-provider="$ctrl.identityProvider" ng-switch-when="OIDC"></gv-identityprovider-oidc>
       <gv-identityprovider-graviteeio-am
         identity-provider="$ctrl.identityProvider"
-        ng-switch-when="graviteeio_am"
+        ng-switch-when="GRAVITEEIO_AM"
       ></gv-identityprovider-graviteeio-am>
     </div>
 

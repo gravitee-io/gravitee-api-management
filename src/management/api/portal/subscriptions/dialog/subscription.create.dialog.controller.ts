@@ -56,7 +56,7 @@ function DialogSubscriptionCreateController(
   };
 
   this.planIsApiKey = (planId) => {
-    return this.plans.find((p) => p.security === 'api_key' && p.id === planId) != null;
+    return this.plans.find((p) => p.security === 'API_KEY' && p.id === planId) != null;
   };
 
   this.selectedItemChange = function () {

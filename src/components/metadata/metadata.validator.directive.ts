@@ -30,16 +30,16 @@ const MetadataValidatorDirective: IDirective = {
   link: function (scope: IMyScope) {
     scope.$watch('format', (newFormat) => {
       switch (newFormat) {
-        case 'numeric':
+        case 'NUMERIC':
           scope.ngPattern = /^((\$\{.+\})|\d+(\.\d{1,2})?)$/;
           break;
-        case 'url':
+        case 'URL':
           scope.ngPattern = /^((\$\{.+\})|(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?)$/;
           break;
-        case 'mail':
+        case 'MAIL':
           scope.ngPattern = /^((\$\{.+\})|(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})))$/;
           break;
-        case 'string':
+        case 'STRING':
           delete scope.ngPattern;
           break;
       }

@@ -202,7 +202,7 @@ const ApiSubscriptionsComponent: ng.IComponentOptions = {
       this.ApiService.getPublishedApiPlans(this.api.id).then((response) => {
         // Allow only subscribable plan
         const plans = _.filter(response.data, (plan: any) => {
-          return plan.security !== 'key_less';
+          return plan.security !== 'KEY_LESS';
         });
 
         this.$mdDialog

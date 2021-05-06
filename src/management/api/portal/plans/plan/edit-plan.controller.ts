@@ -110,7 +110,7 @@ class ApiEditPlanController {
       }
     }
 
-    if (this.api.visibility === 'private') {
+    if (this.api.visibility === 'PRIVATE') {
       if (this.api.groups) {
         const apiGroupIds = this.api.groups;
         this.groups = _.filter(this.groups, (group) => {
@@ -178,7 +178,7 @@ class ApiEditPlanController {
     const plan = { ...this.plan, securityDefinition: JSON.stringify(this.plan.securityDefinition) };
     this.ApiService.savePlan(this.api, plan).then(() => {
       this.NotificationService.show(this.plan.name + ' has been saved successfully');
-      this.$state.go('management.apis.detail.portal.plans.list', this.plan.id === undefined ? { state: 'staging' } : {});
+      this.$state.go('management.apis.detail.portal.plans.list', this.plan.id === undefined ? { state: 'STAGING' } : {});
       this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
     });
   }
@@ -188,7 +188,7 @@ class ApiEditPlanController {
   }
 
   shouldNotEditConditions(): boolean {
-    return this.plan.status === 'published' || this.plan.status === 'deprecated';
+    return this.plan.status === 'PUBLISHED' || this.plan.status === 'DEPRECATED';
   }
 }
 

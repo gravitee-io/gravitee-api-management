@@ -39,7 +39,7 @@
                 <span ng-if="!$ctrl.canUpdate">{{metadata.key}}</span>
               </td>
               <td md-cell>{{metadata.name}}</td>
-              <td md-cell>{{metadata.format}}</td>
+              <td md-cell>{{metadata.format | lowercase}}</td>
               <td md-cell>{{metadata.value}}</td>
               <td md-cell ng-if="$ctrl.referenceType === 'API'">{{metadata.defaultValue}}</td>
               <td md-cell ng-if="$ctrl.canDelete">

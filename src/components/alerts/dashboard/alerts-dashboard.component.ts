@@ -112,7 +112,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
     hasPermission: boolean;
   } {
     switch (this.referenceType) {
-      case 'api':
+      case 'API':
         return {
           scope: Scope.API,
           alertCreationUiRef: 'management.apis.detail.alerts.alertnew',
@@ -120,7 +120,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
           permission: 'api-alert-r',
           hasPermission: this.UserService.currentUser?.userApiPermissions.includes('api-alert-r'),
         };
-      case 'application':
+      case 'APPLICATION':
         return {
           scope: Scope.APPLICATION,
           alertCreationUiRef: '',

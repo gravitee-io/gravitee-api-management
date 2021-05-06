@@ -158,14 +158,14 @@ class ApiAdminController {
         if (response) {
           if (response.accept) {
             this.ApiService.acceptReview(api, response.message).then((response) => {
-              this.api.workflow_state = 'review_ok';
+              this.api.workflow_state = 'REVIEW_OK';
               this.api.etag = response.headers('etag');
               this.NotificationService.show(`Changes accepted for API ${this.api.name}`);
               this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
             });
           } else {
             this.ApiService.rejectReview(api, response.message).then((response) => {
-              this.api.workflow_state = 'request_for_changes';
+              this.api.workflow_state = 'REQUEST_FOR_CHANGES';
               this.api.etag = response.headers('etag');
               this.NotificationService.show(`Changes rejected for API ${this.api.name}`);
               this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
@@ -197,30 +197,30 @@ class ApiAdminController {
 
   canDeploy(): boolean {
     if (this.Constants.env.settings.apiReview.enabled) {
-      return !this.api.workflow_state || this.api.workflow_state === 'review_ok';
+      return !this.api.workflow_state || this.api.workflow_state === 'REVIEW_OK';
     } else {
       return true;
     }
   }
 
   canReview(): boolean {
-    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'in_review';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'IN_REVIEW';
   }
 
   isRequestForChanges(): boolean {
-    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'request_for_changes';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'REQUEST_FOR_CHANGES';
   }
 
   isInDraft(): boolean {
-    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'draft';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'DRAFT';
   }
 
   isReviewOK(): boolean {
-    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'review_ok';
+    return this.Constants.env.settings.apiReview.enabled && this.api.workflow_state === 'REVIEW_OK';
   }
 
   isDeprecated(): boolean {
-    return this.api.lifecycle_state === 'deprecated';
+    return this.api.lifecycle_state === 'DEPRECATED';
   }
 
   showRequestForChangesConfirm() {
@@ -234,7 +234,7 @@ class ApiAdminController {
       .then((response) => {
         if (response) {
           this.ApiService.rejectReview(this.api, response.message).then((response) => {
-            this.api.workflow_state = 'request_for_changes';
+            this.api.workflow_state = 'REQUEST_FOR_CHANGES';
             this.api.etag = response.headers('etag');
             this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
             this.NotificationService.show(`Changes has been requested for API ${this.api.name}`);

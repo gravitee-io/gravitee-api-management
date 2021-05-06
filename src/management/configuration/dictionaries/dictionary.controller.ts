@@ -56,11 +56,11 @@ class DictionaryController {
 
     this.types = [
       {
-        id: 'manual',
+        id: 'MANUAL',
         name: 'Manual',
       },
       {
-        id: 'dynamic',
+        id: 'DYNAMIC',
         name: 'Dynamic',
       },
     ];

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import '@gravitee/ui-components/wc/gv-policy-studio';
+import { deepClone } from '@gravitee/ui-components/src/lib/utils';
 
 export const propertyProviders = [
   {
@@ -164,7 +165,7 @@ class ApiPolicyStudioController {
 
   setApi(api) {
     if (api !== this.api) {
-      this.api = api;
+      this.api = deepClone(api);
       this.studio.definition = {
         name: this.api.name,
         version: this.api.version,

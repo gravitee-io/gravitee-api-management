@@ -84,7 +84,7 @@
           <div class="hint">Define the way the initial access token must be provided.</div>
         </md-input-container>
 
-        <div ng-if="$ctrl.clientRegistrationProvider.initial_access_token_type === 'client_credentials'">
+        <div ng-if="$ctrl.clientRegistrationProvider.initial_access_token_type === 'CLIENT_CREDENTIALS'">
           <md-input-container class="md-block" flex-gt-xs>
             <label>Client ID</label>
             <input ng-model="$ctrl.clientRegistrationProvider.client_id" type="text" required />
@@ -107,7 +107,7 @@
           </md-input-container>
         </div>
 
-        <div ng-if="$ctrl.clientRegistrationProvider.initial_access_token_type === 'initial_access_token'">
+        <div ng-if="$ctrl.clientRegistrationProvider.initial_access_token_type === 'INITIAL_ACCESS_TOKEN'">
           <md-input-container class="md-block" flex-gt-xs>
             <label>Initial Access Token</label>
             <input ng-model="$ctrl.clientRegistrationProvider.initial_access_token" type="text" required />

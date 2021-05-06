@@ -51,7 +51,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
     }
 
     listApiKeys() {
-      if (this.subscription.plan.security === 'api_key') {
+      if (this.subscription.plan.security === 'API_KEY') {
         // Retrieve api_keys for current current subscription
         this.ApplicationService.listApiKeys(this.application.id, this.subscription.id).then((response) => {
           this.keys = response.data;
@@ -111,7 +111,7 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
 
     close() {
       let msg = 'The application will not be able to consume this API anymore.';
-      if (this.subscription.plan.security === 'api_key') {
+      if (this.subscription.plan.security === 'API_KEY') {
         msg += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
       }
 

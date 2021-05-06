@@ -43,16 +43,16 @@ const EditPageAclsComponent: ng.IComponentOptions = {
       });
 
       $scope.acls = {
-        isPrivate: this.page.visibility.toLowerCase() === 'private',
-        groups: this.page.accessControls?.filter((acl) => acl.referenceType.toUpperCase() === 'GROUP').map((group) => group.referenceId),
-        roles: this.page.accessControls?.filter((acl) => acl.referenceType.toUpperCase() === 'ROLE').map((role) => role.referenceId),
+        isPrivate: this.page.visibility === 'PRIVATE',
+        groups: this.page.accessControls?.filter((acl) => acl.referenceType === 'GROUP').map((group) => group.referenceId),
+        roles: this.page.accessControls?.filter((acl) => acl.referenceType === 'ROLE').map((role) => role.referenceId),
         excludedAccessControls: this.page.excludedAccessControls,
       };
 
       $scope.$watch(
         'acls',
         () => {
-          this.page.visibility = $scope.acls.isPrivate ? 'private' : 'public';
+          this.page.visibility = $scope.acls.isPrivate ? 'PRIVATE' : 'PUBLIC';
           this.page.excludedAccessControls = $scope.acls.excludedAccessControls;
 
           this.page.accessControls = [

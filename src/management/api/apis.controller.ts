@@ -170,18 +170,18 @@ export class ApisController {
 
   getVisibilityIcon(api) {
     switch (api.visibility) {
-      case 'public':
+      case 'PUBLIC':
         return 'public';
-      case 'private':
+      case 'PRIVATE':
         return 'lock';
     }
   }
 
   getVisibility(api) {
     switch (api.visibility) {
-      case 'public':
+      case 'PUBLIC':
         return 'Public';
-      case 'private':
+      case 'PRIVATE':
         return 'Private';
     }
   }
@@ -236,30 +236,30 @@ export class ApisController {
   }
 
   getWorkflowStateLabel(api) {
-    if (api.lifecycle_state === 'deprecated') {
+    if (api.lifecycle_state === 'DEPRECATED') {
       return 'DEPRECATED';
     }
     switch (api.workflow_state) {
-      case 'draft':
+      case 'DRAFT':
         return 'DRAFT';
-      case 'in_review':
+      case 'IN_REVIEW':
         return 'IN REVIEW';
-      case 'request_for_changes':
+      case 'REQUEST_FOR_CHANGES':
         return 'NEED CHANGES';
-      case 'review_ok':
+      case 'REVIEW_OK':
         return '';
     }
   }
 
   getWorkflowStateColor(api) {
-    if (api.lifecycle_state === 'deprecated') {
+    if (api.lifecycle_state === 'DEPRECATED') {
       return '#d73a49';
     }
     switch (api.workflow_state) {
-      case 'draft':
+      case 'DRAFT':
         return '#54a3ff';
-      case 'in_review':
-      case 'request_for_changes':
+      case 'IN_REVIEW':
+      case 'REQUEST_FOR_CHANGES':
         return '#d73a49';
     }
   }

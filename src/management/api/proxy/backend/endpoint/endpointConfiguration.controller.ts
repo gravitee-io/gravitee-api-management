@@ -62,24 +62,22 @@ class ApiEndpointController {
   }
 
   update(api) {
-    if (!this.endpoint.inherit) {
-      if (this.endpoint.ssl.trustAll) {
-        delete this.endpoint.ssl.trustStore;
-      }
+    if (this.endpoint.ssl.trustAll) {
+      delete this.endpoint.ssl.trustStore;
+    }
 
-      if (this.endpoint.ssl.trustStore && (!this.endpoint.ssl.trustStore.type || this.endpoint.ssl.trustStore.type === '')) {
-        delete this.endpoint.ssl.trustStore;
-      }
+    if (this.endpoint.ssl.trustStore && (!this.endpoint.ssl.trustStore.type || this.endpoint.ssl.trustStore.type === '')) {
+      delete this.endpoint.ssl.trustStore;
+    }
 
-      if (this.endpoint.ssl.keyStore && (!this.endpoint.ssl.keyStore.type || this.endpoint.ssl.keyStore.type === '')) {
-        delete this.endpoint.ssl.keyStore;
-      }
+    if (this.endpoint.ssl.keyStore && (!this.endpoint.ssl.keyStore.type || this.endpoint.ssl.keyStore.type === '')) {
+      delete this.endpoint.ssl.keyStore;
+    }
 
-      if (this.endpoint.headers.length > 0) {
-        this.endpoint.headers = _.mapValues(_.keyBy(this.endpoint.headers, 'name'), 'value');
-      } else {
-        delete this.endpoint.headers;
-      }
+    if (this.endpoint.headers.length > 0) {
+      this.endpoint.headers = _.mapValues(_.keyBy(this.endpoint.headers, 'name'), 'value');
+    } else {
+      delete this.endpoint.headers;
     }
 
     const group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });

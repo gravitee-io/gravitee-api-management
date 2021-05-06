@@ -44,8 +44,8 @@ class ApiListPlansController {
   ) {
     'ngInject';
     this.dndEnabled = UserService.isUserHasPermissions(['api-plan-u']);
-    this.statusFilters = ['staging', 'published', 'deprecated', 'closed'];
-    this.selectedStatus = ['published'];
+    this.statusFilters = ['STAGING', 'PUBLISHED', 'DEPRECATED', 'CLOSED'];
+    this.selectedStatus = ['PUBLISHED'];
 
     this.countByStatus = {};
   }
@@ -71,8 +71,9 @@ class ApiListPlansController {
     });
 
     if (this.$stateParams.state) {
-      if (_.includes(this.statusFilters, this.$stateParams.state)) {
-        this.changeFilter(this.$stateParams.state);
+      const stateQueryParam = this.$stateParams.state.toUpperCase();
+      if (_.includes(this.statusFilters, stateQueryParam)) {
+        this.changeFilter(stateQueryParam);
       } else {
         this.applyFilters();
       }
@@ -80,12 +81,12 @@ class ApiListPlansController {
       this.applyFilters();
     }
 
-    this.isApiDeprecated = this.api.lifecycle_state === 'deprecated';
+    this.isApiDeprecated = this.api.lifecycle_state === 'DEPRECATED';
     this.creationEmptyMessage = this.isApiDeprecated ? 'The API is deprecated' : 'Start creating a plan';
   }
 
   canDesign(plan) {
-    return isV2(this.api) && plan.status !== 'closed';
+    return isV2(this.api) && plan.status !== 'CLOSED';
   }
 
   design(plan) {
@@ -105,7 +106,7 @@ class ApiListPlansController {
 
   changeFilter(statusFilter) {
     this.selectedStatus = statusFilter;
-    this.dndEnabled = statusFilter === 'published' && this.UserService.isUserHasPermissions(['api-plan-u']);
+    this.dndEnabled = statusFilter === 'PUBLISHED' && this.UserService.isUserHasPermissions(['api-plan-u']);
 
     if (_.includes(this.selectedStatus, statusFilter)) {
       _.pull(this.selectedStatus, statusFilter);
@@ -143,7 +144,7 @@ class ApiListPlansController {
     this.ApiService.getAllPlanSubscriptions(this.$stateParams.apiId, plan.id).then((response) => {
       const subscriptions = response.data.page.size;
       let msg = '';
-      if (plan.security === 'key_less') {
+      if (plan.security === 'KEY_LESS') {
         msg = 'A keyless plan may have consumers. <br/>' + 'By closing this plan you will remove free access to this API.';
       } else {
         if (subscriptions === 0) {
@@ -157,7 +158,7 @@ class ApiListPlansController {
         }
       }
       let confirmButton = 'Yes, close this plan.';
-      if (subscriptions === 0 && plan.security === 'api_key') {
+      if (subscriptions === 0 && plan.security === 'API_KEY') {
         confirmButton = 'Yes, delete this plan';
       }
       this.$mdDialog
@@ -179,9 +180,9 @@ class ApiListPlansController {
           if (response) {
             this.ApiService.closePlan(this.api, plan.id).then(() => {
               this.NotificationService.show('Plan ' + plan.name + ' has been closed');
-              this.$rootScope.$broadcast('planChangeSuccess', { state: 'closed' });
+              this.$rootScope.$broadcast('planChangeSuccess', { state: 'CLOSED' });
               this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
-              this.selectedStatus = ['closed'];
+              this.selectedStatus = ['CLOSED'];
               this.list();
             });
           }
@@ -206,9 +207,9 @@ class ApiListPlansController {
         if (response) {
           this.ApiService.deprecatePlan(this.api, plan.id).then(() => {
             this.NotificationService.show('Plan ' + plan.name + ' has been deprecated');
-            this.$rootScope.$broadcast('planChangeSuccess', { state: 'deprecated' });
+            this.$rootScope.$broadcast('planChangeSuccess', { state: 'DEPRECATED' });
             this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
-            this.selectedStatus = ['published'];
+            this.selectedStatus = ['PUBLISHED'];
             this.list();
           });
         }
@@ -232,9 +233,9 @@ class ApiListPlansController {
           if (plan) {
             this.ApiService.publishPlan(this.api, plan.id).then(() => {
               this.NotificationService.show('Plan ' + plan.name + ' has been published');
-              this.$rootScope.$broadcast('planChangeSuccess', { state: 'published' });
+              this.$rootScope.$broadcast('planChangeSuccess', { state: 'PUBLISHED' });
               this.$scope.$parent.apiCtrl.checkAPISynchronization({ id: this.$stateParams.apiId });
-              this.selectedStatus = ['published'];
+              this.selectedStatus = ['PUBLISHED'];
               this.list();
             });
           }

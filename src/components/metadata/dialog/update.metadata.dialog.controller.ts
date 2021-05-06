@@ -31,12 +31,12 @@ function UpdateMetadataDialogController(
     this.referenceType = 'API';
     this.referenceId = $stateParams.apiId;
   } else if ($stateParams.applicationId) {
-    this.referenceType = 'application';
+    this.referenceType = 'APPLICATION';
     this.referenceId = $stateParams.applicationId;
   }
 
   this.metadata = metadata;
-  if ('date' === metadata.format) {
+  if ('DATE' === metadata.format) {
     metadata.value = metadata.value ? new Date(metadata.value) : null;
     if (metadata.defaultValue) {
       metadata.defaultValue = new Date(metadata.defaultValue);

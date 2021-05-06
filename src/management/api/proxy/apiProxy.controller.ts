@@ -126,17 +126,17 @@ class ApiProxyController {
   }
 
   toggleVisibility() {
-    if (this.api.visibility === 'public') {
-      this.api.visibility = 'private';
+    if (this.api.visibility === 'PUBLIC') {
+      this.api.visibility = 'PRIVATE';
     } else {
-      this.api.visibility = 'public';
+      this.api.visibility = 'PUBLIC';
     }
     this.formApi.$setDirty();
   }
 
   initState() {
-    this.$scope.apiEnabled = this.$scope.$parent.apiCtrl.api.state === 'started';
-    this.$scope.apiPublic = this.$scope.$parent.apiCtrl.api.visibility === 'public';
+    this.$scope.apiEnabled = this.$scope.$parent.apiCtrl.api.state === 'STARTED';
+    this.$scope.apiPublic = this.$scope.$parent.apiCtrl.api.visibility === 'PUBLIC';
 
     // Failover
     this.failoverEnabled = this.api.proxy.failover !== undefined;
@@ -144,14 +144,17 @@ class ApiProxyController {
     // Context-path editable
     this.contextPathEditable = this.UserService.currentUser.id === this.api.owner.id;
 
-    this.api.proxy.cors = this.api.proxy.cors || {
-      allowOrigin: [],
-      allowHeaders: [],
-      allowMethods: [],
-      exposeHeaders: [],
-      maxAge: -1,
-      allowCredentials: false,
-    };
+    this.api.proxy.cors =
+      this.api.proxy.cors && this.api.proxy.cors.allowOrigin
+        ? this.api.proxy.cors
+        : {
+            allowOrigin: [],
+            allowHeaders: [],
+            allowMethods: [],
+            exposeHeaders: [],
+            maxAge: -1,
+            allowCredentials: false,
+          };
   }
 
   removeEndpoints() {

@@ -57,10 +57,10 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this.availableProviders = [
-      { name: 'Gravitee.io AM', icon: 'perm_identity', type: 'graviteeio_am' },
-      { name: 'Google', icon: 'google-plus', type: 'google' },
-      { name: 'GitHub', icon: 'github-circle', type: 'github' },
-      { name: 'OpenID Connect', icon: 'perm_identity', type: 'oidc' },
+      { name: 'Gravitee.io AM', icon: 'perm_identity', type: 'GRAVITEEIO_AM' },
+      { name: 'Google', icon: 'google-plus', type: 'GOOGLE' },
+      { name: 'GitHub', icon: 'github-circle', type: 'GITHUB' },
+      { name: 'OpenID Connect', icon: 'perm_identity', type: 'OIDC' },
     ];
 
     this.create = (type) => {
