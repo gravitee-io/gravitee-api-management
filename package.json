@@ -39,7 +39,7 @@
     "bootstrap": "3.4.1",
     "diff": "^3.5.0",
     "dragular": "^4.6.0",
-    "highcharts": "^8.2.0",
+    "highcharts": "^9.1.0",
     "highlight.js": "^10.7.2",
     "jdenticon": "^2.2.0",
     "jquery": "^3.6.0",
