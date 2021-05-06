@@ -32,7 +32,7 @@ module.exports = {
         test: /\.(scss)$/,
         loaders: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: 'css-loader!sass-loader!postcss-loader',
+          use: 'css-loader!postcss-loader!sass-loader',
         }),
         include: [path.resolve(__dirname, '..') + '/src/index.scss'],
       },
@@ -151,9 +151,6 @@ module.exports = {
     filename: '[name]-[hash].js',
   },
   resolve: {
-    alias: {
-      'read-more': 'read-more/js/directives/readmore.js',
-    },
     extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
   },
   entry: {

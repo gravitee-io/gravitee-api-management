@@ -29,14 +29,14 @@ module.exports = {
     rules: [
       {
         test: /\.(scss)$/,
-        loaders: ['style-loader', 'css-loader', 'sass-loader'],
-        include: [path.resolve(__dirname, '..') + '/src/index.scss'],
+        include: [path.resolve(__dirname, '../src/index.scss')],
+        use: ['style-loader', 'css-loader', 'sass-loader'],
       },
-      { test: /\.css$/, loaders: ['style-loader', 'css-loader'] },
+      { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        loaders: ['ng-annotate-loader', 'ts-loader?transpileOnly=true'],
+        use: ['ng-annotate-loader', 'ts-loader?transpileOnly=true'],
       },
       {
         test: /\.html$/i,
@@ -45,11 +45,11 @@ module.exports = {
       },
       {
         test: /.html$/,
-        loaders: ['html-loader'],
+        loader: 'html-loader',
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
-        loaders: ['file-loader?hash=sha512&digest=hex&name=[hash].[ext]'],
+        loader: 'file-loader?hash=sha512&digest=hex&name=[hash].[ext]',
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
@@ -64,7 +64,6 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, '..', 'src', 'index.html'),
     }),
@@ -132,9 +131,6 @@ module.exports = {
     filename: '[name].js',
   },
   resolve: {
-    alias: {
-      'read-more': 'read-more/js/directives/readmore.js',
-    },
     extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
   },
   entry: `./${path.join('src', 'index')}`,
