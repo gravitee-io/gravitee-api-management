@@ -352,21 +352,36 @@ workflows:
           s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
 
   # ---
-  # A nighlty release for all CE repositories
+  # Nighlty for all CE repositories :
+  # builds the SNAPSHOT, and deploys
+  # it into Gravitee Private Artifactory
+  # --
+  # No Nexus deployment
+  # ---
   nightly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
+    # triggers:
+      # - schedule:
+          # cron: "0 0 * * *"
+          # filters:
+            # branches:
+              # only:
+                # - master
+                # - /^[0-999].[0-999].x/
+    jobs:
+      - gravitee/d_all_nightly_secrets:
+          context: cicd-orchestrator
+          name: nightly_secrets_resolution
           filters:
             branches:
               only:
                 - master
                 - /^[0-999].[0-999].x/
-    jobs:
-      - gravitee/d_all_nightly_secrets:
-          context: cicd-orchestrator
-          name: nightly_secrets_resolution
       - gravitee/d_all_nightly_ce:
           name: process_pull_request
           requires:
             - nightly_secrets_resolution
+          filters:
+            branches:
+              only:
+                - master
+                - /^[0-999].[0-999].x/
