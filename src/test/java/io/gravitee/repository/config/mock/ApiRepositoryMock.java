@@ -52,11 +52,13 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
     void prepare(ApiRepository apiRepository) throws Exception {
         final Api apiToDelete = mock(Api.class);
         when(apiToDelete.getId()).thenReturn("api-to-delete");
+        when(apiToDelete.getDefinition()).thenReturn("\"proxy\" : {  \"context_path\" : \"/product\" }");
 
         final Api apiToUpdate = mock(Api.class);
         when(apiToUpdate.getId()).thenReturn("api-to-update");
         when(apiToUpdate.getName()).thenReturn("api-to-update name");
         when(apiToUpdate.getApiLifecycleState()).thenReturn(PUBLISHED);
+        when(apiToUpdate.getDefinition()).thenReturn("\"proxy\" : {  \"context_path\" : \"/product\" }");
         final Api apiUpdated = mock(Api.class);
         when(apiUpdated.getName()).thenReturn("New API name");
         when(apiUpdated.getEnvironmentId()).thenReturn("new_DEFAULT");
@@ -99,6 +101,8 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(groupedApi.getId()).thenReturn("grouped-api");
         when(groupedApi.getApiLifecycleState()).thenReturn(PUBLISHED);
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
+        when(groupedApi.getDefinition()).thenReturn("\"proxy\" : {  \"context_path\" : \"/product\" }");
+
 
         final Api apiToFindById = mock(Api.class);
         when(apiToFindById.getId()).thenReturn("api-to-findById");
@@ -154,5 +158,7 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
 
         when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
                 .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
+        when(apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build()))
+                .thenReturn(asList(apiToDelete, apiToUpdate, groupedApi));
     }
 }
