@@ -261,4 +261,9 @@ public class MockTestRepositoryConfiguration {
     public NodeMonitoringRepositoryMock nodeMonitoringRepositoryMock() {
         return new NodeMonitoringRepositoryMock();
     }
+
+    @Bean
+    public FlowRepositoryMock flowRepository() {
+        return new FlowRepositoryMock();
+    }
 }

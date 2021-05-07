@@ -46,22 +46,24 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         orgCreate.setName("Default org for create");
         orgCreate.setDescription("Default org description for create");
         orgCreate.setDomainRestrictions(Arrays.asList("domain", "restriction"));
+        orgCreate.setFlowMode("BEST_MATCH");
 
         final Organization org2Update = new Organization();
         org2Update.setId("DEFAULT-ORG-update");
         org2Update.setName("Default org for update");
-        
+
         final Organization orgUpdated = new Organization();
         orgUpdated.setId("DEFAULT-ORG-update");
         orgUpdated.setName("New name");
         orgUpdated.setDescription("New description");
         orgUpdated.setDomainRestrictions(Collections.singletonList("New domain restriction"));
         orgUpdated.setHrids(Collections.singletonList("New hrid"));
+        orgUpdated.setFlowMode("DEFAULT");
 
         final Organization orgDelete = new Organization();
         orgDelete.setId("DEFAULT-ORG-delete");
         orgDelete.setName("Default org for delete");
-        
+
         final Organization orgFindById = new Organization();
         orgFindById.setId("DEFAULT-ORG-findById");
         orgFindById.setName("Default org for findById");

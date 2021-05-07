@@ -20,6 +20,7 @@ import io.gravitee.node.api.NodeMonitoringRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.media.api.MediaRepository;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -155,6 +156,8 @@ public abstract class AbstractRepositoryTest {
     protected InstallationRepository installationRepository;
     @Inject
     protected NodeMonitoringRepository nodeMonitoringRepository;
+    @Inject
+    protected FlowRepository flowRepository;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -322,15 +325,22 @@ public abstract class AbstractRepositoryTest {
         else if( object instanceof Monitoring) {
             nodeMonitoringRepository.create((Monitoring) object);
         }
+        else if( object instanceof Flow) {
+            flowRepository.create((Flow) object);
+        }
     }
 
     protected Class getClassFromFileName(final String baseName) {
         final String className = capitalize(baseName.substring(0, baseName.length() - 1));
         try {
-            return forName(MODEL_PACKAGE + className);
+            return forName(MODEL_PACKAGE + getModelPackage() + className);
         } catch (final ClassNotFoundException e) {
             throw new IllegalArgumentException("The entity can not be found for " + className, e);
         }
+    }
+
+    protected String getModelPackage() {
+        return "";
     }
 
     protected <T> List<T> mapToModel(final File file, final Class<T> clazz) throws Exception {

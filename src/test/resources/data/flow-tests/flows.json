@@ -1,0 +1,336 @@
+[
+  {
+    "id": "flow-tag1",
+    "name": "tag-1",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "orga-1",
+    "condition": "my-condition",
+    "enabled": true,
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "path": "/",
+    "operator": "STARTS_WITH",
+    "consumers": [
+      {
+        "consumerType": "TAG",
+        "consumerId": "tag-1"
+      },
+      {
+        "consumerType": "TAG",
+        "consumerId": "tag-2"
+      }
+    ],
+    "pre": [
+      {
+        "policy": "rate-limit",
+        "name": "Rate Limit",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"rate\": {\n            \"limit\": 10,\n            \"periodTime\": 1,\n            \"periodTimeUnit\": \"MINUTES\"\n          }\n        }",
+        "order": 1
+      },
+      {
+        "policy": "api-key",
+        "name": "Check API Key",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"propagateApiKey\": true\n        }",
+        "order": 2
+      }
+    ],
+    "post": [
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 3
+      }
+    ],
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000,
+    "order": 1
+  },
+  {
+    "id": "tag-updated",
+    "name": "tag-1",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "my-orga",
+    "condition": "my-condition",
+    "enabled": true,
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "path": "/",
+    "operator": "STARTS_WITH",
+    "pre": [
+      {
+        "policy": "rate-limit",
+        "name": "Rate Limit",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"rate\": {\n            \"limit\": 10,\n            \"periodTime\": 1,\n            \"periodTimeUnit\": \"MINUTES\"\n          }\n        }",
+        "order": 1
+      },
+      {
+        "policy": "api-key",
+        "name": "Check API Key",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"propagateApiKey\": true\n        }",
+        "order": 2
+      }
+    ],
+    "post": [
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 3
+      }
+    ],
+    "createdAt": 1470157767000,
+    "updatedAt": 1470157767000,
+    "order": 2
+  },
+  {
+    "id": "tag-deleted",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "my-orga",
+    "condition": "",
+    "enabled": true,
+    "methods": [
+      "GET",
+      "HEAD",
+      "POST",
+      "PUT",
+      "DELETE",
+      "CONNECT",
+      "OPTIONS",
+      "TRACE",
+      "PATCH"
+    ],
+    "path": "/",
+    "operator": "STARTS_WITH",
+    "pre": [
+      {
+        "policy": "rate-limit",
+        "name": "Rate Limit",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"rate\": {\n            \"limit\": 10,\n            \"periodTime\": 1,\n            \"periodTimeUnit\": \"MINUTES\"\n          }\n        }",
+        "order": 1
+      },
+      {
+        "policy": "api-key",
+        "name": "Check API Key",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"propagateApiKey\": true\n        }",
+        "order": 2
+      }
+    ],
+    "post": [
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 3
+      }
+    ],
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3
+  },
+
+  {
+    "id": "tag-ref-deleted",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "orga-deleted",
+    "condition": "",
+    "enabled": true,
+    "methods": [
+      "GET",
+      "HEAD",
+      "POST",
+      "PUT",
+      "DELETE",
+      "CONNECT",
+      "OPTIONS",
+      "TRACE",
+      "PATCH"
+    ],
+    "path": "/",
+    "operator": "STARTS_WITH",
+    "pre": [
+      {
+        "policy": "rate-limit",
+        "name": "Rate Limit",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"rate\": {\n            \"limit\": 10,\n            \"periodTime\": 1,\n            \"periodTimeUnit\": \"MINUTES\"\n          }\n        }",
+        "order": 1
+      },
+      {
+        "policy": "api-key",
+        "name": "Check API Key",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"propagateApiKey\": true\n        }",
+        "order": 2
+      }
+    ],
+    "post": [
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 3
+      }
+    ],
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3
+  },
+  {
+    "id": "tag-ref-deleted-1",
+    "referenceType": "ORGANIZATION",
+    "referenceId": "orga-deleted",
+    "condition": "",
+    "enabled": true,
+    "methods": [
+      "GET",
+      "HEAD",
+      "POST",
+      "PUT",
+      "DELETE",
+      "CONNECT",
+      "OPTIONS",
+      "TRACE",
+      "PATCH"
+    ],
+    "path": "/",
+    "operator": "STARTS_WITH",
+    "pre": [
+      {
+        "policy": "rate-limit",
+        "name": "Rate Limit",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"rate\": {\n            \"limit\": 10,\n            \"periodTime\": 1,\n            \"periodTimeUnit\": \"MINUTES\"\n          }\n        }",
+        "order": 1
+      },
+      {
+        "policy": "api-key",
+        "name": "Check API Key",
+        "enabled": true,
+        "description": "Step description",
+        "configuration": "{\n          \"propagateApiKey\": true\n        }",
+        "order": 2
+      }
+    ],
+    "post": [
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "name": "Groovy",
+        "policy": "groovy",
+        "description": "Description of the Groovy Gravitee Policy",
+        "configuration": "{\n          \"onResponseContentScript\": \"\"\n        }",
+        "enabled": true,
+        "order": 3
+      }
+    ],
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000,
+    "order": 3
+  }
+]
