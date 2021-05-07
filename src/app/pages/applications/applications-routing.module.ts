@@ -48,7 +48,13 @@ const routes: Routes = [
       title: i18n('route.myApplications'),
       icon: 'devices:server',
       animation: { type: 'slide', group: 'apps', index: 1 },
-      menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } },
+      menu: {
+        slots: {
+          right: GvButtonCreateApplicationComponent,
+          expectedFeature: FeatureEnum.applicationCreation,
+          expectedPermissions: ['APPLICATION-C'],
+        },
+      },
     },
   },
   {
@@ -58,17 +64,24 @@ const routes: Routes = [
       title: i18n('route.mySubscriptions'),
       icon: 'finance:share',
       animation: { type: 'slide', group: 'apps', index: 2 },
-      menu: { slots: { right: GvButtonCreateApplicationComponent, expectedFeature: FeatureEnum.applicationCreation } },
+      menu: {
+        slots: {
+          right: GvButtonCreateApplicationComponent,
+          expectedFeature: FeatureEnum.applicationCreation,
+          expectedPermissions: ['APPLICATION-C'],
+        },
+      },
     },
   },
   {
     path: 'creation',
     component: ApplicationCreationComponent,
-    canActivate: [FeatureGuardService],
+    canActivate: [FeatureGuardService, PermissionGuardService],
     data: {
       title: i18n('route.applicationCreation'),
       expectedFeature: FeatureEnum.applicationCreation,
       animation: { type: 'fade' },
+      expectedPermissions: ['APPLICATION-C'],
     },
     resolve: {
       enabledApplicationTypes: EnabledApplicationTypesResolver,
