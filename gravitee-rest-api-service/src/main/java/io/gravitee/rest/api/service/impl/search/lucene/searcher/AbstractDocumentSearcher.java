@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.analyzer.CustomWhitespaceAnalyzer;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.lucene.analysis.Analyzer;
@@ -76,13 +77,15 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             final ScoreDoc[] hits = topDocs.scoreDocs;
             final List<String> results = new ArrayList<>();
 
+            final List<Integer> orderdedDocsId = Arrays.stream(topDocs.scoreDocs)
+                    .sorted((doc1, doc2) -> Float.compare(doc2.score, doc1.score))
+                    .map(doc -> doc.doc)
+                    .collect(Collectors.toList());
+
             logger.debug("Found {} total matching documents", topDocs.totalHits);
 
-            if (hits.length > 0) {
-                // Iterate over found results
-                for (ScoreDoc hit : hits) {
-                    results.add(getReference(searcher.doc(hit.doc)));
-                }
+            for (Integer docId : orderdedDocsId) {
+                results.add(getReference(searcher.doc(docId)));
             }
 
             return new SearchResult(results.stream().distinct().collect(Collectors.toList()), topDocs.totalHits);

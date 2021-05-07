@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
@@ -45,16 +46,14 @@ import java.util.Map;
 @Component
 public class UserDocumentTransformer implements DocumentTransformer<UserEntity> {
 
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_TYPE = "type";
-    private static final String FIELD_TYPE_VALUE = "user";
-    private static final String FIELD_FIRSTNAME = "firstname";
-    private static final String FIELD_LASTNAME = "lastname";
-    private static final String FIELD_DISPLAYNAME = "displayname";
-    private static final String FIELD_DISPLAYNAME_SPLIT = "displayname_split";
-    private static final String FIELD_EMAIL = "email";
-    private static final String FIELD_SOURCE = "source";
-    private static final String FIELD_REFERENCE = "reference";
+    private final static String FIELD_ID = "id";
+    private final static String FIELD_TYPE = "type";
+    private final static String FIELD_TYPE_VALUE = "user";
+    private final static String FIELD_DISPLAYNAME = "displayname";
+    private final static String FIELD_DISPLAYNAME_REVERTED = "displayname_reverted";
+    private final static String FIELD_EMAIL = "email";
+    private final static String FIELD_SOURCE = "source";
+    private final static String FIELD_REFERENCE = "reference";
 
     private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
 
@@ -94,21 +93,16 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         }
 
         if (user.getDisplayName() != null) {
-            TextField displayName = new TextField(FIELD_DISPLAYNAME, user.getDisplayName(), Field.Store.NO);
-            displayName.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME, user.getDisplayName()));
+            TextField displayName = new TextField(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName()), Field.Store.NO);
+            displayName.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName())));
             doc.add(displayName);
-            doc.add(new TextField(FIELD_DISPLAYNAME_SPLIT, user.getDisplayName(), Field.Store.NO));
-        }
-        if (user.getFirstname() != null) {
-            TextField firstname = new TextField(FIELD_FIRSTNAME, user.getFirstname(), Field.Store.NO);
-            firstname.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_FIRSTNAME, user.getFirstname()));
-            doc.add(firstname);
-        }
 
-        if (user.getLastname() != null) {
-            TextField lastname = new TextField(FIELD_LASTNAME, user.getLastname(), Field.Store.NO);
-            lastname.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_LASTNAME, user.getLastname()));
-            doc.add(lastname);
+            if (!StringUtils.isEmpty(user.getLastname()) && !StringUtils.isEmpty(user.getFirstname())) {
+                String reverted = toLowerCaseAndStripAccents(String.format("%s %s", user.getLastname(), user.getFirstname()));
+                TextField displayNameReverted = new TextField(FIELD_DISPLAYNAME_REVERTED, reverted, Field.Store.NO);
+                displayNameReverted.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME_REVERTED, reverted));
+                doc.add(displayNameReverted);
+            }
         }
 
         if (user.getEmail() != null) {
@@ -146,5 +140,12 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
                 }
             };
         }
+    }
+
+    private String toLowerCaseAndStripAccents(String toTransform) {
+        if (!StringUtils.isEmpty(toTransform)) {
+            return StringUtils.stripAccents(toTransform.toLowerCase());
+        }
+        return toTransform;
     }
 }

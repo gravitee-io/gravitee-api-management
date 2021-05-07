@@ -19,7 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
-import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -40,24 +40,24 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public SearchResult search(io.gravitee.rest.api.service.search.query.Query query) throws TechnicalException {
         QueryParser parser = new MultiFieldQueryParser(
-            new String[] { "firstname", "lastname", "displayname", "displayname_split", "email", "reference" },
+            new String[] { "displayname", "displayname_reverted", "email", "reference" },
             analyzer
         );
         parser.setFuzzyMinSim(0.6f);
         parser.setAllowLeadingWildcard(true);
 
         try {
-            Query parse = parser.parse(QueryParserBase.escape(query.getQuery()));
+            parser.parse(QueryParserBase.escape(query.getQuery()));
 
             BooleanQuery.Builder userQuery = new BooleanQuery.Builder();
             BooleanQuery.Builder userFieldsQuery = new BooleanQuery.Builder();
 
-            userFieldsQuery.add(parse, BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(new WildcardQuery(new Term("firstname", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(new WildcardQuery(new Term("lastname", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + query.getQuery() + '*')), BooleanClause.Occur.SHOULD);
+            final String normalizedQuery = StringUtils.stripAccents(query.getQuery().toLowerCase());
+
+            userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+            userFieldsQuery.add(new WildcardQuery(new Term("displayname_reverted", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+            userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+            userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
             userQuery.add(userFieldsQuery.build(), BooleanClause.Occur.MUST);
             userQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
 
