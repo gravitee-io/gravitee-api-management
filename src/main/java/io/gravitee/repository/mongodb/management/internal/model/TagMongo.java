@@ -36,6 +36,7 @@ public class TagMongo {
 	private List<String> restrictedGroups;
 	private String referenceId;
 	private TagReferenceType referenceType;
+	private List<String> flowIds;
 
 	public String getId() {
 		return id;
@@ -85,6 +86,14 @@ public class TagMongo {
 		this.referenceType = referenceType;
 	}
 
+	public List<String> getFlowIds() {
+		return flowIds;
+	}
+
+	public void setFlowIds(List<String> flowIds) {
+		this.flowIds = flowIds;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -107,6 +116,7 @@ public class TagMongo {
 				", restrictedGroups=" + restrictedGroups +
 				", referenceId='" + referenceId + '\'' +
 				", referenceType='" + referenceType + '\'' +
+				", flowsIds='" + flowIds + '\'' +
 				'}';
 	}
 }

@@ -15,22 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
 import io.gravitee.repository.mongodb.management.internal.organization.OrganizationMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -89,6 +88,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
             organizationMongo.setDescription(organization.getDescription());
             organizationMongo.setHrids(organization.getHrids());
             organizationMongo.setDomainRestrictions(organization.getDomainRestrictions());
+            organizationMongo.setFlowMode(organization.getFlowMode());
 
             OrganizationMongo organizationMongoUpdated = internalOrganizationRepo.save(organizationMongo);
             return mapper.map(organizationMongoUpdated, Organization.class);

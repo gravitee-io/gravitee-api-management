@@ -39,6 +39,8 @@ public class OrganizationMongo {
 
 	private List<String> domainRestrictions;
 
+	private String flowMode;
+
 	public String getId() {
 		return id;
 	}
@@ -79,7 +81,15 @@ public class OrganizationMongo {
 		this.hrids = hrids;
 	}
 
-    @Override
+	public String getFlowMode() {
+		return flowMode;
+	}
+
+	public void setFlowMode(String flowMode) {
+		this.flowMode = flowMode;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof OrganizationMongo)) return false;
@@ -99,6 +109,7 @@ public class OrganizationMongo {
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
 				", domain restrictions='" + domainRestrictions + '\'' +
+				", flowMode='" + flowMode + '\'' +
 				'}';
 	}
 }
