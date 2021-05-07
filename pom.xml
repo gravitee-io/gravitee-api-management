@@ -24,7 +24,6 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <!-- <version>19.2.2-SNAPSHOT</version> -->
         <version>19.2.2</version>
     </parent>
 
@@ -248,7 +247,7 @@
         <gravitee-definition.version>1.27.1</gravitee-definition.version>
         <gravitee-common.version>1.19.1</gravitee-common.version>
         <gravitee-expression-language.version>1.4.2</gravitee-expression-language.version>
-        <gravitee-repository.version>3.7.1</gravitee-repository.version>
+        <gravitee-repository.version>3.7.2-SNAPSHOT</gravitee-repository.version>
         <gravitee-plugin-resource.version>1.16.0</gravitee-plugin-resource.version>
         <gravitee-plugin-core.version>1.16.0</gravitee-plugin-core.version>
         <gravitee-plugin-policy.version>1.16.0</gravitee-plugin-policy.version>
@@ -277,18 +276,6 @@
     </properties>
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
-                <configuration>
-                    <excludes>
-                        <exclude>io/gravitee/gateway/standalone/**/*.java</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
         <pluginManagement>
             <plugins>
                 <!-- allow snapshot only for vertx until the final release -->

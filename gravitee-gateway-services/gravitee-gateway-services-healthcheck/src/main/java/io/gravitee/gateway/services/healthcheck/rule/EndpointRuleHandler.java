@@ -150,12 +150,18 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             }
         }
 
-        if (step.getRequest().getPath() == null || step.getRequest().getPath().trim().isEmpty()) {
+        final String path = step.getRequest().getPath();
+
+        if (path == null || path.trim().isEmpty()) {
             return targetURI;
         }
 
-        String uri = targetURI.toString() + '/' + step.getRequest().getPath();
-        return URI.create(DUPLICATE_SLASH_REMOVER.matcher(uri).replaceAll("/"));
+        if (path.startsWith("/") || path.startsWith("?")) {
+            return URI.create(targetURI + path);
+        }
+
+        return URI.create(targetURI + "/" + path);
+
     }
 
     protected void runStep(T endpoint, io.gravitee.definition.model.services.healthcheck.Step step) {
