@@ -31,7 +31,7 @@ import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo
  * @author GraviteeSource Team
  */
 @Repository
-public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String> {
+public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom {
 
     @Query("{ _id: {$in: ?0} }")
     Set<ApplicationMongo> findByIds(List<String> ids);

@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
@@ -111,6 +114,16 @@ public class MongoApplicationRepository implements ApplicationRepository {
 	@Override
 	public Set<Application> findByName(String partialName) throws TechnicalException {
 		return mapApplications(internalApplicationRepo.findByName(partialName));
+	}
+
+	@Override
+	public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) {
+		final Page<ApplicationMongo> applicationsMongo = internalApplicationRepo.search(applicationCriteria, pageable);
+		final List<Application> applications = new ArrayList<>(mapApplications(applicationsMongo.getContent()));
+		return new Page<>(applications,
+				applicationsMongo.getPageNumber(),
+				(int) applicationsMongo.getPageElements(),
+				applicationsMongo.getTotalElements());
 	}
 
 	@Override
