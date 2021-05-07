@@ -78,3 +78,69 @@ databaseChangeLog:
             cascadeConstraints: true
             columnName: environment_id
             tableName: ${gravitee_prefix}events
+
+        - createTable:
+            tableName: ${gravitee_prefix}flows
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: condition, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: enabled, type: boolean, constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: path, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: operator, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: order, type: integer, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flows
+            columnNames: id
+            tableName: ${gravitee_prefix}flows
+
+        - createTable:
+            tableName: ${gravitee_prefix}flow_steps
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: configuration, type: nclob, constraints: { nullable: true } }
+              - column: { name: description, type: nvarchar(256), constraints: { nullable: true } }
+              - column: { name: enabled, type: boolean, constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: policy, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: order, type: integer, constraints: { nullable: true } }
+              - column: { name: phase, type: nvarchar(32), constraints: { nullable: false } }
+
+        - createTable:
+            tableName: ${gravitee_prefix}flow_methods
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: method, type: nvarchar(32), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_methods
+            columnNames: flow_id, method
+            tableName: ${gravitee_prefix}flow_methods
+
+        - createTable:
+            tableName: ${gravitee_prefix}flow_consumers
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: consumer_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: consumer_type, type: nvarchar(32), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_consumers
+            columnNames: flow_id, consumer_id, consumer_type
+            tableName: ${gravitee_prefix}flow_consumers
+
+        - addColumn:
+            tableName: ${gravitee_prefix}organizations
+            columns:
+              - column:
+                  name: flow_mode
+                  type: nvarchar(32)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+

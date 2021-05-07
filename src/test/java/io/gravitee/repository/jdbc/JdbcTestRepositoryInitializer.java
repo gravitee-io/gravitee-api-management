@@ -128,7 +128,11 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "themes",
             "alert_event_rules",
             "tokens",
-            "node_monitoring"
+            "node_monitoring",
+            "flows",
+            "flow_steps",
+            "flow_methods",
+            "flow_consumers"
     );
 
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate

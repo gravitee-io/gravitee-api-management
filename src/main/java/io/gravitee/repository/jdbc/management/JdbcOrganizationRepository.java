@@ -15,22 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import java.sql.PreparedStatement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
+
+import java.sql.PreparedStatement;
+import java.sql.Types;
+import java.util.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -54,6 +50,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
                 .addColumn("id", Types.NVARCHAR, String.class)
                 .addColumn("name", Types.NVARCHAR, String.class)
                 .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("flow_mode", Types.NVARCHAR, String.class)
                 .build();
     }
 
