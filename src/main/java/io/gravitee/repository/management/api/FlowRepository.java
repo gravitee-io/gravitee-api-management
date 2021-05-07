@@ -1,4 +1,4 @@
-/**
+package io.gravitee.repository.management.api; /**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,26 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.flow.Flow;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
+
+import java.util.List;
 
 /**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum EventType {
+public interface FlowRepository extends CrudRepository<Flow, String> {
 
-    PUBLISH_API,
-    PUBLISH_API_RESULT,
-    UNPUBLISH_API,
-    UNPUBLISH_API_RESULT,
-    START_API,
-    STOP_API,
-    GATEWAY_STARTED,
-    GATEWAY_STOPPED,
-    PUBLISH_DICTIONARY,
-    UNPUBLISH_DICTIONARY,
-    START_DICTIONARY,
-    STOP_DICTIONARY,
-    PUBLISH_ORGANIZATION
+    List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException;
+
+    void deleteByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException;
 }

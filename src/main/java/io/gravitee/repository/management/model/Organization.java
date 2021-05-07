@@ -29,6 +29,7 @@ public class Organization {
     private String name;
     private String description;
     private List<String> domainRestrictions;
+    private String flowMode;
 
     public String getId() {
         return id;
@@ -45,7 +46,7 @@ public class Organization {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getDescription() {
         return description;
     }
@@ -69,7 +70,15 @@ public class Organization {
     public void setHrids(List<String> hrids) {
         this.hrids = hrids;
     }
-    
+
+    public String getFlowMode() {
+        return flowMode;
+    }
+
+    public void setFlowMode(String flowMode) {
+        this.flowMode = flowMode;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -79,12 +88,13 @@ public class Organization {
                 Objects.equals(hrids, that.hrids) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(description, that.description) &&
-                Objects.equals(domainRestrictions, that.domainRestrictions);
+                Objects.equals(domainRestrictions, that.domainRestrictions) &&
+                Objects.equals(flowMode, that.flowMode);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, hrids, name, description, domainRestrictions);
+        return Objects.hash(id, hrids, name, description, domainRestrictions, flowMode);
     }
 
     @Override

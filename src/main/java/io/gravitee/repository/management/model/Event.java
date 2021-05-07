@@ -35,7 +35,7 @@ public class Event implements Serializable {
      * The list of ids of the environments the event is attached to
      */
     private Set<String> environments;
-    
+
     /**
      * The event Type
      */
@@ -137,7 +137,8 @@ public class Event implements Serializable {
         ORIGIN("origin"),
         USER("user"),
         DEPLOYMENT_LABEL("deployment_label"),
-        DEPLOYMENT_NUMBER("deployment_number")
+        DEPLOYMENT_NUMBER("deployment_number"),
+        ORGANIZATION_ID("organization_id")
         ;
 
         private String value;
