@@ -19,7 +19,6 @@ import static io.gravitee.rest.api.model.Visibility.PUBLIC;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
@@ -43,6 +42,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -88,6 +88,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private CategoryService categoryService;
+
+    @Inject
+    private FlowService flowService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -440,7 +443,7 @@ public class ApisResource extends AbstractResource {
     @ApiOperation(value = "Get the API configuration schema")
     @ApiResponses({ @ApiResponse(code = 200, message = "API definition"), @ApiResponse(code = 500, message = "Internal server error") })
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Response getApisConfigurationSchema() {
-        return Response.ok(apiService.getConfigurationSchema()).build();
+    public Response getApiFlowSchemaForm() {
+        return Response.ok(flowService.getApiFlowSchemaForm()).build();
     }
 }

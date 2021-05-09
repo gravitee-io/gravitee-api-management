@@ -63,8 +63,11 @@ public class PoliciesResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List policies", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
-    public Collection<PolicyListItem> getPolicies(@QueryParam("expand") List<String> expand) {
-        Stream<PolicyListItem> stream = policyService.findAll().stream().map(this::convert);
+    public Collection<PolicyListItem> getPolicies(
+        @QueryParam("expand") List<String> expand,
+        @QueryParam("withResource") Boolean withResource
+    ) {
+        Stream<PolicyListItem> stream = policyService.findAll(withResource).stream().map(this::convert);
 
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {

@@ -24,7 +24,6 @@ import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
-import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
@@ -61,7 +60,6 @@ import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
-import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.TagReferenceType;
 import io.gravitee.rest.api.model.alert.AlertReferenceType;
 import io.gravitee.rest.api.model.alert.AlertTriggerEntity;
@@ -103,7 +101,6 @@ import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -114,7 +111,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.bind.DatatypeConverter;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -139,7 +135,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
     private static final String URI_PATH_SEPARATOR = "/";
-    private static final String CONFIGURATION_DEFINITION_PATH = "/api/apim-configuration-schema.json";
 
     @Autowired
     private ApiRepository apiRepository;
@@ -866,16 +861,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         calculateEntrypoints(apiEntity, api.getEnvironmentId());
 
         return apiEntity;
-    }
-
-    @Override
-    public String getConfigurationSchema() {
-        try {
-            InputStream resourceAsStream = this.getClass().getResourceAsStream(CONFIGURATION_DEFINITION_PATH);
-            return IOUtils.toString(resourceAsStream, defaultCharset());
-        } catch (IOException e) {
-            throw new TechnicalManagementException("An error occurs while trying load api configuration definition", e);
-        }
     }
 
     @Override

@@ -15,18 +15,26 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +54,15 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
 
     @Autowired
     private RoleService roleService;
+
+    @Autowired
+    private FlowService flowService;
+
+    @Autowired
+    private EventService eventService;
+
+    @Autowired
+    private ObjectMapper mapper;
 
     @Override
     public OrganizationEntity findById(String organizationId) {
@@ -67,27 +84,57 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     @Override
     public OrganizationEntity createOrUpdate(String organizationId, final UpdateOrganizationEntity organizationEntity) {
         try {
-            Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
-            Organization organization = convert(organizationEntity);
-            organization.setId(organizationId);
-            if (organizationOptional.isPresent()) {
-                return convert(organizationRepository.update(organization));
-            } else {
+            try {
+                return this.update(organizationId, organizationEntity);
+            } catch (OrganizationNotFoundException e) {
+                Organization organization = convert(organizationEntity);
+                organization.setId(organizationId);
+                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
                 OrganizationEntity createdOrganization = convert(organizationRepository.create(organization));
 
                 //create Default role for organization
                 roleService.initialize(createdOrganization.getId());
                 roleService.createOrUpdateSystemRoles(createdOrganization.getId());
+                createPublishOrganizationEvent(createdOrganization);
 
                 return createdOrganization;
             }
-        } catch (TechnicalException ex) {
+        } catch (TechnicalException | JsonProcessingException ex) {
             LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
             throw new TechnicalManagementException(
                 "An error occurs while trying to update organization " + organizationEntity.getName(),
                 ex
             );
         }
+    }
+
+    @Override
+    public OrganizationEntity update(String organizationId, final UpdateOrganizationEntity organizationEntity) {
+        try {
+            Optional<Organization> organizationOptional = organizationRepository.findById(organizationId);
+            if (organizationOptional.isPresent()) {
+                flowService.save(FlowReferenceType.ORGANIZATION, organizationId, organizationEntity.getFlows());
+                Organization organization = convert(organizationEntity);
+                organization.setId(organizationId);
+                OrganizationEntity updatedOrganization = convert(organizationRepository.update(organization));
+                createPublishOrganizationEvent(updatedOrganization);
+                return updatedOrganization;
+            } else {
+                throw new OrganizationNotFoundException(organizationId);
+            }
+        } catch (TechnicalException | JsonProcessingException ex) {
+            LOGGER.error("An error occurs while trying to update organization {}", organizationEntity.getName(), ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to update organization " + organizationEntity.getName(),
+                ex
+            );
+        }
+    }
+
+    private void createPublishOrganizationEvent(OrganizationEntity organizationEntity) throws JsonProcessingException {
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.ORGANIZATION_ID.getValue(), organizationEntity.getId());
+        eventService.create(EventType.PUBLISH_ORGANIZATION, mapper.writeValueAsString(organizationEntity), properties);
     }
 
     @Override
@@ -119,6 +166,8 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         organization.setName(organizationEntity.getName());
         organization.setDescription(organizationEntity.getDescription());
         organization.setDomainRestrictions(organizationEntity.getDomainRestrictions());
+        String flowMode = organizationEntity.getFlowMode() != null ? organizationEntity.getFlowMode().name() : FlowMode.DEFAULT.name();
+        organization.setFlowMode(flowMode);
         return organization;
     }
 
@@ -129,6 +178,10 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         organizationEntity.setName(organization.getName());
         organizationEntity.setDescription(organization.getDescription());
         organizationEntity.setDomainRestrictions(organization.getDomainRestrictions());
+        FlowMode flowMode = organization.getFlowMode() != null ? FlowMode.valueOf(organization.getFlowMode()) : FlowMode.DEFAULT;
+        organizationEntity.setFlowMode(flowMode);
+        List<Flow> flows = flowService.findByReference(FlowReferenceType.ORGANIZATION, organization.getId());
+        organizationEntity.setFlows(flows);
         return organizationEntity;
     }
 

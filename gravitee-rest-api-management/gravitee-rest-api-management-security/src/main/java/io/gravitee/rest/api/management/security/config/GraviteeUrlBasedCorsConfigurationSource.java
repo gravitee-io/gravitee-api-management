@@ -46,7 +46,11 @@ public class GraviteeUrlBasedCorsConfigurationSource extends UrlBasedCorsConfigu
 
         if (organizationPathIndex > -1) {
             int orgIdStartIndex = organizationPathIndex + organizationsResourcePath.length();
-            return path.substring(orgIdStartIndex, path.indexOf('/', orgIdStartIndex));
+            int endIndex = path.indexOf('/', orgIdStartIndex);
+            if (endIndex > -1) {
+                return path.substring(orgIdStartIndex, endIndex);
+            }
+            return path.substring(orgIdStartIndex);
         }
         return null;
     }

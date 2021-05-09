@@ -31,10 +31,7 @@ import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginClassLoader;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.policy.api.annotations.OnRequest;
-import io.gravitee.policy.api.annotations.OnRequestContent;
-import io.gravitee.policy.api.annotations.OnResponse;
-import io.gravitee.policy.api.annotations.OnResponseContent;
+import io.gravitee.policy.api.annotations.*;
 import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
@@ -48,6 +45,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -67,8 +65,19 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
     private final Map<String, PolicyDevelopmentEntity> policies = new HashMap<>();
 
     @Override
+    public Set<PolicyEntity> findAll(Boolean withResource) {
+        Stream<PolicyPlugin> policies = super.list().stream();
+
+        if (Boolean.FALSE.equals(withResource)) {
+            policies = policies.filter(policyPlugin -> !policyPlugin.policy().isAnnotationPresent(RequireResource.class));
+        }
+
+        return policies.map(policyDefinition -> convert(policyDefinition, true)).collect(Collectors.toSet());
+    }
+
+    @Override
     public Set<PolicyEntity> findAll() {
-        return super.list().stream().map(policyDefinition -> convert(policyDefinition, true)).collect(Collectors.toSet());
+        return findAll(true);
     }
 
     @Override

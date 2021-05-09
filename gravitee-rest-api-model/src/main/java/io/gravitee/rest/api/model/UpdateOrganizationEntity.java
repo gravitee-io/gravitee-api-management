@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.Flow;
 import java.util.List;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
@@ -35,6 +37,10 @@ public class UpdateOrganizationEntity {
     private String description;
 
     private List<String> domainRestrictions;
+
+    private FlowMode flowMode;
+
+    private List<Flow> flows;
 
     public String getName() {
         return name;
@@ -68,6 +74,22 @@ public class UpdateOrganizationEntity {
         this.hrids = hrids;
     }
 
+    public FlowMode getFlowMode() {
+        return flowMode;
+    }
+
+    public void setFlowMode(FlowMode flowMode) {
+        this.flowMode = flowMode;
+    }
+
+    public List<Flow> getFlows() {
+        return flows;
+    }
+
+    public void setFlows(List<Flow> flows) {
+        this.flows = flows;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -77,13 +99,14 @@ public class UpdateOrganizationEntity {
             Objects.equals(hrids, that.hrids) &&
             Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
-            Objects.equals(domainRestrictions, that.domainRestrictions)
+            Objects.equals(domainRestrictions, that.domainRestrictions) &&
+            Objects.equals(flowMode, that.flowMode)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(hrids, name, description, domainRestrictions);
+        return Objects.hash(hrids, name, description, domainRestrictions, flowMode);
     }
 
     @Override
@@ -100,6 +123,9 @@ public class UpdateOrganizationEntity {
             '\'' +
             ", domainRestrictions=" +
             domainRestrictions +
+            '\'' +
+            ", flowMode='" +
+            flowMode +
             '}'
         );
     }

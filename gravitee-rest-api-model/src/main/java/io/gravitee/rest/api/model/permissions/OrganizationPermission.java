@@ -31,7 +31,8 @@ public enum OrganizationPermission implements Permission {
     INSTALLATION("INSTALLATION", 1800),
     TAG("TAG", 1900),
     TENANT("TENANT", 2000),
-    ENTRYPOINT("ENTRYPOINT", 2100);
+    ENTRYPOINT("ENTRYPOINT", 2100),
+    POLICIES("POLICIES", 2200);
 
     String name;
     int mask;

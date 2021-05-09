@@ -15,6 +15,14 @@
  */
 package io.gravitee.rest.api.service.configuration.flow;
 
+import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import java.util.List;
+
 public interface FlowService {
-    String getSchema();
+    String getConfigurationSchemaForm();
+    String getApiFlowSchemaForm();
+    String getPlatformFlowSchemaForm();
+    List<Flow> findByReference(FlowReferenceType flowReferenceType, String referenceId);
+    List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows);
 }

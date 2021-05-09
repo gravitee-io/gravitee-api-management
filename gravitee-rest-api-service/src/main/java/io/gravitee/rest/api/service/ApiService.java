@@ -152,7 +152,6 @@ public interface ApiService {
     InlinePictureEntity getBackground(String apiId);
 
     ApiEntity migrate(String api);
-    String getConfigurationSchema();
 
     boolean hasHealthCheckEnabled(ApiEntity api, boolean mustBeEnabledOnAllEndpoints);
 

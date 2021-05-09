@@ -33,8 +33,9 @@ public class FlowServiceTest {
     private FlowServiceImpl flowService = new FlowServiceImpl();
 
     @Test
-    public void shouldGetSchema() {
-        assertNotNull(flowService.getSchema());
+    public void shouldGetConfigurationSchemaForm() {
+        String apiFlowSchemaForm = flowService.getApiFlowSchemaForm();
+        assertNotNull(apiFlowSchemaForm);
         assertEquals(
             "{\n" +
             "  \"type\": \"object\",\n" +
@@ -98,7 +99,35 @@ public class FlowServiceTest {
             "  \"required\": [],\n" +
             "  \"disabled\": []\n" +
             "}\n",
-            flowService.getSchema()
+            apiFlowSchemaForm
+        );
+    }
+
+    @Test
+    public void shouldGetApiFlowSchemaForm() {
+        assertEquals(
+            "{\n" +
+            "  \"type\": \"object\",\n" +
+            "  \"id\": \"apim\",\n" +
+            "  \"properties\": {\n" +
+            "    \"flow-mode\": {\n" +
+            "      \"title\": \"Flow Mode\",\n" +
+            "      \"description\": \"The flow mode\",\n" +
+            "      \"type\": \"string\",\n" +
+            "      \"enum\": [ \"default\", \"best_match\" ],\n" +
+            "      \"default\": \"default\",\n" +
+            "      \"x-schema-form\": {\n" +
+            "        \"titleMap\": {\n" +
+            "          \"default\": \"Default\",\n" +
+            "          \"best_match\": \"Best match\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  },\n" +
+            "  \"required\": [],\n" +
+            "  \"disabled\": []\n" +
+            "}\n",
+            flowService.getConfigurationSchemaForm()
         );
     }
 }

@@ -196,14 +196,6 @@ public class EnvironmentConfigurationResource {
     }
 
     @GET
-    @Path("flow/schema")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getFlowSchema() {
-        String schema = flowService.getSchema();
-        return Response.ok(schema).build();
-    }
-
-    @GET
     @Path("spel/grammar")
     @Produces(MediaType.APPLICATION_JSON)
     public JSONObject getGrammar() {

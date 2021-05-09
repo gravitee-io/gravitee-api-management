@@ -24,11 +24,14 @@ import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvid
 import io.gravitee.rest.api.management.rest.resource.search.SearchResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService.ActivationTarget;
@@ -60,6 +63,9 @@ public class OrganizationResource extends AbstractResource {
 
     @Inject
     private IdentityProviderActivationService identityProviderActivationService;
+
+    @Inject
+    private OrganizationService organizationService;
 
     @GET
     @Path("/identities")
@@ -117,6 +123,42 @@ public class OrganizationResource extends AbstractResource {
                     .collect(Collectors.toList())
             );
         return Response.noContent().build();
+    }
+
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions(
+        @Permission(
+            value = RolePermission.ORGANIZATION_POLICIES,
+            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
+        )
+    )
+    @ApiOperation(value = "Update organization", tags = { "Organization" })
+    @ApiResponses(
+        {
+            @ApiResponse(code = 204, message = "Organization successfully updated"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public Response update(UpdateOrganizationEntity organizationEntity) {
+        OrganizationEntity updatedOrganization = organizationService.update(GraviteeContext.getCurrentOrganization(), organizationEntity);
+        return Response.ok(updatedOrganization).status(204).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions(
+        @Permission(
+            value = RolePermission.ORGANIZATION_POLICIES,
+            acls = { RolePermissionAction.CREATE, RolePermissionAction.DELETE, RolePermissionAction.UPDATE }
+        )
+    )
+    @ApiOperation(value = "GET organization", tags = { "Organization" })
+    @ApiResponses({ @ApiResponse(code = 200, message = "Organization"), @ApiResponse(code = 500, message = "Internal server error") })
+    public Response get() {
+        return Response.ok(organizationService.findById(GraviteeContext.getCurrentOrganization())).build();
     }
 
     // Dynamic authentication provider endpoints

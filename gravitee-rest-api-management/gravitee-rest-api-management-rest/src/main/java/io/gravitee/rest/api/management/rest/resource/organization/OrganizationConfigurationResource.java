@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource.organization;
 
 import io.gravitee.rest.api.management.rest.resource.EntrypointsResource;
+import io.gravitee.rest.api.management.rest.resource.FlowsResource;
 import io.gravitee.rest.api.management.rest.resource.TagsResource;
 import io.gravitee.rest.api.management.rest.resource.TenantsResource;
 import io.gravitee.rest.api.management.rest.resource.configuration.identity.IdentityProvidersResource;
@@ -67,5 +68,10 @@ public class OrganizationConfigurationResource {
     @Path("entrypoints")
     public EntrypointsResource getEntryPointsResource() {
         return resourceContext.getResource(EntrypointsResource.class);
+    }
+
+    @Path("flows")
+    public FlowsResource getFlowsResource() {
+        return resourceContext.getResource(FlowsResource.class);
     }
 }

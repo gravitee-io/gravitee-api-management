@@ -20,12 +20,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
+import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
+import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.impl.OrganizationServiceImpl;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -52,6 +57,15 @@ public class OrganizationService_CreateTest {
     @Mock
     private RoleService mockRoleService;
 
+    @Mock
+    private FlowService mockFlowService;
+
+    @Mock
+    private EventService eventService;
+
+    @Mock
+    private ObjectMapper mapper;
+
     @Test
     public void shouldCreateOrganization() throws TechnicalException {
         when(mockOrganizationRepository.findById(any())).thenReturn(Optional.empty());
@@ -62,10 +76,12 @@ public class OrganizationService_CreateTest {
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         org1.setDomainRestrictions(domainRestrictions);
+        org1.setFlows(Arrays.asList());
 
         Organization createdOrganization = new Organization();
         createdOrganization.setId("org_id");
         when(mockOrganizationRepository.create(any())).thenReturn(createdOrganization);
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(new ArrayList<>());
 
         OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
@@ -83,6 +99,7 @@ public class OrganizationService_CreateTest {
         verify(mockOrganizationRepository, never()).update(any());
         verify(mockRoleService, times(1)).initialize("org_id");
         verify(mockRoleService, times(1)).createOrUpdateSystemRoles("org_id");
+        verify(mockFlowService, times(1)).save(FlowReferenceType.ORGANIZATION, "org_id", Arrays.asList());
     }
 
     @Test
@@ -95,9 +112,12 @@ public class OrganizationService_CreateTest {
         org1.setDescription("org_desc");
         List<String> domainRestrictions = Arrays.asList("domain", "restriction");
         org1.setDomainRestrictions(domainRestrictions);
+        org1.setFlows(Arrays.asList(mock(Flow.class)));
 
         Organization createdOrganization = new Organization();
+        createdOrganization.setId("org_id");
         when(mockOrganizationRepository.update(any())).thenReturn(createdOrganization);
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(org1.getFlows());
 
         OrganizationEntity organization = organizationService.createOrUpdate("org_id", org1);
 
@@ -115,5 +135,6 @@ public class OrganizationService_CreateTest {
         verify(mockOrganizationRepository, never()).create(any());
         verify(mockRoleService, never()).initialize("org_id");
         verify(mockRoleService, never()).createOrUpdateSystemRoles("org_id");
+        verify(mockFlowService, times(1)).save(FlowReferenceType.ORGANIZATION, "org_id", org1.getFlows());
     }
 }

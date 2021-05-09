@@ -40,7 +40,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetPoliciesemptyList() {
-        when(policyService.findAll()).thenReturn(Collections.emptySet());
+        when(policyService.findAll(null)).thenReturn(Collections.emptySet());
 
         final Response response = envTarget().request().get();
 
@@ -56,7 +56,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyEntity.setId("my-api");
         policyEntity.setName("My Api");
 
-        when(policyService.findAll()).thenReturn(policyEntities);
+        when(policyService.findAll(null)).thenReturn(policyEntities);
 
         final Response response = envTarget().request().get();
 
@@ -78,7 +78,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyEntities.add(policyEntity);
         policyEntity.setId("my-api");
 
-        when(policyService.findAll()).thenReturn(policyEntities);
+        when(policyService.findAll(null)).thenReturn(policyEntities);
         when(policyService.getSchema(any())).thenReturn("policy schema");
 
         final Response response = envTarget().queryParam("expand", "schema").request().get();
@@ -101,7 +101,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         policyEntities.add(policyEntity);
         policyEntity.setId("my-api");
 
-        when(policyService.findAll()).thenReturn(policyEntities);
+        when(policyService.findAll(null)).thenReturn(policyEntities);
 
         final Response response = envTarget().queryParam("expand", "unknown").request().get();
 

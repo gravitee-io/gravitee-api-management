@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.flow.Flow;
 import java.util.List;
 import java.util.Objects;
 import javax.validation.constraints.NotNull;
@@ -37,6 +39,10 @@ public class OrganizationEntity {
     private String description;
 
     private List<String> domainRestrictions;
+
+    private FlowMode flowMode;
+
+    private List<Flow> flows;
 
     public String getId() {
         return id;
@@ -78,6 +84,22 @@ public class OrganizationEntity {
         this.hrids = hrids;
     }
 
+    public FlowMode getFlowMode() {
+        return flowMode;
+    }
+
+    public void setFlowMode(FlowMode flowMode) {
+        this.flowMode = flowMode;
+    }
+
+    public List<Flow> getFlows() {
+        return flows;
+    }
+
+    public void setFlows(List<Flow> flows) {
+        this.flows = flows;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -88,13 +110,15 @@ public class OrganizationEntity {
             Objects.equals(hrids, that.hrids) &&
             Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
-            Objects.equals(domainRestrictions, that.domainRestrictions)
+            Objects.equals(domainRestrictions, that.domainRestrictions) &&
+            Objects.equals(flowMode, that.flowMode) &&
+            Objects.equals(flows, that.flows)
         );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, hrids, name, description, domainRestrictions);
+        return Objects.hash(id, hrids, name, description, domainRestrictions, flowMode, flows);
     }
 
     @Override
@@ -114,6 +138,12 @@ public class OrganizationEntity {
             '\'' +
             ", domainRestrictions=" +
             domainRestrictions +
+            '\'' +
+            ", flowMode='" +
+            flowMode +
+            '\'' +
+            ", flows='" +
+            flows +
             '}'
         );
     }

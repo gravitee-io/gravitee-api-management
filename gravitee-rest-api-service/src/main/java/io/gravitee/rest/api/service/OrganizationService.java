@@ -19,7 +19,6 @@ import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -31,6 +30,8 @@ public interface OrganizationService {
     OrganizationEntity findById(String organizationId);
 
     OrganizationEntity createOrUpdate(String organizationId, UpdateOrganizationEntity organizationEntity);
+
+    OrganizationEntity update(String organizationId, UpdateOrganizationEntity organizationEntity);
 
     void delete(String organizationId);
 
