@@ -16,6 +16,15 @@
 
 import { IdentityProviderActivation } from '../entities/identityProvider';
 
+export class Organization {
+  hrids: string[];
+  domainRestrictions: string[];
+  name: string;
+  description: string;
+  flows: any[];
+  flowMode: string;
+}
+
 class OrganizationService {
   constructor(private $http, private Constants) {
     'ngInject';
@@ -31,6 +40,14 @@ class OrganizationService {
 
   updateOrganizationIdentities(updatedIPA: IdentityProviderActivation[]) {
     return this.$http.put(`${this.Constants.org.baseURL}/identities`, updatedIPA);
+  }
+
+  update(organization: Organization) {
+    return this.$http.put(`${this.Constants.org.baseURL}`, organization);
+  }
+
+  get() {
+    return this.$http.get(`${this.Constants.org.baseURL}`);
   }
 }
 

@@ -20,16 +20,17 @@
     <div class="gv-sub-menu menu">
       <div class="md-headline">
         <p>Organization settings</p>
-        <a
-          ui-sref="management"
-          title="Go back to APIM"
-          ng-if="$ctrl.Constants.org.environments && $ctrl.Constants.org.environments.length > 0"
-        >
-          <ng-md-icon icon="arrow_back" size="18"></ng-md-icon>
-          <span>Go back to API Management</span>
-        </a>
+        <div>
+          <gv-button
+            ui-sref="management"
+            link
+            icon="navigation:angle-double-left"
+            title="Go back to API Management"
+            ng-if="$ctrl.Constants.org.environments && $ctrl.Constants.org.environments.length > 0"
+            >Go back to APIM</gv-button
+          >
+        </div>
       </div>
-
       <div
         class="aui-nav-heading"
         ng-if="$ctrl.settingsMenu.organizationIdentityProviders.perm

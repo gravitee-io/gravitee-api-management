@@ -56,6 +56,10 @@ const OrganizationSettingsComponent: ng.IComponentOptions = {
         perm: UserService.isUserHasPermissions(['organization-tenant-c', 'organization-tenant-u', 'organization-tenant-d']),
         goTo: 'organization.settings.tenants',
       },
+      policies: {
+        perm: UserService.isUserHasPermissions(['organization-policies-c', 'organization-policies-u', 'organization-policies-d']),
+        goTo: 'organization.settings.policies',
+      },
 
       // ALERT
       notificationTemplates: {

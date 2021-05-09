@@ -738,7 +738,7 @@ class ApiService {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/keys/_verify?apiKey=' + apiKey);
   }
 
-  getConfigurationSchema(): ng.IPromise<any> {
+  getFlowSchemaForm(): ng.IPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/schema`);
   }
 

@@ -224,6 +224,7 @@ import DialogDynamicProviderHttpController from '../management/api/design/proper
 import TenantsController from '../organization/configuration/tenants/tenants.controller';
 import TenantService from '../services/tenant.service';
 import DeleteTenantDialogController from '../organization/configuration/tenants/delete.tenant.dialog.controller';
+import PoliciesController from '../organization/configuration/policies/policies.controller';
 
 import CategoriesComponent from '../management/configuration/categories/categories.component';
 import CategoryComponent from './configuration/categories/category/category.component';
@@ -231,6 +232,7 @@ import TenantsComponent from '../organization/configuration/tenants/tenants.comp
 import TagsComponent from '../organization/configuration/tags/tags.component';
 import MetadataComponent from '../management/configuration/metadata/metadata.component';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
+import PoliciesComponent from '../organization/configuration/policies/policies.component';
 
 import RoleComponent from '../organization/configuration/roles/role/role.components';
 import RoleMembersComponent from '../organization/configuration/roles/role/role.members.component';
@@ -463,7 +465,7 @@ import NewFieldDialogController from './configuration/custom-user-fields/dialog/
 import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
 import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
-import ApiPolicyStudioController from './api/design/policy-studio/policy-studio.controller';
+import ApiDesignController from './api/design/design/design.controller';
 import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
@@ -474,6 +476,8 @@ import HomeDashboardController from './dashboard/home-dashboard/home-dashboard.c
 import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
 import PlatformAlertsDashboardController from './dashboard/alerts-dashboard/platform-alerts-dashboard.controller';
 import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
+
+import PolicyStudioWrapperComponent from '../components/policy-studio-wrapper/policy-studio-wrapper.component';
 
 (<any>window).jQuery = jQuery;
 
@@ -683,7 +687,7 @@ graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGro
 graviteeManagementModule.component('gvHttpConfiguration', HttpConfigurationComponent);
 graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
-graviteeManagementModule.controller('ApiPolicyStudioController', ApiPolicyStudioController);
+graviteeManagementModule.controller('ApiDesignController', ApiDesignController);
 graviteeManagementModule.controller('ApiEventsController', ApiEventsController);
 graviteeManagementModule.controller('ApiHistoryController', ApiHistoryController);
 graviteeManagementModule.controller('ApiResourcesController', ApiResourcesController);
@@ -757,6 +761,7 @@ graviteeManagementModule.controller('SelectFolderDialogController', SelectFolder
 graviteeManagementModule.controller('SelectPageDialogController', SelectPageDialogController);
 graviteeManagementModule.controller('DialogReviewController', DialogReviewController);
 graviteeManagementModule.controller('DialogRequestForChangesController', DialogRequestForChangesController);
+graviteeManagementModule.controller('PoliciesController', PoliciesController);
 graviteeManagementModule.service('ApplicationService', ApplicationService);
 graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
 graviteeManagementModule.service('ApiService', ApiService);
@@ -825,6 +830,7 @@ graviteeManagementModule.component('gvWidgetDataMapConfiguration', WidgetChartMa
 graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent);
 graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
 graviteeManagementModule.component('gvError', ErrorComponent);
+graviteeManagementModule.component('gvPolicyStudioWrapper', PolicyStudioWrapperComponent);
 graviteeManagementModule.controller('errorCtrl', ErrorController);
 
 graviteeManagementModule.component('categories', CategoriesComponent);
@@ -845,6 +851,7 @@ graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsCompone
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
+graviteeManagementModule.component('policies', PoliciesComponent);
 
 graviteeManagementModule.component('instances', InstancesComponent);
 graviteeManagementModule.component('instance', InstanceComponent);

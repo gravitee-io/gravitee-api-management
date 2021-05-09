@@ -35,7 +35,7 @@ function apisDesignRouterConfig($stateProvider) {
       resolve: {
         resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.design' },
       data: {
         menu: {
           label: 'Design',
@@ -57,7 +57,7 @@ function apisDesignRouterConfig($stateProvider) {
       resolve: {
         resolvedResources: (ResourceService: ResourceService) => ResourceService.list(),
       },
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flows' },
       data: {
         perms: {
           only: ['api-definition-r'],
@@ -72,7 +72,7 @@ function apisDesignRouterConfig($stateProvider) {
       template: require('./properties/properties.html'),
       controller: 'ApiPropertiesController',
       controllerAs: 'apiPropertiesCtrl',
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.policy-studio' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flows' },
       data: {
         perms: {
           only: ['api-definition-r'],
@@ -82,16 +82,15 @@ function apisDesignRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.design.policy-studio', {
-      url: '/policy-studio?flows',
-      template: require('./policy-studio/policy-studio.html'),
-      controller: 'ApiPolicyStudioController',
-      controllerAs: 'apiPolicyStudioCtrl',
+    .state('management.apis.detail.design.design', {
+      url: '/design?flows',
+      template: require('./design/design.html'),
+      controller: 'ApiDesignController',
+      controllerAs: 'apiDesignCtrl',
       resolve: {
         resolvedPolicies: (PolicyService: PolicyService) => PolicyService.list(true, true),
         resolvedResources: (ResourceService: ResourceService) => ResourceService.list(true, true),
-        resolvedFlowSchema: (FlowService: FlowService) => FlowService.getSchema(),
-        resolvedConfigurationSchema: (ApiService: ApiService) => ApiService.getConfigurationSchema(),
+        resolvedFlowSchemaForm: (ApiService: ApiService) => ApiService.getFlowSchemaForm(),
       },
       data: {
         perms: {

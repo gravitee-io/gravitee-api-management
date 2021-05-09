@@ -18,13 +18,16 @@ class PolicyService {
     'ngInject';
   }
 
-  list(expandSchema = false, expandIcon = false) {
+  list(expandSchema = false, expandIcon = false, withoutResource = false) {
     const expandParams = [];
     if (expandSchema) {
       expandParams.push('expand=schema');
     }
     if (expandIcon) {
       expandParams.push('expand=icon');
+    }
+    if (withoutResource) {
+      expandParams.push('withResource=false');
     }
     let url = `${this.Constants.env.baseURL}/policies/`;
     if (expandParams.length > 0) {
@@ -34,15 +37,15 @@ class PolicyService {
   }
 
   listSwaggerPolicies() {
-    return this.$http.get(`${this.Constants.env.baseURL}/policies/` + 'swagger');
+    return this.$http.get(`${this.Constants.env.baseURL}/policies/swagger`);
   }
 
   getSchema(policyId) {
-    return this.$http.get(`${this.Constants.env.baseURL}/policies/` + policyId + '/schema');
+    return this.$http.get(`${this.Constants.env.baseURL}/policies/${policyId}/schema`);
   }
 
   getDocumentation(policyId) {
-    return this.$http.get(`${this.Constants.env.baseURL}/policies/` + policyId + '/documentation');
+    return this.$http.get(`${this.Constants.env.baseURL}/policies/${policyId}/documentation`);
   }
 }
 

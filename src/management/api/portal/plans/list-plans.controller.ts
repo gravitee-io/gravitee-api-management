@@ -90,7 +90,7 @@ class ApiListPlansController {
   }
 
   design(plan) {
-    this.$state.go('management.apis.detail.design.policy-studio', { apiId: this.api.id, flows: `${plan.id}_0` });
+    this.$state.go('management.apis.detail.design.flows', { apiId: this.api.id, flows: `${plan.id}_0` });
   }
 
   list() {

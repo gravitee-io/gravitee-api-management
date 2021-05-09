@@ -23,7 +23,7 @@ import '@gravitee/ui-components/wc/gv-popover';
 import * as _ from 'lodash';
 import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
-import { configurationInformation, propertyProviders } from '../../design/policy-studio/policy-studio.controller';
+import { propertyProviders } from '../../design/design/design.controller';
 
 enum Modes {
   Diff = 'Diff',
@@ -87,14 +87,13 @@ class ApiHistoryController {
       Promise.all([
         this.PolicyService.list(true, true),
         this.ResourceService.list(true, true),
-        this.FlowService.getSchema(),
-        this.ApiService.getConfigurationSchema(),
+        this.ApiService.getFlowSchemaForm(),
+        this.FlowService.getConfigurationSchema(),
       ]).then(([policies, resources, flowSchema, configurationSchema]) => {
         this.studio.policies = policies.data;
         this.studio.resourceTypes = resources.data;
         this.studio.flowSchema = flowSchema.data;
         this.studio.configurationSchema = configurationSchema.data;
-        this.studio.configurationInformation = configurationInformation;
         this.studio.propertyProviders = propertyProviders;
       });
     }

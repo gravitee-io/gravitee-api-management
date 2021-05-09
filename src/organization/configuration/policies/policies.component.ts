@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class FlowService {
-  constructor(private $http, private Constants) {
-    'ngInject';
-  }
+const PoliciesComponent: ng.IComponentOptions = {
+  bindings: {
+    tags: '<',
+    settings: '<',
+    resolvedPolicies: '<',
+    resolvedFlowSchema: '<',
+    resolvedConfigurationSchema: '<',
+  },
+  controller: 'PoliciesController',
+  template: require('./policies.html'),
+};
 
-  getConfigurationSchema() {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/flows/configuration-schema`);
-  }
-
-  getPlatformFlowSchemaForm() {
-    return this.$http.get(`${this.Constants.org.baseURL}/configuration/flows/flow-schema`);
-  }
-}
-
-export default FlowService;
+export default PoliciesComponent;

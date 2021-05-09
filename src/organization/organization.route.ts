@@ -24,9 +24,11 @@ import ConsoleSettingsService from '../services/consoleSettings.service';
 import TenantService from '../services/tenant.service';
 import EntrypointService from '../services/entrypoint.service';
 import TagService from '../services/tag.service';
+import FlowService from '../services/flow.service';
 import PortalSettingsService from '../services/portalSettings.service';
 import { Scope } from '../entities/alert';
 import AlertService from '../services/alert.service';
+import PolicyService from '../services/policy.service';
 
 export default organizationRouterConfig;
 
@@ -303,6 +305,24 @@ function organizationRouterConfig($stateProvider) {
         },
         perms: {
           only: ['organization-tag-r'],
+        },
+      },
+    })
+    .state('organization.settings.policies', {
+      url: '/policies',
+      component: 'policies',
+      resolve: {
+        tags: (TagService: TagService) => TagService.list().then((response) => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
+        resolvedFlowSchema: (FlowService: FlowService) => FlowService.getPlatformFlowSchemaForm(),
+        resolvedPolicies: (PolicyService: PolicyService) => PolicyService.list(true, true, true),
+      },
+      data: {
+        docs: {
+          page: 'management-configuration-policies',
+        },
+        perms: {
+          only: ['organization-policies-r'],
         },
       },
     })
