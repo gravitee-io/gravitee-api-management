@@ -37,9 +37,11 @@ import io.gravitee.common.util.Maps;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.spel.function.JsonPathFunction;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.*;
@@ -133,6 +135,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Autowired
     private MembershipService membershipService;
+
+    @Autowired
+    private MembershipRepository membershipRepository;
 
     @Autowired
     private PermissionService permissionService;
@@ -1845,23 +1850,39 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @param userId User identifier.
      * @param identityProviderId The identity provider used to authenticate the user.
      * @param memberships List of memberships to associate to the user
-     * @param type The type of user memberships to manage
+     * @param types The types of user memberships to manage
      */
     private void refreshUserMemberships(
         String userId,
         String identityProviderId,
         List<MembershipService.Membership> memberships,
-        MembershipReferenceType type
+        MembershipReferenceType... types
     ) {
         // Get existing memberships for a given type
-        List<UserMembership> userMemberships = membershipService.findUserMembership(type, userId);
+        List<Membership> userMemberships = new ArrayList<>();
+
+        for (MembershipReferenceType type : types) {
+            try {
+                userMemberships.addAll(
+                    membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                        userId,
+                        io.gravitee.repository.management.model.MembershipMemberType.USER,
+                        io.gravitee.repository.management.model.MembershipReferenceType.valueOf(type.name())
+                    )
+                );
+            } catch (TechnicalException e) {
+                final String msg = "An error occurs while finding memberships for user " + userId;
+                LOGGER.error(msg, e);
+                throw new TechnicalManagementException(msg, e);
+            }
+        }
 
         // Delete existing memberships
         userMemberships.forEach(
             membership -> {
                 membershipService.deleteReferenceMember(
-                    MembershipReferenceType.valueOf(membership.getType()),
-                    membership.getReference(),
+                    MembershipReferenceType.valueOf(membership.getReferenceType().name()),
+                    membership.getReferenceId(),
                     MembershipMemberType.USER,
                     userId
                 );

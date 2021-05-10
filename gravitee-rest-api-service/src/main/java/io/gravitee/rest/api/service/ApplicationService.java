@@ -33,7 +33,7 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByUser(String username);
 
-    Set<ApplicationListItem> findByName(String name);
+    Set<ApplicationListItem> findByName(String username, String name);
 
     Set<ApplicationListItem> findByGroups(List<String> groupId);
 

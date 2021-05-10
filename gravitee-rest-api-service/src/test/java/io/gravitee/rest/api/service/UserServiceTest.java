@@ -33,6 +33,7 @@ import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.util.Maps;
 import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.User;
@@ -111,6 +112,9 @@ public class UserServiceTest {
 
     @Mock
     private MembershipService membershipService;
+
+    @Mock
+    private MembershipRepository membershipRepository;
 
     @Mock
     private ConfigurableEnvironment environment;
