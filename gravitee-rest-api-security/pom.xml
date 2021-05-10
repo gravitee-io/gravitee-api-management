@@ -29,10 +29,6 @@
 	<artifactId>gravitee-rest-api-security</artifactId>
 	<name>Gravitee.io Rest APIs - Security</name>
 
-	<properties>
-		<imageio.version>3.6.4</imageio.version>
-	</properties>
-
 	<dependencies>
 		<!-- Gravitee Management dependencies -->
 		<dependency>
