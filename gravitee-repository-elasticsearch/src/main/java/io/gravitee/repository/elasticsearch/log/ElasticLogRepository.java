@@ -163,7 +163,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 
 	@Override
 	public ExtendedLog findById(final String requestId, final Long timestamp) throws AnalyticsException {
-		final Map<String, Object> data = new HashMap<>();
+		final Map<String, Object> data = new HashMap<>(1);
 		data.put("requestId", requestId);
 
 		String sQuery = this.freeMarkerComponent.generateFromTemplate(LOG_BY_ID_TEMPLATE, data);
@@ -186,7 +186,12 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 			sQuery = this.freeMarkerComponent.generateFromTemplate(LOG_BY_ID_TEMPLATE, data);
 
 			// Search index must be updated in case of per-type index
-			searchHitIndex = searchHitIndex.replaceAll(Type.REQUEST.getType(), Type.LOG.getType());
+			// WARNING: in the case of ILM, the index could not be the same
+			if (! configuration.isILMIndex()) {
+				searchHitIndex = searchHitIndex.replaceAll(Type.REQUEST.getType(), Type.LOG.getType());
+			} else {
+				searchHitIndex = this.indexNameGenerator.getIndexName(Type.LOG, Instant.ofEpochMilli(timestamp), clusters);
+			}
 
 			result = this.client.search(searchHitIndex, (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.LOG.getType(), sQuery);
 			searchResponse = result.blockingGet();
