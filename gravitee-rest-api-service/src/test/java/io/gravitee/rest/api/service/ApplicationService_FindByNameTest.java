@@ -20,14 +20,20 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
+import java.util.Collections;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -43,6 +49,9 @@ public class ApplicationService_FindByNameTest {
 
     @Mock
     private ApplicationRepository applicationRepository;
+
+    @Mock
+    private MembershipService membershipService;
 
     @Test
     public void shouldNotFindByNameWhenNull() throws Exception {
@@ -62,9 +71,14 @@ public class ApplicationService_FindByNameTest {
 
     @Test
     public void shouldNotFindByName() throws Exception {
+        when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(Collections.emptySet());
+        when(applicationRepository.search(any(), any())).thenReturn(new Page<>(Collections.emptyList(), 0, 0, 0));
         Set<ApplicationListItem> set = applicationService.findByName(null, "a");
         assertNotNull(set);
         assertEquals("result is empty", 0, set.size());
-        verify(applicationRepository, times(1)).findByName("a");
+        ArgumentCaptor<ApplicationCriteria> queryCaptor = ArgumentCaptor.forClass(ApplicationCriteria.class);
+        Mockito.verify(applicationRepository).search(queryCaptor.capture(), any());
+        final ApplicationCriteria query = queryCaptor.getValue();
+        assertEquals("a", query.getName());
     }
 }
