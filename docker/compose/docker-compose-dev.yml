@@ -25,7 +25,6 @@ services:
     image: mongo:${MONGODB_VERSION:-3.6}
     container_name: gio_apim_mongodb
     volumes:
-      - ./data/data-mongo:/data/db
       - ./logs/apim-mongodb:/var/log/mongodb
 
   elasticsearch:

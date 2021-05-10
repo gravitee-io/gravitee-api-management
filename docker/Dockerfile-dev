@@ -26,7 +26,7 @@ RUN echo $GRAVITEEAPIM_VERSION
 ADD ./gravitee-rest-api-standalone-${GRAVITEEAPIM_VERSION}.zip /tmp/
 RUN unzip /tmp/gravitee-rest-api-standalone-${GRAVITEEAPIM_VERSION}.zip -d /tmp/
 
-FROM adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+FROM adoptopenjdk/openjdk11:jre-11.0.10_9-alpine
 MAINTAINER Gravitee Team <http://gravitee.io>
 
 RUN apk add --update curl
