@@ -15,17 +15,25 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.rest.api.management.rest.resource.param.EventSearchParam;
 import io.gravitee.rest.api.management.rest.resource.param.EventTypeListParam;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventQuery;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.swagger.annotations.*;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -60,5 +68,46 @@ public class ApiEventsResource extends AbstractResource {
             .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
             .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
             .collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Get API's events", notes = "User must have the API_EVENT[READ] permission to use this service")
+    @ApiResponses(
+        {
+            @ApiResponse(code = 200, message = "Page of API events", response = Page.class),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
+    public Page<EventEntity> searchApiEvents(@ApiParam @BeanParam EventSearchParam eventSearchParam) {
+        ApiEntity apiEntity = apiService.findById(api);
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(Event.EventProperties.API_ID.getValue(), Arrays.asList(api));
+        final Page<EventEntity> apiEvents = eventService.search(
+            eventSearchParam.getEventTypeListParam().getEventTypes(),
+            properties,
+            eventSearchParam.getFrom(),
+            eventSearchParam.getTo(),
+            eventSearchParam.getPage(),
+            eventSearchParam.getSize()
+        );
+
+        apiEvents
+            .getContent()
+            .forEach(
+                event -> {
+                    Map<String, String> properties1 = event.getProperties();
+                    // Remove payload content from response since it's not required anymore
+                    event.setPayload(null);
+                    // complete event with API info
+                    properties1.put("api_name", apiEntity.getName());
+                    properties1.put("api_version", apiEntity.getVersion());
+                }
+            );
+
+        return apiEvents;
     }
 }
