@@ -49,6 +49,9 @@
               <directory>dist</directory>
             </fileset>
             <fileset>
+              <directory>dist-tsc</directory>
+            </fileset>
+            <fileset>
               <directory>.tmp</directory>
             </fileset>
             <fileset>
@@ -85,6 +88,7 @@
             <exclude>.tmp/**</exclude>
             <exclude>.vscode/**</exclude>
             <exclude>dist/**</exclude>
+            <exclude>dist-tsc/**</exclude>
             <exclude>.*</exclude>
             <exclude>.*/**</exclude>
             <exclude>**/*.adoc</exclude>
