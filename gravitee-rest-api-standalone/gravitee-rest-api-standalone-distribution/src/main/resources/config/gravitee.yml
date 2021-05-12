@@ -293,6 +293,11 @@ security:
           # The LDAP filter used to search for user during authentication. For example "(uid={0})". The substituted parameter is the user's login name.
 #          filter: "(&(objectClass=Person)(|(cn=*{0}*)(uid={0})))"
 
+# Define absolute path for the a default API icon (png format)
+# If not define, an API without icon with display a random image
+#configuration:
+#  default-api-icon:
+
 # SMTP configuration used to send mails
 email:
   enabled: false

@@ -28,6 +28,7 @@ import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Collections.*;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
+import static java.util.Optional.of;
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpMethod;
@@ -98,6 +100,7 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -114,6 +117,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -241,6 +245,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private APIV1toAPIV2Converter apiv1toAPIV2Converter;
+
+    @Value("${configuration.default-api-icon:}")
+    private String defaultApiIcon;
 
     private static final Pattern LOGGING_MAX_DURATION_PATTERN = Pattern.compile(
         "(?<before>.*)\\#request.timestamp\\s*\\<\\=?\\s*(?<timestamp>\\d*)l(?<after>.*)"
@@ -2273,9 +2280,29 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             imageEntity.setType(parts[0].split(":")[1]);
             String base64Content = api.getPicture().split(",", 2)[1];
             imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
+        } else {
+            getDefaultPicture()
+                .ifPresent(
+                    content -> {
+                        imageEntity.setType("image/png");
+                        imageEntity.setContent(content);
+                    }
+                );
         }
 
         return imageEntity;
+    }
+
+    private Optional<byte[]> getDefaultPicture() {
+        Optional<byte[]> content = Optional.empty();
+        if (!Strings.isNullOrEmpty(defaultApiIcon)) {
+            try {
+                content = of(IOUtils.toByteArray(new FileInputStream(defaultApiIcon)));
+            } catch (IOException ioe) {
+                LOGGER.error("Default icon for API does not exist", ioe);
+            }
+        }
+        return content;
     }
 
     @Override
