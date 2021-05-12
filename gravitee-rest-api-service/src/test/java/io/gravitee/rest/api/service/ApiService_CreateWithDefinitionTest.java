@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -470,6 +471,7 @@ public class ApiService_CreateWithDefinitionTest {
         admin.setSource(SOURCE);
         admin.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
+        when(planService.findById(anyString())).thenThrow(PlanNotFoundException.class);
 
         apiService.createWithImportedDefinition(null, toBeImport, "admin");
 
@@ -504,6 +506,7 @@ public class ApiService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
         when(userService.findById(admin.getId())).thenReturn(admin);
+        when(planService.findById(anyString())).thenThrow(PlanNotFoundException.class);
 
         apiService.createWithImportedDefinition(null, toBeImport, "admin");
 

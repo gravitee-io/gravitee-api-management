@@ -19,13 +19,17 @@ import static io.gravitee.repository.management.model.Application.AuditEvent.*;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CLOSED;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.MetadataPage;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -166,23 +170,23 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION)
                 .stream()
                 .map(MembershipEntity::getReferenceId)
-                .collect(Collectors.toSet());
+                .collect(toSet());
             //find user groups
             List<String> groupIds = membershipService
                 .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.GROUP)
                 .stream()
                 .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
                 .map(MembershipEntity::getReferenceId)
-                .collect(Collectors.toList());
+                .collect(toList());
 
-            appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(Collectors.toSet()));
+            appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
 
             final Set<Application> applications = applicationRepository
                 .findByIds(new ArrayList<>(appIds))
                 .stream()
                 .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
                 .filter(app -> app.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
-                .collect(Collectors.toSet());
+                .collect(toSet());
 
             if (applications.isEmpty()) {
                 return emptySet();
@@ -196,19 +200,40 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByNameAndStatus(String name, String status) {
+    public Set<ApplicationListItem> findByNameAndStatus(String userName, String name, String status) {
         LOGGER.debug("Find applications by name {} and status {}", name, status);
         try {
             if (name == null || name.trim().isEmpty()) {
                 return emptySet();
             }
-            ApplicationStatus requestedStatus = ApplicationStatus.valueOf(status.toUpperCase());
-            Set<Application> applications = applicationRepository
-                .findByNameAndStatuses(name.trim(), requestedStatus)
+
+            //find applications where the user is a member
+            Set<String> appIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userName, MembershipReferenceType.APPLICATION)
                 .stream()
-                .filter(app -> GraviteeContext.getCurrentEnvironment().equals(app.getEnvironmentId()))
-                .collect(Collectors.toSet());
-            return ApplicationStatus.ACTIVE.equals(requestedStatus) ? convertToList(applications) : convertToSimpleList(applications);
+                .map(MembershipEntity::getReferenceId)
+                .collect(toSet());
+            //find user groups
+            List<String> groupIds = membershipService
+                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userName, MembershipReferenceType.GROUP)
+                .stream()
+                .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
+                .map(MembershipEntity::getReferenceId)
+                .collect(toList());
+
+            appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
+
+            ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+                .status(ApplicationStatus.valueOf(status))
+                .name(name.trim())
+                .environmentId(GraviteeContext.getCurrentEnvironment())
+                .ids(appIds.toArray(new String[0]))
+                .build();
+
+            Page<Application> applications = applicationRepository.search(criteria, null);
+            return ApplicationStatus.ACTIVE.equals(status)
+                ? convertToList(new HashSet<>(applications.getContent()))
+                : convertToSimpleList(new HashSet<>(applications.getContent()));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);
@@ -367,7 +392,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .findByEvent(GroupEvent.APPLICATION_CREATE)
             .stream()
             .map(GroupEntity::getId)
-            .collect(Collectors.toSet());
+            .collect(toSet());
         if (!defaultGroups.isEmpty() && application.getGroups() == null) {
             application.setGroups(defaultGroups);
         } else if (!defaultGroups.isEmpty()) {
@@ -412,7 +437,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 notificationConfigEntity.setName("Default Mail Notifications");
                 notificationConfigEntity.setReferenceType(HookScope.APPLICATION.name());
                 notificationConfigEntity.setReferenceId(createdApplication.getId());
-                notificationConfigEntity.setHooks(Arrays.stream(ApplicationHook.values()).map(Enum::name).collect(Collectors.toList()));
+                notificationConfigEntity.setHooks(Arrays.stream(ApplicationHook.values()).map(Enum::name).collect(toList()));
                 notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
                 notificationConfigEntity.setConfig(userEntity.getEmail());
                 genericNotificationConfigService.create(notificationConfigEntity);
@@ -439,7 +464,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .getAllowed_grant_types()
             .stream()
             .map(applicationGrantTypeEntity -> applicationGrantTypeEntity.getType())
-            .collect(Collectors.toList());
+            .collect(toList());
         if (!allowedGrantTypes.containsAll(targetGrantTypes)) {
             throw new ApplicationGrantTypesNotAllowedException(oAuthClientSettings.getApplicationType(), targetGrantTypes);
         }
@@ -456,7 +481,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .map(applicationGrantTypeEntity -> applicationGrantTypeEntity.getResponse_types())
             .flatMap(Collection::stream)
             .distinct()
-            .collect(Collectors.toList());
+            .collect(toList());
 
         oAuthClientSettings.setResponseTypes(responseTypes);
     }
@@ -812,7 +837,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         //find primary owners usernames of each applications
-        final List<String> appIds = applications.stream().map(Application::getId).collect(Collectors.toList());
+        final List<String> appIds = applications.stream().map(Application::getId).collect(toList());
 
         Set<MembershipEntity> memberships = membershipService.getMembershipsByReferencesAndRole(
             io.gravitee.rest.api.model.MembershipReferenceType.APPLICATION,
@@ -821,7 +846,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         );
         int poMissing = applications.size() - memberships.size();
         if (poMissing > 0) {
-            Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(Collectors.toSet());
+            Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(toSet());
 
             appIds.removeAll(appMembershipsIds);
             Optional<String> optionalApplicationsAsString = appIds.stream().reduce((a, b) -> a + " / " + b);
@@ -839,13 +864,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
         userService
-            .findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(Collectors.toList()))
+            .findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(toList()))
             .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return applications
             .stream()
             .map(publicApplication -> convert(publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId()))))
-            .collect(Collectors.toSet());
+            .collect(toSet());
     }
 
     private Set<ApplicationListItem> convertToSimpleList(Set<Application> applications) {
@@ -866,7 +891,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     return item;
                 }
             )
-            .collect(Collectors.toSet());
+            .collect(toSet());
     }
 
     private Set<ApplicationListItem> convertToList(Set<Application> applications) throws TechnicalException {
@@ -898,7 +923,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     return item;
                 }
             )
-            .collect(Collectors.toSet());
+            .collect(toSet());
     }
 
     private ApplicationEntity convert(Application application, UserEntity primaryOwner) {

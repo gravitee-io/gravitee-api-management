@@ -87,4 +87,13 @@ public class UrlSanitizerUtilsTest {
     public void isNotPrivate() {
         assertFalse("Url should not be considered private", UrlSanitizerUtils.isPrivate("https://demo.gravitee.io/"));
     }
+
+    @Test(expected = UrlForbiddenException.class)
+    public void UriSyntaxNotValid() {
+        UrlSanitizerUtils.checkAllowed(
+            "http://localhost:8080/user/registration/confirm\"> href=\"http://unsecure.com/token=",
+            Collections.emptyList(),
+            true
+        );
+    }
 }

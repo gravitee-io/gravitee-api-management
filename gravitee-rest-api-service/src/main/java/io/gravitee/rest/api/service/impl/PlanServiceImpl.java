@@ -160,9 +160,10 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new ApiDeprecatedException(api.getName());
             }
 
-            Plan plan = new Plan();
+            String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : RandomString.generate();
 
-            plan.setId(RandomString.generate());
+            Plan plan = new Plan();
+            plan.setId(id);
             plan.setApi(newPlan.getApi());
             plan.setName(newPlan.getName());
             plan.setDescription(newPlan.getDescription());
