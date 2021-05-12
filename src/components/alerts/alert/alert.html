@@ -89,7 +89,7 @@
                     <md-input-container class="md-block" flex="30">
                       <label>Severity</label>
                       <md-select ng-model="$ctrl.alert.severity" required>
-                        <md-option ng-value="severity" ng-repeat="severity in $ctrl.severities"> {{severity}} </md-option>
+                        <md-option ng-value="severity" ng-repeat="severity in $ctrl.severities"> {{severity | lowercase}} </md-option>
                       </md-select>
                     </md-input-container>
                   </div>

@@ -29,7 +29,7 @@ const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
     this.$onInit = () => {
       this.metrics = _.filter(
         this.metrics as Metrics[],
-        (metric) => metric.conditions.indexOf('compare') !== -1 && metric.key !== this.condition.property,
+        (metric) => metric.conditions.indexOf('COMPARE') !== -1 && metric.key !== this.condition.property,
       );
     };
   },

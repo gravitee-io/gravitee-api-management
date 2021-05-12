@@ -157,11 +157,11 @@ class AlertsDashboardComponent implements ng.IComponentController {
 
   getSeverityColor(alert: Alert) {
     switch (alert.severity) {
-      case 'info':
+      case 'INFO':
         return AlertsDashboardComponent.INFO_COLOR;
-      case 'warning':
+      case 'WARNING':
         return AlertsDashboardComponent.WARNING_COLOR;
-      case 'critical':
+      case 'CRITICAL':
         return AlertsDashboardComponent.CRITICAL_COLOR;
     }
   }

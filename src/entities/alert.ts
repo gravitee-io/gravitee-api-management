@@ -22,14 +22,14 @@ export enum Scope {
 }
 
 export enum ConditionType {
-  STRING = 'string',
-  THRESHOLD = 'threshold',
-  THRESHOLD_RANGE = 'threshold_range',
-  RATE = 'rate',
-  FREQUENCY = 'frequency',
-  THRESHOLD_ACCUMULATE = 'threshold_accumulate',
-  COMPARE = 'compare',
-  STRING_COMPARE = 'string_compare',
+  STRING = 'STRING',
+  THRESHOLD = 'THRESHOLD',
+  THRESHOLD_RANGE = 'THRESHOLD_RANGE',
+  RATE = 'RATE',
+  FREQUENCY = 'FREQUENCY',
+  THRESHOLD_ACCUMULATE = 'THRESHOLD_ACCUMULATE',
+  COMPARE = 'COMPARE',
+  STRING_COMPARE = 'STRING_COMPARE',
 }
 
 class Operator {
@@ -127,10 +127,10 @@ export class Dampening {
 }
 
 export class DampeningMode {
-  static STRICT_COUNT = new DampeningMode('strict_count', 'N consecutive true evaluations');
-  static RELAXED_COUNT = new DampeningMode('relaxed_count', 'N true evaluations out of M total evaluations');
-  static RELAXED_TIME = new DampeningMode('relaxed_time', 'N true evaluations in T time');
-  static STRICT_TIME = new DampeningMode('strict_time', 'Only true evaluations for at least T time');
+  static STRICT_COUNT = new DampeningMode('STRICT_COUNT', 'N consecutive true evaluations');
+  static RELAXED_COUNT = new DampeningMode('RELAXED_COUNT', 'N true evaluations out of M total evaluations');
+  static RELAXED_TIME = new DampeningMode('RELAXED_TIME', 'N true evaluations in T time');
+  static STRICT_TIME = new DampeningMode('STRICT_TIME', 'Only true evaluations for at least T time');
 
   static MODES: DampeningMode[] = [
     DampeningMode.STRICT_COUNT,
@@ -160,12 +160,12 @@ export abstract class Condition {
 }
 
 export class ThresholdCondition extends Condition {
-  static TYPE = 'threshold';
+  static TYPE = 'THRESHOLD';
 
-  static LT: Operator = new Operator('lt', 'less than');
-  static LTE: Operator = new Operator('lte', 'less than or equals to');
-  static GTE: Operator = new Operator('gte', 'greater than or equals to');
-  static GT: Operator = new Operator('gt', 'greater than');
+  static LT: Operator = new Operator('LT', 'less than');
+  static LTE: Operator = new Operator('LTE', 'less than or equals to');
+  static GTE: Operator = new Operator('GTE', 'greater than or equals to');
+  static GT: Operator = new Operator('GT', 'greater than');
 
   static OPERATORS: Operator[] = [ThresholdCondition.LT, ThresholdCondition.LTE, ThresholdCondition.GTE, ThresholdCondition.GT];
 
@@ -179,12 +179,12 @@ export class ThresholdCondition extends Condition {
 }
 
 export class RateCondition extends Condition {
-  static TYPE = 'rate';
+  static TYPE = 'RATE';
 
-  static LT: Operator = new Operator('lt', 'less than');
-  static LTE: Operator = new Operator('lte', 'less than or equals to');
-  static GTE: Operator = new Operator('gte', 'greater than or equals to');
-  static GT: Operator = new Operator('gt', 'greater than');
+  static LT: Operator = new Operator('LT', 'less than');
+  static LTE: Operator = new Operator('LTE', 'less than or equals to');
+  static GTE: Operator = new Operator('GTE', 'greater than or equals to');
+  static GT: Operator = new Operator('GT', 'greater than');
 
   static OPERATORS: Operator[] = [RateCondition.LT, RateCondition.LTE, RateCondition.GTE, RateCondition.GT];
 
@@ -198,12 +198,12 @@ export class RateCondition extends Condition {
 }
 
 export class FrequencyCondition extends Condition {
-  static TYPE = 'frequency';
+  static TYPE = 'FREQUENCY';
 
-  static LT: Operator = new Operator('lt', 'less than');
-  static LTE: Operator = new Operator('lte', 'less than or equals to');
-  static GTE: Operator = new Operator('gte', 'greater than or equals to');
-  static GT: Operator = new Operator('gt', 'greater than');
+  static LT: Operator = new Operator('LT', 'less than');
+  static LTE: Operator = new Operator('LTE', 'less than or equals to');
+  static GTE: Operator = new Operator('GTE', 'greater than or equals to');
+  static GT: Operator = new Operator('GT', 'greater than');
 
   static OPERATORS: Operator[] = [FrequencyCondition.LT, FrequencyCondition.LTE, FrequencyCondition.GTE, FrequencyCondition.GT];
 
@@ -227,12 +227,12 @@ class Function {
 }
 
 export class AggregationCondition extends Condition {
-  static TYPE = 'aggregation';
+  static TYPE = 'AGGREGATION';
 
-  static LT: Operator = new Operator('lt', 'less than');
-  static LTE: Operator = new Operator('lte', 'less than or equals to');
-  static GTE: Operator = new Operator('gte', 'greater than or equals to');
-  static GT: Operator = new Operator('gt', 'greater than');
+  static LT: Operator = new Operator('LT', 'less than');
+  static LTE: Operator = new Operator('LTE', 'less than or equals to');
+  static GTE: Operator = new Operator('GTE', 'greater than or equals to');
+  static GT: Operator = new Operator('GT', 'greater than');
 
   static OPERATORS: Operator[] = [AggregationCondition.LT, AggregationCondition.LTE, AggregationCondition.GTE, AggregationCondition.GT];
 
@@ -257,9 +257,9 @@ export class AggregationCondition extends Condition {
 }
 
 export class ThresholdRangeCondition extends Condition {
-  static TYPE = 'threshold_range';
+  static TYPE = 'THRESHOLD_RANGE';
 
-  static BETWEEN: Operator = new Operator('between', 'between');
+  static BETWEEN: Operator = new Operator('BETWEEN', 'between');
 
   static OPERATORS: Operator[] = [ThresholdRangeCondition.BETWEEN];
 
@@ -273,12 +273,12 @@ export class ThresholdRangeCondition extends Condition {
 }
 
 export class CompareCondition extends Condition {
-  static TYPE = 'compare';
+  static TYPE = 'COMPARE';
 
-  static LT: Operator = new Operator('lt', 'less than');
-  static LTE: Operator = new Operator('lte', 'less than or equals to');
-  static GTE: Operator = new Operator('gte', 'greater than or equals to');
-  static GT: Operator = new Operator('gt', 'greater than');
+  static LT: Operator = new Operator('LT', 'less than');
+  static LTE: Operator = new Operator('LTE', 'less than or equals to');
+  static GTE: Operator = new Operator('GTE', 'greater than or equals to');
+  static GT: Operator = new Operator('GT', 'greater than');
 
   static OPERATORS: Operator[] = [CompareCondition.LT, CompareCondition.LTE, CompareCondition.GTE, CompareCondition.GT];
 
@@ -292,14 +292,14 @@ export class CompareCondition extends Condition {
 }
 
 export class StringCondition extends Condition {
-  static TYPE = 'string';
+  static TYPE = 'STRING';
 
-  static EQUALS: Operator = new Operator('equals', 'equals to');
-  static NOT_EQUALS: Operator = new Operator('not_equals', 'not equals to');
-  static STARTS_WITH: Operator = new Operator('starts_with', 'starts with');
-  static ENDS_WITH: Operator = new Operator('ends_with', 'ends with');
-  static CONTAINS: Operator = new Operator('contains', 'contains');
-  static MATCHES: Operator = new Operator('matches', 'matches');
+  static EQUALS: Operator = new Operator('EQUALS', 'equals to');
+  static NOT_EQUALS: Operator = new Operator('NOT_EQUALS', 'not equals to');
+  static STARTS_WITH: Operator = new Operator('STARTS_WITH', 'starts with');
+  static ENDS_WITH: Operator = new Operator('ENDS_WITH', 'ends with');
+  static CONTAINS: Operator = new Operator('CONTAINS', 'contains');
+  static MATCHES: Operator = new Operator('MATCHES', 'matches');
 
   static OPERATORS: Operator[] = [
     StringCondition.EQUALS,
@@ -320,14 +320,14 @@ export class StringCondition extends Condition {
 }
 
 export class StringCompareCondition extends Condition {
-  static TYPE = 'string_compare';
+  static TYPE = 'STRING_COMPARE';
 
-  static EQUALS: Operator = new Operator('equals', 'equals to');
-  static NOT_EQUALS: Operator = new Operator('not_equals', 'not equals to');
-  static STARTS_WITH: Operator = new Operator('starts_with', 'starts with');
-  static ENDS_WITH: Operator = new Operator('ends_with', 'ends with');
-  static CONTAINS: Operator = new Operator('contains', 'contains');
-  static MATCHES: Operator = new Operator('matches', 'matches');
+  static EQUALS: Operator = new Operator('EQUALS', 'equals to');
+  static NOT_EQUALS: Operator = new Operator('NOT_EQUALS', 'not equals to');
+  static STARTS_WITH: Operator = new Operator('STARTS_WITH', 'starts with');
+  static ENDS_WITH: Operator = new Operator('ENDS_WITH', 'ends with');
+  static CONTAINS: Operator = new Operator('CONTAINS', 'contains');
+  static MATCHES: Operator = new Operator('MATCHES', 'matches');
 
   static OPERATORS: Operator[] = [
     StringCompareCondition.EQUALS,
@@ -348,9 +348,9 @@ export class StringCompareCondition extends Condition {
 }
 
 export class DurationTimeUnit {
-  static SECONDS: DurationTimeUnit = new DurationTimeUnit('seconds', 'Seconds');
-  static MINUTES: DurationTimeUnit = new DurationTimeUnit('minutes', 'Minutes');
-  static HOURS: DurationTimeUnit = new DurationTimeUnit('hours', 'Hours');
+  static SECONDS: DurationTimeUnit = new DurationTimeUnit('SECONDS', 'Seconds');
+  static MINUTES: DurationTimeUnit = new DurationTimeUnit('MINUTES', 'Minutes');
+  static HOURS: DurationTimeUnit = new DurationTimeUnit('HOURS', 'Hours');
 
   static TIME_UNITS: DurationTimeUnit[] = [DurationTimeUnit.SECONDS, DurationTimeUnit.MINUTES, DurationTimeUnit.HOURS];
   key: string;

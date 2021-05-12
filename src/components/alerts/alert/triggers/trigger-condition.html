@@ -32,7 +32,7 @@
   <md-input-container class="md-block" flex-gt-sm flex="15">
     <label>Type</label>
     <md-select ng-model="$ctrl.condition.type" required ng-change="$ctrl.onConditionChange()">
-      <md-option ng-value="type" ng-repeat="type in $ctrl.conditions"> {{::type}} </md-option>
+      <md-option ng-value="type" ng-repeat="type in $ctrl.conditions"> {{::type | lowercase}} </md-option>
     </md-select>
   </md-input-container>
 
@@ -50,18 +50,18 @@
   <span flex="5">&nbsp;</span>
 
   <div ng-if="$ctrl.condition.operator && $ctrl.condition.type" ng-switch="$ctrl.condition.type" flex>
-    <gv-alert-trigger-condition-threshold ng-switch-when="threshold" condition="$ctrl.condition"></gv-alert-trigger-condition-threshold>
+    <gv-alert-trigger-condition-threshold ng-switch-when="THRESHOLD" condition="$ctrl.condition"></gv-alert-trigger-condition-threshold>
     <gv-alert-trigger-condition-threshold-range
-      ng-switch-when="threshold_range"
+      ng-switch-when="THRESHOLD_RANGE"
       condition="$ctrl.condition"
     ></gv-alert-trigger-condition-threshold-range>
     <gv-alert-trigger-condition-string
-      ng-switch-when="string"
+      ng-switch-when="STRING"
       metrics="$ctrl.metrics"
       condition="$ctrl.condition"
     ></gv-alert-trigger-condition-string>
     <gv-alert-trigger-condition-compare
-      ng-switch-when="compare"
+      ng-switch-when="COMPARE"
       metrics="$ctrl.metrics"
       condition="$ctrl.condition"
     ></gv-alert-trigger-condition-compare>

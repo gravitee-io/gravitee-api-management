@@ -33,7 +33,7 @@
 
     <div layout="column" ng-switch="$ctrl.dampening.mode">
       <!-- STRICT_COUNT -->
-      <div ng-switch-when="strict_count">
+      <div ng-switch-when="STRICT_COUNT">
         <md-input-container class="md-block" flex-gt-sm flex="30">
           <label>Number of true evaluations</label>
           <input
@@ -54,7 +54,7 @@
       </div>
 
       <!-- RELAXED_COUNT -->
-      <div ng-switch-when="relaxed_count" layout="row">
+      <div ng-switch-when="RELAXED_COUNT" layout="row">
         <md-input-container class="md-block" flex-gt-sm flex="30">
           <label>Number of true evaluations</label>
           <input
@@ -95,7 +95,7 @@
       </div>
 
       <!-- STRICT_TIME -->
-      <div ng-switch-when="strict_time" layout="row">
+      <div ng-switch-when="STRICT_TIME" layout="row">
         <md-input-container class="md-block" flex-gt-sm flex="10">
           <label>Duration</label>
           <input
@@ -122,7 +122,7 @@
       </div>
 
       <!-- RELAXED_TIME -->
-      <div ng-switch-when="relaxed_time" layout="row">
+      <div ng-switch-when="RELAXED_TIME" layout="row">
         <md-input-container class="md-block" flex-gt-sm flex="30">
           <label>Number of true evaluations</label>
           <input

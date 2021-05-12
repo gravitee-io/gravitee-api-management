@@ -35,7 +35,7 @@ const AlertTriggerApiHealthCheckEndpointStatusChangedComponent: ng.IComponentOpt
         ];
 
         this.alert.dampening = {
-          mode: 'strict_count',
+          mode: 'STRICT_COUNT',
           trueEvaluations: 1,
           totalEvaluations: 1,
         };

@@ -98,11 +98,11 @@ const AlertsComponent: ng.IComponentOptions = {
 
     this.getSeverityColor = (alert: Alert) => {
       switch (alert.severity) {
-        case 'info':
+        case 'INFO':
           return '#54a3ff';
-        case 'warning':
+        case 'WARNING':
           return '#FF950D';
-        case 'critical':
+        case 'CRITICAL':
           return '#d73a49';
       }
     };

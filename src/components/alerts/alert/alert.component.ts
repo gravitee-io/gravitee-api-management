@@ -39,7 +39,7 @@ const AlertComponent: ng.IComponentOptions = {
 
     this.$onInit = () => {
       this.tabs = ['general', 'notifications', 'history'];
-      this.severities = ['info', 'warning', 'critical'];
+      this.severities = ['INFO', 'WARNING', 'CRITICAL'];
       const indexOfTab = this.tabs.indexOf($state.params.tab);
       this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
       this.currentTab = this.tabs[this.selectedTab];
@@ -69,7 +69,7 @@ const AlertComponent: ng.IComponentOptions = {
       this.updateMode = $state.params.alertId !== undefined;
 
       if (!this.updateMode) {
-        this.alert = new Alert('New alert', 'info', undefined, undefined, undefined, referenceType, referenceId);
+        this.alert = new Alert('New alert', 'INFO', undefined, undefined, undefined, referenceType, referenceId);
         this.alerts.push(this.alert);
       } else {
         this.alert = _.find(this.alerts, { id: $state.params.alertId }) || this.alerts[0];

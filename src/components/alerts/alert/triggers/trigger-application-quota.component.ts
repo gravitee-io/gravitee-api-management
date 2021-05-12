@@ -42,7 +42,7 @@ const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
         ];
 
         this.alert.dampening = {
-          mode: 'strict_count',
+          mode: 'STRICT_COUNT',
           trueEvaluations: 1,
           totalEvaluations: 1,
         };
