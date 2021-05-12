@@ -174,7 +174,7 @@ export class ApplicationCreationStep3Component implements OnInit {
   }
 
   get canAddPlan() {
-    return this.subscribeList.find((s) => s.plan.id === this.selectedPlan.id) != null;
+    return this.subscribeList && this.subscribeList.find((s) => s.plan.id === this.selectedPlan.id) != null;
   }
 
   get requireClientId() {
