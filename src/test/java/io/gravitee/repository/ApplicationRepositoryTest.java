@@ -15,7 +15,9 @@
  */
 package io.gravitee.repository;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
@@ -275,5 +277,28 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
     public void shouldNotUpdateNull() throws Exception {
         applicationRepository.update(null);
         fail("A null application should not be updated");
+    }
+
+    @Test
+    public void shouldFindByName() throws Exception {
+        final Page<Application> appsPage = applicationRepository.search(new ApplicationCriteria.Builder()
+                        .name("SeArched-app")
+                        .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
+                        .status(ApplicationStatus.ACTIVE)
+                        .environmentId("DEV")
+                        .build(),
+                null);
+
+        final List<Application> apps = appsPage.getContent();
+
+        assertNotNull(apps);
+        assertFalse(apps.isEmpty());
+        assertEquals(1, apps.size());
+        assertTrue(apps.
+                stream().
+                map(Application::getId).
+                collect(Collectors.toList()).
+                contains("searched-app1"));
+
     }
 }
