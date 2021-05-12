@@ -35,7 +35,6 @@ class ApiHealthCheckController {
     private $scope: IScope,
     private $rootScope: IRootScopeService,
     private $state: StateService,
-    private ChartService,
     private $q: IQService,
     private UserService: UserService,
     private $window,
