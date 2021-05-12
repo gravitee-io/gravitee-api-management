@@ -165,16 +165,6 @@ class ComponentCtrl implements ng.IComponentController {
         });
     });
   }
-
-  getBannerMessage(): string {
-    return this.isMarkdownTemplate()
-      ? 'This page is not available for users yet'
-      : 'This page is not published yet and will not be visible to other users';
-  }
-
-  isMarkdownTemplate(): boolean {
-    return this.page.type === PageType.MARKDOWN_TEMPLATE;
-  }
 }
 
 const PageEditorMarkdownComponent: ng.IComponentOptions = {

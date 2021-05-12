@@ -273,12 +273,9 @@ import NotificationTemplateController from '../organization/configuration/notifi
 import NotificationTemplateByTypeController from '../organization/configuration/notification-templates/components/notificationTemplateByType.controller';
 // Documentation
 import DocumentationManagementComponent from '../components/documentation/documentation-management.component';
-import PageComponent from '../components/documentation/page/page.component';
 import PageSwaggerComponent from '../components/documentation/page/page-swagger.component';
 import PageMarkdownComponent from '../components/documentation/page/page-markdown.component';
 import PageEditorMarkdownComponent from '../components/documentation/page/page-editormarkdown.component';
-import PageEditorMarkdownViewerComponent from '../components/documentation/page/page-editormarkdown-viewer.component';
-import PageSidenavDirective from '../components/documentation/page/page-sidenav.directive';
 import NewPageComponent from '../components/documentation/new-page.component';
 import EditPageComponent from '../components/documentation/edit-page.component';
 import EditPageAclsComponent from '../components/documentation/edit-page-acls.components';
@@ -941,12 +938,9 @@ graviteeManagementModule.component('newPage', NewPageComponent);
 graviteeManagementModule.component('importPages', ImportPagesComponent);
 graviteeManagementModule.component('editPage', EditPageComponent);
 graviteeManagementModule.component('gvEditPageAcls', EditPageAclsComponent);
-graviteeManagementModule.component('gvPage', PageComponent);
 graviteeManagementModule.component('gvPageMarkdown', PageMarkdownComponent);
 graviteeManagementModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
-graviteeManagementModule.component('gvPageEditorMarkdownViewer', PageEditorMarkdownViewerComponent);
 graviteeManagementModule.component('gvPageSwagger', PageSwaggerComponent);
-graviteeManagementModule.directive('gvPageSidenav', () => PageSidenavDirective);
 
 graviteeManagementModule.component('gvSidenav', SidenavComponent);
 graviteeManagementModule.component('gvSubmenu', SubmenuComponent);

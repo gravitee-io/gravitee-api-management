@@ -542,6 +542,16 @@ const EditPageComponent: ng.IComponentOptions = {
           }
         });
     };
+
+    this.getBannerMessage = (): string => {
+      return this.isMarkdownTemplate()
+        ? 'This page is not available for users yet'
+        : 'This page is not published yet and will not be visible to other users';
+    };
+
+    this.isMarkdownTemplate = (): boolean => {
+      return this.page.type === PageType.MARKDOWN_TEMPLATE;
+    };
   },
 };
 

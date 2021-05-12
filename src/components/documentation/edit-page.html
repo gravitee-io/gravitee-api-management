@@ -291,6 +291,11 @@
           <md-tab-label>Page</md-tab-label>
           <md-tab-body>
             <div ng-if="$ctrl.currentTab === 'content'">
+              <div class="gv-page-draft-banner" ng-if="!$ctrl.page.published">
+                <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
+                {{ $ctrl.getBannerMessage() }}
+              </div>
+
               <!-- edit SWAGGER inline -->
               <div ng-if="$ctrl.isSwagger()" style="display: inline-block; width: 100%">
                 <div layout="row" style="max-height: 900px; overflow: auto">
@@ -306,7 +311,7 @@
                       md-autofocus
                     ></textarea>
                   </md-input-container>
-                  <gv-page flex page="$ctrl.page" edit="$ctrl.canUpdate"></gv-page>
+                  <gv-page-swagger page="$ctrl.page" edit="$ctrl.canUpdate"></gv-page-swagger>
                 </div>
               </div>
 
@@ -428,7 +433,7 @@
                         md-autofocus
                       ></textarea>
                     </md-input-container>
-                    <gv-page flex page="$ctrl.currentTranslation" page-type="$ctrl.page.type" edit="$ctrl.canUpdate"></gv-page>
+                    <gv-page-swagger page="$ctrl.currentTranslation" edit="$ctrl.canUpdate"></gv-page-swagger>
                   </div>
                 </div>
 
