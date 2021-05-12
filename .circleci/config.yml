@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   gio_action:
     type: enum
-    enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests]
+    enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, nightly, pull_requests]
     default: pull_requests
   dry_run:
     type: boolean
@@ -352,21 +352,39 @@ workflows:
           s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
 
   # ---
-  # A nighlty release for all CE repositories
+  # Nighlty for all CE repositories :
+  # builds the SNAPSHOT, and deploys
+  # it into Gravitee Private Artifactory
+  # --
+  # No Nexus deployment
+  # ---
   nightly:
-    triggers:
-      - schedule:
-          cron: "0 0 * * *"
+    when:
+      equal: [ nightly, << pipeline.parameters.gio_action >> ]
+    # triggers:
+      # - schedule:
+          # cron: "0 0 * * *"
+          # filters:
+            # branches:
+              # only:
+                # - master
+                # - /^[0-999].[0-999].x/
+    jobs:
+      - gravitee/d_all_nightly_secrets:
+          context: cicd-orchestrator
+          name: nightly_secrets_resolution
           filters:
             branches:
               only:
                 - master
                 - /^[0-999].[0-999].x/
-    jobs:
-      - gravitee/d_all_nightly_secrets:
-          context: cicd-orchestrator
-          name: nightly_secrets_resolution
+
       - gravitee/d_all_nightly_ce:
           name: process_pull_request
           requires:
             - nightly_secrets_resolution
+          filters:
+            branches:
+              only:
+                - master
+                - /^[0-999].[0-999].x/
