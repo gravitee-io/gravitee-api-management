@@ -45,12 +45,4 @@ public class EndpointHealthCheckService extends HealthCheckService {
         return enabled ? new EndpointHealthCheckService() : null;
     }
 
-    public static EndpointHealthCheckService fromMap(HashMap<String, Object> map) {
-        EndpointHealthCheckService endpointHealthCheckService = new EndpointHealthCheckService();
-        endpointHealthCheckService.setEnabled((Boolean) map.get("enabled"));
-        endpointHealthCheckService.setInherit((Boolean) map.get("inherit"));
-        endpointHealthCheckService.setSchedule((String) map.get("schedule"));
-        endpointHealthCheckService.setSteps((List<Step>) map.get("steps"));
-        return endpointHealthCheckService;
-    }
 }

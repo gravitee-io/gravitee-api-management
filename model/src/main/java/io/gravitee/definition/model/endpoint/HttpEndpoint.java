@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
+import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckServiceDeserializer;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -143,20 +144,11 @@ public class HttpEndpoint extends Endpoint {
         }
     }
 
-    @JsonSetter("healthcheck")
-    public void setHealthCheckJson(Object healthCheck) {
-        if (healthCheck instanceof Boolean) {
-            return;
-        }
-        this.healthCheck = EndpointHealthCheckService.fromMap((HashMap<String, Object>) healthCheck);
-    }
-
-    @JsonGetter("healthcheck")
+    @JsonDeserialize(using = EndpointHealthCheckServiceDeserializer.class)
     public EndpointHealthCheckService getHealthCheck() {
         return healthCheck;
     }
 
-    @JsonIgnore
     public void setHealthCheck(EndpointHealthCheckService healthCheck) {
         this.healthCheck = healthCheck;
     }
