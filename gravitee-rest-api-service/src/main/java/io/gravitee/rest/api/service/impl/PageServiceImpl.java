@@ -1183,8 +1183,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     !PageType.LINK.name().equalsIgnoreCase(pageType) &&
                     !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)
                 ) {
+                    // if just publishing the page, updatePageEntity.getVisibility() will return null. In that case, we must keep the existing visibility status.
+                    String newVisibility = updatePageEntity.getVisibility() == null
+                        ? pageToUpdate.getVisibility()
+                        : updatePageEntity.getVisibility().name();
+
                     // update all the related links and translations publication status.
-                    this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished(), updatePageEntity.getVisibility());
+                    this.changeRelatedPagesPublicationStatusAndVisibility(pageId, updatePageEntity.isPublished(), newVisibility);
                 }
 
                 createAuditLog(
@@ -1288,7 +1293,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void changeRelatedPagesPublicationStatus(String pageId, Boolean published, Visibility visibility) {
+    private void changeRelatedPagesPublicationStatusAndVisibility(String pageId, Boolean published, String newVisibility) {
         try {
             // Update related page's links
             this.pageRepository.search(new PageCriteria.Builder().type(PageType.LINK.name()).build())
@@ -1299,11 +1304,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         try {
                             // Update link
                             p.setPublished(published);
-                            p.setVisibility(visibility.name());
+                            p.setVisibility(newVisibility);
                             pageRepository.update(p);
 
                             // Update link's translations
-                            changeTranslationPagesPublicationStatus(p.getId(), published, visibility);
+                            changeTranslationPagesPublicationStatusAndVisibility(p.getId(), published, newVisibility);
                         } catch (TechnicalException ex) {
                             throw onUpdateFail(p.getId(), ex);
                         }
@@ -1311,14 +1316,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 );
 
             // Update related page's translations
-            changeTranslationPagesPublicationStatus(pageId, published, visibility);
+            changeTranslationPagesPublicationStatusAndVisibility(pageId, published, newVisibility);
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to search pages", ex);
             throw new TechnicalManagementException("An error occurs while trying to search pages", ex);
         }
     }
 
-    private void changeTranslationPagesPublicationStatus(String translatedPageId, Boolean published, Visibility visibility) {
+    private void changeTranslationPagesPublicationStatusAndVisibility(String translatedPageId, Boolean published, String newVisibility) {
         try {
             this.pageRepository.search(new PageCriteria.Builder().parent(translatedPageId).type(PageType.TRANSLATION.name()).build())
                 .stream()
@@ -1326,7 +1331,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     p -> {
                         try {
                             p.setPublished(published);
-                            p.setVisibility(visibility.name());
+                            p.setVisibility(newVisibility);
                             pageRepository.update(p);
                         } catch (TechnicalException ex) {
                             throw onUpdateFail(p.getId(), ex);
