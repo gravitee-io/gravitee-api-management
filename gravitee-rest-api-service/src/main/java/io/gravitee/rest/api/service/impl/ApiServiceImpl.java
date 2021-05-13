@@ -3056,9 +3056,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .collect(toSet());
 
         // find reviewers in group attached to the API
-        this.findById(apiId)
-            .getGroups()
-            .forEach(
+        final Set<String> groups = this.findById(apiId).getGroups();
+        if (groups != null && !groups.isEmpty()) {
+            groups.forEach(
                 group -> {
                     reviewerEmails.addAll(
                         roleService
@@ -3084,6 +3084,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     );
                 }
             );
+        }
 
         return new ArrayList<>(reviewerEmails);
     }
