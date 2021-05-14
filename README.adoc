@@ -1,107 +1,57 @@
 = Gravitee Management Webui
 
-ifdef::env-github[]
-image:https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-management-webui/master["Build status", link="https://ci.gravitee.io/job/gravitee-io/job/gravitee-management-webui/"]
+image:https://circleci.com/gh/gravitee-io/gravitee-management-webui.svg?style=shield["CircleCI", link="https://circleci.com/gh/gravitee-io/gravitee-management-webui"]
 image:https://badges.gitter.im/Join Chat.svg["Gitter", link="https://gitter.im/gravitee-io/gravitee-io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge"]
-endif::[]
 
-== Install
+== Description
 
-**NPM tasks are ran from this base dir.**
+This repo contains the source code of APIM Console.
+
+APIM Console is a client-side only Angular application and can be deployed on any HTTP server, such as Apache or Nginx.
+
+For more information about installation and usage, see https://docs.gravitee.io/apim/3.x/apim_installguide_management_ui_install_zip.html[Gravitee.io Documentation Website].
+
+== Contributing
+
+=== Install
+
+Prerequisites:
 
 - Install https://github.com/nvm-sh/nvm[nvm]
-- Install the Angular CLI
-```
-npm install -g @angular/cli
-```
-- Use with `nvm use` or install with `nvm install` the node version declared in `.nvmrc`
-- Then install node modules with:
-```
+- Use with `nvm use` or install with `nvm install` the version of Node.js declared in `.nvmrc`
+
+- Then install dependencies with:
+[source,bash]
+----
 npm install
-```
+----
 
-**If you're working on Windows**
+=== Getting started
 
-- Install Microsoft's windows-build-tools using npm install --global --production windows-build-tools from an elevated PowerShell or CMD.exe (run as Administrator).
-- Restart your computer
-- Re-run npm install
+Here are the useful NPM scripts available when developing in APIM Console:
 
-If you don't install this library, you may have such errors when you'll do npm install :
-```
-ERROR in ./~/css-loader?importLoaders=1!./~/sass-loader!./~/postcss-loader!./src/index.scss Module build failed: Error: Node Sass does not yet support your current environment: Windows 64-bit with Unsupported runtime (57) For more information on which environments are supported please see: https://github.com/sass/node-sass/releases/tag/v3.13.1
-```
+ - `serve`: Start the app in dev mode (with hot reload) and proxy backend calls to `http://localhost:8083`
+ - `serve:nightly`: Start the app in dev mode (with hot reload) and proxy backend calls to `https://nightly.gravitee.io`
+ - `lint:eslint`: Run ESLint and Prettier
+ - `lint:eslint:fix`: Run ESLint in auto fix mode and Prettier in write mode
+ - `test`: Run unit tests with Jest
+ - `build:prod`: Build the app in production mode and output the result to `dist`
+ - `serve:prod`: Start the built app (from `dist` folder) and proxy backend calls to `http://localhost:8083`. Don't forget to run `npm run build:prod` to build the app before starting serving it.
 
-== About WIP dependencies
 
-This project use project https://github.com/gravitee-io/gravitee-ui-components[Gravitee UI Components].
-If you want to develop in parallel, you can clone repository and link to project.
+=== About WIP dependencies
 
-```shell script
+This project uses https://github.com/gravitee-io/gravitee-ui-components[Gravitee UI Components] library and sometimes changes need to be done in both projects at the same time. If you want to develop in parallel, you can clone the repository and link to the project.
+
+[source,bash]
+----
 git clone git@github.com:gravitee-io/gravitee-ui-components.git
-pushd gravitee-ui-components
+cd gravitee-ui-components
 npm link
-popd
 
-pushd gravitee-management-webui
+# Go back to gravitee-management-webui folder
+cd ../gravitee-management-webui
 npm link @gravitee/ui-components
-popd
-```
+----
 
-== Tasks
-
-If you wanna serve the built version on dev mode :
-```
-npm run serve
-```
-
-IF you have this error with node-sass
-```
-ERROR in ./src/index.scss (./node_modules/css-loader!./node_modules/sass-loader/dist/cjs.js!./src/index.scss)
-Module build failed (from ./node_modules/sass-loader/dist/cjs.js):
-Error: ENOENT: no such file or directory, scandir '/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/vendor'
-    at Object.readdirSync (fs.js:1021:3)
-    at Object.getInstalledBinaries (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/extensions.js:133:13)
-    at foundBinariesList (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/errors.js:20:15)
-    at foundBinaries (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/errors.js:15:5)
-    at Object.module.exports.missingBinary (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/errors.js:45:5)
-    at module.exports (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/binding.js:15:30)
-    at Object.<anonymous> (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/node-sass/lib/index.js:14:35)
-    at Module._compile (internal/modules/cjs/loader.js:1063:30)
-    at Object.Module._extensions..js (internal/modules/cjs/loader.js:1092:10)
-    at Module.load (internal/modules/cjs/loader.js:928:32)
-    at Function.Module._load (internal/modules/cjs/loader.js:769:14)
-    at Module.require (internal/modules/cjs/loader.js:952:19)
-    at require (internal/modules/cjs/helpers.js:88:18)
-    at getDefaultSassImpl (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/sass-loader/dist/index.js:198:10)
-    at Object.loader (/Users/gcusnieux/Sources/gravitee-management-webui/node_modules/sass-loader/dist/index.js:80:29)
- @ ./src/index.scss 2:14-115
- @ ./src/index.ts
-
-```
-
-Remove `node_modules` and reinstall
-```js
-npm install
-// or you can rebuild node-sass
-npm rebuild node-sass
-```
-
-If you wanna serve the built version on production mode :
-
-```
-npm run build:prod
-npm run serve:prod
-```
-
-
-If you wanna serve the built version pointing on the demo's server :
-```
-npm run serve:demo
-```
-
-If you wanna serve the built version pointing on the nightly's server :
-```
-npm run serve:nightly
-```
-
-Tested and approved with the https://www.browserstack.com[BrowserStack platform]
+⚠️ The npm link will be removed if you run `npm install`, and so you will need to rerun the previous snippet to link the library.
