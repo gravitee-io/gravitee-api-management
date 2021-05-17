@@ -378,4 +378,20 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals(PUBLISHED, apis.get(1).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(2).getApiLifecycleState());
     }
+
+    @Test
+    public void shouldFindByContextPath() {
+        final List<Api> apis =
+                apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build());
+        assertNotNull(apis);
+        assertFalse(apis.isEmpty());
+        assertEquals(3, apis.size());
+        assertTrue(apis.stream().
+                map(Api::getId).
+                collect(toList()).
+                containsAll(asList("api-to-delete", "api-to-update", "grouped-api")));
+        assertEquals(3, apis.stream().
+                filter(api -> api.getDefinition().contains("\"context_path\" : \"/product\"")).
+                count());
+    }
 }
