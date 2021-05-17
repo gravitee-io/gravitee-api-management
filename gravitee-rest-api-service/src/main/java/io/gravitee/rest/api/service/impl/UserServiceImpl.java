@@ -760,7 +760,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity, final String confirmationPageUrl) {
         final GraviteeContext.ReferenceContext currentContext = GraviteeContext.getCurrentContext();
 
-        UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
+        if (confirmationPageUrl != null) {
+            UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
+        }
 
         checkUserRegistrationEnabled(currentContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(currentContext);
