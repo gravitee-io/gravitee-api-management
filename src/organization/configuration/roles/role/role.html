@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<div class="gv-forms" layout="column">
+<div class="gv-forms role" layout="column">
   <div class="gv-forms-header">
     <h1 ng-if="!$ctrl.editMode">New role [{{$ctrl.role.scope}}]</h1>
     <h1 ng-if="$ctrl.editMode">Update [{{$ctrl.role.scope}}]: {{::$ctrl.role.name}}</h1>
@@ -85,10 +85,12 @@
             <tbody md-body>
               <tr md-row ng-repeat="permission in $ctrl.permissions">
                 <td md-cell>
-                  <b>{{permission}}</b>
-                  <md-tooltip md-direction="right" ng-if="$ctrl.isEnvironmentTagOrTenant(permission)">
-                    <span>This permission has been moved to ORGANIZATION scope</span>
-                  </md-tooltip>
+                  <div>
+                    <b>{{permission}}</b>
+                  </div>
+                  <div class="permission-moved" ng-if="$ctrl.isEnvironmentTagOrTenant(permission)">
+                    This permission has been moved to ORGANIZATION scope
+                  </div>
                 </td>
                 <td md-cell>
                   <md-checkbox
@@ -96,7 +98,8 @@
                     aria-label="{{permission}} create"
                     ng-model="$ctrl.role.permissions[permission].C"
                     ng-change="$ctrl.checkSelectAll()"
-                  ></md-checkbox>
+                  >
+                  </md-checkbox>
                 </td>
                 <td md-cell>
                   <md-checkbox

@@ -43,12 +43,8 @@ $backgroundColor: #fdfdfd;
 @import 'management/api/api';
 @import 'management/api/creation/newApi';
 @import 'management/application/applications';
-@import 'organization/configuration/notification-templates/components/notificationTemplateByType';
-@import 'organization/configuration/cockpit/cockpit';
 @import 'management/configuration/theme/theme';
 @import 'management/configuration/portal/portal';
-@import 'organization/configuration/user/user';
-@import 'organization/configuration/users/users';
 @import 'management/configuration/groups/group/group';
 @import 'management/configuration/categories/category/category';
 @import 'management/datatable';
@@ -61,6 +57,8 @@ $backgroundColor: #fdfdfd;
 @import 'management/dashboard/analytics-dashboard/analytics-dashboard';
 @import 'management/dashboard/apis-status-dashboard/apis-status-dashboard';
 @import 'management/dashboard/home-dashboard/home-dashboard';
+
+@import 'organization/organization';
 
 @import 'user/user';
 @import 'user/newsletter/newsletter-subscription';
@@ -735,6 +733,11 @@ md-progress-circular {
   display: inline-block;
   position: absolute;
   top: 200px;
+}
+
+// Hack to make the checkbox lighter when disabled and so improve difference with the "default/activated" state
+md-checkbox[disabled]:not(.md-checked) .md-icon {
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .ipsum {
