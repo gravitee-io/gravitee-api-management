@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.model.NotificationTemplate;
@@ -28,6 +29,7 @@ import io.gravitee.repository.management.model.NotificationTemplateType;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
 import io.gravitee.rest.api.service.impl.NotificationTemplateServiceImpl;
+import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.util.Date;
 import java.util.Optional;
@@ -49,7 +51,7 @@ public class NotificationTemplateServiceTest {
 
     private static final String NOTIFICATION_TEMPLATE_ID = "my-notif-template-id";
     private static final String NOTIFICATION_TEMPLATE_HOOK = "my-notif-template-hook";
-    private static final String NOTIFICATION_TEMPLATE_SCOPE = "my-notif-template-scope";
+    private static final String NOTIFICATION_TEMPLATE_SCOPE = HookScope.TEMPLATES_FOR_ALERT.name();
     private static final String NOTIFICATION_TEMPLATE_REFERENCE_ID = "DEFAULT";
     private static final NotificationTemplateReferenceType NOTIFICATION_TEMPLATE_REFERENCE_TYPE =
         NotificationTemplateReferenceType.ORGANIZATION;
@@ -70,6 +72,9 @@ public class NotificationTemplateServiceTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private EventManager eventManager;
 
     NotificationTemplate notificationTemplate;
 

@@ -24,6 +24,7 @@ import freemarker.core.TemplateClassResolver;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.model.Audit;
@@ -76,6 +77,9 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     @Autowired
     private AuditService auditService;
 
+    @Autowired
+    private EventManager eventManager;
+
     private Map<String, Configuration> freemarkerConfigurationByOrg = new HashMap<>();
     private Map<String, StringTemplateLoader> stringTemplateLoaderMapByOrg = new HashMap<>();
     private Map<String, NotificationTemplateEntity> fromFilesNotificationTemplateEntities = new HashMap<>();
@@ -87,6 +91,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         Collections.addAll(allHooks, ApiHook.values());
         Collections.addAll(allHooks, ApplicationHook.values());
         Collections.addAll(allHooks, ActionHook.values());
+        Collections.addAll(allHooks, AlertHook.values());
 
         this.fromFilesNotificationTemplateEntities =
             allHooks
@@ -251,7 +256,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     private List<NotificationTemplateEntity> loadNotificationTemplatesFromHook(Hook hook) {
         List<NotificationTemplateEntity> result = new ArrayList<>();
 
-        if (!hook.getScope().equals(HookScope.TEMPLATES_FOR_ACTION)) {
+        if (hook.getScope().hasPortalNotification()) {
             final NotificationTemplateEntity portalNotificationTemplateEntity = this.loadPortalNotificationTemplateFromHook(hook);
             if (portalNotificationTemplateEntity != null) {
                 result.add(portalNotificationTemplateEntity);
@@ -473,6 +478,9 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         } catch (IOException ex) {
             LOGGER.error("An error occurs while trying to update freemarker cache with this template {}", notificationTemplate, ex);
         }
+
+        // Send an event to notify listener to reload template
+        eventManager.publishEvent(HookScope.valueOf(notificationTemplate.getScope()), notificationTemplate);
     }
 
     @Override

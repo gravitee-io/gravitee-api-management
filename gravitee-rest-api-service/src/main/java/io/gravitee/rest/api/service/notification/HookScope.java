@@ -20,8 +20,19 @@ package io.gravitee.rest.api.service.notification;
  * @author GraviteeSource Team
  */
 public enum HookScope {
-    API,
-    APPLICATION,
-    PORTAL,
-    TEMPLATES_FOR_ACTION,
+    API(true),
+    APPLICATION(true),
+    PORTAL(true),
+    TEMPLATES_FOR_ACTION(false),
+    TEMPLATES_FOR_ALERT(false);
+
+    private boolean hasPortalNotification;
+
+    HookScope(boolean hasPortalNotification) {
+        this.hasPortalNotification = hasPortalNotification;
+    }
+
+    public boolean hasPortalNotification() {
+        return hasPortalNotification;
+    }
 }
