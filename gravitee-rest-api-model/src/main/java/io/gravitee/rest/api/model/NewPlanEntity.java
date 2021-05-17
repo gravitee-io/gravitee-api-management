@@ -27,6 +27,8 @@ import javax.validation.constraints.NotNull;
  */
 public class NewPlanEntity {
 
+    private String id;
+
     @NotNull
     private String name;
 
@@ -73,6 +75,14 @@ public class NewPlanEntity {
 
     @JsonProperty("general_conditions")
     private String generalConditions;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -217,11 +227,11 @@ public class NewPlanEntity {
 
         NewPlanEntity that = (NewPlanEntity) o;
 
-        return name.equals(that.name);
+        return id != null ? id.equals(that.id) : name.equals(that.name);
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return id != null ? id.hashCode() : name.hashCode();
     }
 }
