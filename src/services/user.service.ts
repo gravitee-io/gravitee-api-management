@@ -22,7 +22,7 @@ import { UrlService } from '@uirouter/angularjs';
 import { PagedResult } from '../entities/pagedResult';
 import Base64Service from './base64.service';
 import EnvironmentService from './environment.service';
-import { IHttpResponse } from 'angular';
+import { IHttpResponse, IScope } from 'angular';
 import _ = require('lodash');
 
 class UserService {
@@ -48,6 +48,7 @@ class UserService {
     private $window,
     private StringService: StringService,
     private Base64Service: Base64Service,
+    private $rootScope: IScope,
   ) {
     'ngInject';
   }
@@ -110,6 +111,15 @@ class UserService {
     return this.EnvironmentService.getPermissions(this.Constants.org.currentEnv.id).then((response) => {
       this.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(response);
       return this.$q.resolve<User>(this.currentUser);
+    });
+  }
+
+  refreshCurrent() : ng.IPromise<User> {
+    this.currentUser = null; // force refresh of user profil
+    return this.current().then((user) => {
+      // once user profile is loaded, broadcast information to the app
+      this.$rootScope.$emit('graviteeUserRefresh', { user: user, refresh: true });
+      return user;
     });
   }
 

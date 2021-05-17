@@ -344,6 +344,12 @@ class ApiService {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/events?type=' + eventTypes);
   }
 
+  searchApiEvents(type, api, from, to, page, size): ng.IPromise<any> {
+    return this.$http.get(
+      `${this.Constants.env.baseURL}/apis/` + api + `/events/search?type=${type}&from=${from}&to=${to}&page=${page}&size=${size}`,
+    );
+  }
+
   listPlans(apiId, type): string {
     let url = this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/plans');
     if (type) {

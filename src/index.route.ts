@@ -99,7 +99,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
       component: 'user',
       parent: 'withSidenav',
       resolve: {
-        user: (graviteeUser: User) => graviteeUser,
+        user: (UserService: UserService) => UserService.refreshCurrent(),
       },
     })
     .state('login', {

@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import AnalyticsService from '../../services/analytics.service';
+import ApiService from '../../services/api.service';
 import EventsService from '../../services/events.service';
 
 const WidgetComponent: ng.IComponentOptions = {
@@ -25,11 +26,12 @@ const WidgetComponent: ng.IComponentOptions = {
     globalQuery: '<',
     customTimeframe: '<',
   },
-  controller: function ($scope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService) {
+  controller: function ($scope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService, ApiService: ApiService) {
     'ngInject';
     this.$state = $state;
     this.AnalyticsService = AnalyticsService;
     this.EventsService = EventsService;
+    this.ApiService = ApiService;
 
     $scope.$on('gridster-resized', () => {
       $scope.$broadcast('onWidgetResize');
@@ -121,17 +123,28 @@ const WidgetComponent: ng.IComponentOptions = {
         .apply(this.widget.chart.service.caller, args)
         .then((response) => {
           this.results = response.data;
-          if (this.widget.chart.type === 'line' && this.$state.params.apiId) {
-            return this.EventsService.search(
-              ['PUBLISH_API'],
-              [this.$state.params.apiId],
-              response.data.timestamp.from,
-              response.data.timestamp.to,
-              0,
-              10,
-            ).then((response) => {
-              this.results.events = response.data;
-            });
+          if (this.widget.chart.type === 'line') {
+            if (response.data.timestamp) {
+              // call searchEvent only if there are some results to the aggregation call
+              if (this.$state.params.apiId) {
+                return this.ApiService.searchApiEvents(
+                  ['PUBLISH_API'],
+                  this.$state.params.apiId,
+                  response.data.timestamp.from,
+                  response.data.timestamp.to,
+                  0,
+                  10,
+                ).then((response) => {
+                  this.results.events = response.data;
+                });
+              } else {
+                return this.EventsService.search(['PUBLISH_API'], [], response.data.timestamp.from, response.data.timestamp.to, 0, 10).then(
+                  (response) => {
+                    this.results.events = response.data;
+                  },
+                );
+              }
+            }
           } else if (this.widget.chart.percent) {
             delete chartRequest.query;
             chartRequest.type = 'count';
