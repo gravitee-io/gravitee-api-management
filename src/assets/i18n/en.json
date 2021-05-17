@@ -909,7 +909,7 @@
     "applications": "Applications",
     "catalog": "Catalog",
     "catalogAll": "All APIs",
-    "catalogApi": "General informations",
+    "catalogApi": "General information",
     "catalogApiContact": "Contact",
     "catalogApiDocumentation": "Documentation",
     "catalogApiSubscribe": "Subscription",
@@ -966,7 +966,7 @@
   "user": {
     "account": {
       "success": "Your account has been successfully updated",
-      "title": "Personal informations"
+      "title": "Personal information"
     },
     "change_picture": "Change photo",
     "email": "Email:",
