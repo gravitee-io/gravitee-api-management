@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -33,6 +36,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -326,7 +330,24 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                 }
                 , rowMapper
         );
-        final List<Api> apis = rowMapper.getRows();
+        List<Api> apis = rowMapper.getRows();
+
+        if (apiCriteria != null && apiCriteria.getContextPath() != null && ! apiCriteria.getContextPath().isEmpty()) {
+            apis = apis.stream()
+                    .filter(apiMongo -> {
+                        try {
+                            io.gravitee.definition.model.Api apiDefinition = new GraviteeMapper().readValue(apiMongo.getDefinition(), io.gravitee.definition.model.Api.class);
+                            VirtualHost searchedVHost = new VirtualHost();
+                            searchedVHost.setPath(apiCriteria.getContextPath());
+                            return apiDefinition.getProxy().getVirtualHosts().contains(searchedVHost);
+                        } catch (JsonProcessingException e) {
+                            LOGGER.error("Problem occured while parsing api definition", e);
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+        }
+
         for (final Api api : apis) {
             addLabels(api);
             addGroups(api);
