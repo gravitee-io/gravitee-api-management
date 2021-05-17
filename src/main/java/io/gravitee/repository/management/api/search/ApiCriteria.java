@@ -40,6 +40,7 @@ public class ApiCriteria {
     private String name;
     private List<ApiLifecycleState> lifecycleStates;
     private String environmentId;
+    private String contextPath;
     private List<String> environments;
 
     ApiCriteria(ApiCriteria.Builder builder) {
@@ -53,6 +54,7 @@ public class ApiCriteria {
         this.name = builder.name;
         this.lifecycleStates = builder.lifecycleStates;
         this.environmentId = builder.environmentId;
+        this.contextPath = builder.contextPath;
         this.environments = builder.environments;
     }
 
@@ -96,6 +98,10 @@ public class ApiCriteria {
         return environmentId;
     }
 
+    public String getContextPath() {
+        return contextPath;
+    }
+
     public List<String> getEnvironments() {
         return environments;
     }
@@ -115,12 +121,13 @@ public class ApiCriteria {
                 Objects.equals(name, that.name) &&
                 Objects.equals(lifecycleStates, that.lifecycleStates) &&
                 Objects.equals(environmentId, that.environmentId) &&
-                Objects.equals(environments, that.environments) ;
+                Objects.equals(contextPath, that.contextPath) &&
+                Objects.equals(environments, that.environments);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, groups, category, label, state, visibility, version, name, lifecycleStates, environmentId, environments);
+        return Objects.hash(ids, groups, category, label, state, visibility, version, name, lifecycleStates, environmentId, contextPath, environments);
     }
 
     public static class Builder {
@@ -134,6 +141,7 @@ public class ApiCriteria {
         private String name;
         private List<ApiLifecycleState> lifecycleStates;
         private String environmentId;
+        private String contextPath;
         private List<String> environments;
 
         public ApiCriteria.Builder ids(final String... id) {
@@ -186,11 +194,16 @@ public class ApiCriteria {
             return this;
         }
 
+        public ApiCriteria.Builder contextPath(final String contextPath) {
+            this.contextPath = contextPath;
+            return this;
+        }
+
         public ApiCriteria.Builder environments(final List<String> environments) {
             this.environments = environments;
             return this;
         }
-        
+
         public ApiCriteria build() {
             return new ApiCriteria(this);
         }
