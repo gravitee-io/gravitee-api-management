@@ -20,7 +20,6 @@ import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,7 @@ public class UrlSanitizerUtils {
     public static void checkUriSyntax(String url) {
         try {
             new URI(url);
-        } catch (URISyntaxException e) {
+        } catch (Exception e) {
             throw new UrlForbiddenException();
         }
     }
