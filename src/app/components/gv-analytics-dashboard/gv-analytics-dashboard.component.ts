@@ -31,7 +31,7 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
   @Output() searching = new EventEmitter<boolean>();
 
   private subscription: any;
-  private application: Application;
+  application: Application;
   definition: any;
 
   constructor(
@@ -41,6 +41,10 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
     private analyticsService: AnalyticsService,
     private navRouteService: NavRouteService,
   ) {}
+
+  hasLinkToAlert(title: string): boolean {
+    return title === 'Response times' || title === 'Response Status';
+  }
 
   ngOnInit(): void {
     this.subscription = this.route.queryParams.subscribe((queryParams) => {

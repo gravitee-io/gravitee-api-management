@@ -9,20 +9,19 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { Links } from './links';
+import { Alert } from './alert';
 
 
-export interface Token { 
-    token_type?: Token.TokenTypeEnum;
-    token?: string;
-    state?: string;
-    access_token?: string;
-    id_token?: string;
+export interface AlertsResponse { 
+    /**
+     * List of alerts.
+     */
+    data?: Array<Alert>;
+    /**
+     * Map of Map of Object
+     */
+    metadata?: { [key: string]: { [key: string]: object; }; };
+    links?: Links;
 }
-export namespace Token {
-    export type TokenTypeEnum = 'BEARER';
-    export const TokenTypeEnum = {
-        BEARER: 'BEARER' as TokenTypeEnum
-    };
-}
-
 

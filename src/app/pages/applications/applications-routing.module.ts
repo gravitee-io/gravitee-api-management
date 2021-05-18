@@ -36,8 +36,8 @@ import { SubscriptionsComponent } from '../subscriptions/subscriptions.component
 import { ApplicationsComponent } from './applications.component';
 import { marker as i18n } from '@biesbjerg/ngx-translate-extract-marker';
 import { PermissionsResolver } from '../../resolvers/permissions-resolver.service';
+import { ApplicationAlertsComponent } from '../application/application-alerts/application-alerts.component';
 import { PermissionGuardService } from '../../services/permission-guard.service';
-import { Role } from '../../model/role.enum';
 
 const routes: Routes = [
   { path: '', redirectTo: 'mine', pathMatch: 'full' },
@@ -172,6 +172,17 @@ const routes: Routes = [
           title: i18n('route.notifications'),
           animation: { type: 'slide', group: 'app', index: 7 },
           expectedPermissions: ['NOTIFICATION-R'],
+        },
+      },
+      {
+        path: 'alerts',
+        component: ApplicationAlertsComponent,
+        canActivate: [FeatureGuardService],
+        data: {
+          icon: 'home:alarm-clock',
+          title: i18n('route.alerts'),
+          expectedFeature: FeatureEnum.alert,
+          animation: { type: 'slide', group: 'app', index: 8 },
         },
       },
     ],

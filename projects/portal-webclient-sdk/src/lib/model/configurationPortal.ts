@@ -36,5 +36,9 @@ export interface ConfigurationPortal {
     analytics?: ConfigurationPortalAnalytics;
     rating?: ConfigurationPortalRating;
     uploadMedia?: ConfigurationPortalMedia;
+    /**
+     * Main phrase to display on the homepage.
+     */
+    homepageTitle?: string;
 }
 

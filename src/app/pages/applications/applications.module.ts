@@ -40,6 +40,8 @@ import { SubscriptionsComponent } from '../subscriptions/subscriptions.component
 
 import { ApplicationsRoutingModule } from './applications-routing.module';
 import { ApplicationsComponent } from './applications.component';
+import { ApplicationAlertsComponent } from '../application/application-alerts/application-alerts.component';
+import { GvAlertComponent } from '../../components/gv-alert/gv-alert.component';
 
 @NgModule({
   declarations: [
@@ -60,6 +62,8 @@ import { ApplicationsComponent } from './applications.component';
     GvAnalyticsDashboardComponent,
     GvAnalyticsFiltersComponent,
     ApplicationLogsComponent,
+    ApplicationAlertsComponent,
+    GvAlertComponent,
     GvSelectDashboardComponent,
   ],
   entryComponents: [GvButtonCreateApplicationComponent, GvSelectDashboardComponent],

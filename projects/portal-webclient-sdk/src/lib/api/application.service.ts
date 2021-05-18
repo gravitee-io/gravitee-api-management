@@ -17,23 +17,28 @@ import { HttpClient, HttpHeaders, HttpParams,
 import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
-import { ApisResponse } from '../model/apisResponse';
-import { Application } from '../model/application';
-import { ApplicationInput } from '../model/applicationInput';
-import { ApplicationType } from '../model/applicationType';
-import { ApplicationsResponse } from '../model/applicationsResponse';
+import { Alert } from '../model/models';
+import { AlertInput } from '../model/models';
+import { AlertStatusResponse } from '../model/models';
+import { AlertsResponse } from '../model/models';
+import { ApisResponse } from '../model/models';
+import { Application } from '../model/models';
+import { ApplicationInput } from '../model/models';
+import { ApplicationType } from '../model/models';
+import { ApplicationsResponse } from '../model/models';
 import { CountAnalytics, DateHistoAnalytics, GroupByAnalytics } from '../model/models';
-import { Hook } from '../model/hook';
-import { Log } from '../model/log';
-import { LogsResponse } from '../model/logsResponse';
-import { Member } from '../model/member';
-import { MemberInput } from '../model/memberInput';
-import { MembersResponse } from '../model/membersResponse';
-import { NotificationInput } from '../model/notificationInput';
-import { ReferenceMetadata } from '../model/referenceMetadata';
-import { ReferenceMetadataInput } from '../model/referenceMetadataInput';
-import { ReferenceMetadataResponse } from '../model/referenceMetadataResponse';
-import { TransferOwnershipInput } from '../model/transferOwnershipInput';
+import { ErrorResponse } from '../model/models';
+import { Hook } from '../model/models';
+import { Log } from '../model/models';
+import { LogsResponse } from '../model/models';
+import { Member } from '../model/models';
+import { MemberInput } from '../model/models';
+import { MembersResponse } from '../model/models';
+import { NotificationInput } from '../model/models';
+import { ReferenceMetadata } from '../model/models';
+import { ReferenceMetadataInput } from '../model/models';
+import { ReferenceMetadataResponse } from '../model/models';
+import { TransferOwnershipInput } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';
@@ -42,6 +47,13 @@ import { Configuration }                                     from '../configurat
 export interface CreateApplicationRequestParams {
     /** Use to create an application. */
     applicationInput?: ApplicationInput;
+}
+
+export interface CreateApplicationAlertRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+    /** Use to create a post. */
+    alertInput?: AlertInput;
 }
 
 export interface CreateApplicationMemberRequestParams {
@@ -56,6 +68,13 @@ export interface CreateApplicationMetadataRequestParams {
     applicationId: string;
     /** Use to create a metadata. */
     referenceMetadataInput?: ReferenceMetadataInput;
+}
+
+export interface DeleteApplicationAlertRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+    /** Id of an alert. */
+    alertId: string;
 }
 
 export interface DeleteApplicationByApplicationIdRequestParams {
@@ -94,6 +113,16 @@ export interface ExportApplicationLogsByApplicationIdRequestParams {
     field?: string;
     /** Order used to sort the result list. */
     order?: 'ASC' | 'DESC';
+}
+
+export interface GetAlertsByApplicationIdRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+}
+
+export interface GetApplicationAlertStatusRequestParams {
+    /** Id of an application. */
+    applicationId: string;
 }
 
 export interface GetApplicationAnalyticsRequestParams {
@@ -240,6 +269,15 @@ export interface TransferMemberOwnershipRequestParams {
     applicationId: string;
     /** Use to transfer ownership of an application. */
     transferOwnershipInput?: TransferOwnershipInput;
+}
+
+export interface UpdateAlertRequestParams {
+    /** Id of an application. */
+    applicationId: string;
+    /** Id of an alert. */
+    alertId: string;
+    /** Use to update an application alert. */
+    alertInput?: AlertInput;
 }
 
 export interface UpdateApplicationByApplicationIdRequestParams {
@@ -402,6 +440,75 @@ export class ApplicationService {
     }
 
     /**
+     * Create an application alert
+     * Create an application alert.  User must have the APPLICATION_ALERT[CREATE] permission. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public createApplicationAlert(requestParameters: CreateApplicationAlertRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Alert>;
+    public createApplicationAlert(requestParameters: CreateApplicationAlertRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Alert>>;
+    public createApplicationAlert(requestParameters: CreateApplicationAlertRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Alert>>;
+    public createApplicationAlert(requestParameters: CreateApplicationAlertRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling createApplicationAlert.');
+        }
+        const alertInput = requestParameters.alertInput;
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.post<Alert>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/alerts`,
+            alertInput,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Create an application member
      * Create an application member.  User must have the APPLICATION_MEMBER[CREATE] permission. 
      * @param requestParameters
@@ -529,6 +636,68 @@ export class ApplicationService {
 
         return this.httpClient.post<ReferenceMetadata>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/metadata`,
             referenceMetadataInput,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Delete a alert for an Application
+     * Delete a alert for an Application.  The current user must have APPLICATION_ALERT[DELETE] permission to delete a alert. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public deleteApplicationAlert(requestParameters: DeleteApplicationAlertRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<any>;
+    public deleteApplicationAlert(requestParameters: DeleteApplicationAlertRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<any>>;
+    public deleteApplicationAlert(requestParameters: DeleteApplicationAlertRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<any>>;
+    public deleteApplicationAlert(requestParameters: DeleteApplicationAlertRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling deleteApplicationAlert.');
+        }
+        const alertId = requestParameters.alertId;
+        if (alertId === null || alertId === undefined) {
+            throw new Error('Required parameter alertId was null or undefined when calling deleteApplicationAlert.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.delete<any>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/alerts/${encodeURIComponent(String(alertId))}`,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
@@ -810,6 +979,122 @@ export class ApplicationService {
             null,
             {
                 params: queryParameters,
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get application alerts
+     * Get application alerts.  User must have APPLICATION_ALERT[READ] permission to get alerts. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getAlertsByApplicationId(requestParameters: GetAlertsByApplicationIdRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<AlertsResponse>;
+    public getAlertsByApplicationId(requestParameters: GetAlertsByApplicationIdRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<AlertsResponse>>;
+    public getAlertsByApplicationId(requestParameters: GetAlertsByApplicationIdRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<AlertsResponse>>;
+    public getAlertsByApplicationId(requestParameters: GetAlertsByApplicationIdRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling getAlertsByApplicationId.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<AlertsResponse>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/alerts`,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Get application alert status
+     * Get application alert status.  User must have APPLICATION_ALERT[READ] permission to get alert status. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getApplicationAlertStatus(requestParameters: GetApplicationAlertStatusRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<AlertStatusResponse>;
+    public getApplicationAlertStatus(requestParameters: GetApplicationAlertStatusRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<AlertStatusResponse>>;
+    public getApplicationAlertStatus(requestParameters: GetApplicationAlertStatusRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<AlertStatusResponse>>;
+    public getApplicationAlertStatus(requestParameters: GetApplicationAlertStatusRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling getApplicationAlertStatus.');
+        }
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.get<AlertStatusResponse>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/alerts/status`,
+            {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,
                 headers: headers,
@@ -1942,6 +2227,79 @@ export class ApplicationService {
 
         return this.httpClient.post<any>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/members/_transfer_ownership`,
             transferOwnershipInput,
+            {
+                responseType: <any>responseType,
+                withCredentials: this.configuration.withCredentials,
+                headers: headers,
+                observe: observe,
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Update alert for an application.
+     * Update alert for an application.  User must have APPLICATION_ALERT[UPDATE] permission to update alerts. 
+     * @param requestParameters
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public updateAlert(requestParameters: UpdateAlertRequestParams, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<Alert>;
+    public updateAlert(requestParameters: UpdateAlertRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<Alert>>;
+    public updateAlert(requestParameters: UpdateAlertRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<Alert>>;
+    public updateAlert(requestParameters: UpdateAlertRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
+        const applicationId = requestParameters.applicationId;
+        if (applicationId === null || applicationId === undefined) {
+            throw new Error('Required parameter applicationId was null or undefined when calling updateAlert.');
+        }
+        const alertId = requestParameters.alertId;
+        if (alertId === null || alertId === undefined) {
+            throw new Error('Required parameter alertId was null or undefined when calling updateAlert.');
+        }
+        const alertInput = requestParameters.alertInput;
+
+        let headers = this.defaultHeaders;
+
+        // authentication (BasicAuth) required
+        if (this.configuration.username || this.configuration.password) {
+            headers = headers.set('Authorization', 'Basic ' + btoa(this.configuration.username + ':' + this.configuration.password));
+        }
+        // authentication (CookieAuth) required
+        if (this.configuration.apiKeys) {
+            const key: string | undefined = this.configuration.apiKeys["CookieAuth"] || this.configuration.apiKeys["Auth-Graviteeio-APIM"];
+            if (key) {
+            }
+        }
+
+        let httpHeaderAcceptSelected: string | undefined = options && options.httpHeaderAccept;
+        if (httpHeaderAcceptSelected === undefined) {
+            // to determine the Accept header
+            const httpHeaderAccepts: string[] = [
+                'application/json'
+            ];
+            httpHeaderAcceptSelected = this.configuration.selectHeaderAccept(httpHeaderAccepts);
+        }
+        if (httpHeaderAcceptSelected !== undefined) {
+            headers = headers.set('Accept', httpHeaderAcceptSelected);
+        }
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            headers = headers.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType: 'text' | 'json' = 'json';
+        if(httpHeaderAcceptSelected && httpHeaderAcceptSelected.startsWith('text')) {
+            responseType = 'text';
+        }
+
+        return this.httpClient.put<Alert>(`${this.configuration.basePath}/applications/${encodeURIComponent(String(applicationId))}/alerts/${encodeURIComponent(String(alertId))}`,
+            alertInput,
             {
                 responseType: <any>responseType,
                 withCredentials: this.configuration.withCredentials,

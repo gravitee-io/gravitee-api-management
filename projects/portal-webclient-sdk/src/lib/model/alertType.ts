@@ -11,18 +11,10 @@
  */
 
 
-export interface Token { 
-    token_type?: Token.TokenTypeEnum;
-    token?: string;
-    state?: string;
-    access_token?: string;
-    id_token?: string;
-}
-export namespace Token {
-    export type TokenTypeEnum = 'BEARER';
-    export const TokenTypeEnum = {
-        BEARER: 'BEARER' as TokenTypeEnum
-    };
-}
+export type AlertType = 'STATUS' | 'RESPONSE_TIME';
 
+export const AlertType = {
+    STATUS: 'STATUS' as AlertType,
+    RESPONSETIME: 'RESPONSE_TIME' as AlertType
+};
 

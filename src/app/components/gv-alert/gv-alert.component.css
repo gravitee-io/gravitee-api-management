@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,15 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export enum FeatureEnum {
-  applicationCreation = 'portal.applicationCreation.enabled',
-  contact = 'portal.support.enabled',
-  forceLogin = 'authentication.forceLogin.enabled',
-  googleAnalytics = 'portal.analytics.enabled',
-  localLogin = 'authentication.localLogin.enabled',
-  rating = 'portal.rating.enabled',
-  ratingCommentMandatory = 'portal.rating.comment.mandatory',
-  userRegistration = 'portal.userCreation.enabled',
-  categoryMode = 'portal.apis.categoryMode.enabled',
-  alert = 'alert.enabled',
+@import '../../../../src/css/form.css';
+
+.form gv-select,
+.form gv-input {
+  width: auto;
+}
+
+.form .row__type {
+  width: 240px;
+}
+
+.form .row__status {
+  width: 240px;
+}
+
+.form .row__status-threshold {
+  width: 55px;
+}
+
+.form .row__response-time {
+  width: 80px;
+}
+
+.form .row__duration {
+  width: 55px;
+}
+
+.form .row__time-unit {
+  width: 90px;
+}
+
+.form .row__enabled {
+  flex: 1;
+  width: 90px;
+}
+
+.phrase {
+  display: contents;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.disabled {
+  color: grey;
+  text-decoration: line-through;
 }

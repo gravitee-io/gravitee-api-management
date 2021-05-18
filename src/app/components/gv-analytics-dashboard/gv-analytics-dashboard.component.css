@@ -42,6 +42,8 @@
   border-bottom: 1px solid var(--gv-theme-neutral-color);
   margin-bottom: 10px;
   height: 50px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .gv-analytics-dashboard__header {
@@ -52,4 +54,8 @@
   color: var(--gv-theme-neutral-color-darker);
   margin-left: 10px;
   margin-top: 0;
+}
+
+.gv-analytics-dashboard__link__alert {
+  margin: 0 10px;
 }

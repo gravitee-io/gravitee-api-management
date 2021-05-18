@@ -18,8 +18,9 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 import { CountAnalytics, DateHistoAnalytics, GroupByAnalytics } from '../model/models';
-import { Log } from '../model/log';
-import { LogsResponse } from '../model/logsResponse';
+import { ErrorResponse } from '../model/models';
+import { Log } from '../model/models';
+import { LogsResponse } from '../model/models';
 
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
 import { Configuration }                                     from '../configuration';

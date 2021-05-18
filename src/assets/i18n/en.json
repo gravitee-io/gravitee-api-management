@@ -108,9 +108,63 @@
     }
   },
   "application": {
+    "alerts": {
+      "disabled": "Please contact your admin before being able to define alert rules.",
+      "maximum": "You have reached the maximum of 10 alerts",
+      "update": {
+        "success": "Alert updated"
+      },
+      "delete": {
+        "success": "Alert deleted"
+      },
+      "information": "Each member of the application who has configured his email address will receive a notification",
+      "list": {
+        "empty": "No result to display",
+        "title": "Alerts list"
+      },
+      "type": {
+        "status": "HTTP Status",
+        "response_time": "average response time (in ms)"
+      },
+      "timeUnits": {
+        "seconds": "seconds",
+        "minutes": "minutes",
+        "hours": "hours"
+      },
+      "phrase": {
+        "first": "Alert when",
+        "status": {
+          "second": "is over",
+          "third": "%"
+        },
+        "response_time": {
+          "second": "is over",
+          "third": "ms"
+        },
+        "last": "during the last"
+      },
+      "add": {
+        "title": "Add an alert",
+        "reset": "Reset",
+        "success": "Alert created",
+        "type": {
+          "placeholder": "Select a type",
+          "status": {
+            "name": "HTTP Status",
+            "percent": {
+              "placeholder": "0..100"
+            },
+            "http_status": {
+              "placeholder": "Status"
+            }
+          }
+        }
+      }
+    },
     "analytics": {
       "displayLogs": "View logs",
       "exportCSV": "Export in CSV format",
+      "goToAlerts": "Create alerts",
       "filters": {
         "advanced": {
           "hide": "Hide advanced filters",
@@ -936,6 +990,7 @@
     "tokenExpired": "Your password reset request has expired"
   },
   "route": {
+    "alerts": "Alerts",
     "analyticsApplication": "Analytics",
     "applicationCreation": "Create an application",
     "applications": "Applications",

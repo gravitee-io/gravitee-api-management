@@ -11,18 +11,14 @@
  */
 
 
-export interface Token { 
-    token_type?: Token.TokenTypeEnum;
-    token?: string;
-    state?: string;
-    access_token?: string;
-    id_token?: string;
+export interface AlertStatusResponse { 
+    /**
+     * Number of available plugins.
+     */
+    available_plugins?: number;
+    /**
+     * Is alerting enabled
+     */
+    enabled?: boolean;
 }
-export namespace Token {
-    export type TokenTypeEnum = 'BEARER';
-    export const TokenTypeEnum = {
-        BEARER: 'BEARER' as TokenTypeEnum
-    };
-}
-
 

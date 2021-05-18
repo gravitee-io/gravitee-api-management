@@ -25,8 +25,17 @@
   >
     <div class="gv-analytics-dashboard__widget__container">
       <div class="gv-analytics-dashboard__header__block">
-        <h2 class="gv-analytics-dashboard__header">{{ widget.title }}</h2>
-        <h3 class="gv-analytics-dashboard__subheader">{{ widget.subhead }}</h3>
+        <div class="gv-analytics-dashboard__header__block__left">
+          <h2 class="gv-analytics-dashboard__header">{{ widget.title }}</h2>
+          <h3 class="gv-analytics-dashboard__subheader">{{ widget.subhead }}</h3>
+        </div>
+        <gv-button
+          class="gv-analytics-dashboard__link__alert"
+          *ngIf="hasLinkToAlert(widget.title)"
+          [routerLink]="['/applications', application.id, 'alerts']"
+          link
+          >{{ 'application.analytics.goToAlerts' | translate }}</gv-button
+        >
       </div>
       <div class="gv-analytics-dashboard__widget__content" [ngSwitch]="widget.chart.type">
         <gv-table

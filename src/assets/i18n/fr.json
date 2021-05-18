@@ -108,9 +108,63 @@
     }
   },
   "application": {
+    "alerts": {
+      "disabled": "Veuillez contacter votre administrateur avant de pouvoir définir des règles d'alerte.",
+      "maximum": "Vous avez atteint le maximum de 10 alertes",
+      "update": {
+        "success": "Alerte mise à jour"
+      },
+      "delete": {
+        "success": "Alerte supprimée"
+      },
+      "information": "Chaque membre de l'application qui a une addresse email configurée recevra une notification",
+      "list": {
+        "empty": "Aucun résultat à afficher",
+        "title": "Liste des alertes"
+      },
+      "type": {
+        "status": "HTTP Status",
+        "response_time": "le temps de réponse moyen (en ms)"
+      },
+      "timeUnits": {
+        "seconds": "secondes",
+        "minutes": "minutes",
+        "hours": "heures"
+      },
+      "phrase": {
+        "first": "Alerte quand",
+        "status": {
+          "second": "est supérieur à",
+          "third": "%"
+        },
+        "response_time": {
+          "second": "est supérieur à",
+          "third": "ms"
+        },
+        "last": "pendant les dernières"
+      },
+      "add": {
+        "title": "Ajouter une alerte",
+        "reset": "Réinitialiser",
+        "success": "Alerte ajoutée",
+        "type": {
+          "placeholder": "Selectionner un type",
+          "status": {
+            "name": "HTTP Status",
+            "percent": {
+              "placeholder": "0..100"
+            },
+            "http_status": {
+              "placeholder": "Status"
+            }
+          }
+        }
+      }
+    },
     "analytics": {
       "displayLogs": "Afficher les logs",
       "exportCSV": "Exporter au format CSV",
+      "goToAlerts": "Créer des alertes",
       "filters": {
         "advanced": {
           "hide": "Cacher les filtres avancés",
@@ -936,6 +990,7 @@
     "tokenExpired": "Votre demande de réinitialisation de mot de passe a expiré"
   },
   "route": {
+    "alerts": "Alertes",
     "analyticsApplication": "Analytics",
     "applicationCreation": "Créer une appllication",
     "applications": "Applications",
