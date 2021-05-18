@@ -27,11 +27,12 @@ parameters:
     description: "Name of the S3 Bucket used to store and retrieve the state of the maven project, to perform the nexus staging ?"
   replayed_release:
     type: string
-    default: $GIO_RELEASE_VERSION
+    default: ''
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 orbs:
   slack: circleci/slack@4.2.1
-  gravitee: gravitee-io/gravitee@dev:1.0.4
+  gravitee: gravitee-io/gravitee@1.0
+  # gravitee: gravitee-io/gravitee@dev:1.0.4
   secrethub: secrethub/cli@1.1.0
   # secrethub: secrethub/cli@1.0.0
 
@@ -58,10 +59,10 @@ workflows:
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
           container_size: 'medium'
-          filters:
-            branches:
-              ignore:
-                - master
+            # filters:
+            # branches:
+          # ignore:
+          # - master
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
@@ -185,13 +186,13 @@ workflows:
       and:
         - equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
         - not: << pipeline.parameters.dry_run >>
-    # ---
-    # Running the nexus staging makes sense only when the
-    # standalone release is being performed with dry run mode off
-    # That is to say, when the maven project is ready to be release to mmaven Staging
-    # Never the less, to test the CICD system, I temporarily git pushed a different configuration
-    # ---
-    # when:
+      # ---
+      # Running the nexus staging makes sense only when the
+      # standalone release is being performed with dry run mode off
+      # That is to say, when the maven project is ready to be release to mmaven Staging
+      # Never the less, to test the CICD system, I temporarily git pushed a different configuration
+      # ---
+      # when:
       # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
     jobs:
       - gravitee/d_nexus_staging_secrets:
@@ -214,15 +215,10 @@ workflows:
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
           container_size: 'large'
-      - nexus_staging_approval:
-          type: approval
-          requires:
-            - nexus_staging_secrets_resolution
-            - standalone_nexus_staging_dry_run
       - gravitee/d_standalone_nexus_staging:
           name: standalone_nexus_staging
           requires:
-            - nexus_staging_approval
+            - standalone_nexus_staging_dry_run
             # - nexus_staging_secrets_resolution
           dry_run: false
           # maven_profile_id: << pipeline.parameters.maven_profile_id >>
@@ -287,13 +283,13 @@ workflows:
       and:
         - equal: [ standalone_release_replay, << pipeline.parameters.gio_action >> ]
         - not: << pipeline.parameters.dry_run >>
-    # ---
-    # Running the nexus staging makes sense only when the
-    # standalone release is being performed with dry run mode off
-    # That is to say, when the maven project is ready to be release to mmaven Staging
-    # Never the less, to test the CICD system, I temporarily git pushed a different configuration
-    # ---
-    # when:
+      # ---
+      # Running the nexus staging makes sense only when the
+      # standalone release is being performed with dry run mode off
+      # That is to say, when the maven project is ready to be release to mmaven Staging
+      # Never the less, to test the CICD system, I temporarily git pushed a different configuration
+      # ---
+      # when:
       # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
     jobs:
       - gravitee/d_nexus_staging_secrets:
@@ -317,15 +313,10 @@ workflows:
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
           container_size: 'large'
-      - nexus_staging_replay_approval:
-          type: approval
-          requires:
-            - nexus_staging_secrets_resolution
-            - standalone_nexus_staging_replay_dry_run
       - gravitee/d_standalone_nexus_staging_replay:
           name: standalone_nexus_staging_replay
           requires:
-            - nexus_staging_replay_approval
+            - standalone_nexus_staging_replay_dry_run
             # - nexus_staging_secrets_resolution
           dry_run: false
           # maven_profile_id: << pipeline.parameters.maven_profile_id >>
@@ -369,4 +360,5 @@ workflows:
       - gravitee/d_all_nightly_ce:
           name: process_pull_request
           requires:
+            - nightly_secrets_resolution
             - nightly_secrets_resolution
