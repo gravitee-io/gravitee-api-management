@@ -73,7 +73,10 @@ public class IdentityProviderResource extends AbstractResource {
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.UPDATE))
     public IdentityProviderEntity updateIdentityProvider(
         @PathParam("identityProvider") String identityProvider,
-        @ApiParam(name = "dictionary", required = true) @Valid @NotNull final UpdateIdentityProviderEntity updatedIdentityProvider
+        @ApiParam(
+            name = "identityProviderEntity",
+            required = true
+        ) @Valid @NotNull final UpdateIdentityProviderEntity updatedIdentityProvider
     ) {
         return identityProviderService.update(identityProvider, updatedIdentityProvider);
     }

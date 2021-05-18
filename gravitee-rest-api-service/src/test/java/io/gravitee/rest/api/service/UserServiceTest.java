@@ -1247,6 +1247,8 @@ public class UserServiceTest {
                 ),
                 eq("oauth2")
             );
+
+        verify(roleService, times(1)).findDefaultRoleByScopes(eq(RoleScope.ENVIRONMENT));
     }
 
     @Test

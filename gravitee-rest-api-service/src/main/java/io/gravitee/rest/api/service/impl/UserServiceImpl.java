@@ -1678,7 +1678,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     try {
                         groups.add(groupService.findById(groupName));
                     } catch (GroupNotFoundException gnfe) {
-                        LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
+                        LOGGER.warn("Unable to map user groups, missing group in repository: {}", groupName);
                     }
                 }
             }
@@ -1699,7 +1699,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (mappings == null || mappings.isEmpty()) {
             // provide default roles in this case otherwise user will not have roles if the RoleMapping isn't provided and if the
             // option to refresh user profile on each connection is enabled
-            return roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT).stream().collect(toSet());
+            return new HashSet<>(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT));
         }
 
         Set<RoleEntity> roles = new HashSet<>();
@@ -1720,7 +1720,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                             .getEnvironments()
                             .forEach(env -> roleService.findByScopeAndName(RoleScope.ENVIRONMENT, env).ifPresent(roles::add));
                     } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getEnvironments());
+                        LOGGER.warn(
+                            "Unable to map user role on scope ENVIRONMENT, missing role in repository: {}",
+                            mapping.getEnvironments()
+                        );
                     }
                 }
 
@@ -1730,10 +1733,23 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                             .getOrganizations()
                             .forEach(org -> roleService.findByScopeAndName(RoleScope.ORGANIZATION, org).ifPresent(roles::add));
                     } catch (RoleNotFoundException rnfe) {
-                        LOGGER.error("Unable to create user, missing role in repository : {}", mapping.getOrganizations());
+                        LOGGER.warn(
+                            "Unable to map user role on scope ORGANIZATION, missing role in repository: {}",
+                            mapping.getOrganizations()
+                        );
                     }
                 }
             }
+        }
+
+        final boolean hasRoleOrganization = roles.stream().anyMatch(r -> RoleScope.ORGANIZATION.equals(r.getScope()));
+        if (!hasRoleOrganization) {
+            roles.addAll(new HashSet<>(roleService.findDefaultRoleByScopes(RoleScope.ORGANIZATION)));
+        }
+
+        final boolean hasRoleEnvironment = roles.stream().anyMatch(r -> RoleScope.ENVIRONMENT.equals(r.getScope()));
+        if (!hasRoleEnvironment) {
+            roles.addAll(new HashSet<>(roleService.findDefaultRoleByScopes(RoleScope.ENVIRONMENT)));
         }
 
         return roles;
