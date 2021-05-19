@@ -18,6 +18,7 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -29,5 +30,9 @@ public interface AlertTriggerRepository extends CrudRepository<AlertTrigger, Str
 
     Set<AlertTrigger> findAll() throws TechnicalException;
 
-    List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException;
+    default List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException {
+        return findByReferenceAndReferenceIds(referenceType, Arrays.asList(referenceId));
+    }
+
+    List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) throws TechnicalException;
 }

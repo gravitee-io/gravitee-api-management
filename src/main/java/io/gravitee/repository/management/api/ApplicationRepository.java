@@ -75,5 +75,5 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return applications
      * @throws TechnicalException
      */
-    Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable);
+    Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException;
 }

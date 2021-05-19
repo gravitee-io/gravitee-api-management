@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.ApplicationStatus;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,13 +31,13 @@ public class ApplicationCriteria {
 
     private List<String> ids;
     private String name;
-    private String environmentId;
+    private List<String> environmentIds;
     private ApplicationStatus status;
 
     ApplicationCriteria(ApplicationCriteria.Builder builder) {
         this.ids = builder.ids;
         this.name = builder.name;
-        this.environmentId = builder.environmentId;
+        this.environmentIds = builder.environmentIds;
         this.status = builder.status;
     }
 
@@ -48,8 +49,8 @@ public class ApplicationCriteria {
         return name;
     }
 
-    public String getEnvironmentId() {
-        return environmentId;
+    public List<String> getEnvironmentIds() {
+        return environmentIds;
     }
 
     public ApplicationStatus getStatus() {
@@ -63,19 +64,19 @@ public class ApplicationCriteria {
         ApplicationCriteria that = (ApplicationCriteria) o;
         return Objects.equals(ids, that.ids) &&
                 Objects.equals(name, that.name) &&
-                Objects.equals(environmentId, that.environmentId) &&
+                Objects.equals(environmentIds, that.environmentIds) &&
                 Objects.equals(status, that.status);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, name, environmentId, status);
+        return Objects.hash(ids, name, environmentIds, status);
     }
 
     public static class Builder {
         private List<String> ids;
         private String name;
-        private String environmentId;
+        private List<String> environmentIds;
         private ApplicationStatus status;
 
         public ApplicationCriteria.Builder ids(final String... id) {
@@ -88,8 +89,8 @@ public class ApplicationCriteria {
             return this;
         }
 
-        public ApplicationCriteria.Builder environmentId(final String environmentId) {
-            this.environmentId = environmentId;
+        public ApplicationCriteria.Builder environmentIds(final List<String> environmentIds) {
+            this.environmentIds = environmentIds;
             return this;
         }
 
