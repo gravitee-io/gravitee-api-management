@@ -15,7 +15,7 @@
     "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
     "serve": "ng serve --port=4100",
     "serve:prod": "node scripts/serve.js",
-    "test": "ng test",
+    "test": "NODE_OPTIONS=--max-old-space-size=3072 ng test",
     "test:coverage": "ng test -- --collect-coverage",
     "test:watch": "ng test -- --watchAll",
     "update:sdk": "sh ./scripts/update-sdk.sh"
@@ -46,7 +46,7 @@
     "messageformat": "^2.3.0",
     "ngx-cookie-service": "^3.0.4",
     "ngx-translate-messageformat-compiler": "^4.6.0",
-    "redoc": "^2.0.0-rc.26",
+    "redoc": "^2.0.0-rc.53",
     "resize-observer-polyfill": "^1.5.1",
     "rxjs": "6.5.5",
     "swagger-ui-dist": "^3.25.0",
