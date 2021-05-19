@@ -26,13 +26,21 @@
         <div layout="column">
           <div layout="row">
             <md-input-container class="md-block" flex-gt-sm>
-              <md-switch ng-model="$ctrl.overrideModeEnabled" aria-label="Override default template"> Override default template </md-switch>
+              <md-switch ng-model="$ctrl.overrideModeEnabled" aria-label="Override default template" ng-disabled="$ctrl.readonlyMode">
+                Override default template
+              </md-switch>
             </md-input-container>
           </div>
 
           <md-input-container class="md-block" flex-gt-sm ng-if="!$ctrl.isTemplateToInclude">
             <label>Title</label>
-            <input name="title" ng-model="$ctrl.notifTemplate.title" required type="text" ng-disabled="!$ctrl.overrideModeEnabled" />
+            <input
+              name="title"
+              ng-model="$ctrl.notifTemplate.title"
+              required
+              type="text"
+              ng-disabled="!$ctrl.overrideModeEnabled || $ctrl.readonlyMode"
+            />
             <div class="hint" ng-if="$ctrl.notifTemplateForm.title.$valid || $ctrl.notifTemplateForm.title.$pristine">
               Title of the notification
             </div>
@@ -41,7 +49,7 @@
             </div>
           </md-input-container>
 
-          <md-input-container ng-class="{'gv-notification-template-content-disabled': !$ctrl.overrideModeEnabled}">
+          <md-input-container ng-class="{'gv-notification-template-content-disabled': !$ctrl.overrideModeEnabled || $ctrl.readonlyMode}">
             <label>Content</label>
             <textarea
               ui-codemirror
@@ -63,7 +71,7 @@
         <md-card-action layout="row">
           <div class="md-actions gravitee-api-save-button" layout="row">
             <md-button
-              ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine"
+              ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine || $ctrl.readonlyMode"
               ng-click="$ctrl.save()"
               permission
               permission-only="['organization-notification_templates-u']"
@@ -75,7 +83,7 @@
               class="md-raised"
               type="button"
               ng-click="$ctrl.reset()"
-              ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine"
+              ng-disabled="$ctrl.notifTemplateForm.$invalid || $ctrl.notifTemplateForm.$pristine || $ctrl.readonlyMode"
             >
               Reset
             </md-button>

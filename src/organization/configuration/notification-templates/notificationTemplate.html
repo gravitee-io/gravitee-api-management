@@ -21,6 +21,13 @@
     <a ui-sref="organization.settings.notificationTemplates">Back to templates list</a>
   </div>
 
+  <gravitee-empty-state
+    ng-if="$ctrl.isScopeAlert && !$ctrl.hasAlertingPlugin"
+    icon="alarm_off"
+    message="No alert plugin is installed."
+    sub-message="Please install a plugin before being able to define alert rules."
+  ></gravitee-empty-state>
+
   <md-tabs md-dynamic-height>
     <md-tab ng-if="$ctrl.portalNotifTemplate">
       <md-tab-label
@@ -28,7 +35,10 @@
         <span ng-if="$ctrl.portalNotifTemplate.enabled" flex class="badge" style="background-color: #039be5">Custom</span></md-tab-label
       >
       <md-tab-body>
-        <gv-notification-template-by-type notif-template="$ctrl.portalNotifTemplate"></gv-notification-template-by-type>
+        <gv-notification-template-by-type
+          notif-template="$ctrl.portalNotifTemplate"
+          readonly-mode="$ctrl.isScopeAlert && !$ctrl.hasAlertingPlugin"
+        ></gv-notification-template-by-type>
       </md-tab-body>
     </md-tab>
 
@@ -38,7 +48,10 @@
         <span ng-if="$ctrl.emailNotifTemplate.enabled" flex class="badge" style="background-color: #039be5">Custom</span></md-tab-label
       >
       <md-tab-body>
-        <gv-notification-template-by-type notif-template="$ctrl.emailNotifTemplate"></gv-notification-template-by-type>
+        <gv-notification-template-by-type
+          notif-template="$ctrl.emailNotifTemplate"
+          readonly-mode="$ctrl.isScopeAlert && !$ctrl.hasAlertingPlugin"
+        ></gv-notification-template-by-type>
       </md-tab-body>
     </md-tab>
   </md-tabs>

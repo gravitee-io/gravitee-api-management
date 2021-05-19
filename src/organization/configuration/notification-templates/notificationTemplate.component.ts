@@ -16,6 +16,7 @@
 const NotificationTemplateComponent: ng.IComponentOptions = {
   bindings: {
     notifTemplates: '<',
+    alertingStatus: '<',
   },
   controller: 'NotificationTemplateController',
   template: require('./notificationTemplate.html'),

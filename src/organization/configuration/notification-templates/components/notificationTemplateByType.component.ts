@@ -16,6 +16,7 @@
 const NotificationTemplateByTypeComponent: ng.IComponentOptions = {
   bindings: {
     notifTemplate: '<',
+    readonlyMode: '<',
   },
   controller: 'NotificationTemplateByTypeController',
   template: require('./notificationTemplateByType.html'),

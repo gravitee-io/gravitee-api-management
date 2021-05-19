@@ -25,6 +25,8 @@ import TenantService from '../services/tenant.service';
 import EntrypointService from '../services/entrypoint.service';
 import TagService from '../services/tag.service';
 import PortalSettingsService from '../services/portalSettings.service';
+import { Scope } from '../entities/alert';
+import AlertService from '../services/alert.service';
 
 export default organizationRouterConfig;
 
@@ -407,6 +409,7 @@ function organizationRouterConfig($stateProvider) {
             );
           }
         },
+        alertingStatus: (AlertService: AlertService) => AlertService.getStatus(undefined, Scope.PLATFORM).then((response) => response.data),
       },
     });
 }

@@ -20,7 +20,8 @@ import * as _ from 'lodash';
 
 class NotificationTemplateByTypeController {
   public notifTemplateForm: any;
-  private notifTemplate: NotificationTemplate;
+  public notifTemplate: NotificationTemplate;
+  public readonlyMode: boolean;
   private originalNotifTemplate: NotificationTemplate;
   private isTemplateToInclude: boolean;
   private overrideModeEnabled: boolean;

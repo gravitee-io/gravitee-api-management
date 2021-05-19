@@ -20,7 +20,7 @@ class NotificationTemplatesController {
 
   private notifTemplatesMap: any = {};
 
-  constructor() {
+  constructor(private Constants) {
     'ngInject';
   }
 
@@ -28,6 +28,11 @@ class NotificationTemplatesController {
     this.notificationTemplates.sort((a, b) => {
       return a.scope.localeCompare(b.scope) || a.name.localeCompare(b.name);
     });
+
+    // Do not include TEMPLATES FOR ALERT if alert service is disabled
+    if (!this.Constants.org.settings.alert?.enabled) {
+      this.notificationTemplates = this.notificationTemplates.filter((notifTemplate) => notifTemplate.scope !== 'TEMPLATES_FOR_ALERT');
+    }
 
     this.notificationTemplates.forEach((notifTemplate) => {
       const scope = notifTemplate.scope;

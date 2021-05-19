@@ -16,7 +16,10 @@
 import { NotificationTemplate } from './model/notificationTemplate.model';
 
 class NotificationTemplateController {
-  private notifTemplates: NotificationTemplate[];
+  public notifTemplates: NotificationTemplate[];
+  public alertingStatus: any;
+  private hasAlertingPlugin: boolean;
+  private isScopeAlert: boolean;
 
   private portalNotifTemplate: NotificationTemplate;
   private emailNotifTemplate: NotificationTemplate;
@@ -31,6 +34,9 @@ class NotificationTemplateController {
     if (this.$stateParams.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE') {
       this.emailNotifTemplate = this.notifTemplates.find((notif) => notif.name === this.$stateParams.hook);
     } else {
+      this.hasAlertingPlugin = this.alertingStatus?.available_plugins > 0;
+      this.isScopeAlert = this.$stateParams.scope.toUpperCase() === 'TEMPLATES_FOR_ALERT';
+
       this.notifTemplates.forEach((notif) => {
         if (notif.type.toUpperCase() === 'PORTAL') {
           this.portalNotifTemplate = notif;
