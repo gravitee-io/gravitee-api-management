@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Application.AuditEvent.*;
-import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_CLOSED;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -24,7 +23,6 @@ import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -38,8 +36,6 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.model.application.SimpleApplicationSettings;
-import io.gravitee.rest.api.model.audit.AuditEntity;
-import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.ClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
@@ -60,7 +56,6 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.xml.bind.DatatypeConverter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -123,6 +118,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     @Autowired
     private EnvironmentService environmentService;
 
+    @Autowired
+    private ApplicationAlertService applicationAlertService;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -157,6 +155,29 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an application using its ID {}", applicationId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find an application using its ID " + applicationId, ex);
+        }
+    }
+
+    @Override
+    public Set<ApplicationListItem> findByIds(List<String> applicationIds) {
+        try {
+            LOGGER.debug("Find application by IDs: {}", applicationIds);
+
+            final Set<Application> applications = applicationRepository
+                .findByIds(applicationIds)
+                .stream()
+                .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
+                .filter(app -> app.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
+                .collect(toSet());
+
+            if (applications.isEmpty()) {
+                return emptySet();
+            }
+
+            return this.convertToList(applications);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find applications by ids {}", applicationIds, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find applications by ids {}" + applicationIds, ex);
         }
     }
 
@@ -226,7 +247,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             ApplicationCriteria criteria = new ApplicationCriteria.Builder()
                 .status(ApplicationStatus.valueOf(status))
                 .name(name.trim())
-                .environmentIds(Arrays.asList(GraviteeContext.getCurrentEnvironment()))
+                .environmentIds(singletonList(GraviteeContext.getCurrentEnvironment()))
                 .ids(appIds.toArray(new String[0]))
                 .build();
 
@@ -237,6 +258,32 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
             throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);
+        }
+    }
+
+    @Override
+    public Set<ApplicationListItem> findByOrganization(String organizationId) {
+        LOGGER.debug("Find applications by organization {} ", organizationId);
+        try {
+            if (organizationId == null || organizationId.trim().isEmpty()) {
+                return emptySet();
+            }
+
+            final List<String> environmentIds = environmentService
+                .findByOrganization(organizationId)
+                .stream()
+                .map(EnvironmentEntity::getId)
+                .collect(toList());
+            ApplicationCriteria criteria = new ApplicationCriteria.Builder().environmentIds(environmentIds).build();
+
+            Page<Application> applications = applicationRepository.search(criteria, null);
+            return convertToSimpleList(new HashSet<>(applications.getContent()));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find applications for organization {}", organizationId, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find applications for organization {}" + organizationId,
+                ex
+            );
         }
     }
 
@@ -806,6 +853,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             genericNotificationConfigService.deleteReference(NotificationReferenceType.APPLICATION, applicationId);
             // delete memberships
             membershipService.deleteReference(MembershipReferenceType.APPLICATION, applicationId);
+            // delete alerts
+            applicationAlertService.deleteAll(applicationId);
             // Audit
             auditService.createApplicationAuditLog(
                 application.getId(),

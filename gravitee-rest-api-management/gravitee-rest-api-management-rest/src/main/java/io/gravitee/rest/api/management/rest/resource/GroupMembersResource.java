@@ -22,6 +22,7 @@ import static io.gravitee.rest.api.service.notification.PortalHook.GROUP_INVITAT
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.GroupMembership;
 import io.gravitee.rest.api.management.rest.model.Pageable;
@@ -29,10 +30,13 @@ import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
+import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
@@ -69,6 +73,9 @@ public class GroupMembersResource extends AbstractResource {
 
     @Inject
     private NotifierService notifierService;
+
+    @Inject
+    private EventManager eventManager;
 
     @SuppressWarnings("UnresolvedRestParam")
     @PathParam("group")
@@ -376,6 +383,11 @@ public class GroupMembersResource extends AbstractResource {
                 }
             }
         }
+
+        eventManager.publishEvent(
+            ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
+            new ApplicationAlertMembershipEvent(Collections.emptySet(), Collections.singleton(group))
+        );
 
         return Response.ok().build();
     }

@@ -26,6 +26,7 @@ import static java.util.stream.Collectors.toSet;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -34,6 +35,8 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
+import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
@@ -85,6 +88,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private ApplicationService applicationService;
 
     @Autowired
+    private ApplicationAlertService applicationAlertService;
+
+    @Autowired
     private ApiService apiService;
 
     @Autowired
@@ -101,6 +107,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Autowired
     private NotifierService notifierService;
+
+    @Autowired
+    private EventManager eventManager;
 
     private final Cache<String, Set<RoleEntity>> roles = CacheBuilder.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
 
@@ -190,6 +199,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     membership.setUpdatedAt(updateDate);
                     membershipRepository.create(membership);
                     createAuditLog(MEMBERSHIP_CREATED, membership.getCreatedAt(), null, membership);
+
+                    if (MembershipReferenceType.APPLICATION.equals(reference.getType())) {
+                        applicationAlertService.addMemberToApplication(reference.getId(), userEntity.getEmail());
+                    }
 
                     Set<io.gravitee.repository.management.model.Membership> userRolesOnReference = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
                         userEntity.getId(),
@@ -557,6 +570,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     LOGGER.debug("Delete membership {}", membership.getId());
                     membershipRepository.delete(membership.getId());
                     createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
+
+                    if (MembershipReferenceType.APPLICATION.equals(referenceType) && MembershipMemberType.USER.equals(memberType)) {
+                        UserEntity userEntity = findUserFromMembershipMember(new MembershipMember(memberId, null, memberType));
+                        applicationAlertService.deleteMemberFromApplication(referenceId, userEntity.getEmail());
+                    }
 
                     //if the API Primary owner of a group has been deleted, we must update the apiPrimaryOwnerField of this group
                     if (
@@ -1312,13 +1330,26 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
     @Override
     public void removeMemberMemberships(MembershipMemberType memberType, String memberId) {
+        Set<String> applicationIds = new HashSet<>();
+        Set<String> groupIds = new HashSet<>();
         try {
             for (io.gravitee.repository.management.model.Membership membership : membershipRepository.findByMemberIdAndMemberType(
                 memberId,
                 convert(memberType)
             )) {
+                if (convert(MembershipReferenceType.APPLICATION).equals(membership.getReferenceType())) {
+                    applicationIds.add(membership.getReferenceId());
+                }
+                if (convert(MembershipReferenceType.GROUP).equals(membership.getReferenceType())) {
+                    groupIds.add(membership.getReferenceId());
+                }
                 membershipRepository.delete(membership.getId());
             }
+
+            eventManager.publishEvent(
+                ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
+                new ApplicationAlertMembershipEvent(applicationIds, groupIds)
+            );
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to remove member {} {}", memberType, memberId, ex);
             throw new TechnicalManagementException("An error occurs while trying to remove " + memberType + " " + memberId, ex);

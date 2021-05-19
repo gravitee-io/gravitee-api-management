@@ -31,7 +31,9 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
+import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
+import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -480,7 +482,12 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         }
 
         // Send an event to notify listener to reload template
-        eventManager.publishEvent(HookScope.valueOf(notificationTemplate.getScope()), notificationTemplate);
+        if (HookScope.TEMPLATES_FOR_ALERT.name().equals(notificationTemplate.getScope())) {
+            eventManager.publishEvent(
+                ApplicationAlertEventType.NOTIFICATION_TEMPLATE_UPDATE,
+                new NotificationTemplateEvent(GraviteeContext.getCurrentOrganization(), notificationTemplate)
+            );
+        }
     }
 
     @Override

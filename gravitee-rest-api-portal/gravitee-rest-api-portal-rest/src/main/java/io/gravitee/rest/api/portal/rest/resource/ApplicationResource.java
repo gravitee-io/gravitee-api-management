@@ -203,4 +203,9 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationSubscribersResource getApplicationSubscribersResource() {
         return resourceContext.getResource(ApplicationSubscribersResource.class);
     }
+
+    @Path("alerts")
+    public ApplicationAlertsResource getApplicationAlertsResource() {
+        return resourceContext.getResource(ApplicationAlertsResource.class);
+    }
 }

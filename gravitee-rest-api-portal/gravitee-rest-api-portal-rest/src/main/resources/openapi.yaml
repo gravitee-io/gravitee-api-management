@@ -782,6 +782,146 @@ paths:
           $ref: '#/components/responses/ApplicationNotFoundError'
         500:
           $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/alerts:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Application
+      summary: Get application alerts
+      description: |
+        Get application alerts.
+
+        User must have APPLICATION_ALERT[READ] permission to get alerts.
+      operationId: getAlertsByApplicationId
+      responses:
+        200:
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Alert'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - Application
+      requestBody:
+        description: Use to create a post.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertInput'
+      summary: Create an application alert
+      description: |
+        Create an application alert.
+
+        User must have the APPLICATION_ALERT[CREATE] permission.
+      operationId: createApplicationAlert
+      responses:
+        201:
+          description: Created alert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+  /applications/{applicationId}/alerts/{alertId}:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+      - $ref: '#/components/parameters/alertIdParam'
+
+    delete:
+      tags:
+        - Application
+      summary: Delete a alert for an Application
+      description: |
+        Delete a alert for an Application.
+
+        The current user must have APPLICATION_ALERT[DELETE] permission to delete a alert.
+      operationId: deleteApplicationAlert
+      responses:
+        204:
+          description: Deleted Alert
+        403:
+          description: Alert service is not activated or user does not have sufficient rights to access this resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Application or Alert not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - Application
+      requestBody:
+        description: Use to update an application alert.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlertInput'
+      summary: Update alert for an application.
+      description: |
+        Update alert for an application.
+
+        User must have APPLICATION_ALERT[UPDATE] permission to update alerts.
+      operationId: updateAlert
+      responses:
+        200:
+          description: Updated application alerts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Alert'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /applications/{applicationId}/alerts/status:
+    parameters:
+      - $ref: '#/components/parameters/applicationIdParam'
+    get:
+      tags:
+        - Application
+      summary: Get application alert status
+      description: |
+        Get application alert status.
+
+        User must have APPLICATION_ALERT[READ] permission to get alert status.
+      operationId: getApplicationAlertStatus
+      responses:
+        200:
+          description: Alert status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlertStatusResponse'
+        403:
+          $ref: '#/components/responses/PermissionError'
+        404:
+          $ref: '#/components/responses/ApplicationNotFoundError'
+        500:
+          $ref: '#/components/responses/InternalServerError'
   /applications/{applicationId}/notifications:
     parameters:
       - $ref: '#/components/parameters/applicationIdParam'
@@ -2473,6 +2613,13 @@ components:
       description: Id of an application.
       schema:
         type: string
+    alertIdParam:
+      name: alertId
+      in: path
+      required: true
+      description: Id of an alert.
+      schema:
+        type: string
     groupIdParam:
       name: groupId
       in: path
@@ -2989,6 +3136,14 @@ components:
           $ref: '#/components/schemas/MetadataMap'
         links:
           $ref: '#/components/schemas/Links'
+    AlertStatusResponse:
+      properties:
+        available_plugins:
+          description: Number of available plugins.
+          type: integer
+        enabled:
+          description: Is alerting enabled
+          type: boolean
     GroupsResponse:
       properties:
         data:
@@ -3593,6 +3748,34 @@ components:
           description: Creation date and time of the notification.
           type: string
           format: date-time
+    Alert:
+      properties:
+        id:
+          description: Unique identifier of an alert.
+          type: string
+        enabled:
+          description: true, if alert is enabled
+          type: boolean
+        type:
+          $ref: '#/components/schemas/AlertType'
+        status_code:
+          description: Http status code to trigger the alert
+          type: string
+        status_percent:
+          description: Percent to trigger the alert on status code
+          type: integer
+          minimum: 1
+          maximum: 100
+        response_time:
+          description: Response time to trigger the alert
+          type: integer
+          minimum: 1
+          maximum: 100000
+        duration:
+          description: Compute alert on selected duration
+          type: integer
+        time_unit:
+          $ref: '#/components/schemas/AlertTimeUnit'
     Member:
       properties:
         id:
@@ -4050,6 +4233,8 @@ components:
           $ref: '#/components/schemas/ConfigurationApplication'
         recaptcha:
           $ref: '#/components/schemas/ConfigurationReCaptcha'
+        alert:
+          $ref: '#/components/schemas/Enabled'
     ConfigurationPortal:
       properties:
         title:
@@ -4255,6 +4440,32 @@ components:
         role:
           type: string
           description: Role's name
+    AlertInput:
+      properties:
+        type:
+          $ref: '#/components/schemas/AlertType'
+        status_code:
+          description: Http status code to trigger the alert
+          type: string
+        status_percent:
+          description: Percent to trigger the alert on status code
+          type: integer
+          minimum: 1
+          maximum: 100
+        enabled:
+          description: true, if alert is enabled
+          type: boolean
+          default: true
+        response_time:
+          description: Response time to trigger the alert
+          type: integer
+          minimum: 1
+          maximum: 100000
+        duration:
+          description: Compute alert on selected duration
+          type: integer
+        time_unit:
+          $ref: '#/components/schemas/AlertTimeUnit'
     ReferenceMetadataInput:
       properties:
         name:
@@ -4603,6 +4814,19 @@ components:
         expire_at:
           type: string
           format: date-time
+    AlertType:
+      type: string
+      enum:
+        - STATUS
+        - RESPONSE_TIME
+      default: STATUS
+    AlertTimeUnit:
+      type: string
+      enum:
+        - SECONDS
+        - MINUTES
+        - HOURS
+      default: MINUTES
     HttpMethod:
       type: string
       enum:

@@ -20,12 +20,12 @@ package io.gravitee.rest.api.service.notification;
  * @author GraviteeSource Team
  */
 public enum AlertHook implements Hook {
-    CUSTOMER_HTTP_STATUS(
+    CONSUMER_HTTP_STATUS(
         "HTTP status code",
         "Email sent to all members of an application when an \"HTTP Status\" consumer alert has been triggered.",
         "CUSTOMER"
     ),
-    CUSTOMER_RESPONSE_TIME(
+    CONSUMER_RESPONSE_TIME(
         "Average response time",
         "Email sent to all members of an application when a \"Response time\" consumer alert has been triggered.",
         "CUSTOMER"

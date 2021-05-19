@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntit
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypesEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
@@ -58,12 +59,15 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         resetAllMocks();
 
         PortalSettingsEntity portalConfigEntity = new PortalSettingsEntity();
+        ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
         doReturn(portalConfigEntity).when(configService).getPortalSettings();
+        doReturn(consoleSettingsEntity).when(configService).getConsoleSettings();
         final Response response = target().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        Mockito.verify(configMapper).convert(portalConfigEntity);
+        Mockito.verify(configMapper).convert(portalConfigEntity, consoleSettingsEntity);
         Mockito.verify(configService).getPortalSettings();
+        Mockito.verify(configService).getConsoleSettings();
     }
 
     @Test

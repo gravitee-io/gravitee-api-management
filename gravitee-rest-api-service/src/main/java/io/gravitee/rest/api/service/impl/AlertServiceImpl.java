@@ -235,6 +235,19 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
         }
     }
 
+    @Override
+    public AlertTriggerEntity findById(String alertId) {
+        try {
+            final AlertTrigger alertTrigger = alertTriggerRepository
+                .findById(alertId)
+                .orElseThrow(() -> new AlertNotFoundException(alertId));
+            return convert(alertTrigger);
+        } catch (TechnicalException e) {
+            LOGGER.error("An error occurs while trying to find alert by id {}", alertId, e);
+            throw new TechnicalManagementException("An error occurs while trying to find alert with id", e);
+        }
+    }
+
     private List<AlertTriggerEntity> findAll() {
         try {
             final Set<AlertTrigger> triggers = alertTriggerRepository.findAll();
@@ -257,6 +270,25 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
                 .collect(toList());
         } catch (TechnicalException ex) {
             final String message = "An error occurs while trying to list alerts by reference " + referenceType + '/' + referenceId;
+            LOGGER.error(message, ex);
+            throw new TechnicalManagementException(message, ex);
+        }
+    }
+
+    @Override
+    public List<AlertTriggerEntity> findByReferenceAndReferenceIds(
+        final AlertReferenceType referenceType,
+        final List<String> referenceIds
+    ) {
+        try {
+            return alertTriggerRepository
+                .findByReferenceAndReferenceIds(referenceType.name(), referenceIds)
+                .stream()
+                .map(this::convert)
+                .sorted(comparing(alertTriggerEntity -> alertTriggerEntity != null ? alertTriggerEntity.getName() : null))
+                .collect(toList());
+        } catch (TechnicalException ex) {
+            final String message = "An error occurs while trying to list alerts by reference " + referenceType + '/' + referenceIds;
             LOGGER.error(message, ex);
             throw new TechnicalManagementException(message, ex);
         }

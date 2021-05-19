@@ -204,13 +204,13 @@ public class EmailNotificationBuilder {
             "Password reset - ${user.displayName}"
         ),
         TEMPLATES_FOR_ACTION_GENERIC_MESSAGE(ActionHook.GENERIC_MESSAGE, "genericMessage.html", "${messageSubject}"),
-        TEMPLATES_FOR_ALERT_CUSTOMER_HTTP_STATUS(
-            AlertHook.CUSTOMER_HTTP_STATUS,
+        TEMPLATES_FOR_ALERT_CONSUMER_HTTP_STATUS(
+            AlertHook.CONSUMER_HTTP_STATUS,
             "alert_HTTPStatus.html",
             "Alert reached for the application ${application.name}"
         ),
-        TEMPLATES_FOR_ALERT_CUSTOMER_RESPONSE_TIME(
-            AlertHook.CUSTOMER_RESPONSE_TIME,
+        TEMPLATES_FOR_ALERT_CONSUMER_RESPONSE_TIME(
+            AlertHook.CONSUMER_RESPONSE_TIME,
             "alert_responseTime.html",
             "Alert reached for the application ${application.name}"
         );

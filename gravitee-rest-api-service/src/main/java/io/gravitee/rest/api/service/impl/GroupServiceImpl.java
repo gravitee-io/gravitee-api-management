@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.GROU
 import static io.gravitee.repository.management.model.Group.AuditEvent.*;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
@@ -30,6 +31,8 @@ import io.gravitee.rest.api.model.InvitationReferenceType;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
+import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -91,6 +94,9 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Autowired
     private IdentityProviderRepository identityProviderRepository;
+
+    @Autowired
+    private EventManager eventManager;
 
     @Override
     public List<GroupEntity> findAll() {
@@ -400,6 +406,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                             }
                         }
                     );
+
+                eventManager.publishEvent(
+                    ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
+                    new ApplicationAlertMembershipEvent(Collections.emptySet(), Collections.singleton(groupId))
+                );
             }
         } catch (TechnicalException ex) {
             logger.error("An error occurs while trying to associate group to all {}", associationType, ex);
@@ -509,6 +520,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         removeIDPGroupMapping(groupId, updatedDate);
                     }
                 );
+            Set<String> applicationIds = new HashSet<>();
             applicationRepository
                 .findByGroups(Collections.singletonList(groupId))
                 .forEach(
@@ -517,12 +529,18 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         application.setUpdatedAt(updatedDate);
                         try {
                             applicationRepository.update(application);
+                            applicationIds.add(application.getId());
                         } catch (TechnicalException ex) {
                             logger.error("An error occurs while trying to delete a group", ex);
                             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                         }
                     }
                 );
+
+            eventManager.publishEvent(
+                ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
+                new ApplicationAlertMembershipEvent(applicationIds, Collections.emptySet())
+            );
 
             //remove from portal pages
             removeGroupFromPages(groupId, updatedDate, null);
@@ -848,6 +866,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     public void deleteUserFromGroup(String groupId, String username) {
         //check if user exist
         this.userService.findById(username);
+
+        eventManager.publishEvent(
+            ApplicationAlertEventType.APPLICATION_MEMBERSHIP_UPDATE,
+            new ApplicationAlertMembershipEvent(Collections.emptySet(), Collections.singleton(groupId))
+        );
         membershipService.deleteReferenceMember(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username);
 
         GroupEntity existingGroup = this.findById(groupId);

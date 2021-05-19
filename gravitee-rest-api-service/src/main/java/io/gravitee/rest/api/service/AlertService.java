@@ -27,7 +27,9 @@ import java.util.List;
 public interface AlertService {
     AlertTriggerEntity create(NewAlertTriggerEntity alert);
     AlertTriggerEntity update(UpdateAlertTriggerEntity alert);
+    AlertTriggerEntity findById(String alertId);
     List<AlertTriggerEntity> findByReference(AlertReferenceType referenceType, String referenceId);
+    List<AlertTriggerEntity> findByReferenceAndReferenceIds(AlertReferenceType referenceType, List<String> referenceIds);
     List<AlertTriggerEntity> findByReferenceWithEventCounts(AlertReferenceType referenceType, String referenceId);
     void delete(String alertId, String referenceId);
     AlertStatusEntity getStatus();

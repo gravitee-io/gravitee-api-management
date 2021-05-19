@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConfigurationMapper {
 
-    public ConfigurationResponse convert(PortalSettingsEntity portalConfigEntity) {
+    public ConfigurationResponse convert(PortalSettingsEntity portalConfigEntity, ConsoleSettingsEntity consoleSettingsEntity) {
         ConfigurationResponse configuration = new ConfigurationResponse();
         configuration.setAnalytics(convert(portalConfigEntity.getAnalytics()));
         configuration.setApiReview(convert(portalConfigEntity.getApiReview().getEnabled()));
@@ -40,6 +40,7 @@ public class ConfigurationMapper {
         configuration.setPortal(convert(portalConfigEntity.getPortal(), portalConfigEntity.getApplication()));
         configuration.setScheduler(convert(portalConfigEntity.getScheduler()));
         configuration.setRecaptcha(convert(portalConfigEntity.getReCaptcha()));
+        configuration.setAlert(convert(consoleSettingsEntity.getAlert().getEnabled()));
         return configuration;
     }
 

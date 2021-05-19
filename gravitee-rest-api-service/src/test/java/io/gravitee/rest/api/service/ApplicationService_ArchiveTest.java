@@ -82,6 +82,9 @@ public class ApplicationService_ArchiveTest {
     @Mock
     private MembershipRepository membershipRepository;
 
+    @Mock
+    private ApplicationAlertService applicationAlertService;
+
     @Test
     public void shouldArchive() throws TechnicalException {
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(application));
@@ -97,6 +100,7 @@ public class ApplicationService_ArchiveTest {
         verify(subscriptionService, times(1)).close("sub");
         verify(application, times(1)).setStatus(ApplicationStatus.ARCHIVED);
         verify(applicationRepository, times(1)).update(application);
+        verify(applicationAlertService, times(1)).deleteAll(APPLICATION_ID);
     }
 
     @Test(expected = ApplicationNotFoundException.class)

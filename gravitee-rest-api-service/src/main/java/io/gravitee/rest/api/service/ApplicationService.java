@@ -30,10 +30,13 @@ import java.util.Set;
  */
 public interface ApplicationService {
     ApplicationEntity findById(String applicationId);
+    Set<ApplicationListItem> findByIds(List<String> applicationIds);
 
     Set<ApplicationListItem> findByUser(String username);
 
     Set<ApplicationListItem> findByNameAndStatus(String username, String name, String status);
+
+    Set<ApplicationListItem> findByOrganization(String organizationId);
 
     Set<ApplicationListItem> findByGroups(List<String> groupId);
     Set<ApplicationListItem> findByGroupsAndStatus(List<String> groupId, String status);

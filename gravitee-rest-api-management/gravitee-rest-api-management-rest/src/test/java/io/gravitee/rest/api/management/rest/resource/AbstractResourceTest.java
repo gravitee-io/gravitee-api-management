@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.management.rest.JerseySpringTest;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
@@ -206,6 +207,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected AccessControlService accessControlService;
+
+    @Autowired
+    protected EventManager eventManager;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -454,6 +458,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public AccessControlService accessControlService() {
             return mock(AccessControlService.class);
+        }
+
+        @Bean
+        public EventManager eventManager() {
+            return mock(EventManager.class);
         }
     }
 }

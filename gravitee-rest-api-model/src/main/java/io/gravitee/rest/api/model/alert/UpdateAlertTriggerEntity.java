@@ -47,7 +47,7 @@ public class UpdateAlertTriggerEntity extends Trigger {
     @JsonProperty("event_rules")
     private List<AlertEventRuleEntity> eventRules;
 
-    protected UpdateAlertTriggerEntity() {
+    public UpdateAlertTriggerEntity() {
         super(null, null, Severity.INFO, null, false);
     }
 
