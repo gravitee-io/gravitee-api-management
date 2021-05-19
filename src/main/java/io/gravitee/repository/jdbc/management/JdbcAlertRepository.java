@@ -26,9 +26,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 import static java.lang.String.format;
@@ -72,21 +74,19 @@ public class JdbcAlertRepository extends JdbcAbstractCrudRepository<AlertTrigger
     }
 
     @Override
-    public List<AlertTrigger> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
-        LOGGER.debug("JdbcAlertRepository.findByReference({}, {})", referenceType, referenceId);
+    public List<AlertTrigger> findByReferenceAndReferenceIds(final String referenceType, final List<String> referenceIds) throws TechnicalException {
+        LOGGER.debug("JdbcAlertRepository.findByReferenceAndReferenceIds({}, {})", referenceType, referenceIds);
         try {
-            List<AlertTrigger> rows = jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?"
-                    , getOrm().getRowMapper(), referenceType, referenceId);
+            List<AlertTrigger> rows = jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id in ( "
+                            + getOrm().buildInClause(referenceIds) + " )"
+                    , (PreparedStatement ps) -> {
+                        ps.setString(1, referenceType);
+                        getOrm().setArguments(ps, referenceIds, 2);
+                    }, getOrm().getRowMapper());
 
-            List<AlertTrigger> alertTriggers = new ArrayList<>();
-            for (AlertTrigger alertTrigger : rows) {
-                addEvents(alertTrigger);
-                alertTriggers.add(alertTrigger);
-            }
-
-            return alertTriggers;
+            return rows.stream().peek(this::addEvents).collect(Collectors.toList());
         } catch (final Exception ex) {
-            final String message = "Failed to find alerts by reference";
+            final String message = "Failed to find alerts by reference and referenceIds";
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }

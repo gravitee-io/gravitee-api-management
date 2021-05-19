@@ -335,8 +335,8 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             if (!StringUtils.isEmpty(applicationCriteria.getStatus())) {
                 sbQuery.append("and a.status = ? ");
             }
-            if (!StringUtils.isEmpty(applicationCriteria.getEnvironmentId())) {
-                sbQuery.append("and a.environment_id = ? ");
+            if (!StringUtils.isEmpty(applicationCriteria.getEnvironmentIds())) {
+                sbQuery.append("and a.environment_id in (").append(getOrm().buildInClause(applicationCriteria.getEnvironmentIds())).append(") ");
             }
         }
         sbQuery.append("order by a.name");
@@ -353,8 +353,8 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
                         if (!StringUtils.isEmpty(applicationCriteria.getStatus())) {
                             ps.setString(lastIndex++, applicationCriteria.getStatus().name());
                         }
-                        if (!StringUtils.isEmpty(applicationCriteria.getEnvironmentId())) {
-                            ps.setString(lastIndex++, applicationCriteria.getEnvironmentId());
+                        if (!isEmpty(applicationCriteria.getEnvironmentIds())) {
+                            lastIndex = getOrm().setArguments(ps, applicationCriteria.getEnvironmentIds(), lastIndex);
                         }
                     }
                 }
