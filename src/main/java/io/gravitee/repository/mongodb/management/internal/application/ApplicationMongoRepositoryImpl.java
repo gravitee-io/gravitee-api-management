@@ -47,8 +47,8 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
             if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
                 query.addCriteria(where("id").in(criteria.getIds()));
             }
-            if (criteria.getEnvironmentId() != null) {
-                query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
+            if (criteria.getEnvironmentIds() != null) {
+                query.addCriteria(where("environmentId").in(criteria.getEnvironmentIds()));
             }
             if (criteria.getName() != null && !criteria.getName().isEmpty()) {
                 query.addCriteria(where("name").regex(criteria.getName(), "i"));

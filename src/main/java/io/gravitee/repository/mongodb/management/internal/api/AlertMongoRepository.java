@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.repository.mongodb.management.internal.model.AlertTriggerMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,7 +28,8 @@ import java.util.List;
  */
 @Repository
 public interface AlertMongoRepository extends MongoRepository<AlertTriggerMongo, String> {
-    List<AlertTriggerMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
+    @Query("{ 'referenceType': ?0, 'referenceId': {$in: ?1} }")
+    List<AlertTriggerMongo> findByReferenceTypeAndReferenceIds(String referenceType, List<String> referenceIds);
 }
 
 

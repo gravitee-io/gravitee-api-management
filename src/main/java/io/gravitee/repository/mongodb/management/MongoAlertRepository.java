@@ -136,12 +136,12 @@ public class MongoAlertRepository implements AlertTriggerRepository {
     }
 
     @Override
-    public List<AlertTrigger> findByReference(String referenceType, String referenceId) {
-        LOGGER.debug("Find alert trigger by reference '{}' / '{}'", referenceType, referenceId);
+    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) {
+        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}'", referenceType, referenceIds);
 
-        final List<AlertTriggerMongo> triggers = internalAlertRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
+        final List<AlertTriggerMongo> triggers = internalAlertRepo.findByReferenceTypeAndReferenceIds(referenceType, referenceIds);
 
-        LOGGER.debug("Find alert trigger by reference '{}' / '{}' done", referenceType, referenceId);
+        LOGGER.debug("Find alert trigger by reference '{}' and referencesIds '{}' done", referenceType, referenceIds);
         return triggers.stream().map(this::map).collect(Collectors.toList());
     }
 
