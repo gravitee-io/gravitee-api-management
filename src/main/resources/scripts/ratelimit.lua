@@ -15,4 +15,4 @@ if exists == 0 then
 end
 
 -- Finally, returns values from Redis
-return redis.call('HVALS', key)
+return redis.call('HMGET', key, 'counter', 'limit', 'reset', 'subscription')
