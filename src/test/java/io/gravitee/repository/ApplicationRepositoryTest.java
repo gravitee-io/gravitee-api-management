@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 /**
@@ -285,7 +286,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
                         .name("SeArched-app")
                         .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
                         .status(ApplicationStatus.ACTIVE)
-                        .environmentId("DEV")
+                        .environmentIds(singletonList("DEV"))
                         .build(),
                 null);
 
@@ -300,5 +301,19 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
                 collect(Collectors.toList()).
                 contains("searched-app1"));
 
+    }
+
+    @Test
+    public void shouldFindByEnvironmentIds() throws Exception {
+        final Page<Application> appsPage = applicationRepository.search(new ApplicationCriteria.Builder()
+                        .environmentIds(Arrays.asList("DEV", "TEST", "PROD"))
+                        .build(),
+                null);
+
+        final List<Application> apps = appsPage.getContent();
+
+        assertNotNull(apps);
+        assertFalse(apps.isEmpty());
+        assertEquals(5, apps.size());
     }
 }

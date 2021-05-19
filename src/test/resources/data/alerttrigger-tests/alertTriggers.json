@@ -44,5 +44,17 @@
             "event": "API_CREATE"
          }
       ]
+   },
+   {
+      "id":"quota100",
+      "name":"Quota100",
+      "description": "Description for alert API quota 100%",
+      "referenceType": "API",
+      "referenceId": "application-id",
+      "type": "QUOTA",
+      "definition": "{}",
+      "enabled": false,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
    }
 ]

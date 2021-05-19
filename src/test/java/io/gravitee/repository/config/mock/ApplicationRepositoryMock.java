@@ -22,10 +22,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
@@ -75,7 +72,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
                 mock(Application.class),
                 mock(Application.class),
                 mock(Application.class));
-        
+
         when(applicationRepository.findAll()).thenReturn(allApplications);
         when(applicationRepository.findAllByEnvironment("DEFAULT")).thenReturn(allApplicationsForDefaultEnvironment);
 
@@ -154,11 +151,19 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
                         .name("SeArched-app")
                         .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
                         .status(ApplicationStatus.ACTIVE)
-                        .environmentId("DEV")
+                        .environmentIds(singletonList("DEV"))
                         .build(),
                 null
                 )
         )
                 .thenReturn(new Page<>(singletonList(searchedApp1), 1, 1, 1));
+        when(applicationRepository.search(
+                new ApplicationCriteria.Builder()
+                        .environmentIds(asList("DEV", "TEST", "PROD"))
+                        .build(),
+                null
+                )
+        )
+                .thenReturn(new Page<>(asList(mock(Application.class), mock(Application.class), mock(Application.class), mock(Application.class), mock(Application.class)), 1, 5, 5));
     }
 }

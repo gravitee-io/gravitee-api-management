@@ -21,10 +21,7 @@ import io.gravitee.repository.management.model.AlertTrigger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
@@ -41,7 +38,7 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         final Set<AlertTrigger> alerts = alertRepository.findAll();
 
         assertNotNull(alerts);
-        assertEquals(3, alerts.size());
+        assertEquals(4, alerts.size());
         final Optional<AlertTrigger> optionalAlert = alerts.stream()
                 .filter(alert -> "quota90".equals(alert.getId()))
                 .findAny();
@@ -156,6 +153,13 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
         final List<AlertTrigger> alerts = alertRepository.findByReference("API", "api-id");
         assertNotNull(alerts);
         assertEquals(1, alerts.size());
+    }
+
+    @Test
+    public void shouldFindByReferenceAndReferenceIds() throws Exception {
+        final List<AlertTrigger> alerts = alertRepository.findByReferenceAndReferenceIds("API", Arrays.asList("api-id", "application-id"));
+        assertNotNull(alerts);
+        assertEquals(2, alerts.size());
     }
 
     @Test(expected = IllegalStateException.class)

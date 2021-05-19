@@ -91,6 +91,18 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
         alertQuota.setTemplate(true);
         alertQuota.setEventRules(singletonList(new AlertEventRule()));
 
+        final AlertTrigger alertQuota100 = new AlertTrigger();
+        alertQuota100.setId("quota100");
+        alertQuota100.setName("Quota100");
+        alertQuota100.setDescription("Description for alert API quota 100%");
+        alertQuota100.setReferenceType("API");
+        alertQuota100.setReferenceId("application-id");
+        alertQuota100.setType("QUOTA");
+        alertQuota100.setDefinition("{}");
+        alertQuota100.setEnabled(false);
+        alertQuota100.setCreatedAt(date);
+        alertQuota100.setUpdatedAt(new Date(1439022010883L));
+
         final AlertTrigger alertTriggerEvents = new AlertTrigger();
         alertTriggerEvents.setId("health-check");
         alertTriggerEvents.setName("Health-check");
@@ -98,9 +110,9 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
         eventRule1.setEvent(AlertEventType.API_CREATE);
         alertTriggerEvents.setEventRules(asList(eventRule1));
 
-        final Set<AlertTrigger> alerts = newSet(alert, alertQuota, alert2Updated);
-        final Set<AlertTrigger> alertsAfterDelete = newSet(alert, alertQuota);
-        final Set<AlertTrigger> alertsAfterAdd = newSet(alert, alert2, mock(AlertTrigger.class), mock(AlertTrigger.class));
+        final Set<AlertTrigger> alerts = newSet(alert, alertQuota, alert2Updated, alertQuota100);
+        final Set<AlertTrigger> alertsAfterDelete = newSet(alert, alertQuota, alertQuota100);
+        final Set<AlertTrigger> alertsAfterAdd = newSet(alert, alert2, alertQuota100, mock(AlertTrigger.class), mock(AlertTrigger.class));
 
         when(alertRepository.findAll()).thenReturn(alerts, alertsAfterAdd, alerts, alertsAfterDelete, alerts);
 
@@ -113,5 +125,6 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
         when(alertRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(alertRepository.findByReference("API", "api-id")).thenReturn(singletonList(alert));
+        when(alertRepository.findByReferenceAndReferenceIds("API", asList("api-id", "application-id"))).thenReturn(asList(alert2, alertQuota100));
     }
 }
