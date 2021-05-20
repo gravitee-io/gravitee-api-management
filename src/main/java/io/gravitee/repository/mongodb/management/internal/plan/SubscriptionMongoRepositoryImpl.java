@@ -82,6 +82,21 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             query.addCriteria(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
         }
 
+        if (criteria.getEndingAtAfter() > 0 || criteria.getEndingAtBefore() > 0) {
+            // Need to mutualize the instantiation of this criteria otherwise mongo drive is throwing an error, when
+            // using multiple `Criteria.where("endingAt").xxx` with the same query
+            Criteria endingAtCriteria = Criteria.where("endingAt");
+
+            if (criteria.getEndingAtAfter() > 0) {
+                endingAtCriteria = endingAtCriteria.gte(new Date(criteria.getEndingAtAfter()));
+            }
+            if (criteria.getEndingAtBefore() > 0) {
+                endingAtCriteria = endingAtCriteria.lt(new Date(criteria.getEndingAtBefore()));
+            }
+
+            query.addCriteria(endingAtCriteria);
+        }
+
         // set sort by created at
         query.with(new Sort(Sort.Direction.DESC, "createdAt"));
 
