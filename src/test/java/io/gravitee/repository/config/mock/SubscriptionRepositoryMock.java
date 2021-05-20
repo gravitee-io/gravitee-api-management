@@ -101,15 +101,35 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         when(subscriptionRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
-                        .from(1469022010883L)
-                        .to(1569022010883L)
-                        .build()))
-                .thenReturn(singletonList(sub1));
+            new SubscriptionCriteria.Builder()
+                .from(1469022010883L)
+                .to(1569022010883L)
+                .build()))
+            .thenReturn(singletonList(sub1));
+
+
+        when(subscriptionRepository.search(
+            new SubscriptionCriteria.Builder()
+                .endingAtAfter(1449022010880L)
+                .endingAtBefore(1569022010883L)
+                .build()))
+            .thenReturn(singletonList(sub1));
+
+        when(subscriptionRepository.search(
+            new SubscriptionCriteria.Builder()
+                .endingAtAfter(1449022010880L)
+                .build()))
+            .thenReturn(singletonList(sub1));
+
+        when(subscriptionRepository.search(
+            new SubscriptionCriteria.Builder()
+                .endingAtBefore(1569022010883L)
+                .build()))
+            .thenReturn(singletonList(sub1));
 
         when(subscriptionRepository.search(any(), eq(new PageableBuilder().pageNumber(0).pageSize(2).build())))
-                .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(sub3, sub1), 0, 2, 2));
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(sub3, sub1), 0, 2, 2));
         when(subscriptionRepository.search(any(), eq(new PageableBuilder().pageNumber(1).pageSize(2).build())))
-                .thenReturn(new io.gravitee.common.data.domain.Page<>(emptyList(), 1, 0, 2));
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(emptyList(), 1, 0, 2));
     }
 }

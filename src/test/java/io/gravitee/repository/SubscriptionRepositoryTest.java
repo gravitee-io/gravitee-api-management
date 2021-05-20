@@ -221,4 +221,39 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
 
         assertEquals(0, subscriptionPage.getContent().size());
     }
+
+    @Test
+    public void shouldFindBetweenEndingAtDates() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            new SubscriptionCriteria.Builder()
+                .endingAtAfter(1449022010880L)
+                .endingAtBefore(1569022010883L)
+                .build());
+
+        assertEquals("Subscriptions size", 1, subscriptions.size());
+        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindAfterEndingAtDate() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            new SubscriptionCriteria.Builder()
+                .endingAtAfter(1449022010880L)
+                .build());
+
+        assertEquals("Subscriptions size", 1, subscriptions.size());
+        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+    }
+
+    @Test
+    public void shouldFindBeforeEndingAtDate() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            new SubscriptionCriteria.Builder()
+                .endingAtBefore(1569022010883L)
+                .build());
+
+        assertEquals("Subscriptions size", 1, subscriptions.size());
+        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+    }
+
 }
