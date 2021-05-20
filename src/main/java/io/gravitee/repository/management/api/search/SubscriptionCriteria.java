@@ -36,6 +36,8 @@ public class SubscriptionCriteria {
 
     private final long from, to;
 
+    private final long endingAtAfter, endingAtBefore;
+
     private final String clientId;
 
     SubscriptionCriteria(SubscriptionCriteria.Builder builder) {
@@ -46,6 +48,8 @@ public class SubscriptionCriteria {
         this.applications = builder.applications;
         this.statuses = builder.status;
         this.clientId = builder.clientId;
+        this.endingAtAfter = builder.endingAtAfter;
+        this.endingAtBefore = builder.endingAtBefore;
     }
 
     public Collection<String> getApis() {
@@ -76,6 +80,14 @@ public class SubscriptionCriteria {
         return clientId;
     }
 
+    public long getEndingAtAfter() {
+        return endingAtAfter;
+    }
+
+    public long getEndingAtBefore() {
+        return endingAtBefore;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -88,6 +100,8 @@ public class SubscriptionCriteria {
         if (apis != null ? !apis.equals(that.apis) : that.apis != null) return false;
         if (plans != null ? !plans.equals(that.plans) : that.plans != null) return false;
         if (statuses != null ? !statuses.equals(that.statuses) : that.statuses != null) return false;
+        if (endingAtAfter != that.endingAtAfter) return false;
+        if (endingAtBefore != that.endingAtBefore) return false;
         return applications != null ? applications.equals(that.applications) : that.applications == null;
     }
 
@@ -99,6 +113,8 @@ public class SubscriptionCriteria {
         result = 31 * result + (applications != null ? applications.hashCode() : 0);
         result = 31 * result + (int) (from ^ (from >>> 32));
         result = 31 * result + (int) (to ^ (to >>> 32));
+        result = 31 * result + (int) (endingAtAfter ^ (endingAtAfter >>> 32));
+        result = 31 * result + (int) (endingAtBefore ^ (endingAtBefore >>> 32));
         return result;
     }
 
@@ -114,6 +130,8 @@ public class SubscriptionCriteria {
         private String clientId;
 
         private long from, to;
+
+        private long endingAtAfter, endingAtBefore;
 
         public SubscriptionCriteria.Builder from(long from) {
             this.from = from;
@@ -154,6 +172,17 @@ public class SubscriptionCriteria {
             this.clientId = clientId;
             return this;
         }
+
+        public SubscriptionCriteria.Builder endingAtAfter(long endingAtAfter) {
+            this.endingAtAfter = endingAtAfter;
+            return this;
+        }
+
+        public SubscriptionCriteria.Builder endingAtBefore(long endingAtBefore) {
+            this.endingAtBefore = endingAtBefore;
+            return this;
+        }
+
 
         public SubscriptionCriteria build() {
             return new SubscriptionCriteria(this);
