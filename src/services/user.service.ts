@@ -116,7 +116,7 @@ class UserService {
     });
   }
 
-  refreshCurrent() : ng.IPromise<User> {
+  refreshCurrent(): ng.IPromise<User> {
     this.currentUser = null; // force refresh of user profil
     return this.current().then((user) => {
       // once user profile is loaded, broadcast information to the app
