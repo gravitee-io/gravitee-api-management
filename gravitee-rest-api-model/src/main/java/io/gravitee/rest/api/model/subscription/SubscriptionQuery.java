@@ -38,6 +38,8 @@ public class SubscriptionQuery {
 
     private long from, to;
 
+    private long endingAtAfter, endingAtBefore;
+
     public Collection<String> getApis() {
         return apis;
     }
@@ -112,6 +114,22 @@ public class SubscriptionQuery {
         this.to = to;
     }
 
+    public long getEndingAtAfter() {
+        return endingAtAfter;
+    }
+
+    public void setEndingAtAfter(long endingAtAfter) {
+        this.endingAtAfter = endingAtAfter;
+    }
+
+    public long getEndingAtBefore() {
+        return endingAtBefore;
+    }
+
+    public void setEndingAtBefore(long endingAtBefore) {
+        this.endingAtBefore = endingAtBefore;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -120,6 +138,8 @@ public class SubscriptionQuery {
         return (
             from == that.from &&
             to == that.to &&
+            endingAtAfter == that.endingAtAfter &&
+            endingAtBefore == that.endingAtBefore &&
             Objects.equals(apis, that.apis) &&
             Objects.equals(plans, that.plans) &&
             Objects.equals(statuses, that.statuses) &&
@@ -130,6 +150,6 @@ public class SubscriptionQuery {
 
     @Override
     public int hashCode() {
-        return Objects.hash(apis, plans, statuses, applications, apiKey, from, to);
+        return Objects.hash(apis, plans, statuses, applications, apiKey, from, to, endingAtAfter, endingAtBefore);
     }
 }

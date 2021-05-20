@@ -869,12 +869,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Search subscriptions {}", query);
 
-            SubscriptionCriteria.Builder builder = new SubscriptionCriteria.Builder()
-                .apis(query.getApis())
-                .applications(query.getApplications())
-                .plans(query.getPlans())
-                .from(query.getFrom())
-                .to(query.getTo());
+            SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
 
             if (query.getStatuses() != null) {
                 builder.statuses(
@@ -932,12 +927,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     return new Page<>(emptyList(), 1, 0, 0);
                 }
             } else {
-                SubscriptionCriteria.Builder builder = new SubscriptionCriteria.Builder()
-                    .apis(query.getApis())
-                    .applications(query.getApplications())
-                    .plans(query.getPlans())
-                    .from(query.getFrom())
-                    .to(query.getTo());
+                SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
 
                 if (query.getStatuses() != null) {
                     builder.statuses(
@@ -970,6 +960,17 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 ex
             );
         }
+    }
+
+    private SubscriptionCriteria.Builder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
+        return new SubscriptionCriteria.Builder()
+            .apis(query.getApis())
+            .applications(query.getApplications())
+            .plans(query.getPlans())
+            .from(query.getFrom())
+            .to(query.getTo())
+            .endingAtAfter(query.getEndingAtAfter())
+            .endingAtBefore(query.getEndingAtBefore());
     }
 
     @Override

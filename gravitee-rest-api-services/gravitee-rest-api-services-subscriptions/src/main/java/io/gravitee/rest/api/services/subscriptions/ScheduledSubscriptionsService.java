@@ -25,10 +25,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,15 +86,9 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
         final SubscriptionQuery query = new SubscriptionQuery();
         query.setApis(apiIds);
         query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
-        final Collection<SubscriptionEntity> subscriptions = subscriptionService.search(query);
-        final Date now = new Date();
-        subscriptions.forEach(
-            subscription -> {
-                if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
-                    subscriptionService.close(subscription.getId());
-                }
-            }
-        );
+        query.setEndingAtBefore(new Date().getTime());
+
+        subscriptionService.search(query).forEach(subscription -> subscriptionService.close(subscription.getId()));
 
         logger.debug("Refresh subscriptions #{} ended at {}", counter.get(), Instant.now().toString());
     }
