@@ -77,10 +77,11 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
             final ScoreDoc[] hits = topDocs.scoreDocs;
             final List<String> results = new ArrayList<>();
 
-            final List<Integer> orderdedDocsId = Arrays.stream(topDocs.scoreDocs)
-                    .sorted((doc1, doc2) -> Float.compare(doc2.score, doc1.score))
-                    .map(doc -> doc.doc)
-                    .collect(Collectors.toList());
+            final List<Integer> orderdedDocsId = Arrays
+                .stream(topDocs.scoreDocs)
+                .sorted((doc1, doc2) -> Float.compare(doc2.score, doc1.score))
+                .map(doc -> doc.doc)
+                .collect(Collectors.toList());
 
             logger.debug("Found {} total matching documents", topDocs.totalHits);
 

@@ -55,7 +55,10 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
             final String normalizedQuery = StringUtils.stripAccents(query.getQuery().toLowerCase());
 
             userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(new WildcardQuery(new Term("displayname_reverted", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+            userFieldsQuery.add(
+                new WildcardQuery(new Term("displayname_reverted", '*' + normalizedQuery + '*')),
+                BooleanClause.Occur.SHOULD
+            );
             userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
             userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
             userQuery.add(userFieldsQuery.build(), BooleanClause.Occur.MUST);

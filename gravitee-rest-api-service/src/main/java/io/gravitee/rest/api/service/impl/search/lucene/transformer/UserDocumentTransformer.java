@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import java.io.IOException;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Tokenizer;
@@ -36,9 +38,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.Map;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -46,14 +45,14 @@ import java.util.Map;
 @Component
 public class UserDocumentTransformer implements DocumentTransformer<UserEntity> {
 
-    private final static String FIELD_ID = "id";
-    private final static String FIELD_TYPE = "type";
-    private final static String FIELD_TYPE_VALUE = "user";
-    private final static String FIELD_DISPLAYNAME = "displayname";
-    private final static String FIELD_DISPLAYNAME_REVERTED = "displayname_reverted";
-    private final static String FIELD_EMAIL = "email";
-    private final static String FIELD_SOURCE = "source";
-    private final static String FIELD_REFERENCE = "reference";
+    private static final String FIELD_ID = "id";
+    private static final String FIELD_TYPE = "type";
+    private static final String FIELD_TYPE_VALUE = "user";
+    private static final String FIELD_DISPLAYNAME = "displayname";
+    private static final String FIELD_DISPLAYNAME_REVERTED = "displayname_reverted";
+    private static final String FIELD_EMAIL = "email";
+    private static final String FIELD_SOURCE = "source";
+    private static final String FIELD_REFERENCE = "reference";
 
     private final Logger logger = LoggerFactory.getLogger(UserDocumentTransformer.class);
 
@@ -62,11 +61,12 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
 
     private Analyzer userFieldAnalyzer() {
         try {
-            return CustomAnalyzer.builder()
-                    .withTokenizer(SingleTokenTokenizerFactory.class)
-                    .addTokenFilter(LowerCaseFilterFactory.class)
-                    .addTokenFilter(ASCIIFoldingFilterFactory.class)
-                    .build();
+            return CustomAnalyzer
+                .builder()
+                .withTokenizer(SingleTokenTokenizerFactory.class)
+                .addTokenFilter(LowerCaseFilterFactory.class)
+                .addTokenFilter(ASCIIFoldingFilterFactory.class)
+                .build();
         } catch (IOException e) {
             return defaultAnalyzer;
         }
@@ -94,7 +94,9 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
 
         if (user.getDisplayName() != null) {
             TextField displayName = new TextField(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName()), Field.Store.NO);
-            displayName.setTokenStream(userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName())));
+            displayName.setTokenStream(
+                userFieldAnalyzer().tokenStream(FIELD_DISPLAYNAME, toLowerCaseAndStripAccents(user.getDisplayName()))
+            );
             doc.add(displayName);
 
             if (!StringUtils.isEmpty(user.getLastname()) && !StringUtils.isEmpty(user.getFirstname())) {
@@ -122,11 +124,11 @@ public class UserDocumentTransformer implements DocumentTransformer<UserEntity> 
         return UserEntity.class.isAssignableFrom(source);
     }
 
-
     /**
      * Return the field content as single token
      */
     public static class SingleTokenTokenizerFactory extends TokenizerFactory {
+
         public SingleTokenTokenizerFactory(Map<String, String> args) {
             super(args);
         }
