@@ -101,7 +101,7 @@ export class ApplicationAlertsComponent implements OnInit {
         })
         .toPromise()
         .then((alerts) => {
-          this.alerts = alerts.data;
+          this.alerts = alerts;
         });
     }
   }

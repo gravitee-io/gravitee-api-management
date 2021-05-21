@@ -3,7 +3,6 @@ export * from './alertInput';
 export * from './alertStatusResponse';
 export * from './alertTimeUnit';
 export * from './alertType';
-export * from './alertsResponse';
 export * from './api';
 export * from './apiInformation';
 export * from './apiLinks';

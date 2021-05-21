@@ -21,6 +21,8 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {
   Alert,
   AlertStatusResponse,
+  AlertTimeUnit,
+  AlertType,
   Application,
   ApplicationService,
   PermissionsService,
@@ -122,7 +124,6 @@ export class GvAlertComponent implements OnInit {
         { value: '5xx', label: '5xx - SERVER ERROR' },
       ].concat(HttpHelpers.httpStatus);
       this.durations = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-      this.timeUnits = ['S', 'MINUTES', 'HOURS'];
       this.translateService
         .get([
           i18n('application.alerts.type.status'),
@@ -138,26 +139,26 @@ export class GvAlertComponent implements OnInit {
           this.types = [
             {
               label: Object.values(translations)[0],
-              value: 'STATUS',
+              value: AlertType.STATUS,
             },
             {
               label: Object.values(translations)[1],
-              value: 'RESPONSE_TIME',
+              value: AlertType.RESPONSETIME,
             },
           ];
 
           this.timeUnits = [
             {
               label: Object.values(translations)[2],
-              value: 'SECONDS',
+              value: AlertTimeUnit.SECONDS,
             },
             {
               label: Object.values(translations)[3],
-              value: 'MINUTES',
+              value: AlertTimeUnit.MINUTES,
             },
             {
               label: Object.values(translations)[4],
-              value: 'HOURS',
+              value: AlertTimeUnit.HOURS,
             },
           ];
         });
@@ -194,7 +195,7 @@ export class GvAlertComponent implements OnInit {
   }
 
   onTypeChange($event: string) {
-    if ($event === 'STATUS') {
+    if ($event === AlertType.STATUS) {
       this.resetAddAlertStatus();
     } else {
       this.resetAddAlertResponseTime();
@@ -212,9 +213,9 @@ export class GvAlertComponent implements OnInit {
 
   resetAddAlert() {
     this.alertForm = new FormGroup({
-      type: new FormControl('STATUS', [Validators.required]),
+      type: new FormControl(AlertType.STATUS, [Validators.required]),
       duration: new FormControl('1'),
-      timeUnit: new FormControl('MINUTES', [Validators.required]),
+      timeUnit: new FormControl(AlertTimeUnit.MINUTES, [Validators.required]),
     });
   }
 

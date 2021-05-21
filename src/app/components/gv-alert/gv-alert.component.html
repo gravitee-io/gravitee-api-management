@@ -15,18 +15,18 @@
     limitations under the License.
 
 -->
-<form class="page__box form" [formGroup]="alertForm" (ngSubmit)="addAlert()">
+<form class="page__box form gv-alert" [formGroup]="alertForm" (ngSubmit)="addAlert()">
   <div *ngIf="isCreationMode" class="page__box-title">
     <h3 class="title">{{ 'application.alerts.add.title' | translate }}</h3>
     <gv-button link (:gv-button:click)="reset()">{{ 'application.alerts.add.reset' | translate }}</gv-button>
   </div>
 
   <div [ngClass]="isCreationMode ? 'page__box-content' : ''">
-    <div class="row">
-      <div class="alert" [ngClass]="{ disabled: isReadingMode && !isAlertEnabled }">
+    <div class="gv-alert__row">
+      <div class="alert" [ngClass]="{ 'gv-alert__disabled': isReadingMode && !isAlertEnabled }">
         {{ 'application.alerts.phrase.first' | translate }}
         <gv-select
-          class="row__type"
+          class="gv-alert__row-type"
           *ngIf="isCreationMode"
           (:gv-select:select)="onTypeChange($event.detail)"
           placeholder="{{ 'application.alerts.add.type.placeholder' | translate }}"
@@ -39,9 +39,9 @@
 
         <strong *ngIf="!isCreationMode"> {{ typeLabel }} </strong>
 
-        <ng-container class="phrase" *ngIf="isStatusAlert">
+        <ng-container class="gv-alert__phrase" *ngIf="isStatusAlert">
           <gv-select
-            class="row__status"
+            class="gv-alert__row-status"
             *ngIf="isCreationMode || isEditionMode"
             placeholder="{{ 'application.alerts.add.type.status.http_status.placeholder' | translate }}"
             [options]="httpStatus"
@@ -52,7 +52,7 @@
           <strong *ngIf="isReadingMode"> {{ getHttpStatusLabel(alert['status_code']) }} </strong>
           {{ 'application.alerts.phrase.status.second' | translate }}
           <gv-input
-            class="row__status-percent"
+            class="gv-alert__row-status-percent"
             *ngIf="isCreationMode || isEditionMode"
             type="number"
             min="1"
@@ -67,10 +67,10 @@
           {{ 'application.alerts.phrase.status.third' | translate }}
         </ng-container>
 
-        <ng-container class="phrase" *ngIf="isResponseTimeAlert">
+        <ng-container class="gv-alert__phrase" *ngIf="isResponseTimeAlert">
           {{ 'application.alerts.phrase.response_time.second' | translate }}
           <gv-input
-            class="row__response-time"
+            class="gv-alert__row-response-time"
             *ngIf="isCreationMode || isEditionMode"
             type="number"
             min="1"
@@ -87,7 +87,7 @@
 
         {{ 'application.alerts.phrase.last' | translate }}
         <gv-select
-          class="row__duration"
+          class="gv-alert__row-duration"
           *ngIf="isCreationMode || isEditionMode"
           [options]="durations"
           formControlName="duration"
@@ -96,7 +96,7 @@
         ></gv-select>
         <strong *ngIf="isReadingMode"> {{ alert.duration }} </strong>
         <gv-select
-          class="row__time-unit"
+          class="gv-alert__row-time-unit"
           *ngIf="isCreationMode || isEditionMode"
           [options]="timeUnits"
           formControlName="timeUnit"

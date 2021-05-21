@@ -15,51 +15,46 @@
  */
 @import '../../../../src/css/form.css';
 
-.form gv-select,
-.form gv-input {
+.gv-alert gv-select,
+.gv-alert gv-input {
   width: auto;
 }
 
-.form .row__type {
+.gv-alert .gv-alert__row-type {
   width: 240px;
 }
 
-.form .row__status {
+.gv-alert .gv-alert__row-status {
   width: 240px;
 }
 
-.form .row__status-threshold {
+.gv-alert .gv-alert__row-threshold {
   width: 55px;
 }
 
-.form .row__response-time {
+.gv-alert .gv-alert__row-response-time {
   width: 80px;
 }
 
-.form .row__duration {
+.gv-alert .gv-alert__row-duration {
   width: 55px;
 }
 
-.form .row__time-unit {
+.gv-alert .gv-alert__row-time-unit {
   width: 90px;
 }
 
-.form .row__enabled {
-  flex: 1;
-  width: 90px;
-}
-
-.phrase {
+.gv-alert__phrase {
   display: contents;
 }
 
-.row {
+.gv-alert__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.disabled {
+.gv-alert__disabled {
   color: grey;
   text-decoration: line-through;
 }
