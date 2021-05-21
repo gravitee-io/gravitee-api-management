@@ -100,31 +100,15 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
 
         when(subscriptionRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
-        when(subscriptionRepository.search(
-            new SubscriptionCriteria.Builder()
-                .from(1469022010883L)
-                .to(1569022010883L)
-                .build()))
-            .thenReturn(singletonList(sub1));
-
+        when(subscriptionRepository.search(eq(new SubscriptionCriteria.Builder()
+            .from(1469022010883L)
+            .build())))
+            .thenReturn(asList(sub3, sub1));
 
         when(subscriptionRepository.search(
-            new SubscriptionCriteria.Builder()
-                .endingAtAfter(1449022010880L)
-                .endingAtBefore(1569022010883L)
-                .build()))
-            .thenReturn(singletonList(sub1));
-
-        when(subscriptionRepository.search(
-            new SubscriptionCriteria.Builder()
-                .endingAtAfter(1449022010880L)
-                .build()))
-            .thenReturn(singletonList(sub1));
-
-        when(subscriptionRepository.search(
-            new SubscriptionCriteria.Builder()
-                .endingAtBefore(1569022010883L)
-                .build()))
+            argThat(subscriptionCriteria -> subscriptionCriteria.getTo() == 1569022010883L ||
+                subscriptionCriteria.getEndingAtAfter() == 1449022010880L ||
+                subscriptionCriteria.getEndingAtBefore() == 1569022010883L)))
             .thenReturn(singletonList(sub1));
 
         when(subscriptionRepository.search(any(), eq(new PageableBuilder().pageNumber(0).pageSize(2).build())))

@@ -194,6 +194,30 @@ public class SubscriptionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindAfterFromDate() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+                new SubscriptionCriteria.Builder()
+                        .from(1469022010883L)
+                        .build());
+
+        assertEquals("Subscriptions size", 2, subscriptions.size());
+        Iterator<Subscription> iterator = subscriptions.iterator();
+        assertEquals("Subscription id", "sub3", iterator.next().getId());
+        assertEquals("Subscription id", "sub1", iterator.next().getId());
+    }
+
+    @Test
+    public void shouldFindBeforeToDate() throws TechnicalException {
+        List<Subscription> subscriptions = this.subscriptionRepository.search(
+            new SubscriptionCriteria.Builder()
+                .to(1569022010883L)
+                .build());
+
+        assertEquals("Subscriptions size", 1, subscriptions.size());
+        assertEquals("Subscription id", "sub1", subscriptions.iterator().next().getId());
+    }
+
+    @Test
     public void shouldFindBetweenDatesPageable() throws Exception {
         Page<Subscription> subscriptionPage = subscriptionRepository.search(new SubscriptionCriteria.Builder()
                 .from(1339022010883L)
