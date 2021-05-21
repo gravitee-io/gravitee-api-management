@@ -141,7 +141,8 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
     private WebClientOptions getWebClientOptions() {
         WebClientOptions options = new WebClientOptions()
-                .setUserAgent("gio-client-bridge/" + Version.RUNTIME_VERSION.MAJOR_VERSION);
+                .setUserAgent("gio-client-bridge/" + Version.RUNTIME_VERSION.MAJOR_VERSION)
+                .setTryUseCompression(true);
 
         // Add support for proxy
         options.setProxyOptions(getProxyOptions());

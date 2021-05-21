@@ -71,6 +71,7 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
         try {
             return blockingGet(get("/apis", BodyCodecs.list(Api.class))
                     .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinition()))
+                    .addQueryParam("excludePicture", Boolean.toString(apiFieldExclusionFilter.isPicture()))
                     .send());
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
