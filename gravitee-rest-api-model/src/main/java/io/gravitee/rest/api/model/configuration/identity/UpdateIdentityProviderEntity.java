@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.configuration.identity;
 
 import java.util.List;
 import java.util.Map;
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -37,8 +38,10 @@ public class UpdateIdentityProviderEntity {
     @NotNull
     private boolean enabled;
 
+    @Valid
     private List<GroupMappingEntity> groupMappings;
 
+    @Valid
     private List<RoleMappingEntity> roleMappings;
 
     private Map<String, String> userProfileMapping;

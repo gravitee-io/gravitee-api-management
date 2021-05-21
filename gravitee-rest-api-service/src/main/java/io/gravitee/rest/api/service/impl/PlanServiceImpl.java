@@ -472,6 +472,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         plan.setSecurityDefinition(updatedPlan.getSecurityDefinition());
         plan.setStatus(updatedPlan.getStatus().name());
         plan.setTags(updatedPlan.getTags());
+        plan.setSelectionRule(updatedPlan.getSelectionRule());
         if (flows != null) {
             plan.setFlows(flows);
         }

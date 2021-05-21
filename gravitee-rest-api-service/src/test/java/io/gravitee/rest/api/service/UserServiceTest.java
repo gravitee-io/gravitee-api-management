@@ -1313,6 +1313,8 @@ public class UserServiceTest {
                 any(MembershipService.MembershipMember.class),
                 any(MembershipService.MembershipRole.class)
             );
+
+        verify(roleService, times(1)).findDefaultRoleByScopes(eq(RoleScope.ENVIRONMENT), eq(RoleScope.ORGANIZATION));
     }
 
     private void mockDefaultEnvironment() {

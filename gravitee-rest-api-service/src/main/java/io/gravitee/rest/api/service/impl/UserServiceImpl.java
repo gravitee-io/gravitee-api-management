@@ -761,7 +761,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     public UserEntity register(final NewExternalUserEntity newExternalUserEntity, final String confirmationPageUrl) {
         final GraviteeContext.ReferenceContext currentContext = GraviteeContext.getCurrentContext();
 
-        UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
+        if (confirmationPageUrl != null) {
+            UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
+        }
 
         checkUserRegistrationEnabled(currentContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(currentContext);
@@ -1757,7 +1759,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     try {
                         groups.add(groupService.findById(groupName));
                     } catch (GroupNotFoundException gnfe) {
-                        LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
+                        LOGGER.warn("Unable to map user groups, missing group in repository: {}", groupName);
                     }
                 }
             }
