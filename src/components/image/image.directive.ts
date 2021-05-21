@@ -92,7 +92,9 @@ class ImageController {
   onDelete() {
     this.$scope.image = null;
     this.$scope.imageUrl = null;
-    this.$rootScope.$broadcast('apiPictureChangeSuccess', { image: this.$scope.image });
+    if (this.$scope.successEventName) {
+      this.$rootScope.$broadcast(this.$scope.successEventName, { image: this.$scope.image, imageUrl: this.$scope.imageUrl });
+    }
     if (this.$scope.imageForm) {
       this.$scope.imageForm.$setDirty();
     }

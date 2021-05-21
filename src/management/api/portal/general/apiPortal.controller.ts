@@ -219,7 +219,6 @@ class ApiPortalController {
     const self = this;
     this.$scope.$on('apiPictureChangeSuccess', function (event, args) {
       self.api.picture = args.image;
-      self.formApi.$setDirty();
     });
   }
 

@@ -219,6 +219,7 @@ class ApiService {
         picture: api.picture,
         picture_url: api.picture_url,
         background: api.background,
+        background_url: api.background_url,
         resources: api.resources,
         categories: api.categories,
         groups: api.groups,
