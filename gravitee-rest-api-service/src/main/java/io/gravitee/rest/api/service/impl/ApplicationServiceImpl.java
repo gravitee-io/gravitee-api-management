@@ -226,7 +226,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             ApplicationCriteria criteria = new ApplicationCriteria.Builder()
                 .status(ApplicationStatus.valueOf(status))
                 .name(name.trim())
-                .environmentId(GraviteeContext.getCurrentEnvironment())
+                .environmentIds(Arrays.asList(GraviteeContext.getCurrentEnvironment()))
                 .ids(appIds.toArray(new String[0]))
                 .build();
 

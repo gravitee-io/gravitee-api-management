@@ -34,8 +34,8 @@ public class AlertTriggerRepositoryProxy extends AbstractProxy<AlertTriggerRepos
         return target.findAll();
     }
 
-    public List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException {
-        return target.findByReference(referenceType, referenceId);
+    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) throws TechnicalException {
+        return target.findByReferenceAndReferenceIds(referenceType, referenceIds);
     }
 
     public Optional<AlertTrigger> findById(String s) throws TechnicalException {
