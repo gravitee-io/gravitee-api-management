@@ -1288,7 +1288,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 ) {
                     api.setPicture(apiToUpdate.getPicture());
                 }
-                if (updateApiEntity.getBackground() == null) {
+                if (
+                    updateApiEntity.getBackground() == null &&
+                    updateApiEntity.getBackgroundUrl() != null &&
+                    updateApiEntity.getBackgroundUrl().indexOf("?hash") > 0
+                ) {
                     api.setBackground(apiToUpdate.getBackground());
                 }
                 if (updateApiEntity.getGroups() == null) {

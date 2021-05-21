@@ -102,7 +102,7 @@ public class UpdateApiEntity {
     private FlowMode flowMode;
 
     @JsonProperty("picture_url")
-    @ApiModelProperty(value = "the API logo encoded in base64")
+    @ApiModelProperty(value = "the API logo URL")
     private String pictureUrl;
 
     @ApiModelProperty(value = "the list of categories associated with this API", example = "Product, Customer, Misc")
@@ -137,6 +137,10 @@ public class UpdateApiEntity {
 
     @ApiModelProperty(value = "the API background encoded in base64")
     private String background;
+
+    @JsonProperty("background_url")
+    @ApiModelProperty(value = "the API background URL")
+    private String backgroundUrl;
 
     public Visibility getVisibility() {
         return visibility;
@@ -296,6 +300,14 @@ public class UpdateApiEntity {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getBackgroundUrl() {
+        return backgroundUrl;
+    }
+
+    public void setBackgroundUrl(String backgroundUrl) {
+        this.backgroundUrl = backgroundUrl;
     }
 
     public String getPictureUrl() {
