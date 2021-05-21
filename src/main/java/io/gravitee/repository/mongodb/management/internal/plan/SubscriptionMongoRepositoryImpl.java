@@ -87,7 +87,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
                 updatedAtCriteria = updatedAtCriteria.gte(new Date(criteria.getFrom()));
             }
             if (criteria.getTo() > 0) {
-                updatedAtCriteria = updatedAtCriteria.lt(new Date(criteria.getTo()));
+                updatedAtCriteria = updatedAtCriteria.lte(new Date(criteria.getTo()));
             }
 
             query.addCriteria(updatedAtCriteria);
@@ -103,7 +103,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
                 endingAtCriteria = endingAtCriteria.gte(new Date(criteria.getEndingAtAfter()));
             }
             if (criteria.getEndingAtBefore() > 0) {
-                endingAtCriteria = endingAtCriteria.lt(new Date(criteria.getEndingAtBefore()));
+                endingAtCriteria = endingAtCriteria.lte(new Date(criteria.getEndingAtBefore()));
             }
 
             query.addCriteria(endingAtCriteria);
