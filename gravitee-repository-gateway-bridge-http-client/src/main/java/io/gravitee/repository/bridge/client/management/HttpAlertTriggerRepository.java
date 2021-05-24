@@ -36,7 +36,7 @@ public class HttpAlertTriggerRepository extends AbstractRepository implements Al
     }
 
     @Override
-    public List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException {
+    public List<AlertTrigger> findByReferenceAndReferenceIds(String referenceType, List<String> referenceIds) throws TechnicalException {
         throw new IllegalStateException();
     }
 

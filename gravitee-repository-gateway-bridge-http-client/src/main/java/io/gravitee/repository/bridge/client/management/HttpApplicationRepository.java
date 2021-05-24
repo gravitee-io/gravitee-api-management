@@ -15,8 +15,11 @@
  */
 package io.gravitee.repository.bridge.client.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
+import io.gravitee.repository.management.api.search.ApplicationCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import org.springframework.stereotype.Component;
@@ -76,6 +79,11 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     @Override
     public Set<Application> findByNameAndStatuses(String partialName, ApplicationStatus ...statuses)
             throws TechnicalException {
+        throw new TechnicalException();
+    }
+
+    @Override
+    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException {
         throw new TechnicalException();
     }
 
