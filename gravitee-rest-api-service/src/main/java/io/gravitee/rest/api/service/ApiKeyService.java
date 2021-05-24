@@ -16,6 +16,9 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.key.ApiKeyQuery;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -43,5 +46,9 @@ public interface ApiKeyService {
 
     ApiKeyEntity update(ApiKeyEntity apiKeyEntity);
 
+    ApiKeyEntity updateDaysToExpirationOnLastNotification(String apiKey, Integer value);
+
     boolean exists(String apiKey);
+
+    Collection<ApiKeyEntity> search(ApiKeyQuery query);
 }

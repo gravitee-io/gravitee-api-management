@@ -48,6 +48,8 @@ public interface SubscriptionService {
 
     SubscriptionEntity update(UpdateSubscriptionEntity subscription);
 
+    SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
+
     SubscriptionEntity update(UpdateSubscriptionEntity subscription, String clientId);
 
     SubscriptionEntity process(ProcessSubscriptionEntity processSubscription, String userId);

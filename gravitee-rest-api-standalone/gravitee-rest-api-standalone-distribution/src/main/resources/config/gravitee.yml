@@ -170,6 +170,12 @@ services:
     enabled: true
     cron: "0 */5 * * * *"
 
+  # Subscription service
+  subscription:
+    enabled: true
+    #  Pre-expiration notification, number of days before the expiration an email should be send to subscriber and primary owner
+    pre-expiration-notification-schedule: 90,45,30
+
 
 # Analytics repository is used to store all reporting, metrics, health-checks stored by gateway instances
 # This is the default configuration using Elasticsearch

@@ -368,6 +368,36 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     @Override
+    public SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value) {
+        try {
+            return subscriptionRepository
+                .findById(subscriptionId)
+                .map(
+                    subscription -> {
+                        subscription.setDaysToExpirationOnLastNotification(value);
+                        try {
+                            return subscriptionRepository.update(subscription);
+                        } catch (TechnicalException ex) {
+                            logger.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
+                            throw new TechnicalManagementException(
+                                String.format("An error occurs while trying to update subscription %s", subscriptionId),
+                                ex
+                            );
+                        }
+                    }
+                )
+                .map(this::convert)
+                .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+        } catch (TechnicalException ex) {
+            logger.error("An error occurs while trying to update subscription {}", subscriptionId, ex);
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to update subscription %s", subscriptionId),
+                ex
+            );
+        }
+    }
+
+    @Override
     public SubscriptionEntity update(UpdateSubscriptionEntity updateSubscription, String clientId) {
         try {
             logger.debug("Update subscription {}", updateSubscription.getId());
@@ -384,7 +414,8 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 subscription.setUpdatedAt(new Date());
                 subscription.setStartingAt(updateSubscription.getStartingAt());
                 subscription.setEndingAt(updateSubscription.getEndingAt());
-
+                // Reset info about pre expiration notification as the expiration date has changed
+                subscription.setDaysToExpirationOnLastNotification(null);
                 if (clientId != null) {
                     subscription.setClientId(clientId);
                 }
@@ -1148,6 +1179,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         entity.setClosedAt(subscription.getClosedAt());
         entity.setClientId(subscription.getClientId());
         entity.setPausedAt(subscription.getPausedAt());
+        entity.setDaysToExpirationOnLastNotification(subscription.getDaysToExpirationOnLastNotification());
 
         return entity;
     }

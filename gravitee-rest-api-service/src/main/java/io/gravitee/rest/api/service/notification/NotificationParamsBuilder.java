@@ -44,6 +44,7 @@ public class NotificationParamsBuilder {
     public static final String PARAM_TOKEN = "token";
     public static final String PARAM_REGISTRATION_URL = "registrationUrl";
     public static final String PARAM_EXPIRATION_DATE = "expirationDate";
+    public static final String PARAM_EXPIRATION_DELAY = "expirationDelay";
 
     public static final String REGISTRATION_PATH = "/#!/registration/confirm/";
     public static final String RESET_PASSWORD_PATH = "/#!/resetPassword/";

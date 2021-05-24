@@ -20,9 +20,11 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.*;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -376,6 +378,33 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
+    public ApiKeyEntity updateDaysToExpirationOnLastNotification(String apiKey, Integer value) {
+        try {
+            return apiKeyRepository
+                .findById(apiKey)
+                .map(
+                    dbApiKey -> {
+                        dbApiKey.setDaysToExpirationOnLastNotification(value);
+                        try {
+                            return apiKeyRepository.update(dbApiKey);
+                        } catch (TechnicalException ex) {
+                            LOGGER.error("An error occurs while trying to update dbApiKey {}", apiKey, ex);
+                            throw new TechnicalManagementException(
+                                String.format("An error occurs while trying to update dbApiKey %s", apiKey),
+                                ex
+                            );
+                        }
+                    }
+                )
+                .map(ApiKeyServiceImpl::convert)
+                .orElseThrow(ApiKeyNotFoundException::new);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to update apiKey {}", apiKey, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to update apiKey %s", apiKey), ex);
+        }
+    }
+
+    @Override
     public boolean exists(String apiKey) {
         LOGGER.debug("Check if an API Key exists by key: {}", apiKey);
         try {
@@ -383,6 +412,20 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while checking if API Key {} exists", apiKey, ex);
             throw new TechnicalManagementException(String.format("An error occurs while checking if API Key %s exists", apiKey), ex);
+        }
+    }
+
+    @Override
+    public Collection<ApiKeyEntity> search(ApiKeyQuery query) {
+        try {
+            LOGGER.debug("Search api keys {}", query);
+
+            ApiKeyCriteria.Builder builder = toApiKeyCriteriaBuilder(query);
+
+            return apiKeyRepository.findByCriteria(builder.build()).stream().map(ApiKeyServiceImpl::convert).collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to search api keys: {}", query, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to search api keys: {}", query), ex);
         }
     }
 
@@ -427,6 +470,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             ApiKey oldkey = new ApiKey(key);
             key.setExpireAt(expirationDate);
+            key.setDaysToExpirationOnLastNotification(null);
             apiKeyRepository.update(key);
 
             //notify
@@ -470,7 +514,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyEntity.setSubscription(apiKey.getSubscription());
         apiKeyEntity.setApplication(apiKey.getApplication());
         apiKeyEntity.setPlan(apiKey.getPlan());
+        apiKeyEntity.setDaysToExpirationOnLastNotification(apiKey.getDaysToExpirationOnLastNotification());
 
         return apiKeyEntity;
+    }
+
+    private ApiKeyCriteria.Builder toApiKeyCriteriaBuilder(ApiKeyQuery query) {
+        return new ApiKeyCriteria.Builder()
+            .includeRevoked(query.isIncludeRevoked())
+            .plans(query.getPlans())
+            .from(query.getFrom())
+            .to(query.getTo())
+            .expireAfter(query.getExpireAfter())
+            .expireBefore(query.getExpireBefore());
     }
 }

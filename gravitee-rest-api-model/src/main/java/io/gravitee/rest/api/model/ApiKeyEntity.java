@@ -51,6 +51,11 @@ public class ApiKeyEntity {
 
     private boolean expired;
 
+    /**
+     * Number of days before the expiration of this api key when the last pre-expiration notification was sent
+     */
+    private Integer daysToExpirationOnLastNotification;
+
     public String getKey() {
         return key;
     }
@@ -137,6 +142,14 @@ public class ApiKeyEntity {
 
     public void setExpired(boolean expired) {
         this.expired = expired;
+    }
+
+    public Integer getDaysToExpirationOnLastNotification() {
+        return daysToExpirationOnLastNotification;
+    }
+
+    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
+        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
     @Override

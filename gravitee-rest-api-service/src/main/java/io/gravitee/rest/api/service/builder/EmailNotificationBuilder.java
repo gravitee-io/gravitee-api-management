@@ -203,6 +203,11 @@ public class EmailNotificationBuilder {
             "passwordReset.html",
             "Password reset - ${user.displayName}"
         ),
+        TEMPLATES_FOR_ACTION_SUBSCRIPTION_PRE_EXPIRATION(
+            ActionHook.SUBSCRIPTION_PRE_EXPIRATION,
+            "subscriptionPreExpirationNotification.html",
+            "<#if apiKey??>API key of<#else>Subscription to</#if> ${api.name} will expire in ${expirationDelay} days!"
+        ),
         TEMPLATES_FOR_ACTION_GENERIC_MESSAGE(ActionHook.GENERIC_MESSAGE, "genericMessage.html", "${messageSubject}"),
         TEMPLATES_FOR_ALERT_CONSUMER_HTTP_STATUS(
             AlertHook.CONSUMER_HTTP_STATUS,
