@@ -29,11 +29,15 @@ public class ApiKeyCriteria {
 
     private final boolean includeRevoked;
 
+    private final long expireAfter, expireBefore;
+
     ApiKeyCriteria(ApiKeyCriteria.Builder builder) {
         this.from = builder.from;
         this.to = builder.to;
         this.plans = builder.plans;
         this.includeRevoked = builder.includeRevoked;
+        this.expireAfter = builder.expireAfter;
+        this.expireBefore = builder.expireBefore;
     }
 
     public Collection<String> getPlans() {
@@ -52,12 +56,22 @@ public class ApiKeyCriteria {
         return includeRevoked;
     }
 
+    public long getExpireAfter() {
+        return expireAfter;
+    }
+
+    public long getExpireBefore() {
+        return expireBefore;
+    }
+
     public static class Builder {
         private Collection<String> plans;
 
         private long from, to;
 
         private boolean includeRevoked;
+
+        private long expireAfter, expireBefore;
 
         public ApiKeyCriteria.Builder from(long from) {
             this.from = from;
@@ -76,6 +90,16 @@ public class ApiKeyCriteria {
 
         public ApiKeyCriteria.Builder includeRevoked(boolean include) {
             this.includeRevoked = include;
+            return this;
+        }
+
+        public ApiKeyCriteria.Builder expireAfter(long expireAtAfter) {
+            this.expireAfter = expireAtAfter;
+            return this;
+        }
+
+        public ApiKeyCriteria.Builder expireBefore(long expireAtBefore) {
+            this.expireBefore = expireAtBefore;
             return this;
         }
 
