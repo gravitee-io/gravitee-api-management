@@ -40,7 +40,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     public Page<ApiKeyMongo> search(ApiKeyCriteria filter) {
         Query query = new Query();
 
-        if (! filter.isIncludeRevoked()) {
+        if (!filter.isIncludeRevoked()) {
             query.addCriteria(Criteria.where("revoked").is(false));
         }
 
@@ -52,6 +52,22 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         if (filter.getFrom() != 0 && filter.getTo() != 0) {
             query.addCriteria(Criteria.where("updatedAt").gte(new Date(filter.getFrom())).lt(new Date(filter.getTo())));
         }
+
+        if (filter.getExpireAfter() > 0 || filter.getExpireBefore() > 0) {
+            // Need to mutualize the instantiation of this filter otherwise mongo driver is throwing an error, when
+            // using multiple `Criteria.where("expireAt").xxx` with the same query
+            Criteria expireAtCriteria = Criteria.where("expireAt");
+
+            if (filter.getExpireAfter() > 0) {
+                expireAtCriteria = expireAtCriteria.gte(new Date(filter.getExpireAfter()));
+            }
+            if (filter.getExpireBefore() > 0) {
+                expireAtCriteria = expireAtCriteria.lte(new Date(filter.getExpireBefore()));
+            }
+
+            query.addCriteria(expireAtCriteria);
+        }
+
 
         query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
 
