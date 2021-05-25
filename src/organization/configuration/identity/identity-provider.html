@@ -162,7 +162,7 @@
 
               <md-input-container class="md-block" flex-gt-sm>
                 <label>Organization Role</label>
-                <md-select multiple ng-model="mapping.organizations">
+                <md-select multiple ng-model="mapping.organizations" required>
                   <md-option ng-repeat="role in $ctrl.organizationRoles" ng-value="role.name"> {{role.name}} </md-option>
                 </md-select>
               </md-input-container>
@@ -187,6 +187,7 @@
                           class="inline-multiple-select"
                           multiple
                           ng-model="mapping.environments[environment.id]"
+                          required
                         >
                           <md-option ng-repeat="role in $ctrl.environmentRoles" ng-value="role.name">{{role.name}}</md-option>
                         </md-select>
