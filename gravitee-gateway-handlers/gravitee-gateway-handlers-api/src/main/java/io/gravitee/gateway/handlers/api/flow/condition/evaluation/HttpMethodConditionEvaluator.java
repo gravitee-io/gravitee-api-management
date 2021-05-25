@@ -30,7 +30,6 @@ public class HttpMethodConditionEvaluator implements ConditionEvaluator {
 
     @Override
     public boolean evaluate(Flow flow, ExecutionContext context) {
-        return flow.getMethods() == null || flow.getMethods().isEmpty() ||
-                flow.getMethods().contains(context.request().method());
+        return flow.getMethods() == null || flow.getMethods().isEmpty() || flow.getMethods().contains(context.request().method());
     }
 }

@@ -31,9 +31,7 @@ public class MockRepository implements Repository {
 
     @Override
     public Scope[] scopes() {
-        return new Scope[] {
-            Scope.MANAGEMENT
-        };
+        return new Scope[] { Scope.MANAGEMENT };
     }
 
     @Override

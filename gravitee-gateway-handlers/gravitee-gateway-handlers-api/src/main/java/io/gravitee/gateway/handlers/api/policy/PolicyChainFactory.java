@@ -24,12 +24,11 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
-
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,30 +40,37 @@ public class PolicyChainFactory {
     private PolicyManager policyManager;
 
     public StreamableProcessor<ExecutionContext, Buffer> create(
-            List<PolicyResolver.Policy> resolvedPolicies,
-            StreamType streamType,
-            ExecutionContext context) {
-
-        return create(resolvedPolicies, streamType, context, policies -> streamType == StreamType.ON_REQUEST ?
-                RequestPolicyChain.create(policies, context) :
-                ResponsePolicyChain.create(policies, context));
+        List<PolicyResolver.Policy> resolvedPolicies,
+        StreamType streamType,
+        ExecutionContext context
+    ) {
+        return create(
+            resolvedPolicies,
+            streamType,
+            context,
+            policies ->
+                streamType == StreamType.ON_REQUEST
+                    ? RequestPolicyChain.create(policies, context)
+                    : ResponsePolicyChain.create(policies, context)
+        );
     }
 
     public StreamableProcessor<ExecutionContext, Buffer> create(
-            List<PolicyResolver.Policy> resolvedPolicies,
-            StreamType streamType,
-            ExecutionContext context, Function<List<Policy>, StreamableProcessor<ExecutionContext, Buffer>> mapper) {
-
+        List<PolicyResolver.Policy> resolvedPolicies,
+        StreamType streamType,
+        ExecutionContext context,
+        Function<List<Policy>, StreamableProcessor<ExecutionContext, Buffer>> mapper
+    ) {
         if (resolvedPolicies.isEmpty()) {
             return new NoOpPolicyChain(context);
         }
 
-        final List<Policy> policies = resolvedPolicies.stream()
-                .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration()))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        final List<Policy> policies = resolvedPolicies
+            .stream()
+            .map(policy -> policyManager.create(streamType, policy.getName(), policy.getConfiguration()))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
         return mapper.apply(policies);
-
     }
 }

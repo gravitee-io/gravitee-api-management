@@ -59,11 +59,23 @@ public class ApiLoggableRequestProcessor extends LoggableRequestProcessor {
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.headers", scope.isResponse() && content.isHeaders());
             context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.payloads", scope.isResponse() && content.isPayloads());
 
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.request.headers", mode.isProxyMode() && scope.isRequest() && content.isHeaders());
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.request.payloads", mode.isProxyMode() && scope.isRequest() && content.isPayloads());
+            context.setAttribute(
+                ExecutionContext.ATTR_PREFIX + "logging.proxy.request.headers",
+                mode.isProxyMode() && scope.isRequest() && content.isHeaders()
+            );
+            context.setAttribute(
+                ExecutionContext.ATTR_PREFIX + "logging.proxy.request.payloads",
+                mode.isProxyMode() && scope.isRequest() && content.isPayloads()
+            );
 
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.response.headers", mode.isProxyMode() && scope.isResponse() && content.isHeaders());
-            context.setAttribute(ExecutionContext.ATTR_PREFIX + "logging.proxy.response.payloads", mode.isProxyMode() && scope.isResponse() && content.isPayloads());
+            context.setAttribute(
+                ExecutionContext.ATTR_PREFIX + "logging.proxy.response.headers",
+                mode.isProxyMode() && scope.isResponse() && content.isHeaders()
+            );
+            context.setAttribute(
+                ExecutionContext.ATTR_PREFIX + "logging.proxy.response.payloads",
+                mode.isProxyMode() && scope.isResponse() && content.isPayloads()
+            );
 
             return mode.isClientMode();
         }

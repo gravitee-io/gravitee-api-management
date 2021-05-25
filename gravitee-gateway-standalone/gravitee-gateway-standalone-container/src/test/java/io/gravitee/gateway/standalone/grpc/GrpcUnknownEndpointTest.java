@@ -27,14 +27,13 @@ import io.grpc.StatusRuntimeException;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.grpc.VertxChannelBuilder;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -55,25 +54,27 @@ public class GrpcUnknownEndpointTest extends AbstractGatewayTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         // Prepare gRPC Client
-        ManagedChannel channel = VertxChannelBuilder
-                .forAddress(vertx, "localhost", 8082)
-                .usePlaintext(true)
-                .build();
+        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext(true).build();
 
         // Get a stub to use for interacting with the remote service
         GreeterGrpc.GreeterVertxStub stub = GreeterGrpc.newVertxStub(channel);
 
-        io.gravitee.gateway.grpc.helloworld.HelloRequest request = io.gravitee.gateway.grpc.helloworld.HelloRequest.newBuilder().setName("David").build();
+        io.gravitee.gateway.grpc.helloworld.HelloRequest request = io.gravitee.gateway.grpc.helloworld.HelloRequest
+            .newBuilder()
+            .setName("David")
+            .build();
 
         // Call the remote service
-        stub.sayHello(request, ar -> {
+        stub.sayHello(
+            request,
+            ar -> {
+                Assert.assertFalse(ar.succeeded());
+                Assert.assertEquals(StatusRuntimeException.class, ar.cause().getClass());
+                Assert.assertEquals(Status.Code.UNAVAILABLE, ((StatusRuntimeException) ar.cause()).getStatus().getCode());
 
-            Assert.assertFalse(ar.succeeded());
-            Assert.assertEquals(StatusRuntimeException.class, ar.cause().getClass());
-            Assert.assertEquals(Status.Code.UNAVAILABLE, ((StatusRuntimeException) ar.cause()).getStatus().getCode());
-
-            latch.countDown();
-        });
+                latch.countDown();
+            }
+        );
 
         Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
         channel.shutdownNow();

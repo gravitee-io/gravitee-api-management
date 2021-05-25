@@ -15,6 +15,10 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
@@ -23,10 +27,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,10 +37,12 @@ public class CorsTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void preflight_request() throws Exception {
-        HttpResponse response = Request.Options("http://localhost:8082/test/my_team")
-                .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://localhost")
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Options("http://localhost:8082/test/my_team")
+            .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
+            .addHeader(HttpHeaders.ORIGIN, "http://localhost")
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -49,10 +51,12 @@ public class CorsTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void preflight_request_unauthorized() throws Exception {
-        HttpResponse response = Request.Options("http://localhost:8082/test/my_team")
-                .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://bad_host")
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Options("http://localhost:8082/test/my_team")
+            .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
+            .addHeader(HttpHeaders.ORIGIN, "http://bad_host")
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 
@@ -63,8 +67,7 @@ public class CorsTest extends AbstractWiremockGatewayTest {
     public void simple_request_no_origin() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
-                .execute().returnResponse();
+        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         assertNull(response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
@@ -76,9 +79,11 @@ public class CorsTest extends AbstractWiremockGatewayTest {
     public void simple_request_with_origin() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
-                .addHeader(HttpHeaders.ORIGIN, "http://localhost")
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Get("http://localhost:8082/test/my_team")
+            .addHeader(HttpHeaders.ORIGIN, "http://localhost")
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         assertEquals("*", response.getFirstHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN).getValue());

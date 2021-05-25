@@ -24,10 +24,9 @@ import io.gravitee.gateway.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.Arrays;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,11 +47,13 @@ public class ResponseProcessorChainFactory {
     private String port;
 
     public Processor<ExecutionContext> create() {
-        return new DefaultProcessorChain<>(Arrays.asList(
+        return new DefaultProcessorChain<>(
+            Arrays.asList(
                 new ResponseTimeProcessor(),
                 new ReporterProcessor(reporterService),
                 //TODO: apply alert processor only if one plugin is installed
                 new AlertProcessor(eventProducer, node, port)
-        ));
+            )
+        );
     }
 }

@@ -18,15 +18,14 @@ package io.gravitee.gateway.services.healthcheck.eval.assertion;
 import io.gravitee.el.spel.function.JsonPathFunction;
 import io.gravitee.gateway.services.healthcheck.eval.Evaluation;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.BeanUtils;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.SpelEvaluationException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,8 +48,7 @@ public class AssertionEvaluation implements Evaluation {
             final Expression expr = parser.parseExpression(assertion);
 
             final StandardEvaluationContext context = new StandardEvaluationContext();
-            context.registerFunction("jsonPath",
-                    BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
+            context.registerFunction("jsonPath", BeanUtils.resolveSignature("evaluate", JsonPathFunction.class));
             context.setVariables(variables);
 
             return expr.getValue(context, boolean.class);

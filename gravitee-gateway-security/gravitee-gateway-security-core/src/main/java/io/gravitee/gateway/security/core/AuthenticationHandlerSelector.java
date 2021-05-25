@@ -23,7 +23,6 @@ import io.gravitee.gateway.api.Request;
  */
 @FunctionalInterface
 public interface AuthenticationHandlerSelector {
-
     /**
      * Get an {@link AuthenticationHandler} from the incoming HTTP request.
      * @param request Incoming HTTP request.

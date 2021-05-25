@@ -27,8 +27,9 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractStreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>> extends AbstractProcessorChain<T, P>
-        implements StreamableProcessorChain<T, S, P> {
+public abstract class AbstractStreamableProcessorChain<T, S, P extends StreamableProcessor<T, S>>
+    extends AbstractProcessorChain<T, P>
+    implements StreamableProcessorChain<T, S, P> {
 
     private P streamableProcessorChain;
     private Handler<ProcessorFailure> streamErrorHandler;
@@ -54,19 +55,27 @@ public abstract class AbstractStreamableProcessorChain<T, S, P extends Streamabl
                 previousProcessor = processor;
 
                 processor
-                        .handler(__ -> handle(data))
-                        .errorHandler(failure -> errorHandler.handle(failure))
-                        .exitHandler(stream -> exitHandler.handle(null))
-                        .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
-                        .handle(data);
+                    .handler(__ -> handle(data))
+                    .errorHandler(failure -> errorHandler.handle(failure))
+                    .exitHandler(stream -> exitHandler.handle(null))
+                    .streamErrorHandler(failure -> streamErrorHandler.handle(failure))
+                    .handle(data);
             } catch (Exception ex) {
                 errorHandler.handle(new RuntimeProcessorFailure(ex.getMessage()));
             }
         } else {
             ReadWriteStream<S> tailPolicyStreamer = previousProcessor;
             if (streamableProcessorChain != null && tailPolicyStreamer != null) {
-                tailPolicyStreamer.bodyHandler(bodyPart -> {if (bodyHandler != null) bodyHandler.handle(bodyPart);});
-                tailPolicyStreamer.endHandler(result -> {if (endHandler != null) endHandler.handle(result);});
+                tailPolicyStreamer.bodyHandler(
+                    bodyPart -> {
+                        if (bodyHandler != null) bodyHandler.handle(bodyPart);
+                    }
+                );
+                tailPolicyStreamer.endHandler(
+                    result -> {
+                        if (endHandler != null) endHandler.handle(result);
+                    }
+                );
             }
 
             resultHandler.handle(data);

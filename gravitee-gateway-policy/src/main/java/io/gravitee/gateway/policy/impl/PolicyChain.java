@@ -28,19 +28,19 @@ import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyChainException;
 import io.gravitee.gateway.policy.impl.processor.PolicyChainProcessorFailure;
 import io.gravitee.policy.api.PolicyResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class PolicyChain extends BufferedReadWriteStream
-        implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<ExecutionContext, Buffer> {
+public abstract class PolicyChain
+    extends BufferedReadWriteStream
+    implements io.gravitee.policy.api.PolicyChain, StreamableProcessor<ExecutionContext, Buffer> {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -69,20 +69,18 @@ public abstract class PolicyChain extends BufferedReadWriteStream
             Policy policy = policyIterator.next();
             try {
                 if (policy.isRunnable()) {
-                    execute(
-                            policy,
-                            this,
-                            executionContext.request(),
-                            executionContext.response(),
-                            executionContext);
+                    execute(policy, this, executionContext.request(), executionContext.response(), executionContext);
                 } else {
                     doNext(executionContext.request(), executionContext.response());
                 }
             } catch (Exception ex) {
-                request.metrics().setMessage("An error occurs in policy[" + policy.id()+"] error["+Throwables.getStackTraceAsString(ex)+"]");
+                request
+                    .metrics()
+                    .setMessage("An error occurs in policy[" + policy.id() + "] error[" + Throwables.getStackTraceAsString(ex) + "]");
                 if (errorHandler != null) {
-                    errorHandler.handle(new PolicyChainProcessorFailure(PolicyResult.failure(
-                            GATEWAY_POLICY_INTERNAL_ERROR_KEY, ex.getMessage())));
+                    errorHandler.handle(
+                        new PolicyChainProcessorFailure(PolicyResult.failure(GATEWAY_POLICY_INTERNAL_ERROR_KEY, ex.getMessage()))
+                    );
                 }
             }
         } else {
@@ -129,6 +127,7 @@ public abstract class PolicyChain extends BufferedReadWriteStream
         return this;
     }
 
-    protected abstract void execute(Policy policy, Object ... args) throws PolicyChainException;
+    protected abstract void execute(Policy policy, Object... args) throws PolicyChainException;
+
     protected abstract Iterator<Policy> iterator();
 }

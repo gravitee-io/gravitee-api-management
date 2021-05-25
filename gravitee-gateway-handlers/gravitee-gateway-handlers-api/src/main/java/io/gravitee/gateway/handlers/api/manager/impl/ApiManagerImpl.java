@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.manager.impl;
 
+import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
+
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryEventType;
 import com.hazelcast.core.HazelcastInstance;
@@ -28,18 +30,15 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cluster.ClusterManager;
+import java.text.Collator;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.text.Collator;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -72,14 +71,16 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
     @Override
     public void onEntryEvent(EntryEvent<String, Api> event) {
         // Replication is only done for secondary nodes
-        if (! clusterManager.isMasterNode()) {
+        if (!clusterManager.isMasterNode()) {
             if (event.getEventType() == EntryEventType.ADDED) {
                 register(event.getValue());
             } else if (event.getEventType() == EntryEventType.UPDATED) {
                 register(event.getValue());
-            } else if (event.getEventType() == EntryEventType.REMOVED ||
-                    event.getEventType() == EntryEventType.EVICTED ||
-                    event.getEventType() == EntryEventType.EXPIRED) {
+            } else if (
+                event.getEventType() == EntryEventType.REMOVED ||
+                event.getEventType() == EntryEventType.EVICTED ||
+                event.getEventType() == EntryEventType.EXPIRED
+            ) {
                 unregister(event.getKey());
             }
         }
@@ -96,20 +97,29 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
         if (hasMatchingTags(api.getTags())) {
             // API to deploy
             api.setPlans(
-                    api.getPlans()
-                            .stream()
-                            .filter(new Predicate<Plan>() {
-                                @Override
-                                public boolean test(Plan plan) {
-                                    if (plan.getTags() != null && ! plan.getTags().isEmpty()) {
-                                        boolean hasMatchingTags = hasMatchingTags(plan.getTags());
-                                        logger.debug("Plan name[{}] api[{}] has been ignored because not in configured sharding tags", plan.getName(), api.getName());
-                                        return hasMatchingTags;
-                                    }
-
-                                    return true;
+                api
+                    .getPlans()
+                    .stream()
+                    .filter(
+                        new Predicate<Plan>() {
+                            @Override
+                            public boolean test(Plan plan) {
+                                if (plan.getTags() != null && !plan.getTags().isEmpty()) {
+                                    boolean hasMatchingTags = hasMatchingTags(plan.getTags());
+                                    logger.debug(
+                                        "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
+                                        plan.getName(),
+                                        api.getName()
+                                    );
+                                    return hasMatchingTags;
                                 }
-                            }).collect(Collectors.toList()));
+
+                                return true;
+                            }
+                        }
+                    )
+                    .collect(Collectors.toList())
+            );
 
             // API is not yet deployed, so let's do it !
             if (deployedApi == null || force) {
@@ -178,7 +188,7 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
         if (!api.getPlans().isEmpty() || !planRequired(api)) {
             logger.info("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
-            for(Plan plan: api.getPlans()) {
+            for (Plan plan : api.getPlans()) {
                 logger.info("\t- {}", plan.getName());
             }
 
@@ -210,37 +220,56 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
         if (optTagList.isPresent()) {
             List<String> tagList = optTagList.get();
             if (tags != null) {
-                final List<String> inclusionTags = tagList.stream()
-                        .map(String::trim)
-                        .filter(tag -> !tag.startsWith("!"))
-                        .collect(Collectors.toList());
+                final List<String> inclusionTags = tagList
+                    .stream()
+                    .map(String::trim)
+                    .filter(tag -> !tag.startsWith("!"))
+                    .collect(Collectors.toList());
 
-                final List<String> exclusionTags = tagList.stream()
-                        .map(String::trim)
-                        .filter(tag -> tag.startsWith("!"))
-                        .map(tag -> tag.substring(1))
-                        .collect(Collectors.toList());
+                final List<String> exclusionTags = tagList
+                    .stream()
+                    .map(String::trim)
+                    .filter(tag -> tag.startsWith("!"))
+                    .map(tag -> tag.substring(1))
+                    .collect(Collectors.toList());
 
                 if (inclusionTags.stream().anyMatch(exclusionTags::contains)) {
                     throw new IllegalArgumentException("You must not configure a tag to be included and excluded");
                 }
 
-                return inclusionTags.stream()
-                        .anyMatch(tag -> tags.stream()
-                                .anyMatch(crtTag -> {
-                                    final Collator collator = Collator.getInstance();
-                                    collator.setStrength(Collator.NO_DECOMPOSITION);
-                                    return collator.compare(tag, crtTag) == 0;
-                                })
-                        ) || (!exclusionTags.isEmpty() &&
-                        exclusionTags.stream()
-                                .noneMatch(tag -> tags.stream()
-                                        .anyMatch(crtTag -> {
+                return (
+                    inclusionTags
+                        .stream()
+                        .anyMatch(
+                            tag ->
+                                tags
+                                    .stream()
+                                    .anyMatch(
+                                        crtTag -> {
                                             final Collator collator = Collator.getInstance();
                                             collator.setStrength(Collator.NO_DECOMPOSITION);
                                             return collator.compare(tag, crtTag) == 0;
-                                        })
-                                ));
+                                        }
+                                    )
+                        ) ||
+                    (
+                        !exclusionTags.isEmpty() &&
+                        exclusionTags
+                            .stream()
+                            .noneMatch(
+                                tag ->
+                                    tags
+                                        .stream()
+                                        .anyMatch(
+                                            crtTag -> {
+                                                final Collator collator = Collator.getInstance();
+                                                collator.setStrength(Collator.NO_DECOMPOSITION);
+                                                return collator.compare(tag, crtTag) == 0;
+                                            }
+                                        )
+                            )
+                    )
+                );
             }
         }
 

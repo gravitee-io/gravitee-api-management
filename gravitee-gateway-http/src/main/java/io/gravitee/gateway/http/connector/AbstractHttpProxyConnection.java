@@ -35,8 +35,7 @@ public abstract class AbstractHttpProxyConnection implements ProxyConnection {
         this.endpoint = endpoint;
     }
 
-    public abstract ProxyConnection connect(
-            HttpClient httpClient, int port, String host, String uri, Handler<Void> tracker);
+    public abstract ProxyConnection connect(HttpClient httpClient, int port, String host, String uri, Handler<Void> tracker);
 
     protected void sendToClient(ProxyResponse proxyResponse) {
         this.responseHandler.handle(proxyResponse);

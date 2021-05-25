@@ -36,7 +36,7 @@ public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
             add(() -> new PathMappingProcessor(api.getPathMappings()));
         }
 
-        if (api.getResponseTemplates() != null && ! api.getResponseTemplates().isEmpty()) {
+        if (api.getResponseTemplates() != null && !api.getResponseTemplates().isEmpty()) {
             add(() -> new ResponseTemplateBasedFailureProcessor(api.getResponseTemplates()));
         } else {
             add(SimpleFailureProcessor::new);

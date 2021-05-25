@@ -35,10 +35,8 @@ public abstract class AbstractPolicy implements Policy {
         this.onRequest(request, response, policyChain, executionContext);
     }
 
-    protected void onRequest(Request request, Response response, PolicyChain policyChain,
-                             ExecutionContext executionContext) throws PolicyException {
-
-    }
+    protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext)
+        throws PolicyException {}
 
     public void onResponse(Object... args) throws PolicyException {
         ExecutionContext executionContext = getParameterAssignableTo(ExecutionContext.class, args);
@@ -49,13 +47,11 @@ public abstract class AbstractPolicy implements Policy {
         this.onResponse(request, response, policyChain, executionContext);
     }
 
-    protected void onResponse(Request request, Response response, PolicyChain policyChain,
-                              ExecutionContext executionContext) throws PolicyException {
+    protected void onResponse(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext)
+        throws PolicyException {}
 
-    }
-
-    protected <T> T getParameterAssignableTo(Class<T> paramType, Object ... args) {
-        for(Object arg: args) {
+    protected <T> T getParameterAssignableTo(Class<T> paramType, Object... args) {
+        for (Object arg : args) {
             if (paramType.isAssignableFrom(arg.getClass())) {
                 return (T) arg;
             }

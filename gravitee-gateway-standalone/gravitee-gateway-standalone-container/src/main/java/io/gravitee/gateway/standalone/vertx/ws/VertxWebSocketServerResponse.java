@@ -32,7 +32,6 @@ public class VertxWebSocketServerResponse extends VertxHttpServerResponse {
 
     VertxWebSocketServerResponse(final VertxHttpServerRequest request) {
         super(request);
-
         this.request = request;
     }
 
@@ -41,7 +40,7 @@ public class VertxWebSocketServerResponse extends VertxHttpServerResponse {
         WebSocket websocket = request.websocket();
 
         // HTTP request has not been upgraded to WS connection, so it is a normal / plain HTTP response
-        if (! websocket.upgraded()) {
+        if (!websocket.upgraded()) {
             super.end();
         }
     }

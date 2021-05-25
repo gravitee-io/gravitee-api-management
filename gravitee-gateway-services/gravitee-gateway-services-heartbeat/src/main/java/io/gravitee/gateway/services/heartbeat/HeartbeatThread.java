@@ -17,10 +17,9 @@ package io.gravitee.gateway.services.heartbeat;
 
 import com.hazelcast.collection.IQueue;
 import io.gravitee.repository.management.model.Event;
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,8 +44,7 @@ public class HeartbeatThread implements Runnable {
         try {
             // Update heartbeat timestamp
             event.setUpdatedAt(new Date());
-            event.getProperties().put(HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY,
-                    Long.toString(event.getUpdatedAt().getTime()));
+            event.getProperties().put(HeartbeatService.EVENT_LAST_HEARTBEAT_PROPERTY, Long.toString(event.getUpdatedAt().getTime()));
             queue.add(event);
         } catch (Exception ex) {
             LOGGER.error("An unexpected error occurs while monitoring the gateway", ex);

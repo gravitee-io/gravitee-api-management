@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyChainException;
 import io.gravitee.gateway.policy.PolicyException;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -59,13 +58,19 @@ public class ResponsePolicyChain extends StreamablePolicyChain {
         final ListIterator<Policy> listIterator = policies.listIterator(policies.size());
         return new Iterator<Policy>() {
             @Override
-            public boolean hasNext() { return listIterator.hasPrevious(); }
+            public boolean hasNext() {
+                return listIterator.hasPrevious();
+            }
 
             @Override
-            public Policy next() { return listIterator.previous(); }
+            public Policy next() {
+                return listIterator.previous();
+            }
 
             @Override
-            public void remove() { listIterator.remove(); }
+            public void remove() {
+                listIterator.remove();
+            }
         };
     }
 }

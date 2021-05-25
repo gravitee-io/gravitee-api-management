@@ -18,12 +18,11 @@ package io.gravitee.gateway.dictionary;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.dictionary.model.Dictionary;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,7 +47,7 @@ public class DictionaryTemplateProvider implements DictionaryManager, TemplateVa
             if (dictionary.getProperties() == null) {
                 dictionary.setProperties(Collections.emptyMap());
             }
-            
+
             LOGGER.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
             dictionaries.put(dictionary.getId(), dictionary);
             values.put(dictionary.getId(), dictionary.getProperties());

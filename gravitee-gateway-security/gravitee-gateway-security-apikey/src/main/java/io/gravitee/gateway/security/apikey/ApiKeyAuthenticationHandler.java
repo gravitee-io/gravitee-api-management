@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.security.apikey;
 
+import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
+
 import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -26,18 +28,15 @@ import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
 
 /**
  * An api-key based {@link AuthenticationHandler}.
@@ -51,10 +50,9 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
 
     static final String API_KEY_POLICY = "api-key";
 
-    private final static String APIKEY_CONTEXT_ATTRIBUTE = "apikey";
+    private static final String APIKEY_CONTEXT_ATTRIBUTE = "apikey";
 
-    private final static List<AuthenticationPolicy> POLICIES = Collections.singletonList(
-            (PluginAuthenticationPolicy) () -> API_KEY_POLICY);
+    private static final List<AuthenticationPolicy> POLICIES = Collections.singletonList((PluginAuthenticationPolicy) () -> API_KEY_POLICY);
 
     @Value("${policy.api-key.header:" + GraviteeHttpHeader.X_GRAVITEE_API_KEY + "}")
     private String apiKeyHeader = GraviteeHttpHeader.X_GRAVITEE_API_KEY;
@@ -79,7 +77,6 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
         if (apiKey == null) {
             return false;
         }
-
 
         if (apiKeyRepository != null) {
             // Get the api-key from the repository if not present in the context

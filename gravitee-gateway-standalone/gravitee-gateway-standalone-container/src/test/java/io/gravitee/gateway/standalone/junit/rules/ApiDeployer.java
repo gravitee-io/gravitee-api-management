@@ -37,7 +37,7 @@ public class ApiDeployer implements TestRule {
     public Statement apply(Statement base, Description description) {
         Statement result;
 
-        if(hasAnnotation(description)) {
+        if (hasAnnotation(description)) {
             result = new ApiDeployerStatement(base, target);
         } else {
             result = base;

@@ -21,7 +21,6 @@ import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.PathParam;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.netty.handler.codec.http.QueryStringDecoder;
-
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,13 +35,13 @@ import java.util.regex.Pattern;
  */
 public abstract class AbstractPathResolver implements PathResolver {
 
-    private final static String URL_PATH_SEPARATOR = "/";
-    private final static String PATH_PARAM_PREFIX = ":";
-    private final static String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
+    private static final String URL_PATH_SEPARATOR = "/";
+    private static final String PATH_PARAM_PREFIX = ":";
+    private static final String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
 
     private final List<Path> registeredPaths = new ArrayList<>();
 
-    private final static Path UNKNOWN_PATH = new Path() {
+    private static final Path UNKNOWN_PATH = new Path() {
         @Override
         public String getPath() {
             return null;
@@ -64,14 +63,13 @@ public abstract class AbstractPathResolver implements PathResolver {
 
         try {
             path = QueryStringDecoder.decodeComponent(path, Charset.defaultCharset());
-        } catch (IllegalArgumentException iae) {
-        }
+        } catch (IllegalArgumentException iae) {}
 
         int pieces = -1;
         Path bestPath = null;
 
         // TODO PERF: We must navigate from the longest path to the shortest to avoid counting pieces.
-        for(Path registerPath : registeredPaths) {
+        for (Path registerPath : registeredPaths) {
             if (registerPath.getPattern().matcher(path).lookingAt()) {
                 int split = registerPath.getPath().split(URL_PATH_SEPARATOR).length;
                 if (split > pieces) {
@@ -81,21 +79,20 @@ public abstract class AbstractPathResolver implements PathResolver {
             }
         }
 
-        return ( bestPath != null ) ? bestPath : UNKNOWN_PATH;
+        return (bestPath != null) ? bestPath : UNKNOWN_PATH;
     }
 
     protected void register(Path path) {
-        String [] branches = path.getPath().split(URL_PATH_SEPARATOR);
+        String[] branches = path.getPath().split(URL_PATH_SEPARATOR);
         StringBuilder buffer = new StringBuilder(URL_PATH_SEPARATOR);
         List<PathParam> parameters = new ArrayList<>();
 
-        for (int i = 0 ; i < branches.length ; i++) {
+        for (int i = 0; i < branches.length; i++) {
             final String branch = branches[i];
             if (!branch.isEmpty()) {
                 if (branch.startsWith(PATH_PARAM_PREFIX)) {
                     buffer.append(PATH_PARAM_REGEX);
-                    parameters.add(new PathParam(
-                            branch.substring(PATH_PARAM_PREFIX.length()), i));
+                    parameters.add(new PathParam(branch.substring(PATH_PARAM_PREFIX.length()), i));
                 } else {
                     buffer.append(branch);
                 }

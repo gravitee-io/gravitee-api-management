@@ -321,6 +321,6 @@ public class VertxHttpServerConfiguration implements InitializingBean {
         /**
          * Require client to present authentication, if not presented then negotiations will be declined.
          */
-        REQUIRED
+        REQUIRED,
     }
 }

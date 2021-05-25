@@ -24,7 +24,6 @@ import io.gravitee.gateway.api.Request;
  * @author GraviteeSource Team
  */
 public interface Entrypoint {
-
     /**
      * Listening path.
      *

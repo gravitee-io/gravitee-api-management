@@ -34,7 +34,6 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.*;
-
 import java.net.URI;
 
 /**
@@ -57,7 +56,11 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     }
 
     @Override
-    protected HttpClientRequest createHttpClientRequest(final HttpClient httpClient, URI request, io.gravitee.definition.model.services.healthcheck.Step step) throws Exception {
+    protected HttpClientRequest createHttpClientRequest(
+        final HttpClient httpClient,
+        URI request,
+        io.gravitee.definition.model.services.healthcheck.Step step
+    ) throws Exception {
         HttpClientRequest httpClientRequest = super.createHttpClientRequest(httpClient, request, step);
 
         // Set timeout on request
@@ -71,16 +74,13 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     @Override
     protected HttpClientOptions createHttpClientOptions(final URI requestUri) throws Exception {
         // Prepare HTTP client
-        HttpClientOptions httpClientOptions = new HttpClientOptions()
-                .setMaxPoolSize(1)
-                .setKeepAlive(false)
-                .setTcpKeepAlive(false);
+        HttpClientOptions httpClientOptions = new HttpClientOptions().setMaxPoolSize(1).setKeepAlive(false).setTcpKeepAlive(false);
 
         if (endpoint.getHttpClientOptions() != null) {
             httpClientOptions
-                    .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
-                    .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
-                    .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
+                .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
+                .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
+                .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
 
             if (endpoint.getHttpClientOptions().getVersion() == ProtocolVersion.HTTP_2) {
                 httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2);
@@ -96,7 +96,8 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
             if (proxy.isUseSystemProxy() && this.systemProxyOptions != null) {
                 proxyOptions = this.systemProxyOptions;
             } else {
-                proxyOptions = new ProxyOptions()
+                proxyOptions =
+                    new ProxyOptions()
                         .setHost(proxy.getHost())
                         .setPort(proxy.getPort())
                         .setUsername(proxy.getUsername())
@@ -108,17 +109,16 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
 
         HttpClientSslOptions sslOptions = endpoint.getHttpClientSslOptions();
 
-        if (HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme()) ||
-                WSS_SCHEME.equalsIgnoreCase(requestUri.getScheme()) ||
-                GRPCS_SCHEME.equalsIgnoreCase(requestUri.getScheme())) {
+        if (
+            HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme()) ||
+            WSS_SCHEME.equalsIgnoreCase(requestUri.getScheme()) ||
+            GRPCS_SCHEME.equalsIgnoreCase(requestUri.getScheme())
+        ) {
             // Configure SSL
-            httpClientOptions.setSsl(true)
-                    .setUseAlpn(true);
+            httpClientOptions.setSsl(true).setUseAlpn(true);
 
             if (sslOptions != null) {
-                httpClientOptions
-                        .setVerifyHost(sslOptions.isHostnameVerifier())
-                        .setTrustAll(sslOptions.isTrustAll());
+                httpClientOptions.setVerifyHost(sslOptions.isHostnameVerifier()).setTrustAll(sslOptions.isTrustAll());
 
                 // Client trust configuration
                 if (!sslOptions.isTrustAll() && sslOptions.getTrustStore() != null) {

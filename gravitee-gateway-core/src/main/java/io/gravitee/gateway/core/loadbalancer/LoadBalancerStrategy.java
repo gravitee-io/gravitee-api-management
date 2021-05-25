@@ -23,7 +23,6 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
  */
 @FunctionalInterface
 public interface LoadBalancerStrategy {
-
     /**
      * Select next endpoint and return the endpoint name.
      * If no endpoint can be selected (no endpoint with the UP state), the value

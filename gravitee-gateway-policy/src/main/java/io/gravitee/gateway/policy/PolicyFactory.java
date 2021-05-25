@@ -22,6 +22,5 @@ import io.gravitee.policy.api.PolicyConfiguration;
  * @author GraviteeSource Team
  */
 public interface PolicyFactory {
-
     Object create(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration);
 }

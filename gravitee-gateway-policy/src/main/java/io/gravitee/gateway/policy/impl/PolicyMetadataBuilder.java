@@ -23,7 +23,6 @@ import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.policy.api.annotations.OnResponseContent;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -110,10 +109,10 @@ public class PolicyMetadataBuilder {
 
             @Override
             public boolean accept(StreamType stream) {
-                return (stream == StreamType.ON_REQUEST &&
-                        (method(OnRequest.class) != null || method(OnRequestContent.class) != null)) ||
-                        (stream == StreamType.ON_RESPONSE && (
-                                method(OnResponse.class) != null || method(OnResponseContent.class) != null));
+                return (
+                    (stream == StreamType.ON_REQUEST && (method(OnRequest.class) != null || method(OnRequestContent.class) != null)) ||
+                    (stream == StreamType.ON_RESPONSE && (method(OnResponse.class) != null || method(OnResponseContent.class) != null))
+                );
             }
         };
     }

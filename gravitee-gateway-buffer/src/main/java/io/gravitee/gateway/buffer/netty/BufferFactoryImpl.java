@@ -22,7 +22,8 @@ import io.gravitee.gateway.api.buffer.BufferFactory;
  * @author David BRASSELY (david at gravitee.io)
  * @author GraviteeSource Team
  */
-public class BufferFactoryImpl implements BufferFactory  {
+public class BufferFactoryImpl implements BufferFactory {
+
     @Override
     public Buffer buffer(int initialSizeHint) {
         return new BufferImpl(initialSizeHint);

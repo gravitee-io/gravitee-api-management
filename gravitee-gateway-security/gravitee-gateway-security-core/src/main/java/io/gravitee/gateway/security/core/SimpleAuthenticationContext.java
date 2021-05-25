@@ -16,7 +16,6 @@
 package io.gravitee.gateway.security.core;
 
 import io.gravitee.gateway.api.Request;
-
 import java.util.HashMap;
 import java.util.Map;
 

@@ -18,13 +18,12 @@ package io.gravitee.gateway.reactor.handler.impl;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,8 +56,12 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         handlers.put(handler.reactable(), handler);
 
         // Associate the handler to the entrypoints
-        List<HandlerEntrypoint> reactableEntrypoints = handler.reactable()
-                .entrypoints().stream().map(new Function<Entrypoint, HandlerEntrypoint>() {
+        List<HandlerEntrypoint> reactableEntrypoints = handler
+            .reactable()
+            .entrypoints()
+            .stream()
+            .map(
+                new Function<Entrypoint, HandlerEntrypoint>() {
                     @Override
                     public HandlerEntrypoint apply(Entrypoint entrypoint) {
                         return new HandlerEntrypoint() {
@@ -83,7 +86,9 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                             }
                         };
                     }
-                }).collect(Collectors.toList());
+                }
+            )
+            .collect(Collectors.toList());
 
         entrypointByReactable.put(handler.reactable(), reactableEntrypoints);
         registeredEntrypoints.addAll(reactableEntrypoints);
@@ -146,7 +151,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     @Override
     public void clear() {
         Iterator<Map.Entry<Reactable, ReactorHandler>> reactableIte = handlers.entrySet().iterator();
-        while(reactableIte.hasNext()) {
+        while (reactableIte.hasNext()) {
             remove(reactableIte.next().getKey(), reactableIte.next().getValue(), false);
             reactableIte.remove();
         }

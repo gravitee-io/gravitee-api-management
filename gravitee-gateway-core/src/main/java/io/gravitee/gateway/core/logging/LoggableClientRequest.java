@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.logging;
 
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -24,8 +26,6 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.reporter.api.log.Log;
-
-import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -55,33 +55,36 @@ public class LoggableClientRequest extends RequestWrapper {
         if (LoggingUtils.isRequestHeadersLoggable(context)) {
             log.getClientRequest().setHeaders(new HttpHeaders(this.headers()));
         }
-
     }
 
     @Override
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-        request.bodyHandler(chunk -> {
-            if (buffer == null) {
-                buffer = Buffer.buffer();
-                isContentTypeLoggable = isContentTypeLoggable(request.headers().contentType(), context);
+        request.bodyHandler(
+            chunk -> {
+                if (buffer == null) {
+                    buffer = Buffer.buffer();
+                    isContentTypeLoggable = isContentTypeLoggable(request.headers().contentType(), context);
+                }
+                bodyHandler.handle(chunk);
+                if (isContentTypeLoggable && LoggingUtils.isRequestPayloadsLoggable(context)) {
+                    appendLog(buffer, chunk);
+                }
             }
-            bodyHandler.handle(chunk);
-            if (isContentTypeLoggable && LoggingUtils.isRequestPayloadsLoggable(context)) {
-                appendLog(buffer, chunk);
-            }
-        });
+        );
         return this;
     }
 
     @Override
     public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-        request.endHandler(result -> {
-            if (buffer != null) {
-                log.getClientRequest().setBody(buffer.toString());
-            }
+        request.endHandler(
+            result -> {
+                if (buffer != null) {
+                    log.getClientRequest().setBody(buffer.toString());
+                }
 
-            endHandler.handle(result);
-        });
+                endHandler.handle(result);
+            }
+        );
 
         return this;
     }

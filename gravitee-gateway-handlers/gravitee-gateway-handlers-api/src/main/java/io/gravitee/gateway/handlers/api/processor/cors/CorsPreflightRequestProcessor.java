@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,7 +41,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         if (isPreflightRequest(context.request())) {
             handlePreflightRequest(context.request(), context.response());
             // If we don't want to run policies, exit request processing
-            if (! cors.isRunPolicies()) {
+            if (!cors.isRunPolicies()) {
                 exitHandler.handle(null);
             } else {
                 context.setAttribute("skip-security-chain", true);
@@ -70,7 +69,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         // 2. If the value of the Origin header is not a case-sensitive match for any of the values in list of
         //  origins, do not set any additional headers and terminate this set of steps.
         String originHeader = request.headers().getFirst(HttpHeaders.ORIGIN);
-        if (! isOriginAllowed(originHeader)) {
+        if (!isOriginAllowed(originHeader)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
             request.metrics().setMessage(String.format("Origin '%s' is not allowed", originHeader));
             return;
@@ -80,7 +79,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         // If there is no Access-Control-Request-Method header or if parsing failed, do not set any additional
         //  headers and terminate this set of steps. The request is outside the scope of this specification.
         String accessControlRequestMethod = request.headers().getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
-        if (! isRequestMethodsValid(accessControlRequestMethod)) {
+        if (!isRequestMethodsValid(accessControlRequestMethod)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
             request.metrics().setMessage(String.format("Request method '%s' is not allowed", accessControlRequestMethod));
             return;
@@ -88,7 +87,7 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
 
         // 4.Let header field-names be the values as result of parsing the Access-Control-Request-Headers headers.
         String accessControlRequestHeaders = request.headers().getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
-        if (! isRequestHeadersValid(accessControlRequestHeaders)) {
+        if (!isRequestHeadersValid(accessControlRequestHeaders)) {
             response.status(Cors.DEFAULT_ERROR_STATUS_CODE);
             request.metrics().setMessage(String.format("Request headers '%s' are not valid", accessControlRequestHeaders));
             return;
@@ -100,10 +99,8 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         // Otherwise, add a single Access-Control-Allow-Origin header, with either the value of the Origin header or
         // the string "*" as value.
         if (cors.isAccessControlAllowCredentials()) {
-            response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS,
-                    Boolean.TRUE.toString());
-            response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
-                    request.headers().getFirst(HttpHeaders.ORIGIN));
+            response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE.toString());
+            response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, request.headers().getFirst(HttpHeaders.ORIGIN));
         } else {
             response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, ALLOW_ORIGIN_PUBLIC_WILDCARD);
         }
@@ -111,22 +108,23 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
         // 8. Optionally add a single Access-Control-Max-Age header with as value the amount of seconds the user agent
         // is allowed to cache the result of the request.
         if (cors.getAccessControlMaxAge() > -1) {
-            response.headers().set(HttpHeaders.ACCESS_CONTROL_MAX_AGE,
-                    Integer.toString(cors.getAccessControlMaxAge()));
+            response.headers().set(HttpHeaders.ACCESS_CONTROL_MAX_AGE, Integer.toString(cors.getAccessControlMaxAge()));
         }
 
         // 9. If method is a simple method this step may be skipped.
         // Add one or more Access-Control-Allow-Methods headers consisting of (a subset of) the list of methods.
-        response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
-                cors.getAccessControlAllowMethods()
-                        .stream()
-                        .map(String::toUpperCase)
-                        .collect(Collectors.joining(JOINER_CHAR_SEQUENCE)));
+        response
+            .headers()
+            .set(
+                HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS,
+                cors.getAccessControlAllowMethods().stream().map(String::toUpperCase).collect(Collectors.joining(JOINER_CHAR_SEQUENCE))
+            );
 
         // 10. If each of the header field-names is a simple header and none is Content-Type, this step may be skipped.
         // Add one or more Access-Control-Allow-Headers headers consisting of (a subset of) the list of headers.
-        response.headers().set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS,
-                String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
+        response
+            .headers()
+            .set(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, String.join(JOINER_CHAR_SEQUENCE, cors.getAccessControlAllowHeaders()));
 
         response.status(HttpStatusCode.OK_200);
     }
@@ -140,34 +138,35 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     }
 
     private boolean isRequestValid(String incoming, Set<String> configuredValues, boolean required) {
-        String [] inputs = splitAndTrim(incoming, ",");
+        String[] inputs = splitAndTrim(incoming, ",");
         if ((inputs == null || (inputs.length == 1 && inputs[0].isEmpty()))) {
             return true;
         }
-        return (inputs == null && (configuredValues == null || configuredValues.isEmpty())) ||
-                (inputs != null && containsAll(configuredValues, inputs));
+        return (
+            (inputs == null && (configuredValues == null || configuredValues.isEmpty())) ||
+            (inputs != null && containsAll(configuredValues, inputs))
+        );
     }
 
     private static String[] splitAndTrim(String value, String regex) {
-        if (value == null)
-            return null;
+        if (value == null) return null;
 
-        String [] values = value.split(regex);
-        String [] ret = new String[values.length];
-        for (int i = 0 ; i < values.length ; i++) {
+        String[] values = value.split(regex);
+        String[] ret = new String[values.length];
+        for (int i = 0; i < values.length; i++) {
             ret[i] = values[i].trim();
         }
 
         return ret;
     }
 
-    private static boolean containsAll(Collection<String> col, String [] values) {
+    private static boolean containsAll(Collection<String> col, String[] values) {
         if (col == null) {
             return false;
         }
 
-        for (String val: values) {
-            if (! col.contains(val)) {
+        for (String val : values) {
+            if (!col.contains(val)) {
                 return false;
             }
         }
@@ -178,8 +177,6 @@ public class CorsPreflightRequestProcessor extends CorsRequestProcessor {
     private boolean isPreflightRequest(Request request) {
         String originHeader = request.headers().getFirst(HttpHeaders.ORIGIN);
         String accessControlRequestMethod = request.headers().getFirst(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
-        return request.method() == HttpMethod.OPTIONS &&
-                originHeader != null &&
-                accessControlRequestMethod != null;
+        return request.method() == HttpMethod.OPTIONS && originHeader != null && accessControlRequestMethod != null;
     }
 }

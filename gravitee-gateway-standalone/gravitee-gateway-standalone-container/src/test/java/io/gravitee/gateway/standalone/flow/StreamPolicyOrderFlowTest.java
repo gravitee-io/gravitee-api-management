@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.flow;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.flow.policy.Stream1Policy;
@@ -27,9 +30,6 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,8 +44,7 @@ public class StreamPolicyOrderFlowTest extends AbstractWiremockGatewayTest {
 
         final HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
 
-        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team"))
-                .withRequestBody(equalTo("OnRequestContent2Policy")));
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withRequestBody(equalTo("OnRequestContent2Policy")));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
 

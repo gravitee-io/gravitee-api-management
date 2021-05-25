@@ -19,7 +19,6 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -33,10 +32,10 @@ import java.util.regex.Pattern;
  */
 public class PathBasedConditionEvaluator implements ConditionEvaluator {
 
-    private final static char OPTIONAL_TRAILING_SEPARATOR = '?';
-    private final static String PATH_SEPARATOR = "/";
-    private final static String PATH_PARAM_PREFIX = ":";
-    private final static String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
+    private static final char OPTIONAL_TRAILING_SEPARATOR = '?';
+    private static final String PATH_SEPARATOR = "/";
+    private static final String PATH_PARAM_PREFIX = ":";
+    private static final String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
 
     private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
@@ -44,13 +43,13 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator {
     public boolean evaluate(Flow flow, ExecutionContext context) {
         Pattern pattern = cache.computeIfAbsent(flow.getPath(), this::transform);
 
-        return (flow.getOperator() == Operator.EQUALS) ?
-                pattern.matcher(context.request().pathInfo()).matches() :
-                pattern.matcher(context.request().pathInfo()).lookingAt();
+        return (flow.getOperator() == Operator.EQUALS)
+            ? pattern.matcher(context.request().pathInfo()).matches()
+            : pattern.matcher(context.request().pathInfo()).lookingAt();
     }
 
     private Pattern transform(String path) {
-        String [] branches = path.split(PATH_SEPARATOR);
+        String[] branches = path.split(PATH_SEPARATOR);
         StringBuilder buffer = new StringBuilder(PATH_SEPARATOR);
 
         for (final String branch : branches) {
@@ -70,5 +69,4 @@ public class PathBasedConditionEvaluator implements ConditionEvaluator {
 
         return Pattern.compile(buffer.toString());
     }
-
 }

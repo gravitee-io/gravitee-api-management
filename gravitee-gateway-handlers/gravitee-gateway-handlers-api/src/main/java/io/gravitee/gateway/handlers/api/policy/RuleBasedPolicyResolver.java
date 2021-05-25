@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.policy;
 
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,11 +28,12 @@ import java.util.stream.Collectors;
 public abstract class RuleBasedPolicyResolver implements PolicyResolver {
 
     protected List<Policy> resolve(ExecutionContext context, List<Rule> rules) {
-        if (rules != null && ! rules.isEmpty()) {
-            return rules.stream()
-                    .filter(rule -> rule.isEnabled() && rule.getMethods().contains(context.request().method()))
-                    .map(rule -> new Policy(rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
-                    .collect(Collectors.toList());
+        if (rules != null && !rules.isEmpty()) {
+            return rules
+                .stream()
+                .filter(rule -> rule.isEnabled() && rule.getMethods().contains(context.request().method()))
+                .map(rule -> new Policy(rule.getPolicy().getName(), rule.getPolicy().getConfiguration()))
+                .collect(Collectors.toList());
         }
 
         return Collections.emptyList();

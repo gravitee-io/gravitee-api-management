@@ -16,7 +16,6 @@
 package io.gravitee.gateway.standalone.wiremock;
 
 import com.google.common.io.Resources;
-
 import java.io.File;
 
 /**

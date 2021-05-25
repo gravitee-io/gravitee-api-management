@@ -49,18 +49,41 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
             add(new PlanPolicyChainProvider(StreamType.ON_RESPONSE, new PlanPolicyResolver(api), chainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
-                    new HttpMethodConditionEvaluator(),
-                    new PathBasedConditionEvaluator(),
-                    new ExpressionLanguageBasedConditionEvaluator());
+                new HttpMethodConditionEvaluator(),
+                new PathBasedConditionEvaluator(),
+                new ExpressionLanguageBasedConditionEvaluator()
+            );
 
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
-                add(new SimpleFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), chainFactory)));
-                add(new PlanFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), chainFactory)));
+                add(
+                    new SimpleFlowPolicyChainProvider(
+                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), chainFactory)
+                    )
+                );
+                add(
+                    new PlanFlowPolicyChainProvider(
+                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), chainFactory)
+                    )
+                );
             } else {
-                add(new SimpleFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE,
-                        new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)), chainFactory)));
-                add(new PlanFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_RESPONSE,
-                        new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)), chainFactory)));
+                add(
+                    new SimpleFlowPolicyChainProvider(
+                        new SimpleFlowProvider(
+                            StreamType.ON_RESPONSE,
+                            new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
+                            chainFactory
+                        )
+                    )
+                );
+                add(
+                    new PlanFlowPolicyChainProvider(
+                        new SimpleFlowProvider(
+                            StreamType.ON_RESPONSE,
+                            new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
+                            chainFactory
+                        )
+                    )
+                );
             }
         }
 

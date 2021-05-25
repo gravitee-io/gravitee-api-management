@@ -19,12 +19,11 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.AbstractPolicyResolver;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.StreamType;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
@@ -37,40 +36,52 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
         if (authenticationHandler == null) {
             // No authentication method selected, must send a 401
-            logger.debug("No authentication handler has been selected to process request {}. Returning an unauthorized status (401)",
-                    context.request().id());
+            logger.debug(
+                "No authentication handler has been selected to process request {}. Returning an unauthorized status (401)",
+                context.request().id()
+            );
 
             // TODO: it's probably better to throw an exception ?
             return null;
         }
 
-        logger.debug("Authentication handler [{}] has been selected to secure incoming request {}",
-                authenticationHandler.name(), context.request().id());
+        logger.debug(
+            "Authentication handler [{}] has been selected to secure incoming request {}",
+            authenticationHandler.name(),
+            context.request().id()
+        );
 
         List<AuthenticationPolicy> policies = authenticationHandler.handle(context);
         return createAuthenticationChain(policies);
     }
 
     private List<Policy> createAuthenticationChain(List<AuthenticationPolicy> securityPolicies) {
-        return securityPolicies.stream().map(new Function<AuthenticationPolicy, Policy>() {
-            @Override
-            public Policy apply(AuthenticationPolicy securityPolicy) {
-                if (securityPolicy instanceof HookAuthenticationPolicy) {
-                    try {
-                        return (Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance();
-                    } catch (Exception ex) {
-                        logger.error("Unexpected error while loading authentication policy", ex);
-                    }
-                } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
-                    return create(
-                            StreamType.ON_REQUEST,
-                            ((PluginAuthenticationPolicy) securityPolicy).name(),
-                            ((PluginAuthenticationPolicy) securityPolicy).configuration());
-                }
+        return securityPolicies
+            .stream()
+            .map(
+                new Function<AuthenticationPolicy, Policy>() {
+                    @Override
+                    public Policy apply(AuthenticationPolicy securityPolicy) {
+                        if (securityPolicy instanceof HookAuthenticationPolicy) {
+                            try {
+                                return (Policy) ((HookAuthenticationPolicy) securityPolicy).clazz().newInstance();
+                            } catch (Exception ex) {
+                                logger.error("Unexpected error while loading authentication policy", ex);
+                            }
+                        } else if (securityPolicy instanceof PluginAuthenticationPolicy) {
+                            return create(
+                                StreamType.ON_REQUEST,
+                                ((PluginAuthenticationPolicy) securityPolicy).name(),
+                                ((PluginAuthenticationPolicy) securityPolicy).configuration()
+                            );
+                        }
 
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+                        return null;
+                    }
+                }
+            )
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     public void setAuthenticationHandlerSelector(AuthenticationHandlerSelector handlerSelector) {

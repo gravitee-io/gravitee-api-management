@@ -19,7 +19,6 @@ import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.EndpointAvailabilityListener;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -56,7 +55,7 @@ public abstract class LoadBalancer implements LoadBalancerStrategy, EndpointAvai
     public void onAvailabilityChange(Endpoint endpoint, boolean available) {
         if (available && !endpoints.contains(endpoint)) {
             endpoints.add(endpoint);
-        } else if (! available){
+        } else if (!available) {
             endpoints.remove(endpoint);
         }
     }

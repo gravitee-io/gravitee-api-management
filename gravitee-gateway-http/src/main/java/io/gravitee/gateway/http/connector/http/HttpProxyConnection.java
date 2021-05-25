@@ -34,9 +34,6 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.net.UnknownHostException;
@@ -44,6 +41,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -82,7 +81,6 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
     public HttpProxyConnection(HttpEndpoint endpoint, ProxyRequest proxyRequest) {
         super(endpoint);
-
         this.proxyRequest = proxyRequest;
     }
 
@@ -97,49 +95,62 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
         cancelHandler(tracker);
 
-        httpClientRequest.handler(event -> {
-            // Prepare upstream response
-            handleUpstreamResponse(event, tracker);
+        httpClientRequest.handler(
+            event -> {
+                // Prepare upstream response
+                handleUpstreamResponse(event, tracker);
 
-            // And send it to the client
-            sendToClient(proxyResponse);
-        });
+                // And send it to the client
+                sendToClient(proxyResponse);
+            }
+        );
 
-        httpClientRequest.connectionHandler(connection -> {
-            connection.exceptionHandler(ex -> {
-                // I don't want to fill my logs with error
-            });
-        });
+        httpClientRequest.connectionHandler(
+            connection -> {
+                connection.exceptionHandler(
+                    ex -> {
+                        // I don't want to fill my logs with error
+                    }
+                );
+            }
+        );
 
-        httpClientRequest.exceptionHandler(event -> {
-            if (!isCanceled() && !isTransmitted()) {
-                proxyRequest.metrics().setMessage(event.getMessage());
+        httpClientRequest.exceptionHandler(
+            event -> {
+                if (!isCanceled() && !isTransmitted()) {
+                    proxyRequest.metrics().setMessage(event.getMessage());
 
-                if (this.timeoutHandler() != null
-                        && (event instanceof ConnectException ||
-                        event instanceof TimeoutException ||
-                        event instanceof NoRouteToHostException ||
-                        event instanceof UnknownHostException)) {
-                    handleConnectTimeout(event);
-                } else {
-                    ProxyResponse clientResponse = new EmptyProxyResponse(
-                            ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)) ?
-                                    HttpStatusCode.GATEWAY_TIMEOUT_504 : HttpStatusCode.BAD_GATEWAY_502);
+                    if (
+                        this.timeoutHandler() != null &&
+                        (
+                            event instanceof ConnectException ||
+                            event instanceof TimeoutException ||
+                            event instanceof NoRouteToHostException ||
+                            event instanceof UnknownHostException
+                        )
+                    ) {
+                        handleConnectTimeout(event);
+                    } else {
+                        ProxyResponse clientResponse = new EmptyProxyResponse(
+                            ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException))
+                                ? HttpStatusCode.GATEWAY_TIMEOUT_504
+                                : HttpStatusCode.BAD_GATEWAY_502
+                        );
 
-                    clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
-                    sendToClient(clientResponse);
-                    tracker.handle(null);
+                        clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+                        sendToClient(clientResponse);
+                        tracker.handle(null);
+                    }
                 }
             }
-        });
+        );
 
         return this;
     }
 
     protected HttpClientRequest prepareUpstreamRequest(HttpClient httpClient, int port, String host, String uri) {
         // Prepare HTTP request
-        httpClientRequest = httpClient.request(
-                HttpMethod.valueOf(proxyRequest.method().name()), port, host, uri);
+        httpClientRequest = httpClient.request(HttpMethod.valueOf(proxyRequest.method().name()), port, host, uri);
 
         httpClientRequest.setTimeout(endpoint.getHttpClientOptions().getReadTimeout());
         httpClientRequest.setFollowRedirects(endpoint.getHttpClientOptions().isFollowRedirects());
@@ -159,8 +170,10 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
         this.proxyResponse = createProxyResponse(clientResponse);
 
         // Copy HTTP headers
-        clientResponse.headers().names().forEach(headerName ->
-                proxyResponse.headers().put(headerName, clientResponse.headers().getAll(headerName)));
+        clientResponse
+            .headers()
+            .names()
+            .forEach(headerName -> proxyResponse.headers().put(headerName, clientResponse.headers().getAll(headerName)));
 
         proxyResponse.pause();
 
@@ -170,26 +183,36 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
         clientResponse.handler(event -> proxyResponse.bodyHandler().handle(Buffer.buffer(event.getBytes())));
 
         // Signal end of the response
-        clientResponse.endHandler(event -> {
-            // Write trailing headers to client response
-            if (! clientResponse.trailers().isEmpty()) {
-                clientResponse.trailers().forEach(header -> proxyResponse.trailers().set(header.getKey(), header.getValue()));
+        clientResponse.endHandler(
+            event -> {
+                // Write trailing headers to client response
+                if (!clientResponse.trailers().isEmpty()) {
+                    clientResponse.trailers().forEach(header -> proxyResponse.trailers().set(header.getKey(), header.getValue()));
+                }
+
+                proxyResponse.endHandler().handle(null);
+                tracker.handle(null);
             }
+        );
 
-            proxyResponse.endHandler().handle(null);
-            tracker.handle(null);
-        });
+        clientResponse.exceptionHandler(
+            throwable -> {
+                LOGGER.error(
+                    "Unexpected error while handling backend response for request {} {} - {}",
+                    httpClientRequest.method(),
+                    httpClientRequest.absoluteURI(),
+                    throwable.getMessage()
+                );
 
-        clientResponse.exceptionHandler(throwable -> {
-            LOGGER.error("Unexpected error while handling backend response for request {} {} - {}",
-                    httpClientRequest.method(), httpClientRequest.absoluteURI(), throwable.getMessage());
+                proxyResponse.endHandler().handle(null);
+                tracker.handle(null);
+            }
+        );
 
-            proxyResponse.endHandler().handle(null);
-            tracker.handle(null);
-        });
-
-        clientResponse.customFrameHandler(frame -> proxyResponse.writeCustomFrame(
-                HttpFrame.create(frame.type(), frame.flags(), Buffer.buffer(frame.payload().getBytes()))));
+        clientResponse.customFrameHandler(
+            frame ->
+                proxyResponse.writeCustomFrame(HttpFrame.create(frame.type(), frame.flags(), Buffer.buffer(frame.payload().getBytes())))
+        );
 
         return proxyResponse;
     }
@@ -244,7 +267,7 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
         // There is some request content, set the flag to true
         content = true;
 
-        if (! headersWritten) {
+        if (!headersWritten) {
             this.writeHeaders();
         }
 
@@ -290,19 +313,18 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
 
     @Override
     public void end() {
-        if (! headersWritten) {
+        if (!headersWritten) {
             this.writeHeaders();
         }
 
-        if (! canceled) {
+        if (!canceled) {
             httpClientRequest.end();
         }
     }
 
     @Override
     public ProxyConnection writeCustomFrame(HttpFrame frame) {
-        httpClientRequest.writeCustomFrame(frame.type(), frame.flags(),
-                io.vertx.core.buffer.Buffer.buffer(frame.payload().getBytes()));
+        httpClientRequest.writeCustomFrame(frame.type(), frame.flags(), io.vertx.core.buffer.Buffer.buffer(frame.payload().getBytes()));
 
         return this;
     }

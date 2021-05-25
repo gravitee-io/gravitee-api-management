@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
@@ -22,9 +25,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,9 +49,11 @@ public class FailoverTest extends AbstractWiremockGatewayTest {
 
         wireMockRule.stubFor(post("/fallback/my_team").willReturn(ok().withBody("")));
 
-        final HttpResponse response = Request.Post("http://localhost:8082/team/my_team")
-                .bodyString(request, ContentType.TEXT_PLAIN)
-                .execute().returnResponse();
+        final HttpResponse response = Request
+            .Post("http://localhost:8082/team/my_team")
+            .bodyString(request, ContentType.TEXT_PLAIN)
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(postRequestedFor(urlPathEqualTo("/fallback/my_team")).withRequestBody(equalTo(request)));

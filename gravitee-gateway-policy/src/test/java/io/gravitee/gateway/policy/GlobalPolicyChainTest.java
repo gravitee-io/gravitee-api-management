@@ -15,22 +15,21 @@
  */
 package io.gravitee.gateway.policy;
 
-import io.gravitee.gateway.api.ExecutionContext;
-import io.gravitee.gateway.policy.impl.PolicyChain;
-import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.InOrder;
-import org.mockito.Spy;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.policy.impl.PolicyChain;
+import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import io.gravitee.gateway.policy.impl.ResponsePolicyChain;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InOrder;
+import org.mockito.Spy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

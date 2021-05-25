@@ -29,14 +29,13 @@ import io.vertx.core.Vertx;
 import io.vertx.grpc.VertxChannelBuilder;
 import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.VertxServerBuilder;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -61,38 +60,37 @@ public class GrpcHelloWorldTest extends AbstractGatewayTest {
             }
         };
 
-        VertxServer rpcServer = VertxServerBuilder
-                .forAddress(vertx, "localhost", 50051)
-                .addService(service)
-                .build();
+        VertxServer rpcServer = VertxServerBuilder.forAddress(vertx, "localhost", 50051).addService(service).build();
 
         // Wait for result
         CountDownLatch latch = new CountDownLatch(1);
 
         // Prepare gRPC Client
-        ManagedChannel channel = VertxChannelBuilder
-                .forAddress(vertx, "localhost", 8082)
-                .usePlaintext(true)
-                .build();
+        ManagedChannel channel = VertxChannelBuilder.forAddress(vertx, "localhost", 8082).usePlaintext(true).build();
 
         // Start is asynchronous
-        rpcServer.start(new Handler<AsyncResult<Void>>() {
-            @Override
-            public void handle(AsyncResult<Void> event) {
-                // Get a stub to use for interacting with the remote service
-                GreeterGrpc.GreeterVertxStub stub = GreeterGrpc.newVertxStub(channel);
+        rpcServer.start(
+            new Handler<AsyncResult<Void>>() {
+                @Override
+                public void handle(AsyncResult<Void> event) {
+                    // Get a stub to use for interacting with the remote service
+                    GreeterGrpc.GreeterVertxStub stub = GreeterGrpc.newVertxStub(channel);
 
-                HelloRequest request = HelloRequest.newBuilder().setName("David").build();
+                    HelloRequest request = HelloRequest.newBuilder().setName("David").build();
 
-                // Call the remote service
-                stub.sayHello(request, ar -> {
-                    Assert.assertTrue(ar.succeeded());
-                    Assert.assertEquals("Hello David", ar.result().getMessage());
+                    // Call the remote service
+                    stub.sayHello(
+                        request,
+                        ar -> {
+                            Assert.assertTrue(ar.succeeded());
+                            Assert.assertEquals("Hello David", ar.result().getMessage());
 
-                    latch.countDown();
-                });
+                            latch.countDown();
+                        }
+                    );
+                }
             }
-        });
+        );
 
         Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
         rpcServer.shutdown(event -> channel.shutdownNow());

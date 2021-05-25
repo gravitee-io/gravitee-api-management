@@ -15,20 +15,19 @@
  */
 package io.gravitee.gateway.security.core;
 
-import io.gravitee.gateway.api.Request;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.util.Arrays;
-import java.util.Collections;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.gateway.api.Request;
+import java.util.Arrays;
+import java.util.Collections;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,8 +53,7 @@ public class AuthenticationHandlerSelectorTest {
 
     @Test
     public void shouldNotResolveSecurityPolicy() {
-        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(
-                Collections.emptyList());
+        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(Collections.emptyList());
 
         authenticationHandlerManager.afterPropertiesSet();
         AuthenticationHandler securityProvider = authenticationHandlerSelector.select(request);
@@ -73,8 +71,7 @@ public class AuthenticationHandlerSelectorTest {
         when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.order()).thenReturn(500);
 
-        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(
-                Arrays.asList(securityProvider1, securityProvider2));
+        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
         authenticationHandlerManager.afterPropertiesSet();
 
         AuthenticationHandler securityProvider = authenticationHandlerSelector.select(request);
@@ -92,8 +89,7 @@ public class AuthenticationHandlerSelectorTest {
         when(securityProvider2.canHandle(any(AuthenticationContext.class))).thenReturn(true);
         when(securityProvider2.order()).thenReturn(500);
 
-        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(
-                Arrays.asList(securityProvider1, securityProvider2));
+        when(authenticationHandlerManager.getAuthenticationHandlers()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
         authenticationHandlerManager.afterPropertiesSet();
 

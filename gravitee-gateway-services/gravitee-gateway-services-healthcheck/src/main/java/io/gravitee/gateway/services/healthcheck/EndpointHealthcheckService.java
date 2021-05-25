@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class EndpointHealthcheckService extends AbstractService {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckService.class);
 
     @Autowired
     private Vertx vertx;
@@ -42,13 +42,16 @@ public class EndpointHealthcheckService extends AbstractService {
         final EndpointHealthcheckVerticle healthcheckVerticle = new EndpointHealthcheckVerticle();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(healthcheckVerticle);
 
-        vertx.deployVerticle(healthcheckVerticle, event -> {
-            if (event.failed()) {
-                LOGGER.error("Health-check service can not be started", event.cause());
-            }
+        vertx.deployVerticle(
+            healthcheckVerticle,
+            event -> {
+                if (event.failed()) {
+                    LOGGER.error("Health-check service can not be started", event.cause());
+                }
 
-            deploymentId = event.result();
-        });
+                deploymentId = event.result();
+            }
+        );
     }
 
     @Override

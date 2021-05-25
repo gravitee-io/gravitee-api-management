@@ -25,9 +25,8 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
-import org.junit.BeforeClass;
-
 import java.util.Collections;
+import org.junit.BeforeClass;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -75,7 +74,5 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderIn
     }
 
     @Override
-    public void after(Api api) {
-
-    }
+    public void after(Api api) {}
 }

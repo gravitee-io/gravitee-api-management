@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
-
 import java.util.regex.Pattern;
 
 /**
@@ -58,7 +57,7 @@ public class VirtualHost implements Entrypoint {
 
         this.path = DUPLICATE_SLASH_REMOVER.matcher(path).replaceAll(URI_PATH_SEPARATOR);
 
-        if (host != null && ! host.isEmpty()) {
+        if (host != null && !host.isEmpty()) {
             weight = HOST_MASK + (int) this.path.chars().filter(ch -> ch == URI_PATH_SEPARATOR_CHAR).count();
         } else {
             weight = (int) this.path.chars().filter(ch -> ch == URI_PATH_SEPARATOR_CHAR).count();
@@ -84,7 +83,7 @@ public class VirtualHost implements Entrypoint {
         String host = request.headers().getFirst(HttpHeaders.HOST);
 
         return (this.host != null)
-                ? this.host.equalsIgnoreCase(host) && (request.path().startsWith(this.path) || request.path().equals(pathWithoutTrailingSlash))
-                : (request.path().startsWith(this.path) || request.path().equals(pathWithoutTrailingSlash));
+            ? this.host.equalsIgnoreCase(host) && (request.path().startsWith(this.path) || request.path().equals(pathWithoutTrailingSlash))
+            : (request.path().startsWith(this.path) || request.path().equals(pathWithoutTrailingSlash));
     }
 }

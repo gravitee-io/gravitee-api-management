@@ -23,14 +23,13 @@ import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,7 +53,9 @@ public class SecurityPolicyChainProviderTest {
 
     @Test
     public void shouldReturnRequestPolicyChain() {
-        Mockito.when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext)).thenReturn(Collections.singletonList(Mockito.mock(Policy.class)));
+        Mockito
+            .when(policyResolver.resolve(StreamType.ON_REQUEST, executionContext))
+            .thenReturn(Collections.singletonList(Mockito.mock(Policy.class)));
         StreamableProcessor<ExecutionContext, Buffer> processor = securityPolicyChainResolver.provide(executionContext);
 
         Assert.assertEquals(RequestPolicyChain.class, processor.getClass());

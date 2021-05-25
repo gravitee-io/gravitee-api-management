@@ -17,7 +17,6 @@ package io.gravitee.gateway.security.oauth2;
 
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
-
 import java.text.ParseException;
 import java.util.Map;
 
@@ -50,14 +49,14 @@ public class LazyJwtToken {
     }
 
     private void parse() {
-        if (! parsed) {
+        if (!parsed) {
             parsed = true;
 
             try {
                 JWT jwt = JWTParser.parse(token);
                 headers = jwt.getHeader().toJSONObject();
                 claims = jwt.getJWTClaimsSet().getClaims();
-            } catch (ParseException ex){
+            } catch (ParseException ex) {
                 // Nothing to do in case of a bad JWT token
             }
         }

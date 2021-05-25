@@ -38,12 +38,6 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.Organization;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -52,6 +46,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,13 +61,13 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
 
-    final static String EVENT_LAST_HEARTBEAT_PROPERTY = "last_heartbeat_at";
-    final static String EVENT_STARTED_AT_PROPERTY = "started_at";
-    final static String EVENT_STOPPED_AT_PROPERTY = "stopped_at";
-    final static String EVENT_ID_PROPERTY = "id";
-    final static String EVENT_STATE_PROPERTY = "create";
-    final static String EVENT_ENVIRONMENTS_HRIDS_PROPERTY = "environments_hrids";
-    final static String EVENT_ORGANIZATIONS_HRIDS_PROPERTY = "organizations_hrids";
+    static final String EVENT_LAST_HEARTBEAT_PROPERTY = "last_heartbeat_at";
+    static final String EVENT_STARTED_AT_PROPERTY = "started_at";
+    static final String EVENT_STOPPED_AT_PROPERTY = "stopped_at";
+    static final String EVENT_ID_PROPERTY = "id";
+    static final String EVENT_STATE_PROPERTY = "create";
+    static final String EVENT_ENVIRONMENTS_HRIDS_PROPERTY = "environments_hrids";
+    static final String EVENT_ORGANIZATIONS_HRIDS_PROPERTY = "organizations_hrids";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -138,15 +137,13 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
             // purpose
             heartbeatEvent.getProperties().remove(EVENT_STATE_PROPERTY);
 
-            executorService = Executors.newSingleThreadScheduledExecutor(
-                    r -> new Thread(r, "gio-heartbeat"));
+            executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
 
             HeartbeatThread monitorThread = new HeartbeatThread(queue, heartbeatEvent);
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
 
-            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                    monitorThread, 0, delay, unit);
+            ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(monitorThread, 0, delay, unit);
 
             LOGGER.info("Start gateway heartbeat : DONE");
         }
@@ -181,7 +178,7 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
     @Override
     protected void doStop() throws Exception {
         if (enabled) {
-            if (! executorService.isShutdown()) {
+            if (!executorService.isShutdown()) {
                 LOGGER.info("Stop gateway monitor");
                 executorService.shutdownNow();
             } else {
@@ -253,16 +250,22 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
     }
 
     private Set<Plugin> plugins() {
-        return pluginRegistry.plugins().stream().map(regPlugin -> {
-            Plugin plugin = new Plugin();
-            plugin.setId(regPlugin.id());
-            plugin.setName(regPlugin.manifest().name());
-            plugin.setDescription(regPlugin.manifest().description());
-            plugin.setVersion(regPlugin.manifest().version());
-            plugin.setType(regPlugin.type().toLowerCase());
-            plugin.setPlugin(regPlugin.clazz());
-            return plugin;
-        }).collect(Collectors.toSet());
+        return pluginRegistry
+            .plugins()
+            .stream()
+            .map(
+                regPlugin -> {
+                    Plugin plugin = new Plugin();
+                    plugin.setId(regPlugin.id());
+                    plugin.setName(regPlugin.manifest().name());
+                    plugin.setDescription(regPlugin.manifest().description());
+                    plugin.setVersion(regPlugin.manifest().version());
+                    plugin.setType(regPlugin.type().toLowerCase());
+                    plugin.setPlugin(regPlugin.clazz());
+                    return plugin;
+                }
+            )
+            .collect(Collectors.toSet());
     }
 
     @Override
@@ -272,17 +275,19 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
 
     private Map getSystemProperties() {
         if (storeSystemProperties) {
-            return System.getProperties()
-                    .entrySet()
-                    .stream()
-                    .filter(entry -> !entry.getKey().toString().toUpperCase().startsWith("GRAVITEE"))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            return System
+                .getProperties()
+                .entrySet()
+                .stream()
+                .filter(entry -> !entry.getKey().toString().toUpperCase().startsWith("GRAVITEE"))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
 
         return Collections.emptyMap();
     }
 
-    private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties) throws TechnicalException {
+    private void prepareOrganizationsAndEnvironmentsProperties(final Event event, final Map<String, String> properties)
+        throws TechnicalException {
         final Optional<List<String>> optOrganizationsList = gatewayConfiguration.organizations();
         final Optional<List<String>> optEnvironmentsList = gatewayConfiguration.environments();
 
@@ -293,7 +298,6 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
         if (!organizationsHrids.isEmpty()) {
             final Set<Organization> orgs = organizationRepository.findByHrids(organizationsHrids);
             organizationsIds = orgs.stream().map(Organization::getId).collect(Collectors.toSet());
-
         }
 
         Set<Environment> environments;
@@ -303,10 +307,7 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
             environments = environmentRepository.findByOrganizationsAndHrids(organizationsIds, environmentsHrids);
         }
 
-        Set<String> environmentsIds = environments
-                .stream()
-                .map(Environment::getId)
-                .collect(Collectors.toSet());
+        Set<String> environmentsIds = environments.stream().map(Environment::getId).collect(Collectors.toSet());
 
         event.setEnvironments(environmentsIds);
 

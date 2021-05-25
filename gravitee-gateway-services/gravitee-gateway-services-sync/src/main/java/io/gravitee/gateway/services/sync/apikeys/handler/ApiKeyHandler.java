@@ -25,11 +25,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -76,6 +75,7 @@ public class ApiKeyHandler implements Handler<RoutingContext> {
     }
 
     private class RefresherStatistics {
+
         private final ApiKeyRefresher refresher;
 
         RefresherStatistics(ApiKeyRefresher refresher) {

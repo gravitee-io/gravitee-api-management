@@ -20,7 +20,6 @@ import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -35,8 +34,7 @@ public class KeylessAuthenticationHandler implements AuthenticationHandler {
 
     static final String KEYLESS_POLICY = "key-less";
 
-    private final static List<AuthenticationPolicy> POLICIES = Collections.singletonList(
-            (PluginAuthenticationPolicy) () -> KEYLESS_POLICY);
+    private static final List<AuthenticationPolicy> POLICIES = Collections.singletonList((PluginAuthenticationPolicy) () -> KEYLESS_POLICY);
 
     @Override
     public boolean canHandle(AuthenticationContext authenticationContext) {

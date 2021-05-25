@@ -28,7 +28,6 @@ class XForwardForRequest extends RequestWrapper {
 
     XForwardForRequest(Request request, String remoteIp) {
         super(request);
-
         this.remoteIp = remoteIp;
     }
 

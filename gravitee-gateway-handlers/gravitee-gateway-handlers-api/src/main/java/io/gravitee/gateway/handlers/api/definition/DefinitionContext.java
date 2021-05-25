@@ -16,7 +16,6 @@
 package io.gravitee.gateway.handlers.api.definition;
 
 import com.google.common.base.Strings;
-
 import java.io.Serializable;
 
 /**
@@ -24,8 +23,9 @@ import java.io.Serializable;
  * @author GraviteeSource Team
  */
 public class DefinitionContext implements Serializable {
-    public final static String ORIGIN_KUBERNETES = "kubernetes";
-    public final static String ORIGIN_MANAGEMENT = "management";
+
+    public static final String ORIGIN_KUBERNETES = "kubernetes";
+    public static final String ORIGIN_MANAGEMENT = "management";
 
     private String origin = ORIGIN_MANAGEMENT;
 
@@ -38,8 +38,10 @@ public class DefinitionContext implements Serializable {
     }
 
     public static boolean planRequired(Api api) {
-        return api.getDefinitionContext() == null ||
-                Strings.isNullOrEmpty(api.getDefinitionContext().origin) ||
-                ORIGIN_MANAGEMENT.equals(api.getDefinitionContext().origin);
+        return (
+            api.getDefinitionContext() == null ||
+            Strings.isNullOrEmpty(api.getDefinitionContext().origin) ||
+            ORIGIN_MANAGEMENT.equals(api.getDefinitionContext().origin)
+        );
     }
 }

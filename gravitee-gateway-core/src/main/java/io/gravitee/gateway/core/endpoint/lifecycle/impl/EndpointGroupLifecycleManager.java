@@ -32,19 +32,19 @@ import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.loadbalancer.*;
+import java.util.*;
+import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
-import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<EndpointLifecycleManager>
-        implements EndpointLifecycleManager, ChangeListener<Endpoint> {
+public class EndpointGroupLifecycleManager
+    extends AbstractLifecycleComponent<EndpointLifecycleManager>
+    implements EndpointLifecycleManager, ChangeListener<Endpoint> {
 
     private final Logger logger = LoggerFactory.getLogger(EndpointGroupLifecycleManager.class);
 
@@ -80,9 +80,10 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
         group.setEndpoints(endpoints);
 
         endpoints
-                .stream()
-                .filter(filter())
-                .peek(endpoint -> {
+            .stream()
+            .filter(filter())
+            .peek(
+                endpoint -> {
                     if (HttpEndpoint.class.isAssignableFrom(endpoint.getClass())) {
                         final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
                         final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
@@ -94,8 +95,9 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
                             httpEndpoint.setHeaders(group.getHeaders());
                         }
                     }
-                })
-                .forEach(this::start);
+                }
+            )
+            .forEach(this::start);
 
         LoadBalancer loadBalancerDef = group.getLoadBalancer();
         LoadBalancerStrategy strategy;
@@ -137,8 +139,13 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
 
     public void start(io.gravitee.definition.model.Endpoint model) {
         try {
-            logger.info("Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
-                    model.getName(), model.getType(), model.getTarget(), !model.isBackup());
+            logger.info(
+                "Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
+                model.getName(),
+                model.getType(),
+                model.getTarget(),
+                !model.isBackup()
+            );
 
             EndpointContext context = new EndpointContext();
             if (api.getProperties() != null) {
@@ -155,8 +162,12 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
                     referenceRegister.add(new EndpointReference(endpoint));
                 }
             } catch (EndpointException ee) {
-                logger.error("An endpoint error occurs while configuring or starting endpoint " + model.getName()
-                        + ". Endpoint will not be available to forward requests.", ee);
+                logger.error(
+                    "An endpoint error occurs while configuring or starting endpoint " +
+                    model.getName() +
+                    ". Endpoint will not be available to forward requests.",
+                    ee
+                );
             }
         } catch (Exception ex) {
             logger.error("Unexpected error while creating endpoint connector", ex);

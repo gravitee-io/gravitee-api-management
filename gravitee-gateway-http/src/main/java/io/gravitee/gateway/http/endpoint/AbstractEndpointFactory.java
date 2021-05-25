@@ -19,25 +19,25 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.core.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.core.endpoint.factory.template.TemplateAwareEndpointFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFactory<io.gravitee.definition.model.Endpoint, ManagedEndpoint>
-        implements ApplicationContextAware {
+public abstract class AbstractEndpointFactory
+    extends TemplateAwareEndpointFactory<io.gravitee.definition.model.Endpoint, ManagedEndpoint>
+    implements ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(HttpEndpointFactory.class);
 
@@ -78,8 +78,11 @@ public abstract class AbstractEndpointFactory extends TemplateAwareEndpointFacto
         URL uri = getURL(endpoint.getTarget());
 
         if (uri.getPath().isEmpty()) {
-            logger.debug("Endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
-                    endpoint.getName(), endpoint.getTarget());
+            logger.debug(
+                "Endpoint target URL is malformed for endpoint [{} - {}]. Set default path to '/'",
+                endpoint.getName(),
+                endpoint.getTarget()
+            );
             endpoint.setTarget(endpoint.getTarget() + '/');
         }
 

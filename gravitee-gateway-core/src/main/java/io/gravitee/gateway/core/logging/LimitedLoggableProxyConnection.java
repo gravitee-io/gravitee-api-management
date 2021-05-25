@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.core.logging;
 
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.appendBuffer;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
-
-import static io.gravitee.gateway.core.logging.utils.LoggingUtils.appendBuffer;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -32,8 +32,12 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
 
     private final int maxSizeLogMessage;
 
-    public LimitedLoggableProxyConnection(ProxyConnection proxyConnection, ProxyRequest proxyRequest,
-                                          final ExecutionContext context, int maxSizeLogMessage) {
+    public LimitedLoggableProxyConnection(
+        ProxyConnection proxyConnection,
+        ProxyRequest proxyRequest,
+        final ExecutionContext context,
+        int maxSizeLogMessage
+    ) {
         super(proxyConnection, proxyRequest, context);
         this.maxSizeLogMessage = maxSizeLogMessage;
     }
@@ -44,8 +48,11 @@ public class LimitedLoggableProxyConnection extends LoggableProxyConnection {
     }
 
     @Override
-    protected ProxyConnection responseHandler(ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler,
-                                              final ExecutionContext context) {
+    protected ProxyConnection responseHandler(
+        ProxyConnection proxyConnection,
+        Handler<ProxyResponse> responseHandler,
+        final ExecutionContext context
+    ) {
         return proxyConnection.responseHandler(new LimitedLoggableProxyResponseHandler(responseHandler, context));
     }
 

@@ -15,9 +15,13 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
+
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
+import java.net.URL;
+import java.net.URLClassLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +30,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.ConfigurableEnvironment;
-
-import java.net.URL;
-import java.net.URLClassLoader;
-
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -87,7 +86,7 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
     private static class ReactorHandlerClassLoader extends URLClassLoader {
 
         public ReactorHandlerClassLoader(ClassLoader parent) {
-            super(new URL[]{}, parent);
+            super(new URL[] {}, parent);
         }
     }
 }

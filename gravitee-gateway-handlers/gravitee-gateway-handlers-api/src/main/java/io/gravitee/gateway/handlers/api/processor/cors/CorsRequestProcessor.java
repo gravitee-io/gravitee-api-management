@@ -18,7 +18,6 @@ package io.gravitee.gateway.handlers.api.processor.cors;
 import io.gravitee.definition.model.Cors;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
-
 import java.util.regex.Pattern;
 
 /**
@@ -27,9 +26,9 @@ import java.util.regex.Pattern;
  */
 public abstract class CorsRequestProcessor extends AbstractProcessor<ExecutionContext> {
 
-    final static String ALLOW_ORIGIN_PUBLIC_WILDCARD = "*";
+    static final String ALLOW_ORIGIN_PUBLIC_WILDCARD = "*";
 
-    final static String JOINER_CHAR_SEQUENCE = ", ";
+    static final String JOINER_CHAR_SEQUENCE = ", ";
 
     protected final Cors cors;
 
@@ -42,12 +41,12 @@ public abstract class CorsRequestProcessor extends AbstractProcessor<ExecutionCo
             return false;
         }
 
-        boolean allowed = cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD) ||
-                cors.getAccessControlAllowOrigin().contains(origin);
+        boolean allowed =
+            cors.getAccessControlAllowOrigin().contains(ALLOW_ORIGIN_PUBLIC_WILDCARD) ||
+            cors.getAccessControlAllowOrigin().contains(origin);
 
         if (allowed) {
             return allowed;
-
         } else if (!cors.getAccessControlAllowOriginRegex().isEmpty()) {
             for (Pattern pattern : cors.getAccessControlAllowOriginRegex()) {
                 if (pattern.matcher(origin).matches()) {

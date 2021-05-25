@@ -33,10 +33,9 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Map;
 import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -90,42 +89,53 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         final StreamableProcessor<ExecutionContext, Buffer> chain = requestProcessorChain.create();
 
         chain
-                .handler(__ -> handleProxyInvocation(context, chain))
-                .streamErrorHandler(failure -> {
+            .handler(__ -> handleProxyInvocation(context, chain))
+            .streamErrorHandler(
+                failure -> {
                     handleError(context, failure);
-                })
-                .errorHandler(failure -> {
+                }
+            )
+            .errorHandler(
+                failure -> {
                     handleError(context, failure);
-                })
-                .exitHandler(__ -> {
+                }
+            )
+            .exitHandler(
+                __ -> {
                     context.request().resume();
                     handler.handle(context);
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
     }
 
-    private void handleProxyInvocation(
-            final ExecutionContext context,
-            final StreamableProcessor<ExecutionContext, Buffer> chain) {
-
+    private void handleProxyInvocation(final ExecutionContext context, final StreamableProcessor<ExecutionContext, Buffer> chain) {
         // Call an invoker to get a proxy connection (connection to an underlying backend, default to HTTP)
         Invoker upstreamInvoker = (Invoker) context.getAttribute(ExecutionContext.ATTR_INVOKER);
 
         context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis());
 
-        upstreamInvoker.invoke(context, chain, connection -> {
-            context.request().customFrameHandler(connection::writeCustomFrame);
+        upstreamInvoker.invoke(
+            context,
+            chain,
+            connection -> {
+                context.request().customFrameHandler(connection::writeCustomFrame);
 
-            connection.responseHandler(proxyResponse -> handleProxyResponse(context, proxyResponse));
+                connection.responseHandler(proxyResponse -> handleProxyResponse(context, proxyResponse));
 
-            // Override the stream error handler to be able to cancel connection to backend
-            chain.streamErrorHandler(failure -> {
-                context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
-                        context.request().metrics().getApiResponseTimeMs());
-                connection.cancel();
-                handleError(context, failure);
-            });
-        });
+                // Override the stream error handler to be able to cancel connection to backend
+                chain.streamErrorHandler(
+                    failure -> {
+                        context
+                            .request()
+                            .metrics()
+                            .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
+                        connection.cancel();
+                        handleError(context, failure);
+                    }
+                );
+            }
+        );
 
         // Plug server request stream to request processor stream
         context.request().bodyHandler(chain::write);
@@ -143,11 +153,13 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
     private void handleProxyResponse(final ExecutionContext context, final ProxyResponse proxyResponse) {
         // If the response is not yet ended (by a request timeout for example)
-        if (! context.response().ended()) {
+        if (!context.response().ended()) {
             if (proxyResponse == null || !proxyResponse.connected()) {
                 context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
-                context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
-                        context.request().metrics().getApiResponseTimeMs());
+                context
+                    .request()
+                    .metrics()
+                    .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
                 handler.handle(context);
             } else {
                 handleClientResponse(context, proxyResponse);
@@ -169,66 +181,76 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         proxyResponse.customFrameHandler(frame -> context.response().writeCustomFrame(frame));
 
         chain
-                .errorHandler(failure -> {
+            .errorHandler(
+                failure -> {
                     proxyResponse.cancel();
                     handleError(context, failure);
-                })
-                .streamErrorHandler(failure -> {
+                }
+            )
+            .streamErrorHandler(
+                failure -> {
                     proxyResponse.cancel();
                     handleError(context, failure);
-                })
-                .exitHandler(__ -> handler.handle(context))
-                .handler(stream -> {
-                    chain
-                            .bodyHandler(chunk -> context.response().write(chunk))
-                            .endHandler(__ -> handler.handle(context));
+                }
+            )
+            .exitHandler(__ -> handler.handle(context))
+            .handler(
+                stream -> {
+                    chain.bodyHandler(chunk -> context.response().write(chunk)).endHandler(__ -> handler.handle(context));
 
                     proxyResponse
-                            .bodyHandler(buffer -> {
+                        .bodyHandler(
+                            buffer -> {
                                 chain.write(buffer);
 
                                 if (context.response().writeQueueFull()) {
                                     proxyResponse.pause();
                                     context.response().drainHandler(aVoid -> proxyResponse.resume());
                                 }
-                            }).endHandler(__ -> {
+                            }
+                        )
+                        .endHandler(
+                            __ -> {
                                 // Write trailers
-                                if (proxyResponse.trailers() != null && ! proxyResponse.trailers().isEmpty()) {
-                                    proxyResponse.trailers().forEach((headerName, headerValues) -> context.response().trailers().put(headerName, headerValues));
+                                if (proxyResponse.trailers() != null && !proxyResponse.trailers().isEmpty()) {
+                                    proxyResponse
+                                        .trailers()
+                                        .forEach((headerName, headerValues) -> context.response().trailers().put(headerName, headerValues));
                                 }
 
-                                context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
-                                    context.request().metrics().getApiResponseTimeMs());
+                                context
+                                    .request()
+                                    .metrics()
+                                    .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
 
                                 chain.end();
-                            });
+                            }
+                        );
 
                     // Resume response read
                     proxyResponse.resume();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
     }
-
 
     private void handleError(ExecutionContext context, ProcessorFailure failure) {
         if (context.request().metrics().getApiResponseTimeMs() > Integer.MAX_VALUE) {
-            context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
-                    context.request().metrics().getApiResponseTimeMs());
+            context
+                .request()
+                .metrics()
+                .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
         }
         context.setAttribute(ExecutionContext.ATTR_PREFIX + "failure", failure);
 
         // Ensure we are consuming everything from the inbound queue
         if (!context.request().ended()) {
-            context.request().bodyHandler(__ -> { });
-            context.request().endHandler(__ -> { });
+            context.request().bodyHandler(__ -> {});
+            context.request().endHandler(__ -> {});
             context.request().resume();
         }
 
-        errorProcessorChain
-                .create()
-                .handler(__ -> handler.handle(context))
-                .errorHandler(__ -> handler.handle(context))
-                .handle(context);
+        errorProcessorChain.create().handler(__ -> handler.handle(context)).errorHandler(__ -> handler.handle(context)).handle(context);
     }
 
     @Override
@@ -267,10 +289,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
     @Override
     public String toString() {
-        return "Handler API id[" + api.getId() +
-                "] name[" + api.getName() +
-                "] version[" + api.getVersion() +
-                ']';
+        return "Handler API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getVersion() + ']';
     }
 
     @Override
@@ -286,7 +305,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         return Objects.hash(api);
     }
 
-    private final static ProcessorFailure TIMEOUT_PROCESSOR_FAILURE = new ProcessorFailure() {
+    private static final ProcessorFailure TIMEOUT_PROCESSOR_FAILURE = new ProcessorFailure() {
         private static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
 
         @Override

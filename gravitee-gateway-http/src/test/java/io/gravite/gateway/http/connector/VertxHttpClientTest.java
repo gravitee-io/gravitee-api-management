@@ -15,6 +15,9 @@
  */
 package io.gravite.gateway.http.connector;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.util.LinkedMultiValueMap;
@@ -30,19 +33,15 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.WriteStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class VertxHttpClientTest {
@@ -67,7 +66,8 @@ public class VertxHttpClientTest {
         Map<Context, HttpClient> httpClients = new HashMap<>();
         httpClients.put(Vertx.currentContext(), httpClient);
         ReflectionTestUtils.setField(vertxHttpClient, "httpClients", httpClients);
-        when(httpClient.request(eq(io.vertx.core.http.HttpMethod.GET), eq(80), anyString(), anyString())).thenReturn(new MockedHttpClientRequest());
+        when(httpClient.request(eq(io.vertx.core.http.HttpMethod.GET), eq(80), anyString(), anyString()))
+            .thenReturn(new MockedHttpClientRequest());
         Metrics metrics = Metrics.on((new Date()).getTime()).build();
         when(request.metrics()).thenReturn(metrics);
     }
@@ -76,11 +76,12 @@ public class VertxHttpClientTest {
     public void testUnencodedWithoutQuery() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -91,11 +92,12 @@ public class VertxHttpClientTest {
     public void testUnencodedWithQueryUnencoded() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test?foo=bar")
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=bar")
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -106,11 +108,12 @@ public class VertxHttpClientTest {
     public void testUnencodedWithQueryUnencoded2() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test?foo==bar")
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo==bar")
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -121,11 +124,12 @@ public class VertxHttpClientTest {
     public void testUnencodedWithQueryEncoded() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test?foo=%3Dbar")
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=%3Dbar")
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -136,11 +140,12 @@ public class VertxHttpClientTest {
     public void testUnencodedWithEmptyQueryParam() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test?foo=&bar=")
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=&bar=")
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -151,11 +156,12 @@ public class VertxHttpClientTest {
     public void testUnencodedWithNullQueryParam() throws Exception {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test?foo&bar")
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo&bar")
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -166,12 +172,13 @@ public class VertxHttpClientTest {
     public void shouldInvoke() {
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(new LinkedMultiValueMap())
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(new LinkedMultiValueMap())
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -185,12 +192,13 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -204,12 +212,13 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -223,12 +232,13 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -242,12 +252,13 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test?foo=bar")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test?foo=bar")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -261,12 +272,13 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -281,12 +293,13 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -300,12 +313,13 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
@@ -320,19 +334,21 @@ public class VertxHttpClientTest {
 
         HttpClientOptions httpOptions = mock(HttpClientOptions.class);
         when(endpoint.getHttpClientOptions()).thenReturn(httpOptions);
-        ProxyRequest proxyRequest = ProxyRequestBuilder.from(request)
-                .method(HttpMethod.GET)
-                .uri("http://gravitee.io/test")
-                .parameters(parameters)
-                .headers(new HttpHeaders())
-                .build();
+        ProxyRequest proxyRequest = ProxyRequestBuilder
+            .from(request)
+            .method(HttpMethod.GET)
+            .uri("http://gravitee.io/test")
+            .parameters(parameters)
+            .headers(new HttpHeaders())
+            .build();
 
         vertxHttpClient.request(proxyRequest);
 
         assertEquals("http://gravitee.io/test?urlParam1&urlParam2", request.metrics().getEndpoint());
     }
 
-    class MockedHttpClientRequest implements HttpClientRequest{
+    class MockedHttpClientRequest implements HttpClientRequest {
+
         @Override
         public HttpClientRequest exceptionHandler(Handler<Throwable> handler) {
             return null;
@@ -394,14 +410,10 @@ public class VertxHttpClientTest {
         }
 
         @Override
-        public void pipeTo(WriteStream<HttpClientResponse> dst) {
-
-        }
+        public void pipeTo(WriteStream<HttpClientResponse> dst) {}
 
         @Override
-        public void pipeTo(WriteStream<HttpClientResponse> dst, Handler<AsyncResult<Void>> handler) {
-
-        }
+        public void pipeTo(WriteStream<HttpClientResponse> dst, Handler<AsyncResult<Void>> handler) {}
 
         @Override
         public HttpClientRequest setFollowRedirects(boolean followRedirects) {
@@ -529,44 +541,28 @@ public class VertxHttpClientTest {
         }
 
         @Override
-        public void end(String chunk) {
-
-        }
+        public void end(String chunk) {}
 
         @Override
-        public void end(String s, Handler<AsyncResult<Void>> handler) {
-
-        }
+        public void end(String s, Handler<AsyncResult<Void>> handler) {}
 
         @Override
-        public void end(String chunk, String enc) {
-
-        }
+        public void end(String chunk, String enc) {}
 
         @Override
-        public void end(String s, String s1, Handler<AsyncResult<Void>> handler) {
-
-        }
+        public void end(String s, String s1, Handler<AsyncResult<Void>> handler) {}
 
         @Override
-        public void end(Buffer chunk) {
-
-        }
+        public void end(Buffer chunk) {}
 
         @Override
-        public void end(Buffer buffer, Handler<AsyncResult<Void>> handler) {
-
-        }
+        public void end(Buffer buffer, Handler<AsyncResult<Void>> handler) {}
 
         @Override
-        public void end() {
-
-        }
+        public void end() {}
 
         @Override
-        public void end(Handler<AsyncResult<Void>> handler) {
-
-        }
+        public void end(Handler<AsyncResult<Void>> handler) {}
 
         @Override
         public HttpClientRequest setTimeout(long timeoutMs) {
@@ -623,5 +619,4 @@ public class VertxHttpClientTest {
             return null;
         }
     }
-
 }

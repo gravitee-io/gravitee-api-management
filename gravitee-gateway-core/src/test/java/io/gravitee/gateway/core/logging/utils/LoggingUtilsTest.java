@@ -15,15 +15,14 @@
  */
 package io.gravitee.gateway.core.logging.utils;
 
-import io.gravitee.gateway.api.ExecutionContext;
-import org.junit.Test;
-
-import java.lang.reflect.Field;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.gateway.api.ExecutionContext;
+import java.lang.reflect.Field;
+import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -81,10 +80,9 @@ public class LoggingUtilsTest {
         assertTrue(LoggingUtils.isContentTypeLoggable("foo/bar", executionContext));
     }
 
-
     private void resetStatic() throws NoSuchFieldException, IllegalAccessException {
         Field pathField = LoggingUtils.class.getDeclaredField("EXCLUDED_CONTENT_TYPES_PATTERN");
-        pathField.setAccessible( true );
+        pathField.setAccessible(true);
         pathField.set(null, null);
     }
 }

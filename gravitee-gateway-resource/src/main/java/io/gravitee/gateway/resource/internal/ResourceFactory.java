@@ -15,20 +15,19 @@
  */
 package io.gravitee.gateway.resource.internal;
 
+import static org.reflections.ReflectionUtils.*;
+
 import com.google.common.base.Predicate;
 import io.gravitee.resource.api.Resource;
 import io.gravitee.resource.api.ResourceConfiguration;
-import org.reflections.ReflectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 import java.lang.reflect.*;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.reflections.ReflectionUtils.*;
+import javax.inject.Inject;
+import org.reflections.ReflectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david at gravitee.io)
@@ -51,10 +50,10 @@ public class ResourceFactory {
 
         if (constr != null) {
             try {
-            //    if (constr.getParameterCount() > 0) {
-            //        resourceInst = constr.newInstance(injectables.get(policyMetadata.configuration()));
-            //    } else {
-                    resourceInst = constr.newInstance();
+                //    if (constr.getParameterCount() > 0) {
+                //        resourceInst = constr.newInstance(injectables.get(policyMetadata.configuration()));
+                //    } else {
+                resourceInst = constr.newInstance();
                 //    }
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
                 LOGGER.error("Unable to instantiate resource {}", resourceClass, ex);
@@ -68,9 +67,7 @@ public class ResourceFactory {
                     boolean accessible = field.isAccessible();
 
                     Class<?> type = field.getType();
-                    Optional<?> value = injectables.values().stream()
-                            .filter(o -> type.isAssignableFrom(o.getClass()))
-                            .findFirst();
+                    Optional<?> value = injectables.values().stream().filter(o -> type.isAssignableFrom(o.getClass())).findFirst();
 
                     if (value.isPresent()) {
                         LOGGER.debug("Inject value into field {} [{}] in {}", field.getName(), type.getName(), resourceClass);
@@ -92,17 +89,20 @@ public class ResourceFactory {
 
     private Constructor<? extends Resource> lookingForConstructor(Class<? extends Resource> resourceClass) {
         LOGGER.debug("Looking for a constructor to inject resource configuration");
-        Constructor <? extends Resource> constructor = null;
+        Constructor<? extends Resource> constructor = null;
 
-        Set<Constructor> resourceConstructors =
-                ReflectionUtils.getConstructors(resourceClass,
-                        withModifier(Modifier.PUBLIC),
-                        withParametersAssignableFrom(ResourceConfiguration.class),
-                        withParametersCount(1));
+        Set<Constructor> resourceConstructors = ReflectionUtils.getConstructors(
+            resourceClass,
+            withModifier(Modifier.PUBLIC),
+            withParametersAssignableFrom(ResourceConfiguration.class),
+            withParametersCount(1)
+        );
 
         if (resourceConstructors.isEmpty()) {
-            LOGGER.debug("No configuration can be injected for {} because there is no valid constructor. " +
-                    "Using default empty constructor.", resourceClass.getName());
+            LOGGER.debug(
+                "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
+                resourceClass.getName()
+            );
             try {
                 constructor = resourceClass.getConstructor();
             } catch (NoSuchMethodException nsme) {
@@ -127,8 +127,9 @@ public class ResourceFactory {
                 Class<?>[] parameterTypes = parameterTypes(input);
                 if (parameterTypes.length == types.length) {
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        if (!types[i].isAssignableFrom(parameterTypes[i]) ||
-                                (parameterTypes[i] == Object.class && types[i] != Object.class)) {
+                        if (
+                            !types[i].isAssignableFrom(parameterTypes[i]) || (parameterTypes[i] == Object.class && types[i] != Object.class)
+                        ) {
                             return false;
                         }
                     }
@@ -140,8 +141,10 @@ public class ResourceFactory {
     }
 
     private static Class[] parameterTypes(Member member) {
-        return member != null ?
-                member.getClass() == Method.class ? ((Method) member).getParameterTypes() :
-                        member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null : null;
+        return member != null
+            ? member.getClass() == Method.class
+                ? ((Method) member).getParameterTypes()
+                : member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null
+            : null;
     }
 }

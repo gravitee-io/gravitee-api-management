@@ -26,7 +26,6 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
-
 import java.util.List;
 
 /**
@@ -42,7 +41,7 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
 
     private static final String PROCESSOR_FAILURE_ATTRIBUTE = ExecutionContext.ATTR_PREFIX + "failure";
 
-    private final static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public void handle(ExecutionContext context) {
@@ -67,7 +66,6 @@ public class SimpleFailureProcessor extends AbstractProcessor<ExecutionContext> 
         response.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
 
         if (failure.message() != null) {
-
             List<String> accepts = context.request().headers().get(HttpHeaders.ACCEPT);
 
             Buffer payload;

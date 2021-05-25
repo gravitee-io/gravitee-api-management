@@ -43,13 +43,15 @@ class FailoverRequest extends RequestWrapper {
     public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
         this.bodyHandler = bodyHandler;
 
-        request.bodyHandler(result -> {
-            if (buffer == null) {
-                buffer = Buffer.buffer();
+        request.bodyHandler(
+            result -> {
+                if (buffer == null) {
+                    buffer = Buffer.buffer();
+                }
+                buffer.appendBuffer(result);
+                bodyHandler.handle(result);
             }
-            buffer.appendBuffer(result);
-            bodyHandler.handle(result);
-        });
+        );
 
         return this;
     }
@@ -69,7 +71,7 @@ class FailoverRequest extends RequestWrapper {
      */
     @Override
     public ReadStream<Buffer> resume() {
-        if (! resumed) {
+        if (!resumed) {
             request.resume();
             resumed = true;
         } else {

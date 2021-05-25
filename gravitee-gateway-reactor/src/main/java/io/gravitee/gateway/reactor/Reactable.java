@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactor;
 
 import io.gravitee.gateway.reactor.handler.Entrypoint;
-
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +26,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface Reactable {
-
     boolean enabled();
 
     <D> Set<D> dependencies(Class<D> type);

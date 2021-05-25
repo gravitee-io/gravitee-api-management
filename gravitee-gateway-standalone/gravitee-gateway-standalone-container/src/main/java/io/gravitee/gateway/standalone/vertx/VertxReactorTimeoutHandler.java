@@ -34,8 +34,13 @@ public class VertxReactorTimeoutHandler extends VertxReactorHandler {
 
     private final long timeout;
 
-    VertxReactorTimeoutHandler(final Reactor reactor, final VertxReactorHandler handler, final Vertx vertx, final long timeout,
-                               IdGenerator idGenerator) {
+    VertxReactorTimeoutHandler(
+        final Reactor reactor,
+        final VertxReactorHandler handler,
+        final Vertx vertx,
+        final long timeout,
+        IdGenerator idGenerator
+    ) {
         super(reactor, idGenerator);
         this.handler = handler;
         this.vertx = vertx;
@@ -43,13 +48,16 @@ public class VertxReactorTimeoutHandler extends VertxReactorHandler {
     }
 
     protected void route(final Request request, final Response response) {
-        if (! request.isWebSocket()) {
-            long timeoutId = vertx.setTimer(timeout, event -> {
-                if (!response.ended()) {
-                    Handler<Long> handler = request.timeoutHandler();
-                    handler.handle(event);
+        if (!request.isWebSocket()) {
+            long timeoutId = vertx.setTimer(
+                timeout,
+                event -> {
+                    if (!response.ended()) {
+                        Handler<Long> handler = request.timeoutHandler();
+                        handler.handle(event);
+                    }
                 }
-            });
+            );
 
             // Release timeout when response ends
             handler.route(request, new TimeoutServerResponse(vertx, response, timeoutId));

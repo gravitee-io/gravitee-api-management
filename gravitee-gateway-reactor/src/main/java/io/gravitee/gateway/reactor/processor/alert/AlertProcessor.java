@@ -80,7 +80,8 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext context) {
         try {
-            eventProducer.send(Event
+            eventProducer.send(
+                Event
                     .at(context.request().timestamp())
                     .type(REQUEST_TYPE)
                     .context(CONTEXT_NODE_ID, node.id())
@@ -106,7 +107,8 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
                     .property(PROP_QUOTA_COUNTER, context.getAttribute(ExecutionContext.ATTR_QUOTA_COUNT))
                     .property(PROP_QUOTA_LIMIT, context.getAttribute(ExecutionContext.ATTR_QUOTA_LIMIT))
                     .property(PROP_ERROR_KEY, context.request().metrics().getErrorKey())
-                    .build());
+                    .build()
+            );
         } catch (Exception ex) {
             LOGGER.error("An error occurs while sending alert", ex);
         } finally {

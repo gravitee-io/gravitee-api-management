@@ -22,6 +22,7 @@ import java.util.UUID;
  * @author GraviteeSource Team
  */
 public class TraceparentHelper {
+
     private static final String FLAGS = "-00";
     private static final String VERSION = "00-";
 
@@ -45,10 +46,11 @@ public class TraceparentHelper {
 
     public static boolean isValid(String traceparent) {
         String[] array = traceparent.split("-");
-        boolean valid = isHexString(array[0], 2, 'f') // 1 byte arr => 2 hex char
-                && isHexString(array[1], 32, '0') // 16 bytes arr => 32 hex char
-                && isHexString(array[2], 16, '0') // 8 bytes arr => 16 hex char
-                && (array[3].length() == 2); // 1 byte arr => 2 hex char
+        boolean valid =
+            isHexString(array[0], 2, 'f') && // 1 byte arr => 2 hex char
+            isHexString(array[1], 32, '0') && // 16 bytes arr => 32 hex char
+            isHexString(array[2], 16, '0') && // 8 bytes arr => 16 hex char
+            (array[3].length() == 2); // 1 byte arr => 2 hex char
 
         return valid;
     }
@@ -64,8 +66,7 @@ public class TraceparentHelper {
     private static final boolean isHexString(String value, int expectedLength, char notAll) {
         boolean sameCharForbidden = true;
         for (char c : value.toCharArray()) {
-            if (!((c >= '0' && c <= '9')
-                    || (c >= 'a' && c <= 'f'))) {
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f'))) {
                 return false;
             }
             sameCharForbidden = sameCharForbidden && (c == notAll);
@@ -73,5 +74,4 @@ public class TraceparentHelper {
         }
         return 0 == expectedLength && !sameCharForbidden;
     }
-
 }

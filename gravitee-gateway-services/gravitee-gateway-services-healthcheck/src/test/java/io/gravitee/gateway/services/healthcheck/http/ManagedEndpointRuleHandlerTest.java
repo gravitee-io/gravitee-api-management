@@ -15,6 +15,11 @@
  */
 package io.gravitee.gateway.services.healthcheck.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
@@ -29,18 +34,12 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.Collections;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,8 +61,7 @@ public class ManagedEndpointRuleHandlerTest {
     @Test
     public void shouldNotValidate_invalidEndpoint(TestContext context) {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/"))
-                .willReturn(notFound()));
+        stubFor(get(urlEqualTo("/")).willReturn(notFound()));
 
         EndpointRule rule = mock(EndpointRule.class);
         when(rule.endpoint()).thenReturn(createEndpoint());
@@ -82,14 +80,16 @@ public class ManagedEndpointRuleHandlerTest {
         Async async = context.async();
 
         // Verify
-        runner.setStatusHandler(new Handler<EndpointStatus>() {
-            @Override
-            public void handle(EndpointStatus status) {
-                Assert.assertFalse(status.isSuccess());
-                verify(getRequestedFor(urlEqualTo("/")));
-                async.complete();
+        runner.setStatusHandler(
+            new Handler<EndpointStatus>() {
+                @Override
+                public void handle(EndpointStatus status) {
+                    Assert.assertFalse(status.isSuccess());
+                    verify(getRequestedFor(urlEqualTo("/")));
+                    async.complete();
+                }
             }
-        });
+        );
 
         // Run
         runner.handle(null);
@@ -101,8 +101,7 @@ public class ManagedEndpointRuleHandlerTest {
     @Test
     public void shouldValidate(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/"))
-                .willReturn(ok("{\"status\": \"green\"}")));
+        stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
 
         // Prepare
         EndpointRule rule = mock(EndpointRule.class);
@@ -122,14 +121,16 @@ public class ManagedEndpointRuleHandlerTest {
         Async async = context.async();
 
         // Verify
-        runner.setStatusHandler(new Handler<EndpointStatus>() {
-            @Override
-            public void handle(EndpointStatus status) {
-                Assert.assertTrue(status.isSuccess());
-                verify(getRequestedFor(urlEqualTo("/")));
-                async.complete();
+        runner.setStatusHandler(
+            new Handler<EndpointStatus>() {
+                @Override
+                public void handle(EndpointStatus status) {
+                    Assert.assertTrue(status.isSuccess());
+                    verify(getRequestedFor(urlEqualTo("/")));
+                    async.complete();
+                }
             }
-        });
+        );
 
         // Run
         runner.handle(null);
@@ -141,8 +142,7 @@ public class ManagedEndpointRuleHandlerTest {
     @Test
     public void shouldNotValidate_invalidResponseBody(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/"))
-                .willReturn(ok("{\"status\": \"yellow\"}")));
+        stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"yellow\"}")));
 
         // Prepare
         EndpointRule rule = mock(EndpointRule.class);
@@ -162,20 +162,22 @@ public class ManagedEndpointRuleHandlerTest {
         Async async = context.async();
 
         // Verify
-        runner.setStatusHandler(new Handler<EndpointStatus>() {
-            @Override
-            public void handle(EndpointStatus status) {
-                Assert.assertFalse(status.isSuccess());
-                verify(getRequestedFor(urlEqualTo("/")));
+        runner.setStatusHandler(
+            new Handler<EndpointStatus>() {
+                @Override
+                public void handle(EndpointStatus status) {
+                    Assert.assertFalse(status.isSuccess());
+                    verify(getRequestedFor(urlEqualTo("/")));
 
-                // When health-check is false, we store both request and response
-                Step result = status.getSteps().get(0);
-                Assert.assertEquals(HttpMethod.GET, result.getRequest().getMethod());
-                Assert.assertNotNull(result.getResponse().getBody());
+                    // When health-check is false, we store both request and response
+                    Step result = status.getSteps().get(0);
+                    Assert.assertEquals(HttpMethod.GET, result.getRequest().getMethod());
+                    Assert.assertNotNull(result.getResponse().getBody());
 
-                async.complete();
+                    async.complete();
+                }
             }
-        });
+        );
 
         // Run
         runner.handle(null);
@@ -187,8 +189,7 @@ public class ManagedEndpointRuleHandlerTest {
     @Test
     public void shouldValidateFromRoot(TestContext context) throws InterruptedException {
         // Prepare HTTP endpoint
-        stubFor(get(urlEqualTo("/"))
-                .willReturn(ok()));
+        stubFor(get(urlEqualTo("/")).willReturn(ok()));
 
         // Prepare
         EndpointRule rule = mock(EndpointRule.class);
@@ -211,15 +212,17 @@ public class ManagedEndpointRuleHandlerTest {
         Async async = context.async();
 
         // Verify
-        runner.setStatusHandler(new Handler<EndpointStatus>() {
-            @Override
-            public void handle(EndpointStatus status) {
-                verify(getRequestedFor(urlEqualTo("/")));
-                verify(0, getRequestedFor(urlEqualTo("/additional-but-unused-path-for-hc")));
-                Assert.assertTrue(status.isSuccess());
-                async.complete();
+        runner.setStatusHandler(
+            new Handler<EndpointStatus>() {
+                @Override
+                public void handle(EndpointStatus status) {
+                    verify(getRequestedFor(urlEqualTo("/")));
+                    verify(0, getRequestedFor(urlEqualTo("/additional-but-unused-path-for-hc")));
+                    Assert.assertTrue(status.isSuccess());
+                    async.complete();
+                }
             }
-        });
+        );
 
         // Run
         runner.handle(null);

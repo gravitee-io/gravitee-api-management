@@ -19,11 +19,10 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.SimpleTriggerContext;
-
 import java.io.Serializable;
 import java.util.Date;
+import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -31,7 +30,7 @@ import java.util.Date;
  */
 public class EndpointRuleCronHandler implements Handler<Long>, Serializable {
 
-    private transient final Vertx vertx;
+    private final transient Vertx vertx;
     private final CronTrigger expression;
     private final Endpoint endpoint;
     private transient Handler<Long> handler;

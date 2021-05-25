@@ -25,7 +25,6 @@ import io.gravitee.gateway.reactor.Reactable;
  * @author GraviteeSource Team
  */
 public interface ReactorHandler extends LifecycleComponent<ReactorHandler>, Handler<ExecutionContext> {
-
     /**
      * A reactable element associated to the current handler.
      */

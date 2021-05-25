@@ -40,8 +40,8 @@ public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvalu
     public ExpressionLanguageBasedConditionEvaluator(final String condition) {
         if (condition != null) {
             try {
-                this.expression = new SpelExpressionParser().parseExpression(
-                        condition.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
+                this.expression =
+                    new SpelExpressionParser().parseExpression(condition.replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
             } catch (ParseException e) {
                 this.expression = FALSE_EXPRESSION;
             }

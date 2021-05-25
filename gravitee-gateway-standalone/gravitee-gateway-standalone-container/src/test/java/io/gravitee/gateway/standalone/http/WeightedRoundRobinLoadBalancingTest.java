@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import org.apache.http.HttpResponse;
@@ -22,9 +25,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -42,7 +42,7 @@ public class WeightedRoundRobinLoadBalancingTest extends AbstractWiremockGateway
 
         int calls = 10;
 
-        for(int i = 0 ; i < calls ; i++) {
+        for (int i = 0; i < calls; i++) {
             Response response = request.execute();
             HttpResponse returnResponse = response.returnResponse();
 

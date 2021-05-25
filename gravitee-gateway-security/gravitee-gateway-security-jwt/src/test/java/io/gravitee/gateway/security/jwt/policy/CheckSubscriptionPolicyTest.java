@@ -15,6 +15,10 @@
  */
 package io.gravitee.gateway.security.jwt.policy;
 
+import static io.gravitee.reporter.api.http.Metrics.on;
+import static java.lang.System.currentTimeMillis;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -26,18 +30,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Collections;
-
-import static io.gravitee.reporter.api.http.Metrics.on;
-import static java.lang.System.currentTimeMillis;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,14 +64,18 @@ public class CheckSubscriptionPolicyTest {
         SubscriptionRepository subscriptionRepository = mock(SubscriptionRepository.class);
         when(executionContext.getComponent(SubscriptionRepository.class)).thenReturn(subscriptionRepository);
 
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
-                .thenThrow(TechnicalException.class);
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenThrow(TechnicalException.class);
 
         policy.onRequest(request, response, policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(argThat(
-                result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
-                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_SERVER_ERROR_KEY.equals(result.key())));
+        verify(policyChain, times(1))
+            .failWith(
+                argThat(
+                    result ->
+                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
+                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_SERVER_ERROR_KEY.equals(result.key())
+                )
+            );
     }
 
     @Test
@@ -93,14 +96,18 @@ public class CheckSubscriptionPolicyTest {
         when(subscription.getClientId()).thenReturn("my-bad-client-id");
         when(subscription.getPlan()).thenReturn("plan-id");
 
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
-                .thenReturn(Collections.singletonList(subscription));
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
 
         policy.onRequest(request, response, policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(argThat(
-                result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
-                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())));
+        verify(policyChain, times(1))
+            .failWith(
+                argThat(
+                    result ->
+                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
+                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
+                )
+            );
     }
 
     @Test
@@ -121,8 +128,7 @@ public class CheckSubscriptionPolicyTest {
         when(subscription.getClientId()).thenReturn("my-client-id");
         when(subscription.getPlan()).thenReturn("plan-id");
 
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
-                .thenReturn(Collections.singletonList(subscription));
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
 
         policy.onRequest(request, response, policyChain, executionContext);
 
@@ -146,14 +152,18 @@ public class CheckSubscriptionPolicyTest {
         Subscription subscription = mock(Subscription.class);
         when(subscription.getPlan()).thenReturn("plan2-id");
 
-        when(subscriptionRepository.search(any(SubscriptionCriteria.class)))
-                .thenReturn(Collections.singletonList(subscription));
+        when(subscriptionRepository.search(any(SubscriptionCriteria.class))).thenReturn(Collections.singletonList(subscription));
 
         policy.onRequest(request, response, policyChain, executionContext);
 
-        verify(policyChain, times(1)).failWith(argThat(
-                result -> result.statusCode() == HttpStatusCode.UNAUTHORIZED_401
-                        && CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())));
+        verify(policyChain, times(1))
+            .failWith(
+                argThat(
+                    result ->
+                        result.statusCode() == HttpStatusCode.UNAUTHORIZED_401 &&
+                        CheckSubscriptionPolicy.GATEWAY_OAUTH2_ACCESS_DENIED_KEY.equals(result.key())
+                )
+            );
     }
 
     ArgumentMatcher<PolicyResult> statusCode(int statusCode) {

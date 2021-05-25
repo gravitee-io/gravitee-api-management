@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.logging;
 
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -25,8 +27,6 @@ import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
 import io.gravitee.reporter.api.log.Log;
-
-import static io.gravitee.gateway.core.logging.utils.LoggingUtils.isContentTypeLoggable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,7 +83,7 @@ public class LoggableClientResponse implements Response {
 
     private void calculate(Buffer buffer) {
         // Check if log is not already write by GDPR policy
-        if(LoggingUtils.isResponseHeadersLoggable(context) && log.getClientResponse().getHeaders() == null){
+        if (LoggingUtils.isResponseHeadersLoggable(context) && log.getClientResponse().getHeaders() == null) {
             // Here we are sure that headers has been full processed by policies
             log.getClientResponse().setHeaders(headers());
         }

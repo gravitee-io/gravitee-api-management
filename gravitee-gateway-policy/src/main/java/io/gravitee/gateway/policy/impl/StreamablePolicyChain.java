@@ -24,10 +24,9 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.Policy;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,7 +45,7 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
     @Override
     public void doNext(Request request, Response response) {
-        if (! initialized && ! policies.isEmpty()) {
+        if (!initialized && !policies.isEmpty()) {
             prepareStreamablePolicyChain(request, response);
             initialized = true;
         }
@@ -69,16 +68,20 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
                         // Chain policy stream using the previous one
                         if (previousPolicyStreamer != null) {
-                            previousPolicyStreamer.bodyHandler(result -> {
-                                if (! streamErrorHandle) {
-                                    streamer.write(result);
+                            previousPolicyStreamer.bodyHandler(
+                                result -> {
+                                    if (!streamErrorHandle) {
+                                        streamer.write(result);
+                                    }
                                 }
-                            });
-                            previousPolicyStreamer.endHandler(result -> {
-                                if (! streamErrorHandle) {
-                                    streamer.end();
+                            );
+                            previousPolicyStreamer.endHandler(
+                                result -> {
+                                    if (!streamErrorHandle) {
+                                        streamer.end();
+                                    }
                                 }
-                            });
+                            );
                         }
 
                         // Previous stream is now the current policy stream
@@ -92,8 +95,16 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
         ReadWriteStream<Buffer> tailPolicyStreamer = previousPolicyStreamer;
         if (streamablePolicyHandlerChain != null && tailPolicyStreamer != null) {
-            tailPolicyStreamer.bodyHandler(bodyPart -> {if (bodyHandler != null) bodyHandler.handle(bodyPart);});
-            tailPolicyStreamer.endHandler(result -> {if (endHandler != null) endHandler.handle(result);});
+            tailPolicyStreamer.bodyHandler(
+                bodyPart -> {
+                    if (bodyHandler != null) bodyHandler.handle(bodyPart);
+                }
+            );
+            tailPolicyStreamer.endHandler(
+                result -> {
+                    if (endHandler != null) endHandler.handle(result);
+                }
+            );
         }
     }
 
@@ -101,10 +112,12 @@ public abstract class StreamablePolicyChain extends PolicyChain {
 
     @Override
     public StreamableProcessor<ExecutionContext, Buffer> streamErrorHandler(Handler<ProcessorFailure> handler) {
-        super.streamErrorHandler(processorFailure -> {
-            streamErrorHandle = true;
-            handler.handle(processorFailure);
-        });
+        super.streamErrorHandler(
+            processorFailure -> {
+                streamErrorHandle = true;
+                handler.handle(processorFailure);
+            }
+        );
 
         return this;
     }

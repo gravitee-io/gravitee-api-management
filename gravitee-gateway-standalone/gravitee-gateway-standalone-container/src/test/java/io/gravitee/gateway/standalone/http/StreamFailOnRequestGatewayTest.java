@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
@@ -27,9 +30,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,11 +41,10 @@ public class StreamFailOnRequestGatewayTest extends AbstractWiremockGatewayTest 
 
     @Test
     public void shouldStreamFailOnRequest() throws Exception {
-        wireMockRule.stubFor(post("/api").willReturn(
-                ok("{{request.body}}").withTransformers("response-template")));
+        wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
-        request.bodyString(BODY_CONTENT +" {#request.id}", ContentType.TEXT_PLAIN);
+        request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
         HttpResponse response = request.execute().returnResponse();
 
@@ -57,7 +56,10 @@ public class StreamFailOnRequestGatewayTest extends AbstractWiremockGatewayTest 
     public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.register(policyPluginManager);
 
-        PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build("transform-request-content-fail", TransformRequestStreamFailPolicy.class);
+        PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build(
+            "transform-request-content-fail",
+            TransformRequestStreamFailPolicy.class
+        );
         policyPluginManager.register(transformRequestContentPolicy);
     }
 }

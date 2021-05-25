@@ -15,20 +15,19 @@
  */
 package io.gravitee.gateway.handlers.api.policy.security;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.Collections;
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,8 +55,9 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
         AuthenticationHandler authenticationHandler = mock(AuthenticationHandler.class);
         when(authenticationHandler.name()).thenReturn("keyless");
 
-        List<AuthenticationHandler> SecurityProviders =
-                authenticationHandlerEnhancer.filter(Collections.singletonList(authenticationHandler));
+        List<AuthenticationHandler> SecurityProviders = authenticationHandlerEnhancer.filter(
+            Collections.singletonList(authenticationHandler)
+        );
 
         assertNotNull(SecurityProviders);
         assertTrue(SecurityProviders.isEmpty());
@@ -72,8 +72,9 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
         plan1.setSecurity("apikey");
         when(api.getPlans()).thenReturn(Collections.singletonList(plan1));
 
-        List<AuthenticationHandler> SecurityProviders =
-                authenticationHandlerEnhancer.filter(Collections.singletonList(authenticationHandler));
+        List<AuthenticationHandler> SecurityProviders = authenticationHandlerEnhancer.filter(
+            Collections.singletonList(authenticationHandler)
+        );
 
         assertNotNull(SecurityProviders);
         assertTrue(SecurityProviders.isEmpty());
@@ -88,8 +89,9 @@ public class PlanBasedAuthenticationHandlerEnhancerTest {
         plan1.setSecurity("keyless");
         when(api.getPlans()).thenReturn(Collections.singletonList(plan1));
 
-        List<AuthenticationHandler> SecurityProviders =
-                authenticationHandlerEnhancer.filter(Collections.singletonList(authenticationHandler));
+        List<AuthenticationHandler> SecurityProviders = authenticationHandlerEnhancer.filter(
+            Collections.singletonList(authenticationHandler)
+        );
 
         assertNotNull(SecurityProviders);
         assertFalse(SecurityProviders.isEmpty());

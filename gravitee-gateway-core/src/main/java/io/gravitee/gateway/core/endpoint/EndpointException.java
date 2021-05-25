@@ -27,8 +27,7 @@ package io.gravitee.gateway.core.endpoint;
  */
 public class EndpointException extends Exception {
 
-    public EndpointException() {
-    }
+    public EndpointException() {}
 
     public EndpointException(String message) {
         super(message);

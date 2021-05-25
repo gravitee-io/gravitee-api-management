@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.processor.chain;
 
 import io.gravitee.gateway.core.processor.Processor;
-
 import java.util.Iterator;
 import java.util.List;
 

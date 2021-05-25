@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.StreamType;
-
 import java.util.List;
 
 /**
@@ -25,10 +24,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface PolicyResolver {
-
     List<Policy> resolve(StreamType streamType, ExecutionContext context);
 
     class Policy {
+
         private final String name;
         private final String configuration;
 

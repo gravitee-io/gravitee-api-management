@@ -20,7 +20,6 @@ package io.gravitee.gateway.policy;
  * @author GraviteeSource Team
  */
 public enum StreamType {
-
     ON_REQUEST,
     ON_RESPONSE,
 }

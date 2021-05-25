@@ -26,6 +26,7 @@ import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -34,17 +35,17 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.util.List;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<ReactorHandler> implements ReactorHandler, ApplicationContextAware {
+public abstract class AbstractReactorHandler
+    extends AbstractLifecycleComponent<ReactorHandler>
+    implements ReactorHandler, ApplicationContextAware {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public final static String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
+    public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
     protected ApplicationContext applicationContext;
 
@@ -82,8 +83,9 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     @Override
     public void handle(ExecutionContext context) {
         // Wrap the actual request to contextualize it
-        ((MutableExecutionContext) context).request(new ContextualizedHttpServerRequest(
-                ((Entrypoint) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request()));
+        ((MutableExecutionContext) context).request(
+                new ContextualizedHttpServerRequest(((Entrypoint) context.getAttribute(ATTR_ENTRYPOINT)).path(), context.request())
+            );
 
         try {
             doHandle(executionContextFactory.create(context));
@@ -103,9 +105,11 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
     protected void dumpVirtualHosts() {
         List<Entrypoint> entrypoints = reactable.entrypoints();
         logger.info("{} ready to accept requests on:", this);
-        entrypoints.forEach(entrypoint -> {
-            logger.info("\thost[{}] - path[{}/*]", null, entrypoint.path());
-        });
+        entrypoints.forEach(
+            entrypoint -> {
+                logger.info("\thost[{}] - path[{}/*]", null, entrypoint.path());
+            }
+        );
     }
 
     protected abstract void doHandle(ExecutionContext executionContext);

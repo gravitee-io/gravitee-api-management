@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.flow;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,10 +33,10 @@ public class BestMatchPolicyResolver implements FlowResolver {
 
     private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
-    private final static char OPTIONAL_TRAILING_SEPARATOR = '?';
-    private final static String PATH_SEPARATOR = "/";
-    private final static String PATH_PARAM_PREFIX = ":";
-    private final static String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
+    private static final char OPTIONAL_TRAILING_SEPARATOR = '?';
+    private static final String PATH_SEPARATOR = "/";
+    private static final String PATH_PARAM_PREFIX = ":";
+    private static final String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@/]+";
 
     private final FlowResolver flowResolver;
 
@@ -83,7 +82,7 @@ public class BestMatchPolicyResolver implements FlowResolver {
     }
 
     private Pattern transform(String path) {
-        String [] branches = path.split(PATH_SEPARATOR);
+        String[] branches = path.split(PATH_SEPARATOR);
         StringBuilder buffer = new StringBuilder(PATH_SEPARATOR);
 
         for (final String branch : branches) {

@@ -24,7 +24,6 @@ import io.gravitee.gateway.core.processor.ProcessorFailure;
  * @author GraviteeSource Team
  */
 public interface ProcessorChain<T, P extends Processor<T>> extends Processor<T> {
-
     ProcessorChain<T, P> handler(Handler<T> handler);
 
     ProcessorChain<T, P> errorHandler(Handler<ProcessorFailure> handler);

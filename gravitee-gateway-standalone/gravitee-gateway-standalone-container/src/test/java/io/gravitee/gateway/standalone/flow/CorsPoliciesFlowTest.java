@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.flow;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
@@ -28,9 +31,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -40,15 +40,16 @@ public class CorsPoliciesFlowTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldRunFlows_preflightRequest() throws Exception {
-        HttpResponse response = Request.Options("http://localhost:8082/test/my_team")
-                .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
-                .addHeader(HttpHeaders.ORIGIN, "http://localhost")
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Options("http://localhost:8082/test/my_team")
+            .addHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, HttpMethod.GET.name())
+            .addHeader(HttpHeaders.ORIGIN, "http://localhost")
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        wireMockRule.verify(0, optionsRequestedFor(urlEqualTo("/team/my_team"))
-                .withoutHeader("my-counter"));
+        wireMockRule.verify(0, optionsRequestedFor(urlEqualTo("/team/my_team")).withoutHeader("my-counter"));
     }
 
     @Override

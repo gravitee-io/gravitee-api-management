@@ -22,6 +22,5 @@ import io.gravitee.reporter.api.Reportable;
  * @author GraviteeSource Team
  */
 public interface ReporterService {
-
     void report(Reportable reportable);
 }

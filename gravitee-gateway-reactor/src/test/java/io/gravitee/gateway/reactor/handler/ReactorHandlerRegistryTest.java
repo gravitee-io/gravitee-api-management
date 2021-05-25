@@ -15,21 +15,20 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ReactorHandlerRegistryTest {
 
@@ -58,8 +57,7 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveTwoEntrypoints_singleReactable() {
-        Reactable reactable = createReactable("reactable1",
-                new VirtualHost("/products/v1"), new VirtualHost("/products/v2"));
+        Reactable reactable = createReactable("reactable1", new VirtualHost("/products/v1"), new VirtualHost("/products/v2"));
 
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
@@ -71,8 +69,11 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveTwoEntrypoints_singleReactable_withVirtualHost() {
-        Reactable reactable = createReactable("reactable1",
-                new VirtualHost("/products/v1"), new VirtualHost("api.gravitee.io", "/products/v2"));
+        Reactable reactable = createReactable(
+            "reactable1",
+            new VirtualHost("/products/v1"),
+            new VirtualHost("api.gravitee.io", "/products/v2")
+        );
 
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
@@ -85,12 +86,12 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveTwoEntrypoints_duplicateContextPath() {
-        Reactable reactable = createReactable("reactable1","/");
+        Reactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        Reactable reactable2 = createReactable("reactable1","/");
+        Reactable reactable2 = createReactable("reactable1", "/");
         ReactorHandler handler2 = createReactorHandler(reactable2);
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
 
@@ -101,12 +102,12 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveTwoEntrypoints() {
-        Reactable reactable = createReactable("reactable1","/");
+        Reactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        Reactable reactable2 = createReactable("reactable1","/products");
+        Reactable reactable2 = createReactable("reactable1", "/products");
         ReactorHandler handler2 = createReactorHandler(reactable2);
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
         reactorHandlerRegistry.create(reactable2);
@@ -117,12 +118,12 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveTwoEntrypoints_duplicateContextPath_withVirtualHost() {
-        Reactable reactable = createReactable("reactable1","/");
+        Reactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        Reactable reactable2 = createReactable("reactable1","api.gravitee.io", "/");
+        Reactable reactable2 = createReactable("reactable1", "api.gravitee.io", "/");
         ReactorHandler handler2 = createReactorHandler(reactable2);
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
         reactorHandlerRegistry.create(reactable2);
@@ -133,12 +134,12 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveTwoEntrypoints_updateReactable() {
-        DummyReactable reactable = createReactable("reactable1","/");
+        DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        DummyReactable updateReactable = createReactable("reactable2","api.gravitee.io", "/");
+        DummyReactable updateReactable = createReactable("reactable2", "api.gravitee.io", "/");
         ReactorHandler handler2 = createReactorHandler(updateReactable);
         when(reactorHandlerFactoryManager.create(updateReactable)).thenReturn(handler2);
         reactorHandlerRegistry.update(updateReactable);
@@ -148,12 +149,12 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveOneEntrypoint_updateSameReactable() {
-        DummyReactable reactable = createReactable("reactable1","/");
+        DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        DummyReactable updateReactable = createReactable("reactable1","api.gravitee.io", "/new-path");
+        DummyReactable updateReactable = createReactable("reactable1", "api.gravitee.io", "/new-path");
         ReactorHandler handler2 = createReactorHandler(updateReactable);
         when(reactorHandlerFactoryManager.create(updateReactable)).thenReturn(handler2);
         reactorHandlerRegistry.update(updateReactable);
@@ -164,18 +165,18 @@ public class ReactorHandlerRegistryTest {
 
     @Test
     public void shouldHaveOneEntrypoint_removeSameReactable() {
-        DummyReactable reactable = createReactable("reactable1","/");
+        DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        DummyReactable updateReactable = createReactable("reactable1","/");
+        DummyReactable updateReactable = createReactable("reactable1", "/");
         reactorHandlerRegistry.remove(updateReactable);
 
         Assert.assertEquals(0, reactorHandlerRegistry.getEntrypoints().size());
     }
 
-    private DummyReactable createReactable(String id, VirtualHost ... virtualHosts) {
+    private DummyReactable createReactable(String id, VirtualHost... virtualHosts) {
         return new DummyReactable(id, Arrays.asList(virtualHosts));
     }
 

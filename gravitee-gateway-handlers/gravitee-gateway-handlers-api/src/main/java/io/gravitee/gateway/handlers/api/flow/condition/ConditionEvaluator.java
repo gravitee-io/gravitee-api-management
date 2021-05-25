@@ -23,6 +23,5 @@ import io.gravitee.gateway.api.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ConditionEvaluator {
-
     boolean evaluate(Flow flow, ExecutionContext context);
 }

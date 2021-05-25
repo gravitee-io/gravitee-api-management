@@ -15,6 +15,11 @@
  */
 package io.gravitee.gateway.policy;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.reflections.ReflectionUtils.withAnnotation;
+import static org.reflections.ReflectionUtils.withModifier;
+
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
@@ -22,21 +27,15 @@ import io.gravitee.gateway.policy.impl.PolicyImpl;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.reflections.ReflectionUtils;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Set;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.reflections.ReflectionUtils.withAnnotation;
-import static org.reflections.ReflectionUtils.withModifier;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -156,10 +155,7 @@ public class PolicyTest {
     }
 
     private Method resolvePolicyMethod(Class<?> clazz, Class<? extends Annotation> annotationClass) {
-        Set<Method> methods = ReflectionUtils.getMethods(
-                clazz,
-                withModifier(Modifier.PUBLIC),
-                withAnnotation(annotationClass));
+        Set<Method> methods = ReflectionUtils.getMethods(clazz, withModifier(Modifier.PUBLIC), withAnnotation(annotationClass));
 
         if (methods.isEmpty()) {
             return null;

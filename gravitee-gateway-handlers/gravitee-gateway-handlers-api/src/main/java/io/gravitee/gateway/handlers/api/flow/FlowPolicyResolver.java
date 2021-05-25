@@ -20,7 +20,6 @@ import io.gravitee.definition.model.flow.Step;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.policy.PolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,8 +48,10 @@ public class FlowPolicyResolver implements PolicyResolver {
         // TODO: Used by some policies (ie. rate-limit / quota)
         context.setAttribute(ExecutionContext.ATTR_RESOLVED_PATH, flow.getPath());
 
-        return steps.stream()
-                .filter(Step::isEnabled)
-                .map(step -> new Policy(step.getPolicy(), step.getConfiguration())).collect(Collectors.toList());
+        return steps
+            .stream()
+            .filter(Step::isEnabled)
+            .map(step -> new Policy(step.getPolicy(), step.getConfiguration()))
+            .collect(Collectors.toList());
     }
 }

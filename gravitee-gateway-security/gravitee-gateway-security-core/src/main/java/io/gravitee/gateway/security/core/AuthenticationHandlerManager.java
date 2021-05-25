@@ -15,15 +15,13 @@
  */
 package io.gravitee.gateway.security.core;
 
-
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * This class is used to load multiple implementations of {@link AuthenticationHandler}.
@@ -47,18 +45,23 @@ public class AuthenticationHandlerManager implements InitializingBean {
 
     public void afterPropertiesSet() {
         logger.debug("Loading security providers...");
-        List<AuthenticationHandler> availableSecurityProviders =
-                securityProviderLoader.getSecurityProviders();
+        List<AuthenticationHandler> availableSecurityProviders = securityProviderLoader.getSecurityProviders();
 
-        availableSecurityProviders.forEach(authenticationHandler -> {
-            if (authenticationHandler instanceof InitializingBean) {
-                try {
-                    ((InitializingBean) authenticationHandler).afterPropertiesSet();
-                } catch (Exception e) {
-                    logger.debug("An error occurs while loading security provider [{}]: {}", authenticationHandler.name(), e.getMessage());
+        availableSecurityProviders.forEach(
+            authenticationHandler -> {
+                if (authenticationHandler instanceof InitializingBean) {
+                    try {
+                        ((InitializingBean) authenticationHandler).afterPropertiesSet();
+                    } catch (Exception e) {
+                        logger.debug(
+                            "An error occurs while loading security provider [{}]: {}",
+                            authenticationHandler.name(),
+                            e.getMessage()
+                        );
+                    }
                 }
             }
-        });
+        );
 
         // Filter security providers if a filter is defined
         if (authenticationHandlerEnhancer != null) {

@@ -20,12 +20,11 @@ import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAu
 import io.gravitee.gateway.handlers.api.policy.security.rule.SelectionRulePlanBasedAuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationHandlerEnhancer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,29 +47,37 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
         List<AuthenticationHandler> providers = new ArrayList<>();
 
         // Look into all plans for required authentication providers.
-        api.getPlans().forEach(plan -> {
-            Optional<AuthenticationHandler> optionalProvider = authenticationHandlers
-                    .stream()
-                    .filter(provider -> provider.name().equalsIgnoreCase(plan.getSecurity()))
-                    .findFirst();
-            if (optionalProvider.isPresent()) {
-                AuthenticationHandler provider = optionalProvider.get();
-                logger.debug("Authentication handler [{}] is required by the plan [{}]. Installing...", provider.name(), plan.getName());
+        api
+            .getPlans()
+            .forEach(
+                plan -> {
+                    Optional<AuthenticationHandler> optionalProvider = authenticationHandlers
+                        .stream()
+                        .filter(provider -> provider.name().equalsIgnoreCase(plan.getSecurity()))
+                        .findFirst();
+                    if (optionalProvider.isPresent()) {
+                        AuthenticationHandler provider = optionalProvider.get();
+                        logger.debug(
+                            "Authentication handler [{}] is required by the plan [{}]. Installing...",
+                            provider.name(),
+                            plan.getName()
+                        );
 
-                // Override the default api_key handler to validate the key against the current plan
-                if (provider.name().equals("api_key")) {
-                    provider = new ApiKeyPlanBasedAuthenticationHandler(provider, plan);
+                        // Override the default api_key handler to validate the key against the current plan
+                        if (provider.name().equals("api_key")) {
+                            provider = new ApiKeyPlanBasedAuthenticationHandler(provider, plan);
+                        }
+
+                        if (plan.getSelectionRule() != null && !plan.getSelectionRule().isEmpty()) {
+                            providers.add(new SelectionRulePlanBasedAuthenticationHandler(provider, plan));
+                        } else {
+                            providers.add(new PlanBasedAuthenticationHandler(provider, plan));
+                        }
+                    }
                 }
+            );
 
-                if (plan.getSelectionRule() != null && ! plan.getSelectionRule().isEmpty()) {
-                    providers.add(new SelectionRulePlanBasedAuthenticationHandler(provider, plan));
-                } else {
-                    providers.add(new PlanBasedAuthenticationHandler(provider, plan));
-                }
-            }
-        });
-
-        if (! providers.isEmpty()) {
+        if (!providers.isEmpty()) {
             logger.info("{} requires the following authentication handlers:", api);
             providers.forEach(authenticationProvider -> logger.info("\t* {}", authenticationProvider.name()));
         } else {

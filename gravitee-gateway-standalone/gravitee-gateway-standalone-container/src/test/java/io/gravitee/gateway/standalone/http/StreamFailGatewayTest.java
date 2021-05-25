@@ -15,6 +15,10 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
@@ -29,10 +33,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -46,17 +46,18 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
     public void shouldNotProcessPolicyAfterStreamFail() throws Exception {
         wireMockRule.stubFor(post("/api").willReturn(serverError()));
 
-        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api")
-                .addHeader(HttpHeaders.ACCEPT, "application/json");
+        org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request
+            .Post("http://localhost:8082/api")
+            .addHeader(HttpHeaders.ACCEPT, "application/json");
 
-        request.bodyString(BODY_CONTENT +" {#request.id}", ContentType.TEXT_PLAIN);
+        request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
         HttpResponse response = request.execute().returnResponse();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
-        String [] parts = responseContent.split(":");
+        String[] parts = responseContent.split(":");
 
         assertEquals("{\"message\":\"stream-fail\",\"http_status_code\":500}", responseContent);
 
@@ -69,14 +70,14 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
 
-        request.bodyString(BODY_CONTENT +" {#request.id}", ContentType.TEXT_PLAIN);
+        request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
         HttpResponse response = request.execute().returnResponse();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
-        String [] parts = responseContent.split(":");
+        String[] parts = responseContent.split(":");
 
         assertEquals("stream-fail", responseContent);
 

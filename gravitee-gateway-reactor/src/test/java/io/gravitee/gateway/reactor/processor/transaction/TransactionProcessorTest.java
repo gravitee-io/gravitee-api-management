@@ -22,6 +22,8 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.reporter.api.http.Metrics;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,17 +31,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class TransactionProcessorTest {
 
-    private final static String CUSTOM_TRANSACTION_ID_HEADER = "X-My-Transaction-Id";
-    private final static String CUSTOM_REQUEST_ID_HEADER = "X-My-Request-Id";
+    private static final String CUSTOM_TRANSACTION_ID_HEADER = "X-My-Transaction-Id";
+    private static final String CUSTOM_REQUEST_ID_HEADER = "X-My-Request-Id";
 
     private MutableExecutionContext context;
 
@@ -65,18 +64,32 @@ public class TransactionProcessorTest {
         Mockito.when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
         new TransactionProcessor()
-                .handler(context -> {
-                        Assert.assertNotNull(context.request().transactionId());
-                        Assert.assertEquals(context.request().transactionId(), context.request().headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER));
-                        Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
-                        Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER));
+            .handler(
+                context -> {
+                    Assert.assertNotNull(context.request().transactionId());
+                    Assert.assertEquals(
+                        context.request().transactionId(),
+                        context.request().headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER)
+                    );
+                    Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
+                    Assert.assertEquals(
+                        context.request().transactionId(),
+                        response.headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER)
+                    );
 
-                        Assert.assertEquals(context.request().id(), context.request().headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER));
-                        Assert.assertEquals(context.request().id(), response.headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER));
+                    Assert.assertEquals(
+                        context.request().id(),
+                        context.request().headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER)
+                    );
+                    Assert.assertEquals(
+                        context.request().id(),
+                        response.headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER)
+                    );
 
-                        lock.countDown();
-                })
-                .handle(context);
+                    lock.countDown();
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -89,20 +102,35 @@ public class TransactionProcessorTest {
 
         request.headers().set(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER, transactionId);
         new TransactionProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertNotNull(context.request().transactionId());
                     Assert.assertEquals(transactionId, context.request().transactionId());
-                    Assert.assertEquals(transactionId, context.request().headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER));
+                    Assert.assertEquals(
+                        transactionId,
+                        context.request().headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER)
+                    );
                     Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
-                    Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER));
+                    Assert.assertEquals(
+                        context.request().transactionId(),
+                        response.headers().getFirst(TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER)
+                    );
 
                     Assert.assertNotEquals(transactionId, context.request().id());
-                    Assert.assertNotEquals(transactionId, context.request().headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER));
+                    Assert.assertNotEquals(
+                        transactionId,
+                        context.request().headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER)
+                    );
                     Assert.assertNotEquals(transactionId, context.request().metrics().getRequestId());
-                    Assert.assertEquals(context.request().id(), response.headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER));
+                    Assert.assertEquals(
+                        context.request().id(),
+                        response.headers().getFirst(TransactionProcessor.DEFAULT_REQUEST_ID_HEADER)
+                    );
 
                     lock.countDown();
-        }).handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -114,13 +142,19 @@ public class TransactionProcessorTest {
         Mockito.when(request.id()).thenReturn(UUID.toString(UUID.random()));
 
         new TransactionProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER)
-                .handler(context -> {
-            Assert.assertNotNull(context.request().transactionId());
-            Assert.assertEquals(context.request().transactionId(), context.request().headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
-            Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
-            Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
-            lock.countDown();
-        }).handle(context);
+            .handler(
+                context -> {
+                    Assert.assertNotNull(context.request().transactionId());
+                    Assert.assertEquals(
+                        context.request().transactionId(),
+                        context.request().headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER)
+                    );
+                    Assert.assertEquals(context.request().transactionId(), context.request().metrics().getTransactionId());
+                    Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
+                    lock.countDown();
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -133,14 +167,17 @@ public class TransactionProcessorTest {
 
         request.headers().set(CUSTOM_TRANSACTION_ID_HEADER, transactionId);
         new TransactionProcessor(CUSTOM_TRANSACTION_ID_HEADER, CUSTOM_REQUEST_ID_HEADER)
-                .handler(context -> {
-            Assert.assertNotNull(context.request().transactionId());
-            Assert.assertEquals(transactionId, context.request().transactionId());
-            Assert.assertEquals(transactionId, context.request().headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
-            Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
-            Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
-            lock.countDown();
-        }).handle(context);
+            .handler(
+                context -> {
+                    Assert.assertNotNull(context.request().transactionId());
+                    Assert.assertEquals(transactionId, context.request().transactionId());
+                    Assert.assertEquals(transactionId, context.request().headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
+                    Assert.assertEquals(transactionId, context.request().metrics().getTransactionId());
+                    Assert.assertEquals(context.request().transactionId(), response.headers().getFirst(CUSTOM_TRANSACTION_ID_HEADER));
+                    lock.countDown();
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }

@@ -23,6 +23,5 @@ import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
  * @author GraviteeSource Team
  */
 public interface ServiceDiscoveryFactory {
-
     <T extends ServiceDiscovery> T create(ServiceDiscoveryPlugin sdPlugin, String sdConfiguration);
 }

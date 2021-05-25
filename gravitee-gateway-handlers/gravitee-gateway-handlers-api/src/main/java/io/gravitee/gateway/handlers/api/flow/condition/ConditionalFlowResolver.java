@@ -18,7 +18,6 @@ package io.gravitee.gateway.handlers.api.flow.condition;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.flow.AbstractFlowResolver;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,10 +35,11 @@ public abstract class ConditionalFlowResolver extends AbstractFlowResolver {
 
     @Override
     public List<Flow> resolve(ExecutionContext context) {
-        return resolve0(context).stream()
-                .filter(Flow::isEnabled)
-                .filter(flow -> evaluator.evaluate(flow, context))
-                .collect(Collectors.toList());
+        return resolve0(context)
+            .stream()
+            .filter(Flow::isEnabled)
+            .filter(flow -> evaluator.evaluate(flow, context))
+            .collect(Collectors.toList());
     }
 
     protected abstract List<Flow> resolve0(ExecutionContext context);

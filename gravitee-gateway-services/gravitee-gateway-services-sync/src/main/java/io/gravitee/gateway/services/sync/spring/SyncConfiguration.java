@@ -32,10 +32,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({
-        ApiKeysConfiguration.class,
-        SubscriptionsConfiguration.class
-})
+@Import({ ApiKeysConfiguration.class, SubscriptionsConfiguration.class })
 public class SyncConfiguration {
 
     @Bean

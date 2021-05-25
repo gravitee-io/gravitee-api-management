@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
-import io.gravitee.common.utils.Hex;
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketReactorHandler;
@@ -85,16 +85,17 @@ public class ReactorVerticle extends AbstractVerticle {
 
         httpServer.requestHandler(handler);
 
-        httpServer.listen(res -> {
-            if (res.succeeded()) {
-                logger.info("HTTP listener ready to accept requests on port {}",
-                        httpServerConfiguration.getPort());
-                startFuture.complete();
-            } else {
-                logger.error("Unable to start HTTP Server", res.cause());
-                startFuture.fail(res.cause());
+        httpServer.listen(
+            res -> {
+                if (res.succeeded()) {
+                    logger.info("HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort());
+                    startFuture.complete();
+                } else {
+                    logger.error("Unable to start HTTP Server", res.cause());
+                    startFuture.fail(res.cause());
+                }
             }
-        });
+        );
     }
 
     @Override

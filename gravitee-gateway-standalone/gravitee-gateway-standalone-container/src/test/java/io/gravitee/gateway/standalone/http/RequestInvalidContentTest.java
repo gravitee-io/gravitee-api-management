@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
@@ -27,9 +30,6 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -41,9 +41,11 @@ public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
     public void call_validate_request_content() throws Exception {
         wireMockRule.stubFor(post("/echo/helloworld").willReturn(ok()));
 
-        HttpResponse response = Request.Post("http://localhost:8082/echo/helloworld")
-                .bodyString("Invalid body", ContentType.TEXT_PLAIN)
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Post("http://localhost:8082/echo/helloworld")
+            .bodyString("Invalid body", ContentType.TEXT_PLAIN)
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 

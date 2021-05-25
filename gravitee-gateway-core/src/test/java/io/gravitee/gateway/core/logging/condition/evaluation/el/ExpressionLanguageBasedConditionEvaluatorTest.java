@@ -15,15 +15,15 @@
  */
 package io.gravitee.gateway.core.logging.condition.evaluation.el;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.mock;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExpressionLanguageBasedConditionEvaluatorTest {
@@ -38,7 +38,6 @@ public class ExpressionLanguageBasedConditionEvaluatorTest {
         assertTrue(evaluate);
     }
 
-
     @Test
     public void shouldEvalTrueWithTrue() {
         ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("true");
@@ -49,7 +48,6 @@ public class ExpressionLanguageBasedConditionEvaluatorTest {
         assertTrue(evaluate);
     }
 
-
     @Test
     public void shouldEvalFalseWithFalse() {
         ExpressionLanguageBasedConditionEvaluator evaluator = new ExpressionLanguageBasedConditionEvaluator("false");
@@ -59,7 +57,6 @@ public class ExpressionLanguageBasedConditionEvaluatorTest {
 
         assertFalse(evaluate);
     }
-
 
     @Test
     public void shouldEvalFalseWithParseException() {

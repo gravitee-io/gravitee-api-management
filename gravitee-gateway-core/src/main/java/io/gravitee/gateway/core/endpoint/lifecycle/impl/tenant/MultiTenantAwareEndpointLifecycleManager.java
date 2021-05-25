@@ -18,11 +18,10 @@ package io.gravitee.gateway.core.endpoint.lifecycle.impl.tenant;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
+import java.util.function.Predicate;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.function.Predicate;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,9 +48,12 @@ public class MultiTenantAwareEndpointLifecycleManager extends EndpointGroupLifec
 
     @Override
     protected Predicate<Endpoint> filter() {
-        return super.filter()
-                .and(
-                        endpoint -> (endpoint.getTenants() == null || endpoint.getTenants().isEmpty())
-                                || (endpoint.getTenants() != null && endpoint.getTenants().contains(tenant)));
+        return super
+            .filter()
+            .and(
+                endpoint ->
+                    (endpoint.getTenants() == null || endpoint.getTenants().isEmpty()) ||
+                    (endpoint.getTenants() != null && endpoint.getTenants().contains(tenant))
+            );
     }
 }

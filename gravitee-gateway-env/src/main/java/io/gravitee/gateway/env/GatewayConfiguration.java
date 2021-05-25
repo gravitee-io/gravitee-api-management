@@ -15,13 +15,12 @@
  */
 package io.gravitee.gateway.env;
 
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -70,9 +69,8 @@ public class GatewayConfiguration implements InitializingBean {
 
     private void initShardingTags() {
         String systemPropertyTags = System.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY);
-        String tags = systemPropertyTags == null ?
-                environment.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY) : systemPropertyTags;
-        if (tags != null && ! tags.isEmpty()) {
+        String tags = systemPropertyTags == null ? environment.getProperty(SHARDING_TAGS_SYSTEM_PROPERTY) : systemPropertyTags;
+        if (tags != null && !tags.isEmpty()) {
             shardingTags = Optional.of(Arrays.asList(tags.split(SHARDING_TAGS_SEPARATOR)));
         } else {
             shardingTags = Optional.empty();
@@ -121,9 +119,10 @@ public class GatewayConfiguration implements InitializingBean {
 
     private void initOrganizations() {
         String systemPropertyOrganizations = System.getProperty(ORGANIZATION_SYSTEM_PROPERTY);
-        String orgs = systemPropertyOrganizations == null ?
-                environment.getProperty(ORGANIZATION_SYSTEM_PROPERTY) : systemPropertyOrganizations;
-        if (orgs != null && ! orgs.isEmpty()) {
+        String orgs = systemPropertyOrganizations == null
+            ? environment.getProperty(ORGANIZATION_SYSTEM_PROPERTY)
+            : systemPropertyOrganizations;
+        if (orgs != null && !orgs.isEmpty()) {
             organizations = Optional.of(Arrays.asList(orgs.split(ORGANIZATIONS_SEPARATOR)));
         } else {
             organizations = Optional.empty();
@@ -136,9 +135,10 @@ public class GatewayConfiguration implements InitializingBean {
 
     private void initEnvironments() {
         String systemPropertyEnvironments = System.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY);
-        String envs = systemPropertyEnvironments == null ?
-                environment.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY) : systemPropertyEnvironments;
-        if (envs != null && ! envs.isEmpty()) {
+        String envs = systemPropertyEnvironments == null
+            ? environment.getProperty(ENVIRONMENTS_SYSTEM_PROPERTY)
+            : systemPropertyEnvironments;
+        if (envs != null && !envs.isEmpty()) {
             environments = Optional.of(Arrays.asList(envs.split(ENVIRONMENTS_SEPARATOR)));
         } else {
             environments = Optional.empty();

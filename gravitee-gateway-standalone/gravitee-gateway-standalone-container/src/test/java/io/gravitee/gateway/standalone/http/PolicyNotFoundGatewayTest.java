@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -24,15 +26,13 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/teams.json")
 public class PolicyNotFoundGatewayTest extends AbstractWiremockGatewayTest {
-    
+
     @Test
     public void shouldReturnNotFound_unknownPolicy() throws Exception {
         HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();

@@ -22,6 +22,5 @@ package io.gravitee.gateway.reactor.handler;
  * @author GraviteeSource Team
  */
 public interface HandlerEntrypoint extends Entrypoint {
-
     ReactorHandler target();
 }

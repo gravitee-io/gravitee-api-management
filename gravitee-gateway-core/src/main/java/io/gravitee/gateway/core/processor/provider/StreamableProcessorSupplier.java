@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.processor.provider;
 
 import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
-
 import java.util.function.Supplier;
 
 /**

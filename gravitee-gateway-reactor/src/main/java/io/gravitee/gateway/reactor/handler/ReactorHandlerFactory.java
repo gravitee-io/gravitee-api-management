@@ -20,6 +20,5 @@ package io.gravitee.gateway.reactor.handler;
  * @author GraviteeSource Team
  */
 public interface ReactorHandlerFactory<T> {
-
     ReactorHandler create(T data);
 }

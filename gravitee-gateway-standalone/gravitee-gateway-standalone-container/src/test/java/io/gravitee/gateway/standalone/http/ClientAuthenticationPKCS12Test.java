@@ -15,12 +15,16 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.Assert.assertEquals;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
-import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
@@ -28,10 +32,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -51,14 +51,16 @@ public class ClientAuthenticationPKCS12Test extends AbstractWiremockGatewayTest 
 
     @Override
     protected WireMockRule getWiremockRule() {
-        return new WireMockRule(wireMockConfig()
+        return new WireMockRule(
+            wireMockConfig()
                 .dynamicPort()
                 .dynamicHttpsPort()
                 .needClientAuth(true)
                 .trustStorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore01.jks"))
                 .trustStorePassword("password")
                 .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
-                .keystorePassword("password"));
+                .keystorePassword("password")
+        );
     }
 
     @Test
@@ -71,7 +73,11 @@ public class ClientAuthenticationPKCS12Test extends AbstractWiremockGatewayTest 
 
         // Second call is calling an endpoint where trustAll = false, without truststore => 502
         response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
-        assertEquals("trustAll = false, with keystore and without truststore => 200", HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+        assertEquals(
+            "trustAll = false, with keystore and without truststore => 200",
+            HttpStatus.SC_BAD_GATEWAY,
+            response.getStatusLine().getStatusCode()
+        );
 
         // Third call is calling an endpoint where trustAll = false, with truststore and keystore => 200
         response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
@@ -79,7 +85,11 @@ public class ClientAuthenticationPKCS12Test extends AbstractWiremockGatewayTest 
 
         // Fourth call is calling an endpoint where trustAll = true, with keystore and without truststore => 200
         response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
-        assertEquals("trustAll = true,with keystore and  without truststore => 200", HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals(
+            "trustAll = true,with keystore and  without truststore => 200",
+            HttpStatus.SC_OK,
+            response.getStatusLine().getStatusCode()
+        );
 
         // Check that the stub has been successfully invoked by the gateway
         wireMockRule.verify(2, getRequestedFor(urlPathEqualTo("/team/my_team")));

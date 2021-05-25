@@ -18,11 +18,10 @@ package io.gravitee.gateway.reactor.handler.context;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
+import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,8 +43,7 @@ public class ExecutionContextFactory implements InitializingBean {
     }
 
     public ExecutionContext create(ExecutionContext wrapped) {
-        ReactableExecutionContext context = new ReactableExecutionContext(
-                (MutableExecutionContext) wrapped, applicationContext);
+        ReactableExecutionContext context = new ReactableExecutionContext((MutableExecutionContext) wrapped, applicationContext);
         context.setProviders(providers);
         return context;
     }

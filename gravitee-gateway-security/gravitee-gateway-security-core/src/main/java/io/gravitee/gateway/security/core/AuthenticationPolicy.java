@@ -19,5 +19,4 @@ package io.gravitee.gateway.security.core;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AuthenticationPolicy {
-}
+public interface AuthenticationPolicy {}

@@ -17,7 +17,6 @@ package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.impl.PolicyChain;
-
 import java.util.Collections;
 import java.util.Iterator;
 

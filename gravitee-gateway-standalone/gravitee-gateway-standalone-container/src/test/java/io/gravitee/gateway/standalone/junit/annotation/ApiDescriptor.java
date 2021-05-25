@@ -25,8 +25,7 @@ import java.lang.annotation.Target;
  * @author GraviteeSource Team
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface ApiDescriptor {
-
     String value();
 }

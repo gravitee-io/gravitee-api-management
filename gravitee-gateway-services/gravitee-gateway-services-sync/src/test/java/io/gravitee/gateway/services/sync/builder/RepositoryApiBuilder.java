@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.sync.builder;
 
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
-
 import java.util.Date;
 
 /**
@@ -44,7 +43,7 @@ public class RepositoryApiBuilder {
         this.api.setDefinition(definition);
         return this;
     }
-    
+
     public RepositoryApiBuilder lifecycleState(LifecycleState lifecycleState) {
         this.api.setLifecycleState(lifecycleState);
         return this;

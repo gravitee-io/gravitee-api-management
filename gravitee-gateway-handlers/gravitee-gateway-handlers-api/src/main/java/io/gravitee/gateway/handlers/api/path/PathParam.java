@@ -44,8 +44,7 @@ public class PathParam {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PathParam pathParam = (PathParam) o;
-        return position == pathParam.position &&
-                Objects.equals(name, pathParam.name);
+        return position == pathParam.position && Objects.equals(name, pathParam.name);
     }
 
     @Override

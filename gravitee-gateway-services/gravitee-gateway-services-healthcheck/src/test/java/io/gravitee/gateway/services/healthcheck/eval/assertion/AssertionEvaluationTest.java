@@ -71,6 +71,7 @@ public class AssertionEvaluationTest {
     }
 
     public static class EvaluableHttpResponse {
+
         private int status;
         private String content;
 

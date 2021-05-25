@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.core.logging;
 
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.*;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
@@ -29,8 +31,6 @@ import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.log.Log;
 
-import static io.gravitee.gateway.core.logging.utils.LoggingUtils.*;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -44,8 +44,7 @@ public class LoggableProxyConnection implements ProxyConnection {
     private Buffer buffer;
     private boolean isContentTypeLoggable;
 
-    public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest,
-                                   final ExecutionContext context) {
+    public LoggableProxyConnection(final ProxyConnection proxyConnection, final ProxyRequest proxyRequest, final ExecutionContext context) {
         this.proxyConnection = proxyConnection;
         this.proxyRequest = proxyRequest;
         this.context = context;
@@ -114,12 +113,16 @@ public class LoggableProxyConnection implements ProxyConnection {
         buffer.appendBuffer(chunk);
     }
 
-    protected ProxyConnection responseHandler(ProxyConnection proxyConnection, Handler<ProxyResponse> responseHandler,
-                                              final ExecutionContext context) {
+    protected ProxyConnection responseHandler(
+        ProxyConnection proxyConnection,
+        Handler<ProxyResponse> responseHandler,
+        final ExecutionContext context
+    ) {
         return proxyConnection.responseHandler(new LoggableProxyConnection.LoggableProxyResponseHandler(responseHandler, context));
     }
 
     class LoggableProxyResponseHandler implements Handler<ProxyResponse> {
+
         private final Handler<ProxyResponse> responseHandler;
         protected final ExecutionContext context;
 
@@ -139,6 +142,7 @@ public class LoggableProxyConnection implements ProxyConnection {
     }
 
     class LoggableProxyResponse implements ProxyResponse {
+
         private final ProxyResponse proxyResponse;
         private final ExecutionContext context;
         private Buffer buffer;
@@ -152,36 +156,39 @@ public class LoggableProxyConnection implements ProxyConnection {
             if (LoggingUtils.isProxyResponseHeadersLoggable(context)) {
                 log.getProxyResponse().setHeaders(proxyResponse.headers());
             }
-
         }
 
         @Override
         public ReadStream<Buffer> bodyHandler(Handler<Buffer> bodyHandler) {
-            proxyResponse.bodyHandler(chunk -> {
-                if (buffer == null) {
-                    buffer = Buffer.buffer();
-                    isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().contentType(), context);
-                }
+            proxyResponse.bodyHandler(
+                chunk -> {
+                    if (buffer == null) {
+                        buffer = Buffer.buffer();
+                        isContentTypeLoggable = isContentTypeLoggable(proxyResponse.headers().contentType(), context);
+                    }
 
-                if (isContentTypeLoggable && LoggingUtils.isProxyResponsePayloadsLoggable(context)) {
-                    appendLog(buffer, chunk);
-                }
+                    if (isContentTypeLoggable && LoggingUtils.isProxyResponsePayloadsLoggable(context)) {
+                        appendLog(buffer, chunk);
+                    }
 
-                bodyHandler.handle(chunk);
-            });
+                    bodyHandler.handle(chunk);
+                }
+            );
 
             return this;
         }
 
         @Override
         public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
-            proxyResponse.endHandler(result -> {
-                if (buffer != null) {
-                    log.getProxyResponse().setBody(buffer.toString());
-                }
+            proxyResponse.endHandler(
+                result -> {
+                    if (buffer != null) {
+                        log.getProxyResponse().setBody(buffer.toString());
+                    }
 
-                endHandler.handle(result);
-            });
+                    endHandler.handle(result);
+                }
+            );
 
             return this;
         }

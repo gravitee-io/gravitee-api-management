@@ -22,7 +22,6 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface ReferenceRegister {
-
     void add(Reference reference);
 
     void remove(String reference);

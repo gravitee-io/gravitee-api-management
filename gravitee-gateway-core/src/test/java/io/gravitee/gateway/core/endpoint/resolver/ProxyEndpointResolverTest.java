@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.core.endpoint.resolver;
 
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.resolver.ProxyEndpoint;
@@ -33,9 +36,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,102 +68,62 @@ public class ProxyEndpointResolverTest {
 
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_selectFirstEndpoint() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test/",
-                "http://host:8080/test/",
-                "endpoint",
-                "http://endpoint:8080/test/"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test/", "http://host:8080/test/", "endpoint", "http://endpoint:8080/test/");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_selectFirstEndpoint() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "http://host:8080/test",
-                "endpoint",
-                "http://endpoint:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test", "http://host:8080/test", "endpoint", "http://endpoint:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withEncodedTargetURI() {
         resolveUserDefinedEndpoint(
-                "http://host:8080/test toto  tété/titi",
-                "http://host:8080/test toto  tété/titi",
-                "endpoint",
-                "http://host:8080/test"
+            "http://host:8080/test toto  tété/titi",
+            "http://host:8080/test toto  tété/titi",
+            "endpoint",
+            "http://host:8080/test"
         );
     }
 
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withEncodedTargetURI() {
         resolveUserDefinedEndpoint(
-                "http://host:8080/test/ toto  tété/titi",
-                "http://host:8080/test/ toto  tété/titi",
-                "endpoint",
-                "http://host:8080/test"
+            "http://host:8080/test/ toto  tété/titi",
+            "http://host:8080/test/ toto  tété/titi",
+            "endpoint",
+            "http://host:8080/test"
         );
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_startingWithSlash() {
-        resolveUserDefinedEndpoint(
-                "http://endpoint:8080/test/myendpoint",
-                "/myendpoint",
-                "endpoint",
-                "http://endpoint:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://endpoint:8080/test/myendpoint", "/myendpoint", "endpoint", "http://endpoint:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_startingWithSlash() {
-        resolveUserDefinedEndpoint(
-                "http://endpoint:8080/test/myendpoint",
-                "/myendpoint",
-                "endpoint",
-                "http://endpoint:8080/test/"
-        );
+        resolveUserDefinedEndpoint("http://endpoint:8080/test/myendpoint", "/myendpoint", "endpoint", "http://endpoint:8080/test/");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withDynamicRouting() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "local:",
-                "local",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test", "local:", "local", "http://host:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withDynamicRouting() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test/",
-                "local:",
-                "local",
-                "http://host:8080/test/"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test/", "local:", "local", "http://host:8080/test/");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withSlashInName() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "lo/cal:",
-                "lo/cal",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test", "lo/cal:", "lo/cal", "http://host:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withParenthesisInName() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "lo(cal:",
-                "lo(cal",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test", "lo(cal:", "lo(cal", "http://host:8080/test");
     }
 
     @Test
@@ -190,102 +150,52 @@ public class ProxyEndpointResolverTest {
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withParenthesisInQuery() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test(q=1)",
-                "local:(q=1)",
-                "local",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test(q=1)", "local:(q=1)", "local", "http://host:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withSlashParenthesisInQuery() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test/(q=1)",
-                "local:/(q=1)",
-                "local",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test/(q=1)", "local:/(q=1)", "local", "http://host:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withSpacesInName() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "lo cal:",
-                "lo cal",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test", "lo cal:", "lo cal", "http://host:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withDashInName() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "lo-cal:",
-                "lo-cal",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test", "lo-cal:", "lo-cal", "http://host:8080/test");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withSlashInTargetAndPath() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/method",
-                "local:/method",
-                "local",
-                "http://host:8080/"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/method", "local:/method", "local", "http://host:8080/");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_withSlashInTargetAndPath() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/method/",
-                "local:/method/",
-                "local",
-                "http://host:8080/"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/method/", "local:/method/", "local", "http://host:8080/");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withPrefixAndEncodedTargetURI() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test toto  tété/titi",
-                "local:test toto  tété/titi",
-                "local",
-                "http://host:8080/"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test toto  tété/titi", "local:test toto  tété/titi", "local", "http://host:8080/");
     }
 
     @Test
     public void shouldResolveUserDefinedEndpoint_withEndpointDiscoveryName() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/test",
-                "consul#endpoint_id:",
-                "consul#endpoint_id",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/test", "consul#endpoint_id:", "consul#endpoint_id", "http://host:8080/test");
     }
 
     @Test
     public void shouldUseTheRawPath_withEncodedTargetURI() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/foo%2f%3fbar",
-                "http://host:8080/foo%2f%3fbar",
-                "endpoint",
-                "http://host:8080/test"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/foo%2f%3fbar", "http://host:8080/foo%2f%3fbar", "endpoint", "http://host:8080/test");
     }
 
     @Test
     public void shouldResolveEndpoint_withColonInPath() {
-        resolveUserDefinedEndpoint(
-                "http://host:8080/foo:",
-                "endpoint:/foo:",
-                "endpoint",
-                "http://host:8080/"
-        );
+        resolveUserDefinedEndpoint("http://host:8080/foo:", "endpoint:/foo:", "endpoint", "http://host:8080/");
     }
 
     /*
@@ -346,12 +256,7 @@ public class ProxyEndpointResolverTest {
 
     @Test
     public void shouldResolveUserDefinedEndpointAndKeepLastSlash_selectFirstEndpoint_wss() {
-        resolveUserDefinedEndpoint(
-                "wss://host:8080/test/",
-                "wss://host:8080/test/",
-                "endpoint",
-                "wss://endpoint:8080/test/"
-        );
+        resolveUserDefinedEndpoint("wss://host:8080/test/", "wss://host:8080/test/", "endpoint", "wss://endpoint:8080/test/");
     }
 
     private void resolveUserDefinedEndpoint(String expectedURI, String requestEndpoint, String endpointName, String endpointTarget) {

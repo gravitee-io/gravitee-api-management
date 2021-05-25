@@ -15,19 +15,19 @@
  */
 package io.gravitee.gateway.handlers.api.policy.security;
 
-import io.gravitee.definition.model.Plan;
-import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAuthenticationHandler;
-import io.gravitee.gateway.security.core.AuthenticationContext;
-import io.gravitee.gateway.security.core.AuthenticationHandler;
-import io.gravitee.repository.management.model.ApiKey;
-import org.junit.Test;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.handlers.api.policy.security.apikey.ApiKeyPlanBasedAuthenticationHandler;
+import io.gravitee.gateway.security.core.AuthenticationContext;
+import io.gravitee.gateway.security.core.AuthenticationHandler;
+import io.gravitee.repository.management.model.ApiKey;
+import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

@@ -15,23 +15,22 @@
  */
 package io.gravitee.gateway.reactor.processor.forward;
 
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
 import io.gravitee.reporter.api.http.Metrics;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Mockito.when;
 
 public class XForwardForProcessorTest {
 
@@ -63,13 +62,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertFalse(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("192.168.0.1", context.request().remoteAddress());
                     Assert.assertNull(context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -82,13 +83,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertTrue(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("197.225.30.74", context.request().remoteAddress());
                     Assert.assertEquals("197.225.30.74", context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -101,13 +104,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertTrue(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("197.225.30.74", context.request().remoteAddress());
                     Assert.assertEquals("197.225.30.74", context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -120,13 +125,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertTrue(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("197.225.30.74", context.request().remoteAddress());
                     Assert.assertEquals("197.225.30.74", context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -139,13 +146,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertTrue(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("197.225.30.74", context.request().remoteAddress());
                     Assert.assertEquals("197.225.30.74", context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -158,13 +167,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertTrue(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("2001:0db8:85a3:0000:0000:8a2e:0370:7334", context.request().remoteAddress());
                     Assert.assertEquals("2001:0db8:85a3:0000:0000:8a2e:0370:7334", context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -177,13 +188,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertTrue(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("2001:db8:85a3:0:0:8a2e:370:7334", context.request().remoteAddress());
                     Assert.assertEquals("2001:db8:85a3:0:0:8a2e:370:7334", context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }
@@ -196,13 +209,15 @@ public class XForwardForProcessorTest {
         when(request.remoteAddress()).thenReturn("192.168.0.1");
 
         new XForwardForProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     Assert.assertTrue(context.request() instanceof XForwardForRequest);
                     Assert.assertEquals("2001:db8:85a3::8a2e:370:7334", context.request().remoteAddress());
                     Assert.assertEquals("2001:db8:85a3::8a2e:370:7334", context.request().metrics().getRemoteAddress());
                     lock.countDown();
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
 
         Assert.assertTrue(lock.await(10000, TimeUnit.MILLISECONDS));
     }

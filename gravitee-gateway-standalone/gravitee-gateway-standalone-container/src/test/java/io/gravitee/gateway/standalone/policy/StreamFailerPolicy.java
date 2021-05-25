@@ -34,9 +34,7 @@ public class StreamFailerPolicy {
         return new BufferedReadWriteStream() {
             @Override
             public void end() {
-                chain.streamFailWith(PolicyResult.failure(
-                        HttpStatusCode.INTERNAL_SERVER_ERROR_500,
-                        "stream-fail"));
+                chain.streamFailWith(PolicyResult.failure(HttpStatusCode.INTERNAL_SERVER_ERROR_500, "stream-fail"));
             }
         };
     }

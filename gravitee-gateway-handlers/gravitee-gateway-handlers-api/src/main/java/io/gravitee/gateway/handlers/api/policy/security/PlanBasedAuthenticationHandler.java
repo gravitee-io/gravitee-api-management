@@ -21,7 +21,6 @@ import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -32,7 +31,8 @@ import java.util.stream.Collectors;
  */
 public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
-    private static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED = ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
+    private static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
+        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     protected final AuthenticationHandler handler;
     protected final Plan plan;
 
@@ -59,11 +59,16 @@ public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
         executionContext.setAttribute(ExecutionContext.ATTR_PLAN, plan.getId());
-        executionContext.setAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED, plan.getSelectionRule() != null && ! plan.getSelectionRule().isEmpty());
+        executionContext.setAttribute(
+            CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED,
+            plan.getSelectionRule() != null && !plan.getSelectionRule().isEmpty()
+        );
 
-        return handler.handle(executionContext)
-                .stream()
-                .map(new Function<AuthenticationPolicy, AuthenticationPolicy>() {
+        return handler
+            .handle(executionContext)
+            .stream()
+            .map(
+                new Function<AuthenticationPolicy, AuthenticationPolicy>() {
                     @Override
                     public AuthenticationPolicy apply(AuthenticationPolicy securityPolicy) {
                         // Override the configuration of the policy with the one provided by the plan
@@ -83,7 +88,8 @@ public class PlanBasedAuthenticationHandler implements AuthenticationHandler {
 
                         return securityPolicy;
                     }
-                })
-                .collect(Collectors.toList());
+                }
+            )
+            .collect(Collectors.toList());
     }
 }

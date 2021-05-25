@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.services.healthcheck.rule;
 
+import static java.lang.System.currentTimeMillis;
+
 import io.gravitee.alert.api.event.Event;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
@@ -41,16 +43,13 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.regex.Pattern;
-
-import static java.lang.System.currentTimeMillis;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -114,22 +113,26 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return vertx.createHttpClient(options);
     }
 
-    protected HttpClientRequest createHttpClientRequest(final HttpClient httpClient, URI request, io.gravitee.definition.model.services.healthcheck.Step step) throws Exception {
-        final int port = request.getPort() != -1 ? request.getPort() :
-                (HTTPS_SCHEME.equals(request.getScheme()) ? 443 : 80);
+    protected HttpClientRequest createHttpClientRequest(
+        final HttpClient httpClient,
+        URI request,
+        io.gravitee.definition.model.services.healthcheck.Step step
+    ) throws Exception {
+        final int port = request.getPort() != -1 ? request.getPort() : (HTTPS_SCHEME.equals(request.getScheme()) ? 443 : 80);
 
-        String relativeUri = (request.getRawQuery() == null) ? request.getRawPath() :
-                request.getRawPath() + '?' + request.getRawQuery();
+        String relativeUri = (request.getRawQuery() == null) ? request.getRawPath() : request.getRawPath() + '?' + request.getRawQuery();
 
         // Run health-check
         HttpClientRequest healthRequest = httpClient.request(
-                HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()),
-                port, request.getHost(), relativeUri);
+            HttpMethod.valueOf(step.getRequest().getMethod().name().toUpperCase()),
+            port,
+            request.getHost(),
+            relativeUri
+        );
 
         // Prepare request
         if (step.getRequest().getHeaders() != null) {
-            step.getRequest().getHeaders().forEach(
-                    httpHeader -> healthRequest.headers().set(httpHeader.getName(), httpHeader.getValue()));
+            step.getRequest().getHeaders().forEach(httpHeader -> healthRequest.headers().set(httpHeader.getName(), httpHeader.getValue()));
         }
 
         // add custom headers
@@ -161,78 +164,90 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         }
 
         return URI.create(targetURI + "/" + path);
-
     }
 
     protected void runStep(T endpoint, io.gravitee.definition.model.services.healthcheck.Step step) {
-            try {
-                URI hcRequestUri = createRequest(endpoint, step);
+        try {
+            URI hcRequestUri = createRequest(endpoint, step);
 
-                HttpClient httpClient = createHttpClient(hcRequestUri);
-                HttpClientRequest healthRequest = createHttpClientRequest(httpClient, hcRequestUri, step);
+            HttpClient httpClient = createHttpClient(hcRequestUri);
+            HttpClientRequest healthRequest = createHttpClientRequest(httpClient, hcRequestUri, step);
 
-                final EndpointStatus.Builder healthBuilder = EndpointStatus
-                        .forEndpoint(rule.api(), endpoint.getName())
-                        .on(currentTimeMillis());
+            final EndpointStatus.Builder healthBuilder = EndpointStatus.forEndpoint(rule.api(), endpoint.getName()).on(currentTimeMillis());
 
-                long startTime = currentTimeMillis();
+            long startTime = currentTimeMillis();
 
-                Request request = new Request();
-                request.setMethod(step.getRequest().getMethod());
-                request.setUri(hcRequestUri.toString());
+            Request request = new Request();
+            request.setMethod(step.getRequest().getMethod());
+            request.setUri(hcRequestUri.toString());
 
-                healthRequest.handler(response -> {
-                    response.bodyHandler(buffer -> {
-                        long endTime = currentTimeMillis();
-                        logger.debug("Health-check endpoint returns a response with a {} status code", response.statusCode());
+            healthRequest.handler(
+                response -> {
+                    response.bodyHandler(
+                        buffer -> {
+                            long endTime = currentTimeMillis();
+                            logger.debug("Health-check endpoint returns a response with a {} status code", response.statusCode());
 
-                        String body = buffer.toString();
+                            String body = buffer.toString();
 
-                        EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body));
-                        stepBuilder.request(request);
-                        stepBuilder.responseTime(endTime - startTime);
+                            EndpointStatus.StepBuilder stepBuilder = validateAssertions(step, new EvaluableHttpResponse(response, body));
+                            stepBuilder.request(request);
+                            stepBuilder.responseTime(endTime - startTime);
 
-                        Response healthResponse = new Response();
-                        healthResponse.setStatus(response.statusCode());
+                            Response healthResponse = new Response();
+                            healthResponse.setStatus(response.statusCode());
 
-                        // If validation fail, store request and response data
-                        if (!stepBuilder.isSuccess()) {
-                            request.setBody(step.getRequest().getBody());
+                            // If validation fail, store request and response data
+                            if (!stepBuilder.isSuccess()) {
+                                request.setBody(step.getRequest().getBody());
 
-                            if (step.getRequest().getHeaders() != null) {
-                                HttpHeaders reqHeaders = new HttpHeaders();
-                                step.getRequest().getHeaders().forEach(httpHeader -> reqHeaders.put(httpHeader.getName(), Collections.singletonList(httpHeader.getValue())));
-                                request.setHeaders(reqHeaders);
+                                if (step.getRequest().getHeaders() != null) {
+                                    HttpHeaders reqHeaders = new HttpHeaders();
+                                    step
+                                        .getRequest()
+                                        .getHeaders()
+                                        .forEach(
+                                            httpHeader ->
+                                                reqHeaders.put(httpHeader.getName(), Collections.singletonList(httpHeader.getValue()))
+                                        );
+                                    request.setHeaders(reqHeaders);
+                                }
+
+                                // Extract headers
+                                HttpHeaders headers = new HttpHeaders();
+                                response
+                                    .headers()
+                                    .names()
+                                    .forEach(headerName -> headers.put(headerName, response.headers().getAll(headerName)));
+                                healthResponse.setHeaders(headers);
+
+                                // Store body
+                                healthResponse.setBody(body);
                             }
 
-                            // Extract headers
-                            HttpHeaders headers = new HttpHeaders();
-                            response.headers().names().forEach(headerName ->
-                                    headers.put(headerName, response.headers().getAll(headerName)));
-                            healthResponse.setHeaders(headers);
+                            stepBuilder.response(healthResponse);
 
-                            // Store body
-                            healthResponse.setBody(body);
+                            // Append step stepBuilder
+                            healthBuilder.step(stepBuilder.build());
+
+                            report(healthBuilder.build());
+
+                            // Close client
+                            httpClient.close();
                         }
+                    );
+                    response.exceptionHandler(
+                        throwable -> {
+                            logger.error("An error has occurred during Health check response handler", throwable);
+                            // Close client
+                            httpClient.close();
+                        }
+                    );
+                }
+            );
 
-                        stepBuilder.response(healthResponse);
-
-                        // Append step stepBuilder
-                        healthBuilder.step(stepBuilder.build());
-
-                        report(healthBuilder.build());
-
-                        // Close client
-                        httpClient.close();
-                    });
-                    response.exceptionHandler(throwable -> {
-                        logger.error("An error has occurred during Health check response handler", throwable);
-                        // Close client
-                        httpClient.close();
-                    });
-                });
-
-                healthRequest.exceptionHandler(event -> {
+            healthRequest.exceptionHandler(
+                event -> {
                     long endTime = currentTimeMillis();
 
                     EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(step.getName());
@@ -244,7 +259,10 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     request.setBody(step.getRequest().getBody());
                     if (step.getRequest().getHeaders() != null) {
                         HttpHeaders reqHeaders = new HttpHeaders();
-                        step.getRequest().getHeaders().forEach(httpHeader -> reqHeaders.put(httpHeader.getName(), Collections.singletonList(httpHeader.getValue())));
+                        step
+                            .getRequest()
+                            .getHeaders()
+                            .forEach(httpHeader -> reqHeaders.put(httpHeader.getName(), Collections.singletonList(httpHeader.getValue())));
                         request.setHeaders(reqHeaders);
                     }
 
@@ -273,24 +291,30 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                     } catch (IllegalStateException ise) {
                         // Do not take care about exception when closing client
                     }
-                });
-
-                // Send request
-                logger.debug("Execute health-check request: {}", healthRequest);
-                if (step.getRequest().getBody() != null && !step.getRequest().getBody().isEmpty()) {
-                    healthRequest.end(step.getRequest().getBody());
-                } else {
-                    healthRequest.end();
                 }
-            } catch (EndpointException ee) {
-                logger.error("An error occurs while configuring the endpoint " + endpoint.getName() +
-                        ". Healthcheck is skipped for this endpoint.", ee);
-            } catch (Exception ex) {
-                logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api(), ex);
+            );
+
+            // Send request
+            logger.debug("Execute health-check request: {}", healthRequest);
+            if (step.getRequest().getBody() != null && !step.getRequest().getBody().isEmpty()) {
+                healthRequest.end(step.getRequest().getBody());
+            } else {
+                healthRequest.end();
             }
+        } catch (EndpointException ee) {
+            logger.error(
+                "An error occurs while configuring the endpoint " + endpoint.getName() + ". Healthcheck is skipped for this endpoint.",
+                ee
+            );
+        } catch (Exception ex) {
+            logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api(), ex);
+        }
     }
 
-    private EndpointStatus.StepBuilder validateAssertions(final io.gravitee.definition.model.services.healthcheck.Step step, final EvaluableHttpResponse response) {
+    private EndpointStatus.StepBuilder validateAssertions(
+        final io.gravitee.definition.model.services.healthcheck.Step step,
+        final EvaluableHttpResponse response
+    ) {
         EndpointStatus.StepBuilder stepBuilder = EndpointStatus.forStep(step.getName());
 
         // Run assertions
@@ -333,22 +357,22 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         final boolean transition = previousStatusCode != rule.endpoint().getStatus().code();
         endpointStatus.setTransition(transition);
 
-        if (transition && alertEventProducer != null && ! alertEventProducer.isEmpty()) {
+        if (transition && alertEventProducer != null && !alertEventProducer.isEmpty()) {
             final Event event = Event
-                    .at(currentTimeMillis())
-                    .context(CONTEXT_NODE_ID, node.id())
-                    .context(CONTEXT_NODE_HOSTNAME, node.hostname())
-                    .context(CONTEXT_NODE_APPLICATION, node.application())
-                    .type(EVENT_TYPE)
-                    .property(PROP_API, rule.api())
-                    .property(PROP_ENDPOINT_NAME, rule.endpoint().getName())
-                    .property(PROP_STATUS_OLD, previousStatusName)
-                    .property(PROP_STATUS_NEW, rule.endpoint().getStatus().name())
-                    .property(PROP_SUCCESS, endpointStatus.isSuccess())
-                    .property(PROP_TENANT, () -> node.metadata().get("tenant"))
-                    .property(PROP_RESPONSE_TIME, responseTime)
-                    .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
-                    .build();
+                .at(currentTimeMillis())
+                .context(CONTEXT_NODE_ID, node.id())
+                .context(CONTEXT_NODE_HOSTNAME, node.hostname())
+                .context(CONTEXT_NODE_APPLICATION, node.application())
+                .type(EVENT_TYPE)
+                .property(PROP_API, rule.api())
+                .property(PROP_ENDPOINT_NAME, rule.endpoint().getName())
+                .property(PROP_STATUS_OLD, previousStatusName)
+                .property(PROP_STATUS_NEW, rule.endpoint().getStatus().name())
+                .property(PROP_SUCCESS, endpointStatus.isSuccess())
+                .property(PROP_TENANT, () -> node.metadata().get("tenant"))
+                .property(PROP_RESPONSE_TIME, responseTime)
+                .property(PROP_MESSAGE, endpointStatus.getSteps().get(0).getMessage())
+                .build();
             alertEventProducer.send(event);
         }
 

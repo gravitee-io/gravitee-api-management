@@ -22,10 +22,9 @@ import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,48 +45,56 @@ public class RateLimitRepositoryProbe implements Probe {
 
     @Override
     public CompletableFuture<Result> check() {
-        return CompletableFuture.supplyAsync(new Supplier<Result>() {
-            @Override
-            public Result get() {
-                CompletableFuture<Result> future = new CompletableFuture<>();
-
-                try {
-                    final String rlIdentifier = "hc-" + node.id();
-
-                    // Search for a rate-limit value to check repository connection
-                    rateLimitRepository.incrementAndGet(rlIdentifier, 1L, new Supplier<RateLimit>() {
-                        @Override
-                        public RateLimit get() {
-                            RateLimit rateLimit = new RateLimit(rlIdentifier);
-                            rateLimit.setSubscription(rlIdentifier);
-                            return rateLimit;
-                        }
-                    }).subscribe(new SingleObserver<RateLimit>() {
-                        @Override
-                        public void onSubscribe(Disposable d) {
-
-                        }
-
-                        @Override
-                        public void onSuccess(RateLimit rateLimit) {
-                            future.complete(Result.healthy());
-                        }
-
-                        @Override
-                        public void onError(Throwable t) {
-                            future.complete(Result.unhealthy(t));
-                        }
-                    });
+        return CompletableFuture.supplyAsync(
+            new Supplier<Result>() {
+                @Override
+                public Result get() {
+                    CompletableFuture<Result> future = new CompletableFuture<>();
 
                     try {
-                        return future.get();
-                    } catch (Exception ex) {
-                        return Result.unhealthy(ex);
+                        final String rlIdentifier = "hc-" + node.id();
+
+                        // Search for a rate-limit value to check repository connection
+                        rateLimitRepository
+                            .incrementAndGet(
+                                rlIdentifier,
+                                1L,
+                                new Supplier<RateLimit>() {
+                                    @Override
+                                    public RateLimit get() {
+                                        RateLimit rateLimit = new RateLimit(rlIdentifier);
+                                        rateLimit.setSubscription(rlIdentifier);
+                                        return rateLimit;
+                                    }
+                                }
+                            )
+                            .subscribe(
+                                new SingleObserver<RateLimit>() {
+                                    @Override
+                                    public void onSubscribe(Disposable d) {}
+
+                                    @Override
+                                    public void onSuccess(RateLimit rateLimit) {
+                                        future.complete(Result.healthy());
+                                    }
+
+                                    @Override
+                                    public void onError(Throwable t) {
+                                        future.complete(Result.unhealthy(t));
+                                    }
+                                }
+                            );
+
+                        try {
+                            return future.get();
+                        } catch (Exception ex) {
+                            return Result.unhealthy(ex);
+                        }
+                    } catch (Throwable t) {
+                        return Result.unhealthy(t);
                     }
-                } catch (Throwable t) {
-                    return Result.unhealthy(t);
                 }
             }
-        });
+        );
     }
 }

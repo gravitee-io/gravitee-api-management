@@ -17,7 +17,6 @@ package io.gravitee.gateway.policy.impl.processor;
 
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.policy.api.PolicyResult;
-
 import java.util.Map;
 
 /**

@@ -33,11 +33,10 @@ import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,7 +45,7 @@ import java.util.*;
  */
 public class EndpointHealthcheckVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckVerticle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointHealthcheckVerticle.class);
 
     @Autowired
     private EventManager eventManager;
@@ -89,16 +88,20 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void startHealthCheck(Api api) {
-        api.getProxy().getGroups()
+        api
+            .getProxy()
+            .getGroups()
             .stream()
             .filter(group -> group.getEndpoints() != null)
-            .forEach(group -> {
-                final Set<Endpoint> endpoints = group.getEndpoints();
-                if (endpoints instanceof ObservableSet) {
-                    apiHandlers.put(api, new ArrayList<>());
-                    ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
+            .forEach(
+                group -> {
+                    final Set<Endpoint> endpoints = group.getEndpoints();
+                    if (endpoints instanceof ObservableSet) {
+                        apiHandlers.put(api, new ArrayList<>());
+                        ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
+                    }
                 }
-            });
+            );
 
         // Configure triggers on resolved API endpoints
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
@@ -124,10 +127,12 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
         apiHandlers.get(api).add(cronHandler);
 
-        LOGGER.info("Add health-check for endpoint name[{}] target[{}] with cron[{}]",
+        LOGGER.info(
+            "Add health-check for endpoint name[{}] target[{}] with cron[{}]",
             rule.endpoint().getName(),
             rule.endpoint().getTarget(),
-            rule.schedule());
+            rule.schedule()
+        );
     }
 
     private void removeTriggers(Api api) {
@@ -141,18 +146,24 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     private void removeTrigger(Api api, Endpoint endpoint) {
         List<EndpointRuleCronHandler> cronHandlers = apiHandlers.get(api);
         if (cronHandlers != null) {
-
             Optional<EndpointRuleCronHandler> endpointCronHandler = cronHandlers
                 .stream()
-                .filter(trigger -> trigger.getEndpoint().equals(endpoint)).findFirst();
+                .filter(trigger -> trigger.getEndpoint().equals(endpoint))
+                .findFirst();
 
-            endpointCronHandler.ifPresent(trigger -> {
-                LOGGER.info("Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
-                    trigger.getTimerId(),
-                    endpoint.getName(), endpoint.getType(), endpoint.getTarget());
-                trigger.cancel();
-                cronHandlers.remove(trigger);
-            });
+            endpointCronHandler.ifPresent(
+                trigger -> {
+                    LOGGER.info(
+                        "Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
+                        trigger.getTimerId(),
+                        endpoint.getName(),
+                        endpoint.getType(),
+                        endpoint.getTarget()
+                    );
+                    trigger.cancel();
+                    cronHandlers.remove(trigger);
+                }
+            );
         }
     }
 
@@ -189,5 +200,4 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             return false;
         }
     }
-
 }

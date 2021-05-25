@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultReferenceRegister implements EndpointManager, ReferenceRegister, TemplateVariableProvider {
 
-    private final static String TEMPLATE_VARIABLE_KEY = "endpoints";
+    private static final String TEMPLATE_VARIABLE_KEY = "endpoints";
 
     private final Map<String, Reference> references = new HashMap<>();
 
@@ -62,21 +61,20 @@ public class DefaultReferenceRegister implements EndpointManager, ReferenceRegis
     }
 
     @Override
-    public  <T extends Reference> Collection<T> referencesByType(Class<T> refClass) {
+    public <T extends Reference> Collection<T> referencesByType(Class<T> refClass) {
         return references()
-                .stream()
-                .filter(reference -> reference.getClass().equals(refClass))
-                .map(reference -> (T) reference)
-                .collect(Collectors.toSet());
+            .stream()
+            .filter(reference -> reference.getClass().equals(refClass))
+            .map(reference -> (T) reference)
+            .collect(Collectors.toSet());
     }
 
     @Override
     public void provide(TemplateContext context) {
-        Map<String, String> refs = references.entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        entry -> entry.getValue().name(),
-                        entry -> entry.getKey() + ':'));
+        Map<String, String> refs = references
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(entry -> entry.getValue().name(), entry -> entry.getKey() + ':'));
 
         context.setVariable(TEMPLATE_VARIABLE_KEY, new EndpointReferenceMap(refs));
     }

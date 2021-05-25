@@ -15,19 +15,18 @@
  */
 package io.gravitee.gateway.security.keyless;
 
+import static org.mockito.Mockito.mock;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.List;
-
-import static org.mockito.Mockito.mock;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

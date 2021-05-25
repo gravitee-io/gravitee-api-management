@@ -21,7 +21,6 @@ import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.PathParam;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyResolver;
-
 import java.util.Iterator;
 import java.util.List;
 
@@ -32,7 +31,7 @@ import java.util.List;
  */
 public class PathParametersIndexProcessor extends AbstractProcessor<ExecutionContext> {
 
-    private final static char URL_PATH_SEPARATOR = '/';
+    private static final char URL_PATH_SEPARATOR = '/';
 
     private PathResolver pathResolver;
 

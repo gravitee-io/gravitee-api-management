@@ -15,12 +15,15 @@
  */
 package io.gravitee.gateway.handlers.api.test;
 
+import static org.mockito.Mockito.when;
+
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.path.PathParam;
 import io.gravitee.gateway.handlers.api.path.PathResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
+import java.util.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,10 +31,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.*;
-
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,17 +57,19 @@ public class ApiPathResolverTest {
 
         final Map<String, List<Rule>> paths = new HashMap<>();
 
-        paths.putAll(new HashMap<String, List<Rule>>() {
-            {
-                put("/", new ArrayList<Rule>());
-                put("/products", new ArrayList<Rule>());
-                put("/stores", new ArrayList<Rule>());
-                put("/stores/:storeId", new ArrayList<Rule>());
-                put("/[0-9,;]+", new ArrayList<Rule>());
-                put("/Stores/:storeId", new ArrayList<Rule>());
-                put("/stores/:storeId/order/:orderId", new ArrayList<Rule>());
+        paths.putAll(
+            new HashMap<String, List<Rule>>() {
+                {
+                    put("/", new ArrayList<Rule>());
+                    put("/products", new ArrayList<Rule>());
+                    put("/stores", new ArrayList<Rule>());
+                    put("/stores/:storeId", new ArrayList<Rule>());
+                    put("/[0-9,;]+", new ArrayList<Rule>());
+                    put("/Stores/:storeId", new ArrayList<Rule>());
+                    put("/stores/:storeId/order/:orderId", new ArrayList<Rule>());
+                }
             }
-        });
+        );
 
         // API 1
         when(api.getPaths()).thenReturn(paths);

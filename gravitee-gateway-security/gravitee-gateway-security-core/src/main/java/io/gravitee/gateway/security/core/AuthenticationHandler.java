@@ -16,7 +16,6 @@
 package io.gravitee.gateway.security.core;
 
 import io.gravitee.gateway.api.ExecutionContext;
-
 import java.util.List;
 
 /**
@@ -24,7 +23,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface AuthenticationHandler {
-
     /**
      * The provider name.
      *

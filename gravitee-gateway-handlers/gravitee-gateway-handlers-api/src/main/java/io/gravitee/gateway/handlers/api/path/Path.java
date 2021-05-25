@@ -16,7 +16,6 @@
 package io.gravitee.gateway.handlers.api.path;
 
 import io.gravitee.definition.model.Rule;
-
 import java.util.List;
 import java.util.regex.Pattern;
 

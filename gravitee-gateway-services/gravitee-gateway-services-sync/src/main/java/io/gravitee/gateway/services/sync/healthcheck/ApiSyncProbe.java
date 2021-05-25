@@ -18,9 +18,8 @@ package io.gravitee.gateway.services.sync.healthcheck;
 import io.gravitee.gateway.services.sync.SyncService;
 import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.concurrent.CompletableFuture;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * HTTP Probe used to check if the gateway is ready to get calls.

@@ -16,7 +16,6 @@
 package io.gravitee.gateway.handlers.api.policy.security.rule;
 
 import io.gravitee.gateway.security.core.AuthenticationContext;
-
 import java.util.Map;
 
 /**
