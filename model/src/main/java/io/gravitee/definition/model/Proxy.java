@@ -16,7 +16,6 @@
 package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.*;
-
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -114,9 +113,7 @@ public class Proxy implements Serializable {
         //check that endpoint groups and endpoints don't have the same name
         //deser have already check that group names are unique
         // and endpoint names too (in the same group)
-        Set<String> endpointNames = groups.stream()
-                .map(EndpointGroup::getName)
-                .collect(Collectors.toSet());
+        Set<String> endpointNames = groups.stream().map(EndpointGroup::getName).collect(Collectors.toSet());
         for (EndpointGroup group : groups) {
             if (group.getEndpoints() != null) {
                 for (Endpoint endpoint : group.getEndpoints()) {
@@ -186,5 +183,4 @@ public class Proxy implements Serializable {
         defaultHost.setPath(sContextPath);
         setVirtualHosts(Collections.singletonList(defaultHost));
     }
-
 }

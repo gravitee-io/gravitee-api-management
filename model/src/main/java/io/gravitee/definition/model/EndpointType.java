@@ -20,7 +20,6 @@ package io.gravitee.definition.model;
  * @author GraviteeSource Team
  */
 public enum EndpointType {
-
     HTTP("http"),
     GRPC("grpc");
 

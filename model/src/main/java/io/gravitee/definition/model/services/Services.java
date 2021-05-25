@@ -21,7 +21,6 @@ import io.gravitee.definition.model.Service;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;

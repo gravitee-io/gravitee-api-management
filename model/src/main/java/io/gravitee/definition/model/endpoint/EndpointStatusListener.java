@@ -22,6 +22,5 @@ import io.gravitee.definition.model.Endpoint;
  * @author GraviteeSource Team
  */
 public interface EndpointStatusListener {
-
     void onStatusChanged(Endpoint.Status status);
 }

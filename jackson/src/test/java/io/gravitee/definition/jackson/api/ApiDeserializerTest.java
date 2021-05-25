@@ -15,15 +15,13 @@
  */
 package io.gravitee.definition.jackson.api;
 
-import java.util.*;
-
 import com.fasterxml.jackson.databind.JsonMappingException;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.jackson.AbstractTest;
-import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.flow.Flow;
@@ -32,6 +30,7 @@ import io.gravitee.definition.model.ssl.KeyStoreType;
 import io.gravitee.definition.model.ssl.TrustStoreType;
 import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
+import java.util.*;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -277,7 +276,10 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_multipleEndpoints_inSingleEndpoint() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-multipleendpoints-insingleendpoint.json", Api.class);
         Assert.assertEquals(1, api.getProxy().getGroups().iterator().next().getEndpoints().size());
-        Assert.assertEquals("http://host1:8083/myapi", api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget());
+        Assert.assertEquals(
+            "http://host1:8083/myapi",
+            api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget()
+        );
     }
 
     @Test
@@ -394,13 +396,21 @@ public class ApiDeserializerTest extends AbstractTest {
     public void definition_failover_singlecase_backup() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-failover-singlecase.json", Api.class);
 
-        api.getProxy().getGroups().iterator().next().getEndpoints().forEach(endpoint -> {
-            if ("endpoint_0".equals(endpoint.getName())) {
-                Assert.assertFalse(endpoint.isBackup());
-            } else {
-                Assert.assertTrue(endpoint.isBackup());
-            }
-        });
+        api
+            .getProxy()
+            .getGroups()
+            .iterator()
+            .next()
+            .getEndpoints()
+            .forEach(
+                endpoint -> {
+                    if ("endpoint_0".equals(endpoint.getName())) {
+                        Assert.assertFalse(endpoint.isBackup());
+                    } else {
+                        Assert.assertTrue(endpoint.isBackup());
+                    }
+                }
+            );
     }
 
     @Test
@@ -758,5 +768,4 @@ public class ApiDeserializerTest extends AbstractTest {
 
         Assert.assertEquals(FlowMode.DEFAULT, api.getFlowMode());
     }
-
 }

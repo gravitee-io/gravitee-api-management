@@ -17,7 +17,6 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -36,8 +35,7 @@ public class VirtualHost implements Serializable {
     @JsonProperty("override_entrypoint")
     private boolean overrideEntrypoint;
 
-    public VirtualHost() {
-    }
+    public VirtualHost() {}
 
     public VirtualHost(String path) {
         this.path = path;
@@ -94,9 +92,7 @@ public class VirtualHost implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VirtualHost that = (VirtualHost) o;
-        return overrideEntrypoint == that.overrideEntrypoint &&
-                Objects.equals(host, that.host) &&
-                Objects.equals(path, that.path);
+        return overrideEntrypoint == that.overrideEntrypoint && Objects.equals(host, that.host) && Objects.equals(path, that.path);
     }
 
     @Override

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.LinkedCaseInsensitiveSet;
-
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;

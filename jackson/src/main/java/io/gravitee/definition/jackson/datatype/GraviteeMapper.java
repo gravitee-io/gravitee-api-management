@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * @author GraviteeSource Team
  */
 public class GraviteeMapper extends ObjectMapper {
+
     private static final long serialVersionUID = 1L;
 
     public GraviteeMapper() {
@@ -36,6 +37,5 @@ public class GraviteeMapper extends ObjectMapper {
         enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
         enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         disable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
-
     }
 }

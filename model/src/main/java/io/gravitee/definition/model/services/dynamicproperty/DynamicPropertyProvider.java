@@ -20,6 +20,5 @@ package io.gravitee.definition.model.services.dynamicproperty;
  * @author GraviteeSource Team
  */
 public enum DynamicPropertyProvider {
-
-    HTTP
+    HTTP,
 }

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.Service;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

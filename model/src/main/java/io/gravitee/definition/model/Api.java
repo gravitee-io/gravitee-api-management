@@ -21,7 +21,6 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
-
 import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -50,8 +49,7 @@ public class Api implements Serializable {
     private Map<String, Map<String, ResponseTemplate>> responseTemplates = new LinkedHashMap<>();
     private Map<String, Plan> plans = new HashMap<>();
 
-    public Api() {
-    }
+    public Api() {}
 
     public String getId() {
         return id;
@@ -75,7 +73,6 @@ public class Api implements Serializable {
 
     public void setProxy(Proxy proxy) {
         this.proxy = proxy;
-
     }
 
     @JsonGetter("paths")
@@ -91,7 +88,10 @@ public class Api implements Serializable {
         if (paths != null) {
             Map<String, List<Rule>> filteredPaths = new HashMap<>();
             for (Map.Entry<String, List<Rule>> entry : paths.entrySet()) {
-                filteredPaths.put(entry.getKey(), entry.getValue().stream().filter(rule -> rule.getPolicy() != null).collect(Collectors.toList()));
+                filteredPaths.put(
+                    entry.getKey(),
+                    entry.getValue().stream().filter(rule -> rule.getPolicy() != null).collect(Collectors.toList())
+                );
             }
             return filteredPaths;
         }
@@ -142,7 +142,7 @@ public class Api implements Serializable {
 
     @JsonGetter("services")
     public Services getServicesJson() {
-        if(services != null && !services.isEmpty()) {
+        if (services != null && !services.isEmpty()) {
             return services;
         }
         return null;
@@ -235,10 +235,9 @@ public class Api implements Serializable {
             return;
         }
         this.pathMappings = new LinkedHashMap<>();
-        pathMappings.forEach(pathMapping -> this.pathMappings.put(
-                pathMapping,
-                Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*")
-        ));
+        pathMappings.forEach(
+            pathMapping -> this.pathMappings.put(pathMapping, Pattern.compile(pathMapping.replaceAll(":\\w*", "[^\\/]*") + "/*"))
+        );
     }
 
     @JsonGetter("response_templates")
@@ -335,10 +334,6 @@ public class Api implements Serializable {
     }
 
     public String toString() {
-        return "Api{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                '}';
+        return "Api{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", version='" + version + '\'' + '}';
     }
 }

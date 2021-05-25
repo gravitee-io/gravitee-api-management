@@ -25,7 +25,6 @@ import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPro
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.Step;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -33,6 +32,7 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 public class DefinitionValidator {
+
     public static void validate(Api api) {
         if (api.getId() == null) {
             throw new IllegalStateException("[api] Id is required");
@@ -73,7 +73,7 @@ public class DefinitionValidator {
     }
 
     public static void validate(Proxy proxy) {
-        if (proxy!=null) {
+        if (proxy != null) {
             if (proxy.getCors() != null) {
                 validate(proxy.getCors());
             }
@@ -103,9 +103,7 @@ public class DefinitionValidator {
             //}
 
             if (proxy.getGroups() != null && !proxy.getGroups().isEmpty()) {
-                Set<String> endpointNames = proxy.getGroups().stream()
-                        .map(EndpointGroup::getName)
-                        .collect(Collectors.toSet());
+                Set<String> endpointNames = proxy.getGroups().stream().map(EndpointGroup::getName).collect(Collectors.toSet());
                 for (EndpointGroup group : proxy.getGroups()) {
                     if (group.getEndpoints() != null) {
                         for (Endpoint endpoint : group.getEndpoints()) {
@@ -131,7 +129,6 @@ public class DefinitionValidator {
 
             if (endpoint.getTarget() == null) {
                 throw new IllegalStateException("[endpoint] Target is required");
-
             }
         }
     }
@@ -212,27 +209,35 @@ public class DefinitionValidator {
     }
 
     public static void validate(Properties properties) {
-        properties.getProperties().forEach(property -> {
-            if (property.getKey() == null) {
-                throw new IllegalStateException("[property] Key is required");
-            }
-            if (property.getValue() == null) {
-                throw new IllegalStateException("[property] Value is required");
-            }
-        });
+        properties
+            .getProperties()
+            .forEach(
+                property -> {
+                    if (property.getKey() == null) {
+                        throw new IllegalStateException("[property] Key is required");
+                    }
+                    if (property.getValue() == null) {
+                        throw new IllegalStateException("[property] Value is required");
+                    }
+                }
+            );
     }
 
     public static void validate(Cors cors) {
         if (cors.getAccessControlAllowOrigin() != null) {
-            cors.getAccessControlAllowOrigin().forEach(text -> {
-                if (!"*".equals(text) && (text.contains("(") || text.contains("[") || text.contains("*"))) {
-                    try {
-                        Pattern.compile(text);
-                    } catch (PatternSyntaxException pse) {
-                        throw new IllegalArgumentException("Allow origin regex invalid: " + pse.getMessage());
+            cors
+                .getAccessControlAllowOrigin()
+                .forEach(
+                    text -> {
+                        if (!"*".equals(text) && (text.contains("(") || text.contains("[") || text.contains("*"))) {
+                            try {
+                                Pattern.compile(text);
+                            } catch (PatternSyntaxException pse) {
+                                throw new IllegalArgumentException("Allow origin regex invalid: " + pse.getMessage());
+                            }
+                        }
                     }
-                }
-            });
+                );
         }
     }
 }

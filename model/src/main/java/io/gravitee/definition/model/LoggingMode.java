@@ -20,11 +20,10 @@ package io.gravitee.definition.model;
  * @author GraviteeSource Team
  */
 public enum LoggingMode {
-
-    NONE (false, false),
-    CLIENT (true, false),
-    PROXY (false, true),
-    CLIENT_PROXY (true, true);
+    NONE(false, false),
+    CLIENT(true, false),
+    PROXY(false, true),
+    CLIENT_PROXY(true, true);
 
     private final boolean client;
     private final boolean proxy;

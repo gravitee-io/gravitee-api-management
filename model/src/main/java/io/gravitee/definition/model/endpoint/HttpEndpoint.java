@@ -21,8 +21,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckServiceDeserializer;
-
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -48,7 +46,11 @@ public class HttpEndpoint extends Endpoint {
     private EndpointHealthCheckService healthCheck;
 
     @JsonCreator
-    public HttpEndpoint(@JsonProperty("name") String name, @JsonProperty("target") String target, @JsonProperty("inherit") Boolean inherit) {
+    public HttpEndpoint(
+        @JsonProperty("name") String name,
+        @JsonProperty("target") String target,
+        @JsonProperty("inherit") Boolean inherit
+    ) {
         this(EndpointType.HTTP, name, target, inherit);
     }
 

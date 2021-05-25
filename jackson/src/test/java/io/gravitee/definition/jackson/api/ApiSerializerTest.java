@@ -15,25 +15,24 @@
  */
 package io.gravitee.definition.jackson.api;
 
+import static org.junit.Assert.assertTrue;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
-import org.apache.commons.io.IOUtils;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.definition.model.Rule;
-import org.junit.Assert;
-import org.junit.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.stream.Collectors;
-
-import static org.junit.Assert.assertTrue;
+import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,7 +50,10 @@ public class ApiSerializerTest extends AbstractTest {
 
         Assert.assertNotNull(generatedJsonDefinition);
 
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -64,7 +66,10 @@ public class ApiSerializerTest extends AbstractTest {
 
         Assert.assertNotNull(generatedJsonDefinition);
         Assert.assertTrue(generatedJsonDefinition.contains("BEST_MATCH"));
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -76,7 +81,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -88,7 +96,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -100,7 +111,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -112,7 +126,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -124,7 +141,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -136,7 +156,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -148,7 +171,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -160,7 +186,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -172,7 +201,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -183,10 +215,13 @@ public class ApiSerializerTest extends AbstractTest {
         Assert.assertNull(api.getProperties());
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
 
         JsonNode node = objectMapper().readTree(generatedJsonDefinition.getBytes());
         Assert.assertNotNull(node.get("properties"));
@@ -198,10 +233,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withemptyproperties-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -210,10 +248,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withproperties-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -222,10 +263,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -234,10 +278,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-nossl-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -246,10 +293,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-nooptions-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -258,10 +308,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-nooptions-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -270,10 +323,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -282,10 +338,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-defaulthttpconfig-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -294,10 +353,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-default-failover-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -306,10 +368,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-override-failover-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -318,10 +383,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-failover-singlecase-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -330,10 +398,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-empty-hostHeader-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -342,10 +413,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-hostHeader-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -354,10 +428,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-hostHeader-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -366,10 +443,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-cors-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -378,10 +458,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-multitenants-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -390,10 +473,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-logging-client-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -402,10 +488,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-truststore-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -414,10 +503,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-withclientoptions-keystore-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -426,10 +518,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-headers-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -438,10 +533,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-endpointgroup-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -450,10 +548,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-response-templates-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -462,10 +563,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-virtualhosts-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -474,10 +578,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-http2-endpoint-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -486,10 +593,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-grpc-endpoint-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -498,10 +608,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-grpc-endpoint-ssl-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -510,10 +623,13 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-grpc-endpoint-without-type-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -522,11 +638,14 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedDefinition = "/io/gravitee/definition/jackson/api-defaultflow-expected.json";
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));        
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
         assertTrue(generatedJsonDefinition.contains("\"gravitee\" : \"2.0.0\","));
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -537,13 +656,17 @@ public class ApiSerializerTest extends AbstractTest {
         policy.setConfiguration("{\"foo\":\"bar\"}");
         rule.setPolicy(policy);
         String generatedJsonDefinition = objectMapper().writeValueAsString(rule);
-        JSONAssert.assertEquals("{\n" +
-                "  \"methods\" : [ \"CONNECT\", \"DELETE\", \"GET\", \"HEAD\", \"OPTIONS\", \"PATCH\", \"POST\", \"PUT\", \"TRACE\", \"OTHER\" ],\n" +
-                "  \"enabled\" : true,\n" +
-                "  \"test\" : {\n" +
-                "     \"foo\":\"bar\"\n" +
-                "  }\n" +
-                "}", generatedJsonDefinition, JSONCompareMode.STRICT);
+        JSONAssert.assertEquals(
+            "{\n" +
+            "  \"methods\" : [ \"CONNECT\", \"DELETE\", \"GET\", \"HEAD\", \"OPTIONS\", \"PATCH\", \"POST\", \"PUT\", \"TRACE\", \"OTHER\" ],\n" +
+            "  \"enabled\" : true,\n" +
+            "  \"test\" : {\n" +
+            "     \"foo\":\"bar\"\n" +
+            "  }\n" +
+            "}",
+            generatedJsonDefinition,
+            JSONCompareMode.STRICT
+        );
     }
 
     @Test
@@ -555,7 +678,10 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 
     @Test
@@ -567,6 +693,9 @@ public class ApiSerializerTest extends AbstractTest {
         String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
 
         Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()), objectMapper().readTree(generatedJsonDefinition.getBytes()));
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
+        );
     }
 }

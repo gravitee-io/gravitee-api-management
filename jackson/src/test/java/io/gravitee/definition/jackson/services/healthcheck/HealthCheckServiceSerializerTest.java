@@ -70,7 +70,8 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
     @Test
     public void definition_withHealtcheck_v2_fromRoot() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v2-fromroot.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
+        String expectedDefinition =
+            "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -83,7 +84,8 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
     @Test
     public void definition_withHealtcheck_v3_fromRoot() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
+        String expectedDefinition =
+            "/io/gravitee/definition/jackson/services/healtcheck/api-withservice-healthcheck-v3-fromroot-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -92,7 +94,6 @@ public class HealthCheckServiceSerializerTest extends AbstractTest {
         String expected = IOUtils.toString(read(expectedDefinition));
         JSONAssert.assertEquals(expected, generatedJsonDefinition, false);
     }
-
 
     @Test
     public void definition_withHealtcheck_disabled() throws Exception {

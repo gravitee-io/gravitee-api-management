@@ -40,9 +40,13 @@ public class EndpointDiscoveryServiceDeserializerTest extends AbstractTest {
     public void definition_withEndpointDiscovery_consul() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/services/discovery/api-withservice-consul.json", Api.class);
 
-        EndpointDiscoveryService endpointDiscoveryService = api.getProxy().getGroups().iterator()
-                .next().getServices()
-                .get(EndpointDiscoveryService.class);
+        EndpointDiscoveryService endpointDiscoveryService = api
+            .getProxy()
+            .getGroups()
+            .iterator()
+            .next()
+            .getServices()
+            .get(EndpointDiscoveryService.class);
         Assert.assertNotNull(endpointDiscoveryService);
         Assert.assertNotNull(endpointDiscoveryService.getConfiguration());
 

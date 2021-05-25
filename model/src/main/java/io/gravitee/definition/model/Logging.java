@@ -17,7 +17,6 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serializable;
 
 /**
@@ -26,9 +25,9 @@ import java.io.Serializable;
  */
 public class Logging implements Serializable {
 
-    public final static LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
-    public final static LoggingScope DEFAULT_LOGGING_SCOPE = LoggingScope.NONE;
-    public final static LoggingContent DEFAULT_LOGGING_CONTENT = LoggingContent.NONE;
+    public static final LoggingMode DEFAULT_LOGGING_MODE = LoggingMode.NONE;
+    public static final LoggingScope DEFAULT_LOGGING_SCOPE = LoggingScope.NONE;
+    public static final LoggingContent DEFAULT_LOGGING_CONTENT = LoggingContent.NONE;
 
     private LoggingMode mode = DEFAULT_LOGGING_MODE;
 

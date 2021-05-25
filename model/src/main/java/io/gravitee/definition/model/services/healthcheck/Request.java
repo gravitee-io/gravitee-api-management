@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
-
 import java.io.Serializable;
 import java.util.List;
 
@@ -42,11 +41,7 @@ public class Request implements Serializable {
     private boolean fromRoot;
 
     @JsonCreator
-    public Request(
-            @JsonProperty("path") String path,
-            @JsonProperty("method") HttpMethod method
-    )
-    {
+    public Request(@JsonProperty("path") String path, @JsonProperty("method") HttpMethod method) {
         this.path = path;
         this.method = method;
     }
@@ -87,5 +82,4 @@ public class Request implements Serializable {
     private void setUri(String path) {
         this.path = path;
     }
-
 }

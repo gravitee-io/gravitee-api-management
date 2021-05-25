@@ -15,10 +15,9 @@
  */
 package io.gravitee.definition.model;
 
+import io.gravitee.definition.model.flow.Flow;
 import java.io.Serializable;
 import java.util.*;
-
-import io.gravitee.definition.model.flow.Flow;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

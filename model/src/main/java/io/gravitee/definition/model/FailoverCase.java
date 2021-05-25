@@ -20,7 +20,6 @@ package io.gravitee.definition.model;
  * @author GraviteeSource Team
  */
 public enum FailoverCase {
-
     // A timeout has occurred while establishing a connection with the server
-    TIMEOUT
+    TIMEOUT,
 }

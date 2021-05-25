@@ -16,7 +16,6 @@
 package io.gravitee.definition.model;
 
 public enum LoggingScope {
-
     NONE(false, false),
     REQUEST(true, false),
     RESPONSE(false, true),

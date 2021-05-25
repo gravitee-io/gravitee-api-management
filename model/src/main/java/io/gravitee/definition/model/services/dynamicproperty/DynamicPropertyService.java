@@ -24,7 +24,7 @@ import io.gravitee.definition.model.services.schedule.ScheduledService;
  */
 public class DynamicPropertyService extends ScheduledService {
 
-    public final static String SERVICE_KEY = "dynamic-property";
+    public static final String SERVICE_KEY = "dynamic-property";
 
     private DynamicPropertyProvider provider;
 

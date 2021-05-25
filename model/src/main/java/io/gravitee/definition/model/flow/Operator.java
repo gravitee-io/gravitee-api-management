@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
  * @author GraviteeSource Team
  */
 public enum Operator {
-
     @JsonEnumDefaultValue
     STARTS_WITH,
     EQUALS,

@@ -15,20 +15,18 @@
  */
 package io.gravitee.definition.model;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux@graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum DefinitionVersion {
-
     @JsonEnumDefaultValue
     V1("1.0.0"),
     V2("2.0.0");

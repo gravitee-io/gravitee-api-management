@@ -19,10 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
-import io.gravitee.definition.model.Property;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,9 +33,7 @@ public class EndpointHealthCheckServiceDeserializer extends StdScalarDeserialize
     }
 
     @Override
-    public EndpointHealthCheckService deserialize(JsonParser jp, DeserializationContext ctxt)
-            throws IOException
-    {
+    public EndpointHealthCheckService deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
         if (node.isObject()) {

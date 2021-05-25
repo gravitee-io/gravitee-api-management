@@ -31,7 +31,8 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
     @Test
     public void definition_withDynamicProperty() throws Exception {
         String oldDefinition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
+        String expectedDefinition =
+            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
         Api api = load(oldDefinition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -44,7 +45,8 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
     @Test
     public void definition_withDynamicProperty_v2() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v2.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
+        String expectedDefinition =
+            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);
@@ -57,7 +59,8 @@ public class DynamicPropertyServiceSerializerTest extends AbstractTest {
     @Test
     public void definition_withDynamicProperty_v3() throws Exception {
         String definition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-v3.json";
-        String expectedDefinition = "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
+        String expectedDefinition =
+            "/io/gravitee/definition/jackson/services/dynamicproperty/api-withservice-dynamicproperty-expected.json";
         Api api = load(definition, Api.class);
 
         String generatedJsonDefinition = objectMapper().writeValueAsString(api);

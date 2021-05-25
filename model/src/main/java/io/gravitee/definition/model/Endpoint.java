@@ -24,7 +24,6 @@ import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -35,18 +34,24 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(discriminatorProperty = "type", discriminatorMapping = {
+@Schema(
+    discriminatorProperty = "type",
+    discriminatorMapping = {
         @DiscriminatorMapping(value = "HTTP", schema = HttpEndpoint.class),
         @DiscriminatorMapping(value = "GRPC", schema = GrpcEndpoint.class),
-}, defaultValue = "HTTP")
+    },
+    defaultValue = "HTTP"
+)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = HttpEndpoint.class, include = JsonTypeInfo.As.EXISTING_PROPERTY)
-@JsonSubTypes({
+@JsonSubTypes(
+    {
         @JsonSubTypes.Type(name = "HTTP", value = HttpEndpoint.class),
         @JsonSubTypes.Type(name = "GRPC", value = GrpcEndpoint.class),
         // For legacy support
         @JsonSubTypes.Type(name = "http", value = HttpEndpoint.class),
-        @JsonSubTypes.Type(name = "grpc", value = GrpcEndpoint.class)
-})
+        @JsonSubTypes.Type(name = "grpc", value = GrpcEndpoint.class),
+    }
+)
 public abstract class Endpoint implements Serializable {
 
     private final Set<EndpointStatusListener> listeners = new HashSet<>();

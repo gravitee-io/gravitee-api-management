@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.Service;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.util.Collections;
 import java.util.Map;
 
@@ -31,8 +30,8 @@ import java.util.Map;
  */
 public class EndpointDiscoveryService extends Service {
 
-    public final static String SERVICE_KEY = "discovery";
-    public final static Map<String, String> PROVIDERS_PLUGIN_MAPPING = Collections.singletonMap("CONSUL", "consul-service-discovery");
+    public static final String SERVICE_KEY = "discovery";
+    public static final Map<String, String> PROVIDERS_PLUGIN_MAPPING = Collections.singletonMap("CONSUL", "consul-service-discovery");
 
     public EndpointDiscoveryService() {
         super(SERVICE_KEY);

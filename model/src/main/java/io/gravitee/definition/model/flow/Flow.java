@@ -18,7 +18,6 @@ package io.gravitee.definition.model.flow;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
-
 import java.io.Serializable;
 import java.util.*;
 
@@ -126,6 +125,7 @@ public class Flow implements Serializable {
     }
 
     private static class PathOperator implements Serializable {
+
         private String path = "";
         private Operator operator = Operator.STARTS_WITH;
 

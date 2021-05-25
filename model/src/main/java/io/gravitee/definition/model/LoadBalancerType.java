@@ -20,9 +20,8 @@ package io.gravitee.definition.model;
  * @author GraviteeSource Team
  */
 public enum LoadBalancerType {
-
     ROUND_ROBIN,
     RANDOM,
     WEIGHTED_ROUND_ROBIN,
-    WEIGHTED_RANDOM
+    WEIGHTED_RANDOM,
 }

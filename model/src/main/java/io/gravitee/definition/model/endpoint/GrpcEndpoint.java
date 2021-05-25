@@ -28,7 +28,11 @@ import io.gravitee.definition.model.ProtocolVersion;
 public class GrpcEndpoint extends HttpEndpoint {
 
     @JsonCreator
-    public GrpcEndpoint(@JsonProperty("name") String name, @JsonProperty("target") String target, @JsonProperty("inherit") Boolean inherit) {
+    public GrpcEndpoint(
+        @JsonProperty("name") String name,
+        @JsonProperty("target") String target,
+        @JsonProperty("inherit") Boolean inherit
+    ) {
         super(EndpointType.GRPC, name, target, inherit);
     }
 

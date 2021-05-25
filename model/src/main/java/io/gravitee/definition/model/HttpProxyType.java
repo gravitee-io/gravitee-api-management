@@ -20,8 +20,7 @@ package io.gravitee.definition.model;
  * @author GraviteeSource Team
  */
 public enum HttpProxyType {
-
     HTTP,
     SOCKS4,
-    SOCKS5
+    SOCKS5,
 }

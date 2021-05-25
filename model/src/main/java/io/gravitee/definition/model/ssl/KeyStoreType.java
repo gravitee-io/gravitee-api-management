@@ -20,9 +20,7 @@ package io.gravitee.definition.model.ssl;
  * @author GraviteeSource Team
  */
 public enum KeyStoreType {
-
     PEM,
     PKCS12,
     JKS,
-
 }

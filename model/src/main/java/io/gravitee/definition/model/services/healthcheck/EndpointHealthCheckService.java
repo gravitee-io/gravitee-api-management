@@ -16,7 +16,6 @@
 package io.gravitee.definition.model.services.healthcheck;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,8 +28,7 @@ public class EndpointHealthCheckService extends HealthCheckService {
 
     private boolean inherit;
 
-    public EndpointHealthCheckService() {
-    }
+    public EndpointHealthCheckService() {}
 
     public boolean isInherit() {
         return inherit;
@@ -44,5 +42,4 @@ public class EndpointHealthCheckService extends HealthCheckService {
     public static EndpointHealthCheckService createHealthCheck(boolean enabled) {
         return enabled ? new EndpointHealthCheckService() : null;
     }
-
 }

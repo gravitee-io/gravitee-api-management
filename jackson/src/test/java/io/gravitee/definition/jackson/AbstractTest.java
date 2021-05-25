@@ -17,7 +17,6 @@ package io.gravitee.definition.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-
 import java.io.IOException;
 import java.io.InputStream;
 

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.services.Services;
-
 import java.io.Serializable;
 import java.util.*;
 
@@ -33,15 +32,21 @@ public class EndpointGroup implements Serializable {
 
     private String name;
     private Set<Endpoint> endpoints;
+
     @JsonProperty("load_balancing")
     private LoadBalancer loadBalancer = new LoadBalancer();
+
     private Services services = new Services();
+
     @JsonProperty("proxy")
     private HttpProxy httpProxy;
+
     @JsonProperty("http")
     private HttpClientOptions httpClientOptions = new HttpClientOptions();
+
     @JsonProperty("ssl")
     private HttpClientSslOptions httpClientSslOptions;
+
     private Map<String, String> headers;
 
     public Set<Endpoint> getEndpoints() {

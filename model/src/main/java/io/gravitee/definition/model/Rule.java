@@ -15,9 +15,6 @@
  */
 package io.gravitee.definition.model;
 
-import java.io.Serializable;
-import java.util.*;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -25,6 +22,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.gravitee.common.http.HttpMethod;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

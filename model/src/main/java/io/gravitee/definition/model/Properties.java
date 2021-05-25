@@ -17,7 +17,6 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.util.TemplatedValueHashMap;
-
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -36,14 +35,19 @@ public class Properties implements Serializable {
         this.properties = properties;
 
         if (properties != null) {
-            this.entries = properties.stream().collect(
-                    Collectors.toMap(
+            this.entries =
+                properties
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
                             Property::getKey,
                             Property::getValue,
                             (v1, v2) -> {
                                 throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
                             },
-                            TemplatedValueHashMap::new));
+                            TemplatedValueHashMap::new
+                        )
+                    );
         }
     }
 

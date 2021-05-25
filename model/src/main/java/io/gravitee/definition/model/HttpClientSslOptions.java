@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.TrustStore;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
-
 import java.io.Serializable;
 
 /**

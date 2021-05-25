@@ -24,5 +24,5 @@ import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 public enum ProtocolVersion {
     @JsonEnumDefaultValue
     HTTP_1_1,
-    HTTP_2
+    HTTP_2,
 }
