@@ -44,4 +44,8 @@ public class CachedPolicyConfigurationFactory extends PolicyConfigurationFactory
 
         return (T) config;
     }
+
+    public void clear() {
+        cachedPolicyConfiguration.clear();
+    }
 }

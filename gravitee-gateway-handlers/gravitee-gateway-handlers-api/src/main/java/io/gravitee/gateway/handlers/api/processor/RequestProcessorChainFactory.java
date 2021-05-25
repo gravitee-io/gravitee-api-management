@@ -21,15 +21,16 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
-import io.gravitee.gateway.handlers.api.flow.BestMatchPolicyResolver;
-import io.gravitee.gateway.handlers.api.flow.SimpleFlowPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.flow.SimpleFlowProvider;
+import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.flow.BestMatchPolicyResolver;
+import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
+import io.gravitee.gateway.flow.SimpleFlowProvider;
+import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
+import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
+import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
+import io.gravitee.gateway.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
-import io.gravitee.gateway.handlers.api.flow.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.evaluation.HttpMethodConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.evaluation.PathBasedConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
 import io.gravitee.gateway.handlers.api.path.impl.ApiPathResolverImpl;
@@ -41,10 +42,13 @@ import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProce
 import io.gravitee.gateway.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersIndexProcessor;
+import io.gravitee.gateway.policy.PolicyChainOrder;
+import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.PolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.security.core.SecurityPolicyChainProvider;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -64,10 +68,17 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
     @Value("${handlers.request.headers.x-forwarded-prefix:false}")
     private boolean overrideXForwardedPrefix;
 
+    @Autowired
+    GatewayConfiguration gatewayConfiguration;
+
+    @Autowired
+    PolicyChainProviderLoader policyChainProviderLoader;
+
     @Override
     public void afterPropertiesSet() {
-        StreamableProcessorSupplier<ExecutionContext, Buffer> loggingDecoratorSupplier = null;
+        addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_REQUEST));
 
+        StreamableProcessorSupplier<ExecutionContext, Buffer> loggingDecoratorSupplier = null;
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
             loggingDecoratorSupplier =
                 new StreamableProcessorSupplier<>(
@@ -92,6 +103,12 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyResolver);
         add(new SecurityPolicyChainProvider(securityPolicyResolver));
 
+        final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
+            new HttpMethodConditionEvaluator(),
+            new PathBasedConditionEvaluator(),
+            new ExpressionLanguageBasedConditionEvaluator()
+        );
+
         if (loggingDecoratorSupplier != null) {
             add(loggingDecoratorSupplier);
         }
@@ -105,12 +122,6 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(new PlanPolicyChainProvider(StreamType.ON_REQUEST, new PlanPolicyResolver(api), chainFactory));
             add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), chainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-            final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
-                new HttpMethodConditionEvaluator(),
-                new PathBasedConditionEvaluator(),
-                new ExpressionLanguageBasedConditionEvaluator()
-            );
-
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new PlanFlowPolicyChainProvider(

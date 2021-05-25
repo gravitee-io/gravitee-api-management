@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.policy;
 
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.flow.policy.PolicyResolver;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

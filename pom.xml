@@ -34,20 +34,22 @@
     <name>Gravitee.io APIM - Gateway</name>
 
     <modules>
-        <module>gravitee-gateway-env</module>
         <module>gravitee-gateway-buffer</module>
+        <module>gravitee-gateway-core</module>
+        <module>gravitee-gateway-dictionary</module>
+        <module>gravitee-gateway-env</module>
+        <module>gravitee-gateway-flow</module>
+        <module>gravitee-gateway-handlers</module>
+        <module>gravitee-gateway-http</module>
+        <module>gravitee-gateway-platform</module>
+        <module>gravitee-gateway-policy</module>
         <module>gravitee-gateway-reactor</module>
         <module>gravitee-gateway-reporting</module>
         <module>gravitee-gateway-repository</module>
-        <module>gravitee-gateway-policy</module>
         <module>gravitee-gateway-resource</module>
-        <module>gravitee-gateway-core</module>
-        <module>gravitee-gateway-dictionary</module>
-        <module>gravitee-gateway-http</module>
-        <module>gravitee-gateway-standalone</module>
-        <module>gravitee-gateway-handlers</module>
-        <module>gravitee-gateway-services</module>
         <module>gravitee-gateway-security</module>
+        <module>gravitee-gateway-services</module>
+        <module>gravitee-gateway-standalone</module>
     </modules>
 
     <dependencyManagement>
@@ -311,7 +313,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>validate</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>
@@ -346,13 +348,19 @@
     <profiles>
         <profile>
             <id>allow-snapshots-for-swagger3</id>
-            <activation><activeByDefault>true</activeByDefault></activation>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <repositories>
                 <repository>
                     <id>snapshots-repo</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases><enabled>false</enabled></releases>
-                    <snapshots><enabled>true</enabled></snapshots>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
                 </repository>
             </repositories>
         </profile>

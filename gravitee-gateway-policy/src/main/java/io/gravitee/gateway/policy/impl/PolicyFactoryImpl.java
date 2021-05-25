@@ -51,6 +51,11 @@ public class PolicyFactoryImpl implements PolicyFactory {
         return createPolicy(policyMetadata, policyConfiguration);
     }
 
+    @Override
+    public void clearCache() {
+        constructors.clear();
+    }
+
     private Object createPolicy(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
         Object policyInst = null;
 

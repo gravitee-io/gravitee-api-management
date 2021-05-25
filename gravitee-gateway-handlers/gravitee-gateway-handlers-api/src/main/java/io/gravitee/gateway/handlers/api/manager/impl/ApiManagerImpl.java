@@ -30,8 +30,8 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cluster.ClusterManager;
-import java.text.Collator;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -94,7 +94,7 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
         DefinitionValidator.validate(api);
 
         // Does the API have a matching sharding tags ?
-        if (hasMatchingTags(api.getTags())) {
+        if (gatewayConfiguration.hasMatchingTags(api.getTags())) {
             // API to deploy
             api.setPlans(
                 api
@@ -105,7 +105,7 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
                             @Override
                             public boolean test(Plan plan) {
                                 if (plan.getTags() != null && !plan.getTags().isEmpty()) {
-                                    boolean hasMatchingTags = hasMatchingTags(plan.getTags());
+                                    boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
                                     logger.debug(
                                         "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
                                         plan.getName(),
@@ -212,69 +212,6 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
             logger.info("{} has been undeployed", currentApi);
             MDC.remove("api");
         }
-    }
-
-    private boolean hasMatchingTags(Set<String> tags) {
-        final Optional<List<String>> optTagList = gatewayConfiguration.shardingTags();
-
-        if (optTagList.isPresent()) {
-            List<String> tagList = optTagList.get();
-            if (tags != null) {
-                final List<String> inclusionTags = tagList
-                    .stream()
-                    .map(String::trim)
-                    .filter(tag -> !tag.startsWith("!"))
-                    .collect(Collectors.toList());
-
-                final List<String> exclusionTags = tagList
-                    .stream()
-                    .map(String::trim)
-                    .filter(tag -> tag.startsWith("!"))
-                    .map(tag -> tag.substring(1))
-                    .collect(Collectors.toList());
-
-                if (inclusionTags.stream().anyMatch(exclusionTags::contains)) {
-                    throw new IllegalArgumentException("You must not configure a tag to be included and excluded");
-                }
-
-                return (
-                    inclusionTags
-                        .stream()
-                        .anyMatch(
-                            tag ->
-                                tags
-                                    .stream()
-                                    .anyMatch(
-                                        crtTag -> {
-                                            final Collator collator = Collator.getInstance();
-                                            collator.setStrength(Collator.NO_DECOMPOSITION);
-                                            return collator.compare(tag, crtTag) == 0;
-                                        }
-                                    )
-                        ) ||
-                    (
-                        !exclusionTags.isEmpty() &&
-                        exclusionTags
-                            .stream()
-                            .noneMatch(
-                                tag ->
-                                    tags
-                                        .stream()
-                                        .anyMatch(
-                                            crtTag -> {
-                                                final Collator collator = Collator.getInstance();
-                                                collator.setStrength(Collator.NO_DECOMPOSITION);
-                                                return collator.compare(tag, crtTag) == 0;
-                                            }
-                                        )
-                            )
-                    )
-                );
-            }
-        }
-
-        // no tags configured on this gateway instance
-        return true;
     }
 
     @Override

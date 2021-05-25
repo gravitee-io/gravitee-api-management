@@ -17,15 +17,16 @@ package io.gravitee.gateway.handlers.api.processor;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.FlowMode;
-import io.gravitee.gateway.handlers.api.flow.BestMatchPolicyResolver;
-import io.gravitee.gateway.handlers.api.flow.SimpleFlowPolicyChainProvider;
-import io.gravitee.gateway.handlers.api.flow.SimpleFlowProvider;
+import io.gravitee.gateway.env.GatewayConfiguration;
+import io.gravitee.gateway.flow.BestMatchPolicyResolver;
+import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
+import io.gravitee.gateway.flow.SimpleFlowProvider;
+import io.gravitee.gateway.flow.condition.CompositeConditionEvaluator;
+import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
+import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
+import io.gravitee.gateway.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
-import io.gravitee.gateway.handlers.api.flow.condition.CompositeConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.evaluation.HttpMethodConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.evaluation.PathBasedConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
 import io.gravitee.gateway.handlers.api.policy.api.ApiPolicyChainProvider;
@@ -34,7 +35,10 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
+import io.gravitee.gateway.policy.PolicyChainOrder;
+import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.StreamType;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,18 +46,26 @@ import io.gravitee.gateway.policy.StreamType;
  */
 public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
 
+    @Autowired
+    GatewayConfiguration gatewayConfiguration;
+
+    @Autowired
+    PolicyChainProviderLoader policyChainProviderLoader;
+
     @Override
     public void afterPropertiesSet() {
+        addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_RESPONSE));
+
+        final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
+            new HttpMethodConditionEvaluator(),
+            new PathBasedConditionEvaluator(),
+            new ExpressionLanguageBasedConditionEvaluator()
+        );
+
         if (api.getDefinitionVersion() == DefinitionVersion.V1) {
             add(new ApiPolicyChainProvider(StreamType.ON_RESPONSE, new ApiPolicyResolver(), chainFactory));
             add(new PlanPolicyChainProvider(StreamType.ON_RESPONSE, new PlanPolicyResolver(api), chainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-            final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
-                new HttpMethodConditionEvaluator(),
-                new PathBasedConditionEvaluator(),
-                new ExpressionLanguageBasedConditionEvaluator()
-            );
-
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new SimpleFlowPolicyChainProvider(
