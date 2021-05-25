@@ -62,6 +62,17 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(mockCriteria2.getKey()).thenReturn("findByCriteria2");
         when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.getFrom() == 0))).thenReturn(asList(mockCriteria1, mockCriteria2));
         when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.getTo() == 1486771400000L))).thenReturn(singletonList(mockCriteria1));
-        when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.isIncludeRevoked()))).thenReturn(asList(mockCriteria2,mockCriteria1Revoked,mockCriteria1));
+        when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.isIncludeRevoked()))).thenReturn(asList(mockCriteria2, mockCriteria1Revoked, mockCriteria1));
+
+        ApiKey apiKey2 = mock(ApiKey.class);
+        when(apiKey2.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865a34");
+
+        ApiKey apiKey3 = mock(ApiKey.class);
+        when(apiKey3.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865a35");
+
+        when(apiKeyRepository.findByCriteria(argThat(o -> o != null && o.getExpireAfter() == 30019401755L))).thenReturn(asList(apiKey2, apiKey3));
+        when(apiKeyRepository.findByCriteria(argThat(o -> o != null && o.getExpireBefore() == 30019401755L))).thenReturn(asList(mockCriteria2, mockCriteria1));
+        when(apiKeyRepository.findByCriteria(argThat(o -> o != null && o.getExpireAfter() == 1439022010000L && o.getExpireBefore() == 1439022020000L))).thenReturn(asList(apiKey2, apiKey3));
+
     }
 }

@@ -164,4 +164,41 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertEquals("findByCriteria1Revoked", apiKeys.get(1).getKey());
         assertEquals("findByCriteria1", apiKeys.get(2).getKey());
     }
+
+  @Test
+  public void shouldFindByCriteriaWithExpireAtBetweenDates() throws Exception {
+    List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+        new Builder()
+            .expireAfter(1439022010000L)
+            .expireBefore(1439022020000L)
+            .build());
+
+    assertEquals("found 2 apikeys", 2, apiKeys.size());
+    assertEquals("d449098d-8c31-4275-ad59-8dd707865a34", apiKeys.get(0).getKey());
+    assertEquals("d449098d-8c31-4275-ad59-8dd707865a35", apiKeys.get(1).getKey());
+  }
+
+  @Test
+  public void shouldFindByCriteriaWithExpireAtAfterDates() throws Exception {
+    List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+        new Builder()
+            .expireAfter(30019401755L)
+            .build());
+
+    assertEquals("found 2 apikeys", 2, apiKeys.size());
+    assertEquals("d449098d-8c31-4275-ad59-8dd707865a34", apiKeys.get(0).getKey());
+    assertEquals("d449098d-8c31-4275-ad59-8dd707865a35", apiKeys.get(1).getKey());
+  }
+
+  @Test
+  public void shouldFindByCriteriaWithExpireAtBeforeDates() throws Exception {
+    List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+        new Builder()
+            .expireBefore(30019401755L)
+            .build());
+
+    assertEquals("found 2 apikeys", 2, apiKeys.size());
+    assertEquals("findByCriteria2", apiKeys.get(0).getKey());
+    assertEquals("findByCriteria1", apiKeys.get(1).getKey());
+  }
 }
