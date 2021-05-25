@@ -23,16 +23,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Consumer;
+import io.gravitee.definition.model.flow.ConsumerType;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.platform.Organization;
+import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -79,6 +82,9 @@ public class SyncManager {
     private ApiManager apiManager;
 
     @Autowired
+    private OrganizationManager organizationManager;
+
+    @Autowired
     private DictionaryManager dictionaryManager;
 
     @Autowired
@@ -86,6 +92,12 @@ public class SyncManager {
 
     @Autowired
     private ClusterManager clusterManager;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    @Autowired
+    private GatewayConfiguration gatewayConfiguration;
 
     @Value("${services.sync.distributed:false}")
     private boolean distributed;
@@ -108,6 +120,14 @@ public class SyncManager {
         if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
             logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
             logger.debug("Refreshing gateway state...");
+
+            try {
+                synchronizeOrganization(nextLastRefreshAt);
+            } catch (Exception ex) {
+                error = true;
+                lastErrorMessage = ex.getMessage();
+                logger.error("An error occurs while synchronizing organizations", ex);
+            }
 
             try {
                 synchronizeApis(nextLastRefreshAt, environments);
@@ -141,6 +161,39 @@ public class SyncManager {
             // soon as the node is becoming the master later.
             lastRefreshAt = nextLastRefreshAt;
         }
+    }
+
+    private void synchronizeOrganization(long nextLastRefreshAt) throws TechnicalException {
+        // Initial synchronization
+        Map<String, Event> organizationEvents;
+        if (lastRefreshAt == -1) {
+            Collection<io.gravitee.repository.management.model.Organization> organizations = organizationRepository.findAll();
+
+            organizationEvents =
+                organizations
+                    .stream()
+                    .map(org -> getLastOrganizationEvent(org.getId()))
+                    .filter(Objects::nonNull)
+                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.ORGANIZATION_ID.getValue()), event -> event));
+        } else {
+            // Get latest API events
+            List<Event> events = getLatestOrganizationEvents(nextLastRefreshAt);
+
+            // Extract only the latest event by API
+            organizationEvents =
+                events
+                    .stream()
+                    .collect(
+                        toMap(
+                            event -> event.getProperties().get(Event.EventProperties.ORGANIZATION_ID.getValue()),
+                            event -> event,
+                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
+                        )
+                    );
+        }
+
+        // Then, compute events
+        computeOrganizationEvents(organizationEvents);
     }
 
     private void synchronizeApis(long nextLastRefreshAt, List<String> environments) {
@@ -240,6 +293,59 @@ public class SyncManager {
         );
     }
 
+    private void computeOrganizationEvents(Map<String, Event> organizationEvents) {
+        organizationEvents.forEach(
+            (orgId, organizationEvent) -> {
+                try {
+                    switch (organizationEvent.getType()) {
+                        case PUBLISH_ORGANIZATION:
+                            try {
+                                // Read Organization definition from event
+                                io.gravitee.definition.model.Organization eventOrganization = objectMapper.readValue(
+                                    organizationEvent.getPayload(),
+                                    io.gravitee.definition.model.Organization.class
+                                );
+
+                                List<String> shardingTags = gatewayConfiguration.shardingTags().orElse(null);
+                                if (shardingTags != null && !shardingTags.isEmpty()) {
+                                    List<Flow> filteredFlows = eventOrganization
+                                        .getFlows()
+                                        .stream()
+                                        .filter(
+                                            flow -> {
+                                                List<Consumer> consumers = flow.getConsumers();
+                                                if (consumers != null && !consumers.isEmpty()) {
+                                                    Set<String> flowTags = consumers
+                                                        .stream()
+                                                        .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
+                                                        .map(consumer -> consumer.getConsumerId())
+                                                        .collect(Collectors.toSet());
+                                                    return gatewayConfiguration.hasMatchingTags(flowTags);
+                                                }
+                                                return true;
+                                            }
+                                        )
+                                        .collect(Collectors.toList());
+
+                                    eventOrganization.setFlows(filteredFlows);
+                                }
+
+                                // Update definition with required information for deployment phase
+                                final Organization organization = new Organization(eventOrganization);
+                                organization.setUpdatedAt(organizationEvent.getUpdatedAt());
+                                organizationManager.register(organization);
+                            } catch (Exception e) {
+                                logger.error("Error while determining organization store into events payload", e);
+                            }
+                            break;
+                    }
+                } catch (Throwable t) {
+                    logger.error("An unexpected error occurs while managing the deployment of Organization id[{}]", orgId, t);
+                }
+            }
+        );
+    }
+
     private void computeApiEvents(Map<String, Event> apiEvents) {
         apiEvents.forEach(
             (apiId, apiEvent) -> {
@@ -333,6 +439,30 @@ public class SyncManager {
         List<Event> events = eventRepository
             .search(
                 eventCriteriaBuilder.types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build()
+            )
+            .getContent();
+
+        return (!events.isEmpty()) ? events.get(0) : null;
+    }
+
+    private List<Event> getLatestOrganizationEvents(long nextLastRefreshAt) {
+        final EventCriteria.Builder builder = new EventCriteria.Builder()
+            .types(EventType.PUBLISH_ORGANIZATION)
+            // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
+            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors))
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+
+        return eventRepository.search(builder.build());
+    }
+
+    private Event getLastOrganizationEvent(final String organization) {
+        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
+        .property(Event.EventProperties.ORGANIZATION_ID.getValue(), organization);
+
+        List<Event> events = eventRepository
+            .search(
+                eventCriteriaBuilder.types(EventType.PUBLISH_ORGANIZATION).build(),
                 new PageableBuilder().pageNumber(0).pageSize(1).build()
             )
             .getContent();

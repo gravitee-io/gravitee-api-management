@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.processor.policy;
 
-import io.gravitee.gateway.handlers.api.policy.PolicyResolver;
+import io.gravitee.gateway.flow.policy.PolicyResolver;
 import io.gravitee.gateway.policy.PolicyChainProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -19,7 +19,6 @@ import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -47,17 +46,17 @@ import org.springframework.util.ClassUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
+public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPolicyManager.class);
 
     @Autowired
-    private ApplicationContext applicationContext;
+    protected ApplicationContext applicationContext;
 
-    private PolicyFactory policyFactory;
+    protected PolicyFactory policyFactory;
 
     @Autowired
-    private PolicyConfigurationFactory policyConfigurationFactory;
+    protected PolicyConfigurationFactory policyConfigurationFactory;
 
     private final Map<String, PolicyMetadata> policies = new HashMap<>();
 
@@ -134,126 +133,132 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         policies.clear();
     }
 
+    protected Set<Policy> dependencies() {
+        Reactable reactable = applicationContext.getBean(Reactable.class);
+        return reactable.dependencies(Policy.class);
+    }
+
     private void initialize() {
-        String[] beanNamesForType = applicationContext
-            .getParent()
+        String[] beanNamesForType = getApplicationContext()
             .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-        ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) applicationContext
-            .getParent()
+        ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) getApplicationContext()
             .getBean(beanNamesForType[0]);
         PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
-        ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
+        ClassLoader globalClassLoader = getClassLoader();
         ResourceLifecycleManager rm = applicationContext.getBean(ResourceLifecycleManager.class);
-        Reactable reactable = applicationContext.getBean(Reactable.class);
 
-        Set<Policy> requiredPlugins = reactable.dependencies(Policy.class);
+        dependencies()
+            .forEach(
+                policy -> {
+                    final PolicyPlugin policyPlugin = ppm.get(policy.getName());
+                    if (policyPlugin == null) {
+                        logger.error("Policy [{}] can not be found in policy registry", policy.getName());
+                        throw new IllegalStateException("Policy [" + policy.getName() + "] can not be found in policy registry");
+                    }
 
-        requiredPlugins.forEach(
-            policy -> {
-                final PolicyPlugin policyPlugin = ppm.get(policy.getName());
-                if (policyPlugin == null) {
-                    logger.error("Policy [{}] can not be found in policy registry", policy.getName());
-                    throw new IllegalStateException("Policy [" + policy.getName() + "] can not be found in policy registry");
-                }
+                    PluginClassLoader policyClassLoader;
 
-                PluginClassLoader policyClassLoader;
-
-                // Load dependant resources to enhance policy classloader
-                Collection<? extends Resource> resources = rm.getResources();
-                if (!resources.isEmpty()) {
-                    ClassLoader[] resourceClassLoaders = rm
-                        .getResources()
-                        .stream()
-                        .map(
-                            new Function<Resource, ClassLoader>() {
-                                @Override
-                                public ClassLoader apply(Resource resource) {
-                                    return resource.getClass().getClassLoader();
+                    // Load dependant resources to enhance policy classloader
+                    Collection<? extends Resource> resources = rm.getResources();
+                    if (!resources.isEmpty()) {
+                        ClassLoader[] resourceClassLoaders = rm
+                            .getResources()
+                            .stream()
+                            .map(
+                                new Function<Resource, ClassLoader>() {
+                                    @Override
+                                    public ClassLoader apply(Resource resource) {
+                                        return resource.getClass().getClassLoader();
+                                    }
                                 }
-                            }
-                        )
-                        .toArray(ClassLoader[]::new);
-
-                    DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(
-                        rh.getClass().getClassLoader(),
-                        resourceClassLoaders
-                    );
-                    policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
-                } else {
-                    policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, rh.getClass().getClassLoader());
-                }
-
-                logger.debug("Loading policy {} for {}", policy.getName(), rh);
-
-                PolicyMetadataBuilder builder = new PolicyMetadataBuilder();
-                builder.setId(policyPlugin.id());
-
-                try {
-                    // Prepare metadata
-                    Class<?> policyClass = ClassUtils.forName(policyPlugin.policy().getName(), policyClassLoader);
-
-                    builder
-                        .setPolicy(policyClass)
-                        .setClassLoader(policyClassLoader)
-                        .setMethods(new PolicyMethodResolver().resolve(policyClass));
-
-                    if (policyPlugin.configuration() != null) {
-                        builder.setConfiguration(
-                            (Class<? extends PolicyConfiguration>) ClassUtils.forName(
-                                policyPlugin.configuration().getName(),
-                                policyClassLoader
                             )
-                        );
+                            .toArray(ClassLoader[]::new);
+
+                        DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(globalClassLoader, resourceClassLoaders);
+                        policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
+                    } else {
+                        policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, globalClassLoader);
                     }
 
-                    // Prepare context if defined
-                    if (policyPlugin.context() != null) {
-                        Class<? extends PolicyContext> policyContextClass = (Class<? extends PolicyContext>) ClassUtils.forName(
-                            policyPlugin.context().getName(),
-                            policyClassLoader
-                        );
-                        // Create policy context instance and initialize context provider (if used)
-                        PolicyContext context = new PolicyContextFactory().create(policyContextClass);
+                    logger.debug("Loading policy {} for {}", policy.getName());
 
-                        if (context instanceof PolicyContextProviderAware) {
-                            ((PolicyContextProviderAware) context).setPolicyContextProvider(
-                                    new SpringPolicyContextProvider(applicationContext)
-                                );
+                    PolicyMetadataBuilder builder = new PolicyMetadataBuilder();
+                    builder.setId(policyPlugin.id());
+
+                    try {
+                        // Prepare metadata
+                        Class<?> policyClass = ClassUtils.forName(policyPlugin.policy().getName(), policyClassLoader);
+
+                        builder
+                            .setPolicy(policyClass)
+                            .setClassLoader(policyClassLoader)
+                            .setMethods(new PolicyMethodResolver().resolve(policyClass));
+
+                        if (policyPlugin.configuration() != null) {
+                            builder.setConfiguration(
+                                (Class<? extends PolicyConfiguration>) ClassUtils.forName(
+                                    policyPlugin.configuration().getName(),
+                                    policyClassLoader
+                                )
+                            );
                         }
 
-                        builder.setContext(context);
-                    }
+                        // Prepare context if defined
+                        if (policyPlugin.context() != null) {
+                            Class<? extends PolicyContext> policyContextClass = (Class<? extends PolicyContext>) ClassUtils.forName(
+                                policyPlugin.context().getName(),
+                                policyClassLoader
+                            );
+                            // Create policy context instance and initialize context provider (if used)
+                            PolicyContext context = new PolicyContextFactory().create(policyContextClass);
 
-                    policies.put(policy.getName(), builder.build());
-                } catch (Exception ex) {
-                    logger.error("Unable to load policy metadata", ex);
+                            if (context instanceof PolicyContextProviderAware) {
+                                ((PolicyContextProviderAware) context).setPolicyContextProvider(
+                                        new SpringPolicyContextProvider(applicationContext)
+                                    );
+                            }
 
-                    if (policyClassLoader != null) {
-                        try {
-                            policyClassLoader.close();
-                        } catch (IOException ioe) {
-                            logger.error("Unable to close classloader for policy", ioe);
+                            builder.setContext(context);
                         }
-                    }
-                } catch (Error error) {
-                    logger.error(
-                        "Unable to load policy id[" +
-                        policyPlugin.id() +
-                        "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
-                        error
-                    );
 
-                    if (policyClassLoader != null) {
-                        try {
-                            policyClassLoader.close();
-                        } catch (IOException ioe) {
-                            logger.error("Unable to close classloader for policy", ioe);
+                        policies.put(policy.getName(), builder.build());
+                    } catch (Exception ex) {
+                        logger.error("Unable to load policy metadata", ex);
+
+                        if (policyClassLoader != null) {
+                            try {
+                                policyClassLoader.close();
+                            } catch (IOException ioe) {
+                                logger.error("Unable to close classloader for policy", ioe);
+                            }
+                        }
+                    } catch (Error error) {
+                        logger.error(
+                            "Unable to load policy id[" +
+                            policyPlugin.id() +
+                            "]. This error mainly occurs when the policy is linked to a missing resource, for example a cache or an oauth2 resource. Please check your policy configuration!",
+                            error
+                        );
+
+                        if (policyClassLoader != null) {
+                            try {
+                                policyClassLoader.close();
+                            } catch (IOException ioe) {
+                                logger.error("Unable to close classloader for policy", ioe);
+                            }
                         }
                     }
                 }
-            }
-        );
+            );
+    }
+
+    protected ApplicationContext getApplicationContext() {
+        return applicationContext;
+    }
+
+    protected ClassLoader getClassLoader() {
+        return this.getClass().getClassLoader();
     }
 
     @Override

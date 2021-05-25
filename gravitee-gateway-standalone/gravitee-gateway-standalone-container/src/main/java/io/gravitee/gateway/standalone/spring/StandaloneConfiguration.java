@@ -15,10 +15,8 @@
  */
 package io.gravitee.gateway.standalone.spring;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.deser.BeanDeserializerModifier;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -26,6 +24,8 @@ import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
+import io.gravitee.gateway.platform.spring.PlatformConfiguration;
+import io.gravitee.gateway.policy.spring.PolicyConfiguration;
 import io.gravitee.gateway.reactor.spring.ReactorConfiguration;
 import io.gravitee.gateway.report.spring.ReporterConfiguration;
 import io.gravitee.gateway.standalone.node.GatewayNode;
@@ -38,7 +38,6 @@ import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
-import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -62,6 +61,8 @@ import org.springframework.context.annotation.Import;
         DictionaryConfiguration.class,
         AlertPluginConfiguration.class,
         ServiceDiscoveryPluginConfiguration.class,
+        PolicyConfiguration.class,
+        PlatformConfiguration.class,
     }
 )
 public class StandaloneConfiguration {

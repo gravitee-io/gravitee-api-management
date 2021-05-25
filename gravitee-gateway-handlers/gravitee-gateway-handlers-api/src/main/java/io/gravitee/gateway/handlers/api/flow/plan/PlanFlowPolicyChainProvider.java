@@ -18,7 +18,7 @@ package io.gravitee.gateway.handlers.api.flow.plan;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.handlers.api.flow.FlowProvider;
+import io.gravitee.gateway.flow.FlowProvider;
 import io.gravitee.gateway.handlers.api.processor.policy.plan.PlanProcessorProvider;
 
 /**

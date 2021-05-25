@@ -23,4 +23,6 @@ import io.gravitee.policy.api.PolicyConfiguration;
  */
 public interface PolicyFactory {
     Object create(PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration);
+
+    void clearCache();
 }

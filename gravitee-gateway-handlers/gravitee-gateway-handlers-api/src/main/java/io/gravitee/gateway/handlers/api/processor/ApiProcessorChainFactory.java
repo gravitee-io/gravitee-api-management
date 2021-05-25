@@ -24,8 +24,8 @@ import io.gravitee.gateway.core.processor.chain.StreamableProcessorChain;
 import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderChain;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.policy.PolicyChainFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -63,6 +63,10 @@ public abstract class ApiProcessorChainFactory
 
     protected void add(ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> provider) {
         this.providers.add(provider);
+    }
+
+    protected void addAll(List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers) {
+        this.providers.addAll(providers);
     }
 
     protected void add(Supplier<Processor<ExecutionContext>> supplier) {

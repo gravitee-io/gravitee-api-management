@@ -27,15 +27,11 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -82,6 +78,9 @@ public class SyncManagerTest {
     private ObjectMapper objectMapper;
 
     private List<String> environments;
+
+    @Mock
+    private OrganizationRepository organizationRepository;
 
     @Before
     public void setUp() {

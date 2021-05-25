@@ -18,9 +18,9 @@ package io.gravitee.gateway.handlers.api.flow.plan;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import io.gravitee.gateway.flow.condition.ConditionalFlowResolver;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
-import io.gravitee.gateway.handlers.api.flow.condition.ConditionalFlowResolver;
 import java.util.List;
 
 /**

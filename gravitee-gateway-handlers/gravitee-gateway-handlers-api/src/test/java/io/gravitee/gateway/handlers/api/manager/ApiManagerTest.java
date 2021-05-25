@@ -62,6 +62,7 @@ public class ApiManagerTest {
 
         ((ApiManagerImpl) apiManager).setApis(new HashMap<>());
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
+        when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }
 
     @Test

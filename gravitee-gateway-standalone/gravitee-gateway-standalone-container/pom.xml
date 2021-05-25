@@ -126,6 +126,12 @@
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-platform</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-buffer</artifactId>
             <version>${project.version}</version>
         </dependency>
