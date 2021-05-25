@@ -24,7 +24,6 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.Step;
-import io.gravitee.definition.model.services.schedule.ScheduledService;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;

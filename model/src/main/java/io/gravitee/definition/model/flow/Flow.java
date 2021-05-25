@@ -35,6 +35,7 @@ public class Flow implements Serializable {
     private boolean enabled = true;
     private Set<HttpMethod> methods = new HashSet<>();
     private String condition;
+    private List<Consumer> consumers;
 
     public String getName() {
         return name;
@@ -146,5 +147,13 @@ public class Flow implements Serializable {
             this.operator = operator;
             return this;
         }
+    }
+
+    public List<Consumer> getConsumers() {
+        return consumers;
+    }
+
+    public void setConsumers(List<Consumer> consumers) {
+        this.consumers = consumers;
     }
 }

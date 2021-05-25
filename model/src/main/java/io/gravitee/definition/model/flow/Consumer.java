@@ -15,15 +15,27 @@
  */
 package io.gravitee.definition.model.flow;
 
-import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
 import java.io.Serializable;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum Operator implements Serializable {
-    @JsonEnumDefaultValue
-    STARTS_WITH,
-    EQUALS,
+public class Consumer implements Serializable {
+
+    private ConsumerType consumerType;
+
+    private String consumerId;
+
+    public ConsumerType getConsumerType() {
+        return consumerType;
+    }
+
+    public void setConsumerType(ConsumerType consumerType) {
+        this.consumerType = consumerType;
+    }
+
+    public String getConsumerId() {
+        return consumerId;
+    }
+
+    public void setConsumerId(String consumerId) {
+        this.consumerId = consumerId;
+    }
 }
