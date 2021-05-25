@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.model.configuration.identity;
 
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,6 +27,7 @@ public class GroupMappingEntity {
 
     private String condition;
 
+    @NotEmpty
     private List<String> groups;
 
     public String getCondition() {
