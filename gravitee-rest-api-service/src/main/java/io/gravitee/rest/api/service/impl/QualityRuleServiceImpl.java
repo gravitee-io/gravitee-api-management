@@ -112,7 +112,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             if (!optionalQualityRule.isPresent()) {
                 throw new QualityRuleNotFoundException(updateEntity.getId());
             }
-            final QualityRule qualityRule = qualityRuleRepository.update(convert(updateEntity));
+            final QualityRule qualityRule = qualityRuleRepository.update(convert(updateEntity, optionalQualityRule.get()));
             auditService.createEnvironmentAuditLog(
                 singletonMap(QUALITY_RULE, qualityRule.getId()),
                 QUALITY_RULE_UPDATED,
@@ -172,12 +172,13 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         return qualityRule;
     }
 
-    private QualityRule convert(final UpdateQualityRuleEntity qualityRuleEntity) {
+    private QualityRule convert(final UpdateQualityRuleEntity qualityRuleEntity, final QualityRule qr) {
         final QualityRule qualityRule = new QualityRule();
         qualityRule.setId(qualityRuleEntity.getId());
         qualityRule.setName(qualityRuleEntity.getName());
         qualityRule.setDescription(qualityRuleEntity.getDescription());
         qualityRule.setWeight(qualityRuleEntity.getWeight());
+        qualityRule.setCreatedAt(qr.getCreatedAt());
         qualityRule.setUpdatedAt(new Date());
         return qualityRule;
     }
