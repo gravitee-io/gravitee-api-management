@@ -64,7 +64,7 @@
             <artifactId>gravitee-rest-api-repository</artifactId>
             <version>${project.version}</version>
         </dependency>
-		<dependency>
+        <dependency>
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-oauth2-provider-api</artifactId>
         </dependency>
@@ -72,7 +72,7 @@
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-cache-provider-api</artifactId>
         </dependency>
-        
+
         <!-- To override Spring commons-logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -254,7 +254,7 @@
             <build>
                 <resources>
                     <resource>
-                        <directory>../gravitee-management-api-standalone-distribution/src/main/resources/</directory>
+                        <directory>../gravitee-rest-api-standalone-distribution/src/main/resources/</directory>
                         <includes>
                             <include>config/*</include>
                             <include>templates/*</include>
