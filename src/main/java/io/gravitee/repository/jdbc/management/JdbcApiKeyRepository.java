@@ -98,9 +98,19 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 args.add(new Date(akc.getFrom()));
             }
             if (akc.getTo() > 0) {
-                addClause(first, query);
+                first =  addClause(first, query);
                 query.append(" ( updated_at <= ? ) ");
                 args.add(new Date(akc.getTo()));
+            }
+            if (akc.getExpireAfter() > 0) {
+                first = addClause(first, query);
+                query.append(" ( expire_at >= ? ) ");
+                args.add(new Date(akc.getExpireAfter()));
+            }
+            if (akc.getExpireBefore() > 0) {
+                addClause(first, query);
+                query.append(" ( expire_at <= ? ) ");
+                args.add(new Date(akc.getExpireBefore()));
             }
             query.append(" order by updated_at desc ");
             return jdbcTemplate.query(query.toString()
