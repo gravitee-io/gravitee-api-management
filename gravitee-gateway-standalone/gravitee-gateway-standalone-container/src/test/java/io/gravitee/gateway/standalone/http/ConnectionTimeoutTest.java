@@ -15,14 +15,14 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,7 +35,9 @@ public class ConnectionTimeoutTest extends AbstractWiremockGatewayTest {
     public void call_unreachable_api() throws Exception {
         HttpResponse response = Request.Post("http://localhost:8082/unreachable").execute().returnResponse();
 
-        assertTrue(response.getStatusLine().getStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT
-                    || response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_GATEWAY);
+        assertTrue(
+            response.getStatusLine().getStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT ||
+            response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_GATEWAY
+        );
     }
 }

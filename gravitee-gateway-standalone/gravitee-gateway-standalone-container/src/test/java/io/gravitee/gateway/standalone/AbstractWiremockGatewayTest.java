@@ -15,21 +15,20 @@
  */
 package io.gravitee.gateway.standalone;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.standalone.junit.rules.ApiDeployer;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import org.junit.Rule;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,15 +39,10 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
     protected final WireMockRule wireMockRule = getWiremockRule();
 
     @Rule
-    public final TestRule chain = RuleChain
-            .outerRule(wireMockRule)
-            .around(new ApiDeployer(this));
+    public final TestRule chain = RuleChain.outerRule(wireMockRule).around(new ApiDeployer(this));
 
     protected WireMockRule getWiremockRule() {
-        return new WireMockRule(
-                wireMockConfig()
-                        .dynamicPort()
-                        .extensions(new ResponseTemplateTransformer(true)));
+        return new WireMockRule(wireMockConfig().dynamicPort().extensions(new ResponseTemplateTransformer(true)));
     }
 
     @Override
@@ -67,7 +61,8 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
 
     public String exchangePort(URL url, int port) {
         try {
-            return new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), port, url.getPath(), url.getQuery(), url.getRef()).toString();
+            return new URI(url.getProtocol(), url.getUserInfo(), url.getHost(), port, url.getPath(), url.getQuery(), url.getRef())
+                .toString();
         } catch (URISyntaxException e) {
             return null;
         }

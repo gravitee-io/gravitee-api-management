@@ -60,7 +60,9 @@ class VertxWebSocket implements WebSocket {
         } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT && frame.isFinal()) {
             websocket.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame.data().toString(), frame.isFinal()));
         } else if (frame.type() == WebSocketFrame.Type.CONTINUATION) {
-            websocket.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(frame.data().toString()), frame.isFinal()));
+            websocket.writeFrame(
+                io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(frame.data().toString()), frame.isFinal())
+            );
         }
 
         return this;
@@ -68,7 +70,7 @@ class VertxWebSocket implements WebSocket {
 
     @Override
     public WebSocket close() {
-        if (upgraded && ! closed) {
+        if (upgraded && !closed) {
             websocket.close();
         }
         return this;
@@ -82,10 +84,12 @@ class VertxWebSocket implements WebSocket {
 
     @Override
     public WebSocket closeHandler(Handler<Void> closeHandler) {
-        websocket.closeHandler(event -> {
-            closed = true;
-            closeHandler.handle(event);
-        });
+        websocket.closeHandler(
+            event -> {
+                closed = true;
+                closeHandler.handle(event);
+            }
+        );
         return this;
     }
 

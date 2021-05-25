@@ -24,7 +24,8 @@ import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class TemplateAwareEndpointFactory<T extends io.gravitee.definition.model.Endpoint, S extends Endpoint> implements EndpointFactory<T, S> {
+public abstract class TemplateAwareEndpointFactory<T extends io.gravitee.definition.model.Endpoint, S extends Endpoint>
+    implements EndpointFactory<T, S> {
 
     protected final TemplateEngine templateEngine = TemplateEngine.templateEngine();
 

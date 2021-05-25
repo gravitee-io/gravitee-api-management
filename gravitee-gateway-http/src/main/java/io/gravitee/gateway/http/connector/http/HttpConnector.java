@@ -41,12 +41,11 @@ public class HttpConnector<T extends HttpEndpoint> extends AbstractConnector<T> 
         String connectionHeader = proxyRequest.headers().getFirst(HttpHeaders.CONNECTION);
         String upgradeHeader = proxyRequest.headers().getFirst(HttpHeaders.UPGRADE);
 
-        boolean websocket = proxyRequest.method() == HttpMethod.GET &&
-                HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionHeader) &&
-                HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
+        boolean websocket =
+            proxyRequest.method() == HttpMethod.GET &&
+            HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionHeader) &&
+            HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
 
-        return websocket ?
-                new WebSocketProxyConnection(endpoint, proxyRequest) :
-                new HttpProxyConnection<>(endpoint, proxyRequest);
+        return websocket ? new WebSocketProxyConnection(endpoint, proxyRequest) : new HttpProxyConnection<>(endpoint, proxyRequest);
     }
 }

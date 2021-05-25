@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
-
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -43,9 +42,10 @@ class UserDefinedProxyEndpoint extends AbstractProxyEndpoint {
 
     @Override
     public ProxyRequest createProxyRequest(Request request, Function<ProxyRequestBuilder, ProxyRequestBuilder> mapper) {
-        ProxyRequestBuilder builder = ProxyRequestBuilder.from(request)
-                .uri(getTargetWithoutQueryParams(uri))
-                .parameters(mergeQueryParameters(uri, request.parameters()));
+        ProxyRequestBuilder builder = ProxyRequestBuilder
+            .from(request)
+            .uri(getTargetWithoutQueryParams(uri))
+            .parameters(mergeQueryParameters(uri, request.parameters()));
 
         if (mapper != null) {
             builder = mapper.apply(builder);
@@ -63,11 +63,13 @@ class UserDefinedProxyEndpoint extends AbstractProxyEndpoint {
         MultiValueMap<String, String> queryParameters = URIUtils.parameters(uri);
 
         if (parameters != null && !parameters.isEmpty()) {
-            parameters.forEach((name, values) -> {
-                for (String value : values) {
-                    queryParameters.add(name, value);
+            parameters.forEach(
+                (name, values) -> {
+                    for (String value : values) {
+                        queryParameters.add(name, value);
+                    }
                 }
-            });
+            );
         }
 
         return queryParameters;

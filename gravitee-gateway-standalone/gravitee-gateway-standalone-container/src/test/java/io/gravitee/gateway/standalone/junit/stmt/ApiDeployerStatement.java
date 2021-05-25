@@ -27,15 +27,14 @@ import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.repository.management.api.ApiKeyRepository;
-import org.junit.runners.model.Statement;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.core.ResolvableType;
-
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import org.junit.runners.model.Statement;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.ResolvableType;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,18 +58,22 @@ public class ApiDeployerStatement extends Statement {
         GatewayContainer container = new GatewayContainer();
 
         if (target instanceof PolicyRegister) {
-            String[] beanNamesForType = container.applicationContext().getBeanNamesForType(
-                    ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
+            String[] beanNamesForType = container
+                .applicationContext()
+                .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-            ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>)
-                    container.applicationContext().getBean(beanNamesForType[0]);
+            ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) container
+                .applicationContext()
+                .getBean(beanNamesForType[0]);
 
             ((PolicyRegister) target).register(ppm);
         }
 
         if (target instanceof PolicyFactory) {
-            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) ((ConfigurableApplicationContext) container.applicationContext()).getBeanFactory();
-            String [] beanNames = container.applicationContext().getBeanNamesForType(PolicyFactory.class);
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
+                (ConfigurableApplicationContext) container.applicationContext()
+            ).getBeanFactory();
+            String[] beanNames = container.applicationContext().getBeanNamesForType(PolicyFactory.class);
             String oldBeanName = beanNames[0];
 
             beanFactory.destroyBean(oldBeanName, beanFactory.getBean(oldBeanName));
@@ -83,7 +86,7 @@ public class ApiDeployerStatement extends Statement {
 
         container.start();
         Thread.sleep(1000);
-        
+
         ApiManager apiManager = container.applicationContext().getBean(ApiManager.class);
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
 

@@ -16,13 +16,12 @@
 package io.gravitee.gateway.services.localregistry;
 
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import java.net.URL;
+import java.net.URLDecoder;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.net.URL;
-import java.net.URLDecoder;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)

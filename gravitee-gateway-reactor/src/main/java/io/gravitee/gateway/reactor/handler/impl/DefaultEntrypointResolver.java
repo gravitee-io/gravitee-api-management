@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class DefaultEntrypointResolver implements EntrypointResolver {
 
-    public final static String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
+    public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
     @Autowired
     private ReactorHandlerRegistry handlerRegistry;

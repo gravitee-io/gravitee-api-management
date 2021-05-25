@@ -19,7 +19,6 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.*;
 import io.gravitee.gateway.security.jwt.policy.CheckSubscriptionPolicy;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,16 +33,16 @@ public class JWTAuthenticationHandler implements AuthenticationHandler {
      */
     static final String AUTHENTICATION_HANDLER_NAME = "jwt";
 
-    final static String JWT_CONTEXT_ATTRIBUTE = "jwt";
+    static final String JWT_CONTEXT_ATTRIBUTE = "jwt";
 
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
-    private final static List<AuthenticationPolicy> POLICIES = Arrays.asList(
-            // First, validate the incoming access_token thanks to an OAuth2 authorization server
-            (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
-
-            // Then, check that there is an existing valid subscription associated to the client_id
-            (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class);
+    private static final List<AuthenticationPolicy> POLICIES = Arrays.asList(
+        // First, validate the incoming access_token thanks to an OAuth2 authorization server
+        (PluginAuthenticationPolicy) () -> AUTHENTICATION_HANDLER_NAME,
+        // Then, check that there is an existing valid subscription associated to the client_id
+        (HookAuthenticationPolicy) () -> CheckSubscriptionPolicy.class
+    );
 
     @Override
     public boolean canHandle(AuthenticationContext context) {

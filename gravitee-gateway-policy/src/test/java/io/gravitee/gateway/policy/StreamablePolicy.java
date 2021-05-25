@@ -32,12 +32,12 @@ public class StreamablePolicy implements Policy {
 
     @Override
     public void onRequest(Object... args) throws PolicyException {
-        ((PolicyChain)args[0]).doNext(null, null);
+        ((PolicyChain) args[0]).doNext(null, null);
     }
 
     @Override
     public void onResponse(Object... args) throws PolicyException {
-        ((PolicyChain)args[0]).doNext(null, null);
+        ((PolicyChain) args[0]).doNext(null, null);
     }
 
     @Override

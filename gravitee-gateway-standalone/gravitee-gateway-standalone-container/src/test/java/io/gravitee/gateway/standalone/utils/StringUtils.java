@@ -29,18 +29,15 @@ public final class StringUtils {
 
     // convert InputStream to String
     public static String copy(InputStream is) {
-
         BufferedReader br = null;
         StringBuilder sb = new StringBuilder();
 
         String line;
         try {
-
             br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             while ((line = br.readLine()) != null) {
                 sb.append(line);
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -54,6 +51,5 @@ public final class StringUtils {
         }
 
         return sb.toString();
-
     }
 }

@@ -33,7 +33,6 @@ public class TransformRequestStreamFailPolicy {
     @OnRequestContent
     public ReadWriteStream onRequestContent(PolicyChain chain) {
         return new BufferedReadWriteStream() {
-            
             @Override
             public SimpleReadWriteStream<Buffer> write(Buffer content) {
                 return this;

@@ -25,7 +25,6 @@ import io.gravitee.gateway.handlers.api.flow.policy.FlowResponsePolicyChain;
 import io.gravitee.gateway.handlers.api.policy.PolicyChainFactory;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,10 +40,7 @@ public class SimpleFlowProvider implements FlowProvider {
 
     private final PolicyChainFactory policyChainFactory;
 
-    public SimpleFlowProvider(
-            final StreamType streamType,
-            final FlowResolver flowResolver,
-            final PolicyChainFactory policyChainFactory) {
+    public SimpleFlowProvider(final StreamType streamType, final FlowResolver flowResolver, final PolicyChainFactory policyChainFactory) {
         this.streamType = streamType;
         this.flowResolver = flowResolver;
         this.policyChainFactory = policyChainFactory;
@@ -59,13 +55,15 @@ public class SimpleFlowProvider implements FlowProvider {
 
             for (Flow flow : flows) {
                 chain.add(
-                        policyChainFactory.create(
-                                new FlowPolicyResolver(flow).resolve(streamType, context),
-                                streamType,
-                                context, policies -> streamType == StreamType.ON_REQUEST ?
-                                        RequestPolicyChain.create(policies, context) :
-                                        FlowResponsePolicyChain.create(policies, context)
-                        )
+                    policyChainFactory.create(
+                        new FlowPolicyResolver(flow).resolve(streamType, context),
+                        streamType,
+                        context,
+                        policies ->
+                            streamType == StreamType.ON_REQUEST
+                                ? RequestPolicyChain.create(policies, context)
+                                : FlowResponsePolicyChain.create(policies, context)
+                    )
                 );
             }
 

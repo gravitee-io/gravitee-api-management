@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.path.impl;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Rule;
-
 import java.util.stream.Collectors;
 
 /**
@@ -30,18 +29,21 @@ public class ApiPathResolverImpl extends AbstractPathResolver {
 
     public ApiPathResolverImpl(Api api) {
         super();
-
         // Paths may be empty with definition v2
         if (api.getPaths() != null) {
-            api.getPaths().forEach((key, rules) -> {
-                io.gravitee.gateway.handlers.api.path.Path path = new io.gravitee.gateway.handlers.api.path.Path();
-                path.setPath(key);
+            api
+                .getPaths()
+                .forEach(
+                    (key, rules) -> {
+                        io.gravitee.gateway.handlers.api.path.Path path = new io.gravitee.gateway.handlers.api.path.Path();
+                        path.setPath(key);
 
-                // Keeping only enabled rules
-                path.setRules(rules.stream().filter(Rule::isEnabled).collect(Collectors.toList()));
+                        // Keeping only enabled rules
+                        path.setRules(rules.stream().filter(Rule::isEnabled).collect(Collectors.toList()));
 
-                register(path);
-            });
+                        register(path);
+                    }
+                );
         }
     }
 }

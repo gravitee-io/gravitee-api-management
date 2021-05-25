@@ -22,11 +22,10 @@ import io.gravitee.gateway.reactor.processor.notfound.NotFoundProcessor;
 import io.gravitee.gateway.reactor.processor.notfound.NotFoundReporter;
 import io.gravitee.gateway.reactor.processor.responsetime.ResponseTimeProcessor;
 import io.gravitee.gateway.report.ReporterService;
+import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
-
-import java.util.Arrays;
 
 public class NotFoundProcessorChainFactory {
 
@@ -40,11 +39,12 @@ public class NotFoundProcessorChainFactory {
     private boolean logEnabled;
 
     public Processor<ExecutionContext> create() {
-        return new DefaultProcessorChain<>(Arrays.asList(
+        return new DefaultProcessorChain<>(
+            Arrays.asList(
                 new NotFoundProcessor(environment),
                 new ResponseTimeProcessor(),
                 new NotFoundReporter(reporterService, logEnabled)
-        ));
+            )
+        );
     }
-
 }

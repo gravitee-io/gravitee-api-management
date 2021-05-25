@@ -22,7 +22,6 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface ProcessorFailure {
-
     int statusCode();
 
     String message();

@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class EndpointDiscoveryService extends AbstractService {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryService.class);
 
     @Autowired
     private Vertx vertx;
@@ -42,13 +42,16 @@ public class EndpointDiscoveryService extends AbstractService {
         EndpointDiscoveryVerticle discoveryVerticle = new EndpointDiscoveryVerticle();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(discoveryVerticle);
 
-        vertx.deployVerticle(discoveryVerticle, event -> {
-            if (event.failed()) {
-                LOGGER.error("Endpoints Discovery service can not be started", event.cause());
-            }
+        vertx.deployVerticle(
+            discoveryVerticle,
+            event -> {
+                if (event.failed()) {
+                    LOGGER.error("Endpoints Discovery service can not be started", event.cause());
+                }
 
-            deploymentId = event.result();
-        });
+                deploymentId = event.result();
+            }
+        );
     }
 
     @Override

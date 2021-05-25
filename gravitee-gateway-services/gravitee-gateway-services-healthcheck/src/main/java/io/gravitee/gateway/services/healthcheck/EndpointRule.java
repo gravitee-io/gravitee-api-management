@@ -20,7 +20,6 @@ import io.gravitee.definition.model.services.healthcheck.Step;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.ProxyOptions;
-
 import java.util.List;
 
 /**
@@ -28,7 +27,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface EndpointRule<T extends Endpoint> {
-
     String api();
 
     T endpoint();

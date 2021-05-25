@@ -15,24 +15,23 @@
  */
 package io.gravitee.gateway.handlers.api.flow.condition.evaluation;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -72,7 +71,7 @@ public class HttpMethodConditionEvaluatorTest {
 
     @Test
     public void shouldEvaluate_validMethod() {
-        when(flow.getMethods()).thenReturn(new HashSet<>(Arrays.asList(HttpMethod.POST,HttpMethod.GET)));
+        when(flow.getMethods()).thenReturn(new HashSet<>(Arrays.asList(HttpMethod.POST, HttpMethod.GET)));
         when(request.method()).thenReturn(HttpMethod.GET);
 
         assertTrue(evaluator.evaluate(flow, context));

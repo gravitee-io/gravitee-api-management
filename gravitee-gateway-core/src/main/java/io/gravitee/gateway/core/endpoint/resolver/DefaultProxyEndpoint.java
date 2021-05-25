@@ -19,7 +19,6 @@ import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.builder.ProxyRequestBuilder;
-
 import java.util.function.Function;
 
 /**
@@ -34,8 +33,7 @@ class DefaultProxyEndpoint extends AbstractProxyEndpoint {
 
     @Override
     public ProxyRequest createProxyRequest(Request request, Function<ProxyRequestBuilder, ProxyRequestBuilder> mapper) {
-        ProxyRequestBuilder builder = ProxyRequestBuilder.from(request)
-                .uri(target() + request.pathInfo());
+        ProxyRequestBuilder builder = ProxyRequestBuilder.from(request).uri(target() + request.pathInfo());
 
         if (mapper != null) {
             builder = mapper.apply(builder);

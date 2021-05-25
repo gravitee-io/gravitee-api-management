@@ -15,6 +15,10 @@
  */
 package io.gravitee.gateway.security.apikey;
 
+import static java.util.Optional.of;
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
@@ -28,6 +32,9 @@ import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -39,14 +46,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import static java.util.Optional.of;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -61,10 +60,13 @@ public class ApiKeyAuthenticationHandlerTest {
 
     @Mock
     private Request request;
+
     @Mock
     private Metrics metrics;
+
     @Mock
     private AuthenticationContext authenticationContext;
+
     @Mock
     private ApiKeyRepository apiKeyRepository;
 
@@ -153,7 +155,6 @@ public class ApiKeyAuthenticationHandlerTest {
     public void shouldReturnOrder() {
         Assert.assertEquals(500, authenticationHandler.order());
     }
-
     /*
     @Test
     public void shouldNotHandleRequest_wrongCriteria() throws TechnicalException {

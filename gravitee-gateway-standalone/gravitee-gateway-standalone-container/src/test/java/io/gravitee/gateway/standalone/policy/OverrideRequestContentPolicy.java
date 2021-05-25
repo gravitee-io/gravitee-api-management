@@ -29,12 +29,11 @@ import io.gravitee.policy.api.annotations.OnRequestContent;
  */
 public class OverrideRequestContentPolicy {
 
-    public final static String STREAM_POLICY_CONTENT = "Intercepted streamable request content";
+    public static final String STREAM_POLICY_CONTENT = "Intercepted streamable request content";
 
     @OnRequestContent
     public ReadWriteStream onRequestContent(Request request) {
         return new BufferedReadWriteStream() {
-
             @Override
             public SimpleReadWriteStream<Buffer> write(Buffer content) {
                 // We dot want to get the request content, skipping

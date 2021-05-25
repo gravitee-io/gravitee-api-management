@@ -24,6 +24,4 @@ import io.gravitee.gateway.core.processor.provider.ProcessorProvider;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyChainProvider extends ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> {
-
-}
+public interface PolicyChainProvider extends ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> {}

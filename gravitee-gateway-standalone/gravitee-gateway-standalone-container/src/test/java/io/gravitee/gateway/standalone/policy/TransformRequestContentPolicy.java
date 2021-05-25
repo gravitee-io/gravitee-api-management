@@ -33,7 +33,6 @@ public class TransformRequestContentPolicy {
     @OnRequestContent
     public ReadWriteStream onRequestContent(Request request, ExecutionContext executionContext) {
         return new BufferedReadWriteStream() {
-
             Buffer buffer = Buffer.buffer();
 
             @Override

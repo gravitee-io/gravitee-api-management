@@ -16,7 +16,6 @@
 package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.gateway.reactor.Reactable;
-
 import java.util.List;
 
 /**
@@ -24,7 +23,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ReactorHandlerRegistry {
-
     void create(Reactable reactable);
 
     void update(Reactable reactable);

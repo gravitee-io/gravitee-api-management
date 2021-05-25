@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.OverrideResponseContentPolicy;
@@ -27,9 +30,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,17 +44,18 @@ public class OverrideResponseContentGatewayTest extends AbstractWiremockGatewayT
 
         wireMockRule.stubFor(post("/api").willReturn(ok(requestBody)));
 
-        HttpResponse response = Request.Post("http://localhost:8082/api")
-                .bodyString("This content should normally be returned by echo backend", ContentType.TEXT_PLAIN)
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Post("http://localhost:8082/api")
+            .bodyString("This content should normally be returned by echo backend", ContentType.TEXT_PLAIN)
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(OverrideResponseContentPolicy.STREAM_POLICY_CONTENT, responseContent);
 
-        wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api"))
-                .withRequestBody(equalTo(requestBody)));
+        wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api")).withRequestBody(equalTo(requestBody)));
     }
 
     @Override

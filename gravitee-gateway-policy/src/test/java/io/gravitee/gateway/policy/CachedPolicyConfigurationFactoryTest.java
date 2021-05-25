@@ -17,13 +17,12 @@ package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.policy.api.PolicyConfiguration;
+import java.io.IOException;
+import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -42,7 +41,10 @@ public class CachedPolicyConfigurationFactoryTest {
         try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
-            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(
+                DummyPolicyConfiguration.class,
+                configuration
+            );
 
             Assert.assertNotNull(policyConfiguration);
             Assert.assertNotNull(policyConfiguration2);
@@ -58,7 +60,10 @@ public class CachedPolicyConfigurationFactoryTest {
         try (InputStream is = PolicyConfigurationFactoryTest.class.getResourceAsStream("policy-configuration-01.json")) {
             String configuration = IOUtils.toString(is, "UTF-8");
             DummyPolicyConfiguration policyConfiguration = policyConfigurationFactory.create(DummyPolicyConfiguration.class, null);
-            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(DummyPolicyConfiguration.class, configuration);
+            DummyPolicyConfiguration policyConfiguration2 = policyConfigurationFactory.create(
+                DummyPolicyConfiguration.class,
+                configuration
+            );
 
             Assert.assertNull(policyConfiguration);
             Assert.assertNotNull(policyConfiguration2);

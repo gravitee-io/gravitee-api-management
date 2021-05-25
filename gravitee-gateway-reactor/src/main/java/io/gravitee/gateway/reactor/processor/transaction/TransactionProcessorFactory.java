@@ -27,6 +27,7 @@ public class TransactionProcessorFactory {
 
     @Value("${handlers.request.transaction.header:" + TransactionProcessor.DEFAULT_TRANSACTION_ID_HEADER + "}")
     private String transactionHeader;
+
     @Value("${handlers.request.request.header:" + TransactionProcessor.DEFAULT_REQUEST_ID_HEADER + "}")
     private String requestHeader;
 

@@ -31,14 +31,13 @@ import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.gateway.handlers.api.path.Path;
 import io.gravitee.gateway.handlers.api.path.impl.AbstractPathResolver;
 import io.gravitee.reporter.api.http.Metrics;
+import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLSession;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-
-import javax.net.ssl.SSLSession;
-import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
@@ -46,11 +45,8 @@ import java.util.concurrent.TimeUnit;
 @Fork(value = 2)
 public class PathParametersProcessorBenchmark {
 
-    public static void main(String[]args) throws RunnerException {
-        Options opt = new OptionsBuilder()
-                .include(PathParametersProcessorBenchmark.class.getSimpleName())
-                .forks(1)
-                .build();
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder().include(PathParametersProcessorBenchmark.class.getSimpleName()).forks(1).build();
 
         new Runner(opt).run();
     }
@@ -62,12 +58,14 @@ public class PathParametersProcessorBenchmark {
     @Setup
     public void setup() {
         processorIndex = new PathParametersIndexProcessor(resolver);
-        processorIndex.handler(new Handler<ExecutionContext>() {
-            @Override
-            public void handle(ExecutionContext result) {
-                // Do nothing
+        processorIndex.handler(
+            new Handler<ExecutionContext>() {
+                @Override
+                public void handle(ExecutionContext result) {
+                    // Do nothing
+                }
             }
-        });
+        );
     }
 
     @Benchmark
@@ -228,5 +226,4 @@ public class PathParametersProcessorBenchmark {
             return null;
         }
     }
-
 }

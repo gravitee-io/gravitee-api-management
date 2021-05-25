@@ -22,7 +22,6 @@ import io.gravitee.definition.model.Api;
  * @author GraviteeSource Team
  */
 public interface ApiLoaderInterceptor {
-
     void before(Api api);
 
     void after(Api api);

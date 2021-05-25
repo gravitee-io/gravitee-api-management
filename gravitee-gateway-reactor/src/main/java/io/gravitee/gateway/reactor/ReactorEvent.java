@@ -20,6 +20,7 @@ package io.gravitee.gateway.reactor;
  * @author GraviteeSource Team
  */
 public enum ReactorEvent {
-
-    DEPLOY, UPDATE, UNDEPLOY
+    DEPLOY,
+    UPDATE,
+    UNDEPLOY,
 }

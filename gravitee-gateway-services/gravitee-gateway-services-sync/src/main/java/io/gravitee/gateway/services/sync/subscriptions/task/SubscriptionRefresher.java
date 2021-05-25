@@ -15,19 +15,18 @@
  */
 package io.gravitee.gateway.services.sync.subscriptions.task;
 
+import static io.gravitee.repository.management.model.Subscription.Status.*;
+
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.management.model.Subscription.Status.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,20 +68,22 @@ public class SubscriptionRefresher implements Runnable {
 
     private boolean distributed;
 
-    private static final List<Subscription.Status> REFRESH_STATUS = Arrays.asList(
-            Subscription.Status.ACCEPTED, CLOSED, PAUSED);
+    private static final List<Subscription.Status> REFRESH_STATUS = Arrays.asList(Subscription.Status.ACCEPTED, CLOSED, PAUSED);
 
     public SubscriptionRefresher(final Api api) {
         this.api = api;
     }
 
     public void initialize() {
-        this.plans = api.getPlans()
+        this.plans =
+            api
+                .getPlans()
                 .stream()
-                .filter(plan -> io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2.name()
-                        .equalsIgnoreCase(plan.getSecurity()) ||
-                                io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT.name()
-                                        .equalsIgnoreCase(plan.getSecurity()))
+                .filter(
+                    plan ->
+                        io.gravitee.repository.management.model.Plan.PlanSecurityType.OAUTH2.name().equalsIgnoreCase(plan.getSecurity()) ||
+                        io.gravitee.repository.management.model.Plan.PlanSecurityType.JWT.name().equalsIgnoreCase(plan.getSecurity())
+                )
                 .map(Plan::getId)
                 .collect(Collectors.toList());
     }
@@ -94,22 +95,19 @@ public class SubscriptionRefresher implements Runnable {
             long nextLastRefreshAt = System.currentTimeMillis();
             LOGGER.debug("Refresh subscriptions for API id[{}] name[{}]", api.getId(), api.getName());
 
-            final SubscriptionCriteria.Builder criteriaBuilder = new SubscriptionCriteria.Builder()
-                    .plans(plans);
+            final SubscriptionCriteria.Builder criteriaBuilder = new SubscriptionCriteria.Builder().plans(plans);
 
             if (lastRefreshAt == -1) {
                 criteriaBuilder.status(Subscription.Status.ACCEPTED);
             } else {
                 criteriaBuilder
-                        .statuses(REFRESH_STATUS)
-                        .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-                        .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
+                    .statuses(REFRESH_STATUS)
+                    .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                    .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
             }
 
             try {
-                subscriptionRepository
-                        .search(criteriaBuilder.build())
-                        .forEach(this::saveOrUpdate);
+                subscriptionRepository.search(criteriaBuilder.build()).forEach(this::saveOrUpdate);
 
                 lastRefreshAt = nextLastRefreshAt;
             } catch (Exception ex) {
@@ -146,16 +144,20 @@ public class SubscriptionRefresher implements Runnable {
 
         Object element = cache.get(subscription.getId());
 
-        if ((CLOSED.equals(subscription.getStatus()) || PAUSED.equals(subscription.getStatus()))
-                && element != null) {
+        if ((CLOSED.equals(subscription.getStatus()) || PAUSED.equals(subscription.getStatus())) && element != null) {
             cache.remove(subscription.getId());
             String oldKey = (String) element;
             Subscription eltSubscription = (Subscription) cache.get(oldKey);
             if (eltSubscription != null && eltSubscription.getId().equals(subscription.getId())) {
                 cache.remove(oldKey);
             }
-        } else if (ACCEPTED.equals(subscription.getStatus())){
-            LOGGER.debug("Cache a subscription: plan[{}] application[{}] client_id[{}]", subscription.getPlan(), subscription.getApplication(), subscription.getClientId());
+        } else if (ACCEPTED.equals(subscription.getStatus())) {
+            LOGGER.debug(
+                "Cache a subscription: plan[{}] application[{}] client_id[{}]",
+                subscription.getPlan(),
+                subscription.getApplication(),
+                subscription.getClientId()
+            );
             cache.put(subscription.getId(), key);
 
             // Delete useless information to preserve memory

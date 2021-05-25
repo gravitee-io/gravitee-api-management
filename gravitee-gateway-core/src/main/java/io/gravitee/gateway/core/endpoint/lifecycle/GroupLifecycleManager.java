@@ -22,5 +22,4 @@ import io.gravitee.gateway.core.endpoint.GroupManager;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface GroupLifecycleManager extends GroupManager, LifecycleComponent<GroupLifecycleManager> {
-}
+public interface GroupLifecycleManager extends GroupManager, LifecycleComponent<GroupLifecycleManager> {}

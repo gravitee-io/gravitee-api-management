@@ -25,7 +25,6 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpVersion;
-
 import java.net.URI;
 
 /**
@@ -41,7 +40,11 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<GrpcEndpoin
     }
 
     @Override
-    protected HttpClientRequest createHttpClientRequest(final HttpClient httpClient, URI request, io.gravitee.definition.model.services.healthcheck.Step step) throws Exception {
+    protected HttpClientRequest createHttpClientRequest(
+        final HttpClient httpClient,
+        URI request,
+        io.gravitee.definition.model.services.healthcheck.Step step
+    ) throws Exception {
         HttpClientRequest httpClientRequest = super.createHttpClientRequest(httpClient, request, step);
 
         // Always set chunked mode for gRPC transport
@@ -59,8 +62,7 @@ public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<GrpcEndpoin
         HttpClientOptions httpClientOptions = super.createHttpClientOptions(requestUri);
 
         // Force HTTP_2 and disable Upgrade
-        httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2)
-                .setHttp2ClearTextUpgrade(false);
+        httpClientOptions.setProtocolVersion(HttpVersion.HTTP_2).setHttp2ClearTextUpgrade(false);
 
         return httpClientOptions;
     }

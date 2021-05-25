@@ -24,7 +24,6 @@ import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.policy.api.annotations.OnResponseContent;
-
 import java.lang.reflect.Method;
 
 /**
@@ -46,40 +45,38 @@ public class PolicyImpl extends AbstractPolicy {
     }
 
     @Override
-    public void onRequest(Object ... args) throws PolicyException {
+    public void onRequest(Object... args) throws PolicyException {
         invoke(policyMetadata.method(OnRequest.class), args);
     }
 
     @Override
-    public void onResponse(Object ... args) throws PolicyException {
+    public void onResponse(Object... args) throws PolicyException {
         invoke(policyMetadata.method(OnResponse.class), args);
     }
 
     @Override
-    public ReadWriteStream<Buffer> onResponseContent(Object ... args) throws PolicyException {
+    public ReadWriteStream<Buffer> onResponseContent(Object... args) throws PolicyException {
         Object stream = invoke(policyMetadata.method(OnResponseContent.class), args);
         return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
     }
 
     @Override
     public boolean isStreamable() {
-        return (policyMetadata.method(OnRequestContent.class) != null ||
-                policyMetadata.method(OnResponseContent.class) != null);
+        return (policyMetadata.method(OnRequestContent.class) != null || policyMetadata.method(OnResponseContent.class) != null);
     }
 
     @Override
     public boolean isRunnable() {
-        return (policyMetadata.method(OnRequest.class) != null ||
-                policyMetadata.method(OnResponse.class) != null);
+        return (policyMetadata.method(OnRequest.class) != null || policyMetadata.method(OnResponse.class) != null);
     }
 
     @Override
-    public ReadWriteStream<Buffer> onRequestContent(Object ... args) throws PolicyException {
+    public ReadWriteStream<Buffer> onRequestContent(Object... args) throws PolicyException {
         Object stream = invoke(policyMetadata.method(OnRequestContent.class), args);
         return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
     }
 
-    private Object invoke(Method invokedMethod, Object ... args) throws PolicyException {
+    private Object invoke(Method invokedMethod, Object... args) throws PolicyException {
         if (invokedMethod != null) {
             Class<?>[] parametersType = invokedMethod.getParameterTypes();
             Object[] parameters = new Object[parametersType.length];
@@ -125,8 +122,7 @@ public class PolicyImpl extends AbstractPolicy {
         }
 
         public PolicyImpl build() {
-            return new PolicyImpl(policyInstance)
-                    .definition(policyMetadata);
+            return new PolicyImpl(policyInstance).definition(policyMetadata);
         }
     }
 }

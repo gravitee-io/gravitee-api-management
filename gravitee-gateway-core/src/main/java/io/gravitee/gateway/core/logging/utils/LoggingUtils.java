@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.logging.utils;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
-
 import java.util.regex.Pattern;
 
 /**
@@ -45,8 +44,9 @@ public final class LoggingUtils {
         // init pattern
         if (EXCLUDED_CONTENT_TYPES_PATTERN == null) {
             try {
-                final String responseTypes =
-                    (String) executionContext.getAttribute(ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types");
+                final String responseTypes = (String) executionContext.getAttribute(
+                    ExecutionContext.ATTR_PREFIX + "logging.response.excluded.types"
+                );
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(responseTypes);
             } catch (Exception e) {
                 EXCLUDED_CONTENT_TYPES_PATTERN = Pattern.compile(DEFAULT_EXCLUDED_CONTENT_TYPES);

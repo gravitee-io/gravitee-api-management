@@ -22,6 +22,5 @@ import io.gravitee.gateway.api.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface EntrypointResolver {
-
     HandlerEntrypoint resolve(ExecutionContext context);
 }

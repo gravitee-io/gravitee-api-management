@@ -69,13 +69,16 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         StreamableProcessorSupplier<ExecutionContext, Buffer> loggingDecoratorSupplier = null;
 
         if (api.getProxy().getLogging() != null && api.getProxy().getLogging().getMode() != LoggingMode.NONE) {
-            loggingDecoratorSupplier = new StreamableProcessorSupplier<>(() -> {
-                ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
-                processor.setMaxSizeLogMessage(maxSizeLogMessage);
-                processor.setExcludedResponseTypes(excludedResponseTypes);
+            loggingDecoratorSupplier =
+                new StreamableProcessorSupplier<>(
+                    () -> {
+                        ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
+                        processor.setMaxSizeLogMessage(maxSizeLogMessage);
+                        processor.setExcludedResponseTypes(excludedResponseTypes);
 
-                return processor;
-            });
+                        return processor;
+                    }
+                );
 
             add(loggingDecoratorSupplier);
         }
@@ -103,18 +106,41 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), chainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
-                    new HttpMethodConditionEvaluator(),
-                    new PathBasedConditionEvaluator(),
-                    new ExpressionLanguageBasedConditionEvaluator());
+                new HttpMethodConditionEvaluator(),
+                new PathBasedConditionEvaluator(),
+                new ExpressionLanguageBasedConditionEvaluator()
+            );
 
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
-                add(new PlanFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_REQUEST, new PlanFlowResolver(api, evaluator), chainFactory)));
-                add(new SimpleFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_REQUEST, new ApiFlowResolver(api, evaluator), chainFactory)));
+                add(
+                    new PlanFlowPolicyChainProvider(
+                        new SimpleFlowProvider(StreamType.ON_REQUEST, new PlanFlowResolver(api, evaluator), chainFactory)
+                    )
+                );
+                add(
+                    new SimpleFlowPolicyChainProvider(
+                        new SimpleFlowProvider(StreamType.ON_REQUEST, new ApiFlowResolver(api, evaluator), chainFactory)
+                    )
+                );
             } else {
-                add(new PlanFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_REQUEST,
-                        new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)), chainFactory)));
-                add(new SimpleFlowPolicyChainProvider(new SimpleFlowProvider(StreamType.ON_REQUEST,
-                        new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)), chainFactory)));
+                add(
+                    new PlanFlowPolicyChainProvider(
+                        new SimpleFlowProvider(
+                            StreamType.ON_REQUEST,
+                            new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
+                            chainFactory
+                        )
+                    )
+                );
+                add(
+                    new SimpleFlowPolicyChainProvider(
+                        new SimpleFlowProvider(
+                            StreamType.ON_REQUEST,
+                            new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
+                            chainFactory
+                        )
+                    )
+                );
             }
         }
     }

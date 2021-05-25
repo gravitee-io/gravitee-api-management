@@ -25,7 +25,6 @@ import io.gravitee.gateway.api.stream.SimpleReadWriteStream;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponseContent;
-
 import java.util.function.Function;
 
 /**
@@ -37,15 +36,17 @@ public class Stream2Policy {
     @OnRequestContent
     public ReadWriteStream<Buffer> onRequestContent(Request request, Response response, PolicyChain policyChain) {
         return TransformableRequestStreamBuilder
-                .on(request)
-                .chain(policyChain)
-                .transform(new Function<Buffer, Buffer>() {
+            .on(request)
+            .chain(policyChain)
+            .transform(
+                new Function<Buffer, Buffer>() {
                     @Override
                     public Buffer apply(Buffer buffer) {
                         return Buffer.buffer("OnRequestContent2Policy");
                     }
-                })
-                .build();
+                }
+            )
+            .build();
     }
 
     @OnResponseContent

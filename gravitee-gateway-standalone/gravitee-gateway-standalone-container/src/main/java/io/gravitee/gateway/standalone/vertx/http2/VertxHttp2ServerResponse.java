@@ -32,8 +32,7 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
 
     @Override
     public Response writeCustomFrame(HttpFrame frame) {
-        serverResponse.writeCustomFrame(frame.type(), frame.flags(),
-                io.vertx.core.buffer.Buffer.buffer(frame.payload().getBytes()));
+        serverResponse.writeCustomFrame(frame.type(), frame.flags(), io.vertx.core.buffer.Buffer.buffer(frame.payload().getBytes()));
 
         return this;
     }
@@ -41,12 +40,16 @@ public class VertxHttp2ServerResponse extends VertxHttpServerResponse {
     protected void writeHeaders() {
         // As per https://tools.ietf.org/html/rfc7540#section-8.1.2.2
         // connection-specific header fields must be remove from response headers
-        headers.forEach((headerName, headerValues) -> {
-            if (!headerName.equalsIgnoreCase(HttpHeaders.CONNECTION)
-                    && !headerName.equalsIgnoreCase(HttpHeaders.KEEP_ALIVE)
-                    && !headerName.equalsIgnoreCase(HttpHeaders.TRANSFER_ENCODING)) {
-                serverResponse.putHeader(headerName, headerValues);
+        headers.forEach(
+            (headerName, headerValues) -> {
+                if (
+                    !headerName.equalsIgnoreCase(HttpHeaders.CONNECTION) &&
+                    !headerName.equalsIgnoreCase(HttpHeaders.KEEP_ALIVE) &&
+                    !headerName.equalsIgnoreCase(HttpHeaders.TRANSFER_ENCODING)
+                ) {
+                    serverResponse.putHeader(headerName, headerValues);
+                }
             }
-        });
+        );
     }
 }

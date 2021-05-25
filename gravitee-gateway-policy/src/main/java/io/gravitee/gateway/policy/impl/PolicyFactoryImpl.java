@@ -15,21 +15,20 @@
  */
 package io.gravitee.gateway.policy.impl;
 
+import static org.reflections.ReflectionUtils.withModifier;
+import static org.reflections.ReflectionUtils.withParametersCount;
+
 import com.google.common.base.Predicate;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.policy.api.PolicyConfiguration;
-import org.reflections.ReflectionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import static org.reflections.ReflectionUtils.withModifier;
-import static org.reflections.ReflectionUtils.withParametersCount;
+import org.reflections.ReflectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -77,15 +76,18 @@ public class PolicyFactoryImpl implements PolicyFactory {
         if (constructor == null) {
             LOGGER.debug("Looking for a constructor to inject policy configuration");
 
-            Set<Constructor> policyConstructors =
-                    ReflectionUtils.getConstructors(policyClass,
-                            withModifier(Modifier.PUBLIC),
-                            withParametersAssignableFrom(PolicyConfiguration.class),
-                            withParametersCount(1));
+            Set<Constructor> policyConstructors = ReflectionUtils.getConstructors(
+                policyClass,
+                withModifier(Modifier.PUBLIC),
+                withParametersAssignableFrom(PolicyConfiguration.class),
+                withParametersCount(1)
+            );
 
             if (policyConstructors.isEmpty()) {
-                LOGGER.debug("No configuration can be injected for {} because there is no valid constructor. " +
-                        "Using default empty constructor.", policyClass.getName());
+                LOGGER.debug(
+                    "No configuration can be injected for {} because there is no valid constructor. " + "Using default empty constructor.",
+                    policyClass.getName()
+                );
                 try {
                     constructor = policyClass.getConstructor();
                 } catch (NoSuchMethodException nsme) {
@@ -109,8 +111,9 @@ public class PolicyFactoryImpl implements PolicyFactory {
                 Class<?>[] parameterTypes = parameterTypes(input);
                 if (parameterTypes.length == types.length) {
                     for (int i = 0; i < parameterTypes.length; i++) {
-                        if (!types[i].isAssignableFrom(parameterTypes[i]) ||
-                                (parameterTypes[i] == Object.class && types[i] != Object.class)) {
+                        if (
+                            !types[i].isAssignableFrom(parameterTypes[i]) || (parameterTypes[i] == Object.class && types[i] != Object.class)
+                        ) {
                             return false;
                         }
                     }
@@ -122,8 +125,10 @@ public class PolicyFactoryImpl implements PolicyFactory {
     }
 
     private static Class[] parameterTypes(Member member) {
-        return member != null ?
-                member.getClass() == Method.class ? ((Method) member).getParameterTypes() :
-                        member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null : null;
+        return member != null
+            ? member.getClass() == Method.class
+                ? ((Method) member).getParameterTypes()
+                : member.getClass() == Constructor.class ? ((Constructor) member).getParameterTypes() : null
+            : null;
     }
 }

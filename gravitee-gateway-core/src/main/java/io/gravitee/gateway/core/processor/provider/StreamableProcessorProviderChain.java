@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.processor.provider;
 
 import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.core.processor.chain.AbstractStreamableProcessorChain;
-
 import java.util.Iterator;
 import java.util.List;
 

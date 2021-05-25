@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 public class FailoverInvoker extends EndpointInvoker implements InitializingBean {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(FailoverInvoker.class);
     private static final String errorMessageFormat = "[%s] %s";
 
@@ -58,66 +59,104 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
 
     @Override
     public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
-        ((MutableExecutionContext)context).request(new FailoverRequest(context.request()));
+        ((MutableExecutionContext) context).request(new FailoverRequest(context.request()));
 
         final String apiId = String.valueOf(context.getAttribute(ExecutionContext.ATTR_API));
-        circuitBreaker.execute(new io.vertx.core.Handler<Promise<ProxyConnection>>() {
-            @Override
-            public void handle(Promise<ProxyConnection> event) {
-                FailoverInvoker.super.invoke(context, stream, proxyConnection -> {
-                    proxyConnection.exceptionHandler(error -> {
-                        try {
-                            event.fail(error);
-                        } catch (IllegalStateException e) {
-                            final Future<ProxyConnection> future = event.future();
-                            if (future.failed()) {
-                                LOGGER.error(String.format(errorMessageFormat, apiId, future.cause() == null ? null : future.cause().getMessage()), future.cause());
-                            } else {
-                                LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
+        circuitBreaker
+            .execute(
+                new io.vertx.core.Handler<Promise<ProxyConnection>>() {
+                    @Override
+                    public void handle(Promise<ProxyConnection> event) {
+                        FailoverInvoker.super.invoke(
+                            context,
+                            stream,
+                            proxyConnection -> {
+                                proxyConnection.exceptionHandler(
+                                    error -> {
+                                        try {
+                                            event.fail(error);
+                                        } catch (IllegalStateException e) {
+                                            final Future<ProxyConnection> future = event.future();
+                                            if (future.failed()) {
+                                                LOGGER.error(
+                                                    String.format(
+                                                        errorMessageFormat,
+                                                        apiId,
+                                                        future.cause() == null ? null : future.cause().getMessage()
+                                                    ),
+                                                    future.cause()
+                                                );
+                                            } else {
+                                                LOGGER.error(String.format(errorMessageFormat, apiId, error.getMessage()), e);
+                                            }
+                                            throw e; // rethrow the exception to let vertx handle this case
+                                        }
+                                    }
+                                );
+                                proxyConnection.responseHandler(
+                                    response -> {
+                                        try {
+                                            event.complete(new FailoverProxyConnection(proxyConnection, response));
+                                        } catch (IllegalStateException e) {
+                                            final Future<ProxyConnection> future = event.future();
+                                            if (future.failed()) {
+                                                LOGGER.error(
+                                                    String.format(
+                                                        errorMessageFormat,
+                                                        apiId,
+                                                        future.cause() == null ? null : future.cause().getMessage()
+                                                    ),
+                                                    future.cause()
+                                                );
+                                            } else {
+                                                LOGGER.error(
+                                                    String.format(
+                                                        errorMessageFormat,
+                                                        apiId,
+                                                        "Failover invocation has succeeded but result already completed"
+                                                    ),
+                                                    e
+                                                );
+                                            }
+                                            throw e; // rethrow the exception to let vertx handle this case
+                                        }
+                                    }
+                                );
                             }
-                            throw e; // rethrow the exception to let vertx handle this case
-                        }
-                    });
-                    proxyConnection.responseHandler(response -> {
-                        try {
-                            event.complete(new FailoverProxyConnection(proxyConnection, response));
-                        } catch (IllegalStateException e) {
-                            final Future<ProxyConnection> future = event.future();
-                            if (future.failed()) {
-                                LOGGER.error(String.format(errorMessageFormat, apiId, future.cause() == null ? null : future.cause().getMessage()), future.cause());
-                            } else {
-                                LOGGER.error(String.format(errorMessageFormat, apiId, "Failover invocation has succeeded but result already completed"), e);
-                            }
-                            throw e; // rethrow the exception to let vertx handle this case
-                        }
-                    });
-                });
-            }
-        }).setHandler(new io.vertx.core.Handler<AsyncResult<ProxyConnection>>() {
-            @Override
-            public void handle(AsyncResult<ProxyConnection> event) {
-                if (event.failed()) {
-                    FailoverConnection connection = new FailoverConnection();
-                    connectionHandler.handle(connection);
-                    connection.sendBadGatewayResponse();
-                } else {
-                    FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
-                    connectionHandler.handle(proxyConnection);
-                    proxyConnection.sendResponse();
+                        );
+                    }
                 }
-            }
-        });
+            )
+            .setHandler(
+                new io.vertx.core.Handler<AsyncResult<ProxyConnection>>() {
+                    @Override
+                    public void handle(AsyncResult<ProxyConnection> event) {
+                        if (event.failed()) {
+                            FailoverConnection connection = new FailoverConnection();
+                            connectionHandler.handle(connection);
+                            connection.sendBadGatewayResponse();
+                        } else {
+                            FailoverProxyConnection proxyConnection = (FailoverProxyConnection) event.result();
+                            connectionHandler.handle(proxyConnection);
+                            proxyConnection.sendResponse();
+                        }
+                    }
+                }
+            );
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        circuitBreaker = CircuitBreaker.create("cb-" + options.hashCode(),
+        circuitBreaker =
+            CircuitBreaker.create(
+                "cb-" + options.hashCode(),
                 vertx,
                 new CircuitBreakerOptions()
-                        .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
-                        .setTimeout(options.getRetryTimeout()) // consider a failure if the operation does not succeed in time
-                        .setResetTimeout(10000L) // time spent in open state before attempting to re-try
-                        .setNotificationAddress(null));
+                    .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
+                    .setTimeout(options.getRetryTimeout()) // consider a failure if the operation does not succeed in time
+                    .setResetTimeout(10000L) // time spent in open state before attempting to re-try
+                    .setNotificationAddress(null)
+            );
     }
 
     private class FailoverConnection implements ProxyConnection {
@@ -130,9 +169,7 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
         }
 
         @Override
-        public void end() {
-
-        }
+        public void end() {}
 
         @Override
         public ProxyConnection responseHandler(Handler<ProxyResponse> responseHandler) {

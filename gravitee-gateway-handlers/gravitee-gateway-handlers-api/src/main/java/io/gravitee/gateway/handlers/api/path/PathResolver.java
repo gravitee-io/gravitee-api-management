@@ -27,7 +27,6 @@ import io.gravitee.gateway.api.Request;
  * @author GraviteeSource Team
  */
 public interface PathResolver {
-
     /**
      * The "resolved" path.
      *

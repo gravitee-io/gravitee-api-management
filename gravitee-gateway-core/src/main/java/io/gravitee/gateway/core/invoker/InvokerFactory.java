@@ -40,9 +40,10 @@ public class InvokerFactory extends AbstractAutowiringFactoryBean<Invoker> {
     protected Invoker doCreateInstance() {
         if (api.getProxy().failoverEnabled()) {
             return new FailoverInvoker(
-                    new FailoverOptions()
-                            .setMaxAttempts(api.getProxy().getFailover().getMaxAttempts())
-                            .setRetryTimeout(api.getProxy().getFailover().getRetryTimeout()));
+                new FailoverOptions()
+                    .setMaxAttempts(api.getProxy().getFailover().getMaxAttempts())
+                    .setRetryTimeout(api.getProxy().getFailover().getRetryTimeout())
+            );
         }
 
         return new EndpointInvoker();

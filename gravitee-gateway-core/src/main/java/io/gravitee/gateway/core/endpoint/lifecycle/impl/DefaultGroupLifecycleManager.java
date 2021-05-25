@@ -24,13 +24,6 @@ import io.gravitee.gateway.core.endpoint.lifecycle.impl.tenant.MultiTenantAwareE
 import io.gravitee.gateway.core.endpoint.ref.GroupReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -38,13 +31,20 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<GroupLifecycleManager>
-        implements GroupLifecycleManager, ApplicationContextAware {
+public class DefaultGroupLifecycleManager
+    extends AbstractLifecycleComponent<GroupLifecycleManager>
+    implements GroupLifecycleManager, ApplicationContextAware {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultGroupLifecycleManager.class);
 
@@ -82,17 +82,19 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
     protected void doStart() throws Exception {
         if (api.getProxy().getGroups() != null) {
             // Start all the groups
-            api.getProxy()
-                    .getGroups()
-                    .stream()
-                    .map(new Function<EndpointGroup, EndpointGroupLifecycleManager>() {
+            api
+                .getProxy()
+                .getGroups()
+                .stream()
+                .map(
+                    new Function<EndpointGroup, EndpointGroupLifecycleManager>() {
                         @Override
                         public EndpointGroupLifecycleManager apply(EndpointGroup group) {
                             EndpointGroupLifecycleManager groupLifecycleManager;
 
                             if (gatewayConfiguration.tenant().isPresent()) {
-                                groupLifecycleManager = new MultiTenantAwareEndpointLifecycleManager(
-                                        group, gatewayConfiguration.tenant().get());
+                                groupLifecycleManager =
+                                    new MultiTenantAwareEndpointLifecycleManager(group, gatewayConfiguration.tenant().get());
                             } else {
                                 groupLifecycleManager = new EndpointGroupLifecycleManager(group);
                             }
@@ -108,18 +110,24 @@ public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<Gro
 
                             return groupLifecycleManager;
                         }
-                    })
-                    .forEach(new Consumer<EndpointGroupLifecycleManager>() {
+                    }
+                )
+                .forEach(
+                    new Consumer<EndpointGroupLifecycleManager>() {
                         @Override
                         public void accept(EndpointGroupLifecycleManager groupLifecycleManager) {
                             try {
                                 groupLifecycleManager.start();
                                 referenceRegister.add(new GroupReference(groupLifecycleManager.getLBGroup()));
                             } catch (Exception ex) {
-                                logger.error("An error occurs while starting a group of endpoints: " + groupLifecycleManager.getGroup().getName(), ex);
+                                logger.error(
+                                    "An error occurs while starting a group of endpoints: " + groupLifecycleManager.getGroup().getName(),
+                                    ex
+                                );
                             }
                         }
-                    });
+                    }
+                );
         }
     }
 

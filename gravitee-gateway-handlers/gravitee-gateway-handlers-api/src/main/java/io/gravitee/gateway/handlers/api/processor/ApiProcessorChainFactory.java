@@ -26,22 +26,22 @@ import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderCh
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.PolicyChainFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+import javax.inject.Inject;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class ApiProcessorChainFactory implements
+public abstract class ApiProcessorChainFactory
+    implements
         ProcessorChainFactory<StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>>>,
         ApplicationContextAware,
         InitializingBean {

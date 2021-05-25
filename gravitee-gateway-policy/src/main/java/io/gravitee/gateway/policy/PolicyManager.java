@@ -22,6 +22,5 @@ import io.gravitee.common.component.LifecycleComponent;
  * @author GraviteeSource Team
  */
 public interface PolicyManager extends LifecycleComponent<PolicyManager> {
-
     Policy create(StreamType streamType, String policy, String configuration);
 }

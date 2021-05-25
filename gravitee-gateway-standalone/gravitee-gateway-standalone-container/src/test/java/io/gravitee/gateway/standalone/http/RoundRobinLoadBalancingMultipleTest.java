@@ -15,18 +15,17 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
+import java.util.Iterator;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-
-import java.util.Iterator;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,11 +44,11 @@ public class RoundRobinLoadBalancingMultipleTest extends AbstractWiremockGateway
 
         int calls = 20;
 
-        for(int i = 0 ; i < calls ; i++) {
+        for (int i = 0; i < calls; i++) {
             HttpResponse response = request.execute().returnResponse();
 
             assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
-            wireMockRule.verify((i / 2) + 1, getRequestedFor(urlEqualTo("/api" + (i%2 + 1))));
+            wireMockRule.verify((i / 2) + 1, getRequestedFor(urlEqualTo("/api" + (i % 2 + 1))));
         }
 
         wireMockRule.verify(calls / 2, getRequestedFor(urlPathEqualTo("/api1")));
@@ -75,7 +74,7 @@ public class RoundRobinLoadBalancingMultipleTest extends AbstractWiremockGateway
 
         int calls = 20;
 
-        for(int i = 0 ; i < calls ; i++) {
+        for (int i = 0; i < calls; i++) {
             HttpResponse response = request.execute().returnResponse();
 
             assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());

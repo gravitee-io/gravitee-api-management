@@ -15,18 +15,17 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
+import java.lang.reflect.Field;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.junit.Test;
-
-import java.lang.reflect.Field;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,12 +33,10 @@ import static org.junit.Assert.assertEquals;
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/teams.json")
 public class InvalidHttpMethodGatewayTest extends AbstractWiremockGatewayTest {
-    
+
     @Test
     public void shouldRespondWithNotImplemented() throws Exception {
-        wireMockRule.stubFor(any(urlEqualTo("/team/my_team"))
-                .willReturn(aResponse().withStatus(HttpStatus.SC_NOT_IMPLEMENTED)));
-
+        wireMockRule.stubFor(any(urlEqualTo("/team/my_team")).willReturn(aResponse().withStatus(HttpStatus.SC_NOT_IMPLEMENTED)));
 
         Request request = Request.Get("http://localhost:8082/test/my_team");
 

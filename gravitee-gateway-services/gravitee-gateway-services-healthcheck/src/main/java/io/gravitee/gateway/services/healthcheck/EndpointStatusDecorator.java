@@ -59,6 +59,7 @@ public class EndpointStatusDecorator {
     }
 
     private class Counter {
+
         private int rise = RISE_LIMIT;
 
         private int fall;
@@ -83,9 +84,9 @@ public class EndpointStatusDecorator {
         Endpoint.Status status() {
             if (rise == RISE_LIMIT) {
                 return Endpoint.Status.UP;
-            } else if(fall == FALL_LIMIT) {
+            } else if (fall == FALL_LIMIT) {
                 return Endpoint.Status.DOWN;
-            } else if(success && !previous) {
+            } else if (success && !previous) {
                 return Endpoint.Status.TRANSITIONALLY_UP;
             } else {
                 return Endpoint.Status.TRANSITIONALLY_DOWN;

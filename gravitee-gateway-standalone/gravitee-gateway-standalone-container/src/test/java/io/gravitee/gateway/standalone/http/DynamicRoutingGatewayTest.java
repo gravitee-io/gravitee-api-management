@@ -15,23 +15,22 @@
  */
 package io.gravitee.gateway.standalone.http;
 
-import io.gravitee.definition.model.Endpoint;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.DynamicRoutingPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import java.net.URL;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-
-import java.net.URL;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,9 +48,11 @@ public class DynamicRoutingGatewayTest extends AbstractWiremockGatewayTest {
         String initialTarget = api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().getTarget();
         String dynamicTarget = exchangePort(initialTarget, wireMockRule.port());
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
-                .addHeader("X-Dynamic-Routing-URI", dynamicTarget)
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Get("http://localhost:8082/test/my_team")
+            .addHeader("X-Dynamic-Routing-URI", dynamicTarget)
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team")));
@@ -64,9 +65,11 @@ public class DynamicRoutingGatewayTest extends AbstractWiremockGatewayTest {
 
         api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team")
-                .addHeader("X-Dynamic-Routing-URI", dynamicTarget)
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Get("http://localhost:8082/test/my_team")
+            .addHeader("X-Dynamic-Routing-URI", dynamicTarget)
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
         wireMockRule.verify(0, getRequestedFor(urlPathEqualTo("/team")));

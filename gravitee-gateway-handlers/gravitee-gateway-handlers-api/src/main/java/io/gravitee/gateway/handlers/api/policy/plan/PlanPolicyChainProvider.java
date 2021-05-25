@@ -25,7 +25,6 @@ import io.gravitee.gateway.handlers.api.processor.policy.plan.PlanProcessorProvi
 import io.gravitee.gateway.policy.DirectPolicyChain;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.policy.api.PolicyResult;
-
 import java.util.List;
 
 /**
@@ -44,7 +43,11 @@ public class PlanPolicyChainProvider extends PlanProcessorProvider {
 
     private final PolicyResolver policyResolver;
 
-    public PlanPolicyChainProvider(final StreamType streamType, final PolicyResolver policyResolver, final PolicyChainFactory policyChainFactory) {
+    public PlanPolicyChainProvider(
+        final StreamType streamType,
+        final PolicyResolver policyResolver,
+        final PolicyChainFactory policyChainFactory
+    ) {
         this.policyResolver = policyResolver;
         this.streamType = streamType;
         this.policyChainFactory = policyChainFactory;
@@ -60,10 +63,9 @@ public class PlanPolicyChainProvider extends PlanProcessorProvider {
         //TODO: is this still relevant ? What is the use-case
         if (streamType == StreamType.ON_REQUEST && policies == null) {
             return new DirectPolicyChain(
-                    PolicyResult.failure(
-                            GATEWAY_MISSING_SECURED_REQUEST_PLAN_KEY,
-                            HttpStatusCode.UNAUTHORIZED_401,
-                            "Unauthorized"), context);
+                PolicyResult.failure(GATEWAY_MISSING_SECURED_REQUEST_PLAN_KEY, HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"),
+                context
+            );
         }
 
         return policyChainFactory.create(policies, streamType, context);

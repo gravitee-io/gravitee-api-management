@@ -20,6 +20,5 @@ package io.gravitee.gateway.services.healthcheck.eval;
  * @author GraviteeSource Team
  */
 public interface Evaluation {
-
     boolean validate() throws EvaluationException;
 }

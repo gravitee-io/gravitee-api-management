@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.OverrideRequestContentPolicy;
@@ -28,9 +31,6 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -42,17 +42,21 @@ public class OverrideRequestContentGatewayTest extends AbstractWiremockGatewayTe
     public void shouldOverrideRequestContent() throws Exception {
         wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        HttpResponse response = Request.Post("http://localhost:8082/api")
-                .bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN)
-                .execute().returnResponse();
+        HttpResponse response = Request
+            .Post("http://localhost:8082/api")
+            .bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN)
+            .execute()
+            .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
         assertEquals(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT, responseContent);
 
-        wireMockRule.verify(1, postRequestedFor(urlPathEqualTo("/api"))
-                .withRequestBody(equalTo(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT)));
+        wireMockRule.verify(
+            1,
+            postRequestedFor(urlPathEqualTo("/api")).withRequestBody(equalTo(OverrideRequestContentPolicy.STREAM_POLICY_CONTENT))
+        );
     }
 
     @Override

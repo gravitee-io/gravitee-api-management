@@ -16,7 +16,6 @@
 package io.gravitee.gateway.policy;
 
 import io.gravitee.gateway.api.ExecutionContext;
-
 import java.util.List;
 
 /**
@@ -26,7 +25,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface PolicyResolver {
-
     /**
      * Get the list of {@link Policy} to execute according the current request context
      *

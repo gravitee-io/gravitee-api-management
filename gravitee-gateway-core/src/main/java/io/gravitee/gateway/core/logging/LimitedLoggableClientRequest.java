@@ -15,12 +15,12 @@
  */
 package io.gravitee.gateway.core.logging;
 
+import static io.gravitee.gateway.core.logging.utils.LoggingUtils.appendBuffer;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.logging.utils.LoggingUtils;
-
-import static io.gravitee.gateway.core.logging.utils.LoggingUtils.appendBuffer;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

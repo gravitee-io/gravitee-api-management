@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.security.oauth2.policy;
 
+import static io.gravitee.reporter.api.http.SecurityType.OAUTH2;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -28,12 +30,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.reporter.api.http.SecurityType.OAUTH2;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,19 +40,21 @@ import static io.gravitee.reporter.api.http.SecurityType.OAUTH2;
  */
 public class CheckSubscriptionPolicy extends AbstractPolicy {
 
-    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED = ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
+    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
+        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
     static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
-    private final static String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
-    private final static String OAUTH2_ERROR_SERVER_ERROR = "server_error";
+    private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
+    private static final String OAUTH2_ERROR_SERVER_ERROR = "server_error";
 
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
     static final String GATEWAY_OAUTH2_SERVER_ERROR_KEY = "GATEWAY_OAUTH2_SERVER_ERROR";
     static final String GATEWAY_OAUTH2_INVALID_CLIENT_KEY = "GATEWAY_OAUTH2_INVALID_CLIENT";
 
     @Override
-    protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext) throws PolicyException {
+    protected void onRequest(Request request, Response response, PolicyChain policyChain, ExecutionContext executionContext)
+        throws PolicyException {
         SubscriptionRepository subscriptionRepository = executionContext.getComponent(SubscriptionRepository.class);
 
         // Get plan and client_id from execution context
@@ -70,22 +71,26 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
 
         try {
             List<Subscription> subscriptions = subscriptionRepository.search(
-                    new SubscriptionCriteria.Builder()
-                            .apis(Collections.singleton(api))
-                            .clientId(clientId)
-                            .status(Subscription.Status.ACCEPTED)
-                            .build());
+                new SubscriptionCriteria.Builder()
+                    .apis(Collections.singleton(api))
+                    .clientId(clientId)
+                    .status(Subscription.Status.ACCEPTED)
+                    .build()
+            );
 
             if (subscriptions != null && !subscriptions.isEmpty()) {
                 final String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
-                final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED));
-                final Subscription subscription = !selectionRuleBasedPlan ? subscriptions.get(0) :
-                        subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
-                if (subscription != null && subscription.getClientId().equals(clientId) &&
-                        (
-                                subscription.getEndingAt() == null ||
-                                        subscription.getEndingAt().after(new Date(request.timestamp())))) {
-
+                final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(
+                    executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)
+                );
+                final Subscription subscription = !selectionRuleBasedPlan
+                    ? subscriptions.get(0)
+                    : subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
+                if (
+                    subscription != null &&
+                    subscription.getClientId().equals(clientId) &&
+                    (subscription.getEndingAt() == null || subscription.getEndingAt().after(new Date(request.timestamp())))
+                ) {
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
                     executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
@@ -116,10 +121,15 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
      *      error_description="The access token expired"
      */
     private void sendError(String key, Response response, PolicyChain policyChain, String error, String description) {
-        String headerValue = BEARER_AUTHORIZATION_TYPE +
-                " realm=\"gravitee.io\"," +
-                " error=\"" + error + "\"," +
-                " error_description=\"" + description + "\"";
+        String headerValue =
+            BEARER_AUTHORIZATION_TYPE +
+            " realm=\"gravitee.io\"," +
+            " error=\"" +
+            error +
+            "\"," +
+            " error_description=\"" +
+            description +
+            "\"";
         response.headers().add(HttpHeaders.WWW_AUTHENTICATE, headerValue);
         policyChain.failWith(PolicyResult.failure(key, HttpStatusCode.UNAUTHORIZED_401, null));
     }

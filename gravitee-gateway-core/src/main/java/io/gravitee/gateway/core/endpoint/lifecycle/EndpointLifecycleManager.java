@@ -21,6 +21,4 @@ import io.gravitee.common.component.LifecycleComponent;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EndpointLifecycleManager extends LifecycleComponent<EndpointLifecycleManager> {
-
-}
+public interface EndpointLifecycleManager extends LifecycleComponent<EndpointLifecycleManager> {}

@@ -15,6 +15,10 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
@@ -22,16 +26,11 @@ import io.gravitee.gateway.standalone.policy.TransformResponseContentUsingBuilde
 import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import java.util.UUID;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.junit.Test;
-
-import java.util.UUID;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -44,10 +43,9 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractWir
 
     @Test
     public void shouldTransformResponseContent() throws Exception {
-        String requestBody = BODY_CONTENT +" {#request.id}";
+        String requestBody = BODY_CONTENT + " {#request.id}";
 
-        wireMockRule.stubFor(post("/api").willReturn(
-                ok("{{request.body}}").withTransformers("response-template")));
+        wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(requestBody, ContentType.TEXT_PLAIN);
@@ -57,7 +55,7 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractWir
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
-        String [] parts = responseContent.split(":");
+        String[] parts = responseContent.split(":");
 
         assertTrue(responseContent.startsWith(BODY_CONTENT));
         assertTrue(UUID.fromString(parts[1].substring(1)) != null);
@@ -69,7 +67,10 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractWir
     public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         super.register(policyPluginManager);
 
-        PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build("transform-response-content", TransformResponseContentUsingBuilderPolicy.class);
+        PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build(
+            "transform-response-content",
+            TransformResponseContentUsingBuilderPolicy.class
+        );
         policyPluginManager.register(transformResponseContentPolicy);
     }
 }

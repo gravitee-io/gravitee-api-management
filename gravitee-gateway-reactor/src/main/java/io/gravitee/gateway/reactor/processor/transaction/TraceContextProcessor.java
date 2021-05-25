@@ -29,8 +29,8 @@ import io.gravitee.gateway.core.processor.AbstractProcessor;
  */
 public class TraceContextProcessor extends AbstractProcessor<ExecutionContext> {
 
-    final static String HEADER_TRACE_STATE = "tracestate";
-    final static String HEADER_TRACE_PARENT = "traceparent";
+    static final String HEADER_TRACE_STATE = "tracestate";
+    static final String HEADER_TRACE_PARENT = "traceparent";
 
     @Override
     public void handle(final ExecutionContext context) {
@@ -52,5 +52,4 @@ public class TraceContextProcessor extends AbstractProcessor<ExecutionContext> {
 
         next.handle(context);
     }
-
 }

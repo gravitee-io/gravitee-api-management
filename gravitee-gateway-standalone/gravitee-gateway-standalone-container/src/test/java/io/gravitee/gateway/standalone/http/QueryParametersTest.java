@@ -15,21 +15,20 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.junit.Assert.assertEquals;
+
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.netty.handler.codec.http.QueryStringEncoder;
+import java.net.URI;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import java.net.URI;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,16 +40,11 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
     @Test
     public void call_get_query_params() throws Exception {
         wireMockRule.stubFor(
-                get(urlPathEqualTo("/team/my_team"))
-                .willReturn(
-                        ok()
-                                .withBody("{{request.query.q}}")
-                                .withTransformers("response-template")));
+            get(urlPathEqualTo("/team/my_team")).willReturn(ok().withBody("{{request.query.q}}").withTransformers("response-template"))
+        );
 
         String query = "true";
-        URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("q", "true")
-                .build();
+        URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", "true").build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
@@ -65,15 +59,10 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
     @Test
     public void call_get_query_params_emptyvalue() throws Exception {
         wireMockRule.stubFor(
-                get(urlPathEqualTo("/team/my_team"))
-                        .willReturn(
-                                ok()
-                                        .withBody("{{request.query.q}}")
-                                        .withTransformers("response-template")));
+            get(urlPathEqualTo("/team/my_team")).willReturn(ok().withBody("{{request.query.q}}").withTransformers("response-template"))
+        );
 
-        URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("q", null)
-                .build();
+        URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", null).build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
@@ -88,16 +77,11 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
     @Test
     public void call_get_query_params_spaces() throws Exception {
         wireMockRule.stubFor(
-                get(urlPathEqualTo("/team/my_team"))
-                        .willReturn(
-                                ok()
-                                        .withBody("{{request.query.q}}")
-                                        .withTransformers("response-template")));
+            get(urlPathEqualTo("/team/my_team")).willReturn(ok().withBody("{{request.query.q}}").withTransformers("response-template"))
+        );
 
         String query = "myparam:test+AND+myotherparam:12";
-        URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("q", query)
-                .build();
+        URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", query).build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
@@ -112,17 +96,12 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
     @Test
     public void call_get_query_accent() throws Exception {
         wireMockRule.stubFor(
-                get(urlPathEqualTo("/team/my_team"))
-                        .willReturn(
-                                ok()
-                                        .withBody("{{request.query.q}}")
-                                        .withTransformers("response-template")));
+            get(urlPathEqualTo("/team/my_team")).willReturn(ok().withBody("{{request.query.q}}").withTransformers("response-template"))
+        );
 
         String query = "poupée";
 
-        URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("q", query)
-                .build();
+        URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", query).build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
@@ -137,19 +116,16 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
     @Test
     public void call_get_query_with_special_separator() throws Exception {
         wireMockRule.stubFor(
-                get(urlPathEqualTo("/team/my_team"))
-                        .willReturn(
-                                ok()
-                                        .withBody("{{request.query.q}}")
-                                        .withTransformers("response-template")));
+            get(urlPathEqualTo("/team/my_team")).willReturn(ok().withBody("{{request.query.q}}").withTransformers("response-template"))
+        );
 
         String query = "from:2016-01-01;to:2016-01-31";
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("id", "20000047")
-                .addParameter("idType", "1")
-                .addParameter("q", query)
-                .build();
+            .addParameter("id", "20000047")
+            .addParameter("idType", "1")
+            .addParameter("q", query)
+            .build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
@@ -184,10 +160,10 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("country", "fr")
-                .addParameter("country", "es")
-                .addParameter("type", "MAG")
-                .build();
+            .addParameter("country", "fr")
+            .addParameter("country", "es")
+            .addParameter("type", "MAG")
+            .build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
@@ -209,16 +185,16 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
         String query = "country=fr&type=MAG&country=es";
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("country", "fr")
-                .addParameter("type", "MAG")
-                .addParameter("country", "es")
-                .build();
+            .addParameter("country", "fr")
+            .addParameter("type", "MAG")
+            .addParameter("country", "es")
+            .build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
-        wireMockRule.verify(getRequestedFor(urlEqualTo("/team/my_team?"+query)));
+        wireMockRule.verify(getRequestedFor(urlEqualTo("/team/my_team?" + query)));
     }
 
     @Test
@@ -226,9 +202,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
         String query = "RECHERCHE,35147,8;RECHERCHE,670620,1";
 
-        URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("q", "RECHERCHE,35147,8;RECHERCHE,670620,1")
-                .build();
+        URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", "RECHERCHE,35147,8;RECHERCHE,670620,1").build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 
@@ -245,9 +219,9 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get(urlPathEqualTo("/team/my_team")).willReturn(ok()));
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team")
-                .addParameter("username", "toto")
-                .addParameter("password", "password%")
-                .build();
+            .addParameter("username", "toto")
+            .addParameter("password", "password%")
+            .build();
 
         HttpResponse response = Request.Get(target).execute().returnResponse();
 

@@ -31,11 +31,13 @@ public class TransformRequestContentUsingBuilderPolicy {
     @OnRequestContent
     public ReadWriteStream onRequestContent(Request request, ExecutionContext executionContext) {
         return TransformableRequestStreamBuilder
-                .on(request)
-                .transform(buffer -> {
+            .on(request)
+            .transform(
+                buffer -> {
                     String content = executionContext.getTemplateEngine().convert(buffer.toString());
                     return Buffer.buffer(content);
-                })
-                .build();
+                }
+            )
+            .build();
     }
 }

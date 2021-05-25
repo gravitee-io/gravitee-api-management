@@ -23,11 +23,10 @@ import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
-
 import java.util.Collection;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -79,10 +78,10 @@ public class ProxyEndpointResolver implements EndpointResolver {
             // is always returning the first endpoints reference and took into account its configuration.
             Collection<EndpointReference> endpoints = referenceRegister.referencesByType(EndpointReference.class);
             Reference reference = endpoints
-                    .stream()
-                    .filter(endpointEntry -> uri.startsWith(endpointEntry.endpoint().target()))
-                    .findFirst()
-                    .orElse(endpoints.iterator().next());
+                .stream()
+                .filter(endpointEntry -> uri.startsWith(endpointEntry.endpoint().target()))
+                .findFirst()
+                .orElse(endpoints.iterator().next());
 
             if (reference == null) {
                 return null;
@@ -122,8 +121,7 @@ public class ProxyEndpointResolver implements EndpointResolver {
                 return null;
             }
 
-            return new UserDefinedProxyEndpoint(endpoint,
-                    getMergedTarget(endpoint.target(), uri.substring(refSeparatorIdx + 1)));
+            return new UserDefinedProxyEndpoint(endpoint, getMergedTarget(endpoint.target(), uri.substring(refSeparatorIdx + 1)));
         }
     }
 
@@ -133,7 +131,7 @@ public class ProxyEndpointResolver implements EndpointResolver {
         if (targetQueryIndex > -1) {
             // we have to put the query params at the end of the merged url
             String path = endpointTarget.substring(0, targetQueryIndex);
-            String targetQuery = endpointTarget.substring(targetQueryIndex+1);
+            String targetQuery = endpointTarget.substring(targetQueryIndex + 1);
 
             String userPathAndQuery;
             int userDefinedQueryIndex = userDefinedRawPathAndQuery.indexOf(QUERY_SEPARATOR);

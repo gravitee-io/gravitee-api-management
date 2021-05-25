@@ -23,12 +23,11 @@ import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.core.net.PemTrustOptions;
 import io.vertx.core.net.PfxOptions;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,14 +63,16 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
             // TLS protocol support
             if (httpServerConfiguration.getTlsProtocols() != null) {
-                options.setEnabledSecureTransportProtocols(new HashSet<>(Arrays.asList(httpServerConfiguration.getTlsProtocols().split("\\s*,\\s*"))));
+                options.setEnabledSecureTransportProtocols(
+                    new HashSet<>(Arrays.asList(httpServerConfiguration.getTlsProtocols().split("\\s*,\\s*")))
+                );
             }
 
             // TLS ciphers support
             if (httpServerConfiguration.getTlsCiphers() != null) {
                 String[] incomingCipherSuites = httpServerConfiguration.getTlsCiphers().split("\\s*,\\s*");
                 options.getEnabledCipherSuites().clear();
-                for (String cipherSuite: incomingCipherSuites) {
+                for (String cipherSuite : incomingCipherSuites) {
                     options.addEnabledCipherSuite(cipherSuite);
                 }
             }
@@ -85,40 +86,52 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
             }
 
             if (httpServerConfiguration.getTrustStorePath() != null) {
-                if (httpServerConfiguration.getTrustStoreType() == null || httpServerConfiguration.getTrustStoreType().isEmpty() ||
-                        httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)) {
-                    options.setTrustStoreOptions(new JksOptions()
+                if (
+                    httpServerConfiguration.getTrustStoreType() == null ||
+                    httpServerConfiguration.getTrustStoreType().isEmpty() ||
+                    httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)
+                ) {
+                    options.setTrustStoreOptions(
+                        new JksOptions()
                             .setPath(httpServerConfiguration.getTrustStorePath())
-                            .setPassword(httpServerConfiguration.getTrustStorePassword()));
+                            .setPassword(httpServerConfiguration.getTrustStorePassword())
+                    );
                 } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
-                    options.setPemTrustOptions(new PemTrustOptions()
-                            .addCertPath(httpServerConfiguration.getTrustStorePath()));
+                    options.setPemTrustOptions(new PemTrustOptions().addCertPath(httpServerConfiguration.getTrustStorePath()));
                 } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
-                    options.setPfxTrustOptions(new PfxOptions()
+                    options.setPfxTrustOptions(
+                        new PfxOptions()
                             .setPath(httpServerConfiguration.getTrustStorePath())
-                            .setPassword(httpServerConfiguration.getTrustStorePassword()));
+                            .setPassword(httpServerConfiguration.getTrustStorePassword())
+                    );
                 }
             }
 
             if (httpServerConfiguration.getKeyStorePath() != null) {
-                if (httpServerConfiguration.getKeyStoreType() == null || httpServerConfiguration.getKeyStoreType().isEmpty() ||
-                        httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)) {
-                    options.setKeyStoreOptions(new JksOptions()
+                if (
+                    httpServerConfiguration.getKeyStoreType() == null ||
+                    httpServerConfiguration.getKeyStoreType().isEmpty() ||
+                    httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)
+                ) {
+                    options.setKeyStoreOptions(
+                        new JksOptions()
                             .setPath(httpServerConfiguration.getKeyStorePath())
-                            .setPassword(httpServerConfiguration.getKeyStorePassword()));
+                            .setPassword(httpServerConfiguration.getKeyStorePassword())
+                    );
                 } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
-                    options.setPemKeyCertOptions(new PemKeyCertOptions()
-                            .addCertPath(httpServerConfiguration.getKeyStorePath()));
+                    options.setPemKeyCertOptions(new PemKeyCertOptions().addCertPath(httpServerConfiguration.getKeyStorePath()));
                 } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
-                    options.setPfxKeyCertOptions(new PfxOptions()
+                    options.setPfxKeyCertOptions(
+                        new PfxOptions()
                             .setPath(httpServerConfiguration.getKeyStorePath())
-                            .setPassword(httpServerConfiguration.getKeyStorePassword()));
+                            .setPassword(httpServerConfiguration.getKeyStorePassword())
+                    );
                 }
             }
         }
 
         options.setHandle100ContinueAutomatically(true);
-        
+
         // Customizable configuration
         options.setCompressionSupported(httpServerConfiguration.isCompressionSupported());
         options.setIdleTimeout(httpServerConfiguration.getIdleTimeout());
@@ -130,7 +143,9 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         // Configure websocket
         System.setProperty("vertx.disableWebsockets", Boolean.toString(!httpServerConfiguration.isWebsocketEnabled()));
         if (httpServerConfiguration.isWebsocketEnabled() && httpServerConfiguration.getWebsocketSubProtocols() != null) {
-            options.setWebSocketSubProtocols(new ArrayList<>(Arrays.asList(httpServerConfiguration.getWebsocketSubProtocols().split("\\s*,\\s*"))));
+            options.setWebSocketSubProtocols(
+                new ArrayList<>(Arrays.asList(httpServerConfiguration.getWebsocketSubProtocols().split("\\s*,\\s*")))
+            );
             options.setPerMessageWebSocketCompressionSupported(httpServerConfiguration.isPerMessageWebSocketCompressionSupported());
             options.setPerFrameWebSocketCompressionSupported(httpServerConfiguration.isPerFrameWebSocketCompressionSupported());
         }

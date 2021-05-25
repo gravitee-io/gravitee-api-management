@@ -17,7 +17,6 @@ package io.gravitee.gateway.core.processor.provider;
 
 import io.gravitee.gateway.core.processor.Processor;
 import io.gravitee.gateway.core.processor.chain.AbstractProcessorChain;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -47,7 +46,7 @@ public class ProcessorProviderChain<T> extends AbstractProcessorChain<T, Process
     @Override
     public boolean hasNext() {
         boolean hasNext = ite.hasNext();
-        if (! hasNext && iteProcessor == null) {
+        if (!hasNext && iteProcessor == null) {
             iteProcessor = processors.iterator();
             return false;
         } else if (!hasNext) {

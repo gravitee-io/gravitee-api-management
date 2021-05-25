@@ -27,6 +27,8 @@ import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
 import io.gravitee.plugin.resource.ResourcePlugin;
 import io.gravitee.resource.api.ResourceConfiguration;
 import io.gravitee.resource.api.ResourceManager;
+import java.io.IOException;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +36,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
-
-import java.io.IOException;
-import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,53 +57,66 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
         initialize();
 
         // Start resources
-        resources.entrySet()
-                .stream()
-                .forEach(resource -> {
+        resources
+            .entrySet()
+            .stream()
+            .forEach(
+                resource -> {
                     try {
                         logger.info("Start resource {} [{}]", resource.getKey(), resource.getValue().getClass());
                         resource.getValue().start();
                     } catch (Exception ex) {
                         logger.error("Unable to start resource", ex);
                     }
-                });
+                }
+            );
     }
 
     @Override
     protected void doStop() throws Exception {
         // Stop resources
-        resources.entrySet()
-                .stream()
-                .forEach(resource -> {
+        resources
+            .entrySet()
+            .stream()
+            .forEach(
+                resource -> {
                     try {
                         logger.info("Stop resource {} [{}]", resource.getKey(), resource.getValue().getClass());
                         resource.getValue().stop();
                     } catch (Exception ex) {
                         logger.error("Unable to stop resource", ex);
                     }
-                });
+                }
+            );
 
         // Close resource classLoaders
-        resources.values().forEach(resource -> {
-            ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
-            if (resourceClassLoader instanceof PluginClassLoader) {
-                try {
-                    ((PluginClassLoader)resourceClassLoader).close();
-                } catch (IOException ioe) {
-                    logger.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
+        resources
+            .values()
+            .forEach(
+                resource -> {
+                    ClassLoader resourceClassLoader = resource.getClass().getClassLoader();
+                    if (resourceClassLoader instanceof PluginClassLoader) {
+                        try {
+                            ((PluginClassLoader) resourceClassLoader).close();
+                        } catch (IOException ioe) {
+                            logger.error("Unable to close classloader for resource {}", resource.getClass(), ioe);
+                        }
+                    }
                 }
-            }
-        });
+            );
 
         // Be sure to remove all references to resources
         resources.clear();
     }
 
     private void initialize() {
-        String[] beanNamesForType = applicationContext.getParent().getBeanNamesForType(
-                ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
+        String[] beanNamesForType = applicationContext
+            .getParent()
+            .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
 
-        ConfigurablePluginManager<ResourcePlugin> rpm = (ConfigurablePluginManager<ResourcePlugin>) applicationContext.getBean(beanNamesForType[0]);
+        ConfigurablePluginManager<ResourcePlugin> rpm = (ConfigurablePluginManager<ResourcePlugin>) applicationContext.getBean(
+            beanNamesForType[0]
+        );
 
         ResourceClassLoaderFactory rclf = applicationContext.getBean(ResourceClassLoaderFactory.class);
         ResourceConfigurationFactory rcf = applicationContext.getBean(ResourceConfigurationFactory.class);
@@ -113,45 +125,55 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
 
         Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
 
-        resourceDeps.forEach(resource -> {
-            final ResourcePlugin resourcePlugin = rpm.get(resource.getType());
-            if (resourcePlugin == null) {
-                logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
-                throw new IllegalStateException("Resource ["+resource.getType()+"] can not be found in plugin registry");
-            }
-
-            PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
-                    resourcePlugin.id(), s -> rclf.getOrCreateClassLoader(resourcePlugin, rh.getClass().getClassLoader()));
-            
-            logger.debug("Loading resource {} for {}", resource.getName(), rh);
-
-            try {
-                Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(resourcePlugin.resource().getName(), resourceClassLoader);
-                Map<Class<?>, Object> injectables = new HashMap<>();
-
-                if (resourcePlugin.configuration() != null) {
-                    Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(resourcePlugin.configuration().getName(), resourceClassLoader);
-                    injectables.put(resourceConfigurationClass, rcf.create(resourceConfigurationClass, resource.getConfiguration()));
+        resourceDeps.forEach(
+            resource -> {
+                final ResourcePlugin resourcePlugin = rpm.get(resource.getType());
+                if (resourcePlugin == null) {
+                    logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
+                    throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
                 }
 
-                io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
+                PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
+                    resourcePlugin.id(),
+                    s -> rclf.getOrCreateClassLoader(resourcePlugin, rh.getClass().getClassLoader())
+                );
 
-                if (resourceInstance instanceof ApplicationContextAware) {
-                    ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
-                }
+                logger.debug("Loading resource {} for {}", resource.getName(), rh);
 
-                resources.put(resource.getName(), resourceInstance);
-            } catch (Exception ex) {
-                logger.error("Unable to create resource", ex);
-                if (resourceClassLoader != null) {
-                    try {
-                        resourceClassLoader.close();
-                    } catch (IOException ioe) {
-                        logger.error("Unable to close classloader for resource", ioe);
+                try {
+                    Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
+                        resourcePlugin.resource().getName(),
+                        resourceClassLoader
+                    );
+                    Map<Class<?>, Object> injectables = new HashMap<>();
+
+                    if (resourcePlugin.configuration() != null) {
+                        Class<? extends ResourceConfiguration> resourceConfigurationClass = (Class<? extends ResourceConfiguration>) ClassUtils.forName(
+                            resourcePlugin.configuration().getName(),
+                            resourceClassLoader
+                        );
+                        injectables.put(resourceConfigurationClass, rcf.create(resourceConfigurationClass, resource.getConfiguration()));
+                    }
+
+                    io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);
+
+                    if (resourceInstance instanceof ApplicationContextAware) {
+                        ((ApplicationContextAware) resourceInstance).setApplicationContext(applicationContext);
+                    }
+
+                    resources.put(resource.getName(), resourceInstance);
+                } catch (Exception ex) {
+                    logger.error("Unable to create resource", ex);
+                    if (resourceClassLoader != null) {
+                        try {
+                            resourceClassLoader.close();
+                        } catch (IOException ioe) {
+                            logger.error("Unable to close classloader for resource", ioe);
+                        }
                     }
                 }
             }
-        });
+        );
     }
 
     @Override
@@ -161,11 +183,13 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
 
     @Override
     public <T> T getResource(Class<T> requiredType) {
-            Optional<T> resource = (Optional<T>) resources.values().stream()
-                    .filter(resourceEntry -> resourceEntry.getClass().isAssignableFrom(requiredType))
-                    .findFirst();
+        Optional<T> resource = (Optional<T>) resources
+            .values()
+            .stream()
+            .filter(resourceEntry -> resourceEntry.getClass().isAssignableFrom(requiredType))
+            .findFirst();
 
-            return resource.orElse(null);
+        return resource.orElse(null);
     }
 
     @Override

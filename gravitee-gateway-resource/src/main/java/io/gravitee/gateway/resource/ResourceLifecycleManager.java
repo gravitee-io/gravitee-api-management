@@ -18,7 +18,6 @@ package io.gravitee.gateway.resource;
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.resource.api.Resource;
 import io.gravitee.resource.api.ResourceManager;
-
 import java.util.Collection;
 
 /**
@@ -26,6 +25,5 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface ResourceLifecycleManager extends ResourceManager, LifecycleComponent<ResourceManager> {
-
     Collection<? extends Resource> getResources();
 }

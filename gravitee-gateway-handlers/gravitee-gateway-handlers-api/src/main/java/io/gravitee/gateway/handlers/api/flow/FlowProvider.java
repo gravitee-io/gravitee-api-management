@@ -24,6 +24,5 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
  * @author GraviteeSource Team
  */
 public interface FlowProvider {
-
     StreamableProcessor<ExecutionContext, Buffer> provide(ExecutionContext context);
 }

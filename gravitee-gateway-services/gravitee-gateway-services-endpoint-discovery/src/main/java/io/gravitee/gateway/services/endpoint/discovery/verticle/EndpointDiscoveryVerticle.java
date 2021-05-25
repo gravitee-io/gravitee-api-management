@@ -33,20 +33,18 @@ import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.discovery.ServiceDiscoveryPlugin;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointDiscoveryVerticle extends AbstractVerticle implements
-        EventListener<ReactorEvent, Reactable> {
+public class EndpointDiscoveryVerticle extends AbstractVerticle implements EventListener<ReactorEvent, Reactable> {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryVerticle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointDiscoveryVerticle.class);
 
     @Autowired
     private EventManager eventManager;
@@ -86,13 +84,15 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
         List<ServiceDiscovery> discoveries = apiServiceDiscoveries.remove(api);
         if (discoveries != null) {
             LOGGER.info("Stop service discovery for API id[{}] name[{}]", api.getId(), api.getName());
-            discoveries.forEach(serviceDiscovery -> {
-                try {
-                    serviceDiscovery.stop();
-                } catch (Exception ex) {
-                    LOGGER.error("Unexpected error while stopping service discovery", ex);
+            discoveries.forEach(
+                serviceDiscovery -> {
+                    try {
+                        serviceDiscovery.stop();
+                    } catch (Exception ex) {
+                        LOGGER.error("Unexpected error while stopping service discovery", ex);
+                    }
                 }
-            });
+            );
         }
     }
 
@@ -107,13 +107,17 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
         }
     }
 
-    private void startServiceDiscovery(final Api api, final EndpointGroup group,
-                                       final EndpointDiscoveryService discoveryService) {
-        LOGGER.info("A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]", api.getId(), api.getName(), group.getName(), discoveryService.getProvider());
+    private void startServiceDiscovery(final Api api, final EndpointGroup group, final EndpointDiscoveryService discoveryService) {
+        LOGGER.info(
+            "A discovery service is defined for API id[{}] name[{}] group[{}] type[{}]",
+            api.getId(),
+            api.getName(),
+            group.getName(),
+            discoveryService.getProvider()
+        );
         ServiceDiscoveryPlugin serviceDiscoveryPlugin = serviceDiscoveryPluginManager.get(discoveryService.getProvider());
         if (serviceDiscoveryPlugin != null) {
-            ServiceDiscovery serviceDiscovery = serviceDiscoveryFactory.create(
-                    serviceDiscoveryPlugin, discoveryService.getConfiguration());
+            ServiceDiscovery serviceDiscovery = serviceDiscoveryFactory.create(serviceDiscoveryPlugin, discoveryService.getConfiguration());
 
             List<ServiceDiscovery> discoveries = apiServiceDiscoveries.getOrDefault(api, new ArrayList<>());
             discoveries.add(serviceDiscovery);
@@ -124,24 +128,30 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
                 if (group.getEndpoints() == null) {
                     group.setEndpoints(endpoints);
                 }
-                serviceDiscovery.listen(event -> {
-                    LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
-                    DiscoveredEndpoint endpoint = createEndpoint(event.service(), group);
-                    switch (event.type()) {
-                        case REGISTER:
-                            endpoints.add(endpoint);
-                            break;
-                        case UNREGISTER:
-                            endpoints.remove(endpoint);
-                            break;
+                serviceDiscovery.listen(
+                    event -> {
+                        LOGGER.info("Receiving a service discovery event id[{}] type[{}]", event.service().id(), event.type());
+                        DiscoveredEndpoint endpoint = createEndpoint(event.service(), group);
+                        switch (event.type()) {
+                            case REGISTER:
+                                endpoints.add(endpoint);
+                                break;
+                            case UNREGISTER:
+                                endpoints.remove(endpoint);
+                                break;
+                        }
                     }
-                });
+                );
             } catch (Exception ex) {
                 LOGGER.error("An errors occurs while starting to listen from service discovery provider", ex);
             }
         } else {
-            LOGGER.error("No Service Discovery plugin found for type[{}] api[{}] group[{}]",
-                    discoveryService.getProvider(), api.getId(), group.getName());
+            LOGGER.error(
+                "No Service Discovery plugin found for type[{}] api[{}] group[{}]",
+                discoveryService.getProvider(),
+                api.getId(),
+                group.getName()
+            );
         }
     }
 
@@ -151,8 +161,10 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
 
         // : is forbidden thanks to https://github.com/gravitee-io/issues/issues/1939
         final String serviceName = "sd#" + service.id().replaceAll(":", "#");
-        final DiscoveredEndpoint discoveredEndpoint = new DiscoveredEndpoint(serviceName,
-                scheme + "://" + service.host() + (service.port() > 0 ? ":" + service.port() : "") + basePath);
+        final DiscoveredEndpoint discoveredEndpoint = new DiscoveredEndpoint(
+            serviceName,
+            scheme + "://" + service.host() + (service.port() > 0 ? ":" + service.port() : "") + basePath
+        );
         discoveredEndpoint.setHttpClientOptions(group.getHttpClientOptions());
 
         if (Service.HTTPS_SCHEME.equalsIgnoreCase(scheme)) {
@@ -164,8 +176,10 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements
             } else {
                 // If SSL configuration has been done at the group level, let's use it
                 // If not, made a proper configuration for the discovered endpoint
-                discoveredEndpoint.setHttpClientSslOptions((groupHttpClientOptions != null) ? groupHttpClientOptions : new HttpClientSslOptions());
-                
+                discoveredEndpoint.setHttpClientSslOptions(
+                    (groupHttpClientOptions != null) ? groupHttpClientOptions : new HttpClientSslOptions()
+                );
+
                 // We don't know about the truststore, we should admit that we do trust all
                 discoveredEndpoint.getHttpClientSslOptions().setTrustAll(true);
             }

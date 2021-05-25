@@ -23,12 +23,11 @@ import io.gravitee.gateway.core.processor.provider.ProcessorSupplier;
 import io.gravitee.gateway.reactor.processor.forward.XForwardForProcessor;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

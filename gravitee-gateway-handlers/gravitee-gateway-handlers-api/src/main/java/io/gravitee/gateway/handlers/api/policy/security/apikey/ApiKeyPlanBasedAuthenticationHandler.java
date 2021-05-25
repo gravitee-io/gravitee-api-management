@@ -21,7 +21,6 @@ import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.repository.management.model.ApiKey;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -31,7 +30,7 @@ import java.util.Optional;
  */
 public class ApiKeyPlanBasedAuthenticationHandler implements AuthenticationHandler {
 
-    private final static String APIKEY_CONTEXT_ATTRIBUTE = "apikey";
+    private static final String APIKEY_CONTEXT_ATTRIBUTE = "apikey";
 
     private final AuthenticationHandler handler;
     private final Plan plan;

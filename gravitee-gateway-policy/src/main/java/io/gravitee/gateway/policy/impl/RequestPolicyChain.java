@@ -21,7 +21,6 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyChainException;
 import io.gravitee.gateway.policy.PolicyException;
-
 import java.util.Iterator;
 import java.util.List;
 

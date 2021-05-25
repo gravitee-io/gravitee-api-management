@@ -20,6 +20,5 @@ package io.gravitee.gateway.core.processor.chain;
  * @author GraviteeSource Team
  */
 public interface ProcessorChainFactory<PC extends ProcessorChain> {
-
     PC create();
 }

@@ -32,7 +32,7 @@ public class DefaultAuthenticationHandlerSelector implements AuthenticationHandl
         // Prepare the authentication context
         final SimpleAuthenticationContext context = new SimpleAuthenticationContext(request);
 
-        for(AuthenticationHandler securityProvider : providerManager.getAuthenticationHandlers()) {
+        for (AuthenticationHandler securityProvider : providerManager.getAuthenticationHandlers()) {
             if (securityProvider.canHandle(context)) {
                 return securityProvider;
             }

@@ -24,7 +24,6 @@ import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.core.processor.ProcessorFailure;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
-
 import java.util.List;
 import java.util.Map;
 
@@ -67,7 +66,11 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
         }
     }
 
-    private void handleAcceptHeader(final ExecutionContext context, final Map<String, ResponseTemplate> templates, final ProcessorFailure failure) {
+    private void handleAcceptHeader(
+        final ExecutionContext context,
+        final Map<String, ResponseTemplate> templates,
+        final ProcessorFailure failure
+    ) {
         // Extract the content-type from the request
         List<MediaType> acceptMediaTypes = context.request().headers().getAccept();
 
@@ -92,7 +95,11 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
         }
     }
 
-    private void handleWildcardTemplate(final ExecutionContext context, final Map<String, ResponseTemplate> templates, final ProcessorFailure failure) {
+    private void handleWildcardTemplate(
+        final ExecutionContext context,
+        final Map<String, ResponseTemplate> templates,
+        final ProcessorFailure failure
+    ) {
         ResponseTemplate template = templates.get(WILDCARD_CONTENT_TYPE);
         if (template == null) {
             // No template associated to the error key, process the error message as usual
@@ -116,13 +123,11 @@ public class ResponseTemplateBasedFailureProcessor extends SimpleFailureProcesso
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {
             // Prepare templating context
-            context.getTemplateEngine().getTemplateContext().setVariable("error",
-                    new EvaluableProcessorFailure(failure));
+            context.getTemplateEngine().getTemplateContext().setVariable("error", new EvaluableProcessorFailure(failure));
 
-            context.getTemplateEngine().getTemplateContext().setVariable("request",
-                    new EvaluableRequest(context.request()));
+            context.getTemplateEngine().getTemplateContext().setVariable("request", new EvaluableRequest(context.request()));
 
-            if (failure.parameters() != null && ! failure.parameters().isEmpty()) {
+            if (failure.parameters() != null && !failure.parameters().isEmpty()) {
                 context.getTemplateEngine().getTemplateContext().setVariable("parameters", failure.parameters());
             }
 

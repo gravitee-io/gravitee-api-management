@@ -15,6 +15,11 @@
  */
 package io.gravitee.gateway.core.endpoint.impl;
 
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.EndpointType;
@@ -23,21 +28,15 @@ import io.gravitee.gateway.api.Connector;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
+import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
-import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.util.Collections;
-
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

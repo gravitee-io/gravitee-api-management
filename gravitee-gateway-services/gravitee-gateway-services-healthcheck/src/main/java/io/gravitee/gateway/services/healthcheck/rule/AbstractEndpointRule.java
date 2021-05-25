@@ -20,7 +20,6 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.Step;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.vertx.core.net.ProxyOptions;
-
 import java.util.List;
 
 /**
@@ -34,7 +33,12 @@ public abstract class AbstractEndpointRule<T extends Endpoint> implements Endpoi
     private final HealthCheckService service;
     private ProxyOptions systemProxyOptions;
 
-    public AbstractEndpointRule(final String api, final T endpoint, final HealthCheckService service, final ProxyOptions systemProxyOptions ) {
+    public AbstractEndpointRule(
+        final String api,
+        final T endpoint,
+        final HealthCheckService service,
+        final ProxyOptions systemProxyOptions
+    ) {
         this.api = api;
         this.endpoint = endpoint;
         this.service = service;

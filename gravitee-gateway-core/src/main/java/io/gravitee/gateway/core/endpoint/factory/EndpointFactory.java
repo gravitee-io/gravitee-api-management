@@ -23,7 +23,6 @@ import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
  * @author GraviteeSource Team
  */
 public interface EndpointFactory<T extends io.gravitee.definition.model.Endpoint, S extends Endpoint> {
-
     /**
      * Does the current factory supports the endpoint type.
      *

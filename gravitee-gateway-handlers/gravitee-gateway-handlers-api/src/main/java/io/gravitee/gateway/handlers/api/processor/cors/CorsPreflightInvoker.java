@@ -64,6 +64,7 @@ public class CorsPreflightInvoker implements Invoker {
     }
 
     private static class CorsPreflightProxyResponse implements ProxyResponse {
+
         private final HttpHeaders headers = new HttpHeaders();
         private Handler<Void> endHandler;
 

@@ -22,6 +22,5 @@ import io.gravitee.resource.api.ResourceConfiguration;
  * @author GraviteeSource Team
  */
 public interface ResourceConfigurationFactory {
-
     <T extends ResourceConfiguration> T create(Class<T> resourceConfigurationClass, String configuration);
 }

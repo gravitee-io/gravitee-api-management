@@ -32,5 +32,4 @@ public class FreePlanApiHandlerConfiguration extends ApiHandlerConfiguration {
     public AuthenticationHandlerEnhancer authenticationHandlerEnhancer(Api api) {
         return new FreePlanAuthenticationHandlerEnhancer(api);
     }
-
 }

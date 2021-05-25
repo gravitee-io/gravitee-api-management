@@ -16,7 +16,6 @@
 package io.gravitee.gateway.handlers.api.manager;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
-
 import java.util.Collection;
 
 /**
@@ -29,7 +28,6 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface ApiManager {
-
     /**
      * Register an API definition. It is a "create or update" operation, if the api was previously existing, the
      * definition is updated accordingly.

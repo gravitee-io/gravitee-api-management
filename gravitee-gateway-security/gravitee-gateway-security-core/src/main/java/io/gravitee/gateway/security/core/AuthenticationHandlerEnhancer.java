@@ -23,6 +23,5 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface AuthenticationHandlerEnhancer {
-
     List<AuthenticationHandler> filter(List<AuthenticationHandler> authenticationHandlers);
 }

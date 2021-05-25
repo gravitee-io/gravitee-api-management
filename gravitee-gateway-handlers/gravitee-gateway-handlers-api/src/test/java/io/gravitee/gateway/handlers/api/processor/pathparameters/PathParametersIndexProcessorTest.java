@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api.processor.pathparameters;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.gateway.api.ExecutionContext;
@@ -27,9 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -107,5 +107,4 @@ public class PathParametersIndexProcessorTest {
             register(path);
         }
     }
-
 }

@@ -48,8 +48,8 @@ public class SelectionRulePlanBasedAuthenticationHandler extends PlanBasedAuthen
         }
 
         try {
-            Expression expression = new SpelExpressionParser().parseExpression(
-                    plan.getSelectionRule().replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
+            Expression expression = new SpelExpressionParser()
+            .parseExpression(plan.getSelectionRule().replaceAll(EXPRESSION_REGEX, EXPRESSION_REGEX_SUBSTITUTE));
 
             StandardEvaluationContext evaluation = new StandardEvaluationContext();
             evaluation.setVariable("request", new EvaluableRequest(context.request()));

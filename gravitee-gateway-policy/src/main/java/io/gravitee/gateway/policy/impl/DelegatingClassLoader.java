@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.policy.impl;
 
-
 /**
  * A classloader that delegates first to an optional parent and then to a delegate loader
  *
@@ -42,15 +41,13 @@ class DelegatingClassLoader extends ClassLoader {
     }
 
     @Override
-    public Class<?> loadClass(String name)
-            throws ClassNotFoundException
-    {
-        return loadClass (name, false);
+    public Class<?> loadClass(String name) throws ClassNotFoundException {
+        return loadClass(name, false);
     }
 
     @Override
-    protected Class loadClass( String name, boolean resolve) throws ClassNotFoundException {
-        Class class2Load = findLoadedClass( name );
+    protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        Class class2Load = findLoadedClass(name);
 
         if (class2Load != null) {
             if (resolve) {
@@ -71,8 +68,7 @@ class DelegatingClassLoader extends ClassLoader {
 
                 return class2Load;
             }
-        }
-        catch (ClassNotFoundException cnfe) {
+        } catch (ClassNotFoundException cnfe) {
             // ignore
         }
 
@@ -83,8 +79,7 @@ class DelegatingClassLoader extends ClassLoader {
                 resolveClass(class2Load);
             }
             return class2Load;
-        }
-        catch (ClassNotFoundException cnfe) {
+        } catch (ClassNotFoundException cnfe) {
             // ignore
         }
 
@@ -92,13 +87,13 @@ class DelegatingClassLoader extends ClassLoader {
         throw new ClassNotFoundException(name);
     }
 
-    public Class findClass( String name) throws ClassNotFoundException {
+    public Class findClass(String name) throws ClassNotFoundException {
         boolean found = false;
         Class sharedClass = null;
 
         for (ClassLoader classloader : delegates) {
             try {
-                sharedClass = classloader.loadClass( name );
+                sharedClass = classloader.loadClass(name);
 
                 // If we reach here, we've loaded the class
                 // and can stop looking further.
@@ -112,7 +107,7 @@ class DelegatingClassLoader extends ClassLoader {
         // if we reach here with found=false that means
         // that the requested class was not in the shared classpath
         if (!found) {
-            throw new ClassNotFoundException( name );
+            throw new ClassNotFoundException(name);
         }
 
         return sharedClass;
@@ -120,7 +115,6 @@ class DelegatingClassLoader extends ClassLoader {
 
     @Override
     public String toString() {
-        return "DelegatingClassLoader(" + getParent() + "," +
-                delegates + "," + System.identityHashCode(this) + ")";
+        return "DelegatingClassLoader(" + getParent() + "," + delegates + "," + System.identityHashCode(this) + ")";
     }
 }

@@ -19,7 +19,6 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-
 import java.util.Collections;
 
 /**
@@ -51,5 +50,4 @@ public class ProxyDefinitionBuilder {
     public Proxy build() {
         return this.proxyDefinition;
     }
-
 }

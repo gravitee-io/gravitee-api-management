@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.policy;
 
+import static org.mockito.Mockito.*;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
@@ -25,19 +28,15 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.impl.PolicyChain;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.reporter.api.http.Metrics;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Spy;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -143,12 +142,17 @@ public class RequestPolicyChainTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
         ReadWriteStream stream = spy(new BufferedReadWriteStream());
-        when(policy4.onRequestContent(
-                nullable(Request.class), nullable(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
-        )).thenReturn(stream);
+        when(
+            policy4.onRequestContent(
+                nullable(Request.class),
+                nullable(Response.class),
+                any(io.gravitee.policy.api.PolicyChain.class),
+                eq(executionContext)
+            )
+        )
+            .thenReturn(stream);
 
-        PolicyChain chain = RequestPolicyChain.create(
-                Collections.singletonList(policy4), executionContext);
+        PolicyChain chain = RequestPolicyChain.create(Collections.singletonList(policy4), executionContext);
         chain.handler(result -> {});
         chain.doNext(null, null);
 
@@ -165,19 +169,30 @@ public class RequestPolicyChainTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
         ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
-        when(policy4.onRequestContent(
-                nullable(Request.class), nullable(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
-        )).thenReturn(streamPolicy4);
+        when(
+            policy4.onRequestContent(
+                nullable(Request.class),
+                nullable(Response.class),
+                any(io.gravitee.policy.api.PolicyChain.class),
+                eq(executionContext)
+            )
+        )
+            .thenReturn(streamPolicy4);
 
         ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
-        when(policy5.onRequestContent(
-                nullable(Request.class), nullable(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
-        )).thenReturn(streamPolicy5);
+        when(
+            policy5.onRequestContent(
+                nullable(Request.class),
+                nullable(Response.class),
+                any(io.gravitee.policy.api.PolicyChain.class),
+                eq(executionContext)
+            )
+        )
+            .thenReturn(streamPolicy5);
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
 
-        PolicyChain chain = RequestPolicyChain.create(
-                Arrays.asList(policy4, policy5), executionContext);
+        PolicyChain chain = RequestPolicyChain.create(Arrays.asList(policy4, policy5), executionContext);
         chain.handler(result -> {});
         chain.doNext(null, null);
 
@@ -198,19 +213,30 @@ public class RequestPolicyChainTest {
         ExecutionContext executionContext = mock(ExecutionContext.class);
 
         ReadWriteStream streamPolicy4 = spy(new BufferedReadWriteStream());
-        when(policy4.onRequestContent(
-                nullable(Request.class), nullable(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
-        )).thenReturn(streamPolicy4);
+        when(
+            policy4.onRequestContent(
+                nullable(Request.class),
+                nullable(Response.class),
+                any(io.gravitee.policy.api.PolicyChain.class),
+                eq(executionContext)
+            )
+        )
+            .thenReturn(streamPolicy4);
 
         ReadWriteStream streamPolicy5 = spy(new BufferedReadWriteStream());
-        when(policy5.onRequestContent(
-                nullable(Request.class), nullable(Response.class), any(io.gravitee.policy.api.PolicyChain.class), eq(executionContext)
-        )).thenReturn(streamPolicy5);
+        when(
+            policy5.onRequestContent(
+                nullable(Request.class),
+                nullable(Response.class),
+                any(io.gravitee.policy.api.PolicyChain.class),
+                eq(executionContext)
+            )
+        )
+            .thenReturn(streamPolicy5);
 
         InOrder inOrder = inOrder(streamPolicy4, streamPolicy5);
 
-        PolicyChain chain = RequestPolicyChain.create(
-                Arrays.asList(policy4, policy5), executionContext);
+        PolicyChain chain = RequestPolicyChain.create(Arrays.asList(policy4, policy5), executionContext);
         chain.handler(result -> {});
         chain.bodyHandler(mock(Handler.class));
         chain.endHandler(mock(Handler.class));

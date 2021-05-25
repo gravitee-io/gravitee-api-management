@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Plan;
@@ -24,19 +27,15 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -61,7 +60,7 @@ public class ApiManagerTest {
         apiManager = spy(new ApiManagerImpl());
         MockitoAnnotations.initMocks(this);
 
-        ((ApiManagerImpl)apiManager).setApis(new HashMap<>());
+        ((ApiManagerImpl) apiManager).setApis(new HashMap<>());
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
     }
 
@@ -100,7 +99,7 @@ public class ApiManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldNotDeployApi_invalidTag() throws Exception {
-        shouldDeployApiWithTags("test,!test", new String[]{});
+        shouldDeployApiWithTags("test,!test", new String[] {});
     }
 
     private void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
@@ -151,47 +150,47 @@ public class ApiManagerTest {
 
     @Test
     public void test_deployApiWithTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[]{"test"});
+        shouldDeployApiWithTags("test,toto", new String[] { "test" });
     }
 
     @Test
     public void test_deployApiWithTagExcluded() throws Exception {
-        shouldDeployApiWithTags("!test", new String[]{"toto"});
+        shouldDeployApiWithTags("!test", new String[] { "toto" });
     }
 
     @Test
     public void test_deployApiWithUpperCasedTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[]{"Test"});
+        shouldDeployApiWithTags("test,toto", new String[] { "Test" });
     }
 
     @Test
     public void test_deployApiWithAccentTag() throws Exception {
-        shouldDeployApiWithTags("test,toto", new String[]{"tést"});
+        shouldDeployApiWithTags("test,toto", new String[] { "tést" });
     }
 
     @Test
     public void test_deployApiWithUpperCasedAndAccentTag() throws Exception {
-        shouldDeployApiWithTags("test", new String[]{"Tést"});
+        shouldDeployApiWithTags("test", new String[] { "Tést" });
     }
 
     @Test
     public void test_deployApiWithTagExclusion() throws Exception {
-        shouldDeployApiWithTags("test,!toto", new String[]{"test"});
+        shouldDeployApiWithTags("test,!toto", new String[] { "test" });
     }
 
     @Test
     public void test_deployApiWithSpaceAfterComma() throws Exception {
-        shouldDeployApiWithTags("test, !toto", new String[]{"test"});
+        shouldDeployApiWithTags("test, !toto", new String[] { "test" });
     }
 
     @Test
     public void test_deployApiWithSpaceBeforeComma() throws Exception {
-        shouldDeployApiWithTags("test ,!toto", new String[]{"test"});
+        shouldDeployApiWithTags("test ,!toto", new String[] { "test" });
     }
 
     @Test
     public void test_deployApiWithSpaceBeforeTag() throws Exception {
-        shouldDeployApiWithTags(" test,!toto", new String[]{"test"});
+        shouldDeployApiWithTags(" test,!toto", new String[] { "test" });
     }
 
     @Test
@@ -693,7 +692,7 @@ public class ApiManagerTest {
      */
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
-        return mockApi(api, new String[]{});
+        return mockApi(api, new String[] {});
     }
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api, final String[] tags) throws Exception {
@@ -708,12 +707,7 @@ public class ApiManagerTest {
     private Api buildTestApi() {
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(mock(VirtualHost.class)));
-        return new ApiBuilder()
-                .id("api-test")
-                .name("api-name-test")
-                .proxy(proxy)
-                .deployedAt(new Date())
-                .build();
+        return new ApiBuilder().id("api-test").name("api-name-test").proxy(proxy).deployedAt(new Date()).build();
     }
 
     class ApiBuilder {

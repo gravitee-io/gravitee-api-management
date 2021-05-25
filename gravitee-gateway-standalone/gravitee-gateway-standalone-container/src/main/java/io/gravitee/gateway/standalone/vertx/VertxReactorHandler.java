@@ -15,8 +15,8 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
-import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.HttpHeaders;
+import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;

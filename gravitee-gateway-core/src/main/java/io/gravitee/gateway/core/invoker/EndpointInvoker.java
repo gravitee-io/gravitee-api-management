@@ -28,10 +28,9 @@ import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.core.logging.LoggableProxyConnectionDecorator;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,8 +45,7 @@ public class EndpointInvoker implements Invoker {
     @Override
     public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {
         // Look at the request context attribute to retrieve the final target (which could be overridden by a policy)
-        final ProxyEndpoint endpoint = endpointResolver.resolve(
-                (String) context.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT));
+        final ProxyEndpoint endpoint = endpointResolver.resolve((String) context.getAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT));
 
         // Endpoint can be null if none endpoint can be selected or if the selected endpoint is unavailable
         if (endpoint == null || !endpoint.available()) {
@@ -56,27 +54,32 @@ public class EndpointInvoker implements Invoker {
             statusOnlyConnection.sendResponse();
         } else {
             try {
-                final ProxyRequest proxyRequest = endpoint.createProxyRequest(context.request(),
-                        proxyRequestBuilder -> proxyRequestBuilder.method(getHttpMethod(context)));
+                final ProxyRequest proxyRequest = endpoint.createProxyRequest(
+                    context.request(),
+                    proxyRequestBuilder -> proxyRequestBuilder.method(getHttpMethod(context))
+                );
 
                 final ProxyConnection proxyConnection = LoggableProxyConnectionDecorator.decorate(
-                        endpoint.connector().request(proxyRequest),
-                        proxyRequest,
-                        context);
+                    endpoint.connector().request(proxyRequest),
+                    proxyRequest,
+                    context
+                );
 
                 connectionHandler.handle(proxyConnection);
 
                 // Plug underlying stream to connection stream
                 stream
-                        .bodyHandler(buffer -> {
+                    .bodyHandler(
+                        buffer -> {
                             proxyConnection.write(buffer);
 
                             if (proxyConnection.writeQueueFull()) {
                                 context.request().pause();
                                 proxyConnection.drainHandler(aVoid -> context.request().resume());
                             }
-                        })
-                        .endHandler(aVoid -> proxyConnection.end());
+                        }
+                    )
+                    .endHandler(aVoid -> proxyConnection.end());
             } catch (Exception ex) {
                 context.request().metrics().setMessage(getStackTraceAsString(ex));
 
@@ -92,8 +95,9 @@ public class EndpointInvoker implements Invoker {
     }
 
     private HttpMethod getHttpMethod(ExecutionContext context) {
-        io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod)
-                context.getAttribute(ExecutionContext.ATTR_REQUEST_METHOD);
+        io.gravitee.common.http.HttpMethod overrideMethod = (io.gravitee.common.http.HttpMethod) context.getAttribute(
+            ExecutionContext.ATTR_REQUEST_METHOD
+        );
         return (overrideMethod == null) ? context.request().method() : overrideMethod;
     }
 

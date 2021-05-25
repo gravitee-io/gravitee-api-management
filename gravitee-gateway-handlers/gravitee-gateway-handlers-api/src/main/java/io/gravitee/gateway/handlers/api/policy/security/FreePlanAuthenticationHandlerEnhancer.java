@@ -17,12 +17,11 @@ package io.gravitee.gateway.handlers.api.policy.security;
 
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,9 +46,9 @@ public class FreePlanAuthenticationHandlerEnhancer extends PlanBasedAuthenticati
             List<AuthenticationHandler> providers = new ArrayList<>();
 
             Optional<AuthenticationHandler> optionalProvider = authenticationHandlers
-                    .stream()
-                    .filter(provider -> provider.name().equalsIgnoreCase("KEY_LESS"))
-                    .findFirst();
+                .stream()
+                .filter(provider -> provider.name().equalsIgnoreCase("KEY_LESS"))
+                .findFirst();
 
             if (optionalProvider.isPresent()) {
                 AuthenticationHandler provider = optionalProvider.get();
@@ -64,7 +63,7 @@ public class FreePlanAuthenticationHandlerEnhancer extends PlanBasedAuthenticati
                 providers.add(new FreePlanAuthenticationHandler(provider, getApi()));
             }
 
-            if (! providers.isEmpty()) {
+            if (!providers.isEmpty()) {
                 logger.info("{} requires the following authentication handlers:", getApi());
                 providers.forEach(authenticationProvider -> logger.info("\t* {}", authenticationProvider.name()));
             } else {
@@ -74,5 +73,4 @@ public class FreePlanAuthenticationHandlerEnhancer extends PlanBasedAuthenticati
             return providers;
         }
     }
-
 }

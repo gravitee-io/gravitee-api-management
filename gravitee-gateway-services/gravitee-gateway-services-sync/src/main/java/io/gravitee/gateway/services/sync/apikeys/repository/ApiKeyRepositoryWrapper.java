@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,7 +44,8 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     }
 
     @Override
-    public io.gravitee.repository.management.model.ApiKey create(io.gravitee.repository.management.model.ApiKey apiKey) throws TechnicalException {
+    public io.gravitee.repository.management.model.ApiKey create(io.gravitee.repository.management.model.ApiKey apiKey)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -65,7 +65,8 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     }
 
     @Override
-    public io.gravitee.repository.management.model.ApiKey update(io.gravitee.repository.management.model.ApiKey apiKey) throws TechnicalException {
+    public io.gravitee.repository.management.model.ApiKey update(io.gravitee.repository.management.model.ApiKey apiKey)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 }

@@ -38,18 +38,18 @@ import io.gravitee.plugin.core.spring.PluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
+import java.io.IOException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({
+@Import(
+    {
         ClusterConfiguration.class,
         VertxConfiguration.class,
         ReactorConfiguration.class,
@@ -61,8 +61,9 @@ import java.io.IOException;
         ApiHandlerConfiguration.class,
         DictionaryConfiguration.class,
         AlertPluginConfiguration.class,
-        ServiceDiscoveryPluginConfiguration.class
-})
+        ServiceDiscoveryPluginConfiguration.class,
+    }
+)
 public class StandaloneConfiguration {
 
     @Bean
@@ -80,7 +81,6 @@ public class StandaloneConfiguration {
 
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
-
         return new ExpressionLanguageInitializer();
     }
 

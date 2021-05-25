@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import org.junit.Assert;
@@ -22,8 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.mockito.Mockito.when;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

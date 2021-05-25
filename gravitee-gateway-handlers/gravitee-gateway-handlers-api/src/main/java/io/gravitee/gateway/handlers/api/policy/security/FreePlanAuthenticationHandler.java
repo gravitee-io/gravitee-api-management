@@ -21,7 +21,6 @@ import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -58,9 +57,10 @@ public class FreePlanAuthenticationHandler implements AuthenticationHandler {
 
     @Override
     public List<AuthenticationPolicy> handle(ExecutionContext executionContext) {
-        return handler.handle(executionContext)
-                .stream()
-/*                .map(new Function<AuthenticationPolicy, AuthenticationPolicy>() {
+        return handler
+            .handle(executionContext)
+            .stream()
+            /*                .map(new Function<AuthenticationPolicy, AuthenticationPolicy>() {
                     @Override
                     public AuthenticationPolicy apply(AuthenticationPolicy securityPolicy) {
                         // Override the configuration of the policy with the one provided by the plan
@@ -82,7 +82,7 @@ public class FreePlanAuthenticationHandler implements AuthenticationHandler {
                         // TODO check other thing ?
                     }
                 })*/
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 }

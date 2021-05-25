@@ -30,6 +30,7 @@ public class NodeApisEndpointInitializer implements InitializingBean {
 
     @Autowired
     private ApisManagementEndpoint apisManagementEndpoint;
+
     @Autowired
     private ApiManagementEndpoint apiManagementEndpoint;
 

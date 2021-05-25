@@ -20,7 +20,6 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.flow.condition.ConditionEvaluator;
 import io.gravitee.gateway.handlers.api.flow.condition.ConditionalFlowResolver;
-
 import java.util.Collections;
 import java.util.List;
 

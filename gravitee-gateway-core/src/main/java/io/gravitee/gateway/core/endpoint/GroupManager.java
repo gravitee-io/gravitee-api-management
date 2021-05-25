@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.endpoint;
 
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
-
 import java.util.Collection;
 
 /**
@@ -24,7 +23,6 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface GroupManager {
-
     LoadBalancedEndpointGroup get(String groupName);
 
     LoadBalancedEndpointGroup getDefault();

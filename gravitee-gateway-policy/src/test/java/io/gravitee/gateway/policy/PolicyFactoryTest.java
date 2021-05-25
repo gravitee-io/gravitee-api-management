@@ -15,17 +15,15 @@
  */
 package io.gravitee.gateway.policy;
 
+import static org.mockito.Mockito.*;
+
 import io.gravitee.gateway.policy.impl.PolicyFactoryImpl;
 import io.gravitee.policy.api.PolicyConfiguration;
+import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
-
-import java.util.Collections;
-
-import static org.mockito.Mockito.*;
-
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -46,7 +44,7 @@ public class PolicyFactoryTest {
         when(policyDefinition.configuration()).then((Answer<Class>) invocationOnMock -> DummyPolicyConfiguration.class);
         Object policy = policyFactory.create(policyDefinition, null);
 
-//        verify(policyConfigurationFactory, never()).create(any(), anyString());
+        //        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
@@ -56,7 +54,7 @@ public class PolicyFactoryTest {
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Object policy = policyFactory.create(policyDefinition, null);
 
-//        verify(policyConfigurationFactory, never()).create(any(), anyString());
+        //        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
@@ -68,7 +66,7 @@ public class PolicyFactoryTest {
 
         Object policy = policyFactory.create(policyDefinition, null);
 
-//        verify(policyConfigurationFactory, times(1)).create(any(), anyString());
+        //        verify(policyConfigurationFactory, times(1)).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
@@ -78,11 +76,9 @@ public class PolicyFactoryTest {
         when(policyDefinition.policy()).then((Answer<Class>) invocationOnMock -> DummyPolicy.class);
         Object policy = policyFactory.create(policyDefinition, null);
 
-//        verify(policyConfigurationFactory, never()).create(any(), anyString());
+        //        verify(policyConfigurationFactory, never()).create(any(), anyString());
         Assert.assertNotNull(policy);
     }
 
-    class DummyPolicyConfiguration implements PolicyConfiguration {
-
-    }
+    class DummyPolicyConfiguration implements PolicyConfiguration {}
 }

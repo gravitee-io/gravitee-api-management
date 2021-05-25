@@ -17,10 +17,9 @@ package io.gravitee.gateway.security.core;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
-import org.springframework.util.StringUtils;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,9 +42,9 @@ public class TokenExtractor {
 
         if (authorizationHeaders != null && !authorizationHeaders.isEmpty()) {
             Optional<String> authorizationBearerHeader = authorizationHeaders
-                    .stream()
-                    .filter(h -> StringUtils.startsWithIgnoreCase(h, BEARER))
-                    .findFirst();
+                .stream()
+                .filter(h -> StringUtils.startsWithIgnoreCase(h, BEARER))
+                .findFirst();
             if (authorizationBearerHeader.isPresent()) {
                 String authToken = authorizationBearerHeader.get().substring(BEARER.length()).trim();
                 if (!authToken.isEmpty()) {

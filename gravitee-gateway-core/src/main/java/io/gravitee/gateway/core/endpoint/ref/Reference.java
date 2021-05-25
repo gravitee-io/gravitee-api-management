@@ -22,7 +22,6 @@ import io.gravitee.gateway.api.endpoint.Endpoint;
  * @author GraviteeSource Team
  */
 public interface Reference {
-
     String UNKNOWN_REFERENCE = "ref:unknown";
 
     String name();

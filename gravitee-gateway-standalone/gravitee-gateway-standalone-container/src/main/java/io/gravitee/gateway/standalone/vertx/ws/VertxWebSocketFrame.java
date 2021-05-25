@@ -32,11 +32,9 @@ class VertxWebSocketFrame implements WebSocketFrame {
 
     @Override
     public Type type() {
-        return
-                frame.isBinary() ? Type.BINARY :
-                        frame.isClose() ? Type.CLOSE :
-                                frame.isContinuation() ? Type.CONTINUATION :
-                                        frame.isText() ? Type.TEXT : Type.CLOSE;
+        return frame.isBinary()
+            ? Type.BINARY
+            : frame.isClose() ? Type.CLOSE : frame.isContinuation() ? Type.CONTINUATION : frame.isText() ? Type.TEXT : Type.CLOSE;
     }
 
     @Override

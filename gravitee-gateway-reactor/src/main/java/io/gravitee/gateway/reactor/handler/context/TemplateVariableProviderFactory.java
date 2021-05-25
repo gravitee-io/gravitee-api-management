@@ -16,16 +16,15 @@
 package io.gravitee.gateway.reactor.handler.context;
 
 import io.gravitee.el.TemplateVariableProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.support.SpringFactoriesLoader;
-import org.springframework.util.ClassUtils;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.support.SpringFactoriesLoader;
+import org.springframework.util.ClassUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,22 +37,29 @@ public class TemplateVariableProviderFactory {
 
     List<TemplateVariableProvider> getTemplateVariableProviders() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Set<String> factories = new LinkedHashSet<>(SpringFactoriesLoader.loadFactoryNames(
-                TemplateVariableProvider.class, Thread.currentThread().getContextClassLoader()));
+        Set<String> factories = new LinkedHashSet<>(
+            SpringFactoriesLoader.loadFactoryNames(TemplateVariableProvider.class, Thread.currentThread().getContextClassLoader())
+        );
 
-        return factories.stream()
-                .map(new Function<String, TemplateVariableProvider>() {
+        return factories
+            .stream()
+            .map(
+                new Function<String, TemplateVariableProvider>() {
                     @Override
                     public TemplateVariableProvider apply(String name) {
                         try {
-                            Class<TemplateVariableProvider> instanceClass =
-                                    (Class<TemplateVariableProvider>) ClassUtils.forName(name, classLoader);
+                            Class<TemplateVariableProvider> instanceClass = (Class<TemplateVariableProvider>) ClassUtils.forName(
+                                name,
+                                classLoader
+                            );
                             return applicationContext.getBean(instanceClass);
                         } catch (ClassNotFoundException e) {
                             e.printStackTrace();
                             return null;
                         }
                     }
-                }).collect(Collectors.toList());
+                }
+            )
+            .collect(Collectors.toList());
     }
 }

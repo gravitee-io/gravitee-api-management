@@ -23,7 +23,6 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
  * @author GraviteeSource Team
  */
 public interface StreamableProcessor<T, S> extends Processor<T>, ReadWriteStream<S> {
-
     @Override
     StreamableProcessor<T, S> handler(Handler<T> handler);
 

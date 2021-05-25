@@ -15,24 +15,23 @@
  */
 package io.gravitee.gateway.standalone.http;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.junit.Assert.assertEquals;
+
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
-import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
+import java.net.URL;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
-
-import java.net.URL;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -55,11 +54,13 @@ public class SSLJKSTrustStoreTest extends AbstractWiremockGatewayTest {
 
     @Override
     protected WireMockRule getWiremockRule() {
-        return new WireMockRule(wireMockConfig()
+        return new WireMockRule(
+            wireMockConfig()
                 .dynamicPort()
                 .dynamicHttpsPort()
                 .keystorePath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"))
-                .keystorePassword("password"));
+                .keystorePassword("password")
+        );
     }
 
     @Test
@@ -68,11 +69,19 @@ public class SSLJKSTrustStoreTest extends AbstractWiremockGatewayTest {
 
         // First call is calling an endpoint where trustAll is defined to true, no need for truststore => 200
         HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
-        assertEquals("trustAll is defined to true, no need for truststore => 200", HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+        assertEquals(
+            "trustAll is defined to true, no need for truststore => 200",
+            HttpStatus.SC_OK,
+            response.getStatusLine().getStatusCode()
+        );
 
         // Second call is calling an endpoint where trustAll is defined to false, without truststore => 502
         response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
-        assertEquals("trustAll is defined to false, without truststore => 502", HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+        assertEquals(
+            "trustAll is defined to false, without truststore => 502",
+            HttpStatus.SC_BAD_GATEWAY,
+            response.getStatusLine().getStatusCode()
+        );
 
         // Third call is calling an endpoint where trustAll is defined to false, with truststore => 200
         response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();

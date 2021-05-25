@@ -32,9 +32,8 @@ import io.gravitee.reporter.api.http.Metrics;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.net.SocketAddress;
-
-import javax.net.ssl.SSLSession;
 import java.util.Map;
+import javax.net.ssl.SSLSession;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -128,7 +127,7 @@ public class VertxHttpServerRequest implements Request {
         if (headers == null) {
             MultiMap vertxHeaders = serverRequest.headers();
             headers = new HttpHeaders(vertxHeaders.size());
-            for(Map.Entry<String, String> header : vertxHeaders) {
+            for (Map.Entry<String, String> header : vertxHeaders) {
                 headers.add(header.getKey(), header.getValue());
             }
         }
@@ -180,11 +179,13 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public Request bodyHandler(Handler<Buffer> bodyHandler) {
-        if (! serverRequest.isEnded()) {
-            serverRequest.handler(event -> {
-                bodyHandler.handle(Buffer.buffer(event.getBytes()));
-                metrics.setRequestContentLength(metrics.getRequestContentLength() + event.length());
-            });
+        if (!serverRequest.isEnded()) {
+            serverRequest.handler(
+                event -> {
+                    bodyHandler.handle(Buffer.buffer(event.getBytes()));
+                    metrics.setRequestContentLength(metrics.getRequestContentLength() + event.length());
+                }
+            );
         }
 
         return this;
@@ -192,12 +193,14 @@ public class VertxHttpServerRequest implements Request {
 
     @Override
     public Request endHandler(Handler<Void> endHandler) {
-        serverRequest.endHandler(new io.vertx.core.Handler<Void>() {
-            @Override
-            public void handle(Void event) {
-                endHandler.handle(event);
+        serverRequest.endHandler(
+            new io.vertx.core.Handler<Void>() {
+                @Override
+                public void handle(Void event) {
+                    endHandler.handle(event);
+                }
             }
-        });
+        );
         return this;
     }
 

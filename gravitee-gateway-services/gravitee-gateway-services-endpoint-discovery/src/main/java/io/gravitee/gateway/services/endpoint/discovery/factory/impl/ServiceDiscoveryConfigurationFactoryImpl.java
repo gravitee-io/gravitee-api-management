@@ -19,10 +19,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.discovery.api.ServiceDiscoveryConfiguration;
 import io.gravitee.gateway.services.endpoint.discovery.factory.ServiceDiscoveryConfigurationFactory;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,8 +31,7 @@ public class ServiceDiscoveryConfigurationFactoryImpl implements ServiceDiscover
 
     private final Logger LOGGER = LoggerFactory.getLogger(ServiceDiscoveryConfigurationFactoryImpl.class);
 
-    private final ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public <T extends ServiceDiscoveryConfiguration> T create(Class<T> serviceDiscoveryConfigurationClass, String configuration) {

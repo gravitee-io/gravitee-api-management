@@ -24,8 +24,7 @@ import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class SpringFactoriesEndpointFactory
-        extends SpringFactoriesLoader<EndpointFactory> implements EndpointFactory {
+public final class SpringFactoriesEndpointFactory extends SpringFactoriesLoader<EndpointFactory> implements EndpointFactory {
 
     @Override
     public boolean support(io.gravitee.definition.model.Endpoint endpoint) {
@@ -40,8 +39,7 @@ public final class SpringFactoriesEndpointFactory
             }
         }
 
-        throw new IllegalStateException(
-                String.format("Unable to create an endpoint for %s", model));
+        throw new IllegalStateException(String.format("Unable to create an endpoint for %s", model));
     }
 
     @Override

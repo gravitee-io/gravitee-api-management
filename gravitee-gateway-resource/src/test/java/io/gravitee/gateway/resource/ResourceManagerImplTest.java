@@ -36,6 +36,6 @@ public class ResourceManagerImplTest {
 
     @Test
     public void test() throws Exception {
-    //    resourceManager.start();
+        //    resourceManager.start();
     }
 }

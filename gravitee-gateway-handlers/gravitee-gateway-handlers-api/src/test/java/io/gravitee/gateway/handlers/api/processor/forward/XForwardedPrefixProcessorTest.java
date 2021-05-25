@@ -15,21 +15,20 @@
  */
 package io.gravitee.gateway.handlers.api.processor.forward;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.context.SimpleExecutionContext;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -57,21 +56,21 @@ public class XForwardedPrefixProcessorTest {
 
     @Test
     public void testNoXForwardedPrefixInHeader() {
-
         when(request.contextPath()).thenReturn(CONTEXT_PATH);
 
         new XForwardedPrefixProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     List<String> xForwardedPrefixList = context.request().headers().get(HttpHeaders.X_FORWARDED_PREFIX);
                     assertEquals(xForwardedPrefixList.size(), 1);
                     assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
     }
 
     @Test
     public void testXForwardedPrefixInHeader() {
-
         when(request.contextPath()).thenReturn(CONTEXT_PATH);
 
         HttpHeaders headers = new HttpHeaders();
@@ -79,11 +78,13 @@ public class XForwardedPrefixProcessorTest {
         when(request.headers()).thenReturn(headers);
 
         new XForwardedPrefixProcessor()
-                .handler(context -> {
+            .handler(
+                context -> {
                     List<String> xForwardedPrefixList = context.request().headers().get(HttpHeaders.X_FORWARDED_PREFIX);
                     assertEquals(xForwardedPrefixList.size(), 1);
                     assertEquals(xForwardedPrefixList.get(0), CONTEXT_PATH);
-                })
-                .handle(context);
+                }
+            )
+            .handle(context);
     }
 }

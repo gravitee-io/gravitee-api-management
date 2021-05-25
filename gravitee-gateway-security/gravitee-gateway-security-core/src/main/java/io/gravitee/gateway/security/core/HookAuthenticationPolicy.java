@@ -20,6 +20,5 @@ package io.gravitee.gateway.security.core;
  * @author GraviteeSource Team
  */
 public interface HookAuthenticationPolicy extends AuthenticationPolicy {
-
     Class clazz();
 }

@@ -18,11 +18,10 @@ package io.gravitee.gateway.handlers.api.processor.policy.api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.StreamableProcessor;
-import io.gravitee.gateway.handlers.api.processor.policy.AbstractPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.policy.PolicyResolver;
+import io.gravitee.gateway.handlers.api.processor.policy.AbstractPolicyChainProvider;
 import io.gravitee.gateway.policy.StreamType;
-
 import java.util.List;
 
 /**
@@ -37,7 +36,11 @@ public class ApiPolicyChainProvider extends AbstractPolicyChainProvider {
 
     private final PolicyChainFactory policyChainFactory;
 
-    public ApiPolicyChainProvider(final StreamType streamType, final PolicyResolver policyResolver, final PolicyChainFactory policyChainFactory) {
+    public ApiPolicyChainProvider(
+        final StreamType streamType,
+        final PolicyResolver policyResolver,
+        final PolicyChainFactory policyChainFactory
+    ) {
         super(policyResolver);
         this.streamType = streamType;
         this.policyChainFactory = policyChainFactory;

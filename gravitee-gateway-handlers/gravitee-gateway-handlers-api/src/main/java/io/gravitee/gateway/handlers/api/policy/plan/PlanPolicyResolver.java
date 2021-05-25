@@ -15,20 +15,19 @@
  */
 package io.gravitee.gateway.handlers.api.policy.plan;
 
+import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
+
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.policy.RuleBasedPolicyResolver;
 import io.gravitee.gateway.policy.StreamType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static io.gravitee.gateway.handlers.api.definition.DefinitionContext.planRequired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A policy resolver based on the plan subscribed by the consumer.
@@ -40,7 +39,7 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
 
     private final Logger logger = LoggerFactory.getLogger(PlanPolicyResolver.class);
 
-    private final static String DEFAULT_PLAN_PATH = "/";
+    private static final String DEFAULT_PLAN_PATH = "/";
 
     private final Api api;
 
@@ -57,7 +56,7 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
         if (planRequired(api) && apiPlan != null) {
             Map<String, List<Rule>> paths = apiPlan.getPaths();
 
-            if (paths != null && ! paths.isEmpty()) {
+            if (paths != null && !paths.isEmpty()) {
                 // For 1.0.0, there is only a single root path defined
                 // Must be reconsidered when user will be able to manage policies at the plan level by himself
                 List<Rule> rootPath = paths.get(DEFAULT_PLAN_PATH);
@@ -65,8 +64,10 @@ public class PlanPolicyResolver extends RuleBasedPolicyResolver {
                 return resolve(context, rootPath);
             }
         } else if (planRequired(api)) { // for CRD definition plan is optional
-            logger.warn("No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)",
-                    context.request().id());
+            logger.warn(
+                "No plan has been selected to process request {}. Returning an unauthorized HTTP status (401)",
+                context.request().id()
+            );
             return null;
         }
 

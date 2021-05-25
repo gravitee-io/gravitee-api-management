@@ -16,7 +16,6 @@
 package io.gravitee.gateway.security.core;
 
 import io.gravitee.gateway.api.Request;
-
 import java.util.Map;
 
 /**
@@ -24,8 +23,6 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface AuthenticationContext {
-
-
     Request request();
 
     /**

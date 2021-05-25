@@ -20,11 +20,6 @@ import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
@@ -32,6 +27,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -60,8 +59,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
      * Empty constructor is used to use a workspace directory defined from @Value annotation
      * on registryPath field.
      */
-    public LocalApiDefinitionRegistry() {
-    }
+    public LocalApiDefinitionRegistry() {}
 
     public LocalApiDefinitionRegistry(String registryPath) {
         this.registryPath = registryPath;
@@ -79,8 +77,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
             // Quick sanity check on the install root
             if (!registryDir.isDirectory()) {
                 LOGGER.error("Invalid API definitions registry directory, {} is not a directory.", registryDir.getAbsolutePath());
-                throw new RuntimeException("Invalid API definitions registry directory. Not a directory: "
-                        + registryDir.getAbsolutePath());
+                throw new RuntimeException("Invalid API definitions registry directory. Not a directory: " + registryDir.getAbsolutePath());
             }
 
             initRegistry(registryDir);
@@ -95,7 +92,7 @@ public class LocalApiDefinitionRegistry extends AbstractService {
 
         LOGGER.info("\t{} API definitions have been found.", definitionFiles.length);
 
-        for(File definitionFile : definitionFiles) {
+        for (File definitionFile : definitionFiles) {
             try {
                 Api api = loadDefinition(definitionFile);
                 apiManager.register(api);
@@ -125,68 +122,74 @@ public class LocalApiDefinitionRegistry extends AbstractService {
             this.init();
 
             executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "registry-monitor"));
-            executor.execute(() -> {
-                Path registry = Paths.get(registryPath);
-                LOGGER.info("Start local registry monitor for directory {}", registry);
+            executor.execute(
+                () -> {
+                    Path registry = Paths.get(registryPath);
+                    LOGGER.info("Start local registry monitor for directory {}", registry);
 
-                try {
-                    WatchService watcher = registry.getFileSystem().newWatchService();
-                    registry.register(watcher, StandardWatchEventKinds.ENTRY_CREATE,
-                            StandardWatchEventKinds.ENTRY_DELETE, StandardWatchEventKinds.ENTRY_MODIFY);
+                    try {
+                        WatchService watcher = registry.getFileSystem().newWatchService();
+                        registry.register(
+                            watcher,
+                            StandardWatchEventKinds.ENTRY_CREATE,
+                            StandardWatchEventKinds.ENTRY_DELETE,
+                            StandardWatchEventKinds.ENTRY_MODIFY
+                        );
 
-                    while (true) {
-                        WatchKey key;
-                        try {
-                            key = watcher.take();
-                        } catch (InterruptedException ex) {
-                            return;
-                        }
+                        while (true) {
+                            WatchKey key;
+                            try {
+                                key = watcher.take();
+                            } catch (InterruptedException ex) {
+                                return;
+                            }
 
-                        for (WatchEvent<?> event : key.pollEvents()) {
-                            WatchEvent.Kind<?> kind = event.kind();
+                            for (WatchEvent<?> event : key.pollEvents()) {
+                                WatchEvent.Kind<?> kind = event.kind();
 
-                            @SuppressWarnings("unchecked")
-                            WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                            Path fileName =registry.resolve(ev.context().getFileName());
+                                @SuppressWarnings("unchecked")
+                                WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                                Path fileName = registry.resolve(ev.context().getFileName());
 
-                            LOGGER.info("An event occurs for file {}: {}", fileName, kind.name());
+                                LOGGER.info("An event occurs for file {}: {}", fileName, kind.name());
 
-                            if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                                Api loadedDefinition = loadDefinition(fileName.toFile());
-                                Api existingDefinition = definitions.get(fileName);
-                                if (existingDefinition != null) {
-                                    if (apiManager.get(existingDefinition.getId()) != null) {
-                                        apiManager.register(loadedDefinition);
-                                    } else {
-                                        apiManager.unregister(existingDefinition.getId());
-                                        definitions.remove(fileName);
+                                if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+                                    Api loadedDefinition = loadDefinition(fileName.toFile());
+                                    Api existingDefinition = definitions.get(fileName);
+                                    if (existingDefinition != null) {
+                                        if (apiManager.get(existingDefinition.getId()) != null) {
+                                            apiManager.register(loadedDefinition);
+                                        } else {
+                                            apiManager.unregister(existingDefinition.getId());
+                                            definitions.remove(fileName);
+                                            definitions.put(fileName, loadedDefinition);
+                                        }
+                                    }
+                                } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+                                    Api loadedDefinition = loadDefinition(fileName.toFile());
+                                    boolean registered = apiManager.register(loadedDefinition);
+                                    if (registered) {
                                         definitions.put(fileName, loadedDefinition);
                                     }
+                                } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+                                    Api existingDefinition = definitions.get(fileName);
+                                    if (existingDefinition != null && apiManager.get(existingDefinition.getId()) != null) {
+                                        apiManager.unregister(existingDefinition.getId());
+                                        definitions.remove(fileName);
+                                    }
                                 }
-                            } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                                Api loadedDefinition = loadDefinition(fileName.toFile());
-                                boolean registered = apiManager.register(loadedDefinition);
-                                if (registered) {
-                                    definitions.put(fileName, loadedDefinition);
-                                }
-                            } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                                Api existingDefinition = definitions.get(fileName);
-                                if (existingDefinition != null && apiManager.get(existingDefinition.getId()) != null) {
-                                    apiManager.unregister(existingDefinition.getId());
-                                    definitions.remove(fileName);
-                                }
-                            }
 
-                            boolean valid = key.reset();
-                            if (!valid) {
-                                break;
+                                boolean valid = key.reset();
+                                if (!valid) {
+                                    break;
+                                }
                             }
                         }
+                    } catch (IOException ioe) {
+                        LOGGER.error("Unexpected error while looking for ÀPI definitions from filesystem", ioe);
                     }
-                } catch (IOException ioe) {
-                    LOGGER.error("Unexpected error while looking for ÀPI definitions from filesystem", ioe);
                 }
-            });
+            );
         }
     }
 

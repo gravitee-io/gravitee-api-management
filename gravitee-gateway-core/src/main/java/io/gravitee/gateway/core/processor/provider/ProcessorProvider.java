@@ -22,6 +22,5 @@ import io.gravitee.gateway.core.processor.Processor;
  * @author GraviteeSource Team
  */
 public interface ProcessorProvider<T, P extends Processor<T>> {
-
     P provide(T result);
 }

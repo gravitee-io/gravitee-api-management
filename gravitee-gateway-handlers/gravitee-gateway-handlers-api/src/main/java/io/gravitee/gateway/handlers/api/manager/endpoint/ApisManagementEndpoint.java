@@ -28,12 +28,11 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
+import java.util.Collection;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,13 +63,19 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
         response.setChunked(true);
 
         try {
-            Collection<ListApiEntity> apis = apiManager.apis().stream().map(api -> {
-                ListApiEntity entity = new ListApiEntity();
-                entity.setId(api.getId());
-                entity.setName(api.getName());
-                entity.setVersion(api.getVersion());
-                return entity;
-            }).collect(Collectors.toList());
+            Collection<ListApiEntity> apis = apiManager
+                .apis()
+                .stream()
+                .map(
+                    api -> {
+                        ListApiEntity entity = new ListApiEntity();
+                        entity.setId(api.getId());
+                        entity.setName(api.getName());
+                        entity.setVersion(api.getVersion());
+                        return entity;
+                    }
+                )
+                .collect(Collectors.toList());
 
             Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
             response.write(Json.prettyMapper.writeValueAsString(apis));

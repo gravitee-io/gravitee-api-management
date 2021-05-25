@@ -16,7 +16,6 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.policy.api.PolicyConfiguration;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -26,8 +25,7 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class CachedPolicyConfigurationFactory extends PolicyConfigurationFactoryImpl {
 
-    private final ConcurrentMap<Integer, PolicyConfiguration> cachedPolicyConfiguration =
-            new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, PolicyConfiguration> cachedPolicyConfiguration = new ConcurrentHashMap<>();
 
     @Override
     public <T extends PolicyConfiguration> T create(Class<T> policyConfigurationClass, String configuration) {

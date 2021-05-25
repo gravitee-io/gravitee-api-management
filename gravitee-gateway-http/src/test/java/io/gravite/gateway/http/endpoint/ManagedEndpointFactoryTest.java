@@ -15,11 +15,16 @@
  */
 package io.gravite.gateway.http.endpoint;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import io.gravitee.gateway.core.endpoint.ManagedEndpoint;
+import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import io.gravitee.gateway.http.endpoint.HttpEndpointFactory;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,12 +32,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

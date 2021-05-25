@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.loadbalancer;
 
 import io.gravitee.gateway.api.endpoint.Endpoint;
-
 import java.util.Collection;
 
 /**
@@ -41,7 +40,7 @@ public class WeightedRoundRobinLoadBalancer extends WeightedLoadBalancer {
             refresh();
         }
 
-        if (isRuntimeRatiosZeroed())  {
+        if (isRuntimeRatiosZeroed()) {
             resetRuntimeRatios();
             counter = 0;
         }

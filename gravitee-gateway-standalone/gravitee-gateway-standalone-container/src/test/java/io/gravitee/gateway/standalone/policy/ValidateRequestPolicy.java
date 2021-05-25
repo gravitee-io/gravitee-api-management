@@ -30,12 +30,12 @@ import io.gravitee.policy.api.annotations.OnRequestContent;
  * @author GraviteeSource Team
  */
 public class ValidateRequestPolicy {
+
     static final String GATEWAY_INVALID_REQUEST_KEY = "GATEWAY_INVALID_REQUEST";
 
     @OnRequestContent
     public ReadWriteStream onRequestContent(Request request, PolicyChain policyChain) {
         return new BufferedReadWriteStream() {
-
             Buffer buffer = Buffer.buffer();
 
             @Override
@@ -46,7 +46,9 @@ public class ValidateRequestPolicy {
 
             @Override
             public void end() {
-                policyChain.streamFailWith(PolicyResult.failure(GATEWAY_INVALID_REQUEST_KEY, HttpStatusCode.BAD_REQUEST_400, "Bad request"));
+                policyChain.streamFailWith(
+                    PolicyResult.failure(GATEWAY_INVALID_REQUEST_KEY, HttpStatusCode.BAD_REQUEST_400, "Bad request")
+                );
             }
         };
     }

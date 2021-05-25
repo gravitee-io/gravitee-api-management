@@ -21,12 +21,11 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -72,10 +71,14 @@ public class ApiKeyRefresher implements Runnable {
     }
 
     public void initialize() {
-        this.plans = api.getPlans()
+        this.plans =
+            api
+                .getPlans()
                 .stream()
-                .filter(plan -> io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name()
-                        .equalsIgnoreCase(plan.getSecurity()))
+                .filter(
+                    plan ->
+                        io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name().equalsIgnoreCase(plan.getSecurity())
+                )
                 .map(Plan::getId)
                 .collect(Collectors.toList());
     }
@@ -90,11 +93,10 @@ public class ApiKeyRefresher implements Runnable {
             final ApiKeyCriteria.Builder criteriaBuilder;
 
             if (lastRefreshAt == -1) {
-                criteriaBuilder = new ApiKeyCriteria.Builder()
-                        .includeRevoked(false)
-                        .plans(plans);
+                criteriaBuilder = new ApiKeyCriteria.Builder().includeRevoked(false).plans(plans);
             } else {
-                criteriaBuilder = new ApiKeyCriteria.Builder()
+                criteriaBuilder =
+                    new ApiKeyCriteria.Builder()
                         .plans(plans)
                         .includeRevoked(true)
                         .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
@@ -102,9 +104,7 @@ public class ApiKeyRefresher implements Runnable {
             }
 
             try {
-                apiKeyRepository
-                        .findByCriteria(criteriaBuilder.build())
-                        .forEach(this::saveOrUpdate);
+                apiKeyRepository.findByCriteria(criteriaBuilder.build()).forEach(this::saveOrUpdate);
 
                 lastRefreshAt = nextLastRefreshAt;
             } catch (Exception ex) {
@@ -138,7 +138,12 @@ public class ApiKeyRefresher implements Runnable {
 
     private void saveOrUpdate(ApiKey apiKey) {
         if (apiKey.isRevoked() || apiKey.isPaused()) {
-            logger.debug("Remove a paused / revoked api-key from cache [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
+            logger.debug(
+                "Remove a paused / revoked api-key from cache [key: {}] [plan: {}] [app: {}]",
+                apiKey.getKey(),
+                apiKey.getPlan(),
+                apiKey.getApplication()
+            );
             cache.remove(apiKey.getKey());
         } else {
             logger.debug("Cache an api-key [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());

@@ -42,8 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultReactor extends AbstractService implements
-        Reactor, EventListener<ReactorEvent, Reactable> {
+public class DefaultReactor extends AbstractService implements Reactor, EventListener<ReactorEvent, Reactable> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactor.class);
 
@@ -83,41 +82,39 @@ public class DefaultReactor extends AbstractService implements
 
         // Prepare handler chain
         requestProcessorChainFactory
-                .create()
-                .handler(ctx -> {
+            .create()
+            .handler(
+                ctx -> {
                     HandlerEntrypoint entrypoint = entrypointResolver.resolve(ctx);
 
                     if (entrypoint != null) {
                         entrypoint
-                                .target()
-                                .handler(context1 -> {
+                            .target()
+                            .handler(
+                                context1 -> {
                                     // Ensure that response has been ended before going further
                                     context1.response().end();
 
                                     processResponse(context1, handler);
-                                })
-                                .handle(ctx);
+                                }
+                            )
+                            .handle(ctx);
                     } else {
                         processNotFound(ctx, handler);
                     }
-                })
-                .errorHandler(__ -> processResponse(context, handler))
-                .exitHandler(__ -> processResponse(context, handler))
-                .handle(context);
+                }
+            )
+            .errorHandler(__ -> processResponse(context, handler))
+            .exitHandler(__ -> processResponse(context, handler))
+            .handle(context);
     }
 
     private void processNotFound(ExecutionContext context, Handler<ExecutionContext> handler) {
-        notFoundProcessorChainFactory
-                .create()
-                .handler(handler)
-                .handle(context);
+        notFoundProcessorChainFactory.create().handler(handler).handle(context);
     }
 
     private void processResponse(ExecutionContext context, Handler<ExecutionContext> handler) {
-        responseProcessorChainFactory
-                .create()
-                .handler(handler)
-                .handle(context);
+        responseProcessorChainFactory.create().handler(handler).handle(context);
     }
 
     @Override

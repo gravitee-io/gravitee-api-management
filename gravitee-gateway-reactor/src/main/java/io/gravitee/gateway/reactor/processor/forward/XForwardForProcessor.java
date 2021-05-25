@@ -20,7 +20,6 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
-
 import java.util.regex.Pattern;
 
 /**
@@ -40,7 +39,7 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
 
         String xForwardedForHeader = request.headers().getFirst(HttpHeaders.X_FORWARDED_FOR);
 
-        if (xForwardedForHeader != null && ! xForwardedForHeader.isEmpty()) {
+        if (xForwardedForHeader != null && !xForwardedForHeader.isEmpty()) {
             String[] xForwardedForValues = commaDelimitedListToStringArray(xForwardedForHeader);
 
             if (xForwardedForValues.length > 0) {
@@ -66,7 +65,7 @@ public class XForwardForProcessor extends AbstractProcessor<ExecutionContext> {
      */
     private static String[] commaDelimitedListToStringArray(String commaDelimitedStrings) {
         return (commaDelimitedStrings == null || commaDelimitedStrings.length() == 0)
-                ? null : commaSeparatedValuesPattern.split(commaDelimitedStrings);
+            ? null
+            : commaSeparatedValuesPattern.split(commaDelimitedStrings);
     }
-
 }

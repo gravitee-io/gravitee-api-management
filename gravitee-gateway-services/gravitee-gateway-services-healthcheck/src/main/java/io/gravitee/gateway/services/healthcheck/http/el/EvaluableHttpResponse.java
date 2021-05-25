@@ -33,8 +33,7 @@ public final class EvaluableHttpResponse {
         this.content = content;
 
         // Copy HTTP headers
-        response.headers().names().forEach(headerName ->
-                httpHeaders.put(headerName, response.headers().getAll(headerName)));
+        response.headers().names().forEach(headerName -> httpHeaders.put(headerName, response.headers().getAll(headerName)));
     }
 
     public int getStatus() {

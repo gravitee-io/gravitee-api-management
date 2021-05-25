@@ -31,6 +31,9 @@ import io.gravitee.gateway.services.sync.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.vertx.ext.web.Router;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +41,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,7 +67,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     @Value("${services.sync.distributed:false}")
     private boolean distributed;
 
-    private final static String PATH = "/apikeys";
+    private static final String PATH = "/apikeys";
 
     @Autowired
     private EventManager eventManager;
@@ -97,23 +96,30 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             super.doStart();
 
             LOGGER.info("Overriding API key repository implementation with cached API Key repository");
-            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) ((ConfigurableApplicationContext) applicationContext.getParent()).getBeanFactory();
+            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
+                (ConfigurableApplicationContext) applicationContext.getParent()
+            ).getBeanFactory();
 
             this.apiKeyRepository = beanFactory.getBean(ApiKeyRepository.class);
             LOGGER.debug("Current API key repository implementation is {}", apiKeyRepository.getClass().getName());
 
-            String [] beanNames = beanFactory.getBeanNamesForType(ApiKeyRepository.class);
+            String[] beanNames = beanFactory.getBeanNamesForType(ApiKeyRepository.class);
             String oldBeanName = beanNames[0];
 
             beanFactory.destroySingleton(oldBeanName);
 
             LOGGER.debug("Register API key repository implementation {}", ApiKeyRepositoryWrapper.class.getName());
-            beanFactory.registerSingleton(ApiKeyRepository.class.getName(),
-                    new ApiKeyRepositoryWrapper(this.apiKeyRepository, cacheManager.getCache(API_KEY_CACHE_NAME)));
+            beanFactory.registerSingleton(
+                ApiKeyRepository.class.getName(),
+                new ApiKeyRepositoryWrapper(this.apiKeyRepository, cacheManager.getCache(API_KEY_CACHE_NAME))
+            );
 
             eventManager.subscribeForEvents(this, ReactorEvent.class);
 
-            executorService = Executors.newScheduledThreadPool(threads, new ThreadFactory() {
+            executorService =
+                Executors.newScheduledThreadPool(
+                    threads,
+                    new ThreadFactory() {
                         private int counter = 0;
                         private String prefix = "gio.sync-apikeys";
 
@@ -121,7 +127,8 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                         public Thread newThread(Runnable r) {
                             return new Thread(r, prefix + '-' + counter++);
                         }
-                    });
+                    }
+                );
 
             LOGGER.info("Associate a new HTTP handler on {}", PATH);
 
@@ -184,9 +191,15 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             refresher.setDistributed(distributed);
             refresher.initialize();
 
-            LOGGER.info("Add a task to refresh api-keys each {} {} for API name[{}] id[{}]", delay, unit.name(), api.getName(), api.getId());
-            ScheduledFuture scheduledFuture = ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(
-                    refresher, 0, delay, unit);
+            LOGGER.info(
+                "Add a task to refresh api-keys each {} {} for API name[{}] id[{}]",
+                delay,
+                unit.name(),
+                api.getName(),
+                api.getId()
+            );
+            ScheduledFuture scheduledFuture =
+                ((ScheduledExecutorService) executorService).scheduleWithFixedDelay(refresher, 0, delay, unit);
 
             apiKeyHandler.addRefresher(refresher);
             scheduledTasks.put(api, scheduledFuture);
@@ -198,7 +211,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
         if (scheduledFuture != null) {
             apiKeyHandler.removeRefresher(api.getId());
 
-            if (! scheduledFuture.isCancelled()) {
+            if (!scheduledFuture.isCancelled()) {
                 LOGGER.info("Stop api-keys refresher");
                 scheduledFuture.cancel(true);
             } else {

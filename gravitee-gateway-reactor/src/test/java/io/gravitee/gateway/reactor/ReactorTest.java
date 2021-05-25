@@ -15,26 +15,24 @@
  */
 package io.gravitee.gateway.reactor;
 
+import static org.mockito.Mockito.*;
+
 import io.gravitee.common.event.Event;
 import io.gravitee.common.event.impl.SimpleEvent;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.reactor.handler.DummyReactorHandler;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
-import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
+import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-
-import java.util.Optional;
-
-import static org.mockito.Mockito.*;
-
 
 /**
  * @author David BRASSELY (david at graviteesource.com)

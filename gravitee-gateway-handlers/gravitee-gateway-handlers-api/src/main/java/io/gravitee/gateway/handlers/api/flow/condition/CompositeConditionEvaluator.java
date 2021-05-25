@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.flow.condition;
 
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.api.ExecutionContext;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,14 +28,14 @@ public class CompositeConditionEvaluator implements ConditionEvaluator {
 
     private final List<ConditionEvaluator> evaluators;
 
-    public CompositeConditionEvaluator(ConditionEvaluator ... evaluators) {
+    public CompositeConditionEvaluator(ConditionEvaluator... evaluators) {
         this.evaluators = Arrays.asList(evaluators);
     }
 
     @Override
     public boolean evaluate(Flow flow, ExecutionContext context) {
         for (ConditionEvaluator evaluator : evaluators) {
-            if (! evaluator.evaluate(flow, context)) {
+            if (!evaluator.evaluate(flow, context)) {
                 return false;
             }
         }

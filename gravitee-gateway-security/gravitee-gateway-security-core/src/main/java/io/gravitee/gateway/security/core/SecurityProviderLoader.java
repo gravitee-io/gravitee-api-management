@@ -16,7 +16,6 @@
 package io.gravitee.gateway.security.core;
 
 import io.gravitee.common.spring.factory.SpringFactoriesLoader;
-
 import java.util.ArrayList;
 import java.util.List;
 

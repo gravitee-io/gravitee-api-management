@@ -67,9 +67,11 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
                 isUpgrade = HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionParts[i].trim());
             }
         }
-        return (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
-                httpServerRequest.method() == HttpMethod.GET &&
-                isUpgrade &&
-                HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
+        return (
+            (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
+            httpServerRequest.method() == HttpMethod.GET &&
+            isUpgrade &&
+            HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader)
+        );
     }
 }

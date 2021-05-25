@@ -30,9 +30,9 @@ public final class LoggableProxyConnectionDecorator {
         // Enable logging at proxy level
         if (LoggingUtils.isProxyLoggable(context)) {
             int maxSizeLogMessage = LoggingUtils.getMaxSizeLogMessage(context);
-            return maxSizeLogMessage == -1 ?
-                    new LoggableProxyConnection(target, proxyRequest, context) :
-                    new LimitedLoggableProxyConnection(target, proxyRequest, context, maxSizeLogMessage);
+            return maxSizeLogMessage == -1
+                ? new LoggableProxyConnection(target, proxyRequest, context)
+                : new LimitedLoggableProxyConnection(target, proxyRequest, context, maxSizeLogMessage);
         }
 
         return target;

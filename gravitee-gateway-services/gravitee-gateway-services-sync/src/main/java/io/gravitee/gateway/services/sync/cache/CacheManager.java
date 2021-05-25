@@ -16,9 +16,8 @@
 package io.gravitee.gateway.services.sync.cache;
 
 import com.hazelcast.core.HazelcastInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

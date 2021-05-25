@@ -16,7 +16,6 @@
 package io.gravitee.gateway.core.loadbalancer;
 
 import io.gravitee.gateway.api.endpoint.Endpoint;
-
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 

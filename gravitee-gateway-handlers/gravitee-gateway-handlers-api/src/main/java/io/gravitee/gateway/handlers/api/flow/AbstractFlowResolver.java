@@ -19,6 +19,4 @@ package io.gravitee.gateway.handlers.api.flow;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractFlowResolver implements FlowResolver {
-
-}
+public abstract class AbstractFlowResolver implements FlowResolver {}

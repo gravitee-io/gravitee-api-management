@@ -22,7 +22,6 @@ import io.gravitee.gateway.core.processor.StreamableProcessor;
 import io.gravitee.gateway.policy.*;
 import io.gravitee.gateway.policy.impl.RequestPolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-
 import java.util.List;
 
 /**
@@ -47,10 +46,9 @@ public class SecurityPolicyChainProvider extends AbstractPolicyChainProvider {
 
             if (policies == null) {
                 return new DirectPolicyChain(
-                        PolicyResult.failure(
-                                PLAN_UNRESOLVABLE,
-                                HttpStatusCode.UNAUTHORIZED_401,
-                                "Unauthorized"), context);
+                    PolicyResult.failure(PLAN_UNRESOLVABLE, HttpStatusCode.UNAUTHORIZED_401, "Unauthorized"),
+                    context
+                );
             }
 
             return RequestPolicyChain.create(policies, context);

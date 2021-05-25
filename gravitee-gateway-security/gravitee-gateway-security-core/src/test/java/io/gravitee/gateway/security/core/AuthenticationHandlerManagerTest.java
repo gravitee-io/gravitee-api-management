@@ -15,18 +15,17 @@
  */
 package io.gravitee.gateway.security.core;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,7 +46,7 @@ public class AuthenticationHandlerManagerTest {
     }
 
     @Test
-    public void shouldSortSecurityProvidersWithoutFilter(){
+    public void shouldSortSecurityProvidersWithoutFilter() {
         AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
         when(securityProvider1.name()).thenReturn("keyless");
         when(securityProvider1.order()).thenReturn(1000);
@@ -56,8 +55,7 @@ public class AuthenticationHandlerManagerTest {
         when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.order()).thenReturn(500);
 
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(
-                securityProvider1, securityProvider2));
+        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
         authenticationHandlerManager.afterPropertiesSet();
         List<AuthenticationHandler> securityProviders = authenticationHandlerManager.getAuthenticationHandlers();
@@ -68,7 +66,7 @@ public class AuthenticationHandlerManagerTest {
     }
 
     @Test
-    public void shouldSortSecurityProvidersWithFilter(){
+    public void shouldSortSecurityProvidersWithFilter() {
         AuthenticationHandler securityProvider1 = mock(AuthenticationHandler.class);
         when(securityProvider1.name()).thenReturn("keyless");
         when(securityProvider1.order()).thenReturn(1000);
@@ -77,13 +75,11 @@ public class AuthenticationHandlerManagerTest {
         when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.order()).thenReturn(500);
 
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(
-                securityProvider1, securityProvider2));
+        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
         AuthenticationHandlerEnhancer securityProviderFilter = mock(AuthenticationHandlerEnhancer.class);
         when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
-                .thenReturn(Arrays.asList(
-                        securityProvider1, securityProvider2));
+            .thenReturn(Arrays.asList(securityProvider1, securityProvider2));
         authenticationHandlerManager.setAuthenticationHandlerEnhancer(securityProviderFilter);
         authenticationHandlerManager.afterPropertiesSet();
 
@@ -104,12 +100,11 @@ public class AuthenticationHandlerManagerTest {
         when(securityProvider2.name()).thenReturn("apikey");
         when(securityProvider2.order()).thenReturn(500);
 
-        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(
-                securityProvider1, securityProvider2));
+        when(securityProviderLoader.getSecurityProviders()).thenReturn(Arrays.asList(securityProvider1, securityProvider2));
 
         AuthenticationHandlerEnhancer securityProviderFilter = mock(AuthenticationHandlerEnhancer.class);
         when(securityProviderFilter.filter(securityProviderLoader.getSecurityProviders()))
-                .thenReturn(Collections.singletonList(securityProvider1));
+            .thenReturn(Collections.singletonList(securityProvider1));
         authenticationHandlerManager.setAuthenticationHandlerEnhancer(securityProviderFilter);
         authenticationHandlerManager.afterPropertiesSet();
         List<AuthenticationHandler> securityProviders = authenticationHandlerManager.getAuthenticationHandlers();

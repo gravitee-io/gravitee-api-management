@@ -22,7 +22,6 @@ package io.gravitee.gateway.security.core;
  * @author GraviteeSource Team
  */
 public interface PluginAuthenticationPolicy extends AuthenticationPolicy {
-
     /**
      * The name of the policy to invoke.
      */
@@ -31,5 +30,7 @@ public interface PluginAuthenticationPolicy extends AuthenticationPolicy {
     /**
      * The configuration (json) of the policy.
      */
-    default String configuration() { return null; }
+    default String configuration() {
+        return null;
+    }
 }

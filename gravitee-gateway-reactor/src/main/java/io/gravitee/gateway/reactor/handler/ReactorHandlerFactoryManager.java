@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.spring.factory.SpringFactoriesLoader;
 import io.gravitee.gateway.reactor.Reactable;
-
 import java.util.Collection;
 
 /**

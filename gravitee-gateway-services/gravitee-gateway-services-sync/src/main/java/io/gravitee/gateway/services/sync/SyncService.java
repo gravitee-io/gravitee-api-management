@@ -30,6 +30,12 @@ import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import io.vertx.ext.web.Router;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +43,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,7 +56,7 @@ public class SyncService extends AbstractService implements Runnable {
      */
     private final Logger logger = LoggerFactory.getLogger(SyncService.class);
 
-    private final static String PATH = "/sync";
+    private static final String PATH = "/sync";
 
     @Autowired
     private TaskScheduler scheduler;
@@ -204,12 +203,11 @@ public class SyncService extends AbstractService implements Runnable {
     }
 
     private void checkEnvironments(Set<String> environmentsHrids, Set<Environment> environments) {
-
         final Set<String> returnedHrids = environments
-                .stream()
-                .flatMap(env -> env.getHrids().stream())
-                .filter(environmentsHrids::contains)
-                .collect(Collectors.toSet());
+            .stream()
+            .flatMap(env -> env.getHrids().stream())
+            .filter(environmentsHrids::contains)
+            .collect(Collectors.toSet());
 
         if (environmentsHrids.size() != returnedHrids.size()) {
             final Set<String> hrids = new HashSet<>(environmentsHrids);

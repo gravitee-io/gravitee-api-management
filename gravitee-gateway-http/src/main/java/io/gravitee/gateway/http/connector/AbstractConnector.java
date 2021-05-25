@@ -38,11 +38,6 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.net.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -55,6 +50,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -116,11 +115,11 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
             final String protocol = url.getProtocol();
 
-            final int port = url.getPort() != -1 ? url.getPort() :
-                    protocol.charAt(protocol.length() - 1) == 's' ? SECURE_PORT : UNSECURE_PORT;
+            final int port = url.getPort() != -1
+                ? url.getPort()
+                : protocol.charAt(protocol.length() - 1) == 's' ? SECURE_PORT : UNSECURE_PORT;
 
-            final String host = (port == UNSECURE_PORT || port == SECURE_PORT) ?
-                    url.getHost() : url.getHost() + ':' + port;
+            final String host = (port == UNSECURE_PORT || port == SECURE_PORT) ? url.getHost() : url.getHost() + ':' + port;
 
             proxyRequest.headers().set(HttpHeaders.HOST, host);
 
@@ -138,9 +137,13 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
             requestTracker.incrementAndGet();
 
             // Connect to the upstream
-            return connection.connect(client, port, url.getHost(),
-                    (url.getQuery() == null) ? url.getPath() : url.getPath() + URI_QUERY_DELIMITER_CHAR +
-                            url.getQuery(), result -> requestTracker.decrementAndGet());
+            return connection.connect(
+                client,
+                port,
+                url.getHost(),
+                (url.getQuery() == null) ? url.getPath() : url.getPath() + URI_QUERY_DELIMITER_CHAR + url.getQuery(),
+                result -> requestTracker.decrementAndGet()
+            );
         } catch (MalformedURLException ex) {
             throw new IllegalArgumentException();
         }
@@ -155,19 +158,21 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
     }
 
     private String appendQueryParameters(String uri, MultiValueMap<String, String> parameters) {
-        if (parameters != null && ! parameters.isEmpty()) {
+        if (parameters != null && !parameters.isEmpty()) {
             StringJoiner parametersAsString = new StringJoiner(URI_PARAM_SEPARATOR);
-            parameters.forEach((paramName, paramValues) -> {
-                if (paramValues != null) {
-                    for (String paramValue : paramValues) {
-                        if (paramValue == null) {
-                            parametersAsString.add(paramName);
-                        } else {
-                            parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
+            parameters.forEach(
+                (paramName, paramValues) -> {
+                    if (paramValues != null) {
+                        for (String paramValue : paramValues) {
+                            if (paramValue == null) {
+                                parametersAsString.add(paramName);
+                            } else {
+                                parametersAsString.add(paramName + URI_PARAM_VALUE_SEPARATOR_CHAR + paramValue);
+                            }
                         }
                     }
                 }
-            });
+            );
 
             if (uri.contains(URI_QUERY_DELIMITER_CHAR_SEQUENCE)) {
                 return uri + URI_PARAM_SEPARATOR_CHAR + parametersAsString.toString();
@@ -217,7 +222,6 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
                 proxyOptions.setUsername(proxy.getUsername());
                 proxyOptions.setPassword(proxy.getPassword());
                 proxyOptions.setType(ProxyType.valueOf(proxy.getType().name()));
-
             }
             options.setProxyOptions(proxyOptions);
         }
@@ -228,13 +232,10 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
         if (protocol.charAt(protocol.length() - 1) == 's') {
             // Configure SSL
-            options.setSsl(true)
-                    .setUseAlpn(true);
+            options.setSsl(true).setUseAlpn(true);
 
             if (sslOptions != null) {
-                options
-                        .setVerifyHost(sslOptions.isHostnameVerifier())
-                        .setTrustAll(sslOptions.isTrustAll());
+                options.setVerifyHost(sslOptions.isHostnameVerifier()).setTrustAll(sslOptions.isTrustAll());
 
                 // Client trust configuration
                 if (!sslOptions.isTrustAll() && sslOptions.getTrustStore() != null) {
@@ -330,7 +331,12 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), requestTracker.get());
+        LOGGER.info(
+            "Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]",
+            endpoint.getName(),
+            endpoint.getTarget(),
+            requestTracker.get()
+        );
         long shouldEndAt = System.currentTimeMillis() + endpoint.getHttpClientOptions().getReadTimeout();
 
         while (requestTracker.get() != 0 && System.currentTimeMillis() <= shouldEndAt) {
@@ -341,13 +347,17 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
             LOGGER.warn("Cancel requests[{}] for endpoint[{}] target[{}]", requestTracker.get(), endpoint.getName(), endpoint.getTarget());
         }
 
-        httpClients.values().forEach(httpClient -> {
-            try {
-                httpClient.close();
-            } catch (IllegalStateException ise) {
-                LOGGER.warn(ise.getMessage());
-            }
-        });
+        httpClients
+            .values()
+            .forEach(
+                httpClient -> {
+                    try {
+                        httpClient.close();
+                    } catch (IllegalStateException ise) {
+                        LOGGER.warn(ise.getMessage());
+                    }
+                }
+            );
     }
 
     private Function<Context, HttpClient> createHttpClient() {
@@ -356,31 +366,57 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     private void printHttpClientConfiguration() {
         LOGGER.info("Create HTTP connector with configuration: ");
-        LOGGER.info("\t" + options.getProtocolVersion() + " {" +
-                "ConnectTimeout='" + options.getConnectTimeout() + '\'' +
-                ", KeepAlive='" + options.isKeepAlive() + '\'' +
-                ", IdleTimeout='" + options.getIdleTimeout() + '\'' +
-                ", MaxChunkSize='" + options.getMaxChunkSize() + '\'' +
-                ", MaxPoolSize='" + options.getMaxPoolSize() + '\'' +
-                ", MaxWaitQueueSize='" + options.getMaxWaitQueueSize() + '\'' +
-                ", Pipelining='" + options.isPipelining() + '\'' +
-                ", PipeliningLimit='" + options.getPipeliningLimit() + '\'' +
-                ", TryUseCompression='" + options.isTryUseCompression() + '\'' +
-                '}');
+        LOGGER.info(
+            "\t" +
+            options.getProtocolVersion() +
+            " {" +
+            "ConnectTimeout='" +
+            options.getConnectTimeout() +
+            '\'' +
+            ", KeepAlive='" +
+            options.isKeepAlive() +
+            '\'' +
+            ", IdleTimeout='" +
+            options.getIdleTimeout() +
+            '\'' +
+            ", MaxChunkSize='" +
+            options.getMaxChunkSize() +
+            '\'' +
+            ", MaxPoolSize='" +
+            options.getMaxPoolSize() +
+            '\'' +
+            ", MaxWaitQueueSize='" +
+            options.getMaxWaitQueueSize() +
+            '\'' +
+            ", Pipelining='" +
+            options.isPipelining() +
+            '\'' +
+            ", PipeliningLimit='" +
+            options.getPipeliningLimit() +
+            '\'' +
+            ", TryUseCompression='" +
+            options.isTryUseCompression() +
+            '\'' +
+            '}'
+        );
 
         if (options.isSsl()) {
-            LOGGER.info("\tSSL {" +
-                    "TrustAll='" + options.isTrustAll() + '\'' +
-                    ", VerifyHost='" + options.isVerifyHost() + '\'' +
-                    '}');
+            LOGGER.info("\tSSL {" + "TrustAll='" + options.isTrustAll() + '\'' + ", VerifyHost='" + options.isVerifyHost() + '\'' + '}');
         }
 
         if (options.getProxyOptions() != null) {
-            LOGGER.info("\tProxy {" +
-                    "Type='" + options.getProxyOptions().getType() +
-                    ", Host='" + options.getProxyOptions().getHost() + '\'' +
-                    ", Port='" + options.getProxyOptions().getPort() + '\'' +
-                    '}');
+            LOGGER.info(
+                "\tProxy {" +
+                "Type='" +
+                options.getProxyOptions().getType() +
+                ", Host='" +
+                options.getProxyOptions().getHost() +
+                '\'' +
+                ", Port='" +
+                options.getProxyOptions().getPort() +
+                '\'' +
+                '}'
+            );
         }
     }
 
@@ -413,7 +449,13 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
         if (errors.length() == 0) {
             return proxyOptions;
         } else {
-            LOGGER.warn("An api endpoint (name[{}] type[{}] target[{}]) requires a system proxy to be defined but some configurations are missing or not well defined: {}", endpoint.getName(), endpoint.getType(), endpoint.getTarget(), errors);
+            LOGGER.warn(
+                "An api endpoint (name[{}] type[{}] target[{}]) requires a system proxy to be defined but some configurations are missing or not well defined: {}",
+                endpoint.getName(),
+                endpoint.getType(),
+                endpoint.getTarget(),
+                errors
+            );
             LOGGER.warn("Ignoring system proxy");
             return null;
         }

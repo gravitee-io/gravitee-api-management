@@ -52,13 +52,15 @@ public class NodeMonitoringReporterService extends AbstractService<NodeMonitorin
         final Monitor nodeMonitor = message.body();
 
         // Convert node monitoring to a reporter monitoring
-        reporterService.report(io.gravitee.reporter.api.monitor.Monitor
+        reporterService.report(
+            io.gravitee.reporter.api.monitor.Monitor
                 .on(nodeMonitor.getNodeId())
                 .at(nodeMonitor.getTimestamp())
                 .os(map(nodeMonitor.getOs()))
                 .jvm(map(nodeMonitor.getJvm()))
                 .process(map(nodeMonitor.getProcess()))
-                .build());
+                .build()
+        );
     }
 
     private JvmInfo map(io.gravitee.node.api.monitor.JvmInfo jvmInfo) {
@@ -73,10 +75,9 @@ public class NodeMonitoringReporterService extends AbstractService<NodeMonitorin
 
         if (jvmInfo.mem.pools != null) {
             info.mem.pools = new JvmInfo.MemoryPool[jvmInfo.mem.pools.length];
-            for (int i = 0 ; i < jvmInfo.mem.pools.length ; i++) {
+            for (int i = 0; i < jvmInfo.mem.pools.length; i++) {
                 io.gravitee.node.api.monitor.JvmInfo.MemoryPool nodePool = jvmInfo.mem.pools[i];
-                info.mem.pools[i] = new JvmInfo.MemoryPool(
-                        nodePool.name, nodePool.used, nodePool.max, nodePool.peakUsed, nodePool.peakMax);
+                info.mem.pools[i] = new JvmInfo.MemoryPool(nodePool.name, nodePool.used, nodePool.max, nodePool.peakUsed, nodePool.peakMax);
             }
         }
 
@@ -84,7 +85,7 @@ public class NodeMonitoringReporterService extends AbstractService<NodeMonitorin
             info.gc = new JvmInfo.GarbageCollectors();
 
             info.gc.collectors = new JvmInfo.GarbageCollector[jvmInfo.gc.collectors.length];
-            for (int i = 0 ; i < jvmInfo.gc.collectors.length ; i++) {
+            for (int i = 0; i < jvmInfo.gc.collectors.length; i++) {
                 io.gravitee.node.api.monitor.JvmInfo.GarbageCollector nodeCollector = jvmInfo.gc.collectors[i];
                 final JvmInfo.GarbageCollector collector = new JvmInfo.GarbageCollector();
                 collector.name = nodeCollector.name;
