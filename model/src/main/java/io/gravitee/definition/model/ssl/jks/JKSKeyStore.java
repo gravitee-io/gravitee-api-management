@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.ssl.jks;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.KeyStoreType;
 
@@ -24,10 +25,13 @@ import io.gravitee.definition.model.ssl.KeyStoreType;
  */
 public class JKSKeyStore extends KeyStore {
 
+    @JsonProperty("path")
     private String path;
 
+    @JsonProperty("content")
     private String content;
 
+    @JsonProperty("password")
     private String password;
 
     public JKSKeyStore() {

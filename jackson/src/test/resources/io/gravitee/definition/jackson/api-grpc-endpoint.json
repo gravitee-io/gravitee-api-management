@@ -7,8 +7,7 @@
       {
         "name": "endpoint_0",
         "type": "grpc",
-        "target": "grpc://host1:8083/myapi",
-        "http": {}
+        "target": "grpc://host1:8083/myapi"
       }
     ],
     "strip_context_path": false

@@ -15,10 +15,7 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import java.io.Serializable;
@@ -30,18 +27,24 @@ import java.util.List;
  */
 public class Request implements Serializable {
 
+    @JsonProperty("path")
     private String path;
 
+    @JsonProperty("method")
     private HttpMethod method;
 
+    @JsonProperty("headers")
     private List<HttpHeader> headers;
 
+    @JsonProperty("body")
     private String body;
 
+    @JsonProperty("fromRoot")
     private boolean fromRoot;
 
-    @JsonCreator
-    public Request(@JsonProperty("path") String path, @JsonProperty("method") HttpMethod method) {
+    public Request() {}
+
+    public Request(String path, HttpMethod method) {
         this.path = path;
         this.method = method;
     }
@@ -66,8 +69,16 @@ public class Request implements Serializable {
         return method;
     }
 
+    public void setMethod(HttpMethod method) {
+        this.method = method;
+    }
+
     public String getPath() {
         return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public boolean isFromRoot() {
@@ -76,10 +87,5 @@ public class Request implements Serializable {
 
     public void setFromRoot(boolean fromRoot) {
         this.fromRoot = fromRoot;
-    }
-
-    @JsonSetter
-    private void setUri(String path) {
-        this.path = path;
     }
 }

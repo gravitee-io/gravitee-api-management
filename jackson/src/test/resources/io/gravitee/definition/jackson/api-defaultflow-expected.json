@@ -14,8 +14,8 @@
   "flows" : [ {
     "name" : "ALL",
     "path-operator" : {
-      "operator" : "STARTS_WITH",
-      "path" : "/"
+      "path" : "/",
+      "operator" : "STARTS_WITH"
     },
     "condition" : "#request.headers['content-type'] == 'application/json'",
     "methods" : [ "GET", "POST", "PUT" ],
@@ -63,8 +63,8 @@
     "flows" : [ {
       "name" : "ALL",
       "path-operator" : {
-        "operator" : "STARTS_WITH",
-        "path" : ""
+        "path" : "",
+        "operator" : "STARTS_WITH"
       },
       "condition" : "#request.headers['content-type'] == 'application/json'",
       "methods" : [ ],
@@ -114,8 +114,8 @@
     "flows" : [ {
       "name" : "ALL",
       "path-operator" : {
-        "operator" : "STARTS_WITH",
-        "path" : ""
+        "path" : "",
+        "operator" : "STARTS_WITH"
       },
       "condition" : "#request.headers['content-type'] == 'application/json'",
       "methods" : [ ],
@@ -155,8 +155,8 @@
     }, {
       "name" : "Other",
       "path-operator" : {
-        "operator" : "STARTS_WITH",
-        "path" : ""
+        "path" : "",
+        "operator" : "STARTS_WITH"
       },
       "condition" : "#request.headers['content-type'] == 'application/json'",
       "methods" : [ ],

@@ -13,33 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.services.healthcheck;
+package io.gravitee.definition.jackson.datatype.api.deser.ssl;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import io.gravitee.definition.jackson.datatype.api.deser.AbstractStdScalarDeserializer;
+import io.gravitee.definition.model.ssl.TrustStore;
+import io.gravitee.definition.model.ssl.TrustStoreType;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import java.io.IOException;
-import java.util.List;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointHealthCheckServiceDeserializer extends StdScalarDeserializer<EndpointHealthCheckService> {
+public class PEMTrustStoreDeserializer extends AbstractStdScalarDeserializer<PEMTrustStore> {
 
-    public EndpointHealthCheckServiceDeserializer() {
-        super(List.class);
+    public PEMTrustStoreDeserializer(Class<PEMTrustStore> vc) {
+        super(vc);
     }
 
     @Override
-    public EndpointHealthCheckService deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public PEMTrustStore deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        if (node.isObject()) {
-            return node.traverse(jp.getCodec()).readValueAs(EndpointHealthCheckService.class);
-        }
+        PEMTrustStore truststore = new PEMTrustStore();
+        truststore.setContent(readStringValue(node, "content"));
+        truststore.setPath(readStringValue(node, "path"));
 
-        return null;
+        return truststore;
     }
 }

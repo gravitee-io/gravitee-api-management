@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.ssl.pem;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.KeyStoreType;
 
@@ -24,12 +25,16 @@ import io.gravitee.definition.model.ssl.KeyStoreType;
  */
 public class PEMKeyStore extends KeyStore {
 
+    @JsonProperty("keyPath")
     private String keyPath;
 
+    @JsonProperty("keyContent")
     private String keyContent;
 
+    @JsonProperty("certPath")
     private String certPath;
 
+    @JsonProperty("certContent")
     private String certContent;
 
     public PEMKeyStore() {

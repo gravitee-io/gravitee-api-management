@@ -28,13 +28,28 @@ import java.util.*;
  */
 public class Flow implements Serializable {
 
+    @JsonProperty("name")
     private String name;
+
+    @JsonProperty("path-operator")
     private PathOperator pathOperator = new PathOperator();
+
+    @JsonProperty("pre")
     private List<Step> pre = new ArrayList<>();
+
+    @JsonProperty("post")
     private List<Step> post = new ArrayList<>();
+
+    @JsonProperty("enabled")
     private boolean enabled = true;
+
+    @JsonProperty("methods")
     private Set<HttpMethod> methods = new HashSet<>();
+
+    @JsonProperty("condition")
     private String condition;
+
+    @JsonProperty("consumers")
     private List<Consumer> consumers;
 
     public String getName() {
@@ -78,75 +93,29 @@ public class Flow implements Serializable {
     }
 
     public Set<HttpMethod> getMethods() {
-        if (methods instanceof TreeSet) {
-            return methods;
-        }
-        return new TreeSet<>(methods);
+        return methods;
     }
 
     public void setMethods(Set<HttpMethod> methods) {
-        if (methods instanceof TreeSet) {
-            this.methods = methods;
-        } else {
-            this.methods = new TreeSet<>(methods);
-        }
+        this.methods = methods;
     }
 
     @JsonIgnore
     public String getPath() {
-        return pathOperator == null ? null : pathOperator.getPath();
-    }
-
-    public void setPath(String path) {
-        if (pathOperator == null) {
-            pathOperator = new PathOperator();
-        }
-        pathOperator.setPath(path);
+        return pathOperator != null ? pathOperator.getPath() : null;
     }
 
     @JsonIgnore
     public Operator getOperator() {
-        return pathOperator == null ? null : pathOperator.getOperator();
+        return pathOperator != null ? pathOperator.getOperator() : null;
     }
 
-    public void setOperator(Operator operator) {
-        if (pathOperator == null) {
-            pathOperator = new PathOperator();
-        }
-        pathOperator.setOperator(operator);
-    }
-
-    @JsonProperty("path-operator")
-    private PathOperator getPathOperator() {
+    public PathOperator getPathOperator() {
         return pathOperator;
     }
 
-    private void setPathOperator(PathOperator pathOperator) {
+    public void setPathOperator(PathOperator pathOperator) {
         this.pathOperator = pathOperator;
-    }
-
-    private static class PathOperator implements Serializable {
-
-        private String path = "";
-        private Operator operator = Operator.STARTS_WITH;
-
-        public String getPath() {
-            return path;
-        }
-
-        public PathOperator setPath(String path) {
-            this.path = path;
-            return this;
-        }
-
-        public Operator getOperator() {
-            return operator;
-        }
-
-        public PathOperator setOperator(Operator operator) {
-            this.operator = operator;
-            return this;
-        }
     }
 
     public List<Consumer> getConsumers() {

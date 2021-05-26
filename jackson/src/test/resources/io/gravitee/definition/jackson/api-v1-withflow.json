@@ -1,5 +1,4 @@
 {
-  "gravitee": "2.0.0",
   "id": "my-api",
   "name": "my-api",
 
@@ -7,9 +6,6 @@
     "context_path": "/my-api",
     "endpoint": "http://localhost:1234",
     "strip_context_path": false
-  },
-  "paths": {
-    "/*": []
   },
   "flows": [
     {

@@ -15,9 +15,7 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import java.util.HashMap;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,9 +24,8 @@ import java.util.List;
 // TODO not deserialize if inherit
 public class EndpointHealthCheckService extends HealthCheckService {
 
+    @JsonProperty("inherit")
     private boolean inherit;
-
-    public EndpointHealthCheckService() {}
 
     public boolean isInherit() {
         return inherit;
@@ -36,10 +33,5 @@ public class EndpointHealthCheckService extends HealthCheckService {
 
     public void setInherit(boolean inherit) {
         this.inherit = inherit;
-    }
-
-    @JsonCreator
-    public static EndpointHealthCheckService createHealthCheck(boolean enabled) {
-        return enabled ? new EndpointHealthCheckService() : null;
     }
 }

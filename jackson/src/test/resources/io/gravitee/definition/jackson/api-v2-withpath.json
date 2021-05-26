@@ -1,5 +1,5 @@
 {
-  "gravitee": "1.0.0",
+  "gravitee": "2.0.0",
   "id": "my-api",
   "name": "my-api",
   "proxy": {
@@ -39,6 +39,5 @@
         }
       }
     ]
-  },
-  "flows" : []
+  }
 }

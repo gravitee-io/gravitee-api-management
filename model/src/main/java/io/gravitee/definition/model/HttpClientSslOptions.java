@@ -15,10 +15,9 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.ssl.KeyStore;
 import io.gravitee.definition.model.ssl.TrustStore;
-import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import java.io.Serializable;
 
 /**
@@ -27,12 +26,16 @@ import java.io.Serializable;
  */
 public class HttpClientSslOptions implements Serializable {
 
+    @JsonProperty("trustAll")
     private boolean trustAll;
 
+    @JsonProperty("hostnameVerifier")
     private boolean hostnameVerifier;
 
+    @JsonProperty("trustStore")
     private TrustStore trustStore;
 
+    @JsonProperty("keyStore")
     private KeyStore keyStore;
 
     public boolean isHostnameVerifier() {
@@ -65,14 +68,5 @@ public class HttpClientSslOptions implements Serializable {
 
     public void setKeyStore(KeyStore keyStore) {
         this.keyStore = keyStore;
-    }
-
-    @JsonSetter
-    public void setPem(String sPem) {
-        if (sPem != null && !sPem.equals("null")) {
-            PEMTrustStore trustStore = new PEMTrustStore();
-            trustStore.setContent(sPem);
-            setTrustStore(trustStore);
-        }
     }
 }

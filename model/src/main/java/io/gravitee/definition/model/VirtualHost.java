@@ -27,8 +27,11 @@ import java.util.Objects;
 public class VirtualHost implements Serializable {
 
     public static final String DEFAULT_PATH = "/";
+
+    @JsonProperty("host")
     private String host;
 
+    @JsonProperty("path")
     private String path = DEFAULT_PATH;
 
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -65,18 +68,7 @@ public class VirtualHost implements Serializable {
     }
 
     public void setPath(String path) {
-        if (path == null) {
-            this.path = DEFAULT_PATH;
-            return;
-        }
-        String[] parts = path.split("/");
-        StringBuilder finalPath = new StringBuilder("/");
-        for (String part : parts) {
-            if (!part.isEmpty()) {
-                finalPath.append(part).append('/');
-            }
-        }
-        this.path = finalPath.deleteCharAt(finalPath.length() - 1).toString();
+        this.path = path;
     }
 
     public boolean isOverrideEntrypoint() {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +29,7 @@ public class Response implements Serializable {
     public static final Response DEFAULT_RESPONSE = new Response();
     public static final String DEFAULT_ASSERTION = "#response.status == 200";
 
+    @JsonProperty("assertions")
     private List<String> assertions = Collections.singletonList(Response.DEFAULT_ASSERTION);
 
     public List<String> getAssertions() {

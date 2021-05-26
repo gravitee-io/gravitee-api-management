@@ -28,8 +28,10 @@ public class ResponseTemplate implements Serializable {
     @JsonProperty("status")
     private int statusCode;
 
+    @JsonProperty("headers")
     private Map<String, String> headers;
 
+    @JsonProperty("body")
     private String body;
 
     public int getStatusCode() {

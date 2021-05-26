@@ -15,7 +15,6 @@
  */
 package io.gravitee.definition.model.services.dynamicproperty.http;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
@@ -28,26 +27,20 @@ import java.util.List;
  */
 public class HttpDynamicPropertyProviderConfiguration implements DynamicPropertyProviderConfiguration {
 
+    @JsonProperty(value = "url", required = true)
     private String url;
 
+    @JsonProperty(value = "specification", required = true)
     private String specification;
 
+    @JsonProperty("method")
     private HttpMethod method = HttpMethod.GET;
 
+    @JsonProperty("headers")
     private List<HttpHeader> headers;
 
+    @JsonProperty("body")
     private String body;
-
-    public HttpDynamicPropertyProviderConfiguration() {}
-
-    @JsonCreator
-    public HttpDynamicPropertyProviderConfiguration(
-        @JsonProperty(value = "url", required = true) String url,
-        @JsonProperty(value = "specification", required = true) String specification
-    ) {
-        this.url = url;
-        this.specification = specification;
-    }
 
     public String getUrl() {
         return url;

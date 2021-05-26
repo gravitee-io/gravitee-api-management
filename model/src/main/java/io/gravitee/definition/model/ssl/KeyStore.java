@@ -15,14 +15,12 @@
  */
 package io.gravitee.definition.model.ssl;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
-import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
 import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
-import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
-import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
@@ -53,6 +51,7 @@ import java.io.Serializable;
 )
 public abstract class KeyStore implements Serializable {
 
+    @JsonProperty("type")
     private final KeyStoreType type;
 
     public KeyStore(KeyStoreType type) {

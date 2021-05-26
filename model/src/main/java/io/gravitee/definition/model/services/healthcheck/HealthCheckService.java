@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.services.healthcheck;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
 import java.util.ArrayList;
@@ -29,14 +30,12 @@ public class HealthCheckService extends ScheduledService {
 
     public static final String SERVICE_KEY = "health-check";
 
+    @JsonProperty("steps")
+    private List<Step> steps;
+
     public HealthCheckService() {
         super(SERVICE_KEY);
     }
-
-    private List<Step> steps;
-
-    @JsonIgnore
-    private transient Step step;
 
     public static String getServiceKey() {
         return SERVICE_KEY;
@@ -48,28 +47,5 @@ public class HealthCheckService extends ScheduledService {
 
     public void setSteps(List<Step> steps) {
         this.steps = steps;
-    }
-
-    @JsonSetter // Ensure backward compatibility
-    private void setRequest(Request request) {
-        initLegacyStep();
-        step.setRequest(request);
-    }
-
-    @JsonSetter // Ensure backward compatibility
-    private void setExpectation(Response response) {
-        initLegacyStep();
-        step.setResponse(response);
-    }
-
-    private void initLegacyStep() {
-        if (steps == null) {
-            steps = new ArrayList<>();
-        }
-        if (step == null) {
-            step = new Step();
-            step.setResponse(Response.DEFAULT_RESPONSE);
-            steps.add(step);
-        }
     }
 }

@@ -15,7 +15,7 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 /**
@@ -24,6 +24,7 @@ import java.io.Serializable;
  */
 public class LoadBalancer implements Serializable {
 
+    @JsonProperty("type")
     private LoadBalancerType type = LoadBalancerType.ROUND_ROBIN;
 
     public LoadBalancerType getType() {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.ssl;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
@@ -50,6 +51,7 @@ import java.io.Serializable;
 )
 public abstract class TrustStore implements Serializable {
 
+    @JsonProperty("type")
     private final TrustStoreType type;
 
     public TrustStore(TrustStoreType type) {

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model;
+package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import io.gravitee.definition.model.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +28,21 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PropertiesDeserializer extends StdScalarDeserializer<List<Property>> {
+public class PropertiesDeserializer extends StdScalarDeserializer<Properties> {
 
     public PropertiesDeserializer() {
-        super(List.class);
+        super(Properties.class);
+    }
+
+    public PropertiesDeserializer(Class<Properties> vc) {
+        super(vc);
     }
 
     @Override
-    public List<Property> deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public Properties deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
+        Properties properties = new Properties();
         List<Property> values = new ArrayList<>();
 
         if (node.isArray()) {
@@ -56,6 +62,8 @@ public class PropertiesDeserializer extends StdScalarDeserializer<List<Property>
             node.fields().forEachRemaining(jsonNode -> values.add(new Property(jsonNode.getKey(), jsonNode.getValue().asText())));
         }
 
-        return values;
+        properties.setProperties(values);
+
+        return properties;
     }
 }

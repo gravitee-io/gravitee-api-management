@@ -15,20 +15,15 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.common.util.LinkedCaseInsensitiveSet;
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -36,30 +31,35 @@ public class Cors implements Serializable {
 
     public static int DEFAULT_ERROR_STATUS_CODE = HttpStatusCode.BAD_REQUEST_400;
 
+    @JsonProperty("enabled")
     private boolean enabled;
 
-    @JsonCreator
-    public Cors(@JsonProperty("enabled") boolean enabled) {
-        this.enabled = enabled;
-    }
-
+    @JsonProperty("allowOrigin")
     private Set<String> accessControlAllowOrigin;
 
+    @JsonIgnore
     private Set<Pattern> accessControlAllowOriginRegex;
 
+    @JsonProperty("exposeHeaders")
     private Set<String> accessControlExposeHeaders;
 
+    @JsonProperty("maxAge")
     private int accessControlMaxAge = -1;
 
+    @JsonProperty("allowCredentials")
     private boolean accessControlAllowCredentials;
 
+    @JsonProperty("allowMethods")
     private Set<String> accessControlAllowMethods;
 
+    @JsonProperty("allowHeaders")
     private Set<String> accessControlAllowHeaders;
 
     @JsonIgnore
     private int errorStatusCode = DEFAULT_ERROR_STATUS_CODE;
 
+    @JsonProperty("runPolicies")
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private boolean runPolicies;
 
     public boolean isEnabled() {
@@ -78,82 +78,52 @@ public class Cors implements Serializable {
         DEFAULT_ERROR_STATUS_CODE = defaultErrorStatusCode;
     }
 
-    @JsonProperty("allowOrigin")
     public Set<String> getAccessControlAllowOrigin() {
-        if (this.enabled && this.accessControlAllowOrigin == null) {
-            return new LinkedCaseInsensitiveSet();
-        }
         return accessControlAllowOrigin;
     }
 
     public void setAccessControlAllowOrigin(Set<String> accessControlAllowOrigin) {
-        if (this.enabled) {
-            this.accessControlAllowOrigin = accessControlAllowOrigin;
-        }
+        this.accessControlAllowOrigin = accessControlAllowOrigin;
     }
 
-    @JsonProperty("exposeHeaders")
     public Set<String> getAccessControlExposeHeaders() {
-        if (this.enabled && this.accessControlExposeHeaders == null) {
-            return new LinkedCaseInsensitiveSet();
-        }
         return accessControlExposeHeaders;
     }
 
     public void setAccessControlExposeHeaders(Set<String> accessControlExposeHeaders) {
-        if (this.enabled) {
-            this.accessControlExposeHeaders = accessControlExposeHeaders;
-        }
+        this.accessControlExposeHeaders = accessControlExposeHeaders;
     }
 
-    @JsonProperty("maxAge")
     public int getAccessControlMaxAge() {
         return accessControlMaxAge;
     }
 
     public void setAccessControlMaxAge(int accessControlMaxAge) {
-        if (this.enabled) {
-            this.accessControlMaxAge = accessControlMaxAge;
-        }
+        this.accessControlMaxAge = accessControlMaxAge;
     }
 
-    @JsonProperty("allowCredentials")
     public boolean isAccessControlAllowCredentials() {
         return accessControlAllowCredentials;
     }
 
     public void setAccessControlAllowCredentials(boolean accessControlAllowCredentials) {
-        if (this.enabled) {
-            this.accessControlAllowCredentials = accessControlAllowCredentials;
-        }
+        this.accessControlAllowCredentials = accessControlAllowCredentials;
     }
 
-    @JsonProperty("allowMethods")
     public Set<String> getAccessControlAllowMethods() {
-        if (this.enabled && this.accessControlAllowMethods == null) {
-            return new HashSet<>();
-        }
         return accessControlAllowMethods;
     }
 
     public void setAccessControlAllowMethods(Set<String> accessControlAllowMethods) {
-        if (this.enabled) {
-            this.accessControlAllowMethods = accessControlAllowMethods;
-        }
+        this.accessControlAllowMethods = accessControlAllowMethods;
     }
 
-    @JsonProperty("allowHeaders")
     public Set<String> getAccessControlAllowHeaders() {
-        if (this.enabled && this.accessControlAllowHeaders == null) {
-            return new LinkedCaseInsensitiveSet();
-        }
         return accessControlAllowHeaders;
     }
 
     public void setAccessControlAllowHeaders(Set<String> accessControlAllowHeaders) {
-        if (this.enabled) {
-            this.accessControlAllowHeaders = accessControlAllowHeaders;
-        }
+        this.accessControlAllowHeaders = accessControlAllowHeaders;
     }
 
     public int getErrorStatusCode() {
@@ -161,33 +131,22 @@ public class Cors implements Serializable {
     }
 
     public void setErrorStatusCode(int errorStatusCode) {
-        if (this.enabled) {
-            this.errorStatusCode = errorStatusCode;
-        }
+        this.errorStatusCode = errorStatusCode;
     }
 
     public Set<Pattern> getAccessControlAllowOriginRegex() {
-        if (this.enabled && accessControlAllowOriginRegex == null) {
-            return new HashSet<>();
-        }
         return accessControlAllowOriginRegex;
     }
 
-    @JsonIgnore
     public void setAccessControlAllowOriginRegex(Set<Pattern> accessControlAllowOriginRegex) {
-        if (this.enabled) {
-            this.accessControlAllowOriginRegex = accessControlAllowOriginRegex;
-        }
+        this.accessControlAllowOriginRegex = accessControlAllowOriginRegex;
     }
 
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     public boolean isRunPolicies() {
         return runPolicies;
     }
 
     public void setRunPolicies(boolean runPolicies) {
-        if (this.enabled) {
-            this.runPolicies = runPolicies;
-        }
+        this.runPolicies = runPolicies;
     }
 }

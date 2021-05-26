@@ -39,6 +39,7 @@ public enum DefinitionVersion {
         }
     }
 
+    @JsonValue
     private final String label;
 
     DefinitionVersion(String label) {
@@ -50,7 +51,6 @@ public enum DefinitionVersion {
         return BY_LABEL.get(label);
     }
 
-    @JsonValue
     public String getLabel() {
         return label;
     }

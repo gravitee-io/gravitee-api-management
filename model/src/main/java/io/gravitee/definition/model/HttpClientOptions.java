@@ -15,17 +15,13 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.*;
 import java.io.Serializable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties("configuration")
 public class HttpClientOptions implements Serializable {
 
     public static long DEFAULT_IDLE_TIMEOUT = 60000;
@@ -39,15 +35,34 @@ public class HttpClientOptions implements Serializable {
     public static boolean DEFAULT_CLEAR_TEXT_UPGRADE = true;
     public static ProtocolVersion DEFAULT_PROTOCOL_VERSION = ProtocolVersion.HTTP_1_1;
 
+    @JsonProperty("idleTimeout")
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
+
+    @JsonProperty("connectTimeout")
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+
+    @JsonProperty("keepAlive")
     private boolean keepAlive = DEFAULT_KEEP_ALIVE;
+
+    @JsonProperty("readTimeout")
     private long readTimeout = DEFAULT_READ_TIMEOUT;
+
+    @JsonProperty("pipelining")
     private boolean pipelining = DEFAULT_PIPELINING;
+
+    @JsonProperty("maxConcurrentConnections")
     private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
+
+    @JsonProperty("useCompression")
     private boolean useCompression = DEFAULT_USE_COMPRESSION;
+
+    @JsonProperty("followRedirects")
     private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
+
+    @JsonProperty("clearTextUpgrade")
     private Boolean clearTextUpgrade = DEFAULT_CLEAR_TEXT_UPGRADE;
+
+    @JsonProperty("version")
     private ProtocolVersion version = DEFAULT_PROTOCOL_VERSION;
 
     public long getConnectTimeout() {
@@ -114,31 +129,18 @@ public class HttpClientOptions implements Serializable {
         this.followRedirects = followRedirects;
     }
 
-    public Boolean isClearTextUpgrade() {
-        if (version == ProtocolVersion.HTTP_2) {
-            return clearTextUpgrade;
-        }
-        return null;
+    public boolean isClearTextUpgrade() {
+        return clearTextUpgrade;
     }
 
-    public void setClearTextUpgrade(Boolean clearTextUpgrade) {
+    public void setClearTextUpgrade(boolean clearTextUpgrade) {
         this.clearTextUpgrade = clearTextUpgrade;
     }
 
-    @JsonGetter("version")
-    public ProtocolVersion getVersionJson() {
-        if (version == ProtocolVersion.HTTP_2) {
-            return version;
-        }
-        return null;
-    }
-
-    @JsonIgnore
     public ProtocolVersion getVersion() {
         return version;
     }
 
-    @JsonSetter("version")
     public void setVersion(ProtocolVersion version) {
         this.version = version;
     }

@@ -15,17 +15,13 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 import io.gravitee.definition.model.endpoint.EndpointStatusListener;
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -57,13 +53,29 @@ public abstract class Endpoint implements Serializable {
     private final Set<EndpointStatusListener> listeners = new HashSet<>();
 
     public static final int DEFAULT_WEIGHT = 1;
+
+    @JsonProperty("name")
     private String name;
+
+    @JsonProperty("target")
     private String target;
+
+    @JsonProperty("weight")
     private int weight = DEFAULT_WEIGHT;
+
+    @JsonProperty("backup")
     private boolean backup;
+
+    @JsonIgnore
     private Status status = Status.UP;
+
+    @JsonProperty("tenants")
     private List<String> tenants; // TODO was not serialized
+
+    @JsonProperty("type")
     private final EndpointType type;
+
+    @JsonProperty("inherit")
     private Boolean inherit;
 
     public Endpoint(EndpointType type, String name, String target) {
@@ -104,7 +116,6 @@ public abstract class Endpoint implements Serializable {
         this.backup = backup;
     }
 
-    @JsonIgnore
     public Status getStatus() {
         return status;
     }
@@ -120,12 +131,6 @@ public abstract class Endpoint implements Serializable {
 
     public void setTenants(List<String> tenants) {
         this.tenants = tenants;
-    }
-
-    // Keep it for backward-compatibility
-    @JsonSetter
-    private void setTenant(String tenant) {
-        this.tenants = Collections.singletonList(tenant);
     }
 
     public EndpointType getType() {

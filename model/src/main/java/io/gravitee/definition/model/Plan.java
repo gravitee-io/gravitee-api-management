@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.flow.Flow;
 import java.io.Serializable;
 import java.util.*;
@@ -25,24 +26,34 @@ import java.util.*;
  */
 public class Plan implements Serializable {
 
+    @JsonProperty("id")
     private String id;
 
+    @JsonProperty("name")
     private String name;
 
+    @JsonProperty("security")
     private String security;
 
+    @JsonProperty("securityDefinition")
     private String securityDefinition;
 
+    @JsonProperty("paths")
     private Map<String, List<Rule>> paths = new HashMap<>();
 
+    @JsonProperty("api")
     private String api;
 
+    @JsonProperty("selectionRule")
     private String selectionRule;
 
+    @JsonProperty("flows")
     private List<Flow> flows = new ArrayList<>();
 
+    @JsonProperty("tags")
     private Set<String> tags;
 
+    @JsonProperty("status")
     private String status;
 
     public String getId() {

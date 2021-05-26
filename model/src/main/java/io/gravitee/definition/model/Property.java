@@ -15,7 +15,6 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
@@ -25,17 +24,16 @@ import java.io.Serializable;
  */
 public class Property implements Serializable {
 
+    @JsonProperty(value = "key", required = true)
     private final String key;
 
+    @JsonProperty(value = "value", required = true)
     private final String value;
 
-    protected Boolean dynamic = Boolean.FALSE;
+    @JsonProperty("dynamic")
+    protected boolean dynamic = false;
 
-    @JsonCreator
-    public Property(
-        @JsonProperty(value = "key", required = true) String key,
-        @JsonProperty(value = "value", required = true) String value
-    ) {
+    public Property(String key, String value) {
         this.key = key;
         this.value = value;
     }
@@ -48,11 +46,8 @@ public class Property implements Serializable {
         return value;
     }
 
-    public Boolean isDynamic() {
-        if (dynamic == Boolean.TRUE) {
-            return dynamic;
-        }
-        return null;
+    public boolean isDynamic() {
+        return dynamic;
     }
 
     public void setDynamic(boolean dynamic) {

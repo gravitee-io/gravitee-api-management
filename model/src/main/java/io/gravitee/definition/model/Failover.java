@@ -16,6 +16,7 @@
 package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
 /**
@@ -29,9 +30,13 @@ public class Failover implements Serializable {
     public static long DEFAULT_RETRY_TIMEOUT = 10000L;
     public static FailoverCase[] DEFAULT_FAILOVER_CASES = { FailoverCase.TIMEOUT };
 
+    @JsonProperty("maxAttempts")
     private int maxAttempts = DEFAULT_MAX_ATTEMPTS;
+
+    @JsonProperty("retryTimeout")
     private long retryTimeout = DEFAULT_RETRY_TIMEOUT;
 
+    @JsonProperty("cases")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     private FailoverCase[] cases = DEFAULT_FAILOVER_CASES;
 

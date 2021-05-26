@@ -72,6 +72,11 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertTrue(((HttpEndpoint) endpoint).getHttpProxy().isEnabled());
     }
 
+    @Test(expected = JsonMappingException.class)
+    public void definition_noProxyPart() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-noproxy-part.json", Api.class);
+    }
+
     @Test
     public void definition_noPath() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-nopath.json", Api.class);
@@ -90,7 +95,6 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertFalse(api.getProxy().getVirtualHosts().iterator().next().isOverrideEntrypoint());
     }
 
-    @Ignore
     @Test(expected = JsonMappingException.class)
     public void definition_contextPathExpected() throws Exception {
         load("/io/gravitee/definition/jackson/api-no-contextpath.json", Api.class);
@@ -219,7 +223,6 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals("text", properties.getValues().get("my_property4"));
     }
 
-    @Ignore("Some tests in rest api have no id set")
     @Test(expected = JsonMappingException.class)
     public void definition_withoutID() throws Exception {
         load("/io/gravitee/definition/jackson/api-withoutid.json", Api.class);
@@ -540,7 +543,7 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals(LoggingMode.NONE, logging.getMode());
         Assert.assertEquals(LoggingScope.NONE, logging.getScope());
         Assert.assertEquals(LoggingContent.NONE, logging.getContent());
-        Assert.assertNull(logging.getCondition());
+        Assert.assertEquals("my condition", logging.getCondition());
     }
 
     @Test
@@ -767,5 +770,15 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals("PUBLISHED", api.getPlan("plan-1").getStatus());
 
         Assert.assertEquals(FlowMode.DEFAULT, api.getFlowMode());
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void definition_v2_withPath() throws Exception {
+        load("/io/gravitee/definition/jackson/api-v2-withpath.json", Api.class);
+    }
+
+    @Test(expected = JsonMappingException.class)
+    public void definition_v1_withFlow() throws Exception {
+        load("/io/gravitee/definition/jackson/api-v1-withflow.json", Api.class);
     }
 }

@@ -16,7 +16,6 @@
 package io.gravitee.definition.model.services.dynamicproperty;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import java.io.Serializable;
 

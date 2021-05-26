@@ -15,12 +15,19 @@
  */
 package io.gravitee.definition.jackson.datatype;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import io.gravitee.definition.jackson.datatype.api.ApiModule;
+import io.gravitee.definition.jackson.datatype.plugins.resource.ResourceModule;
+import io.gravitee.definition.jackson.datatype.services.core.ServiceModule;
+import io.gravitee.definition.jackson.datatype.services.discovery.EndpointDiscoveryModule;
+import io.gravitee.definition.jackson.datatype.services.dynamicproperty.DynamicPropertyModule;
+import io.gravitee.definition.jackson.datatype.services.healthcheck.HealthCheckModule;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,11 +38,19 @@ public class GraviteeMapper extends ObjectMapper {
     private static final long serialVersionUID = 1L;
 
     public GraviteeMapper() {
+        registerModule(new ApiModule());
+        registerModule(new ServiceModule());
+        registerModule(new HealthCheckModule());
+        registerModule(new DynamicPropertyModule());
+        registerModule(new EndpointDiscoveryModule());
+        registerModule(new ResourceModule());
+
         enable(SerializationFeature.INDENT_OUTPUT);
         enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         setSerializationInclusion(JsonInclude.Include.NON_NULL);
         enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE);
         enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
         disable(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE);
+        disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 }

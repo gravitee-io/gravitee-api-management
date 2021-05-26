@@ -15,10 +15,8 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.Objects;
@@ -29,23 +27,19 @@ import java.util.Objects;
  */
 public class Policy implements Serializable {
 
+    @JsonProperty("name")
     private String name;
-
-    private Object configuration;
 
     @Schema(implementation = Object.class)
     @JsonRawValue
+    @JsonProperty("configuration")
+    private Object configuration;
+
     public String getConfiguration() {
         return configuration == null ? null : configuration.toString();
     }
 
-    @JsonIgnore
     public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    @JsonSetter
-    public void setConfiguration(JsonNode configuration) {
         this.configuration = configuration;
     }
 
