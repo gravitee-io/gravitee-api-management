@@ -1416,10 +1416,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // add a default path, if version is v1
             if (
-                (
-                    updateApiEntity.getGraviteeDefinitionVersion() == null ||
-                    updateApiEntity.getGraviteeDefinitionVersion().equals(DefinitionVersion.V1.getLabel())
-                ) &&
+                Objects.equals(updateApiEntity.getGraviteeDefinitionVersion(), DefinitionVersion.V1.getLabel()) &&
                 (updateApiEntity.getPaths() == null || updateApiEntity.getPaths().isEmpty())
             ) {
                 updateApiEntity.setPaths(singletonMap("/", new ArrayList<>()));
@@ -2095,10 +2092,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         // Initialize with a default path
         if (
-            (
-                importedApi.getGraviteeDefinitionVersion() == null ||
-                importedApi.getGraviteeDefinitionVersion().equals(DefinitionVersion.V1.getLabel())
-            ) &&
+            Objects.equals(importedApi.getGraviteeDefinitionVersion(), DefinitionVersion.V1.getLabel()) &&
             (importedApi.getPaths() == null || importedApi.getPaths().isEmpty())
         ) {
             importedApi.setPaths(Collections.singletonMap("/", new ArrayList<>()));

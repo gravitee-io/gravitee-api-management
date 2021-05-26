@@ -378,7 +378,8 @@ public class ApiService_UpdateTest {
         Endpoint endpoint = new HttpEndpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        Cors cors = new Cors(false);
+        Cors cors = new Cors();
+        cors.setEnabled(false);
         proxy.setCors(cors);
         when(existingApi.getProxy()).thenReturn(proxy);
         when(existingApi.getLifecycleState()).thenReturn(CREATED);
@@ -418,8 +419,6 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldNotDuplicateLabels() throws TechnicalException {
         prepareUpdate();
-        // must deactivate this, since "labels" is not in the "gravitee-definition" API
-        objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         when(existingApi.getLabels()).thenReturn(Arrays.asList("label1", "label1"));
         when(api.getDefinition())
             .thenReturn(

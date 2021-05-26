@@ -286,7 +286,7 @@ public class ApiService_ExportAsJsonTestSetup {
         proxy.setGroups(Collections.singleton(endpointGroup));
 
         io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-        apiDefinition.setDefinitionVersion(null);
+        apiDefinition.setPaths(Collections.emptyMap());
         apiDefinition.setProxy(proxy);
 
         ResponseTemplate responseTemplate = new ResponseTemplate();

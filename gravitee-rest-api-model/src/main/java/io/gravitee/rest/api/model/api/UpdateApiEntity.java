@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.model.api;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
@@ -199,11 +201,18 @@ public class UpdateApiEntity {
         this.properties = properties;
     }
 
-    @JsonProperty(value = "properties")
-    @JsonDeserialize(using = PropertiesDeserializer.class)
+    @JsonSetter("properties")
     public void setPropertyList(List<Property> properties) {
         this.properties = new Properties();
         this.properties.setProperties(properties);
+    }
+
+    @JsonGetter("properties")
+    public List<Property> getPropertyList() {
+        if (properties != null) {
+            return properties.getProperties();
+        }
+        return Collections.emptyList();
     }
 
     public Set<String> getTags() {

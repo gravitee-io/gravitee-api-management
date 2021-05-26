@@ -113,7 +113,11 @@ public class ApisResource extends AbstractResource {
     @GET
     @Path("_paged")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List APIs with pagination", notes = "List all the APIs accessible to the current user with pagination.")
+    @ApiOperation(
+        value = "List APIs with pagination",
+        notes = "List all the APIs accessible to the current user with pagination.",
+        nickname = "getApisPaged"
+    )
     @ApiResponses(
         {
             @ApiResponse(code = 200, message = "Page of APIs for current user", response = PagedResult.class),

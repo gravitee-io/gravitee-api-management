@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.api;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.jackson.datatype.api.deser.PropertiesDeserializer;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
@@ -336,7 +337,6 @@ public class ApiEntity implements Indexable, FilterableItem {
     }
 
     @JsonSetter("properties")
-    @JsonDeserialize(using = PropertiesDeserializer.class)
     public void setPropertyList(List<Property> properties) {
         this.properties = new Properties();
         this.properties.setProperties(properties);

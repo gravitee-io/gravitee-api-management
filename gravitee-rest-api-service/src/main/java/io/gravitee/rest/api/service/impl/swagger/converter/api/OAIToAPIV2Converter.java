@@ -22,6 +22,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
@@ -121,8 +122,10 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
         flow.setName("");
         flow.setCondition("");
         flow.setEnabled(true);
-        flow.setPath(path);
-        flow.setOperator(Operator.EQUALS);
+        final PathOperator pathOperator = new PathOperator();
+        pathOperator.setPath(path);
+        pathOperator.setOperator(Operator.EQUALS);
+        flow.setPathOperator(pathOperator);
         flow.setMethods(methods);
         return flow;
     }

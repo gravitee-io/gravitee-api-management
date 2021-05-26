@@ -36,6 +36,7 @@ import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
+import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
@@ -241,8 +242,10 @@ public class APIV1toAPIV2Converter {
         flow.setName("");
         flow.setCondition("");
         flow.setEnabled(true);
-        flow.setPath(path);
-        flow.setOperator(Operator.STARTS_WITH);
+        final PathOperator pathOperator = new PathOperator();
+        pathOperator.setPath(path);
+        pathOperator.setOperator(Operator.STARTS_WITH);
+        flow.setPathOperator(pathOperator);
         flow.setMethods(flowMethods);
         return flow;
     }

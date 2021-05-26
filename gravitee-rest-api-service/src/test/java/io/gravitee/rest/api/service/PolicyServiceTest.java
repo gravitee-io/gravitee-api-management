@@ -171,7 +171,7 @@ public class PolicyServiceTest {
     public void shouldAcceptNoConfiguration() {
         Policy policy = new Policy();
         policy.setName("my-policy");
-        policy.setConfiguration((String) null);
+        policy.setConfiguration(null);
         policyService.validatePolicyConfiguration(policy);
     }
 
@@ -179,7 +179,7 @@ public class PolicyServiceTest {
     public void shouldAcceptNoConfigurationStep() {
         Step step = new Step();
         step.setPolicy("my-policy");
-        step.setConfiguration((String) null);
+        step.setConfiguration(null);
         policyService.validatePolicyConfiguration(step);
     }
 

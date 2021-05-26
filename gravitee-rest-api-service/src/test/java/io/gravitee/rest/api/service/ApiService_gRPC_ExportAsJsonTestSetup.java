@@ -290,8 +290,7 @@ public class ApiService_gRPC_ExportAsJsonTestSetup {
         proxy.setGroups(Collections.singleton(endpointGroup));
         io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
         apiDefinition.setProxy(proxy);
-        apiDefinition.setDefinitionVersion(DefinitionVersion.V1);
-        Map<String, ResponseTemplate> responseTemplates = new HashMap<>();
+        apiDefinition.setPaths(Collections.emptyMap());
         ResponseTemplate responseTemplate = new ResponseTemplate();
         responseTemplate.setStatusCode(400);
         responseTemplate.setBody("{\"bad\":\"news\"}");

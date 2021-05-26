@@ -176,7 +176,8 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         failover.setRetryTimeout(2000);
         proxy.setFailover(failover);
 
-        Cors cors = new Cors(true);
+        Cors cors = new Cors();
+        cors.setEnabled(true);
         cors.setAccessControlAllowOrigin(Collections.singleton("*"));
         cors.setAccessControlAllowHeaders(Collections.singleton("content-type"));
         cors.setAccessControlAllowMethods(Collections.singleton("GET"));
@@ -184,7 +185,7 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
 
         try {
             io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-            apiDefinition.setDefinitionVersion(null);
+            apiDefinition.setPaths(Collections.emptyMap());
             apiDefinition.setProxy(proxy);
             String definition = objectMapper.writeValueAsString(apiDefinition);
             api.setDefinition(definition);
