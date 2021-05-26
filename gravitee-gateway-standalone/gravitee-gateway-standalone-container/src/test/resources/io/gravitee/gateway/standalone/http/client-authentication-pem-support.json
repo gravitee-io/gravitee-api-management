@@ -15,8 +15,7 @@
           "trustAll": false,
           "keyStore": {
             "type": "PEM",
-            "path": "Defined programmatically",
-            "password": "password"
+            "certPath": "Defined programmatically"
           }
         }
       }, {
@@ -26,7 +25,7 @@
           "trustAll": true,
           "keyStore": {
             "type": "PEM",
-            "path": "Defined programmatically"
+            "certPath": "Defined programmatically"
           },
           "trustStore": {
             "type": "PEM",
@@ -40,7 +39,7 @@
           "trustAll": true,
           "keyStore": {
             "type": "PEM",
-            "path": "Defined programmatically"
+            "certPath": "Defined programmatically"
           }
         }
       }
