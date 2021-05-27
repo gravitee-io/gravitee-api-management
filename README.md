@@ -1,33 +1,42 @@
-[![Build Status](https://ci.gravitee.io/buildStatus/icon?job=gravitee-io/gravitee-repository-jdbc/master)](https://ci.gravitee.io/job/gravitee-io/job/gravitee-repository-jdbc/job/master/)
+[![CircleCI](https://circleci.com/gh/gravitee-io/gravitee-repository-jdbc.svg?style=shield)](https://circleci.com/gh/gravitee-io/gravitee-repository-jdbc)
 
 # Gravitee JDBC Repository
 
 JDBC repository implementation that supports MySQL, MariaDB and PostgreSQL.
 
-## Requirement
+## Requirements
 
-The minimum requirement is :
+The minimum requirements are:
  * Maven3 
  * Jdk8
 
-For user gravitee snapshot, You need the declare the following repository in you maven settings :
-
-https://oss.sonatype.org/content/repositories/snapshots
-
+To use Gravitee.io snapshots, you need to declare the following repository in your maven settings:
+`https://oss.sonatype.org/content/repositories/snapshots`
 
 ## Building
 
+```shell
+git clone https://github.com/gravitee-io/gravitee-repository-jdbc.git
+cd gravitee-repository-jdbc
+mvn clean package
 ```
-$ git clone https://github.com/gravitee-io/gravitee-repository-jdbc.git
-$ cd gravitee-repository-jdbc
-$ mvn clean package
-```
+
+## Testing
+
+By default, unit tests are run with en embedded PostgreSQL, but sometimes it can be useful to run them against another database.
+To do so, TestContainer has been set up, and you can use the following commands: 
+ - MariaDB: `mvn clean install -DjdbcType=mariadb-tc`
+ - MySQL: `mvn clean install -DjdbcType=mysql-tc`
+ - PostgreSQL: `mvn clean install -DjdbcType=postgresql-tc`
+ - SQLServer: `mvn clean install -DjdbcType=sqlserver-tc`
+
+You can also run tests against other embedded databases:
+- MariaDB: `mvn clean install -DjdbcType=mariadb-te`
+- MySQL: `mvn clean install -DjdbcType=mysql-te`
 
 ## Installing
 
-Unzip the gravitee-repository-jdbc-1.0.0-SNAPSHOT.zip in the gravitee home directory.
- 
-
+Unzip the gravitee-repository-jdbc-x.y.z-SNAPSHOT.zip in the gravitee home directory.
 
 ## Configuration
 
