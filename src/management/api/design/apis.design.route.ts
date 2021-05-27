@@ -35,7 +35,7 @@ function apisDesignRouterConfig($stateProvider) {
       resolve: {
         resolvedTenants: (TenantService: TenantService) => TenantService.list(),
       },
-      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.design' },
+      apiDefinition: { version: '1.0.0', redirect: 'management.apis.detail.design.flows' },
       data: {
         menu: {
           label: 'Design',
@@ -82,7 +82,7 @@ function apisDesignRouterConfig($stateProvider) {
         },
       },
     })
-    .state('management.apis.detail.design.design', {
+    .state('management.apis.detail.design.flows', {
       url: '/design?flows',
       template: require('./design/design.html'),
       controller: 'ApiDesignController',

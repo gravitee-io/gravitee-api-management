@@ -92,6 +92,7 @@ class ApiDesignController {
   private readonlyPlans: any;
   private definition: any;
   private services: any;
+  private propertyProviders = propertyProviders;
 
   constructor(
     private resolvedResources,
