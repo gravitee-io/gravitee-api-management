@@ -59,10 +59,10 @@ workflows:
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
           container_size: 'medium'
-            # filters:
+          # filters:
             # branches:
-          # ignore:
-          # - master
+              # ignore:
+                # - master
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
@@ -186,13 +186,13 @@ workflows:
       and:
         - equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
         - not: << pipeline.parameters.dry_run >>
-      # ---
-      # Running the nexus staging makes sense only when the
-      # standalone release is being performed with dry run mode off
-      # That is to say, when the maven project is ready to be release to mmaven Staging
-      # Never the less, to test the CICD system, I temporarily git pushed a different configuration
-      # ---
-      # when:
+    # ---
+    # Running the nexus staging makes sense only when the
+    # standalone release is being performed with dry run mode off
+    # That is to say, when the maven project is ready to be release to mmaven Staging
+    # Never the less, to test the CICD system, I temporarily git pushed a different configuration
+    # ---
+    # when:
       # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
     jobs:
       - gravitee/d_nexus_staging_secrets:
@@ -283,13 +283,13 @@ workflows:
       and:
         - equal: [ standalone_release_replay, << pipeline.parameters.gio_action >> ]
         - not: << pipeline.parameters.dry_run >>
-      # ---
-      # Running the nexus staging makes sense only when the
-      # standalone release is being performed with dry run mode off
-      # That is to say, when the maven project is ready to be release to mmaven Staging
-      # Never the less, to test the CICD system, I temporarily git pushed a different configuration
-      # ---
-      # when:
+    # ---
+    # Running the nexus staging makes sense only when the
+    # standalone release is being performed with dry run mode off
+    # That is to say, when the maven project is ready to be release to mmaven Staging
+    # Never the less, to test the CICD system, I temporarily git pushed a different configuration
+    # ---
+    # when:
       # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
     jobs:
       - gravitee/d_nexus_staging_secrets:
