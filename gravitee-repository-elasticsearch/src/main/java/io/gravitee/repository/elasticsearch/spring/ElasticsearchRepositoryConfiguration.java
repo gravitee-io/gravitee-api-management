@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.spring;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.client.http.*;
 import io.gravitee.elasticsearch.exception.ElasticsearchException;
+import io.gravitee.elasticsearch.index.ILMIndexNameGenerator;
 import io.gravitee.elasticsearch.index.IndexNameGenerator;
 import io.gravitee.elasticsearch.index.MultiTypeIndexNameGenerator;
 import io.gravitee.elasticsearch.index.PerTypeIndexNameGenerator;
@@ -116,7 +117,9 @@ public class ElasticsearchRepositoryConfiguration {
 
     @Bean
     public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
-        if (info.getVersion().getMajorVersion() >= 6 || repositoryConfiguration.isPerTypeIndex()) {
+        if (info.getVersion().getMajorVersion() >= 6 && repositoryConfiguration.isILMIndex()) {
+            return new ILMIndexNameGenerator(repositoryConfiguration.getIndexName());
+        } else if (info.getVersion().getMajorVersion() >= 6 || repositoryConfiguration.isPerTypeIndex()) {
             return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
         } else {
             return new MultiTypeIndexNameGenerator(repositoryConfiguration.getIndexName());

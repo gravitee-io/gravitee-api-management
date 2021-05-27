@@ -53,6 +53,12 @@ public class RepositoryConfiguration {
 	private boolean perTypeIndex;
 
 	/**
+	 * Index mode normal (daily index) vs ILM (managed by ILM)
+	 */
+	@Value("${analytics.elasticsearch.index_mode:daily}")
+	private String indexMode;
+
+	/**
 	 * Elasticsearch basic oauth login. 
 	 */
 	@Value("${analytics.elasticsearch.security.username:#{null}}")
@@ -221,6 +227,18 @@ public class RepositoryConfiguration {
 
 	public void setSslPemKeys(List<String> sslPemKeys) {
 		this.sslPemKeys = sslPemKeys;
+	}
+
+	public String getIndexMode() {
+		return indexMode;
+	}
+
+	public void setIndexMode(String indexMode) {
+		this.indexMode = indexMode;
+	}
+
+	public boolean isILMIndex() {
+		return indexMode != null && indexMode.equalsIgnoreCase("ilm");
 	}
 
 	private boolean crossClusterInitialized;
