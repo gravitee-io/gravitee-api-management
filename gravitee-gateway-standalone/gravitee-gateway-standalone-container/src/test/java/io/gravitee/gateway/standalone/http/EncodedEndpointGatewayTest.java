@@ -38,7 +38,7 @@ public class EncodedEndpointGatewayTest extends AbstractWiremockGatewayTest {
     public void call_get_started_api_noBody() throws Exception {
         wireMockRule.stubFor(get("/team/test%257Cpipe/my_team").willReturn(ok()));
 
-        final HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/test%257Cpipe/my_team")));

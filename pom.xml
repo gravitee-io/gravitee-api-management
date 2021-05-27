@@ -257,7 +257,7 @@
     </dependencies>
 
     <properties>
-        <gravitee-node.version>1.12.0</gravitee-node.version>
+        <gravitee-node.version>1.14.0-SNAPSHOT</gravitee-node.version>
         <gravitee-definition.version>1.28.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.19.1</gravitee-common.version>
         <gravitee-expression-language.version>1.4.2</gravitee-expression-language.version>
@@ -280,7 +280,7 @@
         <commons-io.version>2.5</commons-io.version>
         <commons-validator.version>1.4.1</commons-validator.version>
         <json-path.version>2.4.0</json-path.version>
-        <wiremock.version>2.26.3</wiremock.version>
+        <wiremock.version>2.28.0</wiremock.version>
         <guava.version>29.0-jre</guava.version>
         <powermock.version>2.0.0</powermock.version>
         <nimbus-jwt.version>8.19</nimbus-jwt.version>
@@ -294,14 +294,21 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <version>0.12</version>
                 <configuration>
-                    <excludes>
-                        <exclude>io/gravitee/gateway/standalone/**/*.java</exclude>
-                    </excludes>
+                    <nodeVersion>12.13.0</nodeVersion>
+                    <prettierJavaVersion>1.0.1</prettierJavaVersion>
                 </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>

@@ -47,7 +47,7 @@ public class InvalidHttpMethodGatewayTest extends AbstractWiremockGatewayTest {
         methodField.setAccessible(true);
         methodField.set(requestField.get(request), "unkown-method");
 
-        Response response = request.execute();
+        Response response = execute(request);
         HttpResponse returnResponse = response.returnResponse();
 
         assertEquals(HttpStatus.SC_NOT_IMPLEMENTED, returnResponse.getStatusLine().getStatusCode());

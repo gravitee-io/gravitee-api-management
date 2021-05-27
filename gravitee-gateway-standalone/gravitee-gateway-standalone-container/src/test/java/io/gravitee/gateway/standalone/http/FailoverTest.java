@@ -37,7 +37,7 @@ public class FailoverTest extends AbstractWiremockGatewayTest {
     public void shouldFallbacktoSecondEndpoint_noBody() throws Exception {
         wireMockRule.stubFor(get("/fallback/my_team").willReturn(ok()));
 
-        final HttpResponse response = Request.Get("http://localhost:8082/team/my_team").execute().returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/team/my_team")).returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/fallback/my_team")));
@@ -49,10 +49,9 @@ public class FailoverTest extends AbstractWiremockGatewayTest {
 
         wireMockRule.stubFor(post("/fallback/my_team").willReturn(ok().withBody("")));
 
-        final HttpResponse response = Request
-            .Post("http://localhost:8082/team/my_team")
-            .bodyString(request, ContentType.TEXT_PLAIN)
-            .execute()
+        final HttpResponse response = execute(
+            Request.Post("http://localhost:8082/team/my_team").bodyString(request, ContentType.TEXT_PLAIN)
+        )
             .returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());

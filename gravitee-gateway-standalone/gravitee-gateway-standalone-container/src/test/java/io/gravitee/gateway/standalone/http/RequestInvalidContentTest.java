@@ -41,10 +41,9 @@ public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
     public void call_validate_request_content() throws Exception {
         wireMockRule.stubFor(post("/echo/helloworld").willReturn(ok()));
 
-        HttpResponse response = Request
-            .Post("http://localhost:8082/echo/helloworld")
-            .bodyString("Invalid body", ContentType.TEXT_PLAIN)
-            .execute()
+        HttpResponse response = execute(
+            Request.Post("http://localhost:8082/echo/helloworld").bodyString("Invalid body", ContentType.TEXT_PLAIN)
+        )
             .returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());

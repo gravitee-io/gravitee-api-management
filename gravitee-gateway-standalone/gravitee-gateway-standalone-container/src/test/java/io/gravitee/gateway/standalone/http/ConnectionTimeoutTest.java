@@ -33,7 +33,7 @@ public class ConnectionTimeoutTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void call_unreachable_api() throws Exception {
-        HttpResponse response = Request.Post("http://localhost:8082/unreachable").execute().returnResponse();
+        HttpResponse response = execute(Request.Post("http://localhost:8082/unreachable")).returnResponse();
 
         assertTrue(
             response.getStatusLine().getStatusCode() == HttpStatus.SC_GATEWAY_TIMEOUT ||

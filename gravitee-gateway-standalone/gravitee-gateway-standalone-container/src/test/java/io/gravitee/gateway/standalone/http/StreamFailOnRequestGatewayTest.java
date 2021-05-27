@@ -46,7 +46,7 @@ public class StreamFailOnRequestGatewayTest extends AbstractWiremockGatewayTest 
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
         wireMockRule.verify(0, postRequestedFor(urlPathEqualTo("/api")));

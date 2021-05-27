@@ -37,7 +37,7 @@ public class ServiceUnavailableTest extends AbstractWiremockGatewayTest {
     public void call_available_api() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -49,7 +49,7 @@ public class ServiceUnavailableTest extends AbstractWiremockGatewayTest {
         // Set the endpoint as down
         api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
 
@@ -63,7 +63,7 @@ public class ServiceUnavailableTest extends AbstractWiremockGatewayTest {
         // Set the endpoint as down
         api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.DOWN);
 
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
 
@@ -72,7 +72,7 @@ public class ServiceUnavailableTest extends AbstractWiremockGatewayTest {
         // Set the endpoint as up
         api.getProxy().getGroups().iterator().next().getEndpoints().iterator().next().setStatus(Endpoint.Status.UP);
 
-        response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

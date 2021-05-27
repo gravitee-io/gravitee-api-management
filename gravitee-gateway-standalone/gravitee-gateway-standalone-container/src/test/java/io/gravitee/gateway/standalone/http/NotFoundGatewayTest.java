@@ -33,15 +33,15 @@ import org.junit.Test;
 public class NotFoundGatewayTest extends AbstractWiremockGatewayTest {
 
     @Test
-    public void shouldReturnNotFound_noApi() throws IOException {
-        HttpResponse response = Request.Get("http://localhost:8082/unknow").execute().returnResponse();
+    public void shouldReturnNotFound_noApi() throws Exception {
+        HttpResponse response = execute(Request.Get("http://localhost:8082/unknow")).returnResponse();
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatusLine().getStatusCode());
     }
 
     @Test
     public void shouldReturnNotFound_apiNotStarted() throws Exception {
-        HttpResponse response = Request.Get("http://localhost:8082/not_started_api").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/not_started_api")).returnResponse();
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatusLine().getStatusCode());
     }

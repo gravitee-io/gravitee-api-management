@@ -46,7 +46,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
         String query = "true";
         URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", "true").build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -64,7 +64,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", null).build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -83,7 +83,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
         String query = "myparam:test+AND+myotherparam:12";
         URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", query).build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -103,7 +103,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", query).build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -127,7 +127,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
             .addParameter("q", query)
             .build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -145,7 +145,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter(query, null).build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -165,7 +165,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
             .addParameter("type", "MAG")
             .build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -190,7 +190,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
             .addParameter("country", "es")
             .build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -204,7 +204,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
 
         URI target = new URIBuilder("http://localhost:8082/test/my_team").addParameter("q", "RECHERCHE,35147,8;RECHERCHE,670620,1").build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -223,7 +223,7 @@ public class QueryParametersTest extends AbstractWiremockGatewayTest {
             .addParameter("password", "password%")
             .build();
 
-        HttpResponse response = Request.Get(target).execute().returnResponse();
+        HttpResponse response = execute(Request.Get(target)).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

@@ -31,7 +31,7 @@
     <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
 
     <properties>
-        <jetty94.wiremock.version>9.4.28.v20200408</jetty94.wiremock.version>
+        <jetty94.wiremock.version>9.4.41.v20210516</jetty94.wiremock.version>
     </properties>
 
     <dependencyManagement>
@@ -366,6 +366,21 @@
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
             <version>2.1.2</version>
+        </dependency>
+
+        <!-- Netty native transport -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-epoll</artifactId>
+            <version>${netty.version}</version>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
+            <version>${netty.version}</version>
+            <classifier>osx-x86_64</classifier>
         </dependency>
     </dependencies>
 

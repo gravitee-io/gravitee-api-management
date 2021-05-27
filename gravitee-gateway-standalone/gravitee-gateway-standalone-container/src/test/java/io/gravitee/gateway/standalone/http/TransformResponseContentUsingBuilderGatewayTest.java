@@ -50,7 +50,7 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractWir
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(requestBody, ContentType.TEXT_PLAIN);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

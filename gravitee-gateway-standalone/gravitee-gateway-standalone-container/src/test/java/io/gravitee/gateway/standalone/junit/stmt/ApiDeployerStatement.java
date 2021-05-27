@@ -15,23 +15,26 @@
  */
 package io.gravitee.gateway.standalone.junit.stmt;
 
+import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
-import io.gravitee.gateway.standalone.GatewayContainer;
+import io.gravitee.gateway.standalone.container.GatewayTestContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
+import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
-import io.gravitee.repository.management.api.ApiKeyRepository;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -41,6 +44,8 @@ import org.springframework.core.ResolvableType;
  * @author GraviteeSource Team
  */
 public class ApiDeployerStatement extends Statement {
+
+    private final Logger logger = LoggerFactory.getLogger(ApiDeployerStatement.class);
 
     private final Statement base;
     private final Object target;
@@ -55,7 +60,10 @@ public class ApiDeployerStatement extends Statement {
         URL home = ApiDeployerStatement.class.getResource("/gravitee-01/");
         System.setProperty("gravitee.home", URLDecoder.decode(home.getPath(), StandardCharsets.UTF_8.name()));
 
-        GatewayContainer container = new GatewayContainer();
+        GatewayTestContainer container = new GatewayTestContainer();
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
+            (ConfigurableApplicationContext) container.applicationContext()
+        ).getBeanFactory();
 
         if (target instanceof PolicyRegister) {
             String[] beanNamesForType = container
@@ -70,9 +78,6 @@ public class ApiDeployerStatement extends Statement {
         }
 
         if (target instanceof PolicyFactory) {
-            DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
-                (ConfigurableApplicationContext) container.applicationContext()
-            ).getBeanFactory();
             String[] beanNames = container.applicationContext().getBeanNamesForType(PolicyFactory.class);
             String oldBeanName = beanNames[0];
 
@@ -84,8 +89,7 @@ public class ApiDeployerStatement extends Statement {
             beanFactory.registerSingleton(oldBeanName, target);
         }
 
-        container.start();
-        Thread.sleep(1000);
+        final VertxEmbeddedContainer vertxContainer = startServer(container);
 
         ApiManager apiManager = container.applicationContext().getBean(ApiManager.class);
         Api api = loadApi(target.getClass().getAnnotation(ApiDescriptor.class).value());
@@ -93,9 +97,51 @@ public class ApiDeployerStatement extends Statement {
         try {
             apiManager.register(new io.gravitee.gateway.handlers.api.definition.Api(api));
             base.evaluate();
+        } catch (Exception e) {
+            logger.error("An error occurred", e);
+            throw e;
         } finally {
             apiManager.unregister(api.getId());
-            container.stop();
+            stopServer(container, vertxContainer);
+        }
+    }
+
+    private VertxEmbeddedContainer startServer(GatewayTestContainer container) throws InterruptedException {
+        final Thread starterThread = new Thread(
+            () -> {
+                try {
+                    container.start();
+                } catch (Exception e) {
+                    System.exit(-1);
+                }
+            }
+        );
+
+        starterThread.start();
+
+        final VertxEmbeddedContainer vertxEmbeddedContainer = container.applicationContext().getBean(VertxEmbeddedContainer.class);
+
+        while (vertxEmbeddedContainer.lifecycleState() != Lifecycle.State.STARTED) {
+            Thread.sleep(5);
+        }
+        return vertxEmbeddedContainer;
+    }
+
+    private void stopServer(GatewayTestContainer container, VertxEmbeddedContainer vertxContainer) throws InterruptedException {
+        final Thread stopThread = new Thread(
+            () -> {
+                try {
+                    container.stop();
+                } catch (Exception e) {
+                    System.exit(-1);
+                }
+            }
+        );
+
+        stopThread.start();
+
+        while (vertxContainer.lifecycleState() != Lifecycle.State.STOPPED) {
+            Thread.sleep(5);
         }
     }
 

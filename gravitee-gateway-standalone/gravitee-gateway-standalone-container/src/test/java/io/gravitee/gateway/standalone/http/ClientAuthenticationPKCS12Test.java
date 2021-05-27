@@ -68,11 +68,11 @@ public class ClientAuthenticationPKCS12Test extends AbstractWiremockGatewayTest 
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         // First call is calling an HTTPS endpoint without ssl configuration => 502
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals("without ssl configuration => 502", HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
 
         // Second call is calling an endpoint where trustAll = false, without truststore => 502
-        response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
             "trustAll = false, with keystore and without truststore => 200",
             HttpStatus.SC_BAD_GATEWAY,
@@ -80,11 +80,11 @@ public class ClientAuthenticationPKCS12Test extends AbstractWiremockGatewayTest 
         );
 
         // Third call is calling an endpoint where trustAll = false, with truststore and keystore => 200
-        response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals("trustAll = false, with truststore and keystore => 200", HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         // Fourth call is calling an endpoint where trustAll = true, with keystore and without truststore => 200
-        response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
             "trustAll = true,with keystore and  without truststore => 200",
             HttpStatus.SC_OK,

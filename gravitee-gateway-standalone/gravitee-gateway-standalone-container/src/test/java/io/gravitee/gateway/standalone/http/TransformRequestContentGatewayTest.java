@@ -48,7 +48,7 @@ public class TransformRequestContentGatewayTest extends AbstractWiremockGatewayT
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/api");
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

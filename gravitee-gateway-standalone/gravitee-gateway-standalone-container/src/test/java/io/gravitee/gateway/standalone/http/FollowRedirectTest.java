@@ -37,7 +37,7 @@ public class FollowRedirectTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get("/redirect").willReturn(permanentRedirect("http://localhost:" + wireMockRule.port() + "/final")));
         wireMockRule.stubFor(get("/final").willReturn(ok()));
 
-        HttpResponse response = Request.Get("http://localhost:8082/api/redirect").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/api/redirect")).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

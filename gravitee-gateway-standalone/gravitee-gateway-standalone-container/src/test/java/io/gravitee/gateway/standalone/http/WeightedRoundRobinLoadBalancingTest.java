@@ -43,7 +43,7 @@ public class WeightedRoundRobinLoadBalancingTest extends AbstractWiremockGateway
         int calls = 10;
 
         for (int i = 0; i < calls; i++) {
-            Response response = request.execute();
+            Response response = execute(request);
             HttpResponse returnResponse = response.returnResponse();
 
             assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
