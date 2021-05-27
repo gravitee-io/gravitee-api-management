@@ -18,7 +18,8 @@
     "pausedAt": 1479022010883,
     "generalConditionsContentPageId": "ref",
     "generalConditionsContentRevision": 2,
-    "generalConditionsAccepted": true
+    "generalConditionsAccepted": true,
+    "daysToExpirationOnLastNotification": 30
   },
   {
     "id":"sub2",

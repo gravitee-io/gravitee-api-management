@@ -47,6 +47,7 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(apiKey.getSubscription()).thenReturn("subscription1");
         when(apiKey.isRevoked()).thenReturn(true);
         when(apiKey.isPaused()).thenReturn(true);
+        when(apiKey.getDaysToExpirationOnLastNotification()).thenReturn(30);
         when(apiKeyRepository.findById(anyString())).thenReturn(empty());
         when(apiKeyRepository.findById("d449098d-8c31-4275-ad59-8dd707865a33")).thenReturn(of(apiKey));
         when(apiKeyRepository.findById("apiKey")).thenReturn(of(apiKey));
