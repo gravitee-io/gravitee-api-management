@@ -105,6 +105,11 @@ public class Subscription implements Serializable {
 
     private Boolean generalConditionsAccepted;
 
+    /**
+     * Number of days before the expiration of this subscription when the last pre-expiration notification was sent
+     */
+    private Integer daysToExpirationOnLastNotification;
+
     public Subscription() {}
 
     public Subscription(Subscription cloned) {
@@ -126,6 +131,7 @@ public class Subscription implements Serializable {
         this.generalConditionsAccepted = cloned.generalConditionsAccepted;
         this.generalConditionsContentRevision = cloned.generalConditionsContentRevision;
         this.generalConditionsContentPageId = cloned.generalConditionsContentPageId;
+        this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
     }
 
     public String getId() {
@@ -286,6 +292,14 @@ public class Subscription implements Serializable {
 
     public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
         this.generalConditionsAccepted = generalConditionsAccepted;
+    }
+
+    public Integer getDaysToExpirationOnLastNotification() {
+        return daysToExpirationOnLastNotification;
+    }
+
+    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
+        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
     @Override

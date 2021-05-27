@@ -78,6 +78,11 @@ public class ApiKey implements Serializable {
 	 */
 	private Date revokedAt;
 
+	/**
+	 * Number of days before the expiration of this api key when the last pre-expiration notification was sent
+	 */
+	private Integer daysToExpirationOnLastNotification;
+
 	public ApiKey() {}
 
 	public ApiKey(ApiKey cloned) {
@@ -91,6 +96,7 @@ public class ApiKey implements Serializable {
 		this.revoked = cloned.revoked;
 		this.revokedAt = cloned.revokedAt;
 		this.paused = cloned.paused;
+		this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
 	}
 	public boolean isRevoked() {
 		return revoked;
@@ -170,6 +176,14 @@ public class ApiKey implements Serializable {
 
 	public void setPaused(boolean paused) {
 		this.paused = paused;
+	}
+
+	public Integer getDaysToExpirationOnLastNotification() {
+		return daysToExpirationOnLastNotification;
+	}
+
+	public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
+		this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
 	}
 
 	@Override
