@@ -64,7 +64,7 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public PolicyManager apiPolicyManager(PolicyFactory factory) {
+    public PolicyManager policyManager(PolicyFactory factory) {
         return new ApiPolicyManager(factory);
     }
 
