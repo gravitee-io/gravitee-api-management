@@ -1,1223 +1,1974 @@
 {
 	"info": {
-		"_postman_id": "4c378a36-cde1-43c7-8ea4-1fb0c94eab2c",
+		"_postman_id": "00833cde-678f-4e0a-89bd-06a1c29483d1",
 		"name": "Applications",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "--Prepare--",
+			"name": "Searching",
 			"item": [
 				{
-					"name": "Create Application",
-					"event": [
+					"name": "--Prepare--",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"id": "2862c0dd-61e4-4f45-b3a4-63dc096e1506",
-								"exec": [
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"pm.collectionVariables.set(\"created_application_id\", jsonData.id);",
-									"pm.collectionVariables.set(\"created_application\", JSON.stringify(jsonData));"
+							"name": "Create app1 for application1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"created_app1_id\", jsonData.id);",
+											"pm.collectionVariables.set(\"created_app1\", JSON.stringify(jsonData));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
 								],
-								"type": "text/javascript"
-							}
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\":\"app1\",\n\t\"description\":\"Application 1 for 'Applications searching scenario'\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create app2 for application1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"created_app2_id\", jsonData.id);",
+											"pm.collectionVariables.set(\"created_app2\", JSON.stringify(jsonData));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\":\"app2\",\n\t\"description\":\"Application 2 for 'Applications searching scenario'\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create search-app for application1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"created_search-app_id\", jsonData.id);",
+											"pm.collectionVariables.set(\"created_search-app\", JSON.stringify(jsonData));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\":\"search-app\",\n\t\"description\":\"Application search-app for 'Applications searching scenario'\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create app1 for api1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"created_api-app1_id\", jsonData.id);",
+											"pm.collectionVariables.set(\"created_api-app1\", JSON.stringify(jsonData));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "api1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "api1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\":\"app1\",\n\t\"description\":\"Application 1 for 'Applications searching scenario'\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
 						}
 					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "application1",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "application1",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [
+					"auth": {
+						"type": "basic",
+						"basic": [
 							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"type": "text",
-								"value": "application/json"
+								"key": "password",
+								"value": "api1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "api1",
+								"type": "string"
 							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\t\"name\":\"application\",\n\t\"description\":\"Application for 'Applications scenario'\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"applications"
-							]
-						}
+						]
 					},
-					"response": []
-				},
-				{
-					"name": "Create INCLUDED group",
 					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "28ca89a4-dcef-4474-97eb-0cc71be98bf9",
-								"exec": [
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"pm.collectionVariables.set(\"created_included_group\", JSON.stringify(jsonData));",
-									"pm.collectionVariables.set(\"created_included_group_id\", jsonData.id);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"Postman Included\",\n    \"event_rules\": [\n        {\n            \"event\": \"APPLICATION_CREATE\"\n        }\n    ],\n    \"lock_api_role\": false,\n    \"lock_application_role\": false,\n    \"disable_membership_notifications\": false\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"configuration",
-								"groups"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User member",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "ca8b3858-bd65-4978-933b-f22051d87229",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"    ",
-									"    var user = pm.response.json().find(user => user.displayName === pm.request.url.query.get(\"q\"));",
-									"    pm.collectionVariables.set(\"user_member\", JSON.stringify(user));",
-									"    pm.collectionVariables.set(\"user_member_reference\", user.reference);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						},
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "4a6237bf-3456-4a42-8211-b4348a02dab3",
+								"type": "text/javascript",
 								"exec": [
 									""
-								],
-								"type": "text/javascript"
+								]
 							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								}
-							]
 						},
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/search/users/?q=user",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"search",
-								"users",
-								""
-							],
-							"query": [
-								{
-									"key": "q",
-									"value": "user"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add INCLUDED member to group",
-					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "d66c673f-2640-4fbf-8e16-b143a09e66dc",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "c0744d56-c63f-4d16-933a-daeb223b9a29",
+								"type": "text/javascript",
 								"exec": [
 									""
-								],
-								"type": "text/javascript"
+								]
 							}
 						}
-					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
+					]
+				},
+				{
+					"name": "Searching",
+					"item": [
+						{
+							"name": "Search all for application1",
+							"event": [
 								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"var app1 = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_app1_id\"));",
+											"",
+											"pm.test(\"app1 should be in the list\", function() {",
+											"    pm.expect(app1).to.not.be.null;",
+											"});",
+											"",
+											"var app2 = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_app2_id\"));",
+											"",
+											"pm.test(\"app2 should be in the list\", function() {",
+											"    pm.expect(app2).to.not.be.null;",
+											"});",
+											"",
+											"var searchApp = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_search-app_id\"));",
+											"",
+											"pm.test(\"search-app should be in the list\", function() {",
+											"    pm.expect(searchApp).to.not.be.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
 								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Search search-app for application1",
+							"event": [
 								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"var app1 = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_app1_id\"));",
+											"",
+											"pm.test(\"app1 should not be in the list\", function() {",
+											"    pm.expect(app1).to.be.undefined;",
+											"});",
+											"",
+											"var app2 = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_app2_id\"));",
+											"",
+											"pm.test(\"app2 should not be in the list\", function() {",
+											"    pm.expect(app2).to.be.undefined;",
+											"});",
+											"",
+											"var searchApp = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_search-app_id\"));",
+											"",
+											"pm.test(\"search-app should be in the list\", function() {",
+											"    pm.expect(searchApp).to.not.be.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "[\n    {\n        \"reference\": \"{{user_member_reference}}\",\n        \"roles\": [\n            {\n                \"scope\": \"API\",\n                \"name\": \"USER\"\n            },\n            {\n                \"scope\": \"APPLICATION\",\n                \"name\": \"USER\"\n            }\n        ]\n    }\n]",
-							"options": {
-								"raw": {
-									"language": "json"
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications?query=search",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "search"
+										}
+									]
 								}
-							}
+							},
+							"response": []
 						},
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups/:includedGroupId/members",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"configuration",
-								"groups",
-								":includedGroupId",
-								"members"
-							],
-							"variable": [
+						{
+							"name": "Search all for admin",
+							"event": [
 								{
-									"key": "includedGroupId",
-									"value": "{{created_included_group_id}}"
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"var app1 = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_app1_id\"));",
+											"",
+											"pm.test(\"app1 should be in the list\", function() {",
+											"    pm.expect(app1).to.not.be.null;",
+											"});",
+											"",
+											"var app2 = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_app2_id\"));",
+											"",
+											"pm.test(\"app2 should be in the list\", function() {",
+											"    pm.expect(app2).to.not.be.null;",
+											"});",
+											"",
+											"var searchApp = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_search-app_id\"));",
+											"",
+											"pm.test(\"search-app should be in the list\", function() {",
+											"    pm.expect(searchApp).to.not.be.null;",
+											"});",
+											"",
+											"var apiApp1 = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_api-app1_id\"));",
+											"",
+											"pm.test(\"created_api-app1_id should be in the list\", function() {",
+											"    pm.expect(apiApp1).to.not.be.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
-						},
-						"description": "Use a group a reviewer which is not directly linked to the API."
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "basic",
-				"basic": [
-					{
-						"key": "password",
-						"value": "api1",
-						"type": "string"
-					},
-					{
-						"key": "username",
-						"value": "api1",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "debd95d4-45e5-4938-87fe-b7ab95b16df7",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "eae30643-e6ec-47b3-a56a-7dbcd57793c7",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Check on portal",
-			"item": [
-				{
-					"name": "Get applications does not contain created application",
-					"event": [
+					"name": "-- Clean Up --",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"id": "80a36743-bcd7-4682-af2c-d8d08474b499",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var jsonData = pm.response.json().data;",
-									"var application = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_application_id\"));",
-									"",
-									"pm.test(\"Should not be in the list\", function() {",
-									"    pm.expect(application).to.be.undefined;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
+							"name": "Delete app1 for application1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "{{created_app1_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete app2 for application1 Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "{{created_app2_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete search-app for application1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "{{created_search-app_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete app1 for api1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "api1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "api1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "{{created_api-app1_id}}"
+										}
+									]
+								}
+							},
+							"response": []
 						}
 					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications?size=-1",
-							"host": [
-								"{{GRAVITEEIO_PORTAL_URL}}"
-							],
-							"path": [
-								"applications"
-							],
-							"query": [
-								{
-									"key": "size",
-									"value": "-1"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get application forbidden",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "d0858ba7-cedf-47d6-a207-3d2fc6303784",
-								"exec": [
-									"pm.test(\"Status code is 403\", function () {",
-									"    pm.response.to.have.status(403);",
-									"});"
-								],
-								"type": "text/javascript"
+					"auth": {
+						"type": "basic",
+						"basic": [
+							{
+								"key": "password",
+								"value": "api1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "api1",
+								"type": "string"
 							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications/:applicationid",
-							"host": [
-								"{{GRAVITEEIO_PORTAL_URL}}"
-							],
-							"path": [
-								"applications",
-								":applicationid"
-							],
-							"variable": [
-								{
-									"key": "applicationid",
-									"value": "{{created_application_id}}"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "basic",
-				"basic": [
-					{
-						"key": "password",
-						"value": "api1",
-						"type": "string"
-					},
-					{
-						"key": "username",
-						"value": "api1",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "926a7663-d839-49e5-9f98-0e93f7faebdf",
-						"type": "text/javascript",
-						"exec": [
-							""
 						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"id": "bae7c0b4-2732-4608-a90b-34c0daae56f2",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Add member",
-			"item": [
-				{
-					"name": "Get api1 member",
+					},
 					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "45330263-0a41-440e-9466-506eef74c6a3",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"    ",
-									"    var user = pm.response.json().find(user => user.displayName === pm.request.url.query.get(\"q\"));",
-									"    pm.collectionVariables.set(\"api1_member\", JSON.stringify(user));",
-									"    pm.collectionVariables.set(\"api1_member_reference\", user.reference);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						},
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "4902b7f9-56bf-4aa4-9c79-327424edb139",
+								"type": "text/javascript",
 								"exec": [
 									""
-								],
-								"type": "text/javascript"
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
 							}
 						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
+					]
+				}
+			]
+		},
+		{
+			"name": "Membership",
+			"item": [
+				{
+					"name": "--Prepare--",
+					"item": [
+						{
+							"name": "Create Application",
+							"event": [
 								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"created_application_id\", jsonData.id);",
+											"pm.collectionVariables.set(\"created_application\", JSON.stringify(jsonData));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"name\":\"application\",\n\t\"description\":\"Application for 'Applications scenario'\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create INCLUDED group",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"created_included_group\", JSON.stringify(jsonData));",
+											"pm.collectionVariables.set(\"created_included_group_id\", jsonData.id);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Postman Included\",\n    \"event_rules\": [\n        {\n            \"event\": \"APPLICATION_CREATE\"\n        }\n    ],\n    \"lock_api_role\": false,\n    \"lock_application_role\": false,\n    \"disable_membership_notifications\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"configuration",
+										"groups"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get User member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    var user = pm.response.json().find(user => user.displayName === pm.request.url.query.get(\"q\"));",
+											"    pm.collectionVariables.set(\"user_member\", JSON.stringify(user));",
+											"    pm.collectionVariables.set(\"user_member_reference\", user.reference);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
 								},
 								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/search/users/?q=user",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"search",
+										"users",
+										""
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "user"
+										}
+									]
+								}
+							},
+							"response": []
 						},
-						"method": "GET",
-						"header": [
+						{
+							"name": "Add INCLUDED member to group",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n    {\n        \"reference\": \"{{user_member_reference}}\",\n        \"roles\": [\n            {\n                \"scope\": \"API\",\n                \"name\": \"USER\"\n            },\n            {\n                \"scope\": \"APPLICATION\",\n                \"name\": \"USER\"\n            }\n        ]\n    }\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups/:includedGroupId/members",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"configuration",
+										"groups",
+										":includedGroupId",
+										"members"
+									],
+									"variable": [
+										{
+											"key": "includedGroupId",
+											"value": "{{created_included_group_id}}"
+										}
+									]
+								},
+								"description": "Use a group a reviewer which is not directly linked to the API."
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "basic",
+						"basic": [
 							{
-								"key": "Content-Type",
-								"value": "application/json"
+								"key": "password",
+								"value": "api1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "api1",
+								"type": "string"
 							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}//search/users/?q=api1",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"search",
-								"users",
-								""
-							],
-							"query": [
-								{
-									"key": "q",
-									"value": "api1"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Add api1 member",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "c68bb452-fae6-48be-8c86-b25086cf5467",
-								"exec": [
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"reference\": \"{{api1_member_reference}}\",\n    \"role\": \"USER\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId/members",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"applications",
-								":applicationId",
-								"members"
-							],
-							"variable": [
-								{
-									"key": "applicationId",
-									"value": "{{created_application_id}}"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "basic",
-				"basic": [
-					{
-						"key": "password",
-						"value": "application1",
-						"type": "string"
-					},
-					{
-						"key": "username",
-						"value": "application1",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "0031286a-3883-4ab4-9b8c-7ebdd73f1f81",
-						"type": "text/javascript",
-						"exec": [
-							""
 						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"id": "559556fa-5026-4b38-bf4e-694d04334924",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Check on portal",
-			"item": [
-				{
-					"name": "Get applications contains created application",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "a3ccec02-9310-45df-bd41-33623a0fc1c0",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var jsonData = pm.response.json().data;",
-									"var application = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_application_id\"));",
-									"",
-									"pm.test(\"Should be in the list\", function() {",
-									"    pm.expect(application).to.not.be.null;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications?size=-1",
-							"host": [
-								"{{GRAVITEEIO_PORTAL_URL}}"
-							],
-							"path": [
-								"applications"
-							],
-							"query": [
-								{
-									"key": "size",
-									"value": "-1"
-								}
-							]
-						}
 					},
-					"response": []
-				},
-				{
-					"name": "Get application ok",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "9d85cebd-64b8-4a57-ab09-3f5b27ddfe47",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test(\"Application should be accessible\", function() {",
-									"    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"created_application_id\"));",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications/:applicationid",
-							"host": [
-								"{{GRAVITEEIO_PORTAL_URL}}"
-							],
-							"path": [
-								"applications",
-								":applicationid"
-							],
-							"variable": [
-								{
-									"key": "applicationid",
-									"value": "{{created_application_id}}"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "basic",
-				"basic": [
-					{
-						"key": "password",
-						"value": "api1",
-						"type": "string"
-					},
-					{
-						"key": "username",
-						"value": "api1",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "7d16d05d-3f72-48e3-817e-cc5dfb6dbcf2",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"id": "053d8c48-dbf1-404c-8e93-b0e8d083655d",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Exclude group",
-			"item": [
-				{
-					"name": "INCLUDED cannot get pages",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "1e63a84a-f16d-4819-bb45-391ea989707c",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"var application = jsonData.data.find(app => app.id === pm.collectionVariables.get(\"created_application_id\"));",
-									"",
-									"pm.test(\"Should not get application\", function () {",
-									"    pm.expect(application).to.be.undefined;",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "password",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "user",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications",
-							"host": [
-								"{{GRAVITEEIO_PORTAL_URL}}"
-							],
-							"path": [
-								"applications"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Include INCLUDED group",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "26bd6990-d8f6-4334-9e85-7aba293b2cd7",
+								"type": "text/javascript",
 								"exec": [
-									"var application = JSON.parse(pm.collectionVariables.get(\"created_application\"));",
-									"",
-									"application.groups = [pm.collectionVariables.get(\"created_included_group_id\")];",
-									"",
-									"pm.collectionVariables.set(\"created_application\", JSON.stringify(application));"
-								],
-								"type": "text/javascript"
+									""
+								]
 							}
 						},
 						{
 							"listen": "test",
 							"script": {
-								"id": "8c61bd53-0009-4b5b-a2dc-9eb9d429cdb6",
+								"type": "text/javascript",
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var plan = pm.response.json();",
-									"",
-									"pm.test(\"Should have included group\", function() {",
-									"    pm.expect(plan.groups).to.have.members([pm.collectionVariables.get(\"created_included_group_id\")]);",
-									"});"
-								],
-								"type": "text/javascript"
+									""
+								]
 							}
 						}
-					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "application1",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "application1",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{{created_application}}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"applications",
-								":applicationId"
-							],
-							"variable": [
-								{
-									"key": "applicationId",
-									"value": "{{created_application_id}}"
-								}
-							]
-						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "INCLUDED can get plans",
+					"name": "Check on portal",
+					"item": [
+						{
+							"name": "Get applications does not contain created application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json().data;",
+											"var application = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_application_id\"));",
+											"",
+											"pm.test(\"Should not be in the list\", function() {",
+											"    pm.expect(application).to.be.undefined;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications?size=-1",
+									"host": [
+										"{{GRAVITEEIO_PORTAL_URL}}"
+									],
+									"path": [
+										"applications"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "-1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get application forbidden",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 403\", function () {",
+											"    pm.response.to.have.status(403);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications/:applicationid",
+									"host": [
+										"{{GRAVITEEIO_PORTAL_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationid"
+									],
+									"variable": [
+										{
+											"key": "applicationid",
+											"value": "{{created_application_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "basic",
+						"basic": [
+							{
+								"key": "password",
+								"value": "api1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "api1",
+								"type": "string"
+							}
+						]
+					},
 					"event": [
 						{
-							"listen": "test",
+							"listen": "prerequest",
 							"script": {
-								"id": "6949eddd-801a-4496-824e-daa9835e7320",
+								"type": "text/javascript",
 								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"var jsonData = pm.response.json();",
-									"",
-									"pm.test(\"Should not be empty\", function () {",
-									"    pm.expect(jsonData.data).to.be.not.empty;",
-									"});",
-									"",
-									"var planIds = jsonData.data.map(page => page.id);",
-									"",
-									"pm.test(\"Plan should be present\", function (){",
-									"    pm.expect(planIds).to.includes(pm.collectionVariables.get(\"created_application_id\"));",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "password",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "user",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
+									""
+								]
 							}
 						},
-						"url": {
-							"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications",
-							"host": [
-								"{{GRAVITEEIO_PORTAL_URL}}"
-							],
-							"path": [
-								"applications"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "basic",
-				"basic": [
-					{
-						"key": "password",
-						"value": "api1",
-						"type": "string"
-					},
-					{
-						"key": "username",
-						"value": "api1",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "7a4944a0-abc5-4d37-a6be-12d926df8ca9",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"id": "b92bd711-42ae-41cf-b21d-2e850403c6fc",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "-- Clean Up --",
-			"item": [
-				{
-					"name": "Delete application",
-					"event": [
 						{
 							"listen": "test",
 							"script": {
-								"id": "787cb030-2282-4849-b4e3-b2e66849a1b6",
+								"type": "text/javascript",
 								"exec": [
-									"pm.test(\"Status code is 204\", function () {",
-									"    pm.response.to.have.status(204);",
-									"});"
-								],
-								"type": "text/javascript"
+									""
+								]
 							}
 						}
-					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "application1",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "application1",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"applications",
-								":applicationId"
-							],
-							"variable": [
-								{
-									"key": "applicationId",
-									"value": "{{created_application_id}}"
-								}
-							]
-						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Delete INCLUDED group",
+					"name": "Add member",
+					"item": [
+						{
+							"name": "Get api1 member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"    ",
+											"    var user = pm.response.json().find(user => user.displayName === pm.request.url.query.get(\"q\"));",
+											"    pm.collectionVariables.set(\"api1_member\", JSON.stringify(user));",
+											"    pm.collectionVariables.set(\"api1_member_reference\", user.reference);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/search/users/?q=api1",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"search",
+										"users",
+										""
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "api1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Add api1 member",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {",
+											"    pm.response.to.have.status(201);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"reference\": \"{{api1_member_reference}}\",\n    \"role\": \"USER\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId/members",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationId",
+										"members"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "{{created_application_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "basic",
+						"basic": [
+							{
+								"key": "password",
+								"value": "application1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "application1",
+								"type": "string"
+							}
+						]
+					},
 					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
 						{
 							"listen": "test",
 							"script": {
-								"id": "801ffb06-d51a-46da-8446-89af1d954288",
+								"type": "text/javascript",
 								"exec": [
-									"pm.test(\"Status code is 204\", function () {",
-									"    pm.response.to.have.status(204);",
-									"});"
-								],
-								"type": "text/javascript"
+									""
+								]
 							}
 						}
-					],
-					"request": {
-						"auth": {
-							"type": "basic",
-							"basic": [
-								{
-									"key": "password",
-									"value": "admin",
-									"type": "string"
-								},
-								{
-									"key": "username",
-									"value": "admin",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups/:excludedGroupId",
-							"host": [
-								"{{GRAVITEEIO_MGMT_URL}}"
-							],
-							"path": [
-								"configuration",
-								"groups",
-								":excludedGroupId"
-							],
-							"variable": [
-								{
-									"key": "excludedGroupId",
-									"value": "{{created_included_group_id}}"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"auth": {
-				"type": "basic",
-				"basic": [
-					{
-						"key": "password",
-						"value": "api1",
-						"type": "string"
-					},
-					{
-						"key": "username",
-						"value": "api1",
-						"type": "string"
-					}
-				]
-			},
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"id": "3e928e0a-cd3f-4159-af2a-fef517e9affc",
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
+					]
 				},
 				{
-					"listen": "test",
-					"script": {
-						"id": "30e4daa4-278e-48d6-a742-a9ed94cc3ce0",
-						"type": "text/javascript",
-						"exec": [
-							""
+					"name": "Check on portal",
+					"item": [
+						{
+							"name": "Get applications contains created application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json().data;",
+											"var application = jsonData.find(app => app.id === pm.collectionVariables.get(\"created_application_id\"));",
+											"",
+											"pm.test(\"Should be in the list\", function() {",
+											"    pm.expect(application).to.not.be.null;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications?size=-1",
+									"host": [
+										"{{GRAVITEEIO_PORTAL_URL}}"
+									],
+									"path": [
+										"applications"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "-1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get application ok",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Application should be accessible\", function() {",
+											"    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"created_application_id\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications/:applicationid",
+									"host": [
+										"{{GRAVITEEIO_PORTAL_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationid"
+									],
+									"variable": [
+										{
+											"key": "applicationid",
+											"value": "{{created_application_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "basic",
+						"basic": [
+							{
+								"key": "password",
+								"value": "api1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "api1",
+								"type": "string"
+							}
 						]
-					}
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "Exclude group",
+					"item": [
+						{
+							"name": "INCLUDED cannot get pages",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"var application = jsonData.data.find(app => app.id === pm.collectionVariables.get(\"created_application_id\"));",
+											"",
+											"pm.test(\"Should not get application\", function () {",
+											"    pm.expect(application).to.be.undefined;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "password",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "user",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_PORTAL_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Include INCLUDED group",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var application = JSON.parse(pm.collectionVariables.get(\"created_application\"));",
+											"",
+											"application.groups = [pm.collectionVariables.get(\"created_included_group_id\")];",
+											"",
+											"pm.collectionVariables.set(\"created_application\", JSON.stringify(application));"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var plan = pm.response.json();",
+											"",
+											"pm.test(\"Should have included group\", function() {",
+											"    pm.expect(plan.groups).to.have.members([pm.collectionVariables.get(\"created_included_group_id\")]);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{{created_application}}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "{{created_application_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "INCLUDED can get plans",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"var jsonData = pm.response.json();",
+											"",
+											"pm.test(\"Should not be empty\", function () {",
+											"    pm.expect(jsonData.data).to.be.not.empty;",
+											"});",
+											"",
+											"var planIds = jsonData.data.map(page => page.id);",
+											"",
+											"pm.test(\"Plan should be present\", function (){",
+											"    pm.expect(planIds).to.includes(pm.collectionVariables.get(\"created_application_id\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "password",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "user",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{GRAVITEEIO_PORTAL_URL}}/applications",
+									"host": [
+										"{{GRAVITEEIO_PORTAL_URL}}"
+									],
+									"path": [
+										"applications"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "basic",
+						"basic": [
+							{
+								"key": "password",
+								"value": "api1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "api1",
+								"type": "string"
+							}
+						]
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
+				},
+				{
+					"name": "-- Clean Up --",
+					"item": [
+						{
+							"name": "Delete application",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "application1",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "application1",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/applications/:applicationId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"applications",
+										":applicationId"
+									],
+									"variable": [
+										{
+											"key": "applicationId",
+											"value": "{{created_application_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete INCLUDED group",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 204\", function () {",
+											"    pm.response.to.have.status(204);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "basic",
+									"basic": [
+										{
+											"key": "password",
+											"value": "admin",
+											"type": "string"
+										},
+										{
+											"key": "username",
+											"value": "admin",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{GRAVITEEIO_MGMT_URL}}/configuration/groups/:excludedGroupId",
+									"host": [
+										"{{GRAVITEEIO_MGMT_URL}}"
+									],
+									"path": [
+										"configuration",
+										"groups",
+										":excludedGroupId"
+									],
+									"variable": [
+										{
+											"key": "excludedGroupId",
+											"value": "{{created_included_group_id}}"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"auth": {
+						"type": "basic",
+						"basic": [
+							{
+								"key": "password",
+								"value": "api1",
+								"type": "string"
+							},
+							{
+								"key": "username",
+								"value": "api1",
+								"type": "string"
+							}
+						]
+					},
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					]
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		}
 	],
 	"variable": [
 		{
-			"id": "b9afac99-8a05-4a57-b62d-928025ce0013",
 			"key": "api1_member",
 			"value": ""
 		},
 		{
-			"id": "db94c25d-a036-4212-a0c0-6a6225f8e1f9",
 			"key": "api1_member_reference",
 			"value": ""
 		},
 		{
-			"id": "fa7b98bb-ade9-43fe-ab8b-ddacbcfd29c2",
 			"key": "created_application_id",
 			"value": ""
 		},
 		{
-			"id": "f0329c08-283f-4913-83ec-52b837c65d6f",
 			"key": "created_excluded_group",
 			"value": ""
 		},
 		{
-			"id": "258a2972-ea93-45e7-9d0c-311ff325efb3",
 			"key": "created_excluded_group_id",
 			"value": ""
 		},
 		{
-			"id": "fbb9f0b1-8dcc-48b9-abe6-4e48ba1352fc",
 			"key": "user_member",
 			"value": ""
 		},
 		{
-			"id": "9edda829-6fc7-457d-a49f-f76f13b941fa",
 			"key": "user_member_reference",
 			"value": ""
 		},
 		{
-			"id": "6c3f8dd3-ff83-4bde-bf95-7c0b2566abcc",
 			"key": "created_application",
 			"value": ""
 		},
 		{
-			"id": "b52a7d3f-0c12-4aa4-ab98-1bf056f3f135",
 			"key": "created_included_group",
 			"value": ""
 		},
 		{
-			"id": "b3eba21d-217f-47ae-a475-6bc8468e93fb",
 			"key": "created_included_group_id",
 			"value": ""
+		},
+		{
+			"key": "created_app1_id",
+			"value": ""
+		},
+		{
+			"key": "created_app1",
+			"value": ""
+		},
+		{
+			"key": "created_app2_id",
+			"value": ""
+		},
+		{
+			"key": "created_app2",
+			"value": ""
+		},
+		{
+			"key": "created_search-app_id",
+			"value": ""
+		},
+		{
+			"key": "created_search-app",
+			"value": ""
+		},
+		{
+			"key": "created_api-app1_id",
+			"value": ""
+		},
+		{
+			"key": "created_api-app1",
+			"value": ""
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

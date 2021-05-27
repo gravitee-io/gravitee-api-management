@@ -1759,7 +1759,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     try {
                         groups.add(groupService.findById(groupName));
                     } catch (GroupNotFoundException gnfe) {
-                        LOGGER.error("Unable to create user, missing group in repository : {}", groupName);
+                        LOGGER.warn("Unable to map user groups, missing group in repository: {}", groupName);
                     }
                 }
             }

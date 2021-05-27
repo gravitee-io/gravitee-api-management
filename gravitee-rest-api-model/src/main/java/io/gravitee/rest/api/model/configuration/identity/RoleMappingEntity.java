@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.configuration.identity;
 
 import java.util.List;
 import java.util.Map;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -26,8 +27,10 @@ public class RoleMappingEntity {
 
     private String condition;
 
+    @NotEmpty
     private List<String> organizations;
 
+    @NotEmpty
     private Map<String, List<String>> environments;
 
     public String getCondition() {

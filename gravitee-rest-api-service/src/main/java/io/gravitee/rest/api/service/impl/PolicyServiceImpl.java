@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,7 +63,7 @@ public class PolicyServiceImpl extends AbstractPluginService<PolicyPlugin, Polic
     @Autowired
     private PolicyClassLoaderFactory policyClassLoaderFactory;
 
-    private final Map<String, PolicyDevelopmentEntity> policies = new HashMap<>();
+    private final Map<String, PolicyDevelopmentEntity> policies = new ConcurrentHashMap<>();
 
     @Override
     public Set<PolicyEntity> findAll(Boolean withResource) {
