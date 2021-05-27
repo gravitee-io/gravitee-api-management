@@ -16,8 +16,6 @@
 package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static java.util.Arrays.stream;
-import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
