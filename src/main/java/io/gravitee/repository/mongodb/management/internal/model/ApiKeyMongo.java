@@ -82,6 +82,11 @@ public class ApiKeyMongo {
 	 */
 	private Date revokedAt;
 
+	/**
+	 * Number of days before the expiration of this api key when the last pre-expiration notification was sent
+	 */
+	private Integer daysToExpirationOnLastNotification;
+
 	public String getKey() {
 		return key;
 	}
@@ -160,6 +165,14 @@ public class ApiKeyMongo {
 
 	public void setPaused(boolean paused) {
 		this.paused = paused;
+	}
+
+	public Integer getDaysToExpirationOnLastNotification() {
+		return daysToExpirationOnLastNotification;
+	}
+
+	public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
+		this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
 	}
 
 	@Override

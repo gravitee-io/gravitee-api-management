@@ -97,6 +97,11 @@ public class SubscriptionMongo extends Auditable {
 
     private Boolean generalConditionsAccepted;
 
+    /**
+     * Number of days before the expiration of this subscription when the last pre-expiration notification was sent
+     */
+    private Integer daysToExpirationOnLastNotification;
+
     public String getId() {
         return id;
     }
@@ -231,6 +236,14 @@ public class SubscriptionMongo extends Auditable {
 
     public void setGeneralConditionsAccepted(Boolean generalConditionsAccepted) {
         this.generalConditionsAccepted = generalConditionsAccepted;
+    }
+
+    public Integer getDaysToExpirationOnLastNotification() {
+        return daysToExpirationOnLastNotification;
+    }
+
+    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
+        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
     @Override
