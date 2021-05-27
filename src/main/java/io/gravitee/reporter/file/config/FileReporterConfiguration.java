@@ -33,11 +33,18 @@ public class FileReporterConfiguration {
     @Value("${reporters.file.output:json}")
     private String outputType;
 
+    @Value("${reporters.file.flushInterval:1000}")
+    private long flushInterval;
+
     public String getFilename() {
         return filename;
     }
 
     public Type getOutputType() {
         return outputType == null ? Type.JSON : Type.valueOf(outputType.toUpperCase());
+    }
+
+    public long getFlushInterval() {
+        return flushInterval;
     }
 }

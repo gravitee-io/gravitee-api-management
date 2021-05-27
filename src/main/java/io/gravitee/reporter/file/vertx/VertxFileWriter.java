@@ -17,8 +17,10 @@ package io.gravitee.reporter.file.vertx;
 
 import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.file.MetricsType;
+import io.gravitee.reporter.file.config.FileReporterConfiguration;
 import io.gravitee.reporter.file.formatter.Formatter;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
@@ -79,10 +81,16 @@ public class VertxFileWriter<T extends Reportable> {
 
     private final SimpleDateFormat fileDateFormat = new SimpleDateFormat(ROLLOVER_FILE_DATE_FORMAT);
 
-    public VertxFileWriter(Vertx vertx, MetricsType type, Formatter<T> formatter, String filename) throws IOException {
+    private FileReporterConfiguration configuration;
+
+    private final long flushId;
+
+    public VertxFileWriter(Vertx vertx, MetricsType type, Formatter<T> formatter, String filename, FileReporterConfiguration configuration)
+        throws IOException {
         this.vertx = vertx;
         this.type = type;
         this.formatter = formatter;
+        this.configuration = configuration;
 
         if (filename != null) {
             filename = filename.trim();
@@ -96,6 +104,27 @@ public class VertxFileWriter<T extends Reportable> {
         this.filename = filename;
 
         __rollover = new Timer(VertxFileWriter.class.getName(), true);
+
+        flushId =
+            vertx.setPeriodic(
+                configuration.getFlushInterval(),
+                new Handler<Long>() {
+                    @Override
+                    public void handle(Long event) {
+                        LOGGER.debug("Flush the content to file");
+
+                        if (asyncFile != null) {
+                            asyncFile.flush(
+                                event1 -> {
+                                    if (event1.failed()) {
+                                        LOGGER.error("An error occurs while flushing the content of the file", event1.cause());
+                                    }
+                                }
+                            );
+                        }
+                    }
+                }
+            );
     }
 
     public Future<Void> initialize() {
@@ -142,18 +171,24 @@ public class VertxFileWriter<T extends Reportable> {
 
                 AsyncFile oldAsyncFile = asyncFile;
 
+                OpenOptions options = new OpenOptions().setAppend(true).setCreate(true);
+
+                if (configuration.getFlushInterval() <= 0) {
+                    options.setDsync(true);
+                }
+
                 vertx
                     .fileSystem()
                     .open(
                         filename,
-                        new OpenOptions().setAppend(true).setCreate(true).setDsync(true),
+                        options,
                         event -> {
                             if (event.succeeded()) {
                                 asyncFile = event.result();
 
                                 if (oldAsyncFile != null) {
                                     // Now we can close previous file safely
-                                    close(oldAsyncFile)
+                                    stop(oldAsyncFile)
                                         .setHandler(
                                             closeEvent -> {
                                                 if (!closeEvent.succeeded()) {
@@ -186,12 +221,16 @@ public class VertxFileWriter<T extends Reportable> {
         if (asyncFile != null) {
             Buffer payload = formatter.format(data);
             if (payload != null) {
-                asyncFile.write(payload.appendBytes(END_OF_LINE));
+                if (!asyncFile.writeQueueFull()) {
+                    asyncFile.write(payload.appendBytes(END_OF_LINE));
+                } else {
+                    LOGGER.warn("Reporter file, queue full... Skipping data...");
+                }
             }
         }
     }
 
-    public Future<Void> close() {
+    public Future<Void> stop() {
         Future<Void> future = Future.future();
 
         synchronized (VertxFileWriter.class) {
@@ -200,9 +239,12 @@ public class VertxFileWriter<T extends Reportable> {
             }
         }
 
-        close(asyncFile)
+        stop(asyncFile)
             .setHandler(
                 event -> {
+                    // Cancel timer
+                    vertx.cancelTimer(flushId);
+
                     if (event.succeeded()) {
                         asyncFile = null;
                         future.complete();
@@ -215,20 +257,24 @@ public class VertxFileWriter<T extends Reportable> {
         return future;
     }
 
-    private Future<Void> close(AsyncFile asyncFile) {
+    private Future<Void> stop(AsyncFile asyncFile) {
         Future<Void> future = Future.future();
 
         if (asyncFile != null) {
-            asyncFile.close(
-                event -> {
-                    if (event.succeeded()) {
-                        LOGGER.info("File writer is now closed for type [{}]", this.type);
-                        future.complete();
-                    } else {
-                        LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
-                        future.fail(event.cause());
-                    }
-                }
+            // Ensure everything has been flushed before closing the file
+            asyncFile.flush(
+                flushEvent ->
+                    asyncFile.close(
+                        event -> {
+                            if (event.succeeded()) {
+                                LOGGER.info("File writer is now closed for type [{}]", this.type);
+                                future.complete();
+                            } else {
+                                LOGGER.error("An error occurs while closing file writer for type[{}]", this.type, event.cause());
+                                future.fail(event.cause());
+                            }
+                        }
+                    )
             );
         } else {
             future.complete();
