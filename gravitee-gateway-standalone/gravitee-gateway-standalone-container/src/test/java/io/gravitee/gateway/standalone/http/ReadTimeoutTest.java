@@ -36,7 +36,7 @@ public class ReadTimeoutTest extends AbstractWiremockGatewayTest {
     public void call_read_timeout_api() throws Exception {
         wireMockRule.stubFor(get("/").willReturn(serviceUnavailable().withFixedDelay(2000)));
 
-        HttpResponse response = Request.Get("http://localhost:8082/api").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/api")).returnResponse();
 
         assertEquals(HttpStatus.SC_GATEWAY_TIMEOUT, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/")));

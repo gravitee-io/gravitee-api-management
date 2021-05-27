@@ -42,7 +42,7 @@ public class StreamPolicyOrderFlowTest extends AbstractWiremockGatewayTest {
     public void shouldRunFlows() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withRequestBody(equalTo("OnRequestContent2Policy")));
 

@@ -44,7 +44,7 @@ public class RequestResponseInvalidContentTest extends AbstractWiremockGatewayTe
         org.apache.http.client.fluent.Request request = org.apache.http.client.fluent.Request.Post("http://localhost:8082/echo/helloworld");
         request.bodyString("Invalid body", ContentType.TEXT_PLAIN);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
 

@@ -40,7 +40,7 @@ public class PostOnlyFlowTest extends AbstractWiremockGatewayTest {
     public void shouldRunPolicies() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        final HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         assertEquals("1", response.getFirstHeader("my-counter").getValue());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withoutHeader("my-counter"));

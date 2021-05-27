@@ -40,7 +40,7 @@ public class PathParameterFlowTest extends AbstractWiremockGatewayTest {
     public void shouldRunFlows_withPathParameters() throws Exception {
         wireMockRule.stubFor(get("/team/team/12345").willReturn(ok()));
 
-        final HttpResponse response = Request.Get("http://localhost:8082/test/team/12345").execute().returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/team/12345")).returnResponse();
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/team/12345")).withHeader("my-counter", equalTo("1")));
     }

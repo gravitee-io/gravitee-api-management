@@ -26,6 +26,13 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.client.fluent.Response;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
@@ -36,7 +43,16 @@ import org.junit.rules.TestRule;
  */
 public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
 
+    protected Executor executor;
     protected final WireMockRule wireMockRule = getWiremockRule();
+
+    @Before
+    public void initExecutor() {
+        // Create a dedicated HttpClient for each test with no pooling to avoid side effects.
+        final CloseableHttpClient client = HttpClients.custom().build();
+
+        this.executor = Executor.newInstance(client);
+    }
 
     @Rule
     public final TestRule chain = RuleChain.outerRule(wireMockRule).around(new ApiDeployer(this));
@@ -74,5 +90,9 @@ public abstract class AbstractWiremockGatewayTest extends AbstractGatewayTest {
         } catch (MalformedURLException e) {
             return null;
         }
+    }
+
+    protected Response execute(Request request) throws Exception {
+        return executor.execute(request);
     }
 }

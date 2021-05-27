@@ -40,7 +40,7 @@ public class OverrideMethodGatewayTest extends AbstractWiremockGatewayTest {
     public void call_override_method() throws Exception {
         wireMockRule.stubFor(post("/echo/helloworld").willReturn(ok()));
 
-        HttpResponse response = Request.Get("http://localhost:8082/echo/helloworld").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/echo/helloworld")).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 

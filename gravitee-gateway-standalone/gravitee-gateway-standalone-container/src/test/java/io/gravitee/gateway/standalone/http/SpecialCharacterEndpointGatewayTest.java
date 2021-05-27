@@ -36,7 +36,7 @@ public class SpecialCharacterEndpointGatewayTest extends AbstractWiremockGateway
     public void call_get_started_api_noBody() throws Exception {
         wireMockRule.stubFor(get("/team/%7Btest%7Cpipe%7D/%5Btest%5D/my_team").willReturn(ok()));
 
-        final HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/%7Btest%7Cpipe%7D/%5Btest%5D/my_team")));

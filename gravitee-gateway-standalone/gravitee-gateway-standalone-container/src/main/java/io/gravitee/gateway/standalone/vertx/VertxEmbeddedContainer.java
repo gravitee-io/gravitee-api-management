@@ -45,6 +45,18 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     private String deploymentId;
 
     @Override
+    public VertxEmbeddedContainer start() throws Exception {
+        doStart();
+        return this;
+    }
+
+    @Override
+    public VertxEmbeddedContainer stop() throws Exception {
+        doStop();
+        return this;
+    }
+
+    @Override
     protected void doStart() throws Exception {
         instances = (instances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : instances;
         logger.info("Starting Vertx container and deploy Gateway Verticles [{} instance(s)]", instances);
@@ -62,6 +74,7 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
                 }
 
                 deploymentId = event.result();
+                lifecycle.moveToStarted();
             }
         );
     }
@@ -69,7 +82,12 @@ public class VertxEmbeddedContainer extends AbstractLifecycleComponent<VertxEmbe
     @Override
     protected void doStop() throws Exception {
         if (deploymentId != null) {
-            vertx.undeploy(deploymentId);
+            vertx.undeploy(
+                deploymentId,
+                event -> {
+                    lifecycle.moveToStopped();
+                }
+            );
         }
     }
 }

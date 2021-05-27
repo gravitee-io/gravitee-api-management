@@ -60,7 +60,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         );
 
         Request request = Request.Post("http://localhost:8082/test/my_team").bodyString(mockContent, ContentType.APPLICATION_JSON);
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -87,7 +87,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
         Request request = Request
             .Post("http://localhost:8082/test/my_team")
             .bodyStream(this.getClass().getClassLoader().getResourceAsStream("case1/request_content.json"), ContentType.APPLICATION_JSON);
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         String responseContent = StringUtils.copy(response.getEntity().getContent());
 
@@ -114,7 +114,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
             .Post("http://localhost:8082/test/my_team")
             .bodyStream(getClass().getClassLoader().getResourceAsStream("case2/response_content.json"), ContentType.APPLICATION_JSON);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -142,7 +142,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
 
         Request request = Request.Post("http://localhost:8082/test/my_team").bodyString(mockContent, ContentType.APPLICATION_JSON);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         System.out.println(wireMockRule.findAllUnmatchedRequests().size());
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
@@ -163,7 +163,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
 
         Request request = Request.Post("http://localhost:8082/test/my_team");
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
@@ -185,7 +185,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
             .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
             .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
 
-        Response response = request.execute();
+        Response response = execute(request);
 
         HttpResponse returnResponse = response.returnResponse();
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
@@ -212,7 +212,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
             .addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
             .removeHeaders(HttpHeaders.TRANSFER_ENCODING);
 
-        Response response = request.execute();
+        Response response = execute(request);
 
         HttpResponse returnResponse = response.returnResponse();
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());
@@ -236,7 +236,7 @@ public class PostContentGatewayTest extends AbstractWiremockGatewayTest {
 
         Request request = Request.Get("http://localhost:8082/test/my_team").addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 
-        Response response = request.execute();
+        Response response = execute(request);
 
         HttpResponse returnResponse = response.returnResponse();
         assertEquals(HttpStatus.SC_OK, returnResponse.getStatusLine().getStatusCode());

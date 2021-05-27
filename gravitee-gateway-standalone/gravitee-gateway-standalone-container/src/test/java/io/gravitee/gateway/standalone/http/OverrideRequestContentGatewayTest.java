@@ -42,10 +42,9 @@ public class OverrideRequestContentGatewayTest extends AbstractWiremockGatewayTe
     public void shouldOverrideRequestContent() throws Exception {
         wireMockRule.stubFor(post("/api").willReturn(ok("{{request.body}}").withTransformers("response-template")));
 
-        HttpResponse response = Request
-            .Post("http://localhost:8082/api")
-            .bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN)
-            .execute()
+        HttpResponse response = execute(
+            Request.Post("http://localhost:8082/api").bodyString("Request content overriden by policy", ContentType.TEXT_PLAIN)
+        )
             .returnResponse();
 
         assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());

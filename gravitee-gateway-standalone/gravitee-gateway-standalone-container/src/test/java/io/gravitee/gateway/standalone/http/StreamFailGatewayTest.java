@@ -52,7 +52,7 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
 
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
 
@@ -72,7 +72,7 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
 
         request.bodyString(BODY_CONTENT + " {#request.id}", ContentType.TEXT_PLAIN);
 
-        HttpResponse response = request.execute().returnResponse();
+        HttpResponse response = execute(request).returnResponse();
 
         assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatusLine().getStatusCode());
 

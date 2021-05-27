@@ -63,7 +63,7 @@ public class SSLPEMTrustStoreTest extends AbstractWiremockGatewayTest {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         // First call is calling an endpoint where trustAll is defined to true, no need for truststore => 200
-        HttpResponse response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
             "trustAll is defined to true, no need for truststore => 200",
             HttpStatus.SC_OK,
@@ -71,7 +71,7 @@ public class SSLPEMTrustStoreTest extends AbstractWiremockGatewayTest {
         );
 
         // Second call is calling an endpoint where trustAll is defined to false, without truststore => 502
-        response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals(
             "trustAll is defined to false, without truststore => 502",
             HttpStatus.SC_BAD_GATEWAY,
@@ -79,7 +79,7 @@ public class SSLPEMTrustStoreTest extends AbstractWiremockGatewayTest {
         );
 
         // Third call is calling an endpoint where trustAll is defined to false, with truststore => 200
-        response = Request.Get("http://localhost:8082/test/my_team").execute().returnResponse();
+        response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
         assertEquals("trustAll is defined to false, with truststore => 200", HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
 
         // Check that the stub has been successfully invoked by the gateway
