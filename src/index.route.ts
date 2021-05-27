@@ -160,7 +160,19 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           $window.localStorage.removeItem('user-logout-url');
           reinitToDefaultOrganization($window, Constants);
           if (userLogoutEndpoint != null) {
-            $window.location.href = userLogoutEndpoint + encodeURIComponent(window.location.origin);
+            const redirectUri = window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname);
+            if (userLogoutEndpoint.endsWith('target_url=')) {
+              // If we use a Gravitee AM IDP, the logoutEndpoint will end with `target_url=` (See AMIdentityProviderEntity.java)
+              // We must fill this query param so older versions of AM still work.
+              $window.location.href =
+                userLogoutEndpoint + encodeURIComponent(redirectUri) + '&post_logout_redirect_uri=' + encodeURIComponent(redirectUri);
+            } else if (userLogoutEndpoint.endsWith('post_logout_redirect_uri=')) {
+              // Otherwise we use an OIDC IDP, and the logout endpoint may already contain the `post_logout_redirect_uri`
+              $window.location.href = userLogoutEndpoint + encodeURIComponent(redirectUri);
+            } else {
+              const separator = userLogoutEndpoint.indexOf('?') > -1 ? '&' : '?';
+              $window.location.href = userLogoutEndpoint + separator + 'post_logout_redirect_uri=' + encodeURIComponent(redirectUri);
+            }
           }
         });
       },
