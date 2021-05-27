@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.10.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}keys
+            columns:
+              - column:
+                  name: days_to_expiration_on_last_notification
+                  type: integer
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: days_to_expiration_on_last_notification
+                  type: integer
