@@ -23,8 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<!-- <version>17.1</version> -->
-		<version>17.2</version>
+		<version>20.0</version>
 	</parent>
 
 	<groupId>io.gravitee.elasticsearch</groupId>
@@ -35,14 +34,14 @@
 	<name>Gravitee.io APIM - Elasticsearch Connector</name>
 
 	<properties>
-		<!-- Gravitee's project versions -->
+		<gravitee-bom.version>1.1</gravitee-bom.version>
 		<gravitee-gateway-api.version>1.22.0</gravitee-gateway-api.version>
 		<gravitee-common.version>1.20.0</gravitee-common.version>
 		<gravitee-reporter-api.version>1.19.0</gravitee-reporter-api.version>
 		<gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
 		<gravitee-repository.version>3.6.1</gravitee-repository.version>
 		<gravitee-node.version>1.10.0</gravitee-node.version>
-		<freemarker.version>2.3.30</freemarker.version>
+		<freemarker.version>2.3.31</freemarker.version>
 		<commons-validator.version>1.7</commons-validator.version>
 	</properties>
 
@@ -54,6 +53,15 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- Import bom to properly inherit all dependencies -->
+			<dependency>
+				<groupId>io.gravitee</groupId>
+				<artifactId>gravitee-bom</artifactId>
+				<version>${gravitee-bom.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+
 			<dependency>
 				<groupId>io.gravitee.gateway</groupId>
 				<artifactId>gravitee-gateway-api</artifactId>
@@ -110,14 +118,12 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-rx-java2</artifactId>
-			<version>${vertx.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -125,14 +131,12 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>${spring.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
