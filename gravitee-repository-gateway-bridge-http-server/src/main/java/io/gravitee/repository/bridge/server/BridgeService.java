@@ -23,7 +23,7 @@ import io.gravitee.repository.bridge.server.version.VersionHandler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.AuthHandler;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.slf4j.Logger;
@@ -75,9 +75,10 @@ public class BridgeService  extends AbstractService {
             LOGGER.info("Start HTTP server for bridge");
 
             // Start HTTP server
-            Router mainRouter = Router.router(vertx).mountSubRouter(PATH, bridgeRouter);
+            Router mainRouter = Router.router(vertx);
+            mainRouter.mountSubRouter(PATH, bridgeRouter);
 
-            AuthHandler authHandler = null;
+            AuthenticationHandler authHandler = null;
             switch ( httpServerConfiguration.getAuthenticationType().toLowerCase() ) {
                 case AUTHENTICATION_TYPE_NONE:
                     break;
@@ -101,7 +102,7 @@ public class BridgeService  extends AbstractService {
             bridgeRouter.route().handler(new VersionHandler());
 
             // Add request handler
-            httpServer.requestHandler(mainRouter::accept).listen(event ->
+            httpServer.requestHandler(mainRouter).listen(event ->
                     LOGGER.info("HTTP server for bridge listening on port {}", event.result().actualPort()));
 
             bridgeRouter.route().handler(BodyHandler.create());

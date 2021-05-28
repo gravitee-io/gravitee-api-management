@@ -15,15 +15,17 @@
  */
 package io.gravitee.repository.bridge.server.handler;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.util.Version;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -41,7 +43,9 @@ public class RootHandler implements Handler<RoutingContext> {
 
         JsonObject json = new JsonObject();
         try {
-            json.put("version", new JsonObject(Json.prettyMapper.writeValueAsString(Version.RUNTIME_VERSION)));
+            final ObjectMapper objectMapper = DatabindCodec.prettyMapper();
+            objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            json.put("version", new JsonObject(objectMapper.writeValueAsString(Version.RUNTIME_VERSION)));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

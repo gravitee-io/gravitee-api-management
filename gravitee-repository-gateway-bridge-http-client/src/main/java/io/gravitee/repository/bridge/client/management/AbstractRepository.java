@@ -17,9 +17,8 @@ package io.gravitee.repository.bridge.client.management;
 
 import io.gravitee.repository.bridge.client.http.HttpRequest;
 import io.gravitee.repository.bridge.client.utils.BridgePath;
-import io.gravitee.repository.bridge.client.utils.VertxCompletableFuture;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -28,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,10 +65,11 @@ public abstract class AbstractRepository implements InitializingBean {
         return HttpRequest.<T>delete(client, prefixPath + url).bodyCodec(codec);
     }
 
-    <T> T blockingGet(Future<T> future) throws TechnicalException {
-        VertxCompletableFuture<T> completable = VertxCompletableFuture.from(vertx, future);
+    <T> T blockingGet(Promise<T> promise) throws TechnicalException {
+        final CompletableFuture<T> future = promise.future().toCompletionStage().toCompletableFuture();
+
         try {
-            return completable.get();
+            return future.get();
         } catch (Exception ex) {
             logger.error("Unexpected error while invoking bridge: {}", ex.getMessage());
             throw new TechnicalException(ex);

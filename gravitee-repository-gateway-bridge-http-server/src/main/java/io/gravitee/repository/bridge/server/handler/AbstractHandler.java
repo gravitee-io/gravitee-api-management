@@ -17,12 +17,13 @@ package io.gravitee.repository.bridge.server.handler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
+import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,10 +62,11 @@ public abstract class AbstractHandler {
                 response.setStatusCode((data != null) ? HttpStatusCode.OK_200 : HttpStatusCode.NOT_FOUND_404);
                 response.setChunked(true);
 
-                Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                final ObjectMapper objectMapper = DatabindCodec.prettyMapper();
+                objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
                 try {
                     if (data != null) {
-                        response.write(Json.prettyMapper.writeValueAsString(data));
+                        response.write(objectMapper.writeValueAsString(data));
                     }
 
                     response.end();

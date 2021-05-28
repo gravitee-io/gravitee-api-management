@@ -17,11 +17,7 @@ package io.gravitee.repository.bridge.client.http;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.*;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -45,7 +41,7 @@ public class HttpRequest<T> {
 
     private BodyCodec<T> codec;
 
-    private MultiMap parameters = new CaseInsensitiveHeaders();
+    private MultiMap parameters = MultiMap.caseInsensitiveMultiMap();
 
     private HttpRequest(WebClient client, HttpMethod method, String url) {
         this.client = client;
@@ -81,12 +77,12 @@ public class HttpRequest<T> {
         return this;
     }
 
-    public Future<io.gravitee.repository.bridge.client.http.HttpResponse<T>> send() {
+    public Promise<io.gravitee.repository.bridge.client.http.HttpResponse<T>> send() {
         return send(null);
     }
 
-    public Future<io.gravitee.repository.bridge.client.http.HttpResponse<T>> send(Object payload) {
-        Future<io.gravitee.repository.bridge.client.http.HttpResponse<T>> future = Future.future();
+    public Promise<io.gravitee.repository.bridge.client.http.HttpResponse<T>> send(Object payload) {
+        Promise<io.gravitee.repository.bridge.client.http.HttpResponse<T>> promise = Promise.promise();
 
         io.vertx.ext.web.client.HttpRequest<T> request = client
                 .request(method, url)
@@ -100,14 +96,14 @@ public class HttpRequest<T> {
             if (event.succeeded()) {
                 HttpResponse<T> response = event.result();
                 if (response.statusCode() < HttpStatusCode.INTERNAL_SERVER_ERROR_500) {
-                    future.complete(new io.gravitee.repository.bridge.client.http.HttpResponse<>(
+                    promise.complete(new io.gravitee.repository.bridge.client.http.HttpResponse<>(
                             response.statusCode(), response.headers(), response.body()));
                 } else {
-                    future.fail(new TechnicalException("Unexpected response from the bridge server while calling " +
+                    promise.fail(new TechnicalException("Unexpected response from the bridge server while calling " +
                             "url[" +  url + "] status [" + response.statusCode()+ "]"));
                 }
             } else {
-                future.fail(new TechnicalException("An error occurs while invoking the bridge server", event.cause()));
+                promise.fail(new TechnicalException("An error occurs while invoking the bridge server", event.cause()));
             }
         };
 
@@ -117,6 +113,6 @@ public class HttpRequest<T> {
             request.send(handler);
         }
 
-        return future;
+        return promise;
     }
 }

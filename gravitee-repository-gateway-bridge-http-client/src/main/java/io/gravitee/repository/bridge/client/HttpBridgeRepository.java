@@ -38,10 +38,8 @@ public class HttpBridgeRepository implements Repository {
     }
     @Override
     public Class<?> configuration(Scope scope) {
-        switch (scope) {
-            case MANAGEMENT:
-                return ManagementRepositoryConfiguration.class;
-
+        if (scope == Scope.MANAGEMENT) {
+            return ManagementRepositoryConfiguration.class;
         }
 
         return null;

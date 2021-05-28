@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>19.2.1</version>
+        <version>20.0</version>
     </parent>
 
     <groupId>io.gravitee.gateway</groupId>
@@ -39,9 +39,36 @@
     </modules>
 
     <properties>
+        <gravitee-bom.version>1.1</gravitee-bom.version>
         <gravitee-repository.version>3.10.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-common.version>1.18.0</gravitee-common.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Import bom to properly inherit all dependencies -->
+            <dependency>
+                <groupId>io.gravitee</groupId>
+                <artifactId>gravitee-bom</artifactId>
+                <version>${gravitee-bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
+            <!-- Gravitee.io -->
+            <dependency>
+                <groupId>io.gravitee.repository</groupId>
+                <artifactId>gravitee-repository</artifactId>
+                <version>${gravitee-repository.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.common</groupId>
+                <artifactId>gravitee-common</artifactId>
+                <version>${gravitee-common.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
@@ -57,36 +84,11 @@
             <artifactId>slf4j-api</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-            <!-- Gravitee.io -->
-            <dependency>
-                <groupId>io.gravitee.repository</groupId>
-                <artifactId>gravitee-repository</artifactId>
-                <version>${gravitee-repository.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.gravitee.common</groupId>
-                <artifactId>gravitee-common</artifactId>
-                <version>${gravitee-common.version}</version>
-            </dependency>
-
-            <!-- Vert.x -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-web</artifactId>
-                <version>${vertx.version}</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-web-client</artifactId>
-                <version>${vertx.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>

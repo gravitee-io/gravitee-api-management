@@ -24,7 +24,7 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.subjects.MaybeSubject;
 import io.reactivex.subjects.SingleSubject;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.codec.BodyCodec;
 import org.springframework.stereotype.Component;
 
@@ -37,19 +37,19 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
 
     @Override
     public Maybe<Monitoring> findByNodeIdAndType(String nodeId, String type) {
-        final Future<HttpResponse<Monitoring>> future = get("/node/monitoring?nodeId=" + nodeId + "&type=" + type, BodyCodec.json(Monitoring.class))
+        final Promise<HttpResponse<Monitoring>> promise = get("/node/monitoring?nodeId=" + nodeId + "&type=" + type, BodyCodec.json(Monitoring.class))
                 .send();
 
         MaybeSubject<Monitoring> maybe = MaybeSubject.create();
-        future.onComplete(promise -> {
-            if (promise.succeeded()) {
-                if (promise.result().statusCode() == HttpStatusCode.OK_200) {
-                    maybe.onSuccess(promise.result().payload());
+        promise.future().onComplete(event -> {
+            if (event.succeeded()) {
+                if (event.result().statusCode() == HttpStatusCode.OK_200) {
+                    maybe.onSuccess(event.result().payload());
                 } else {
                     maybe.onComplete();
                 }
             } else {
-                maybe.onError(promise.cause());
+                maybe.onError(event.cause());
             }
         });
 
@@ -58,15 +58,15 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
 
     @Override
     public Single<Monitoring> create(Monitoring monitoring) {
-        final Future<HttpResponse<Monitoring>> future = post("/node/monitoring", BodyCodec.json(Monitoring.class))
+        final Promise<HttpResponse<Monitoring>> promise = post("/node/monitoring", BodyCodec.json(Monitoring.class))
                 .send(monitoring);
 
         SingleSubject<Monitoring> single = SingleSubject.create();
-        future.onComplete(promise -> {
-            if (promise.succeeded()) {
-                single.onSuccess(promise.result().payload());
+        promise.future().onComplete(event -> {
+            if (event.succeeded()) {
+                single.onSuccess(event.result().payload());
             } else {
-                single.onError(promise.cause());
+                single.onError(event.cause());
             }
         });
 
@@ -75,15 +75,15 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
 
     @Override
     public Single<Monitoring> update(Monitoring monitoring) {
-        final Future<HttpResponse<Monitoring>> future = put("/node/monitoring", BodyCodec.json(Monitoring.class))
+        final Promise<HttpResponse<Monitoring>> promise = put("/node/monitoring", BodyCodec.json(Monitoring.class))
                 .send(monitoring);
 
         SingleSubject<Monitoring> single = SingleSubject.create();
-        future.onComplete(promise -> {
-            if (promise.succeeded()) {
-                single.onSuccess(promise.result().payload());
+        promise.future().onComplete(event -> {
+            if (event.succeeded()) {
+                single.onSuccess(event.result().payload());
             } else {
-                single.onError(promise.cause());
+                single.onError(event.cause());
             }
         });
 

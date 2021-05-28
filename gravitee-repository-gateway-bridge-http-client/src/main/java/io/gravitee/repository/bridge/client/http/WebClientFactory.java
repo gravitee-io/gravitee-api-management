@@ -19,7 +19,6 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.Version;
 import io.gravitee.repository.bridge.client.utils.BridgePath;
-import io.gravitee.repository.bridge.client.utils.VertxCompletableFuture;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.Future;
@@ -43,6 +42,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -100,7 +100,7 @@ public class WebClientFactory implements FactoryBean<WebClient> {
                         .setTimeout(2000))
         .retryPolicy(retryCount -> retryDuration);
 
-        VertxCompletableFuture<WebClientInternal> completableConnection = VertxCompletableFuture.from(vertx, validateConnection(client));
+        CompletableFuture<WebClientInternal> completableConnection = validateConnection(client).toCompletionStage().toCompletableFuture();
         if (completableConnection.isCompletedExceptionally()) {
             throw new IllegalStateException("Unable to connect to the bridge server.");
         }
