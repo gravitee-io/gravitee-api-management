@@ -83,6 +83,10 @@
           <span>{{ 'application.subscriptions.start_at' | translate }}</span>
           {{ selectedSubscription.start_at | localizedDate: 'shortDate':'--' }}
         </div>
+        <div *ngIf="selectedSubscription.end_at" class="page__box-row">
+          <span>{{ 'application.subscriptions.end_at' | translate }}</span>
+          <gv-relative-time [datetime]="selectedSubscription.end_at"></gv-relative-time>
+        </div>
       </div>
       <div class="page__box-footer form__actions">
         <gv-confirm

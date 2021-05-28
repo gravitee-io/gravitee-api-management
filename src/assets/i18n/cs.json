@@ -410,6 +410,7 @@
         "title": "Zavřít"
       },
       "created_at": "Datum předplatného",
+      "end_at": "Končí dál",
       "filters": {
         "api": {
           "label": "Vyberte API",

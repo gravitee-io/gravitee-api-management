@@ -410,6 +410,7 @@
         "title": "Close"
       },
       "created_at": "Subscription date",
+      "end_at": "Ends on",
       "filters": {
         "api": {
           "label": "Select an API",
