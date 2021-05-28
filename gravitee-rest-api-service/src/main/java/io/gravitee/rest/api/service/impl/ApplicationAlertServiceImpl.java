@@ -358,17 +358,19 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
             .map(MembershipEntity::getMemberId)
             .collect(Collectors.toList());
 
-        groupIds.forEach(
-            group -> {
-                members.addAll(
-                    membershipService
-                        .getMembershipsByReference(MembershipReferenceType.GROUP, group)
-                        .stream()
-                        .map(MembershipEntity::getMemberId)
-                        .collect(Collectors.toList())
-                );
-            }
-        );
+        if (!CollectionUtils.isEmpty(groupIds)) {
+            groupIds.forEach(
+                group -> {
+                    members.addAll(
+                        membershipService
+                            .getMembershipsByReference(MembershipReferenceType.GROUP, group)
+                            .stream()
+                            .map(MembershipEntity::getMemberId)
+                            .collect(Collectors.toList())
+                    );
+                }
+            );
+        }
 
         return userService
             .findByIds(members)
