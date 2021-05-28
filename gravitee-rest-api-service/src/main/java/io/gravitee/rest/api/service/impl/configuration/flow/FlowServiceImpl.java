@@ -126,8 +126,10 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
                         Flow f = new Flow();
                         f.setPost(flow.getPost().stream().map(this::convert).collect(Collectors.toList()));
                         f.setPre(flow.getPre().stream().map(this::convert).collect(Collectors.toList()));
-                        f.setPath(flow.getPath());
-                        f.setOperator(Operator.valueOf(flow.getOperator().name()));
+                        final PathOperator pathOperator = new PathOperator();
+                        pathOperator.setPath(flow.getPath());
+                        pathOperator.setOperator(Operator.valueOf(flow.getOperator().name()));
+                        f.setPathOperator(pathOperator);
                         f.setName(flow.getName());
                         f.setMethods(flow.getMethods());
                         f.setEnabled(flow.isEnabled());
@@ -173,8 +175,10 @@ public class FlowServiceImpl extends AbstractService implements FlowService {
         flow.setEnabled(model.isEnabled());
         flow.setMethods(model.getMethods());
         flow.setName(model.getName());
-        flow.setOperator(Operator.valueOf(model.getOperator().name()));
-        flow.setPath(model.getPath());
+        final PathOperator pathOperator = new PathOperator();
+        pathOperator.setPath(model.getPath());
+        pathOperator.setOperator(Operator.valueOf(model.getOperator().name()));
+        flow.setPathOperator(pathOperator);
         flow.setPre(model.getPre().stream().map(this::convert).collect(Collectors.toList()));
         flow.setPost(model.getPost().stream().map(this::convert).collect(Collectors.toList()));
         flow.setConsumers(model.getConsumers().stream().map(this::convert).collect(Collectors.toList()));
