@@ -242,6 +242,9 @@
                 <workspace>${project.build.directory}/temp</workspace>
                 <workspace.plugins>${workspace}/plugins</workspace.plugins>
                 <workspace.logs>${workspace}/logs</workspace.logs>
+                <workspace.data>${workspace}/data</workspace.data>
+                <workspace.images>${workspace}/templates/images</workspace.images>
+                <workspace.portal>${workspace}/templates/notifications/portal</workspace.portal>
                 <gravitee.management.log.dir>${workspace}/logs</gravitee.management.log.dir>
             </properties>
 
@@ -254,6 +257,18 @@
                             <include>templates/*</include>
                             <include>themes/*</include>
                             <include>dashboards/*</include>
+                            <include>templates/images/*</include>
+                            <include>templates/notifications/portal/*</include>
+                        </includes>
+                        <targetPath>${workspace}</targetPath>
+                        <filtering>true</filtering>
+                    </resource>
+                    <resource>
+                        <directory>
+                            ../gravitee-rest-api-standalone-distribution/gravitee-rest-api-standalone-distribution-zip/target/distribution
+                        </directory>
+                        <includes>
+                            <include>plugins/*</include>
                         </includes>
                         <targetPath>${workspace}</targetPath>
                         <filtering>true</filtering>
@@ -345,6 +360,9 @@
                                     <tasks>
                                         <mkdir dir="${workspace.logs}"/>
                                         <mkdir dir="${workspace.plugins}"/>
+                                        <mkdir dir="${workspace.data}"/>
+                                        <mkdir dir="${workspace.images}"/>
+                                        <mkdir dir="${workspace.portal}"/>
                                     </tasks>
                                 </configuration>
                                 <goals>
@@ -372,6 +390,30 @@
                                 <systemProperty>
                                     <key>gravitee.home</key>
                                     <value>${workspace}</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>gravitee.conf</key>
+                                    <value>${workspace}/config/gravitee.yml</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>ds.mongodb.dbname</key>
+                                    <value>gravitee</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>ds.mongodb.host</key>
+                                    <value>localhost</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>ds.mongodb.port</key>
+                                    <value>27017</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>ds.elastic.host</key>
+                                    <value>localhost</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>ds.elastic.port</key>
+                                    <value>9200</value>
                                 </systemProperty>
                             </systemProperties>
                         </configuration>
