@@ -41,7 +41,7 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
         eventManager.subscribeForEvents(this, Key.class);
 
         this.setAllowCredentials(true);
-        this.setAllowedOrigins(getPropertiesAsList(Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN, "*"));
+        this.setAllowedOriginPatterns(getPropertiesAsList(Key.PORTAL_HTTP_CORS_ALLOW_ORIGIN, "*"));
         this.setAllowedHeaders(
                 getPropertiesAsList(
                     Key.PORTAL_HTTP_CORS_ALLOW_HEADERS,

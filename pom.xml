@@ -33,7 +33,7 @@
     <name>Gravitee.io Rest APIs</name>
 
     <properties>
-        <gravitee-bom.version>1.1</gravitee-bom.version>
+        <gravitee-bom.version>1.2</gravitee-bom.version>
         <gravitee-node.version>1.15.1</gravitee-node.version>
         <gravitee-api-management.version>3.10.0-SNAPSHOT</gravitee-api-management.version>
         <gravitee-common.version>1.20.1</gravitee-common.version>
@@ -51,7 +51,6 @@
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <commons-io.version>2.7</commons-io.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-        <spring.security.version>5.3.9.RELEASE</spring.security.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.30</freemarker.version>
@@ -90,16 +89,15 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Import bom to properly inherit all dependencies -->
+            <!-- Gravitee.io -->
             <dependency>
                 <groupId>io.gravitee</groupId>
                 <artifactId>gravitee-bom</artifactId>
                 <version>${gravitee-bom.version}</version>
-                <scope>import</scope>
                 <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
-            <!-- Gravitee.io -->
             <dependency>
                 <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-container</artifactId>
@@ -224,19 +222,6 @@
                 <groupId>com.graviteesource.license</groupId>
                 <artifactId>gravitee-license-node</artifactId>
                 <version>${gravitee-license-node.version}</version>
-            </dependency>
-
-            <!-- Spring Security -->
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-web</artifactId>
-                <version>${spring.security.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-config</artifactId>
-                <version>${spring.security.version}</version>
             </dependency>
 
             <dependency>
