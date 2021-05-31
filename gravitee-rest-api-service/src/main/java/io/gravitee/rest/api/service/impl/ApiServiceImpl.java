@@ -2672,6 +2672,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setFlows(apiEntity.getFlows());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
         updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+        updateApiEntity.setPlans(apiEntity.getPlans());
         return updateApiEntity;
     }
 
