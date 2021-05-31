@@ -109,6 +109,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.bind.DatatypeConverter;
@@ -135,6 +136,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
+    private static final String[] CORS_REGEX_CHARS = new String[]{"{", "[", "(", "*"};
     private static final String URI_PATH_SEPARATOR = "/";
     private static final String CONFIGURATION_DEFINITION_PATH = "/api/apim-configuration-schema.json";
 
@@ -1403,7 +1405,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {
                 for (String allowOriginItem : accessControlAllowOrigin) {
                     if (!CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
-                        throw new AllowOriginNotAllowedException(allowOriginItem);
+                        if(StringUtils.indexOfAny(allowOriginItem, CORS_REGEX_CHARS) >= 0) {
+                            try {
+                                //the origin could be a regex
+                                Pattern.compile(allowOriginItem);
+                            } catch (PatternSyntaxException e) {
+                                throw new AllowOriginNotAllowedException(allowOriginItem);
+                            }
+                        } else {
+                            throw new AllowOriginNotAllowedException(allowOriginItem);
+                        }
                     }
                 }
             }
