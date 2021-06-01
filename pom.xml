@@ -260,7 +260,7 @@
         <gravitee-node.version>1.14.0-SNAPSHOT</gravitee-node.version>
         <gravitee-definition.version>1.28.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.19.1</gravitee-common.version>
-        <gravitee-expression-language.version>1.4.2</gravitee-expression-language.version>
+        <gravitee-expression-language.version>1.6.0-SNAPSHOT</gravitee-expression-language.version>
         <gravitee-repository.version>3.9.0-SNAPSHOT</gravitee-repository.version>
         <gravitee-plugin-resource.version>1.16.0</gravitee-plugin-resource.version>
         <gravitee-plugin-core.version>1.16.0</gravitee-plugin-core.version>
@@ -284,7 +284,7 @@
         <guava.version>29.0-jre</guava.version>
         <powermock.version>2.0.0</powermock.version>
         <nimbus-jwt.version>8.19</nimbus-jwt.version>
-        <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
+        <spring-integration.version>5.4.6</spring-integration.version>
         <protobuf-java.version>3.12.2</protobuf-java.version>
         <hazelcast.version>4.1.1</hazelcast.version>
         <jmh.version>1.26</jmh.version>
