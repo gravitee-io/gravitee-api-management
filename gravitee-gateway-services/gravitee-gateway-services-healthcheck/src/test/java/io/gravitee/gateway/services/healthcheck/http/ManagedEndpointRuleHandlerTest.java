@@ -26,6 +26,7 @@ import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.Request;
 import io.gravitee.definition.model.services.healthcheck.Response;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
@@ -40,6 +41,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,6 +54,9 @@ public class ManagedEndpointRuleHandlerTest {
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
     private Vertx vertx;
+
+    @Mock
+    private TemplateEngine templateEngine;
 
     @Before
     public void before(TestContext context) {
@@ -76,7 +81,7 @@ public class ManagedEndpointRuleHandlerTest {
 
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
         Async async = context.async();
 
         // Verify
@@ -116,7 +121,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
 
         Async async = context.async();
 
@@ -157,7 +162,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
 
         Async async = context.async();
 
@@ -207,7 +212,7 @@ public class ManagedEndpointRuleHandlerTest {
         step.setResponse(response);
         when(rule.steps()).thenReturn(Collections.singletonList(step));
 
-        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule);
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine);
 
         Async async = context.async();
 

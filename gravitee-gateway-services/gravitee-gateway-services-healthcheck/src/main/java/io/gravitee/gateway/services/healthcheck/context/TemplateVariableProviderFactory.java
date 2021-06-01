@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler.context;
+package io.gravitee.gateway.services.healthcheck.context;
 
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.el.TemplateVariableScope;
@@ -24,9 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.SpringFactoriesLoader;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.CollectionUtils;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class TemplateVariableProviderFactory {
@@ -34,35 +35,45 @@ public class TemplateVariableProviderFactory {
     @Autowired
     private ApplicationContext applicationContext;
 
+    private List<TemplateVariableProvider> providers;
+
     List<TemplateVariableProvider> getTemplateVariableProviders() {
+        if (!CollectionUtils.isEmpty(providers)) {
+            return providers;
+        }
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Set<String> factories = new LinkedHashSet<>(
             SpringFactoriesLoader.loadFactoryNames(TemplateVariableProvider.class, Thread.currentThread().getContextClassLoader())
-        );
-
-        return factories
+        )
             .stream()
-            .map(
-                name -> {
-                    try {
-                        Class<TemplateVariableProvider> instanceClass = (Class<TemplateVariableProvider>) ClassUtils.forName(
-                            name,
-                            classLoader
-                        );
-                        if (instanceClass.isAnnotationPresent(TemplateVariable.class)) {
-                            TemplateVariable templateVariable = instanceClass.getAnnotation(TemplateVariable.class);
-                            if (Arrays.asList(templateVariable.scopes()).contains(TemplateVariableScope.API)) {
-                                return applicationContext.getBean(instanceClass);
+            .collect(Collectors.toSet());
+
+        providers =
+            factories
+                .stream()
+                .map(
+                    name -> {
+                        try {
+                            Class<TemplateVariableProvider> instanceClass = (Class<TemplateVariableProvider>) ClassUtils.forName(
+                                name,
+                                classLoader
+                            );
+                            if (instanceClass.isAnnotationPresent(TemplateVariable.class)) {
+                                TemplateVariable annotation = instanceClass.getAnnotation(TemplateVariable.class);
+                                if (Arrays.asList(annotation.scopes()).contains(TemplateVariableScope.HEALTH_CHECK)) {
+                                    return applicationContext.getBean(instanceClass);
+                                }
                             }
+                            return null;
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                            return null;
                         }
-                        return null;
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                        return null;
                     }
-                }
-            )
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+                )
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return providers;
     }
 }

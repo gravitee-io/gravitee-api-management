@@ -13,42 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler.context.provider;
+package io.gravitee.gateway.services.healthcheck.context;
 
-import io.gravitee.common.util.Version;
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
-import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.node.api.Node;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.gravitee.gateway.handlers.api.definition.Api;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @TemplateVariable(scopes = { TemplateVariableScope.API })
-public class NodeTemplateVariableProvider implements TemplateVariableProvider, InitializingBean {
+public class ApiTemplateVariableProvider implements TemplateVariableProvider {
 
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
+    private final Api api;
 
-    @Autowired
-    private Node node;
-
-    private NodeProperties nodeProperties;
-
-    public void afterPropertiesSet() {
-        nodeProperties = new NodeProperties();
-        nodeProperties.setId(node.id());
-        nodeProperties.setVersion(Version.RUNTIME_VERSION.MAJOR_VERSION);
-        nodeProperties.setTenant(gatewayConfiguration.tenant().orElse(null));
+    public ApiTemplateVariableProvider(Api api) {
+        this.api = api;
     }
 
     @Override
     public void provide(TemplateContext templateContext) {
-        templateContext.setVariable("node", nodeProperties);
+        if (api.getProperties() != null) {
+            templateContext.setVariable("properties", api.getProperties().getValues());
+        }
     }
 }

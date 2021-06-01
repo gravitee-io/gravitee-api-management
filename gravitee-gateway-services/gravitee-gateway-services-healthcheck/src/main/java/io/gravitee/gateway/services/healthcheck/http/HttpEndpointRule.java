@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.healthcheck.http;
 
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.AbstractEndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
@@ -34,7 +35,7 @@ public class HttpEndpointRule extends AbstractEndpointRule<HttpEndpoint> {
     }
 
     @Override
-    public EndpointRuleHandler<HttpEndpoint> createRunner(Vertx vertx, EndpointRule<HttpEndpoint> rule) {
-        return new HttpEndpointRuleHandler<>(vertx, rule);
+    public EndpointRuleHandler<HttpEndpoint> createRunner(Vertx vertx, EndpointRule<HttpEndpoint> rule, TemplateEngine templateEngine) {
+        return new HttpEndpointRuleHandler<>(vertx, rule, templateEngine);
     }
 }

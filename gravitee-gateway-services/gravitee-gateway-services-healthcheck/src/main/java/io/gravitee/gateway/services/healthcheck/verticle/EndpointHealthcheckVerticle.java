@@ -26,6 +26,10 @@ import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.healthcheck.EndpointHealthcheckResolver;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
+import io.gravitee.gateway.services.healthcheck.context.ApiTemplateVariableProvider;
+import io.gravitee.gateway.services.healthcheck.context.HealthCheckContext;
+import io.gravitee.gateway.services.healthcheck.context.HealthCheckContextFactory;
+import io.gravitee.gateway.services.healthcheck.context.TemplateVariableProviderFactory;
 import io.gravitee.gateway.services.healthcheck.reporter.StatusReporter;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleCronHandler;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
@@ -37,6 +41,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,6 +63,9 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     @Autowired
     private AlertEventProducer alertEventProducer;
+
+    @Autowired
+    private HealthCheckContextFactory healthCheckContextFactory;
 
     @Autowired
     private Node node;
@@ -117,7 +125,9 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void addTrigger(Api api, EndpointRule rule) {
-        EndpointRuleHandler runner = rule.createRunner(vertx, rule);
+        final HealthCheckContext healthCheckContext = healthCheckContextFactory.create(new ApiTemplateVariableProvider(api));
+
+        EndpointRuleHandler runner = rule.createRunner(vertx, rule, healthCheckContext.getTemplateEngine());
         runner.setStatusHandler(statusReporter);
         runner.setAlertEventProducer(alertEventProducer);
         runner.setNode(node);

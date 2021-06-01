@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.healthcheck.eval.assertion;
 
-import io.gravitee.el.spel.function.JsonPathFunction;
+import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.gateway.services.healthcheck.eval.Evaluation;
 import io.gravitee.gateway.services.healthcheck.eval.EvaluationException;
 import java.util.HashMap;
