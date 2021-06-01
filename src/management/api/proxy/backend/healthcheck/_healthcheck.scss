@@ -70,3 +70,21 @@ md-sidenav.healthcheck {
     overflow: hidden;
   }
 }
+
+.healthcheck-endpoint-headers {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &__remove {
+    flex: 0;
+  }
+
+  &__key {
+    flex: 1;
+  }
+
+  &__value {
+    flex: 2;
+  }
+}

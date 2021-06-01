@@ -151,40 +151,36 @@
                         >Add headers</ng-md-icon
                       >
                     </h5>
-                    <div
-                      layout="row"
-                      layout-sm="column"
-                      layout-align="center center"
-                      ng-repeat="header in healthCheckCtrl.healthcheck.steps[0].request.headers"
-                    >
+                    <div class="healthcheck-endpoint-headers" ng-repeat="header in healthCheckCtrl.healthcheck.steps[0].request.headers">
                       <ng-md-icon
+                        class="healthcheck-endpoint-headers__remove"
                         icon="remove_circle_outline"
                         style="fill: #b1bdc5"
                         aria-label="Delete header"
                         ng-click="healthCheckCtrl.removeHTTPHeader($index)"
                       ></ng-md-icon>
 
-                      <div flex="5" hide-xs hide-sm>
-                        <!-- Spacer //-->
-                      </div>
+                      <gv-input
+                        class="healthcheck-endpoint-headers__key"
+                        required
+                        gv-model
+                        label="Header name"
+                        ng-model="header.name"
+                        ngDefaultControl
+                      >
+                      </gv-input>
 
-                      <md-input-container flex-gt-sm>
-                        <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true" />
-                      </md-input-container>
-
-                      <div flex="5" hide-xs hide-sm>
-                        <!-- Spacer //-->
-                      </div>
-
-                      <md-input-container flex-gt-sm>
-                        <input
-                          aria-label="Header value"
-                          ng-model="header.value"
-                          type="text"
-                          placeholder="Header value"
-                          ng-required="true"
-                        />
-                      </md-input-container>
+                      <gv-expression-language
+                        class="healthcheck-endpoint-headers__value"
+                        required
+                        rows="1"
+                        gv-model
+                        label="Header value (Supports EL)"
+                        ng-attr-grammar="{{healthCheckCtrl.spelGrammar}}"
+                        ng-model="header.value"
+                        placeholder="{#dictionaries['my-dictionary']['my-property']}"
+                        ngDefaultControl
+                      ></gv-expression-language>
                     </div>
                   </div>
                 </fieldset>
@@ -257,7 +253,7 @@
           <div class="healthcheck-summary-timeline">
             <timeline ng-if="!healthCheckCtrl.healthcheck.enabled">
               <timeline-event side="right">
-                <timeline-badge class="disabled">
+                <timeline-badge>
                   <i class="glyphicon glyphicon-play-circle"></i>
                 </timeline-badge>
                 <timeline-panel class="disable">

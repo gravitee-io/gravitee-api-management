@@ -16,6 +16,9 @@
 import _ = require('lodash');
 import angular = require('angular');
 import '@gravitee/ui-components/wc/gv-cron-editor';
+import '@gravitee/ui-components/wc/gv-expression-language';
+import ApiService from '../../../../../services/api.service';
+import NotificationService from '../../../../../services/notification.service';
 
 class ApiHealthCheckConfigureController {
   private api: any;
@@ -24,18 +27,27 @@ class ApiHealthCheckConfigureController {
   private endpoint: any;
   private endpointToDisplay: any;
   private rootHealthcheckEnabled: boolean;
+  private spelGrammar: { dictionaries: any; properties: any; _types: any; _enums: any };
 
   constructor(
-    private ApiService,
-    private NotificationService,
-    private $mdDialog,
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
+    private $mdDialog: angular.material.IDialogService,
     private $scope,
     private $state,
     private $stateParams,
     private $rootScope,
     private $window,
+    private resolvedSpelGrammar: any,
   ) {
     'ngInject';
+
+    this.spelGrammar = {
+      dictionaries: resolvedSpelGrammar.data.dictionaries,
+      properties: resolvedSpelGrammar.data.properties,
+      _types: resolvedSpelGrammar.data._types,
+      _enums: resolvedSpelGrammar.data._enums,
+    };
 
     this.api = this.$scope.$parent.apiCtrl.api;
     this.$scope.$on('apiChangeSuccess', (event, args) => {

@@ -17,6 +17,7 @@ import TenantService from '../../../services/tenant.service';
 import ApiService from '../../../services/api.service';
 import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
 import EnvironmentService from '../../../services/environment.service';
+import SpelService from '../../../services/spel.service';
 
 export default apisProxyRouterConfig;
 
@@ -157,6 +158,9 @@ function apisProxyRouterConfig($stateProvider) {
           page: 'management-api-health-check',
         },
       },
+      resolve: {
+        resolvedSpelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
+      },
     })
     .state('management.apis.detail.proxy.healthcheck', {
       abstract: true,
@@ -208,6 +212,9 @@ function apisProxyRouterConfig($stateProvider) {
         docs: {
           page: 'management-api-health-check-configure',
         },
+      },
+      resolve: {
+        resolvedSpelGrammar: (SpelService: SpelService) => SpelService.getGrammar(),
       },
     })
     .state('management.apis.detail.proxy.healthcheck.log', {
