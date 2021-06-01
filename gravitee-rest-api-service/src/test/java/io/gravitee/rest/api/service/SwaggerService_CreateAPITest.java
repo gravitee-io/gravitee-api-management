@@ -113,7 +113,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV1_Inline_json() throws IOException {
-        validate(prepareInline("io/gravitee/rest/api/management/service/swagger-v1.json"));
+        validate(prepareInline("io/gravitee/rest/api/management/service/swagger-v1.json", true));
     }
 
     // Swagger v2
@@ -124,7 +124,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV2_Inline_json() throws IOException {
-        validate(prepareInline("io/gravitee/rest/api/management/service/swagger-v2.json"));
+        validate(prepareInline("io/gravitee/rest/api/management/service/swagger-v2.json", true));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV2_Inline_yaml() throws IOException {
-        validate(prepareInline("io/gravitee/rest/api/management/service/swagger-v2.yaml"));
+        validate(prepareInline("io/gravitee/rest/api/management/service/swagger-v2.yaml", true));
     }
 
     @Test
@@ -159,7 +159,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3_Inline_json() throws IOException {
-        validate(prepareInline("io/gravitee/rest/api/management/service/openapi.json"));
+        validate(prepareInline("io/gravitee/rest/api/management/service/openapi.json", true));
     }
 
     @Test
@@ -176,7 +176,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3_Inline_yaml() throws IOException {
-        validate(prepareInline("io/gravitee/rest/api/management/service/openapi.yaml"));
+        validate(prepareInline("io/gravitee/rest/api/management/service/openapi.yaml", true));
     }
 
     @Test
@@ -275,17 +275,23 @@ public class SwaggerService_CreateAPITest {
     }
 
     private SwaggerApiEntity prepareInline(String file) throws IOException {
-        return prepareInline(file, false);
+        return prepareInline(file, false, false);
     }
 
-    protected SwaggerApiEntity prepareInline(String file, boolean withPolicyPaths) throws IOException {
+    private SwaggerApiEntity prepareInline(String file, boolean withPolicyPaths) throws IOException {
+        return prepareInline(file, withPolicyPaths, false);
+    }
+
+    protected SwaggerApiEntity prepareInline(String file, boolean withPolicyPaths, boolean withPolicies) throws IOException {
         URL url = Resources.getResource(file);
         String descriptor = Resources.toString(url, Charsets.UTF_8);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.INLINE);
         swaggerDescriptor.setPayload(descriptor);
         swaggerDescriptor.setWithPolicyPaths(withPolicyPaths);
-        swaggerDescriptor.setWithPolicies(asList("mock"));
+        if (withPolicies) {
+            swaggerDescriptor.setWithPolicies(asList("mock"));
+        }
         return this.createAPI(swaggerDescriptor);
     }
 
@@ -293,6 +299,9 @@ public class SwaggerService_CreateAPITest {
         URL url = Resources.getResource(file);
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setType(ImportSwaggerDescriptorEntity.Type.URL);
+        swaggerDescriptor.setWithPolicyPaths(true);
+        swaggerDescriptor.setWithPathMapping(true);
+        //        swaggerDescriptor.setWithPolicies(asList("mock"));
         try {
             swaggerDescriptor.setPayload(url.toURI().getPath());
         } catch (URISyntaxException e) {
@@ -307,7 +316,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithExamples() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/api-with-examples.yaml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/api-with-examples.yaml", true, true);
         assertEquals("2.0.0", api.getVersion());
         assertEquals("Simple API overview", api.getName());
         assertEquals("simpleapioverview", api.getProxy().getVirtualHosts().get(0).getPath());
@@ -333,7 +342,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithSimpleTypedExamples() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/callback-example.yaml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/callback-example.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Callback Example", api.getName());
         assertEquals("callbackexample", api.getProxy().getVirtualHosts().get(0).getPath());
@@ -345,7 +354,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithLinks() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/link-example.yaml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/link-example.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Link Example", api.getName());
         assertEquals("linkexample", api.getProxy().getVirtualHosts().get(0).getPath());
@@ -367,7 +376,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithPetstore() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/petstore.yaml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/petstore.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("/v1", api.getProxy().getVirtualHosts().get(0).getPath());
         assertEquals("Swagger Petstore", api.getName());
@@ -381,7 +390,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithPetstoreExpanded() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/petstore-expanded.yaml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/petstore-expanded.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("Swagger Petstore", api.getName());
         assertEquals("/api", api.getProxy().getVirtualHosts().get(0).getPath());
@@ -394,7 +403,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithExample() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/uspto.yaml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/uspto.yaml", true, true);
         assertEquals("1.0.0", api.getVersion());
         assertEquals("USPTO Data Set API", api.getName());
         assertEquals("/ds-api", api.getProxy().getVirtualHosts().get(0).getPath());
@@ -417,7 +426,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithEnumExample() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/enum-example.yml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/enum-example.yml", true, true);
         assertEquals("v1", api.getVersion());
         assertEquals("Gravitee Import Mock Example", api.getName());
         assertEquals("graviteeimportmockexample", api.getProxy().getVirtualHosts().get(0).getPath());
@@ -514,7 +523,7 @@ public class SwaggerService_CreateAPITest {
 
     @Test
     public void shouldPrepareAPIFromSwaggerV3WithComplexReferences() throws IOException {
-        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/json-api.yml", true);
+        final SwaggerApiEntity api = prepareInline("io/gravitee/rest/api/management/service/mock/json-api.yml", true, true);
         validatePolicies(api, 2, 5, asList("/drives"));
     }
 }

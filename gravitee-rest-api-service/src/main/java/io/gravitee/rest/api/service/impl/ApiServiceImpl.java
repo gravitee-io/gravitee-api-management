@@ -264,28 +264,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ImportSwaggerDescriptorEntity swaggerDescriptor
     ) throws ApiAlreadyExistsException {
-        if (swaggerApiEntity != null && swaggerDescriptor != null) {
-            if (
-                DefinitionVersion.V1.equals(swaggerApiEntity.getGraviteeDefinitionVersion()) ||
-                swaggerApiEntity.getGraviteeDefinitionVersion() == null
-            ) {
-                final String defaultDeclaredPath = "/";
-                Map<String, Path> paths = new HashMap<>();
-
-                final Path defaultPath = new Path();
-                defaultPath.setPath(defaultDeclaredPath);
-                paths.put(defaultDeclaredPath, defaultPath);
-
-                if (!swaggerDescriptor.isWithPolicyPaths()) {
-                    swaggerApiEntity.setPaths(paths);
-                }
-
-                if (!swaggerDescriptor.isWithPathMapping()) {
-                    swaggerApiEntity.setPathMappings(singleton(defaultDeclaredPath));
-                }
-            }
-        }
-
         final ApiEntity createdApi = createFromUpdateApiEntity(swaggerApiEntity, userId, swaggerDescriptor);
 
         createMetadata(swaggerApiEntity.getMetadata(), createdApi.getId());
@@ -1149,11 +1127,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         // Overwrite from swagger, if asked
         if (swaggerDescriptor != null) {
-            updateApiEntity.setPaths(swaggerApiEntity.getPaths());
-
             if (swaggerDescriptor.isWithPathMapping()) {
                 updateApiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
-                updateApiEntity.setFlows(swaggerApiEntity.getFlows());
+            }
+
+            if (swaggerDescriptor.isWithPolicyPaths()) {
+                if (DefinitionVersion.V2.equals(updateApiEntity.getGraviteeDefinitionVersion())) {
+                    updateApiEntity.setFlows(swaggerApiEntity.getFlows());
+                } else {
+                    updateApiEntity.setPaths(swaggerApiEntity.getPaths());
+                }
             }
         }
 
