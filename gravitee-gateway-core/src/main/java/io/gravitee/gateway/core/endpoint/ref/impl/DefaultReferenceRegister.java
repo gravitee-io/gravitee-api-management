@@ -17,6 +17,8 @@ package io.gravitee.gateway.core.endpoint.ref.impl;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableScope;
+import io.gravitee.el.annotations.TemplateVariable;
 import io.gravitee.gateway.api.endpoint.Endpoint;
 import io.gravitee.gateway.api.endpoint.EndpointManager;
 import io.gravitee.gateway.core.endpoint.ref.Reference;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@TemplateVariable(scopes = { TemplateVariableScope.API })
 public class DefaultReferenceRegister implements EndpointManager, ReferenceRegister, TemplateVariableProvider {
 
     private static final String TEMPLATE_VARIABLE_KEY = "endpoints";

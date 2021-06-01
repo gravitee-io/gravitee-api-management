@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.healthcheck;
 
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.services.healthcheck.Step;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.ProxyOptions;
@@ -37,5 +38,5 @@ public interface EndpointRule<T extends Endpoint> {
 
     ProxyOptions getSystemProxyOptions();
 
-    EndpointRuleHandler<T> createRunner(Vertx vertx, EndpointRule<T> rule);
+    EndpointRuleHandler<T> createRunner(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine);
 }

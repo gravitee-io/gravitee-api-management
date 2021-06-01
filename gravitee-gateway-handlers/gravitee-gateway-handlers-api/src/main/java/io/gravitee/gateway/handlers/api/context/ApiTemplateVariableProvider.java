@@ -17,6 +17,8 @@ package io.gravitee.gateway.handlers.api.context;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableScope;
+import io.gravitee.el.annotations.TemplateVariable;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@TemplateVariable(scopes = { TemplateVariableScope.API })
 public class ApiTemplateVariableProvider implements TemplateVariableProvider, InitializingBean {
 
     @Autowired

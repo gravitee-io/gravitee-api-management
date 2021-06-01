@@ -16,6 +16,8 @@
 package io.gravitee.gateway.services.healthcheck.spring;
 
 import io.gravitee.gateway.services.healthcheck.EndpointHealthcheckResolver;
+import io.gravitee.gateway.services.healthcheck.context.HealthCheckContextFactory;
+import io.gravitee.gateway.services.healthcheck.context.TemplateVariableProviderFactory;
 import io.gravitee.gateway.services.healthcheck.reporter.StatusReporter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,5 +37,15 @@ public class EndpointHealthcheckConfiguration {
     @Bean
     public StatusReporter statusReporter() {
         return new StatusReporter();
+    }
+
+    @Bean
+    public TemplateVariableProviderFactory templateVariableProviderFactory() {
+        return new TemplateVariableProviderFactory();
+    }
+
+    @Bean
+    public HealthCheckContextFactory healthCheckContextFactory() {
+        return new HealthCheckContextFactory();
     }
 }

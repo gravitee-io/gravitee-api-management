@@ -17,6 +17,8 @@ package io.gravitee.gateway.dictionary;
 
 import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
+import io.gravitee.el.TemplateVariableScope;
+import io.gravitee.el.annotations.TemplateVariable;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@TemplateVariable(scopes = { TemplateVariableScope.API, TemplateVariableScope.HEALTH_CHECK })
 public class DictionaryTemplateProvider implements DictionaryManager, TemplateVariableProvider {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DictionaryTemplateProvider.class);
