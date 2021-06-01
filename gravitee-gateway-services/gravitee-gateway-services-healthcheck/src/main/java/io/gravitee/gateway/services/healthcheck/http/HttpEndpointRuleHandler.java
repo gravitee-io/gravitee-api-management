@@ -25,6 +25,7 @@ import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12TrustStore;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
@@ -49,8 +50,8 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
     private final HttpEndpoint endpoint;
     private final ProxyOptions systemProxyOptions;
 
-    public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule) {
-        super(vertx, rule);
+    public HttpEndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine) {
+        super(vertx, rule, templateEngine);
         this.endpoint = rule.endpoint();
         this.systemProxyOptions = rule.getSystemProxyOptions();
     }

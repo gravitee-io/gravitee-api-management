@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.healthcheck.grpc;
 
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.AbstractEndpointRule;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
@@ -34,7 +35,7 @@ public class GrpcEndpointRule extends AbstractEndpointRule<GrpcEndpoint> {
     }
 
     @Override
-    public EndpointRuleHandler<GrpcEndpoint> createRunner(Vertx vertx, EndpointRule<GrpcEndpoint> rule) {
-        return new GrpcEndpointRuleHandler(vertx, rule);
+    public EndpointRuleHandler<GrpcEndpoint> createRunner(Vertx vertx, EndpointRule<GrpcEndpoint> rule, TemplateEngine templateEngine) {
+        return new GrpcEndpointRuleHandler(vertx, rule, templateEngine);
     }
 }

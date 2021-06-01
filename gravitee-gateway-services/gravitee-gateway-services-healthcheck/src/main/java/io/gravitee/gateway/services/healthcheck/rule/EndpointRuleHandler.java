@@ -22,6 +22,8 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.el.TemplateEngine;
+import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.EndpointStatusDecorator;
@@ -82,16 +84,18 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     protected final EndpointRule<T> rule;
     private final Vertx vertx;
     private final EndpointStatusDecorator endpointStatus;
+    private TemplateEngine templateEngine;
     private Handler<EndpointStatus> statusHandler;
 
     private AlertEventProducer alertEventProducer;
     private Node node;
 
-    public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule) {
+    public EndpointRuleHandler(Vertx vertx, EndpointRule<T> rule, TemplateEngine templateEngine) {
         this.vertx = vertx;
         this.rule = rule;
 
         endpointStatus = new EndpointStatusDecorator(rule.endpoint());
+        this.templateEngine = templateEngine;
     }
 
     @Override
@@ -132,7 +136,15 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
         // Prepare request
         if (step.getRequest().getHeaders() != null) {
-            step.getRequest().getHeaders().forEach(httpHeader -> healthRequest.headers().set(httpHeader.getName(), httpHeader.getValue()));
+            step
+                .getRequest()
+                .getHeaders()
+                .forEach(
+                    httpHeader -> {
+                        String resolvedHeader = templateEngine.getValue(httpHeader.getValue(), String.class);
+                        healthRequest.headers().set(httpHeader.getName(), resolvedHeader == null ? "" : resolvedHeader);
+                    }
+                );
         }
 
         // add custom headers
