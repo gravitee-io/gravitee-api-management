@@ -35,7 +35,7 @@
     <properties>
         <gravitee-node.version>1.9.0</gravitee-node.version>
         <spring.version>5.2.5.RELEASE</spring.version>
-        <gravitee-common.version>1.18.1-SNAPSHOT</gravitee-common.version>
+        <gravitee-common.version>1.19.2-SNAPSHOT</gravitee-common.version>
         <gravitee-definition.version>1.25.0</gravitee-definition.version>
         <gravitee-plugin.version>1.16.0</gravitee-plugin.version>
         <gravitee-repository.version>3.5.3</gravitee-repository.version>
