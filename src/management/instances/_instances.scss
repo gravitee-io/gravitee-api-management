@@ -8,9 +8,9 @@
 }
 
 .gravitee-instances-table-title {
-  background-color: $bgColor;
-  color: $fontColor;
-  fill: $fontColor;
+  background-color: var(--gv-theme-color-darker);
+  color: var(--gv-theme-font-color-light);
+  fill: var(--gv-theme-font-color-light);
   height: 35px;
   padding: 0 5px 5px 5px;
 }

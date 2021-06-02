@@ -6,7 +6,7 @@
 
 md-sidenav {
   @include min-max-width($sidenavWidth);
-  background-color: $bgColor;
+  background: var(--gv-theme-background-gradient);
 }
 
 .md-sidenav-min {
@@ -56,10 +56,6 @@ md-list-item.subheader::before,
   border-top: 1px solid #eee;
 }
 
-md-sidenav.md-sidenav-theme {
-  background-color: $bgColor;
-}
-
 md-sidenav:not(._md-locked-open) {
   box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
 }
@@ -69,7 +65,9 @@ md-sidenav:not(._md-locked-open) {
 
   md-select {
     margin: 12px;
+    padding: 0 12px;
     background-color: white;
+    border-radius: 4px;
 
     md-select-value {
       padding-left: 2px;
@@ -92,11 +90,11 @@ md-sidenav:not(._md-locked-open) {
   }
 
   ng-md-icon {
-    fill: $fontColor;
+    fill: var(--gv-theme-font-color-light);
   }
 
   a {
-    color: $fontColor;
+    color: var(--gv-theme-font-color-light);
     text-decoration: none;
     width: 100%;
     padding: 0 0 8px $sidenavItemLeftWidth;
@@ -104,11 +102,10 @@ md-sidenav:not(._md-locked-open) {
     &:hover,
     &.sidenav-active {
       font-weight: bold;
-      background-color: #1c1c25;
     }
 
     &.sidenav-active {
-      border-left: $sidenavItemBorderSize solid $fontColor;
+      border-left: $sidenavItemBorderSize solid var(--gv-theme-font-color-light);
       padding-left: calc(#{$sidenavItemLeftWidth} - #{$sidenavItemBorderSize});
       padding-top: 3px;
     }
@@ -142,11 +139,11 @@ md-sidenav:not(._md-locked-open) {
   padding: 0;
 
   ng-md-icon {
-    fill: $fontColor;
+    fill: var(--gv-theme-font-color-light);
   }
 
   a {
-    color: $fontColor;
+    color: var(--gv-theme-font-color-light);
     text-decoration: none;
   }
 
@@ -162,18 +159,15 @@ md-sidenav:not(._md-locked-open) {
     height: 18px !important;
     min-height: 18px !important;
     line-height: 18px !important;
-    background-color: $bgColor;
   }
 
   .md-button.sidenav-toggle:hover,
   .md-button.sidenav-toggle:focus {
-    background-color: $bgColor;
   }
 
   ng-md-icon.sidenav-toggle-icon {
     top: 1px;
-    right: 4px;
-    font-weight: bold;
+    right: 7px;
   }
 
   md-list {
@@ -186,21 +180,19 @@ md-sidenav:not(._md-locked-open) {
     width: 200px;
 
     a {
-      color: $fontColor;
+      color: var(--gv-theme-font-color-light);
       text-decoration: none;
       width: 100%;
       padding: 0 0 8px $sidenavItemLeftWidth;
 
       &:hover {
         font-weight: bold;
-        background-color: #1c1c25;
       }
     }
   }
 }
 
 .gravitee-sidenav {
-  background-color: $bgColor;
   padding-top: 54px;
   z-index: 1;
 }

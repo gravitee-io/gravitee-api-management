@@ -36,7 +36,6 @@
 
   <md-list class="sidenav-list">
     <md-list-item ng-repeat="menuItem in $ctrl.menuItems|orderBy:'data.menu.order' track by menuItem.name">
-      <md-tooltip md-delay="400">{{menuItem.data.menu.label}}</md-tooltip>
       <a
         ui-sref="{{ :: menuItem.name}}"
         ui-sref-opts="{inherit: false}"
@@ -55,7 +54,6 @@
     <md-list permission permission-only="'organization-settings-r'">
       <hr />
       <md-list-item>
-        <md-tooltip md-delay="400" md-direction="top">Organization settings</md-tooltip>
         <a ui-sref="organization" title="Organization settings">
           <ng-md-icon icon="settings_applications"></ng-md-icon>
           <span>Organization settings</span>
@@ -63,7 +61,7 @@
       </md-list-item>
     </md-list>
 
-    <md-button class="md-fab md-mini sidenav-toggle" md-no-ink md-no-focus-style ng-click="$ctrl.toggleReducedMode()" aria-label="Mini FAB">
+    <md-button class="md-fab md-mini sidenav-toggle" md-no-focus-style ng-click="$ctrl.toggleReducedMode()" aria-label="Mini FAB">
       <ng-md-icon class="sidenav-toggle-icon" size="16" icon="{{$ctrl.reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon>
     </md-button>
   </div>

@@ -1,5 +1,3 @@
-$backgroundColor: #fdfdfd;
-
 @import '~angular-gridster/dist/angular-gridster.css';
 @import '~angular-loading-bar/build/loading-bar.css';
 @import '~angular-material/modules/scss/angular-material';
@@ -16,7 +14,8 @@ $backgroundColor: #fdfdfd;
 @import '~md-steppers/dist/md-steppers.min.css';
 @import '~@toast-ui/editor/dist/toastui-editor.css';
 @import '~@toast-ui/editor/dist/toastui-editor-viewer.css';
-@import '~@gravitee/ui-components/assets/css/gravitee-theme.generated.css';
+@import '~@gravitee/ui-components/assets/css/gravitee-console-theme.css';
+@import './assets/font/libre-franklin.css';
 
 @import '~v-accordion/dist/v-accordion.css';
 
@@ -66,11 +65,8 @@ $backgroundColor: #fdfdfd;
 @import 'user/newsletter/newsletter-subscription';
 @import 'user/login/login';
 
-html {
-  font-family: 'Roboto Slab', serif;
-}
-
 body {
+  font-family: 'Libre Franklin', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   top: 0px !important;
   background-color: lightgrey;
   position: inherit !important;
@@ -335,7 +331,7 @@ gravitee-sidenav {
 }
 
 .gravitee-no-sidenav-header {
-  background-image: url('assets/GRAVITEE_LOGOV2_RECT.png');
+  background-image: url('assets/gravitee-logo-dark-blue.png');
   background-repeat: no-repeat;
   background-size: 200px;
   background-position: center top;
@@ -504,7 +500,6 @@ md-list-item::before {
 md-content,
 .main-content {
   background: #fff;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   color: #333;
   font-size: 12px;
 }

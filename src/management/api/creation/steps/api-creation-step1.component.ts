@@ -15,6 +15,7 @@
  */
 import ApiCreationController from './api-creation.controller';
 import ApiPrimaryOwnerModeService from '../../../../services/apiPrimaryOwnerMode.service';
+import { shouldDisplayHint } from './form.helper';
 
 const ApiCreationStep1Component: ng.IComponentOptions = {
   require: {
@@ -25,6 +26,7 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
     private parent: ApiCreationController;
     private advancedMode: boolean;
     private useGroupAsPrimaryOwner: boolean;
+    public shouldDisplayHint = shouldDisplayHint;
 
     constructor(private ApiPrimaryOwnerModeService: ApiPrimaryOwnerModeService) {
       'ngInject';

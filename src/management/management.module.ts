@@ -637,25 +637,44 @@ graviteeManagementModule.config(interceptorConfig);
 graviteeManagementModule.config(delegatorConfig);
 graviteeManagementModule.config(($mdThemingProvider: angular.material.IThemingProvider) => {
   $mdThemingProvider.definePalette('gravitee', {
-    '0': '28444F',
-    '50': '28444F',
-    '100': '28444F',
-    '200': '28444F',
-    '300': '28444F',
-    '400': '28444F',
-    '500': '28444F',
-    '600': '28444F',
-    '700': '28444F',
-    '800': '28444F',
-    '900': '28444F',
-    A100: '28444F',
-    A200: '28444F',
-    A400: '28444F',
-    A700: '28444F',
+    '0': '1b1d3c',
+    '50': '1b1d3c',
+    '100': '1b1d3c',
+    '200': '1b1d3c',
+    '300': '1b1d3c',
+    '400': '1b1d3c',
+    '500': '1b1d3c',
+    '600': '1b1d3c',
+    '700': '1b1d3c',
+    '800': '1b1d3c',
+    '900': '1b1d3c',
+    A100: '1b1d3c',
+    A200: '1b1d3c',
+    A400: '1b1d3c',
+    A700: '1b1d3c',
     contrastDefaultColor: 'light',
   });
 
-  $mdThemingProvider.theme('default').primaryPalette('gravitee').accentPalette('gravitee');
+  $mdThemingProvider.definePalette('graviteeWarn', {
+    '0': 'be1818',
+    '50': 'be1818',
+    '100': 'be1818',
+    '200': 'be1818',
+    '300': 'be1818',
+    '400': 'be1818',
+    '500': 'be1818',
+    '600': 'be1818',
+    '700': 'be1818',
+    '800': 'be1818',
+    '900': 'be1818',
+    A100: 'be1818',
+    A200: 'be1818',
+    A400: 'be1818',
+    A700: 'be1818',
+    contrastDefaultColor: 'light',
+  });
+
+  $mdThemingProvider.theme('default').primaryPalette('gravitee').accentPalette('gravitee').warnPalette('graviteeWarn');
 
   $mdThemingProvider.theme('sidenav').backgroundPalette('grey', {
     default: '50',

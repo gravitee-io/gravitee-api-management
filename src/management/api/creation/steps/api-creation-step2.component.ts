@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import ApiCreationController from './api-creation.controller';
+import { shouldDisplayHint } from './form.helper';
 
 const ApiCreationStep2Component: ng.IComponentOptions = {
   require: {
@@ -21,6 +22,8 @@ const ApiCreationStep2Component: ng.IComponentOptions = {
   },
   template: require('./api-creation-step2.html'),
   controller: class {
+    public shouldDisplayHint = shouldDisplayHint;
+
     private parent: ApiCreationController;
     private advancedMode: boolean;
 

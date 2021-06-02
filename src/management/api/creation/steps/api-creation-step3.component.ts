@@ -1,3 +1,5 @@
+import { shouldDisplayHint } from './form.helper';
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -18,6 +20,9 @@ const ApiCreationStep3Component: ng.IComponentOptions = {
     parent: '^apiCreation',
   },
   template: require('./api-creation-step3.html'),
+  controller: class {
+    public shouldDisplayHint = shouldDisplayHint;
+  },
 };
 
 export default ApiCreationStep3Component;

@@ -26,7 +26,7 @@
           <md-input-container class="md-block" flex-gt-sm>
             <label>Name</label>
             <input ng-model="$ctrl.parent.api.name" type="text" required name="name" md-maxlength="512" autofocus />
-            <div class="hint" ng-if="apiGeneralForm.name.$valid || apiGeneralForm.name.$pristine">API Name</div>
+            <div class="hint" ng-if="$ctrl.shouldDisplayHint(apiGeneralForm.name)">API Name</div>
             <div ng-messages="apiGeneralForm.name.$error">
               <div ng-message="required">API Name is required.</div>
               <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
@@ -35,7 +35,7 @@
           <md-input-container class="md-block">
             <label>Version</label>
             <input ng-model="$ctrl.parent.api.version" type="text" md-maxlength="32" required name="version" />
-            <div class="hint" ng-if="apiGeneralForm.version.$valid || apiGeneralForm.version.$pristine">API Version (ex: 1.0)</div>
+            <div class="hint" ng-if="$ctrl.shouldDisplayHint(apiGeneralForm.version)">API Version (ex: 1.0)</div>
             <div ng-messages="apiGeneralForm.version.$error">
               <div ng-message="required">API Version is required.</div>
               <div ng-message="md-maxlength">The version has to be less than 32 characters long.</div>
@@ -47,7 +47,7 @@
           <md-input-container class="md-block" flex-gt-sm>
             <label>Description</label>
             <input ng-model="$ctrl.parent.api.description" type="text" required name="description" />
-            <div class="hint" ng-if="apiGeneralForm.description.$valid || apiGeneralForm.description.$pristine">
+            <div class="hint" ng-if="$ctrl.shouldDisplayHint(apiGeneralForm.description)">
               Provide a description of your API, what it does, ...
             </div>
             <div ng-messages="apiGeneralForm.description.$error">
@@ -68,7 +68,7 @@
               name="contextPath"
               ng-change="$ctrl.parent.onChangeContextPath()"
             />
-            <div class="hint" ng-if="apiGeneralForm.contextPath.$valid || apiGeneralForm.contextPath.$pristine">
+            <div class="hint" ng-if="$ctrl.shouldDisplayHint(apiGeneralForm.contextPath)">
               Path where API is exposed, must start with a '/' and must contain any letter, capitalize letter, number, dash or underscore.
             </div>
             <div ng-messages="apiGeneralForm.contextPath.$error">

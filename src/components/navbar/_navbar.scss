@@ -10,7 +10,8 @@ md-toolbar.topnavbar {
 .topnavbar-brand {
   margin-left: 4px;
   img {
-    max-width: 80px;
+    margin-left: 30px;
+    max-width: 130px;
     max-height: #{$navbarHeaderHeight -4px};
   }
 }

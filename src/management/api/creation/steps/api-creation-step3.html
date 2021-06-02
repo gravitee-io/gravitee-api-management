@@ -23,7 +23,7 @@
           <md-input-container class="md-block" flex-gt-sm="50">
             <label>Name</label>
             <input ng-model="$ctrl.parent.plan.name" type="text" required name="name" minlength="4" md-maxlength="50" />
-            <div class="hint" ng-if="apiPlanForm.name.$valid || apiPlanForm.name.$pristine">Plan Name</div>
+            <div class="hint" ng-if="$ctrl.shouldDisplayHint(apiPlanForm.name)">Plan Name</div>
             <div ng-messages="apiPlanForm.name.$error">
               <div ng-message="required">Plan name is required.</div>
               <div ng-message="minlength">The name has to be more than 4 characters long.</div>

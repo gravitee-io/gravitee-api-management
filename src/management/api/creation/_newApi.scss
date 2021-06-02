@@ -7,7 +7,7 @@
       box-shadow: 0 10px 20px -10px var(--gv-theme-neutral-color-dark, #bfbfbf);
       cursor: pointer;
       visibility: visible;
-      background-color: #28444f;
+      background-color: var(--gv-theme-color-darker);
       color: #ffffff;
       position: relative;
     }

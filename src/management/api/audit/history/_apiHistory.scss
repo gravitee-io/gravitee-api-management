@@ -66,7 +66,7 @@ pre.api-history-definition {
 .api-history-icon {
   --gv-icon--s: 24px;
   --gv-icon-opacit--c: #383e3f;
-  --gv-icon--c: #28444f;
+  --gv-icon--c: var(--gv-theme-color-darker);
 }
 
 .api-event-content_actions {

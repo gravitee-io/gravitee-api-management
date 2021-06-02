@@ -33,11 +33,11 @@
 
   .gv-form-danger {
     h2 {
-      color: #d73a49;
+      color: var(--gv-theme-color-danger);
     }
 
     .gv-form-content {
-      border-color: #d73a49;
+      border-color: var(--gv-theme-color-danger);
     }
 
     .gv-form-danger-text {
