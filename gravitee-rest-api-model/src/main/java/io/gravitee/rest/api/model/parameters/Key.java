@@ -79,7 +79,7 @@ public enum Key {
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
     THEME_NAME("theme.name", "default", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    THEME_LOGO("theme.logo", "themes/assets/GRAVITEE_LOGO1-01.png", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    THEME_LOGO("theme.logo", "themes/assets/gravitee-logo.svg", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     THEME_LOADER("theme.loader", "assets/gravitee_logo_anim.gif", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     THEME_CSS("theme.css", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
 
