@@ -3,6 +3,10 @@
   padding: 8% 0 0;
   margin: auto;
 
+  .title {
+    color: var(--gv-theme-color-darker);
+  }
+
   md-input-container {
     margin: 0;
   }
@@ -12,9 +16,9 @@
     font-size: 10px;
   }
 
-  .md-button {
-    margin: 0;
-    text-transform: none;
+  .text-muted {
+    margin-top: 5px;
+    color: #90939a;
   }
 
   .form {
@@ -26,88 +30,9 @@
     padding: 45px;
     box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
   }
-  /*
-  .form input {
-    outline: 0;
-    background: #f2f2f2;
-    width: 100%;
-    border: 0;
-    margin: 0 0 15px;
-    padding: 15px;
-    box-sizing: border-box;
-    font-size: 14px;
-  }
-  .form button {
-    text-transform: uppercase;
-    outline: 0;
-    background: #34A0D4;
-    width: 100%;
-    border: 0;
-    padding: 15px;
-    color: #FFFFFF;
-    font-size: 14px;
-    -webkit-transition: all 0.3 ease;
-    transition: all 0.3 ease;
-    cursor: pointer;
-  }
-  .form button:hover, .form button:active, .form button:focus {
-    background: #1B87BB;
-  }
-  .form .message {
-    margin: 15px 0 0;
-    color: #b3b3b3;
-    font-size: 12px;
-  }
-  .form .message a {
-    color: #34A0D4;
-    text-decoration: none;
-  }
-  */
+
   .form .register-form {
     display: none;
-  }
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 300px;
-    margin: 0 auto;
-  }
-  .container:before,
-  .container:after {
-    content: '';
-    display: block;
-    clear: both;
-  }
-  .container .info {
-    margin: 50px auto;
-    text-align: center;
-  }
-  .container .info h1 {
-    margin: 0 0 15px;
-    padding: 0;
-    font-size: 36px;
-    font-weight: 300;
-    color: #1a1a1a;
-  }
-  .container .info span {
-    color: #4d4d4d;
-    font-size: 12px;
-  }
-  .container .info span a {
-    color: #000000;
-    text-decoration: none;
-  }
-  .container .info span .fa {
-    color: #ef3b3a;
-  }
-  .error {
-    font-weight: bold;
-    color: #ef3b3a;
-  }
-
-  .text-muted {
-    margin-top: 5px;
-    color: #90939a;
   }
 
   .form-content {
@@ -144,62 +69,6 @@
   .btn:hover {
     box-shadow: 0 1px 3px #383e3f;
   }
-
-  .btn-primary {
-    background-color: #4285f4;
-  }
-
-  .btn-primary:hover {
-    background-color: #3367d6;
-  }
-
-  .btn-success {
-    background-color: #0f9d58;
-  }
-
-  .btn-success:hover {
-    background-color: #196c4a;
-  }
-
-  .btn-danger {
-    background-color: #db4437;
-  }
-
-  .btn-danger:hover {
-    background-color: #b04c3b;
-  }
-
-  .btn-group-vertical .btn {
-    margin-bottom: 10px;
-  }
-
-  .btn-group-vertical > .btn:first-child:not(:last-child) {
-    border-radius: 2px;
-  }
-
-  .btn-group-vertical > .btn:not(:first-child):not(:last-child) {
-    border-radius: 2px;
-  }
-
-  .btn-group-vertical > .btn:last-child:not(:first-child) {
-    border-radius: 2px;
-  }
-
-  .btn-lg {
-    font-size: 14px;
-  }
-
-  .btn [class^='ion-'] {
-    margin-right: 5px;
-  }
-
-  .btn .fa {
-    margin-right: 5px;
-  }
-
-  /*********************
-  * Social Buttons
-  *********************/
 
   .btn-google {
     color: #fff;
