@@ -13,15 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.cockpitcommand;
+package io.gravitee.rest.api.service.cockpit.command;
 
+import io.gravitee.cockpit.api.CockpitConnector;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.Payload;
 import io.gravitee.cockpit.api.command.Reply;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.bridge.BridgePayload;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public interface CockpitCommandService {
-    BridgeReply send(BridgeCommand command);
-    <T extends Payload> Reply send(Command<T> command);
+@Component
+public class CockpitCommandServiceImpl implements CockpitCommandService {
+
+    @Autowired
+    private CockpitConnector cockpitConnector;
+
+    @Override
+    public BridgeReply send(BridgeCommand command) {
+        return (BridgeReply) send((Command<BridgePayload>) command);
+    }
+
+    @Override
+    public <T extends Payload> Reply send(Command<T> command) {
+        return cockpitConnector.sendCommand(command).blockingGet();
+    }
 }

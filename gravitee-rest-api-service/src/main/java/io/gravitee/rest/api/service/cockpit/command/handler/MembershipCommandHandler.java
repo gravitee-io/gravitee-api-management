@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.commands;
+package io.gravitee.rest.api.service.cockpit.command.handler;
 
-import static io.gravitee.rest.api.service.impl.commands.UserCommandHandler.COCKPIT_SOURCE;
+import static io.gravitee.rest.api.service.cockpit.command.handler.UserCommandHandler.COCKPIT_SOURCE;
 
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
