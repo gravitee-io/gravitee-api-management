@@ -288,4 +288,9 @@ public class EnvironmentResource extends AbstractResource {
     public EnvironmentAnalyticsResource getEnvironmentAnalyticsResource() {
         return resourceContext.getResource(EnvironmentAnalyticsResource.class);
     }
+
+    @Path("promotion-targets")
+    public PromotionTargetsResource getPromotionTargetsResource() {
+        return resourceContext.getResource(PromotionTargetsResource.class);
+    }
 }
