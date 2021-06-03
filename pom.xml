@@ -40,7 +40,7 @@
     </modules>
 
     <properties>
-        <gravitee-repository.version>3.5.1</gravitee-repository.version>
+        <gravitee-repository.version>3.5.3</gravitee-repository.version>
         <gravitee-common.version>1.18.0</gravitee-common.version>
     </properties>
 
