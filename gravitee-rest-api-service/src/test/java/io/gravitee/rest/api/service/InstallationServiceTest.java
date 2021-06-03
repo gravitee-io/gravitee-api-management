@@ -24,6 +24,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
 import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.model.InstallationStatus;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.InstallationServiceImpl;
@@ -50,7 +51,7 @@ public class InstallationServiceTest {
 
     private static final String INSTALLATION_ID = "id-installation";
     private static final String COCKPIT_INSTALLATION_ID = "id-cockpit-installation";
-    private static final String COCKPIT_INSTALLATION_STATUS = "status-cockpit-installation";
+    private static final String COCKPIT_INSTALLATION_STATUS = "ACCEPTED";
     private static final Map<String, String> ADDITIONAL_INFORMATION = new HashMap<String, String>() {
         {
             put(InstallationService.COCKPIT_INSTALLATION_ID, COCKPIT_INSTALLATION_ID);
@@ -178,6 +179,14 @@ public class InstallationServiceTest {
         assertEquals(NOW, updatedInstallationEntity.getCreatedAt());
         assertEquals(1, updatedInstallationEntity.getAdditionalInformation().size());
         assertEquals("value1", updatedInstallationEntity.getAdditionalInformation().get("key1"));
+    }
+
+    @Test
+    public void shouldGetInstallationStatus() {
+        final InstallationStatus installationStatus = installationService.getInstallationStatus();
+
+        assertNotNull(installationStatus);
+        assertEquals(InstallationStatus.ACCEPTED, installationStatus);
     }
 
     @Test(expected = TechnicalManagementException.class)

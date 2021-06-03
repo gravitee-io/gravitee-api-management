@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.model.InstallationStatus;
 import java.util.Map;
 
 /**
@@ -48,4 +49,11 @@ public interface InstallationService {
      * @return the updated installation
      */
     InstallationEntity setAdditionalInformation(Map<String, String> additionalInformation);
+
+    /**
+     * Get installation status, regarding cockpit.
+     *
+     * @return One of these values: PENDING, ACCEPTED, REJECTED, DELETED
+     */
+    InstallationStatus getInstallationStatus();
 }

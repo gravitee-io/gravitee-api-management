@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
 import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.model.InstallationStatus;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
@@ -91,6 +92,11 @@ public class InstallationServiceImpl implements InstallationService {
             throw new TechnicalManagementException("Error while updating installation", ex);
         }
         throw new InstallationNotFoundException("");
+    }
+
+    @Override
+    public InstallationStatus getInstallationStatus() {
+        return InstallationStatus.valueOf(getOrInitialize().getAdditionalInformation().get(COCKPIT_INSTALLATION_STATUS));
     }
 
     private InstallationEntity createInstallation() {
