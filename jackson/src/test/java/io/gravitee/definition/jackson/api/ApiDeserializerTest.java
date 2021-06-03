@@ -24,6 +24,8 @@ import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.endpoint.GrpcEndpoint;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.flow.Consumer;
+import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.ssl.KeyStoreType;
@@ -751,6 +753,16 @@ public class ApiDeserializerTest extends AbstractTest {
         Assert.assertEquals(3, flow.getMethods().size());
         Assert.assertTrue(flow.getMethods().containsAll(Arrays.asList(HttpMethod.POST, HttpMethod.PUT, HttpMethod.GET)));
         Assert.assertEquals("/", flow.getPath());
+        Assert.assertNotNull(flow.getConsumers());
+        Assert.assertEquals(2, flow.getConsumers().size());
+        final Consumer consumer = flow.getConsumers().get(0);
+        Assert.assertNotNull(consumer);
+        Assert.assertEquals("PUBLIC", consumer.getConsumerId());
+        Assert.assertEquals(ConsumerType.TAG, consumer.getConsumerType());
+        final Consumer consumer2 = flow.getConsumers().get(1);
+        Assert.assertNotNull(consumer2);
+        Assert.assertEquals("PRIVATE", consumer2.getConsumerId());
+        Assert.assertEquals(ConsumerType.TAG, consumer2.getConsumerType());
 
         Step rule = flow.getPre().get(0);
         Assert.assertNotNull(rule);

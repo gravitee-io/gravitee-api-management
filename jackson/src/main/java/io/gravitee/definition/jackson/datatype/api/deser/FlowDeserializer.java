@@ -24,10 +24,7 @@ import io.gravitee.definition.model.Failover;
 import io.gravitee.definition.model.FailoverCase;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.Rule;
-import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.definition.model.flow.Operator;
-import io.gravitee.definition.model.flow.PathOperator;
-import io.gravitee.definition.model.flow.Step;
+import io.gravitee.definition.model.flow.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -39,8 +36,8 @@ import java.util.List;
  */
 public class FlowDeserializer extends StdScalarDeserializer<Flow> {
 
-    public FlowDeserializer() {
-        super(Flow.class);
+    public FlowDeserializer(Class<Flow> vc) {
+        super(vc);
     }
 
     @Override
@@ -59,6 +56,24 @@ public class FlowDeserializer extends StdScalarDeserializer<Flow> {
         }
 
         flow.setCondition(node.path("condition").asText());
+
+        JsonNode consumersNode = node.get("consumers");
+        if (consumersNode != null && consumersNode.isArray()) {
+            final List<Consumer> consumers = new ArrayList<>();
+            consumersNode
+                .elements()
+                .forEachRemaining(
+                    jsonNode -> {
+                        try {
+                            consumers.add(jsonNode.traverse(jp.getCodec()).readValueAs(Consumer.class));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                );
+
+            flow.setConsumers(consumers);
+        }
 
         JsonNode methodsNode = node.get("methods");
         if (methodsNode != null && methodsNode.isArray()) {

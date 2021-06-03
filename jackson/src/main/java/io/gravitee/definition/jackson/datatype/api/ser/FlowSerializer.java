@@ -19,10 +19,13 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.PathOperator;
 import io.gravitee.definition.model.flow.Step;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -30,8 +33,8 @@ import java.io.IOException;
  */
 public class FlowSerializer extends StdScalarSerializer<Flow> {
 
-    public FlowSerializer() {
-        super(Flow.class);
+    public FlowSerializer(Class<Flow> vc) {
+        super(vc);
     }
 
     @Override
@@ -46,6 +49,14 @@ public class FlowSerializer extends StdScalarSerializer<Flow> {
         }
 
         jgen.writeStringField("condition", flow.getCondition());
+
+        jgen.writeArrayFieldStart("consumers");
+        if (flow.getConsumers() != null) {
+            for (Consumer consumer : flow.getConsumers()) {
+                jgen.writeObject(consumer);
+            }
+        }
+        jgen.writeEndArray();
 
         jgen.writeArrayFieldStart("methods");
         if (flow.getMethods() != null) {

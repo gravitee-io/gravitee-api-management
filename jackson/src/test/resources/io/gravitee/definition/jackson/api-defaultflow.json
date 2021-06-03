@@ -20,6 +20,15 @@
         "operator": "STARTS_WITH"
       },
       "condition": "#request.headers['content-type'] == 'application/json'",
+      "consumers": [
+        {
+          "consumerId": "PUBLIC",
+          "consumerType": "TAG"
+        },
+        {
+          "consumerId": "PRIVATE"
+        }
+      ],
       "pre": [
         {
           "policy": "rate-limit",

@@ -18,6 +18,16 @@
       "operator" : "STARTS_WITH"
     },
     "condition" : "#request.headers['content-type'] == 'application/json'",
+    "consumers": [
+      {
+        "consumerId": "PUBLIC",
+        "consumerType": "TAG"
+      },
+      {
+        "consumerId": "PRIVATE",
+        "consumerType": "TAG"
+      }
+    ],
     "methods" : [ "GET", "POST", "PUT" ],
     "pre" : [ {
       "name" : "Rate Limit",
@@ -67,6 +77,7 @@
         "operator" : "STARTS_WITH"
       },
       "condition" : "#request.headers['content-type'] == 'application/json'",
+      "consumers": [ ],
       "methods" : [ ],
       "pre" : [ {
         "name" : "Rate Limit",
@@ -118,6 +129,7 @@
         "operator" : "STARTS_WITH"
       },
       "condition" : "#request.headers['content-type'] == 'application/json'",
+      "consumers": [ ],
       "methods" : [ ],
       "pre" : [ {
         "name" : "Rate Limit",
@@ -159,6 +171,7 @@
         "operator" : "STARTS_WITH"
       },
       "condition" : "#request.headers['content-type'] == 'application/json'",
+      "consumers": [ ],
       "methods" : [ ],
       "pre" : [ {
         "name" : "Rate Limit",
