@@ -204,30 +204,30 @@ public enum Key {
     PORTAL_RECAPTCHA_SITE_KEY("portal.reCaptcha.siteKey", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     PORTAL_HTTP_CORS_ALLOW_ORIGIN(
-        "portal.http.cors.allow-origin",
+        "http.api.portal.cors.allow-origin",
         "*",
         List.class,
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
     PORTAL_HTTP_CORS_ALLOW_HEADERS(
-        "portal.http.cors.allow-headers",
+        "http.api.portal.cors.allow-headers",
         "Cache-Control;Pragma;Origin;Authorization;Content-Type;X-Requested-With;If-Match;X-Xsrf-Token;X-Recaptcha-Token",
         List.class,
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
     PORTAL_HTTP_CORS_ALLOW_METHODS(
-        "portal.http.cors.allow-methods",
+        "http.api.portal.cors.allow-methods",
         "OPTIONS;GET;POST;PUT;DELETE;PATCH",
         List.class,
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
     PORTAL_HTTP_CORS_EXPOSED_HEADERS(
-        "portal.http.cors.exposed-headers",
+        "http.api.portal.cors.exposed-headers",
         "ETag;X-Xsrf-Token",
         List.class,
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
-    PORTAL_HTTP_CORS_MAX_AGE("portal.http.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_HTTP_CORS_MAX_AGE("http.api.portal.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
     EMAIL_ENABLED("email.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     EMAIL_HOST("email.host", "smtp.my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
@@ -252,26 +252,31 @@ public enum Key {
     CONSOLE_SCHEDULER_NOTIFICATIONS("console.scheduler.notifications", "10", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_RECAPTCHA_ENABLED("console.reCaptcha.enabled", "false", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_RECAPTCHA_SITE_KEY("console.reCaptcha.siteKey", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
-    CONSOLE_HTTP_CORS_ALLOW_ORIGIN("console.http.cors.allow-origin", "*", List.class, new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_HTTP_CORS_ALLOW_ORIGIN(
+        "http.api.management.cors.allow-origin",
+        "*",
+        List.class,
+        new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))
+    ),
     CONSOLE_HTTP_CORS_ALLOW_HEADERS(
-        "console.http.cors.allow-headers",
+        "http.api.management.cors.allow-headers",
         "Cache-Control;Pragma;Origin;Authorization;Content-Type;X-Requested-With;If-Match;X-Xsrf-Token;X-Recaptcha-Token",
         List.class,
         new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))
     ),
     CONSOLE_HTTP_CORS_ALLOW_METHODS(
-        "console.http.cors.allow-methods",
+        "http.api.management.cors.allow-methods",
         "OPTIONS;GET;POST;PUT;DELETE;PATCH",
         List.class,
         new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))
     ),
     CONSOLE_HTTP_CORS_EXPOSED_HEADERS(
-        "console.http.cors.exposed-headers",
+        "http.api.management.cors.exposed-headers",
         "ETag;X-Xsrf-Token",
         List.class,
         new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))
     ),
-    CONSOLE_HTTP_CORS_MAX_AGE("console.http.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
+    CONSOLE_HTTP_CORS_MAX_AGE("http.api.management.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_USERCREATION_ENABLED("console.userCreation.enabled", "true", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED(
         "console.userCreation.automaticValidation.enabled",
