@@ -12,11 +12,15 @@ The (+) button let you create a new path to specify its behavior via the policie
 
 ## Configuration
 
-As an API editor, you can define flows. 
+As an Organization user, you can define platform flows. 
 
 Each flow will apply to a path in the order defined.
 
 You can define a name and a description but if empty the name of the flow will be generated with the operator ("Starts with" or "Equals"), the path and the HTTP methods.
+
+You can configure one or more sharding tags.
+The flows will only be executed on APIs with a sharding tag that matches.
+If it is empty, the flows will be executed on all the APIs.
 
 You can also define an Expression Language (EL) type condition.
 
@@ -28,36 +32,3 @@ This expression language is a powerful language that supports querying and manip
 - Get the second part of the request path: `{#request.paths[1]}`
 - Get the value of the user-id attribute for an incoming HTTP request `{#context.attributes['user-id']}`
 - Get the value of the plan attribute for an incoming HTTP request `{#context.attributes['plan']}`
-
-## Properties
-
-As an API publisher, you can define properties for your API. These properties are automatically injected into the expression language context to be used later.
-
-For example, to get the value of the property `my-property` defined in API properties: `{#properties['my-property']}`
-
-The (+) button let you create a new property.
-
-### Dynamic properties
-
-To get access to dynamic properties click on the _settings_ button. Dynamic properties let you fetch API properties from a remote resource, such as web service.
-
-You can set a polling frequency property and apply response transformation thanks to the [JOLT framework](http://bazaarvoice.github.io/jolt/). 
-
-Do not forget to switch on dynamic properties and re-deploy the API to unable dynamic properties. Like classical properties, dynamic properties will be injected into the expression language context.
-
-## Resources
-
-Resources are link to the API lifecycle. They are initialized when the API is starting and released when API is stopped.
-Resources are used via the API policies to enhance API behavior.
-
-Differents resource types are available :
-
-* Cache
-
-Used to store re-usable data to avoid subsequent calls.
-
-* OAuth 2.0
-
-Used to introspect an access_token via an external OAuth 2.0 authorization server.
-
-The (+) button let you create a new resource.
