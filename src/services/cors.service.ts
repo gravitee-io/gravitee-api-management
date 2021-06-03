@@ -48,9 +48,9 @@ class CorsService {
 
       if (!validator.test(chip)) {
         let invalidRegex = false;
-        if (["{", "[", "(", "*"].some(v => this.allowOriginPattern.includes(v))) {
+        if (['{', '[', '(', '*'].some((v) => this.allowOriginPattern.includes(v))) {
           try {
-            new RegExp(chip);
+            let regExp = new RegExp(chip);
           } catch (e) {
             invalidRegex = true;
           }
