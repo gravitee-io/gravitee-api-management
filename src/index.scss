@@ -775,12 +775,6 @@ table {
   fill: rgba(0, 0, 0, 0.54);
 }
 
-md-progress-circular {
-  display: inline-block;
-  position: absolute;
-  top: 200px;
-}
-
 // Hack to make the checkbox lighter when disabled and so improve difference with the "default/activated" state
 md-checkbox[disabled]:not(.md-checked) .md-icon {
   border-color: rgba(0, 0, 0, 0.1);

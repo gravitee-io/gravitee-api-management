@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form name="portalCtrl.formApi" ng-submit="portalCtrl.update(portalCtrl.api)" novalidate>
+<form class="api-portal" name="portalCtrl.formApi" ng-submit="portalCtrl.update(portalCtrl.api)" novalidate>
   <div class="gv-forms" layout="column">
     <h1>Details</h1>
 
@@ -200,6 +200,28 @@
           >
             <ng-md-icon icon="content_copy"></ng-md-icon>
             Duplicate
+          </md-button>
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            ng-if="portalCtrl.linkedToCockpit"
+            aria-label="Promote API"
+            ng-click="portalCtrl.showPromoteDialog()"
+            ng-disabled="!portalCtrl.canPromote()"
+          >
+            <gv-icon shape="maps:rocket"></gv-icon>
+            Promote
+          </md-button>
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            ng-if="!portalCtrl.linkedToCockpit"
+            class="meet-cockpit"
+            aria-label="Promote API"
+            ng-click="portalCtrl.showMeetCockpitDialog()"
+          >
+            <gv-icon shape="maps:rocket"></gv-icon>
+            Promote
           </md-button>
         </div>
       </div>

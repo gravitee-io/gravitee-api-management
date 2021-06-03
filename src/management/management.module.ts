@@ -472,6 +472,8 @@ import WidgetChartCountComponent from '../components/widget/count/widget-chart-c
 
 import PolicyStudioWrapperComponent from '../components/policy-studio-wrapper/policy-studio-wrapper.component';
 
+import { PromotionService } from '../services/promotion.service';
+
 (<any>window).jQuery = jQuery;
 
 import angular = require('angular');
@@ -1096,6 +1098,9 @@ graviteeManagementModule.controller('UserAutocompleteController', UserAutocomple
 // Quick Time range
 graviteeManagementModule.component('gvQuickTimeRange', QuickTimeRangeComponent);
 graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeController);
+
+// Promotions
+graviteeManagementModule.service('promotionService', PromotionService);
 
 graviteeManagementModule.filter('humanDateFilter', () => {
   return function (input) {

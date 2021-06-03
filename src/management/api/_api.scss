@@ -9,6 +9,7 @@
 @import 'proxy/backend/healthcheck/healthcheck';
 @import 'portal/plans/apiPlans';
 @import 'portal/subscriptions/subscriptions';
+@import 'portal/general/apiPortal';
 
 .gravitee-api-container {
   border: 1px solid;
