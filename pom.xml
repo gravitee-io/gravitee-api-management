@@ -29,11 +29,11 @@
 
 	<groupId>io.gravitee.repository</groupId>
 	<artifactId>gravitee-repository-redis</artifactId>
-	<version>3.2.1-SNAPSHOT</version>
+	<version>3.2.1</version>
 	<name>Gravitee.io APIM - Repository - Redis</name>
 
 	<properties>
-		<gravitee-repository.version>3.2.0</gravitee-repository.version>
+		<gravitee-repository.version>3.2.1</gravitee-repository.version>
 		<lettuce.version>5.3.4.RELEASE</lettuce.version>
 		<spring-data-redis.version>2.3.4.RELEASE</spring-data-redis.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
