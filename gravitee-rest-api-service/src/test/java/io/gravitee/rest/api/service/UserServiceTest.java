@@ -35,6 +35,7 @@ import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.*;
@@ -1249,6 +1250,182 @@ public class UserServiceTest {
             );
 
         verify(roleService, times(1)).findDefaultRoleByScopes(eq(RoleScope.ENVIRONMENT));
+    }
+
+    @Test
+    public void shouldUpdateUserWithGroupMappingWithoutOverridingIfGroupDefined() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+        mockGroupsMapping();
+        mockRolesMapping();
+
+        User createdUser = mockUser();
+        when(userRepository.create(any(User.class))).thenReturn(createdUser);
+
+        when(identityProvider.getId()).thenReturn("oauth2");
+        when(userRepository.findBySource("oauth2", "janedoe@example.com", ORGANIZATION)).thenReturn(Optional.empty());
+
+        //mock group search and association
+        when(groupService.findById("Example group")).thenReturn(mockGroupEntity("group_id_1", "Example group"));
+        when(groupService.findById("soft user")).thenReturn(mockGroupEntity("group_id_2", "soft user"));
+        when(groupService.findById("Api consumer")).thenReturn(mockGroupEntity("group_id_4", "Api consumer"));
+
+        // mock role search
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        RoleEntity roleOrganizationUser = mockRoleEntity(RoleScope.ORGANIZATION, "USER");
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleApiUser = mockRoleEntity(RoleScope.API, "USER");
+        RoleEntity roleApplicationAdmin = mockRoleEntity(RoleScope.APPLICATION, "ADMIN");
+
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN")).thenReturn(Optional.of(roleOrganizationAdmin));
+        when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER")).thenReturn(Optional.of(roleOrganizationUser));
+        when(roleService.findDefaultRoleByScopes(RoleScope.API, RoleScope.APPLICATION))
+            .thenReturn(Arrays.asList(roleApiUser, roleApplicationAdmin));
+
+        Membership membership = new Membership();
+        membership.setSource("oauth2");
+        membership.setReferenceId("membershipId");
+        membership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.GROUP);
+        final HashSet<Membership> memberships = new HashSet<>();
+        memberships.add(membership);
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceType(
+                "janedoe@example.com",
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.GROUP
+            )
+        )
+            .thenReturn(memberships);
+
+        when(
+            membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                ),
+                eq("oauth2")
+            )
+        )
+            .thenReturn(Collections.singletonList(mockMemberEntity()));
+
+        when(
+            membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                ),
+                eq("oauth2")
+            )
+        )
+            .thenReturn(Collections.singletonList(mockMemberEntity()));
+
+        when(
+            membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                ),
+                eq("oauth2")
+            )
+        )
+            .thenReturn(Collections.singletonList(mockMemberEntity()));
+
+        when(
+            membershipService.updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                ),
+                eq("oauth2")
+            )
+        )
+            .thenReturn(Collections.singletonList(mockMemberEntity()));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(identityProvider, userInfo);
+
+        //verify group creations
+        verify(membershipService, times(1))
+            .updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_1")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                ),
+                eq("oauth2")
+            );
+
+        verify(membershipService, times(1))
+            .updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_2")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                ),
+                eq("oauth2")
+            );
+
+        verify(membershipService, times(0))
+            .updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_3")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                ),
+                eq("oauth2")
+            );
+
+        verify(membershipService, times(1))
+            .updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group_id_4")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.API, "USER")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "ADMIN"))
+                ),
+                eq("oauth2")
+            );
+
+        verify(membershipService, times(1))
+            .updateRolesToMemberOnReferenceBySource(
+                eq(new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, "DEFAULT")),
+                eq(new MembershipService.MembershipMember("janedoe@example.com", null, MembershipMemberType.USER)),
+                argThat(
+                    roles ->
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "ADMIN")) &&
+                        roles.contains(new MembershipService.MembershipRole(RoleScope.ORGANIZATION, "USER"))
+                ),
+                eq("oauth2")
+            );
+
+        verify(roleService, times(1)).findDefaultRoleByScopes(eq(RoleScope.ENVIRONMENT));
+        verify(membershipService, times(1))
+            .deleteReferenceMemberBySource(
+                eq(MembershipReferenceType.GROUP),
+                eq("membershipId"),
+                eq(MembershipMemberType.USER),
+                eq("janedoe@example.com"),
+                eq("oauth2")
+            );
     }
 
     @Test
