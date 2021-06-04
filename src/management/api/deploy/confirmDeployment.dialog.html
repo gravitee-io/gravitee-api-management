@@ -24,7 +24,10 @@
         <label for="deploymentLabel">Deployment label</label>
         <input id="deploymentLabel" type="text" ng-model="ctrl.deploymentLabel" maxlength="32" />
       </md-input-container>
+
+      <p ng-bind-html="ctrl.more"></p>
     </md-dialog-content>
+
     <md-dialog-actions layout="row">
       <md-button ng-click="ctrl.cancel()">{{ctrl.cancelButton}}</md-button>
       <md-button class="md-raised md-primary" type="submit">{{ctrl.confirmButton}}</md-button>

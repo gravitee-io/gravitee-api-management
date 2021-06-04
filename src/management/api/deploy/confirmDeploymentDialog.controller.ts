@@ -18,6 +18,7 @@ function DialogConfirmDeploymentController($scope, $mdDialog, locals) {
 
   this.title = locals.title;
   this.msg = locals.msg;
+  this.more = locals.more;
   this.deploymentLabel = '';
   this.confirmButton = locals.confirmButton || 'OK';
   this.cancelButton = locals.cancelButton || 'Cancel';

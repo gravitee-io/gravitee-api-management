@@ -25,6 +25,10 @@ class FlowService {
   getPlatformFlowSchemaForm() {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/flows/flow-schema`);
   }
+
+  getConfiguration() {
+    return this.$http.get(`${this.Constants.org.baseURL}/configuration/flows/`);
+  }
 }
 
 export default FlowService;

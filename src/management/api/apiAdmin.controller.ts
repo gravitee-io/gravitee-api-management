@@ -17,6 +17,7 @@ import SidenavService from '../../components/sidenav/sidenav.service';
 import UserService from '../../services/user.service';
 import NotificationService from '../../services/notification.service';
 import ApiService from '../../services/api.service';
+import FlowService from '../../services/flow.service';
 import { IScope } from 'angular';
 
 import { StateService } from '@uirouter/core';
@@ -27,6 +28,7 @@ class ApiAdminController {
   private apiJustDeployed: boolean;
   private apiIsSynchronized: boolean;
   private menu: any;
+  private hasPlatformPolicies: boolean;
 
   constructor(
     private resolvedApi: any,
@@ -40,6 +42,7 @@ class ApiAdminController {
     private SidenavService: SidenavService,
     private UserService: UserService,
     private Constants,
+    private FlowService: FlowService,
   ) {
     'ngInject';
 
@@ -47,6 +50,8 @@ class ApiAdminController {
     this.$state = $state;
     this.$mdDialog = $mdDialog;
     this.$rootScope = $rootScope;
+
+    this.hasPlatformPolicies = false;
 
     this.api = resolvedApi.data;
     this.api.etag = resolvedApi.headers('etag');
@@ -74,6 +79,10 @@ class ApiAdminController {
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;
       this.checkAPISynchronization(this.api);
+    });
+
+    this.FlowService.getConfiguration().then((response) => {
+      this.hasPlatformPolicies = response.data.has_policies;
     });
 
     this.menu = {
@@ -113,6 +122,13 @@ class ApiAdminController {
   }
 
   showDeployAPIConfirm(ev, api) {
+    const more = this.hasPlatformPolicies
+      ? '<div class="gv-deploy-info">' +
+        '<p>Some policies are defined on the platform and may conflict with your API policies on flows.</p>' +
+        '<p>Contact your administrator for further information.</p>' +
+        '</div>'
+      : null;
+
     this.$mdDialog
       .show({
         controller: 'DialogConfirmDeploymentController',
@@ -123,6 +139,7 @@ class ApiAdminController {
           title: 'Would you like to deploy your API?',
           msg: 'You can provide a label to identify your deployment',
           confirmButton: 'OK',
+          more,
         },
       })
       .then((response) => {
