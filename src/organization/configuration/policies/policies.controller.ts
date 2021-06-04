@@ -16,7 +16,7 @@
 import TagService from '../../../services/tag.service';
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
-import { IScope } from 'angular';
+import { IPromise, IScope } from 'angular';
 import '@gravitee/ui-components/wc/gv-policy-studio';
 import OrganizationService, { Organization } from '../../../services/organization.service';
 import { response } from 'express';
@@ -33,6 +33,7 @@ class PoliciesController {
     private PortalSettingsService: PortalSettingsService,
     private $rootScope: IScope,
     private OrganizationService: OrganizationService,
+    private readonly $mdDialog: angular.material.IDialogService,
   ) {
     'ngInject';
     this.$rootScope = $rootScope;
@@ -76,9 +77,27 @@ class PoliciesController {
       return flow;
     });
     this.organization.flowMode = definition['flow-mode'];
-    this.OrganizationService.update(this.organization).then(() => {
-      this.NotificationService.show('Platform policies has been updated');
-      event.target.saved();
+
+    this.showConfirmDialog().then((validation) => {
+      if (validation) {
+        this.OrganizationService.update(this.organization).then(() => {
+          this.NotificationService.show('Platform policies has been updated');
+          event.target.saved();
+        });
+      }
+    });
+  }
+
+  private showConfirmDialog(): IPromise<boolean> {
+    return this.$mdDialog.show({
+      controller: 'DialogConfirmController',
+      controllerAs: 'ctrl',
+      template: require('../../../components/dialog/confirm.dialog.html'),
+      clickOutsideToClose: true,
+      locals: {
+        title: 'Deploy the policies?',
+        msg: 'Platform policies will be automatically deployed on gateways.',
+      },
     });
   }
 }
