@@ -17,7 +17,7 @@
 import { IdentityProviderActivation } from '../entities/identityProvider';
 import * as _ from 'lodash';
 import { IHttpResponse } from 'angular';
-import { IEnvironmentPermissions } from '../entities/IEnvironmentPermissions';
+import { EnvironmentPermissions } from '../entities/environment/environmentPermissions';
 
 class EnvironmentService {
   constructor(private $http, private Constants, private $q) {
@@ -60,7 +60,7 @@ class EnvironmentService {
     return this.$http.put(`${this.Constants.org.baseURL}/environments/${envId}/identities`, updatedIPA);
   }
 
-  getPermissions(envId: string): ng.IPromise<IHttpResponse<IEnvironmentPermissions[]>> {
+  getPermissions(envId: string): ng.IPromise<IHttpResponse<EnvironmentPermissions[]>> {
     return this.$http.get(`${this.Constants.org.baseURL}/environments/permissions?idOrHrid=${envId}`);
   }
 

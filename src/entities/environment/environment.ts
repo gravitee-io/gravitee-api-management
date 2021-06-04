@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface IEnvironmentPermissions {
+export interface Environment {
   id: string;
+  hrids: string[];
   name: string;
-  permissions: Record<string, string[]>;
+  description: string;
+  organizationId: string;
+  domainRestrictions: string[];
 }
