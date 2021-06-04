@@ -114,12 +114,12 @@ public class FlowServiceTest {
             "      \"title\": \"Flow Mode\",\n" +
             "      \"description\": \"The flow mode\",\n" +
             "      \"type\": \"string\",\n" +
-            "      \"enum\": [ \"default\", \"best_match\" ],\n" +
-            "      \"default\": \"default\",\n" +
+            "      \"enum\": [ \"DEFAULT\", \"BEST_MATCH\" ],\n" +
+            "      \"default\": \"DEFAULT\",\n" +
             "      \"x-schema-form\": {\n" +
             "        \"titleMap\": {\n" +
-            "          \"default\": \"Default\",\n" +
-            "          \"best_match\": \"Best match\"\n" +
+            "          \"DEFAULT\": \"Default\",\n" +
+            "          \"BEST_MATCH\": \"Best match\"\n" +
             "        }\n" +
             "      }\n" +
             "    }\n" +
