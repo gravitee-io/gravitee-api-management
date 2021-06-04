@@ -45,19 +45,16 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <!-- JWT -->
         <dependency>
             <groupId>com.nimbusds</groupId>
             <artifactId>nimbus-jose-jwt</artifactId>
-            <version>${nimbus-jose-jwt.version}</version>
         </dependency>
     </dependencies>
 </project>

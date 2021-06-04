@@ -43,17 +43,6 @@
         <module>gravitee-rest-api-services-subscription-pre-expiration-notif</module>
     </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <!-- Vert.x -->
-            <dependency>
-                <groupId>io.vertx</groupId>
-                <artifactId>vertx-web</artifactId>
-                <version>${vertx.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <!-- Gravitee.io dependencies -->
         <dependency>

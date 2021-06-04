@@ -15,29 +15,19 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
-import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.*;
-
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.common.utils.UUID;
-import io.gravitee.fetcher.api.FetcherException;
-import io.gravitee.repository.management.model.GenericNotificationConfig;
-import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
-import io.gravitee.rest.api.service.notifiers.WebhookNotifierService;
-import io.gravitee.rest.api.service.vertx.VertxCompletableFuture;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.http.*;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import java.net.URI;
@@ -100,11 +90,11 @@ public class WebNotifierServiceImpl implements WebNotifierService {
             return;
         }
 
-        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
+        CompletableFuture<Buffer> future = new CompletableFuture<>();
         URI requestUri = URI.create(uri);
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
 
-        final HttpClientOptions options = new HttpClientOptions()
+        final HttpClientOptions clientOptions = new HttpClientOptions()
             .setSsl(ssl)
             .setTrustAll(true)
             .setMaxPoolSize(1)
@@ -126,64 +116,100 @@ public class WebNotifierServiceImpl implements WebNotifierService {
                 proxyOptions.setUsername(httpClientProxyHttpUsername);
                 proxyOptions.setPassword(httpClientProxyHttpPassword);
             }
-            options.setProxyOptions(proxyOptions);
+            clientOptions.setProxyOptions(proxyOptions);
         }
 
-        final HttpClient httpClient = vertx.createHttpClient(options);
+        final HttpClient httpClient = vertx.createHttpClient(clientOptions);
 
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
-        HttpClientRequest request = httpClient.request(
-            io.vertx.core.http.HttpMethod.valueOf(method.name()),
-            port,
-            requestUri.getHost(),
-            requestUri.toString(),
-            response -> LOGGER.debug("Web response status code : {}", response.statusCode())
-        );
-        request.setTimeout(httpClientTimeout);
+        RequestOptions options = new RequestOptions()
+            .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
+            .setHost(requestUri.getHost())
+            .setPort(port)
+            .setURI(requestUri.toString())
+            .setTimeout(httpClientTimeout);
 
         //headers
-        request.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-        request.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
-        headers.forEach(request::putHeader);
-        request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
-        request.write(body);
+        options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        options.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
+        headers.forEach(options::putHeader);
+        options.putHeader("X-Gravitee-Request-Id", RandomString.generate());
 
-        request.handler(
-            response -> {
-                if (response.statusCode() == HttpStatusCode.OK_200) {
-                    response.bodyHandler(
-                        buffer -> {
-                            future.complete(buffer);
+        Future<HttpClientRequest> requestFuture = httpClient.request(options);
 
-                            // Close client
-                            httpClient.close();
-                        }
-                    );
-                } else {
-                    future.completeExceptionally(
-                        new TechnicalManagementException(
-                            " Error on url '" + uri + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(),
-                            null
-                        )
-                    );
+        requestFuture
+            .onFailure(
+                new Handler<Throwable>() {
+                    @Override
+                    public void handle(Throwable throwable) {
+                        future.completeExceptionally(throwable);
+
+                        // Close client
+                        httpClient.close();
+                    }
                 }
-            }
-        );
-        request.exceptionHandler(
-            event -> {
-                try {
-                    future.completeExceptionally(event);
+            )
+            .onSuccess(
+                new Handler<HttpClientRequest>() {
+                    @Override
+                    public void handle(HttpClientRequest request) {
+                        request
+                            .response(
+                                new Handler<AsyncResult<HttpClientResponse>>() {
+                                    @Override
+                                    public void handle(AsyncResult<HttpClientResponse> asyncResponse) {
+                                        if (asyncResponse.failed()) {
+                                            future.completeExceptionally(asyncResponse.cause());
 
-                    // Close client
-                    httpClient.close();
-                } catch (IllegalStateException ise) {
-                    // Do not take care about exception when closing client
+                                            // Close client
+                                            httpClient.close();
+                                        } else {
+                                            HttpClientResponse response = asyncResponse.result();
+                                            LOGGER.debug("Web response status code : {}", response.statusCode());
+
+                                            if (response.statusCode() == HttpStatusCode.OK_200) {
+                                                response.bodyHandler(
+                                                    buffer -> {
+                                                        future.complete(buffer);
+
+                                                        // Close client
+                                                        httpClient.close();
+                                                    }
+                                                );
+                                            } else {
+                                                future.completeExceptionally(
+                                                    new TechnicalManagementException(
+                                                        " Error on url '" +
+                                                        uri +
+                                                        "'. Status code: " +
+                                                        response.statusCode() +
+                                                        ". Message: " +
+                                                        response.statusMessage(),
+                                                        null
+                                                    )
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                            .exceptionHandler(
+                                new Handler<Throwable>() {
+                                    @Override
+                                    public void handle(Throwable throwable) {
+                                        future.completeExceptionally(throwable);
+
+                                        // Close client
+                                        httpClient.close();
+                                    }
+                                }
+                            );
+
+                        request.end(body);
+                    }
                 }
-            }
-        );
-
-        request.end();
+            );
 
         try {
             future.get();

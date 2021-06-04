@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>19.2.5</version>
+        <version>20.0</version>
     </parent>
 
     <groupId>io.gravitee.rest.api</groupId>
@@ -33,13 +33,13 @@
     <name>Gravitee.io Rest APIs</name>
 
     <properties>
-        <gravitee-node.version>1.14.1</gravitee-node.version>
-        <spring.version>5.2.5.RELEASE</spring.version>
+        <gravitee-bom.version>1.1</gravitee-bom.version>
+        <gravitee-node.version>1.15.1</gravitee-node.version>
         <gravitee-common.version>1.20.1</gravitee-common.version>
         <gravitee-definition.version>1.28.0</gravitee-definition.version>
         <gravitee-plugin.version>1.18.0-SNAPSHOT</gravitee-plugin.version>
         <gravitee-repository.version>3.10.0-SNAPSHOT</gravitee-repository.version>
-        <gravitee-gateway-api.version>1.20.1</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>1.26.0</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.6.0-SNAPSHOT</gravitee-expression-language.version>
         <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
@@ -49,14 +49,15 @@
         <gravitee-resource-cache-provider-api.version>1.0.0</gravitee-resource-cache-provider-api.version>
         <gravitee-cockpit-api.version>1.7.0-SNAPSHOT</gravitee-cockpit-api.version>
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
+        <commons-io.version>2.7</commons-io.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
         <spring.security.version>5.3.9.RELEASE</spring.security.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <mail.version>1.4.7</mail.version>
         <freemarker.version>2.3.30</freemarker.version>
         <java-jwt.version>3.10.2</java-jwt.version>
-        <guava.version>29.0-jre</guava.version>
-        <jsonpath.version>2.4.0</jsonpath.version>
+        <guava.version>30.1.1-jre</guava.version>
+        <jsonpath.version>2.6.0</jsonpath.version>
         <lucene.version>7.5.0</lucene.version>
         <powermock.version>2.0.9</powermock.version>
         <commons-lang3.version>3.9</commons-lang3.version>
@@ -64,9 +65,7 @@
         <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
         <flexmark.version>0.61.16</flexmark.version>
         <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
-        <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <snakeyaml.version>1.26</snakeyaml.version>
-        <jackson-bom.version>2.10.5.20201202</jackson-bom.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <json-patch.version>1.13</json-patch.version>
         <classgraph.version>4.8.90</classgraph.version>
@@ -91,19 +90,26 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Import bom to properly inherit all dependencies -->
+            <dependency>
+                <groupId>io.gravitee</groupId>
+                <artifactId>gravitee-bom</artifactId>
+                <version>${gravitee-bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
             <!-- Gravitee.io -->
             <dependency>
                 <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-container</artifactId>
                 <version>${gravitee-node.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-api</artifactId>
                 <version>${gravitee-node.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>io.gravitee.node</groupId>
                 <artifactId>gravitee-node-vertx</artifactId>
@@ -220,62 +226,23 @@
                 <version>${gravitee-license-node.version}</version>
             </dependency>
 
-            <!-- Spring -->
+            <!-- Spring Security -->
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-aop</artifactId>
-                <version>${spring.version}</version>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>${spring.security.version}</version>
             </dependency>
+
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-beans</artifactId>
-                <version>${spring.version}</version>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-config</artifactId>
+                <version>${spring.security.version}</version>
             </dependency>
+
             <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-context-support</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-core</artifactId>
-                <version>${spring.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-expression</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-tx</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-web</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework</groupId>
-                <artifactId>spring-webmvc</artifactId>
-                <version>${spring.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.integration</groupId>
-                <artifactId>spring-integration-xml</artifactId>
-                <version>${spring-integration.version}</version>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
             </dependency>
 
             <!-- JWT -->
@@ -283,6 +250,12 @@
                 <groupId>com.auth0</groupId>
                 <artifactId>java-jwt</artifactId>
                 <version>${java-jwt.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${nimbus-jose-jwt.version}</version>
             </dependency>
 
             <dependency>
@@ -297,14 +270,6 @@
                 <version>${guava.version}</version>
             </dependency>
 
-            <!-- Security upgrades see https://github.com/gravitee-io/issues/issues/5726 -->
-            <dependency>
-                <groupId>com.fasterxml.jackson</groupId>
-                <artifactId>jackson-bom</artifactId>
-                <version>${jackson-bom.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>org.freemarker</groupId>
                 <artifactId>freemarker</artifactId>
@@ -334,6 +299,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${javax.servlet-api.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -378,7 +348,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

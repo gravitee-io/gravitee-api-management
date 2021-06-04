@@ -19,9 +19,11 @@ import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
 import io.gravitee.repository.analytics.api.AnalyticsRepository;
 import io.gravitee.repository.analytics.query.count.CountQuery;
-import io.gravitee.rest.api.repository.vertx.VertxCompletableFuture;
-import io.vertx.core.*;
-import java.util.concurrent.CompletableFuture;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import java.util.concurrent.CompletionStage;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -42,8 +44,8 @@ public class AnalyticsRepositoryProbe implements Probe {
     }
 
     @Override
-    public CompletableFuture<Result> check() {
-        Future<Result> future = Future.future();
+    public CompletionStage<Result> check() {
+        Promise<Result> promise = Promise.promise();
 
         vertx.executeBlocking(
             new Handler<Promise<Result>>() {
@@ -51,20 +53,20 @@ public class AnalyticsRepositoryProbe implements Probe {
                 public void handle(Promise<Result> event) {
                     try {
                         analyticsRepository.query(new CountQuery());
-                        event.complete(Result.healthy());
+                        promise.complete(Result.healthy());
                     } catch (Exception ex) {
-                        event.complete(Result.unhealthy(ex));
+                        promise.complete(Result.unhealthy(ex));
                     }
                 }
             },
             new Handler<AsyncResult<Result>>() {
                 @Override
                 public void handle(AsyncResult<Result> event) {
-                    future.complete(event.result());
+                    promise.complete(event.result());
                 }
             }
         );
 
-        return VertxCompletableFuture.from(vertx, future);
+        return promise.future().toCompletionStage();
     }
 }

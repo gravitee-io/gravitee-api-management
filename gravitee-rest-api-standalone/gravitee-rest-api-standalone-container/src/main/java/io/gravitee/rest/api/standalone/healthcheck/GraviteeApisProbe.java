@@ -17,12 +17,11 @@ package io.gravitee.rest.api.standalone.healthcheck;
 
 import io.gravitee.node.api.healthcheck.Probe;
 import io.gravitee.node.api.healthcheck.Result;
-import io.gravitee.rest.api.standalone.vertx.VertxCompletableFuture;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetClientOptions;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -49,8 +48,8 @@ public class GraviteeApisProbe implements Probe {
     }
 
     @Override
-    public CompletableFuture<Result> check() {
-        Future<Result> future = Future.future();
+    public CompletionStage<Result> check() {
+        Promise<Result> promise = Promise.promise();
 
         NetClientOptions options = new NetClientOptions().setConnectTimeout(500);
         NetClient client = vertx.createNetClient(options);
@@ -60,15 +59,15 @@ public class GraviteeApisProbe implements Probe {
             host,
             res -> {
                 if (res.succeeded()) {
-                    future.complete(Result.healthy());
+                    promise.complete(Result.healthy());
                 } else {
-                    future.complete(Result.unhealthy(res.cause()));
+                    promise.complete(Result.unhealthy(res.cause()));
                 }
 
                 client.close();
             }
         );
 
-        return VertxCompletableFuture.from(vertx, future);
+        return promise.future().toCompletionStage().toCompletableFuture();
     }
 }

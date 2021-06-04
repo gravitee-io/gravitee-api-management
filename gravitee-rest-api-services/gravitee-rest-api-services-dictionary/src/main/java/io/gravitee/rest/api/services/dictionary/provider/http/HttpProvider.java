@@ -24,17 +24,17 @@ import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
 import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
-import io.gravitee.rest.api.services.dictionary.provider.http.vertx.VertxCompletableFuture;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.*;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -65,12 +65,12 @@ public class HttpProvider implements Provider {
 
     @Override
     public CompletableFuture<Collection<DynamicProperty>> get() {
-        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
+        Promise<Buffer> promise = Promise.promise();
 
         URI requestUri = URI.create(configuration.getUrl());
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
 
-        final HttpClientOptions options = new HttpClientOptions()
+        final HttpClientOptions clientOptions = new HttpClientOptions()
             .setSsl(ssl)
             .setTrustAll(true)
             .setMaxPoolSize(1)
@@ -78,82 +78,113 @@ public class HttpProvider implements Provider {
             .setTcpKeepAlive(false)
             .setConnectTimeout(2000);
 
-        final HttpClient httpClient = vertx.createHttpClient(options);
+        final HttpClient httpClient = vertx.createHttpClient(clientOptions);
 
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
-        try {
-            String relativeUri = (requestUri.getRawQuery() == null)
-                ? requestUri.getRawPath()
-                : requestUri.getRawPath() + '?' + requestUri.getRawQuery();
-            HttpClientRequest request = httpClient.request(
-                configuration.getMethod() != null ? configuration.getMethod() : HttpMethod.GET,
-                port,
-                requestUri.getHost(),
-                relativeUri
-            );
+        String relativeUri = (requestUri.getRawQuery() == null)
+            ? requestUri.getRawPath()
+            : requestUri.getRawPath() + '?' + requestUri.getRawQuery();
 
-            request.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
-            request.putHeader("X-Gravitee-Request-Id", RandomString.generate());
+        RequestOptions options = new RequestOptions()
+            .setMethod(configuration.getMethod() != null ? configuration.getMethod() : HttpMethod.GET)
+            .setHost(requestUri.getHost())
+            .setPort(port)
+            .setURI(relativeUri);
 
-            if (configuration.getHeaders() != null) {
-                configuration.getHeaders().forEach(httpHeader -> request.putHeader(httpHeader.getName(), httpHeader.getValue()));
-            }
+        //headers
+        options.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
+        options.putHeader("X-Gravitee-Request-Id", RandomString.generate());
 
-            request.handler(
-                response -> {
-                    if (response.statusCode() == HttpStatusCode.OK_200) {
-                        response.bodyHandler(
-                            buffer -> {
-                                future.complete(buffer);
-
-                                // Close client
-                                httpClient.close();
-                            }
-                        );
-                    } else {
-                        future.complete(null);
-
-                        // Close client
-                        httpClient.close();
-                    }
-                }
-            );
-
-            request.exceptionHandler(
-                event -> {
-                    try {
-                        future.completeExceptionally(event);
-
-                        // Close client
-                        httpClient.close();
-                    } catch (IllegalStateException ise) {
-                        // Do not take care about exception when closing client
-                    }
-                }
-            );
-
-            if (!StringUtils.isEmpty(configuration.getBody())) {
-                request.end(configuration.getBody());
-            } else {
-                request.end();
-            }
-        } catch (Exception ex) {
-            logger.error("Unable to look for dynamic properties", ex);
-            future.completeExceptionally(ex);
-
-            // Close client
-            httpClient.close();
+        if (configuration.getHeaders() != null) {
+            configuration.getHeaders().forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));
         }
 
-        return future.thenApply(
-            buffer -> {
-                if (buffer == null) {
-                    return null;
+        httpClient
+            .request(options)
+            .onFailure(
+                new Handler<Throwable>() {
+                    @Override
+                    public void handle(Throwable event) {
+                        promise.fail(event);
+
+                        // Close client
+                        httpClient.close();
+                    }
                 }
-                return mapper.map(buffer.toString());
-            }
-        );
+            )
+            .onSuccess(
+                new Handler<HttpClientRequest>() {
+                    @Override
+                    public void handle(HttpClientRequest request) {
+                        request
+                            .response(
+                                new Handler<AsyncResult<HttpClientResponse>>() {
+                                    @Override
+                                    public void handle(AsyncResult<HttpClientResponse> asyncResponse) {
+                                        if (asyncResponse.failed()) {
+                                            promise.fail(asyncResponse.cause());
+
+                                            // Close client
+                                            httpClient.close();
+                                        } else {
+                                            final HttpClientResponse response = asyncResponse.result();
+
+                                            if (response.statusCode() == HttpStatusCode.OK_200) {
+                                                response.bodyHandler(
+                                                    buffer -> {
+                                                        promise.complete(buffer);
+
+                                                        // Close client
+                                                        httpClient.close();
+                                                    }
+                                                );
+                                            } else {
+                                                promise.complete(null);
+
+                                                // Close client
+                                                httpClient.close();
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                            .exceptionHandler(
+                                new Handler<Throwable>() {
+                                    @Override
+                                    public void handle(Throwable throwable) {
+                                        promise.fail(throwable);
+
+                                        // Close client
+                                        httpClient.close();
+                                    }
+                                }
+                            );
+
+                        if (!StringUtils.isEmpty(configuration.getBody())) {
+                            request.end(configuration.getBody());
+                        } else {
+                            request.end();
+                        }
+                    }
+                }
+            );
+
+        return promise
+            .future()
+            .map(
+                new Function<Buffer, Collection<DynamicProperty>>() {
+                    @Override
+                    public Collection<DynamicProperty> apply(Buffer buffer) {
+                        if (buffer == null) {
+                            return null;
+                        }
+                        return mapper.map(buffer.toString());
+                    }
+                }
+            )
+            .toCompletionStage()
+            .toCompletableFuture();
     }
 
     @Override
