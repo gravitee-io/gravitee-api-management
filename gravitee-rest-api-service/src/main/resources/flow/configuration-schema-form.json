@@ -6,12 +6,12 @@
       "title": "Flow Mode",
       "description": "The flow mode",
       "type": "string",
-      "enum": [ "default", "best_match" ],
-      "default": "default",
+      "enum": [ "DEFAULT", "BEST_MATCH" ],
+      "default": "DEFAULT",
       "x-schema-form": {
         "titleMap": {
-          "default": "Default",
-          "best_match": "Best match"
+          "DEFAULT": "Default",
+          "BEST_MATCH": "Best match"
         }
       }
     }
