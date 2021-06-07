@@ -29,22 +29,22 @@
     <groupId>io.gravitee.rest.api</groupId>
     <artifactId>gravitee-rest-api</artifactId>
     <packaging>pom</packaging>
-    <version>3.9.0-SNAPSHOT</version>
+    <version>3.9.0</version>
     <name>Gravitee.io Rest APIs</name>
 
     <properties>
         <gravitee-node.version>1.13.0</gravitee-node.version>
         <spring.version>5.2.5.RELEASE</spring.version>
         <gravitee-common.version>1.20.0</gravitee-common.version>
-        <gravitee-definition.version>1.28.0-SNAPSHOT</gravitee-definition.version>
+        <gravitee-definition.version>1.28.0</gravitee-definition.version>
         <gravitee-plugin.version>1.16.0</gravitee-plugin.version>
-        <gravitee-repository.version>3.9.0-SNAPSHOT</gravitee-repository.version>
+        <gravitee-repository.version>3.9.0</gravitee-repository.version>
         <gravitee-gateway-api.version>1.20.1</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.5.0</gravitee-expression-language.version>
-        <gravitee-alert-api.version>1.7.1-SNAPSHOT</gravitee-alert-api.version>
-        <gravitee-policy-api.version>1.11.0-SNAPSHOT</gravitee-policy-api.version>
-        <gravitee-notifier-api.version>1.4.1-SNAPSHOT</gravitee-notifier-api.version>
+        <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
+        <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
+        <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
         <gravitee-resource-cache-provider-api.version>1.0.0</gravitee-resource-cache-provider-api.version>
         <gravitee-cockpit-api.version>1.5.0</gravitee-cockpit-api.version>
