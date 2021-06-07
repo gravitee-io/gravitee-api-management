@@ -83,7 +83,7 @@ public class FileReporter extends AbstractService implements Reporter {
 
             CompositeFuture
                 .join(writers.values().stream().map(VertxFileWriter::initialize).collect(Collectors.toList()))
-                .setHandler(
+                .onComplete(
                     event -> {
                         if (event.succeeded()) {
                             logger.info("File reporter successfully started");
@@ -100,7 +100,7 @@ public class FileReporter extends AbstractService implements Reporter {
         if (enabled) {
             CompositeFuture
                 .join(writers.values().stream().map(VertxFileWriter::stop).collect(Collectors.toList()))
-                .setHandler(
+                .onComplete(
                     event -> {
                         if (event.succeeded()) {
                             logger.info("File reporter successfully stopped");

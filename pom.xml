@@ -23,7 +23,7 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>17.2</version>
+		<version>20.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>io.gravitee.reporter</groupId>
@@ -34,9 +34,9 @@
 	<name>Gravitee.io APIM - Reporter - File</name>
 
 	<properties>
-		<!-- Gravitee's project versions -->
+		<gravitee-bom.version>1.1</gravitee-bom.version>
 		<gravitee-gateway-api.version>1.21.2</gravitee-gateway-api.version>
-		<gravitee-reporter-api.version>1.19.0</gravitee-reporter-api.version>
+		<gravitee-reporter-api.version>1.20.1</gravitee-reporter-api.version>
 		<gravitee-common.version>1.18.0</gravitee-common.version>
 		<gravitee-node.version>1.12.1</gravitee-node.version>
 
@@ -44,6 +44,19 @@
 		<jackson-dataformat-msgpack.version>0.8.22</jackson-dataformat-msgpack.version>
 		<commons-validator.version>1.6</commons-validator.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Import bom to properly inherit all dependencies -->
+			<dependency>
+				<groupId>io.gravitee</groupId>
+				<artifactId>gravitee-bom</artifactId>
+				<version>${gravitee-bom.version}</version>
+				<scope>import</scope>
+				<type>pom</type>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<resources>
@@ -149,14 +162,12 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-core</artifactId>
-			<version>${vertx.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-circuit-breaker</artifactId>
-			<version>${vertx.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -183,13 +194,11 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-			<version>${spring.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -202,7 +211,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -221,5 +229,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
 </project>
