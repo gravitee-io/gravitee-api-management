@@ -20,7 +20,7 @@ import io.gravitee.rest.api.idp.ldap.utils.LdapUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -70,7 +70,7 @@ public class UserDetailsContextPropertiesMapper implements UserDetailsContextMap
             for (GrantedAuthority granted : authorities) {
                 String mappedAuthority = environment.getProperty("authentication.group.role.mapper." + granted.getAuthority());
                 if (mappedAuthority != null && !mappedAuthority.isEmpty()) {
-                    mappedAuthorities.add(new SimpleGrantedAuthority(mappedAuthority));
+                    Stream.of(mappedAuthority.split(",")).forEach(a -> mappedAuthorities.add(new SimpleGrantedAuthority(a)));
                 }
             }
         } catch (Exception e) {
