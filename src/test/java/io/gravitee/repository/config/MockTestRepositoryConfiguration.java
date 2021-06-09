@@ -266,4 +266,9 @@ public class MockTestRepositoryConfiguration {
     public FlowRepositoryMock flowRepository() {
         return new FlowRepositoryMock();
     }
+
+    @Bean
+    public PromotionRepositoryMock promotionRepository() {
+        return new PromotionRepositoryMock();
+    }
 }

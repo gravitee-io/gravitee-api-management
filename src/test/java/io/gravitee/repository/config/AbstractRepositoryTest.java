@@ -158,6 +158,8 @@ public abstract class AbstractRepositoryTest {
     protected NodeMonitoringRepository nodeMonitoringRepository;
     @Inject
     protected FlowRepository flowRepository;
+    @Inject
+    protected PromotionRepository promotionRepository;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -327,6 +329,9 @@ public abstract class AbstractRepositoryTest {
         }
         else if( object instanceof Flow) {
             flowRepository.create((Flow) object);
+        }
+        else if( object instanceof Promotion) {
+            promotionRepository.create((Promotion) object);
         }
     }
 

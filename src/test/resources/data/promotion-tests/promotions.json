@@ -1,0 +1,24 @@
+[
+  {
+    "id": "promotion#1",
+    "status": "CREATED",
+    "apiDefinition": "{\"id\" : \"anAPIID\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "sourceEnvironmentId": "env#1",
+    "sourceInstallationId": "inst#1",
+    "targetEnvironmentId": "env#2",
+    "targetInstallationId": "inst#2",
+    "createdAt": 1623154561000,
+    "updatedAt": 1623154561000
+  },
+  {
+    "id": "promotion#to-delete",
+    "status": "CREATED",
+    "apiDefinition": "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "sourceEnvironmentId": "env#1",
+    "sourceInstallationId": "inst#1",
+    "targetEnvironmentId": "env#2",
+    "targetInstallationId": "inst#2",
+    "createdAt": 1623154561000,
+    "updatedAt": 1623154561000
+  }
+]
