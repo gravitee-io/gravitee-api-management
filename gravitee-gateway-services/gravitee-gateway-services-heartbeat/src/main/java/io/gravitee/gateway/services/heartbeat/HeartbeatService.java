@@ -17,10 +17,10 @@ package io.gravitee.gateway.services.heartbeat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hazelcast.collection.IQueue;
-import com.hazelcast.collection.ItemEvent;
-import com.hazelcast.collection.ItemListener;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.Message;
+import com.hazelcast.topic.MessageListener;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.Version;
 import io.gravitee.common.utils.UUID;
@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HeartbeatService extends AbstractService implements ItemListener<Event>, InitializingBean {
+public class HeartbeatService extends AbstractService implements MessageListener<Event>, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HeartbeatService.class);
 
@@ -116,12 +116,14 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
     private OrganizationRepository organizationRepository;
 
     // How to avoid duplicate
-    private IQueue<Event> queue;
+    private ITopic<Event> topic;
+
+    private java.util.UUID subscriptionId;
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        queue = hzInstance.getQueue("heartbeats");
-        queue.addItemListener(this, true);
+        topic = hzInstance.getTopic("heartbeats");
+        subscriptionId = topic.addMessageListener(this);
     }
 
     @Override
@@ -131,7 +133,7 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
             LOGGER.info("Start gateway heartbeat");
 
             heartbeatEvent = prepareEvent();
-            queue.add(heartbeatEvent);
+            topic.publish(heartbeatEvent);
 
             // Remove the state to not include it in the underlying repository as it's just used for internal
             // purpose
@@ -139,7 +141,7 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
 
             executorService = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "gio-heartbeat"));
 
-            HeartbeatThread monitorThread = new HeartbeatThread(queue, heartbeatEvent);
+            HeartbeatThread monitorThread = new HeartbeatThread(topic, heartbeatEvent);
 
             LOGGER.info("Monitoring scheduled with fixed delay {} {} ", delay, unit.name());
 
@@ -150,11 +152,10 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
     }
 
     @Override
-    public void itemAdded(ItemEvent<Event> item) {
+    public void onMessage(Message<Event> message) {
         // Writing event to the repository is the responsibility of the master node
         if (clusterManager.isMasterNode()) {
-            Event event = item.getItem();
-            queue.remove(event);
+            Event event = message.getMessageObject();
             try {
                 String state = event.getProperties().get(EVENT_STATE_PROPERTY);
                 if (state != null) {
@@ -164,15 +165,10 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
                 }
             } catch (Exception ex) {
                 LOGGER.error("An error occurs while pushing heartbeat event id[{}] type[{}]", event.getId(), event.getType(), ex);
-                // Push back the event into the queue in case of error
-                queue.add(event);
+                // Push back the event into the topic in case of error
+                topic.publish(event);
             }
         }
-    }
-
-    @Override
-    public void itemRemoved(ItemEvent<Event> item) {
-        // Nothing to do here
     }
 
     @Override
@@ -189,7 +185,9 @@ public class HeartbeatService extends AbstractService implements ItemListener<Ev
             heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(new Date().getTime()));
             LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
 
-            queue.add(heartbeatEvent);
+            topic.publish(heartbeatEvent);
+
+            topic.removeMessageListener(subscriptionId);
 
             super.doStop();
             LOGGER.info("Stop gateway monitor : DONE");
