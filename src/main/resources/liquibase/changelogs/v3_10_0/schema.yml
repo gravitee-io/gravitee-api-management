@@ -15,3 +15,15 @@ databaseChangeLog:
               - column:
                   name: days_to_expiration_on_last_notification
                   type: integer
+        - createTable:
+            tableName: ${gravitee_prefix}promotions
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: api_definition, type: nclob, constraints: { nullable: false } }
+              - column: {name: status, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target_environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target_installation_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: source_environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: source_installation_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
