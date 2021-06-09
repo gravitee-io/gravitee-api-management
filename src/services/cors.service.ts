@@ -47,17 +47,28 @@ class CorsService {
       let validator = new RegExp(this.allowOriginPattern, 'ig');
 
       if (!validator.test(chip)) {
-        this.$mdDialog
-          .show(
-            this.$mdDialog.alert({
-              title: 'Invalid regex',
-              textContent: `${chip} is not a valid origin`,
-              ok: 'Close',
-            }),
-          )
-          .then((response) => {
-            allowOriginArray.splice(index, 1);
-          });
+        let invalidRegex = false;
+        if (['{', '[', '(', '*'].some((v) => this.allowOriginPattern.includes(v))) {
+          try {
+            let regExp = new RegExp(chip);
+          } catch (e) {
+            invalidRegex = true;
+          }
+        }
+
+        if (invalidRegex) {
+          this.$mdDialog
+            .show(
+              this.$mdDialog.alert({
+                title: 'Invalid regex',
+                textContent: `${chip} is not a valid origin`,
+                ok: 'Close',
+              }),
+            )
+            .then((response) => {
+              allowOriginArray.splice(index, 1);
+            });
+        }
       }
     }
   }

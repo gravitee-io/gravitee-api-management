@@ -65,10 +65,12 @@ class ApiAdminController {
   init() {
     this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
       this.api.picture = args.image;
+      this.api.picture_url = args.imageUrl;
       this.update(this.api);
     });
     this.$scope.$on('apiBackgroundChangeSuccess', (event, args) => {
       this.api.background = args.image;
+      this.api.background_url = args.imageUrl;
       this.update(this.api);
     });
     this.$scope.$on('apiChangeSuccess', (event, args) => {
