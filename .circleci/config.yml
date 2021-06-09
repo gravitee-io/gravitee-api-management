@@ -47,17 +47,17 @@ workflows:
       - gravitee/d_pull_requests_secrets:
           context: cicd-orchestrator
           name: pr_secrets_resolution
-      - gravitee/d_pr_tests_containers_qa:
-          context: gravitee-qa
-          name: process_pull_request_qa
-          requires:
-            - pr_secrets_resolution
-          # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          maven_profile_id: 'gio-dev'
-          filters:
-            branches:
-              ignore:
-                - master
+      # - gravitee/d_pr_tests_containers_qa:
+          # context: gravitee-qa
+          # name: process_pull_request_qa
+          # requires:
+            # - pr_secrets_resolution
+          # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
+          # maven_profile_id: 'gio-dev'
+          # filters:
+            # branches:
+              # ignore:
+                # - master
       - gravitee/d_pull_requests_ce:
           name: process_pull_request
           requires:
