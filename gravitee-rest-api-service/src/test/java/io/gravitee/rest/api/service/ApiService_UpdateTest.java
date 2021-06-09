@@ -385,7 +385,8 @@ public class ApiService_UpdateTest {
                     "http://example.com",
                     "ionic://localhost",
                     "https://10.140.238.25:8080",
-                    "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}"
+                    "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
+                    ".*.company.com"
                 )
             );
         when(proxy.getCors()).thenReturn(cors);
@@ -779,7 +780,7 @@ public class ApiService_UpdateTest {
     @Test(expected = AllowOriginNotAllowedException.class)
     public void shouldHaveAllowOriginNotAllowed() throws TechnicalException {
         prepareUpdate();
-        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("/test^");
+        existingApi.getProxy().getCors().getAccessControlAllowOrigin().add("(/test^");
         apiService.update(API_ID, existingApi);
     }
 

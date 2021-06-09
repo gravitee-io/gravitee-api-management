@@ -21,7 +21,6 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Format;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.SwaggerService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.exceptions.SwaggerDescriptorException;
@@ -31,7 +30,6 @@ import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.parser.WsdlParser;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
-import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
@@ -40,10 +38,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,26 +89,13 @@ public class SwaggerServiceImpl implements SwaggerService {
         }
 
         if (descriptor != null) {
-            List<OAIOperationVisitor> visitors = new ArrayList<>();
-            if (swaggerDescriptor.isWithPolicyPaths()) {
-                visitors =
-                    policyOperationVisitorManager
-                        .getPolicyVisitors()
-                        .stream()
-                        .filter(
-                            operationVisitor ->
-                                swaggerDescriptor.getWithPolicies() != null &&
-                                swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId())
-                        )
-                        .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
-                        .collect(Collectors.toList());
-            }
-
             if (definitionVersion.equals(DefinitionVersion.V2)) {
-                return new OAIToAPIV2Converter(visitors, groupService, tagService).convert((OAIDescriptor) descriptor);
+                return new OAIToAPIV2Converter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService)
+                .convert((OAIDescriptor) descriptor);
+            } else {
+                return new OAIToAPIConverter(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService)
+                .convert((OAIDescriptor) descriptor);
             }
-
-            return new OAIToAPIConverter(visitors, groupService, tagService).convert((OAIDescriptor) descriptor);
         }
 
         throw new SwaggerDescriptorException();

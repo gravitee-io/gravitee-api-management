@@ -72,7 +72,7 @@
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-cache-provider-api</artifactId>
         </dependency>
-        
+
         <!-- To override Spring commons-logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

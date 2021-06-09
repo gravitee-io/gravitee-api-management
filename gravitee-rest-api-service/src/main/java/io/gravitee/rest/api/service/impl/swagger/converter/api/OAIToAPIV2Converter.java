@@ -17,22 +17,24 @@ package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
 import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
 import static io.gravitee.rest.api.service.validator.PolicyHelper.getScope;
+import static java.util.Collections.singleton;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.policy.api.swagger.Policy;
+import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
+import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -42,8 +44,13 @@ import java.util.stream.Collectors;
  */
 public class OAIToAPIV2Converter extends OAIToAPIConverter {
 
-    public OAIToAPIV2Converter(Collection<? extends OAIOperationVisitor> visitors, GroupService groupService, TagService tagService) {
-        super(visitors, groupService, tagService);
+    public OAIToAPIV2Converter(
+        ImportSwaggerDescriptorEntity swaggerDescriptor,
+        PolicyOperationVisitorManager policyOperationVisitorManager,
+        GroupService groupService,
+        TagService tagService
+    ) {
+        super(swaggerDescriptor, policyOperationVisitorManager, groupService, tagService);
     }
 
     @Override
@@ -51,66 +58,64 @@ public class OAIToAPIV2Converter extends OAIToAPIConverter {
         // flows
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
 
-        List<Flow> allFlows = new ArrayList();
-        oai
-            .getPaths()
-            .forEach(
-                new BiConsumer<String, PathItem>() {
-                    @Override
-                    public void accept(String key, PathItem pathItem) {
+        if (swaggerDescriptor.isWithPolicyPaths()) {
+            List<Flow> allFlows = new ArrayList();
+            oai
+                .getPaths()
+                .forEach(
+                    (key, pathItem) -> {
                         String path = key.replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
 
                         Map<PathItem.HttpMethod, Operation> operations = pathItem.readOperationsMap();
                         operations.forEach(
-                            new BiConsumer<PathItem.HttpMethod, Operation>() {
-                                @Override
-                                public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
-                                    final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
+                            (httpMethod, operation) -> {
+                                final Flow flow = createFlow(path, Collections.singleton(HttpMethod.valueOf(httpMethod.name())));
 
-                                    visitors.forEach(
-                                        new Consumer<OAIOperationVisitor>() {
-                                            @Override
-                                            public void accept(OAIOperationVisitor oaiOperationVisitor) {
-                                                Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
-                                                if (policy.isPresent()) {
-                                                    final Step step = new Step();
-                                                    step.setName(policy.get().getName());
-                                                    step.setEnabled(true);
-                                                    step.setDescription(
-                                                        operation.getSummary() == null
-                                                            ? (
-                                                                operation.getOperationId() == null
-                                                                    ? operation.getDescription()
-                                                                    : operation.getOperationId()
-                                                            )
-                                                            : operation.getSummary()
-                                                    );
+                                getVisitors()
+                                    .forEach(
+                                        (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
+                                            Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
+                                            if (policy.isPresent()) {
+                                                final Step step = new Step();
+                                                step.setName(policy.get().getName());
+                                                step.setEnabled(true);
+                                                step.setDescription(
+                                                    operation.getSummary() == null
+                                                        ? (
+                                                            operation.getOperationId() == null
+                                                                ? operation.getDescription()
+                                                                : operation.getOperationId()
+                                                        )
+                                                        : operation.getSummary()
+                                                );
 
-                                                    step.setPolicy(policy.get().getName());
-                                                    String configuration = clearNullValues(policy.get().getConfiguration());
-                                                    step.setConfiguration(configuration);
+                                                step.setPolicy(policy.get().getName());
+                                                String configuration = clearNullValues(policy.get().getConfiguration());
+                                                step.setConfiguration(configuration);
 
-                                                    String scope = getScope(configuration);
-                                                    if (scope != null && scope.toLowerCase().equals("response")) {
-                                                        flow.getPost().add(step);
-                                                    } else {
-                                                        flow.getPre().add(step);
-                                                    }
+                                                String scope = getScope(configuration);
+                                                if (scope != null && scope.toLowerCase().equals("response")) {
+                                                    flow.getPost().add(step);
+                                                } else {
+                                                    flow.getPre().add(step);
                                                 }
                                             }
                                         }
                                     );
-                                    allFlows.add(flow);
-                                }
+                                allFlows.add(flow);
                             }
                         );
                     }
-                }
-            );
-        apiEntity.setFlows(allFlows);
+                );
+            apiEntity.setFlows(allFlows);
+            if (swaggerDescriptor.isWithPathMapping() && allFlows.size() > 0) {
+                apiEntity.setPathMappings(allFlows.stream().map(flow -> flow.getPath()).collect(Collectors.toSet()));
+            }
+        }
 
-        if (allFlows.size() > 0) {
-            apiEntity.setPathMappings(allFlows.stream().map(flow -> flow.getPath()).collect(Collectors.toSet()));
+        final String defaultDeclaredPath = "/";
+        if (!swaggerDescriptor.isWithPathMapping()) {
+            apiEntity.setPathMappings(singleton(defaultDeclaredPath));
         }
 
         return apiEntity;

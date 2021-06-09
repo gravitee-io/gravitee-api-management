@@ -111,6 +111,7 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.xml.bind.DatatypeConverter;
@@ -139,6 +140,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final Pattern DUPLICATE_SLASH_REMOVER = Pattern.compile("(?<!(http:|https:))[//]+");
     // RFC 6454 section-7.1, serialized-origin regex from RFC 3986
     private static final Pattern CORS_REGEX_PATTERN = Pattern.compile("^((\\*)|(null)|(^(([^:\\/?#]+):)?(\\/\\/([^\\/?#]*))?))$");
+    private static final String[] CORS_REGEX_CHARS = new String[] { "{", "[", "(", "*" };
     private static final String URI_PATH_SEPARATOR = "/";
     private static final String CONFIGURATION_DEFINITION_PATH = "/api/apim-configuration-schema.json";
 
@@ -266,28 +268,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ImportSwaggerDescriptorEntity swaggerDescriptor
     ) throws ApiAlreadyExistsException {
-        if (swaggerApiEntity != null && swaggerDescriptor != null) {
-            if (
-                DefinitionVersion.V1.equals(swaggerApiEntity.getGraviteeDefinitionVersion()) ||
-                swaggerApiEntity.getGraviteeDefinitionVersion() == null
-            ) {
-                final String defaultDeclaredPath = "/";
-                Map<String, Path> paths = new HashMap<>();
-
-                final Path defaultPath = new Path();
-                defaultPath.setPath(defaultDeclaredPath);
-                paths.put(defaultDeclaredPath, defaultPath);
-
-                if (!swaggerDescriptor.isWithPolicyPaths()) {
-                    swaggerApiEntity.setPaths(paths);
-                }
-
-                if (!swaggerDescriptor.isWithPathMapping()) {
-                    swaggerApiEntity.setPathMappings(singleton(defaultDeclaredPath));
-                }
-            }
-        }
-
         final ApiEntity createdApi = createFromUpdateApiEntity(swaggerApiEntity, userId, swaggerDescriptor);
 
         createMetadata(swaggerApiEntity.getMetadata(), createdApi.getId());
@@ -1316,11 +1296,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         // Overwrite from swagger, if asked
         if (swaggerDescriptor != null) {
-            updateApiEntity.setPaths(swaggerApiEntity.getPaths());
-
             if (swaggerDescriptor.isWithPathMapping()) {
                 updateApiEntity.setPathMappings(swaggerApiEntity.getPathMappings());
-                updateApiEntity.setFlows(swaggerApiEntity.getFlows());
+            }
+
+            if (swaggerDescriptor.isWithPolicyPaths()) {
+                if (DefinitionVersion.V2.equals(updateApiEntity.getGraviteeDefinitionVersion())) {
+                    updateApiEntity.setFlows(swaggerApiEntity.getFlows());
+                } else {
+                    updateApiEntity.setPaths(swaggerApiEntity.getPaths());
+                }
             }
         }
 
@@ -1471,7 +1456,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 ) {
                     api.setPicture(apiToUpdate.getPicture());
                 }
-                if (updateApiEntity.getBackground() == null) {
+                if (
+                    updateApiEntity.getBackground() == null &&
+                    updateApiEntity.getBackgroundUrl() != null &&
+                    updateApiEntity.getBackgroundUrl().indexOf("?hash") > 0
+                ) {
                     api.setBackground(apiToUpdate.getBackground());
                 }
                 if (updateApiEntity.getGroups() == null) {
@@ -1585,7 +1574,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (accessControlAllowOrigin != null && !accessControlAllowOrigin.isEmpty()) {
                 for (String allowOriginItem : accessControlAllowOrigin) {
                     if (!CORS_REGEX_PATTERN.matcher(allowOriginItem).matches()) {
-                        throw new AllowOriginNotAllowedException(allowOriginItem);
+                        if (StringUtils.indexOfAny(allowOriginItem, CORS_REGEX_CHARS) >= 0) {
+                            try {
+                                //the origin could be a regex
+                                Pattern.compile(allowOriginItem);
+                            } catch (PatternSyntaxException e) {
+                                throw new AllowOriginNotAllowedException(allowOriginItem);
+                            }
+                        } else {
+                            throw new AllowOriginNotAllowedException(allowOriginItem);
+                        }
                     }
                 }
             }
@@ -2995,6 +2993,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setFlows(apiEntity.getFlows());
         updateApiEntity.setPathMappings(apiEntity.getPathMappings());
         updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
+        updateApiEntity.setPlans(apiEntity.getPlans());
         return updateApiEntity;
     }
 
