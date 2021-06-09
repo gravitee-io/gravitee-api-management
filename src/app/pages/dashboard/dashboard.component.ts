@@ -158,7 +158,11 @@ export class DashboardComponent implements OnInit {
   }
 
   applicationCreationEnabled() {
-    return this.applications && this.config.hasFeature(FeatureEnum.applicationCreation);
+    return (
+      this.applications &&
+      this.config.hasFeature(FeatureEnum.applicationCreation) &&
+      this.currentUser?.permissions?.APPLICATION.find((permission) => 'C' === permission)
+    );
   }
 
   onSubscriptionClick({ detail }) {

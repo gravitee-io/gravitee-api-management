@@ -148,7 +148,7 @@ export class GvPageRedocComponent implements OnInit, OnDestroy {
       // @ts-ignore
       container.style.minHeight = height;
       // @ts-ignore
-      document.querySelector(GvDocumentationComponent.PAGE_COMPONENT).style.height = height;
+      document.querySelector(GvDocumentationComponent.PAGE_COMPONENT).style.minHeight = height;
       // @ts-ignore
       this.redocMenu.style.position = 'fixed';
       // @ts-ignore
