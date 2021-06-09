@@ -149,7 +149,9 @@
           If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
         </div>
         <div ng-if="!$ctrl.isRegexValid()" style="color: red">Regex is invalid</div>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-origin')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-origin')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block" flex-gt-sm>
         <label>Access-Control-Allow-Methods</label>
@@ -180,7 +182,9 @@
         <div class="hint">
           Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
         </div>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-methods')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-methods')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block">
         <label>Allow-Headers</label>
@@ -208,7 +212,9 @@
             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
           </span>
         </md-chips>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-headers')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block">
         <label>Exposed-Headers</label>
@@ -236,7 +242,9 @@
             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
           </span>
         </md-chips>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.exposed-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.exposed-headers')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block" flex-gt-xs>
         <label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></label>
