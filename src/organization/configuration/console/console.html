@@ -137,7 +137,7 @@
           placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
           md-on-add="$ctrl.controlAllowOrigin($chip, $index)"
           md-add-on-blur="true"
-          readonly="$ctrl.isReadonlySetting('console.http.cors.allow-origin')"
+          readonly="$ctrl.isReadonlySetting('http.api.management.cors.allow-origin')"
         >
           <md-chip-template>
             <strong>{{$chip}}</strong>
@@ -149,7 +149,9 @@
           If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
         </div>
         <div ng-if="!$ctrl.isRegexValid()" style="color: red">Regex is invalid</div>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('console.http.cors.allow-origin')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-origin')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block" flex-gt-sm>
         <label>Access-Control-Allow-Methods</label>
@@ -158,7 +160,7 @@
           md-on-close="clearSearchTerm()"
           data-md-container-class="selectdemoSelectHeader"
           multiple
-          ng-disabled="$ctrl.isReadonlySetting('console.http.cors.allow-methods')"
+          ng-disabled="$ctrl.isReadonlySetting('http.api.management.cors.allow-methods')"
         >
           <md-select-header class="demo-select-header">
             <input
@@ -180,7 +182,9 @@
         <div class="hint">
           Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
         </div>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('console.http.cors.allow-methods')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-methods')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block">
         <label>Allow-Headers</label>
@@ -189,7 +193,7 @@
           md-autocomplete-snap
           md-add-on-blur="true"
           md-require-match="false"
-          readonly="$ctrl.isReadonlySetting('console.http.cors.allow-headers')"
+          readonly="$ctrl.isReadonlySetting('http.api.management.cors.allow-headers')"
         >
           <md-autocomplete
             md-search-text="searchHeaders"
@@ -208,7 +212,9 @@
             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
           </span>
         </md-chips>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('console.http.cors.allow-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.allow-headers')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block">
         <label>Exposed-Headers</label>
@@ -217,7 +223,7 @@
           md-autocomplete-snap
           md-add-on-blur="true"
           md-require-match="false"
-          readonly="$ctrl.isReadonlySetting('console.http.cors.exposed-headers')"
+          readonly="$ctrl.isReadonlySetting('http.api.management.cors.exposed-headers')"
         >
           <md-autocomplete
             md-search-text="searchHeaders"
@@ -236,7 +242,9 @@
             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
           </span>
         </md-chips>
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('console.http.cors.exposed-headers')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.exposed-headers')"
+          >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+        >
       </md-input-container>
       <md-input-container class="md-block" flex-gt-xs>
         <label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></label>
@@ -244,9 +252,9 @@
           type="number"
           min="0"
           ng-model="$ctrl.settings.cors.maxAge"
-          ng-disabled="$ctrl.isReadonlySetting('console.http.cors.max-age')"
+          ng-disabled="$ctrl.isReadonlySetting('http.api.management.cors.max-age')"
         />
-        <md-tooltip ng-if="$ctrl.isReadonlySetting('console.http.cors.max-age')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.management.cors.max-age')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
     </div>
   </div>
