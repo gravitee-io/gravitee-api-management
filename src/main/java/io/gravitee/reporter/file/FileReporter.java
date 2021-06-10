@@ -58,7 +58,7 @@ public class FileReporter extends AbstractService implements Reporter {
 
     @Override
     public boolean canHandle(Reportable reportable) {
-        return enabled;
+        return enabled && writers.containsKey(reportable.getClass());
     }
 
     @Override
