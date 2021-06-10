@@ -58,7 +58,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -1895,27 +1894,37 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
         }
 
+        List<Membership> overrideUserMemberships = new ArrayList<>();
         // Delete existing memberships
         userMemberships.forEach(
             membership -> {
-                membershipService.deleteReferenceMember(
-                    MembershipReferenceType.valueOf(membership.getReferenceType().name()),
-                    membership.getReferenceId(),
-                    MembershipMemberType.USER,
-                    userId
-                );
+                // Consider only membership "created by" the identity provider
+                if (identityProviderId.equals(membership.getSource())) {
+                    membershipService.deleteReferenceMemberBySource(
+                        MembershipReferenceType.valueOf(membership.getReferenceType().name()),
+                        membership.getReferenceId(),
+                        MembershipMemberType.USER,
+                        userId,
+                        membership.getSource()
+                    );
+                } else {
+                    overrideUserMemberships.add(membership);
+                }
             }
         );
 
         Map<MembershipService.MembershipReference, Map<MembershipService.MembershipMember, Map<String, Collection<MembershipService.MembershipRole>>>> groupedRoles = new HashMap<>();
-        memberships.forEach(
-            membership ->
-                groupedRoles
-                    .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
-                    .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
-                    .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
-                    .add(membership.getRole())
-        );
+        memberships
+            .stream()
+            .filter(membership -> !containsMembership(overrideUserMemberships, membership))
+            .forEach(
+                membership ->
+                    groupedRoles
+                        .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
+                        .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
+                        .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
+                        .add(membership.getRole())
+            );
         // Create updated memberships
         groupedRoles.forEach(
             (reference, memberMapping) ->
@@ -1926,6 +1935,20 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         )
                 )
         );
+    }
+
+    private boolean containsMembership(List<Membership> overrideUserMemberships, MembershipService.Membership membership) {
+        return overrideUserMemberships
+            .stream()
+            .anyMatch(
+                membership1 -> {
+                    if (membership1.getReferenceId().equals(membership.getReference().getId())) {
+                        RoleEntity byId = roleService.findById(membership1.getRoleId());
+                        return membership.getRole().getScope().equals(byId.getScope());
+                    }
+                    return false;
+                }
+            );
     }
 
     @Override
