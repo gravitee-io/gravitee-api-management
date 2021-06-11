@@ -24,7 +24,6 @@ import * as traverse from 'traverse';
 import * as hljs from 'highlight.js';
 // Codemirror
 import * as CodeMirror from 'codemirror';
-import * as jsyaml from 'js-yaml';
 import * as moment from 'moment';
 import * as tinycolor from 'tinycolor2';
 import FormDirective from '../components/form/form.directive';
@@ -274,14 +273,8 @@ import NotificationTemplatesController from '../organization/configuration/notif
 import NotificationTemplateController from '../organization/configuration/notification-templates/notificationTemplate.controller';
 import NotificationTemplateByTypeController from '../organization/configuration/notification-templates/components/notificationTemplateByType.controller';
 // Documentation
-import DocumentationManagementComponent from '../components/documentation/documentation-management.component';
-import PageSwaggerComponent from '../components/documentation/page/page-swagger.component';
-import PageMarkdownComponent from '../components/documentation/page/page-markdown.component';
-import PageEditorMarkdownComponent from '../components/documentation/page/page-editormarkdown.component';
-import NewPageComponent from '../components/documentation/new-page.component';
-import EditPageComponent from '../components/documentation/edit-page.component';
-import EditPageAclsComponent from '../components/documentation/edit-page-acls.components';
-import ImportPagesComponent from '../components/documentation/import-pages.component';
+import '../components/documentation/documentation.module';
+
 // Healthcheck
 import ApiHealthCheckConfigureController from '../management/api/proxy/backend/healthcheck/healthcheck-configure.controller';
 import DialogAssertionInformationController from '../management/api/proxy/backend/healthcheck/healthcheck-assertion-dialog.controller';
@@ -529,7 +522,6 @@ require('../libraries/angular-schema-form/boostrap-decorator');
 require('../libraries/angular-schema-form/codemirror-decorator');
 require('../libraries/angular-ui-codemirror/ui-codemirror');
 
-require('swagger-ui-dist');
 require('../libraries/showdown-extension/DocHelper-extension.js');
 
 require('ngclipboard');
@@ -564,8 +556,6 @@ NoDataToDisplay(Highcharts);
 Map(Highcharts);
 
 import '@highcharts/map-collection/custom/world';
-
-(<any>window).jsyaml = jsyaml;
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -604,6 +594,7 @@ const graviteeManagementModule = angular.module('gravitee-management', [
   ngInfiniteScroll,
   'moment-picker',
   'mdColorPicker',
+  'gravitee-component-documentation',
 ]);
 
 graviteeManagementModule.config([
@@ -958,15 +949,6 @@ graviteeManagementModule.component('gvNotificationTemplateByType', NotificationT
 graviteeManagementModule.controller('NotificationTemplatesController', NotificationTemplatesController);
 graviteeManagementModule.controller('NotificationTemplateController', NotificationTemplateController);
 graviteeManagementModule.controller('NotificationTemplateByTypeController', NotificationTemplateByTypeController);
-
-graviteeManagementModule.component('documentationManagement', DocumentationManagementComponent);
-graviteeManagementModule.component('newPage', NewPageComponent);
-graviteeManagementModule.component('importPages', ImportPagesComponent);
-graviteeManagementModule.component('editPage', EditPageComponent);
-graviteeManagementModule.component('gvEditPageAcls', EditPageAclsComponent);
-graviteeManagementModule.component('gvPageMarkdown', PageMarkdownComponent);
-graviteeManagementModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
-graviteeManagementModule.component('gvPageSwagger', PageSwaggerComponent);
 
 graviteeManagementModule.component('gvSidenav', SidenavComponent);
 graviteeManagementModule.component('gvSubmenu', SubmenuComponent);

@@ -397,7 +397,7 @@ function apisPortalRouterConfig($stateProvider) {
           }
         },
         pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          if ($stateParams.type === 'MARKDOWN') {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'MARKDOWN_TEMPLATE') {
             const q = new DocumentationQuery();
             q.homepage = false;
             q.published = true;
@@ -494,7 +494,7 @@ function apisPortalRouterConfig($stateProvider) {
           }
         },
         pagesToLink: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          if ($stateParams.type === 'MARKDOWN') {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'MARKDOWN_TEMPLATE') {
             const q = new DocumentationQuery();
             q.homepage = false;
             q.published = true;

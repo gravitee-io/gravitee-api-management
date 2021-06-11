@@ -17,127 +17,100 @@
 import NotificationService from '../../services/notification.service';
 import DocumentationService from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
+import { IController, IScope } from 'angular';
 import _ = require('lodash');
+import angular = require('angular');
 
 interface IPageScope extends IScope {
   fetcherJsonSchema: string;
 }
-const ImportPagesComponent: ng.IComponentOptions = {
+
+class ImportPagesComponentController implements IController {
+  resolvedFetchers: any[];
+  resolvedRootPage: any;
+
+  apiId: string;
+  page: any;
+  fetchers: any[];
+  importInProgress: boolean;
+  constructor(
+    private readonly NotificationService: NotificationService,
+    private readonly DocumentationService: DocumentationService,
+    private $state: StateService,
+    private $scope: IPageScope,
+  ) {
+    'ngInject';
+    this.apiId = this.$state.params.apiId;
+  }
+
+  $onInit() {
+    this.page = this.resolvedRootPage || {
+      name: 'root',
+      type: 'ROOT',
+    };
+
+    this.fetchers = this.resolvedFetchers;
+
+    if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
+      _.forEach(this.fetchers, (fetcher) => {
+        if (fetcher.id === this.page.source.type) {
+          this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
+        }
+      });
+    }
+  }
+
+  import() {
+    this.importInProgress = true;
+    this.page.name = 'import';
+    this.DocumentationService.import(this.page, this.apiId)
+      .then((response: any) => {
+        if (this.page.id) {
+          if (response.data.messages && response.data.messages.length > 0) {
+            this.NotificationService.showError(
+              "'" +
+                response.data.length +
+                "' elements has been updated (with validation errors - check the bottom of the page for details)",
+            );
+          } else {
+            this.NotificationService.show("'" + response.data.length + "' elements has been updated.");
+          }
+        } else {
+          if (response.data.messages && response.data.messages.length > 0) {
+            this.NotificationService.showError(
+              "'" +
+                response.data.length +
+                "' elements has been created (with validation errors - check the bottom of the page for details)",
+            );
+          } else {
+            this.NotificationService.show("'" + response.data.length + "' elements has been created.");
+          }
+        }
+        if (this.apiId) {
+          this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
+        } else {
+          this.$state.go('management.settings.documentation');
+        }
+      })
+      .finally(() => {
+        this.importInProgress = false;
+      });
+  }
+
+  cancel() {
+    if (this.apiId) {
+      this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
+    } else {
+      this.$state.go('management.settings.documentation');
+    }
+  }
+}
+
+export const ImportPagesComponent: ng.IComponentOptions = {
   bindings: {
     resolvedFetchers: '<',
     resolvedRootPage: '<',
   },
   template: require('./import-pages.html'),
-  controller: function (
-    NotificationService: NotificationService,
-    DocumentationService: DocumentationService,
-    $state: StateService,
-    $scope: IPageScope,
-  ) {
-    'ngInject';
-    this.apiId = $state.params.apiId;
-
-    this.codeMirrorOptions = {
-      lineWrapping: true,
-      lineNumbers: true,
-      allowDropFileTypes: true,
-      autoCloseTags: true,
-      mode: 'javascript',
-    };
-
-    this.$onInit = () => {
-      this.page = this.resolvedRootPage || {
-        name: 'root',
-        type: 'ROOT',
-      };
-
-      this.fetchers = this.resolvedFetchers;
-
-      this.emptyFetcher = {
-        type: 'object',
-        id: 'empty',
-        properties: { '': {} },
-      };
-      $scope.fetcherJsonSchema = this.emptyFetcher;
-      this.fetcherJsonSchemaForm = ['*'];
-
-      if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
-        _.forEach(this.fetchers, (fetcher) => {
-          if (fetcher.id === this.page.source.type) {
-            $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
-          }
-        });
-      }
-    };
-
-    this.configureFetcher = (fetcher) => {
-      if (!this.page.source) {
-        this.page.source = {};
-      }
-
-      this.page.source = {
-        type: fetcher.id,
-        configuration: {},
-      };
-      $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
-    };
-
-    this.import = () => {
-      this.importInProgress = true;
-      this.page.name = 'import';
-      DocumentationService.import(this.page, this.apiId)
-        .then((response: any) => {
-          if (this.page.id) {
-            if (response.data.messages && response.data.messages.length > 0) {
-              NotificationService.showError(
-                "'" +
-                  response.data.length +
-                  "' elements has been updated (with validation errors - check the bottom of the page for details)",
-              );
-            } else {
-              NotificationService.show("'" + response.data.length + "' elements has been updated.");
-            }
-          } else {
-            if (response.data.messages && response.data.messages.length > 0) {
-              NotificationService.showError(
-                "'" +
-                  response.data.length +
-                  "' elements has been created (with validation errors - check the bottom of the page for details)",
-              );
-            } else {
-              NotificationService.show("'" + response.data.length + "' elements has been created.");
-            }
-          }
-          if (this.apiId) {
-            $state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
-          } else {
-            $state.go('management.settings.documentation');
-          }
-        })
-        .finally(() => {
-          this.importInProgress = false;
-        });
-    };
-
-    this.changeContentMode = (newMode) => {
-      if ('fetcher' === newMode) {
-        this.page.source = {
-          configuration: {},
-        };
-      } else {
-        delete this.page.source;
-      }
-    };
-
-    this.cancel = () => {
-      if (this.apiId) {
-        $state.go('management.apis.detail.portal.documentation', { apiId: this.apiId });
-      } else {
-        $state.go('management.settings.documentation');
-      }
-    };
-  },
+  controller: ImportPagesComponentController,
 };
-
-export default ImportPagesComponent;

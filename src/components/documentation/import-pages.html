@@ -37,33 +37,12 @@
         </p>
       </blockquote>
 
-      <div style="display: inline-block">
-        <md-input-container class="md-block">
-          <md-checkbox ng-model="$ctrl.page.published" aria-label="Published" class="md-align-top-left" flex>
-            Publish all imported pages
-          </md-checkbox>
-        </md-input-container>
-
-        <h3>Select your source:</h3>
-        <div layout="row">
-          <md-button
-            ng-repeat="fetcher in $ctrl.fetchers"
-            ng-click="$ctrl.configureFetcher(fetcher)"
-            ng-class="{'md-raised': fetcher.id === $ctrl.page.source.type}"
-            aria-label="fetcher"
-          >
-            <md-icon md-svg-icon="assets/logo_{{fetcher.id | lowercase}}.svg" style="width: 80px; height: 40px"></md-icon>
-          </md-button>
-        </div>
-        <div layout="column">
-          <form
-            name="PageConfigFetcherForm"
-            sf-schema="fetcherJsonSchema"
-            sf-form="$ctrl.fetcherJsonSchemaForm"
-            sf-model="$ctrl.page.source.configuration"
-          ></form>
-        </div>
-      </div>
+      <gv-edit-page-fetchers
+        fetchers="$ctrl.fetchers"
+        page="$ctrl.page"
+        title="'Select your source:'"
+        with-publish-option="true"
+      ></gv-edit-page-fetchers>
 
       <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px">
         <md-button

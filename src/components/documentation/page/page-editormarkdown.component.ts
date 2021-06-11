@@ -17,22 +17,20 @@ import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import * as hljs from 'highlight.js';
 import NotificationService from '../../../services/notification.service';
-import { PageType } from '../../../services/documentation.service';
 
 class ComponentCtrl implements ng.IComponentController {
   public page: any;
   public options: any;
   public pagesToLink: any[];
 
-  private maxSize: number;
   private tuiEditor: any;
 
   constructor(
     private $http,
-    private Constants,
+    private readonly Constants,
     private $state: StateService,
-    private $mdDialog: angular.material.IDialogService,
-    private NotificationService: NotificationService,
+    private readonly $mdDialog: angular.material.IDialogService,
+    private readonly NotificationService: NotificationService,
   ) {
     'ngInject';
   }
@@ -70,10 +68,7 @@ class ComponentCtrl implements ng.IComponentController {
       'codeblock',
     ];
 
-    const $http = this.$http;
-    const Constants = this.Constants;
-
-    if (Constants.env.settings.portal.uploadMedia.enabled) {
+    if (this.Constants.env.settings.portal.uploadMedia.enabled) {
       // toolbarItems
       toolbarItems.splice(15, 0, 'image');
     }
@@ -106,14 +101,14 @@ class ComponentCtrl implements ng.IComponentController {
               const fd = new FormData();
               fd.append('file', blob);
 
-              if (blob.size > Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
+              if (blob.size > this.Constants.env.settings.portal.uploadMedia.maxSizeInOctet) {
                 this.NotificationService.showError(
-                  `File uploaded is too big, you're limited at ${Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`,
+                  `File uploaded is too big, you're limited at ${this.Constants.env.settings.portal.uploadMedia.maxSizeInOctet} bytes`,
                 );
                 return false;
               }
 
-              $http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } }).then((response) => {
+              this.$http.post(mediaURL + 'upload', fd, { headers: { 'Content-Type': undefined } }).then((response) => {
                 callback(mediaURL + response.data, blob.name);
               });
 
@@ -129,7 +124,7 @@ class ComponentCtrl implements ng.IComponentController {
     this.tuiEditor.eventManager.addEventType('addLinkToPage');
     const toolbar = this.tuiEditor.getUI().getToolbar();
     toolbar.insertItem(
-      Constants.env.settings.portal.uploadMedia.enabled ? 17 : 16, // index depends on image button
+      this.Constants.env.settings.portal.uploadMedia.enabled ? 17 : 16, // index depends on image button
       {
         type: 'button',
         options: {
@@ -167,7 +162,7 @@ class ComponentCtrl implements ng.IComponentController {
   }
 }
 
-const PageEditorMarkdownComponent: ng.IComponentOptions = {
+export const PageEditorMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-editormarkdown.html'),
   bindings: {
     page: '<',
@@ -176,5 +171,3 @@ const PageEditorMarkdownComponent: ng.IComponentOptions = {
   },
   controller: ComponentCtrl,
 };
-
-export default PageEditorMarkdownComponent;

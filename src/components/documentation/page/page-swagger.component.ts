@@ -18,6 +18,8 @@ import * as _ from 'lodash';
 import UserService from '../../../services/user.service';
 import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { StateService } from '@uirouter/core';
+import { IController } from 'angular';
+import angular = require('angular');
 
 const DisableTryItOutPlugin = function () {
   return {
@@ -31,98 +33,123 @@ const DisableTryItOutPlugin = function () {
   };
 };
 
-const PageSwaggerComponent: ng.IComponentOptions = {
+class PageSwaggerComponentController implements IController {
+  page: any;
+  edit: boolean;
+
+  cfg: Record<string, unknown>;
+  pageId: string;
+  url: string;
+  constructor(
+    private readonly Constants,
+    private readonly UserService: UserService,
+    private $state: StateService,
+    private $window: ng.IWindowService,
+  ) {
+    'ngInject';
+
+    this.cfg = {
+      dom_id: '#swagger-container',
+      presets: [SwaggerUIBundle.presets.apis],
+      layout: 'BaseLayout',
+      // plugins: will be replaced in $onChanges
+      requestInterceptor: (req) => {
+        if (req.loadSpec) {
+          req.credentials = 'include';
+        }
+        return req;
+      },
+      // spec: will be replaced in $onChanges
+      // oauth2RedirectUrl: will be replaced in $onChanges
+    };
+  }
+
+  tryItEnabled() {
+    return (
+      this.page.configuration?.tryIt === 'true' &&
+      (this.UserService.isAuthenticated() || this.page.configuration?.tryItAnonymous === 'true')
+    );
+  }
+
+  loadContent(): any {
+    let contentAsJson = {};
+    try {
+      contentAsJson = angular.fromJson(this.page.content);
+    } catch (e) {
+      contentAsJson = jsyaml.safeLoad(this.page.content);
+    }
+    return contentAsJson;
+  }
+
+  loadOauth2RedirectUrl(): string {
+    return (
+      this.$window.location.origin +
+      this.$window.location.pathname +
+      (this.$window.location.pathname.substr(-1) !== '/' ? '/' : '') +
+      'swagger-oauth2-redirect.html'
+    );
+  }
+
+  loadPlugins(): any[] {
+    const plugins = [];
+    if (!this.tryItEnabled()) {
+      plugins.push(DisableTryItOutPlugin);
+    }
+    return plugins;
+  }
+
+  $onChanges() {
+    this.pageId = this.page === undefined ? this.$state.params.pageId : this.page.id;
+    if (this.$state.params.apiId) {
+      this.url = this.Constants.env.baseURL + '/apis/' + this.$state.params.apiId + '/pages/' + this.pageId + '/content';
+    } else {
+      this.url = this.Constants.env.baseURL + '/portal/pages/' + this.pageId + '/content';
+    }
+    if (this.url.includes('{:envId}')) {
+      this.url = this.url.replace('{:envId}', this.Constants.org.currentEnv.id);
+    }
+
+    const plugins = this.loadPlugins();
+    const spec = this.loadContent();
+    const oauth2RedirectUrl = this.loadOauth2RedirectUrl();
+    const config: any = Object.assign({}, this.cfg, { plugins, spec, oauth2RedirectUrl });
+
+    if (this.page.configuration?.showURL === 'true') {
+      config.url = this.url;
+      config.spec = undefined;
+    }
+    config.docExpansion = this.page.configuration?.docExpansion ?? 'none';
+    config.displayOperationId = this.page.configuration?.displayOperationId === 'true';
+    config.filter = this.page.configuration?.enableFiltering === 'true';
+    config.showExtensions = this.page.configuration?.showExtensions === 'true';
+    config.showCommonExtensions = this.page.configuration?.showCommonExtensions === 'true';
+    config.maxDisplayedTags =
+      _.isNaN(Number(this.page.configuration.maxDisplayedTags)) || this.page.configuration.maxDisplayedTags === '-1'
+        ? undefined
+        : Number(this.page.configuration.maxDisplayedTags);
+
+    const ui = SwaggerUIBundle(
+      _.merge(config, {
+        onComplete: () => {
+          // May be used in a short future, so keeping this part of the code to not forget about it.
+          ui.initOAuth({
+            clientId: '',
+            //              appName: "Swagger UI",
+            scopeSeparator: ' ',
+            //              additionalQueryStringParams: {some_parm: "val"}
+          });
+          //            ui.preauthorizeApiKey('api_key', 'my_api_key')
+        },
+      }),
+    );
+  }
+}
+
+export const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('./page-swagger.html'),
   bindings: {
     page: '<',
     edit: '<',
   },
-  controller: function (Constants, UserService: UserService, $state: StateService) {
-    'ngInject';
-
-    this.$onChanges = () => {
-      this.pageId = this.page === undefined ? $state.params.pageId : this.page.id;
-      if ($state.params.apiId) {
-        this.url = Constants.env.baseURL + '/apis/' + $state.params.apiId + '/pages/' + this.pageId + '/content';
-      } else {
-        this.url = Constants.env.baseURL + '/portal/pages/' + this.pageId + '/content';
-      }
-
-      this.tryItEnabled = () => {
-        return (
-          !_.isNil(this.page.configuration) &&
-          this.page.configuration.tryIt === 'true' &&
-          (UserService.isAuthenticated() || this.page.configuration.tryItAnonymous === 'true')
-        );
-      };
-
-      const plugins = [];
-      if (!this.tryItEnabled()) {
-        plugins.push(DisableTryItOutPlugin);
-      }
-
-      let contentAsJson = {};
-      try {
-        contentAsJson = JSON.parse(this.page.content);
-      } catch (e) {
-        contentAsJson = jsyaml.safeLoad(this.page.content);
-      }
-
-      const cfg: any = {
-        dom_id: '#swagger-container',
-        presets: [SwaggerUIBundle.presets.apis],
-        layout: 'BaseLayout',
-        plugins: plugins,
-        requestInterceptor: (req) => {
-          if (req.loadSpec) {
-            req.credentials = 'include';
-          }
-          return req;
-        },
-        spec: contentAsJson,
-        oauth2RedirectUrl:
-          window.location.origin +
-          window.location.pathname +
-          (window.location.pathname.substr(-1) !== '/' ? '/' : '') +
-          'swagger-oauth2-redirect.html',
-      };
-
-      if (!_.isNil(this.page.configuration)) {
-        if (this.page.configuration.showURL === 'true') {
-          cfg.url = this.url;
-          cfg.spec = undefined;
-        }
-        cfg.docExpansion = _.isNil(this.page.configuration.docExpansion) ? 'none' : this.page.configuration.docExpansion;
-        cfg.displayOperationId = _.isNil(this.page.configuration.displayOperationId)
-          ? false
-          : this.page.configuration.displayOperationId === 'true';
-        cfg.filter = _.isNil(this.page.configuration.enableFiltering) ? false : this.page.configuration.enableFiltering === 'true';
-        cfg.showExtensions = _.isNil(this.page.configuration.showExtensions) ? false : this.page.configuration.showExtensions === 'true';
-        cfg.showCommonExtensions = _.isNil(this.page.configuration.showCommonExtensions)
-          ? false
-          : this.page.configuration.showCommonExtensions === 'true';
-        cfg.maxDisplayedTags =
-          _.isNaN(Number(this.page.configuration.maxDisplayedTags)) || this.page.configuration.maxDisplayedTags === '-1'
-            ? undefined
-            : Number(this.page.configuration.maxDisplayedTags);
-      }
-
-      const ui = SwaggerUIBundle(
-        _.merge(cfg, {
-          onComplete: () => {
-            // May be used in a short future, so keeping this part of the code to not forget about it.
-            ui.initOAuth({
-              clientId: '',
-              //              appName: "Swagger UI",
-              scopeSeparator: ' ',
-              //              additionalQueryStringParams: {some_parm: "val"}
-            });
-            //            ui.preauthorizeApiKey('api_key', 'my_api_key')
-          },
-        }),
-      );
-    };
-  },
+  controller: PageSwaggerComponentController,
 };
-
-export default PageSwaggerComponent;

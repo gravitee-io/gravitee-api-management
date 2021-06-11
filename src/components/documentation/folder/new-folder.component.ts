@@ -13,10 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IController } from 'angular';
 
-export const PageMarkdownComponent: ng.IComponentOptions = {
-  template: require('./page-markdown.html'),
+class DocumentationNewFolderComponentController implements IController {
+  page: unknown;
+  onSave: () => void;
+
+  save(): void {
+    this.onSave();
+  }
+}
+
+export const DocumentationNewFolderComponent: ng.IComponentOptions = {
   bindings: {
-    page: '<',
+    page: '=',
+    onSave: '&',
   },
+  template: require('./new-folder.html'),
+  controller: DocumentationNewFolderComponentController,
 };

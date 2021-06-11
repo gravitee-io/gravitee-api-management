@@ -15,7 +15,6 @@
  */
 
 import { IHttpPromise, IPromise } from 'angular';
-import _ = require('lodash');
 
 export class DocumentationQuery {
   api: string;
@@ -77,14 +76,40 @@ class DocumentationService {
     'ngInject';
   }
 
-  url = (apiId: string, pageId?: string, importFiles?: boolean): string => {
+  buildPageList(pagesToFilter: any[], withRootFolder?: boolean, folderSituation?: FolderSituation) {
+    const pageList = pagesToFilter
+      ?.filter(
+        (p) =>
+          p.type === 'MARKDOWN' ||
+          p.type === 'SWAGGER' ||
+          (p.type === 'FOLDER' && folderSituation !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER),
+      )
+      .sort((a, b) => {
+        let comparison = 0;
+        const aFullPath = a.parentPath + '/' + a.name;
+        const bFullPath = b.parentPath + '/' + b.name;
+        if (aFullPath > bFullPath) {
+          comparison = 1;
+        } else if (aFullPath < bFullPath) {
+          comparison = -1;
+        }
+        return comparison;
+      });
+
+    if (withRootFolder) {
+      pageList?.unshift({ id: 'root', name: '', type: 'FOLDER', fullPath: '' });
+    }
+    return pageList;
+  }
+
+  url(apiId: string, pageId?: string, importFiles?: boolean): string {
     if (apiId) {
       return `${this.Constants.env.baseURL}/apis/${apiId}/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
     }
     return `${this.Constants.env.baseURL}/portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
-  };
+  }
 
-  supportedTypes = (folderSituation: FolderSituation): string[] => {
+  supportedTypes(folderSituation: FolderSituation): PageType[] {
     switch (folderSituation) {
       case FolderSituation.ROOT:
         return [PageType.SWAGGER, PageType.MARKDOWN, PageType.MARKDOWN_TEMPLATE, PageType.FOLDER];
@@ -97,22 +122,56 @@ class DocumentationService {
       case FolderSituation.FOLDER_IN_SYSTEM_FOLDER:
         return [PageType.LINK];
     }
-  };
+  }
 
-  partialUpdate = (propKey: string, propValue: any, pageId: string, apiId?: string): IHttpPromise<any> => {
+  getFolder(systemFoldersById: Record<string, any>, foldersById: Record<string, any>, id: string): any | undefined {
+    if (id) {
+      let folder = foldersById[id];
+      if (!folder) {
+        folder = systemFoldersById[id];
+      }
+      return folder;
+    }
+  }
+
+  getFolderSituation(
+    systemFoldersById: Record<string, any>,
+    foldersById: Record<string, any>,
+    folderId: string,
+  ): FolderSituation | undefined {
+    if (!folderId) {
+      return FolderSituation.ROOT;
+    }
+    if (systemFoldersById[folderId]) {
+      if (SystemFolderName.TOPFOOTER === systemFoldersById[folderId].name) {
+        return FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS;
+      } else {
+        return FolderSituation.SYSTEM_FOLDER;
+      }
+    }
+    if (foldersById[folderId]) {
+      const parentFolderId = foldersById[folderId].parentId;
+      if (systemFoldersById[parentFolderId]) {
+        return FolderSituation.FOLDER_IN_SYSTEM_FOLDER;
+      }
+      return FolderSituation.FOLDER_IN_FOLDER;
+    }
+  }
+
+  partialUpdate(propKey: string, propValue: any, pageId: string, apiId?: string): IHttpPromise<any> {
     const prop = {};
     prop[propKey] = propValue;
     return this.$http.patch(this.url(apiId, pageId), prop);
-  };
+  }
 
-  search = (q: DocumentationQuery, apiId?: string, translated?: boolean): IHttpPromise<Page[]> => {
+  search(q: DocumentationQuery, apiId?: string, translated?: boolean): IHttpPromise<Page[]> {
     let url: string = this.url(apiId);
     if (q || translated) {
       // add query parameters
       const queryParams: string[] = [];
       if (q) {
         const keys = Object.keys(q);
-        _.forEach(keys, (key) => {
+        keys?.forEach((key) => {
           const val = q[key];
           if (val !== undefined && val !== '') {
             queryParams.push(key + '=' + val);
@@ -125,17 +184,17 @@ class DocumentationService {
       url += '?' + queryParams.join('&');
     }
     return this.$http.get(url);
-  };
+  }
 
-  remove = (pageId: string, apiId?: string): IHttpPromise<any> => {
+  remove(pageId: string, apiId?: string): IHttpPromise<any> {
     return this.$http.delete(this.url(apiId, pageId));
-  };
+  }
 
-  create = (newPage: any, apiId?: string, config?: any): IHttpPromise<any> => {
+  create(newPage: any, apiId?: string, config?: any): IHttpPromise<any> {
     return this.$http.post(this.url(apiId), newPage, config);
-  };
+  }
 
-  update = (page: any, apiId?: string, config?: any): IHttpPromise<any> => {
+  update(page: any, apiId?: string, config?: any): IHttpPromise<any> {
     return this.$http.put(
       this.url(apiId, page.id),
       {
@@ -155,7 +214,7 @@ class DocumentationService {
       },
       config,
     );
-  };
+  }
 
   get(apiId: string, pageId?: string, portal?: boolean, translated?: boolean) {
     if (pageId) {
@@ -200,21 +259,21 @@ class DocumentationService {
     return this.$http.post(this.url(apiId, null, true), entity, { timeout: 30000 });
   }
 
-  fetch = (pageId: string, apiId?: string): IHttpPromise<any> => {
+  fetch(pageId: string, apiId?: string): IHttpPromise<any> {
     return this.$http.post(this.url(apiId, pageId) + '/_fetch', null, { timeout: 30000 });
-  };
+  }
 
-  fetchAll = (apiId: string): IHttpPromise<any> => {
+  fetchAll(apiId: string): IHttpPromise<any> {
     return this.$http.post(this.url(apiId) + '_fetch', null, { timeout: 30000 });
-  };
+  }
 
-  addMedia = (media: any, pageId: string, apiId?: string): IHttpPromise<any> => {
+  addMedia(media: any, pageId: string, apiId?: string): IHttpPromise<any> {
     return this.$http.post(this.url(apiId, pageId) + '/media', media, { headers: { 'Content-Type': undefined } });
-  };
+  }
 
-  getMedia = (pageId: string, apiId?: string): IHttpPromise<any> => {
+  getMedia(pageId: string, apiId?: string): IHttpPromise<any> {
     return this.$http.get(this.url(apiId, pageId) + '/media');
-  };
+  }
 }
 
 export default DocumentationService;

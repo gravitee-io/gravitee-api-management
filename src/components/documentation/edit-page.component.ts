@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -16,21 +15,291 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, { FolderSituation, PageType, SystemFolderName } from '../../services/documentation.service';
+import DocumentationService, { PageType } from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
+import { IController, IScope } from 'angular';
 import UserService from '../../services/user.service';
 import _ = require('lodash');
+import { emptyFetcher } from './edit-tabs/edit-page-fetchers.component';
+import angular = require('angular');
 
 interface IPageScope extends IScope {
-  fetcherJsonSchema: string;
+  fetcherJsonSchema: {
+    type: string;
+    id: string;
+    properties: any;
+  };
   rename: boolean;
   editorReadonly: boolean;
   currentTab: string;
   currentTranslation: any;
   acls: any;
 }
-const EditPageComponent: ng.IComponentOptions = {
+
+class EditPageComponentController implements IController {
+  resolvedPage: any;
+  resolvedGroups: any[];
+  resolvedFetchers: any[];
+  pagesToLink: any[];
+  folders: any[];
+  systemFolders: any[];
+  pageResources: any[];
+  categoryResources: any[];
+  attachedResources: any[];
+
+  apiId: string;
+  tabs: { id: number; name: string; isUnavailable: () => boolean }[];
+  error: any;
+  page: any;
+  selectedTab: number;
+  currentTab: string;
+  groups: any[];
+  foldersById: _.Dictionary<any>;
+  systemFoldersById: _.Dictionary<any>;
+  pageList: any[];
+  canUpdate: boolean;
+  newName: any;
+
+  constructor(
+    private readonly NotificationService: NotificationService,
+    private readonly DocumentationService: DocumentationService,
+    private readonly UserService: UserService,
+    private readonly $mdDialog: angular.material.IDialogService,
+    private $state: StateService,
+    private $scope: IPageScope,
+  ) {
+    'ngInject';
+    this.apiId = $state.params.apiId;
+    this.tabs = [
+      {
+        id: 0,
+        name: 'content',
+        isUnavailable: () => {
+          return false;
+        },
+      },
+      {
+        id: 1,
+        name: 'translations',
+        isUnavailable: () => {
+          return this.isMarkdownTemplate();
+        },
+      },
+      {
+        id: 2,
+        name: 'config',
+        isUnavailable: () => {
+          return this.isLink();
+        },
+      },
+      {
+        id: 3,
+        name: 'fetchers',
+        isUnavailable: () => {
+          return this.isLink();
+        },
+      },
+      {
+        id: 4,
+        name: 'access-control',
+        isUnavailable: () => {
+          return false;
+        },
+      },
+      {
+        id: 5,
+        name: 'attached-resources',
+        isUnavailable: () => {
+          return this.isMarkdownTemplate() || this.isLink();
+        },
+      },
+    ];
+
+    this.error = null;
+    this.$scope.rename = false;
+    this.$scope.acls = {
+      groups: [],
+      roles: [],
+    };
+  }
+
+  $onInit() {
+    this.page = this.resolvedPage;
+    this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
+    const indexOfTab = this.tabs.findIndex((tab) => tab.name === this.$state.params.tab);
+    this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
+    this.currentTab = this.tabs[this.selectedTab].name;
+    if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
+      this.error = {
+        title: 'Validation messages',
+        message: this.resolvedPage.messages,
+      };
+    }
+    this.groups = this.resolvedGroups;
+
+    this.foldersById = _.keyBy(this.folders, 'id');
+    this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
+    const folderSituation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, this.page.parentId);
+    this.pageList = this.DocumentationService.buildPageList(this.pageResources, true, folderSituation);
+    this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
+    if (this.DocumentationService.supportedTypes(folderSituation).indexOf(this.page.type) < 0) {
+      this.$state.go('management.settings.documentation');
+    }
+
+    this.initEditor();
+
+    if (this.apiId) {
+      this.canUpdate = this.UserService.isUserHasPermissions(['api-documentation-u']);
+    } else {
+      this.canUpdate = this.UserService.isUserHasPermissions(['environment-documentation-u']);
+    }
+
+    if (this.page.type === 'SWAGGER') {
+      if (!this.page.configuration) {
+        this.page.configuration = {};
+      }
+    }
+  }
+
+  isFolder(): boolean {
+    return PageType.FOLDER === this.page.type;
+  }
+  isLink(): boolean {
+    return PageType.LINK === this.page.type;
+  }
+  isSwagger(): boolean {
+    return PageType.SWAGGER === this.page.type;
+  }
+  isMarkdown(): boolean {
+    return PageType.MARKDOWN === this.page.type;
+  }
+  isMarkdownTemplate(): boolean {
+    return PageType.MARKDOWN_TEMPLATE === this.page.type;
+  }
+
+  initEditor() {
+    this.$scope.editorReadonly = false;
+    if (this.page.source != null && this.page.source.type != null) {
+      this.resolvedFetchers.forEach((fetcher) => {
+        if (fetcher.id === this.page.source.type) {
+          this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
+          this.$scope.editorReadonly = true;
+        }
+      });
+    }
+  }
+
+  removeFetcher() {
+    this.page.source = null;
+    this.$scope.fetcherJsonSchema = emptyFetcher;
+  }
+
+  save() {
+    this.error = null;
+    this.DocumentationService.update(this.page, this.apiId)
+      .then((response) => {
+        if (response.data.messages && response.data.messages.length > 0) {
+          this.NotificationService.showError(
+            "'" + this.page.name + "' has been updated (with validation errors - check the bottom of the page for details)",
+          );
+        } else {
+          this.NotificationService.show("'" + this.page.name + "' has been updated");
+        }
+        if (this.apiId) {
+          this.$state.go(
+            'management.apis.detail.portal.editdocumentation',
+            { pageId: this.page.id, tab: this.currentTab },
+            { reload: true },
+          );
+        } else {
+          this.$state.go(
+            'management.settings.editdocumentation',
+            { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
+            { reload: true },
+          );
+        }
+      })
+      .catch((err) => {
+        this.error = { ...err.data, title: 'Sorry, unable to update page' };
+      });
+  }
+
+  saveTranslation() {
+    this.$scope.$broadcast('saveTranslation');
+  }
+
+  cancel() {
+    if (this.apiId) {
+      this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId, parent: this.page.parentId });
+    } else {
+      this.$state.go('management.settings.documentation', { parent: this.page.parentId });
+    }
+  }
+
+  reset() {
+    if (this.apiId) {
+      this.$state.go('management.apis.detail.portal.editdocumentation', { pageId: this.page.id }, { reload: true });
+    } else {
+      this.$state.go('management.settings.editdocumentation', { pageId: this.page.id, type: this.page.type }, { reload: true });
+    }
+  }
+
+  toggleRename() {
+    this.$scope.rename = !this.$scope.rename;
+    if (this.$scope.rename) {
+      this.newName = this.page.name;
+    }
+  }
+
+  rename() {
+    this.DocumentationService.partialUpdate('name', this.newName, this.page.id, this.apiId).then(() => {
+      this.NotificationService.show("'" + this.page.name + "' has been renamed to '" + this.newName + "'");
+      this.page.name = this.newName;
+      this.toggleRename();
+    });
+  }
+
+  goToExternalSource() {
+    this.selectedTab = 3;
+  }
+
+  selectTab(idx: number) {
+    this.changeTab(idx);
+    if (this.apiId) {
+      this.$state.transitionTo(
+        'management.apis.detail.portal.editdocumentation',
+        { apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab },
+        { notify: false },
+      );
+    } else {
+      this.$state.transitionTo(
+        'management.settings.editdocumentation',
+        { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
+        { notify: false },
+      );
+    }
+  }
+
+  changeTab(idx: number) {
+    this.selectedTab = this.tabs.findIndex((tab) => tab.id === idx);
+    this.currentTab = this.tabs[this.selectedTab].name;
+  }
+
+  fetch() {
+    this.DocumentationService.fetch(this.page.id, this.apiId).then(() => {
+      this.NotificationService.show("'" + this.page.name + "' has been successfully fetched");
+      this.reset();
+    });
+  }
+
+  getBannerMessage(): string {
+    return this.isMarkdownTemplate()
+      ? 'This page is not available for users yet'
+      : 'This page is not published yet and will not be visible to other users';
+  }
+}
+
+export const EditPageComponent: ng.IComponentOptions = {
   bindings: {
     resolvedPage: '<',
     resolvedGroups: '<',
@@ -43,516 +312,5 @@ const EditPageComponent: ng.IComponentOptions = {
     attachedResources: '<',
   },
   template: require('./edit-page.html'),
-  controller: function (
-    NotificationService: NotificationService,
-    DocumentationService: DocumentationService,
-    UserService: UserService,
-    $mdDialog: angular.material.IDialogService,
-    $state: StateService,
-    $scope: IPageScope,
-    $http: ng.IHttpService,
-    Constants: any,
-  ) {
-    'ngInject';
-    this.apiId = $state.params.apiId;
-    this.tabs = [
-      { id: 0, name: 'content', isUnavailable: () => {} },
-      { id: 1, name: 'translations', isUnavailable: () => this.isMarkdownTemplate() },
-      { id: 2, name: 'config', isUnavailable: () => {} },
-      { id: 3, name: 'fetchers', isUnavailable: () => {} },
-      { id: 4, name: 'access-control', isUnavailable: () => {} },
-      { id: 5, name: 'attached-resources', isUnavailable: () => this.isMarkdownTemplate() },
-    ];
-
-    this.shouldShowOpenApiDocFormat = false;
-
-    this.error = null;
-    $scope.rename = false;
-    $scope.acls = {
-      groups: [],
-      roles: [],
-    };
-
-    this.$onInit = () => {
-      this.page = this.resolvedPage;
-      this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
-      const indexOfTab = this.tabs.findIndex((tab) => tab.name === $state.params.tab);
-      this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
-      this.currentTab = this.tabs[this.selectedTab].name;
-      if (this.resolvedPage.messages && this.resolvedPage.messages.length > 0) {
-        this.error = {
-          title: 'Validation messages',
-          message: this.resolvedPage.messages,
-        };
-      }
-      this.groups = this.resolvedGroups;
-      this.fetchers = this.resolvedFetchers;
-
-      this.foldersById = _.keyBy(this.folders, 'id');
-      this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
-      this.pageList = this.buildPageList(this.pageResources, true);
-      this.pagesToLink = this.buildPageList(this.pagesToLink);
-      if (DocumentationService.supportedTypes(this.getFolderSituation(this.page.parentId)).indexOf(this.page.type) < 0) {
-        $state.go('management.settings.documentation');
-      }
-
-      this.emptyFetcher = {
-        type: 'object',
-        id: 'empty',
-        properties: { '': {} },
-      };
-      $scope.fetcherJsonSchema = this.emptyFetcher;
-      this.fetcherJsonSchemaForm = ['*'];
-      this.initEditor();
-
-      this.codeMirrorOptions = {
-        lineWrapping: true,
-        lineNumbers: true,
-        allowDropFileTypes: true,
-        autoCloseTags: true,
-        readOnly: $scope.editorReadonly,
-        mode: 'javascript',
-      };
-
-      if (this.apiId) {
-        this.canUpdate = UserService.isUserHasPermissions(['api-documentation-u']);
-      } else {
-        this.canUpdate = UserService.isUserHasPermissions(['environment-documentation-u']);
-      }
-
-      if (this.page.type === 'SWAGGER') {
-        if (!this.page.configuration) {
-          this.page.configuration = {};
-        }
-      }
-
-      this.settings = Constants.env.settings;
-      this.shouldShowOpenApiDocFormat =
-        this.settings &&
-        this.settings.openAPIDocViewer &&
-        this.settings.openAPIDocViewer.openAPIDocType.swagger.enabled &&
-        this.settings.openAPIDocViewer.openAPIDocType.redoc.enabled;
-
-      if (this.page.type === 'SWAGGER' && !this.page.configuration.viewer) {
-        if (this.settings && this.settings.openAPIDocViewer) {
-          this.page.configuration.viewer = this.settings.openAPIDocViewer.openAPIDocType.defaultType;
-        }
-      }
-    };
-
-    this.isFolder = (): boolean => PageType.FOLDER === this.page.type;
-    this.isLink = (): boolean => PageType.LINK === this.page.type;
-    this.isSwagger = (): boolean => PageType.SWAGGER === this.page.type;
-    this.isMarkdown = (): boolean => PageType.MARKDOWN === this.page.type;
-    this.isMarkdownTemplate = (): boolean => PageType.MARKDOWN_TEMPLATE === this.page.type;
-
-    this.usedAsGeneralConditions = () => {
-      return this.page.generalConditions;
-    };
-
-    this.selectTranslation = (translation: any) => {
-      this.currentTranslation = translation;
-      if (!this.currentTranslation.configuration.inheritContent) {
-        this.currentTranslation.configuration.inheritContent = 'true';
-      }
-    };
-
-    this.addTranslation = () => {
-      this.currentTranslation = {
-        type: 'TRANSLATION',
-        parentId: this.page.id,
-        configuration: {},
-      };
-      if (this.isMarkdown() || this.isSwagger()) {
-        this.currentTranslation.configuration.inheritContent = 'true';
-      }
-    };
-
-    this.saveTranslation = () => {
-      if (
-        this.page.configuration &&
-        ('page' === this.page.configuration.resourceType || 'category' === this.page.configuration.resourceType)
-      ) {
-        this.currentTranslation.content = this.page.content;
-      }
-      // save translation
-      if (!this.currentTranslation.id) {
-        DocumentationService.create(this.currentTranslation, this.apiId).then((response: any) => {
-          const page = response.data;
-          NotificationService.show("'" + page.name + "' has been created");
-          this.refreshTranslations();
-        });
-      } else {
-        DocumentationService.update(this.currentTranslation, this.apiId).then(() => {
-          NotificationService.show("'" + this.currentTranslation.name + "' has been updated");
-          this.refreshTranslations();
-        });
-      }
-    };
-
-    this.remove = (page: any) => {
-      $mdDialog
-        .show({
-          controller: 'DialogConfirmController',
-          controllerAs: 'ctrl',
-          template: require('../dialog/confirmWarning.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            title: 'Would you like to remove "' + page.name + '"?',
-            confirmButton: 'Remove',
-          },
-        })
-        .then((response: any) => {
-          if (response) {
-            DocumentationService.remove(page.id, this.apiId).then(() => {
-              NotificationService.show('Translation ' + page.name + ' has been removed');
-              this.refreshTranslations();
-            });
-          }
-        });
-    };
-
-    this.refreshTranslations = () => {
-      DocumentationService.get(this.apiId, this.page.id).then((response: any) => (this.page.translations = response.data.translations));
-      delete this.currentTranslation;
-    };
-
-    this.getFolderSituation = (folderId: string) => {
-      if (!folderId) {
-        return FolderSituation.ROOT;
-      }
-      if (this.systemFoldersById[folderId]) {
-        if (SystemFolderName.TOPFOOTER === this.systemFoldersById[folderId].name) {
-          return FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS;
-        } else {
-          return FolderSituation.SYSTEM_FOLDER;
-        }
-      }
-      if (this.foldersById[folderId]) {
-        const parentFolderId = this.foldersById[folderId].parentId;
-        if (this.systemFoldersById[parentFolderId]) {
-          return FolderSituation.FOLDER_IN_SYSTEM_FOLDER;
-        }
-        return FolderSituation.FOLDER_IN_FOLDER;
-      }
-
-      console.debug('impossible to determine folder situation : ' + folderId);
-    };
-
-    this.buildPageList = (pagesToFilter: any[], withRootFolder?: boolean) => {
-      const pageList = _.filter(
-        pagesToFilter,
-        (p) =>
-          p.type === 'MARKDOWN' ||
-          p.type === 'SWAGGER' ||
-          (p.type === 'FOLDER' && this.getFolderSituation(p.id) !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER),
-      ).sort((a, b) => {
-        let comparison = 0;
-        const aFullPath = a.parentPath + '/' + a.name;
-        const bFullPath = b.parentPath + '/' + b.name;
-        if (aFullPath > bFullPath) {
-          comparison = 1;
-        } else if (aFullPath < bFullPath) {
-          comparison = -1;
-        }
-        return comparison;
-      });
-
-      if (withRootFolder) {
-        pageList.unshift({ id: 'root', name: '', type: 'FOLDER', fullPath: '' });
-      }
-      return pageList;
-    };
-
-    this.getFolder = (id: string) => {
-      if (id) {
-        let folder = this.foldersById[id];
-        if (!folder) {
-          folder = this.systemFoldersById[id];
-        }
-        return folder;
-      }
-    };
-
-    this.getFolderPath = (parentFolderId: string) => {
-      const parent = this.getFolder(parentFolderId);
-      if (parent) {
-        return this.getFolderPath(parent.parentId) + '/' + parent.name;
-      } else {
-        return '';
-      }
-    };
-
-    this.initEditor = () => {
-      $scope.editorReadonly = false;
-      if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
-        _.forEach(this.fetchers, (fetcher) => {
-          if (fetcher.id === this.page.source.type) {
-            $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
-            $scope.editorReadonly = true;
-          }
-        });
-      }
-    };
-
-    this.configureFetcher = (fetcher) => {
-      if (!this.page.source) {
-        this.page.source = {};
-      }
-
-      this.page.source = {
-        type: fetcher.id,
-        configuration: {},
-      };
-      $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
-    };
-
-    this.removeFetcher = () => {
-      this.page.source = null;
-      $scope.fetcherJsonSchema = this.emptyFetcher;
-    };
-
-    this.checkIfFolder = () => {
-      if (this.page.content) {
-        if (this.page.content === 'root') {
-          this.page.configuration.isFolder = true;
-          this.page.configuration.inherit = 'false';
-        } else {
-          const folder = this.getFolder(this.page.content);
-          if (folder) {
-            this.page.configuration.isFolder = true;
-          } else {
-            this.page.configuration.isFolder = false;
-          }
-        }
-      }
-    };
-
-    this.onChangeLinkType = () => {
-      delete this.page.content;
-      delete this.page.configuration.isFolder;
-      if (this.page.configuration.resourceType === 'external') {
-        delete this.page.configuration.inherit;
-        if (this.page.translations) {
-          _.forEach(this.page.translations, (t) => delete t.content);
-        }
-      } else if (!this.page.configuration.inherit) {
-        this.page.configuration.inherit = 'true';
-      }
-    };
-
-    this.save = () => {
-      this.error = null;
-      DocumentationService.update(this.page, this.apiId)
-        .then((response) => {
-          if (response.data.messages && response.data.messages.length > 0) {
-            NotificationService.showError(
-              "'" + this.page.name + "' has been updated (with validation errors - check the bottom of the page for details)",
-            );
-          } else {
-            NotificationService.show("'" + this.page.name + "' has been updated");
-          }
-          if (this.apiId) {
-            $state.go('management.apis.detail.portal.editdocumentation', { pageId: this.page.id, tab: this.currentTab }, { reload: true });
-          } else {
-            $state.go(
-              'management.settings.editdocumentation',
-              { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
-              { reload: true },
-            );
-          }
-        })
-        .catch((err) => {
-          this.error = { ...err.data, title: 'Sorry, unable to update page' };
-        });
-    };
-
-    this.changeContentMode = (newMode) => {
-      if ('fetcher' === newMode) {
-        this.page.source = {
-          configuration: {},
-        };
-      } else {
-        delete this.page.source;
-      }
-    };
-
-    this.cancel = () => {
-      if (this.apiId) {
-        $state.go('management.apis.detail.portal.documentation', { apiId: this.apiId, parent: this.page.parentId });
-      } else {
-        $state.go('management.settings.documentation', { parent: this.page.parentId });
-      }
-    };
-
-    this.reset = () => {
-      if (this.apiId) {
-        $state.go('management.apis.detail.portal.editdocumentation', { pageId: this.page.id }, { reload: true });
-      } else {
-        $state.go('management.settings.editdocumentation', { pageId: this.page.id, type: this.page.type }, { reload: true });
-      }
-    };
-
-    this.toggleRename = () => {
-      $scope.rename = !$scope.rename;
-      if ($scope.rename) {
-        this.newName = this.page.name;
-      }
-    };
-
-    this.rename = () => {
-      DocumentationService.partialUpdate('name', this.newName, this.page.id, this.apiId).then(() => {
-        NotificationService.show("'" + this.page.name + "' has been renamed to '" + this.newName + "'");
-        this.page.name = this.newName;
-        this.toggleRename();
-      });
-    };
-
-    this.goToExternalSource = () => {
-      this.selectedTab = 2;
-    };
-
-    this.selectTab = (idx: number) => {
-      this.changeTab(idx);
-      if (this.apiId) {
-        $state.transitionTo(
-          'management.apis.detail.portal.editdocumentation',
-          { apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab },
-          { notify: false },
-        );
-      } else {
-        $state.transitionTo(
-          'management.settings.editdocumentation',
-          { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
-          { notify: false },
-        );
-      }
-    };
-
-    this.changeTab = (idx: number) => {
-      this.selectedTab = this.tabs.findIndex((tab) => tab.id === idx);
-      this.currentTab = this.tabs[this.selectedTab].name;
-    };
-
-    this.fetch = () => {
-      DocumentationService.fetch(this.page.id, this.apiId).then(() => {
-        NotificationService.show("'" + this.page.name + "' has been successfully fetched");
-        this.reset();
-      });
-    };
-
-    this.toggleEntrypointAsServer = () => {
-      if (this.page.configuration.entrypointsAsServers === undefined) {
-        // Enable adding context-path automatically only the first time user decides to use entrypoint url.
-        this.page.configuration.entrypointAsBasePath = 'true';
-      }
-    };
-
-    this.updateLinkName = (resourceName: string) => {
-      if (this.page.configuration.inherit === 'true' && resourceName !== '') {
-        this.page.name = resourceName;
-      }
-    };
-
-    this.updateLinkNameWithPageId = (resourceId: string) => {
-      const relatedPage = _.find(this.pageList, (p) => p.id === resourceId);
-      if (relatedPage) {
-        this.updateLinkName(relatedPage.name);
-      }
-    };
-
-    this.updateLinkNameWithCategoryId = (resourceId: string) => {
-      const relatedCategory = _.find(this.categoryResources, (p) => p.id === resourceId);
-      if (relatedCategory) {
-        this.updateLinkName(relatedCategory.name);
-      }
-    };
-
-    this.updateTranslationContent = () => {
-      if (
-        this.currentTranslation.configuration.inheritContent === 'false' &&
-        (!this.currentTranslation.content || this.currentTranslation.content === '')
-      ) {
-        this.currentTranslation.content = this.page.content;
-      }
-      if (this.currentTranslation.configuration.inheritContent === 'true') {
-        delete this.currentTranslation.content;
-      }
-    };
-
-    this.openApiFormatLabel = (format) => {
-      if (this.settings && this.settings.openAPIDocViewer && format === this.settings.openAPIDocViewer.openAPIDocType.defaultType) {
-        return `${format} (Default)`;
-      } else {
-        return format;
-      }
-    };
-
-    this.addAttachedResource = () => {
-      $mdDialog
-        .show({
-          controller: 'FileChooserDialogController',
-          controllerAs: 'ctrl',
-          template: require('../dialog/fileChooser.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            title: 'Select a file to attach',
-            confirmButton: 'Add',
-          },
-        })
-        .then((response: any) => {
-          if (response.file) {
-            // upload new media to portal or api
-            const fd = new FormData();
-            let fileName = response.file.name;
-            if (response.filename) {
-              fileName = response.filename;
-            }
-            fd.append('file', response.file);
-            fd.append('fileName', fileName);
-
-            DocumentationService.addMedia(fd, this.page.id, this.apiId)
-              .then(() => this.reset())
-              .then(() => NotificationService.show(fileName + ' has been attached'));
-          }
-        });
-    };
-
-    this.removeAttachedResource = (resource: any) => {
-      $mdDialog
-        .show({
-          controller: 'DialogConfirmController',
-          controllerAs: 'ctrl',
-          template: require('../dialog/confirmWarning.dialog.html'),
-          clickOutsideToClose: true,
-          locals: {
-            title: 'Would you like to remove "' + resource.fileName + '"?',
-            confirmButton: 'Remove',
-          },
-        })
-        .then((response) => {
-          if (response) {
-            this.page.attached_media = this.page.attached_media.filter(
-              (media) =>
-                !(media.mediaHash === resource.hash && media.mediaName === resource.fileName && media.attachedAt === resource.createAt),
-            );
-            DocumentationService.update(this.page, this.apiId)
-              .then(() => this.reset())
-              .then(() => NotificationService.show(resource.fileName + ' has been removed from page'));
-          }
-        });
-    };
-
-    this.getBannerMessage = (): string => {
-      return this.isMarkdownTemplate()
-        ? 'This page is not available for users yet'
-        : 'This page is not published yet and will not be visible to other users';
-    };
-
-    this.isMarkdownTemplate = (): boolean => {
-      return this.page.type === PageType.MARKDOWN_TEMPLATE;
-    };
-  },
+  controller: EditPageComponentController,
 };
-
-export default EditPageComponent;

@@ -1,0 +1,49 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!-- edit SWAGGER inline -->
+<div ng-if="$ctrl.isSwagger()" style="display: inline-block; width: 100%">
+  <div layout="row" ng-class="{'newPageEditor': $ctrl.newPage, 'editPageEditor': !$ctrl.newPage}" style="height: calc(100vh - 400px)">
+    <div ng-if="$ctrl.canUpdate" flex="50">
+      <textarea
+        ui-codemirror
+        ui-codemirror-opts="$ctrl.swaggerCodeMirrorOptions"
+        ng-model="$ctrl.page.content"
+        aria-label="page content"
+        ng-disabled="$ctrl.page.source"
+        md-autofocus
+      ></textarea>
+    </div>
+    <div ng-if="!$ctrl.newPage" style="height: 100%; overflow-y: scroll" flex="50">
+      <gv-page-swagger page="$ctrl.page" edit="$ctrl.canUpdate"></gv-page-swagger>
+    </div>
+  </div>
+</div>
+
+<!-- edit MARKDOWN inline -->
+<div ng-if="$ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()" style="display: inline-block; width: 100%">
+  <div class="md-block">
+    <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page" pages-to-link="$ctrl.pagesToLink"></gv-page-editor-markdown>
+    <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
+  </div>
+</div>
+
+<!-- import file -->
+<div style="display: inline-block" ng-if="$ctrl.canUpdate">
+  <h3>Select a file to import:</h3>
+  <input type="file" filecontent="$ctrl.page.content" filename="pageContentFile.name" />
+</div>
