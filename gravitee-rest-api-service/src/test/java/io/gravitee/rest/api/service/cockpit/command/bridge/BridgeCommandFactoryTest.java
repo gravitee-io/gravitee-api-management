@@ -67,7 +67,7 @@ public class BridgeCommandFactoryTest {
         InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setId(INSTALLATION_ID);
 
-        when(installationService.getOrInitialize()).thenReturn(installationEntity);
+        when(installationService.get()).thenReturn(installationEntity);
 
         BridgeCommandFactory bridgeCommandFactory = new BridgeCommandFactory(installationService);
 

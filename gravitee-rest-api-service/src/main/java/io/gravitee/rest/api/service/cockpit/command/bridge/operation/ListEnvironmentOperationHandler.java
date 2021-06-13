@@ -23,8 +23,8 @@ import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.Single;
 import java.util.List;
@@ -37,17 +37,17 @@ public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
 
     private final Logger logger = LoggerFactory.getLogger(ListEnvironmentOperationHandler.class);
 
-    private EnvironmentService environmentService;
-    private InstallationEntity installationEntity;
-    private ObjectMapper objectMapper;
+    private final EnvironmentService environmentService;
+    private final InstallationService installationService;
+    private final ObjectMapper objectMapper;
 
     public ListEnvironmentOperationHandler(
         EnvironmentService environmentService,
-        InstallationEntity installationEntity,
+        InstallationService installationService,
         ObjectMapper objectMapper
     ) {
         this.environmentService = environmentService;
-        this.installationEntity = installationEntity;
+        this.installationService = installationService;
         this.objectMapper = objectMapper;
     }
 
@@ -74,7 +74,7 @@ public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
                             simpleReply.setCommandStatus(CommandStatus.SUCCEEDED);
                             simpleReply.setOrganizationId(environmentEntity.getOrganizationId());
                             simpleReply.setEnvironmentId(environmentEntity.getId());
-                            simpleReply.setInstallationId(installationEntity.getId());
+                            simpleReply.setInstallationId(installationService.get().getId());
                             try {
                                 simpleReply.setPayload(objectMapper.writeValueAsString(environmentEntity));
                             } catch (JsonProcessingException e) {

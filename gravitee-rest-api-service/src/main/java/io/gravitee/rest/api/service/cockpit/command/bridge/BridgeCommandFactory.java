@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.cockpit.command.bridge;
 
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
-import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -30,10 +29,10 @@ public class BridgeCommandFactory {
     private static final String BRIDGE_SCOPE_APIM = "APIM";
     private static final long BRIDGE_OPERATION_TIMEOUT = 3000L;
 
-    private InstallationEntity installation;
+    private final InstallationService installationService;
 
     public BridgeCommandFactory(InstallationService installationService) {
-        this.installation = installationService.getOrInitialize();
+        this.installationService = installationService;
     }
 
     public BridgeCommand createListEnvironmentCommand() {
@@ -52,7 +51,7 @@ public class BridgeCommandFactory {
         BridgeCommand command = new BridgeCommand();
         command.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         command.setOrganizationId(GraviteeContext.getCurrentOrganization());
-        command.setInstallationId(this.installation.getId());
+        command.setInstallationId(installationService.get().getId());
         command.setTimeoutMillis(BRIDGE_OPERATION_TIMEOUT);
         return command;
     }

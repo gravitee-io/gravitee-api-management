@@ -75,8 +75,7 @@ public class BridgeCommandHandler implements CommandHandler<BridgeCommand, Bridg
 
     @Override
     public void afterPropertiesSet() {
-        InstallationEntity installationEntity = installationService.getOrInitialize();
-        operationHandlers.add(new ListEnvironmentOperationHandler(environmentService, installationEntity, objectMapper));
+        operationHandlers.add(new ListEnvironmentOperationHandler(environmentService, installationService, objectMapper));
     }
 
     private final BridgeOperationHandler noOperationHandler = new BridgeOperationHandler() {

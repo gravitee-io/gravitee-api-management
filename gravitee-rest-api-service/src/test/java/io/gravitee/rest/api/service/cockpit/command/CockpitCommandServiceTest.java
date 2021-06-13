@@ -25,20 +25,24 @@ import io.gravitee.cockpit.api.command.bridge.BridgeReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
 import io.gravitee.common.utils.UUID;
 import io.reactivex.Single;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CockpitCommandServiceTest {
 
-    @InjectMocks
-    private final CockpitCommandService cockpitCommandService = new CockpitCommandServiceImpl();
+    private CockpitCommandService cockpitCommandService;
 
     @Mock
     private CockpitConnector cockpitConnector;
+
+    @Before
+    public void setup() {
+        cockpitCommandService = new CockpitCommandServiceImpl(cockpitConnector);
+    }
 
     @Test
     public void shouldSendCommandToCockpitConnector() {

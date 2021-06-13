@@ -22,14 +22,20 @@ import io.gravitee.cockpit.api.command.Reply;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.bridge.BridgePayload;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CockpitCommandServiceImpl implements CockpitCommandService {
 
-    @Autowired
-    private CockpitConnector cockpitConnector;
+    private final CockpitConnector cockpitConnector;
+
+    public CockpitCommandServiceImpl(
+        // Need to make this injection lazy to be sure cockpit-connector plugin has been loaded before looking for this bean
+        @Lazy CockpitConnector cockpitConnector
+    ) {
+        this.cockpitConnector = cockpitConnector;
+    }
 
     @Override
     public BridgeReply send(BridgeCommand command) {

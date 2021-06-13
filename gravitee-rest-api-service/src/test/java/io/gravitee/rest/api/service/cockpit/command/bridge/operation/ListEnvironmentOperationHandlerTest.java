@@ -64,11 +64,14 @@ public class ListEnvironmentOperationHandlerTest {
     private InstallationEntity installationEntity;
 
     @Mock
+    private InstallationService installationService;
+
+    @Mock
     private ObjectMapper objectMapper;
 
     @Before
     public void before() {
-        cut = new ListEnvironmentOperationHandler(environmentService, installationEntity, objectMapper);
+        cut = new ListEnvironmentOperationHandler(environmentService, installationService, objectMapper);
         installationEntity = new InstallationEntity();
         installationEntity.setId(INSTALLATION_ID);
     }
@@ -100,6 +103,11 @@ public class ListEnvironmentOperationHandlerTest {
         when(objectMapper.writeValueAsString(envA)).thenReturn("envA");
         when(objectMapper.writeValueAsString(envB)).thenReturn("envB");
         when(objectMapper.writeValueAsString(envC_ERROR)).thenThrow(new JsonProcessingException("") {});
+
+        InstallationEntity installationEntity = new InstallationEntity();
+        installationEntity.setId(INSTALLATION_ID);
+
+        when(installationService.get()).thenReturn(installationEntity);
 
         BridgeCommand command = new BridgeCommand();
         command.setOperation(BridgeOperation.LIST_ENVIRONMENT.name());
