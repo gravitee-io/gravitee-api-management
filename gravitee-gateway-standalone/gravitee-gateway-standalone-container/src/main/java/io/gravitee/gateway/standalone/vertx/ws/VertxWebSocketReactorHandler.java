@@ -17,11 +17,10 @@ package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.gateway.http.connector.http.ws.WebSocketUtils;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.standalone.vertx.VertxReactorHandler;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
 
@@ -60,16 +59,7 @@ public class VertxWebSocketReactorHandler extends VertxReactorHandler {
     private boolean isWebSocket(HttpServerRequest httpServerRequest) {
         String connectionHeader = httpServerRequest.getHeader(HttpHeaders.CONNECTION);
         String upgradeHeader = httpServerRequest.getHeader(HttpHeaders.UPGRADE);
-        boolean isUpgrade = false;
-        if (connectionHeader != null) {
-            String[] connectionParts = connectionHeader.split(",");
-            for (int i = 0; i < connectionParts.length && !isUpgrade; ++i) {
-                isUpgrade = HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionParts[i].trim());
-            }
-        }
         return (httpServerRequest.version() == HttpVersion.HTTP_1_0 || httpServerRequest.version() == HttpVersion.HTTP_1_1) &&
-                httpServerRequest.method() == HttpMethod.GET &&
-                isUpgrade &&
-                HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
+                WebSocketUtils.isWebSocket(httpServerRequest.method().name(), connectionHeader, upgradeHeader);
     }
 }
