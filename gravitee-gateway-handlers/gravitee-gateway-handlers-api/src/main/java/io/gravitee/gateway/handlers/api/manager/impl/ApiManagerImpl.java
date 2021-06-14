@@ -218,14 +218,14 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
                     throw new IllegalArgumentException("You must not configure a tag to be included and excluded");
                 }
 
-                return inclusionTags.stream()
+                return (inclusionTags.isEmpty() ||  inclusionTags.stream()
                         .anyMatch(tag -> tags.stream()
                                 .anyMatch(crtTag -> {
                                     final Collator collator = Collator.getInstance();
                                     collator.setStrength(Collator.NO_DECOMPOSITION);
                                     return collator.compare(tag, crtTag) == 0;
                                 })
-                        ) || (!exclusionTags.isEmpty() &&
+                        )) && (exclusionTags.isEmpty() ||
                         exclusionTags.stream()
                                 .noneMatch(tag -> tags.stream()
                                         .anyMatch(crtTag -> {
