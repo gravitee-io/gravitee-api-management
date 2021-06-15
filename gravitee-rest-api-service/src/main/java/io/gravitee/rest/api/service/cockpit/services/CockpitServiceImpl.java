@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
+import io.gravitee.cockpit.api.command.bridge.BridgeReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandFactory;
@@ -40,9 +42,9 @@ public class CockpitServiceImpl implements CockpitService {
      */
     private final Logger logger = LoggerFactory.getLogger(CockpitServiceImpl.class);
 
-    private BridgeCommandFactory bridgeCommandFactory;
-    private CockpitCommandService cockpitCommandService;
-    private ObjectMapper objectMapper;
+    private final BridgeCommandFactory bridgeCommandFactory;
+    private final CockpitCommandService cockpitCommandService;
+    private final ObjectMapper objectMapper;
 
     public CockpitServiceImpl(
         BridgeCommandFactory bridgeCommandFactory,
@@ -57,11 +59,15 @@ public class CockpitServiceImpl implements CockpitService {
     @Override
     public CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId) {
         final BridgeCommand listEnvironmentCommand = this.bridgeCommandFactory.createListEnvironmentCommand();
-        final BridgeMultiReply reply = (BridgeMultiReply) cockpitCommandService.send(listEnvironmentCommand);
+        BridgeReply bridgeReply = cockpitCommandService.send(listEnvironmentCommand);
 
-        if (CommandStatus.SUCCEEDED == reply.getCommandStatus()) {
-            final List<PromotionTargetEntity> environmentEntities = reply
-                .getReplies()
+        if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {
+            logger.warn("Problem while listing promotion targets through cockpit. \n {}", bridgeReply.getMessage());
+            return new CockpitReply<>(Collections.emptyList(), CockpitReplyStatus.ERROR);
+        }
+
+        final List<PromotionTargetEntity> environmentEntities =
+            ((BridgeMultiReply) bridgeReply).getReplies()
                 .stream()
                 .filter(simpleReply -> CommandStatus.SUCCEEDED == simpleReply.getCommandStatus())
                 .map(
@@ -82,9 +88,27 @@ public class CockpitServiceImpl implements CockpitService {
                 )
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-            return new CockpitReply(environmentEntities, CockpitReplyStatus.SUCCEEDED);
+        return new CockpitReply<>(environmentEntities, CockpitReplyStatus.SUCCEEDED);
+    }
+
+    @Override
+    public CockpitReply<PromotionEntity> requestPromotion(PromotionEntity promotionEntity) {
+        String serializedPromotion = null;
+        try {
+            serializedPromotion = objectMapper.writeValueAsString(promotionEntity);
+        } catch (JsonProcessingException e) {
+            logger.warn("Problem while serializing promotion {}", promotionEntity.getId());
         }
-        logger.warn("Problem while listing promotion targets through cockpit. \n {}", reply.getMessage());
-        return new CockpitReply(Collections.emptyList(), CockpitReplyStatus.ERROR);
+
+        final BridgeCommand promoteApiCommand =
+            this.bridgeCommandFactory.createPromoteApiCommand(promotionEntity.getTargetEnvironmentId(), serializedPromotion);
+        BridgeReply bridgeReply = cockpitCommandService.send(promoteApiCommand);
+
+        if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {
+            logger.warn("Problem while send API promotion request through cockpit. \n {}", bridgeReply.getMessage());
+            return new CockpitReply<>(null, CockpitReplyStatus.ERROR);
+        }
+
+        return new CockpitReply<>(promotionEntity, CockpitReplyStatus.SUCCEEDED);
     }
 }

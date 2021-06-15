@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.promotion;
 
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
+import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import java.util.List;
 
@@ -33,4 +33,6 @@ public interface PromotionService {
      * @return the list of available target environments
      */
     List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId);
+
+    PromotionEntity promote(String api, PromotionRequestEntity promotionRequest);
 }

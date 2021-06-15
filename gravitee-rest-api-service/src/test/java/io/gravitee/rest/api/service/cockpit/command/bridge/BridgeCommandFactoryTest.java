@@ -16,33 +16,19 @@
 package io.gravitee.rest.api.service.cockpit.command.bridge;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
-import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
-import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
-import io.gravitee.rest.api.service.cockpit.services.CockpitService;
-import io.gravitee.rest.api.service.cockpit.services.CockpitServiceImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import java.util.Arrays;
-import java.util.List;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -56,24 +42,27 @@ public class BridgeCommandFactoryTest {
     @Mock
     private InstallationService installationService;
 
+    private BridgeCommandFactory bridgeCommandFactory;
+
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
     }
 
-    @Test
-    public void shouldCreateListeEnvironmentsCommand() {
-        // Given
+    @Before
+    public void setup() {
         InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setId(INSTALLATION_ID);
 
         when(installationService.get()).thenReturn(installationEntity);
-
-        BridgeCommandFactory bridgeCommandFactory = new BridgeCommandFactory(installationService);
+        bridgeCommandFactory = new BridgeCommandFactory(installationService);
 
         GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+    }
 
+    @Test
+    public void shouldCreateListEnvironmentsCommand() {
         // When
         final BridgeCommand listEnvironmentCommand = bridgeCommandFactory.createListEnvironmentCommand();
 
@@ -83,12 +72,29 @@ public class BridgeCommandFactoryTest {
         assertThat(listEnvironmentCommand.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
         assertThat(listEnvironmentCommand.getInstallationId()).isEqualTo(INSTALLATION_ID);
         assertThat(listEnvironmentCommand.getOperation()).isEqualTo(BridgeOperation.LIST_ENVIRONMENT.name());
-        assertThat(listEnvironmentCommand.getTimeoutMillis()).isEqualTo(3000L);
 
         final BridgeTarget bridgeTarget = listEnvironmentCommand.getTarget();
         assertThat(bridgeTarget).isNotNull();
         assertThat(bridgeTarget.getScopes()).isNotNull();
         assertThat(bridgeTarget.getScopes().size()).isEqualTo(1);
         assertThat(bridgeTarget.getScopes().get(0)).isEqualTo("APIM");
+    }
+
+    @Test
+    public void shouldCreatePromoteApiCommand() {
+        PromotionEntity promotionEntity = new PromotionEntity();
+        promotionEntity.setTargetEnvironmentId("env#target");
+
+        final BridgeCommand promoteApiCommand = bridgeCommandFactory.createPromoteApiCommand("env#target", "{ \"id\": \"test\"}");
+
+        assertThat(promoteApiCommand).isNotNull();
+        assertThat(promoteApiCommand.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+        assertThat(promoteApiCommand.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
+        assertThat(promoteApiCommand.getInstallationId()).isEqualTo(INSTALLATION_ID);
+        assertThat(promoteApiCommand.getOperation()).isEqualTo(BridgeOperation.PROMOTE_API.name());
+        assertThat(promoteApiCommand.getPayload().getContent()).isEqualTo("{ \"id\": \"test\"}");
+
+        final BridgeTarget bridgeTarget = promoteApiCommand.getTarget();
+        assertThat(bridgeTarget.getEnvironmentId()).isEqualTo("env#target");
     }
 }

@@ -38,9 +38,12 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
+import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.swagger.annotations.*;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -55,6 +58,7 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 import org.glassfish.jersey.message.internal.HttpHeaderReader;
 import org.glassfish.jersey.message.internal.MatchingEntityTag;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * Defines the REST resources to manage API.
@@ -84,6 +88,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private SwaggerService swaggerService;
+
+    @Inject
+    private PromotionService promotionService;
 
     @PathParam("api")
     @ApiParam(name = "api", required = true, value = "The ID of the API")
@@ -665,6 +672,24 @@ public class ApiResource extends AbstractResource {
     )
     public Response migrateAPI() {
         return Response.ok(apiService.migrate(this.api)).build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("_promote")
+    @ApiOperation(
+        value = "Promote the API to another environment",
+        notes = "User must have the API_DEFINITION update permission to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(code = 200, message = "Promotion request", response = PromotionEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response promoteAPI(@RequestBody @Valid @NotNull final PromotionRequestEntity promotionRequest) {
+        return Response.ok(promotionService.promote(this.api, promotionRequest)).build();
     }
 
     @Path("keys")

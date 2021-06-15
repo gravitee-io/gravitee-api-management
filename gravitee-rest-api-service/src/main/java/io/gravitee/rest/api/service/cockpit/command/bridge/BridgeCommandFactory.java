@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.cockpit.command.bridge;
 
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.bridge.BridgePayload;
 import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
@@ -27,7 +28,6 @@ import org.springframework.stereotype.Component;
 public class BridgeCommandFactory {
 
     private static final String BRIDGE_SCOPE_APIM = "APIM";
-    private static final long BRIDGE_OPERATION_TIMEOUT = 3000L;
 
     private final InstallationService installationService;
 
@@ -47,12 +47,26 @@ public class BridgeCommandFactory {
         return listEnvironmentCommand;
     }
 
+    public BridgeCommand createPromoteApiCommand(String targetEnvironmentId, String serializedPromotion) {
+        BridgeCommand createPromoteApiCommand = initBridgeCommand();
+        createPromoteApiCommand.setOperation(BridgeOperation.PROMOTE_API.name());
+
+        BridgePayload payload = new BridgePayload();
+        payload.setContent(serializedPromotion);
+        createPromoteApiCommand.setPayload(payload);
+
+        BridgeTarget target = new BridgeTarget();
+        target.setEnvironmentId(targetEnvironmentId);
+        createPromoteApiCommand.setTarget(target);
+
+        return createPromoteApiCommand;
+    }
+
     private BridgeCommand initBridgeCommand() {
         BridgeCommand command = new BridgeCommand();
         command.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         command.setOrganizationId(GraviteeContext.getCurrentOrganization());
         command.setInstallationId(installationService.get().getId());
-        command.setTimeoutMillis(BRIDGE_OPERATION_TIMEOUT);
         return command;
     }
 }

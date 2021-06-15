@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.services;
 
-import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import java.util.List;
 
@@ -24,4 +24,5 @@ import java.util.List;
  */
 public interface CockpitService {
     CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId);
+    CockpitReply<PromotionEntity> requestPromotion(PromotionEntity promotionEntity);
 }

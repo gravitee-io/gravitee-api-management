@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.cockpit.command.bridge.operation;
+package io.gravitee.rest.api.model.promotion;
 
-public enum BridgeOperation {
-    LIST_ENVIRONMENT,
-    PROMOTE_API,
+public enum PromotionEntityStatus {
+    CREATED,
+    TO_BE_VALIDATED,
+    ACCEPTED,
+    REJECTED,
+    ERROR,
 }

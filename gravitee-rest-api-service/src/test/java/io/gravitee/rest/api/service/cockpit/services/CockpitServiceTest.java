@@ -22,7 +22,8 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.*;
+import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
+import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
@@ -30,9 +31,9 @@ import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandFactory;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -48,10 +49,14 @@ public class CockpitServiceTest {
     @Mock
     private CockpitCommandService cockpitCommandService;
 
-    private ObjectMapper objectMapper = new GraviteeMapper();
+    private final ObjectMapper objectMapper = new GraviteeMapper();
 
-    @InjectMocks
-    private final CockpitService cockpitService = new CockpitServiceImpl(bridgeCommandFactory, cockpitCommandService, objectMapper);
+    private CockpitService cockpitService;
+
+    @Before
+    public void setup() {
+        cockpitService = new CockpitServiceImpl(bridgeCommandFactory, cockpitCommandService, objectMapper);
+    }
 
     @Test
     public void shouldNotListEnvironments() {

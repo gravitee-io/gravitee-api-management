@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
+import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Collections;
 import java.util.List;
@@ -210,6 +211,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected EventManager eventManager;
+
+    @Autowired
+    protected PromotionService promotionService;
 
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
@@ -463,6 +467,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public EventManager eventManager() {
             return mock(EventManager.class);
+        }
+
+        @Bean
+        public PromotionService promotionService() {
+            return mock(PromotionService.class);
         }
     }
 }
