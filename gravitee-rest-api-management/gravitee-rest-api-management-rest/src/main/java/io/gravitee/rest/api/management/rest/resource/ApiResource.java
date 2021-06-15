@@ -244,7 +244,7 @@ public class ApiResource extends AbstractResource {
             apiToUpdate.getProxy().setVirtualHosts(currentApi.getProxy().getVirtualHosts());
         }
 
-        final ApiEntity updatedApi = apiService.update(api, apiToUpdate);
+        final ApiEntity updatedApi = apiService.update(api, apiToUpdate, true);
         setPictures(updatedApi);
 
         return Response

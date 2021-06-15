@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.*;
+import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -385,7 +386,7 @@ public class ApiService_UpdateTest {
     @Test
     public void shouldNotDuplicateLabels() throws TechnicalException {
         prepareUpdate();
-        when(existingApi.getLabels()).thenReturn(Arrays.asList("label1", "label1"));
+        when(existingApi.getLabels()).thenReturn(asList("label1", "label1"));
         when(api.getDefinition())
             .thenReturn(
                 "{\"id\": \"" +
@@ -462,6 +463,75 @@ public class ApiService_UpdateTest {
         final ApiEntity apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdate_NewPlanNotAllowed() throws TechnicalException {
+        prepareUpdate();
+        Plan plan = new Plan();
+        plan.setName("Plan Malicious");
+        plan.setStatus(PlanStatus.PUBLISHED.name());
+        when(existingApi.getPlans()).thenReturn(asList(plan));
+        when(api.getDefinition())
+            .thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
+        apiService.update(API_ID, existingApi, true);
+    }
+
+    @Test(expected = InvalidDataException.class)
+    public void shouldNotUpdate_PlanClosed() throws TechnicalException {
+        prepareUpdate();
+        Plan plan = new Plan();
+        plan.setId("MALICIOUS");
+        plan.setName("Plan Malicious");
+        plan.setStatus(PlanStatus.PUBLISHED.name());
+        when(existingApi.getPlans()).thenReturn(asList(plan));
+        when(api.getDefinition())
+            .thenReturn(
+                "{\"id\": \"" +
+                API_ID +
+                "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
+                API_NAME +
+                "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
+            );
+        apiService.update(API_ID, existingApi, true);
+    }
+
+    @Test
+    public void shouldUpdate_PlanStatusNotChanged() throws TechnicalException {
+        prepareUpdate();
+        Plan plan = new Plan();
+        plan.setId("MALICIOUS");
+        plan.setName("Plan Malicious");
+        plan.setStatus(PlanStatus.CLOSED.name());
+        when(existingApi.getPlans()).thenReturn(asList(plan));
+        when(api.getDefinition())
+            .thenReturn(
+                "{\"id\": \"" +
+                API_ID +
+                "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
+                API_NAME +
+                "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
+            );
+        apiService.update(API_ID, existingApi, true);
+    }
+
+    @Test
+    public void shouldUpdate_PlanStatusChanged_authorized() throws TechnicalException {
+        prepareUpdate();
+        Plan plan = new Plan();
+        plan.setId("VALID");
+        plan.setName("Plan VALID");
+        plan.setStatus(PlanStatus.CLOSED.name());
+        when(existingApi.getPlans()).thenReturn(asList(plan));
+        when(api.getDefinition())
+            .thenReturn(
+                "{\"id\": \"" +
+                API_ID +
+                "\", \"gravitee\": \"2.0.0\", \"name\": \"" +
+                API_NAME +
+                "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"VALID\", \"status\":\"PUBLISHED\"}]}"
+            );
+        apiService.update(API_ID, existingApi, true);
     }
 
     @Test(expected = TagNotAllowedException.class)

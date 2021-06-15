@@ -57,6 +57,8 @@ public interface ApiService {
     ApiEntity createFromSwagger(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
+    ApiEntity update(String apiId, UpdateApiEntity api, boolean checkPlans);
+
     ApiEntity updateFromSwagger(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor);
 
     void delete(String apiId);

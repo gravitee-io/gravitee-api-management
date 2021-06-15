@@ -85,7 +85,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
         updateApiEntity.setProxy(proxy);
         updateApiEntity.setLifecycleState(ApiLifecycleState.CREATED);
-        doReturn(mockApi).when(apiService).update(eq(API), any());
+        doReturn(mockApi).when(apiService).update(eq(API), any(), eq(true));
     }
 
     @Test

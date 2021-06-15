@@ -1175,6 +1175,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public ApiEntity update(String apiId, UpdateApiEntity updateApiEntity) {
+        return update(apiId, updateApiEntity, false);
+    }
+
+    @Override
+    public ApiEntity update(String apiId, UpdateApiEntity updateApiEntity, boolean checkPlans) {
         try {
             LOGGER.debug("Update API {}", apiId);
 
@@ -1233,6 +1238,29 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             if (updateApiEntity.getPlans() == null) {
                 updateApiEntity.setPlans(new ArrayList<>());
+            } else if (checkPlans) {
+                List<Plan> existingPlans = apiToCheck.getPlans();
+                Map<String, String> planStatuses = new HashMap<>();
+                if (existingPlans != null && !existingPlans.isEmpty()) {
+                    planStatuses.putAll(existingPlans.stream().collect(toMap(Plan::getId, Plan::getStatus)));
+                }
+
+                updateApiEntity
+                    .getPlans()
+                    .forEach(
+                        planToUpdate -> {
+                            if (
+                                !planStatuses.containsKey(planToUpdate.getId()) ||
+                                (
+                                    planStatuses.containsKey(planToUpdate.getId()) &&
+                                    planStatuses.get(planToUpdate.getId()).equalsIgnoreCase(PlanStatus.CLOSED.name()) &&
+                                    !planStatuses.get(planToUpdate.getId()).equalsIgnoreCase(planToUpdate.getStatus())
+                                )
+                            ) {
+                                throw new InvalidDataException("Invalid status for plan '" + planToUpdate.getName() + "'");
+                            }
+                        }
+                    );
             }
 
             Api apiToUpdate = optApiToUpdate.get();
