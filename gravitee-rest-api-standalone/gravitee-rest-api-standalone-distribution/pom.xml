@@ -139,6 +139,14 @@
 			<scope>runtime</scope>
 			<type>zip</type>
 		</dependency>
+
+		<dependency>
+			<groupId>io.gravitee.rest.api.services</groupId>
+			<artifactId>gravitee-rest-api-services-auto-fetch</artifactId>
+			<version>${project.version}</version>
+			<scope>runtime</scope>
+			<type>zip</type>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -185,6 +193,12 @@
 								<artifactItem>
 									<groupId>io.gravitee.rest.api.services</groupId>
 									<artifactId>gravitee-rest-api-services-search-indexer</artifactId>
+									<version>${project.version}</version>
+									<type>zip</type>
+								</artifactItem>
+								<artifactItem>
+									<groupId>io.gravitee.rest.api.services</groupId>
+									<artifactId>gravitee-rest-api-services-auto-fetch</artifactId>
 									<version>${project.version}</version>
 									<type>zip</type>
 								</artifactItem>
