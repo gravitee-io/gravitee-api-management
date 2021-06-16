@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -71,7 +72,8 @@ public class ConfigServiceTest {
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
         params.put(Key.API_LABELS_DICTIONARY.key(), Arrays.asList("label1", "label2"));
 
-        when(mockParameterService.findAll(any(List.class), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(params);
+        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
@@ -104,7 +106,8 @@ public class ConfigServiceTest {
         params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
         params.put(Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
-        when(mockParameterService.findAll(any(List.class), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(params);
+        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn(params);
 
         when(environment.containsProperty(eq(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key()))).thenReturn(true);
         when(environment.containsProperty(Key.API_LABELS_DICTIONARY.key())).thenReturn(true);
@@ -158,7 +161,8 @@ public class ConfigServiceTest {
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
 
-        when(mockParameterService.findAll(any(List.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(params);
+        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION)))
+            .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
@@ -179,7 +183,8 @@ public class ConfigServiceTest {
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
 
-        when(mockParameterService.findAll(any(List.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(params);
+        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION)))
+            .thenReturn(params);
         when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
         when(reCaptchaService.isEnabled()).thenReturn(true);
 
@@ -202,7 +207,8 @@ public class ConfigServiceTest {
         params.put(Key.ANALYTICS_CLIENT_TIMEOUT.key(), singletonList("60000"));
         params.put(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
-        when(mockParameterService.findAll(any(List.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(params);
+        when(mockParameterService.findAll(any(List.class), any(Function.class), eq("DEFAULT"), eq(ParameterReferenceType.ORGANIZATION)))
+            .thenReturn(params);
 
         when(environment.containsProperty(eq(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key()))).thenReturn(true);
         when(environment.containsProperty(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
