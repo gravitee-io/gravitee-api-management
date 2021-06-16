@@ -13,31 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.services.sync.cache.task;
 
-import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
+public class FullApiKeyRefresher extends ApiKeyRefresher {
 
-    void create(Reactable reactable);
+    private final Collection<String> plans;
 
-    void update(Reactable reactable);
+    public FullApiKeyRefresher(Collection<String> plans) {
+        this.plans = plans;
+    }
 
-    void remove(Reactable reactable);
-
-    void clear();
-
-    /**
-     * An ordered collection of registered entrypoints.
-     *
-     * @return
-     */
-    Collection<HandlerEntrypoint> getEntrypoints();
+    @Override
+    public Result<Boolean> call() {
+        return doRefresh(new ApiKeyCriteria.Builder()
+                .includeRevoked(false)
+                .plans(plans)
+                .build());
+    }
 }

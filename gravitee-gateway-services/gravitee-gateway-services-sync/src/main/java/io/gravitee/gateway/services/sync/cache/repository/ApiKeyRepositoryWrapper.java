@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.apikeys.repository;
+package io.gravitee.gateway.services.sync.cache.repository;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -40,32 +40,32 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     }
 
     @Override
-    public Optional<io.gravitee.repository.management.model.ApiKey> findById(String apiKey) throws TechnicalException {
+    public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
         return Optional.ofNullable(cache.get(apiKey));
     }
 
     @Override
-    public io.gravitee.repository.management.model.ApiKey create(io.gravitee.repository.management.model.ApiKey apiKey) throws TechnicalException {
+    public ApiKey create(ApiKey apiKey) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<io.gravitee.repository.management.model.ApiKey> findBySubscription(String subscription) throws TechnicalException {
+    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<io.gravitee.repository.management.model.ApiKey> findByPlan(String plan) throws TechnicalException {
+    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<io.gravitee.repository.management.model.ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
         return wrapped.findByCriteria(filter);
     }
 
     @Override
-    public io.gravitee.repository.management.model.ApiKey update(io.gravitee.repository.management.model.ApiKey apiKey) throws TechnicalException {
+    public ApiKey update(ApiKey apiKey) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

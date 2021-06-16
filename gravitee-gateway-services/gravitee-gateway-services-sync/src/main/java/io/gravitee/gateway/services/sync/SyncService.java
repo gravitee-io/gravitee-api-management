@@ -18,25 +18,23 @@ package io.gravitee.gateway.services.sync;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
-import io.gravitee.gateway.services.sync.apikeys.ApiKeysCacheService;
+import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
+import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.gateway.services.sync.handler.SyncHandler;
-import io.gravitee.gateway.services.sync.subscriptions.SubscriptionsCacheService;
 import io.vertx.ext.web.Router;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
 
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SyncService extends AbstractService implements Runnable {
+public class SyncService extends AbstractService {
 
     /**
      * Logger.
@@ -45,11 +43,11 @@ public class SyncService extends AbstractService implements Runnable {
 
     private final static String PATH = "/sync";
 
-    @Autowired
-    private TaskScheduler scheduler;
+    @Value("${services.apikeyscache.delay:10000}")
+    private int delay;
 
-    @Value("${services.sync.cron:*/5 * * * * *}")
-    private String cronTrigger;
+    @Value("${services.apikeyscache.unit:MILLISECONDS}")
+    private TimeUnit unit;
 
     @Value("${services.sync.enabled:true}")
     private boolean enabled;
@@ -61,7 +59,7 @@ public class SyncService extends AbstractService implements Runnable {
     private ApiManager apiManager;
 
     @Autowired
-    private SyncManager syncStateManager;
+    private SyncManager syncManager;
 
     @Autowired
     private Router router;
@@ -72,15 +70,13 @@ public class SyncService extends AbstractService implements Runnable {
     @Autowired
     private SubscriptionsCacheService subscriptionsCacheService;
 
-    private ScheduledFuture<?> schedule;
-
     @Override
     protected void doStart() throws Exception {
-        if (! localRegistryEnabled) {
+        if (!localRegistryEnabled) {
             if (enabled) {
                 super.doStart();
 
-                logger.info("Sync service has been initialized with cron [{}]", cronTrigger);
+                logger.info("Sync service has been initialized with delay [{}{}]", delay, unit.name());
 
                 logger.info("Associate a new HTTP handler on {}", PATH);
 
@@ -93,10 +89,20 @@ public class SyncService extends AbstractService implements Runnable {
                 apiKeysCacheService.start();
                 subscriptionsCacheService.start();
 
-                // Force refresh on APIs
+                // Force refresh based on internal state of the api manager (useful if apis definitions are maintained across the cluster).
                 apiManager.refresh();
 
-                schedule = scheduler.schedule(this, new CronTrigger(cronTrigger));
+                // Initialize the sync manager.
+                syncManager.start();
+
+                // Run a first refresh immediately.
+                syncManager.refresh();
+
+                // Initial sync has been made, start schedulers.
+                syncManager.startScheduler(delay, unit);
+                apiKeysCacheService.startScheduler(delay, unit);
+                subscriptionsCacheService.startScheduler(delay, unit);
+
             } else {
                 logger.warn("Sync service is disabled");
             }
@@ -107,19 +113,11 @@ public class SyncService extends AbstractService implements Runnable {
 
     @Override
     protected void doStop() throws Exception {
-        if (schedule != null) {
-            schedule.cancel(true);
-        }
-
+        syncManager.stop();
         apiKeysCacheService.stop();
         subscriptionsCacheService.stop();
 
         super.doStop();
-    }
-
-    @Override
-    public void run() {
-        syncStateManager.refresh();
     }
 
     @Override

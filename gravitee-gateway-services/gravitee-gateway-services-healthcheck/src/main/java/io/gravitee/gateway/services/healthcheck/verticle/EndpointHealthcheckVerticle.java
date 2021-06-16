@@ -105,7 +105,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         // Configure triggers on resolved API endpoints
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
         if (!healthCheckEndpoints.isEmpty()) {
-            LOGGER.info("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
+            LOGGER.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
             apiTimers.put(api, new ArrayList<>());
             healthCheckEndpoints.forEach(rule -> addTrigger(api, rule));
         }
@@ -141,7 +141,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         long timerId = vertx.setPeriodic(getDelayMillis(rule.trigger()), runner);
         apiTimers.get(api).add(new EndpointRuleTrigger(timerId, rule.endpoint()));
 
-        LOGGER.info("Add health-check trigger id[{}] for endpoint name[{}] target[{}] each rate[{}] unit[{}]",
+        LOGGER.debug("Add health-check trigger id[{}] for endpoint name[{}] target[{}] each rate[{}] unit[{}]",
                 timerId,
                 rule.endpoint().getName(), rule.endpoint().getTarget(),
                 rule.trigger().getRate(), rule.trigger().getUnit());
@@ -150,7 +150,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     private void removeTriggers(Api api) {
         List<EndpointRuleTrigger> triggers = apiTimers.remove(api);
         if (triggers != null) {
-            LOGGER.info("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
+            LOGGER.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
             triggers.forEach(trigger -> vertx.cancelTimer(trigger.getTimerId()));
         }
     }
@@ -163,7 +163,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                     .filter(trigger -> trigger.getEndpoint().equals(endpoint)).findFirst();
 
             endpointRuleTrigger.ifPresent(trigger -> {
-                LOGGER.info("Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
+                LOGGER.debug("Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
                         trigger.getTimerId(),
                         endpoint.getName(), endpoint.getType(), endpoint.getTarget());
                 vertx.cancelTimer(trigger.getTimerId());

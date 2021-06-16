@@ -238,7 +238,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
     @Override
     protected void doStart() throws Exception {
-        logger.info("API handler is now starting, preparing API context...");
+        logger.debug("API handler is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
 
@@ -250,19 +250,19 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         dumpVirtualHosts();
 
         long endTime = System.currentTimeMillis(); // Get the end Time
-        logger.info("API handler started in {} ms", (endTime - startTime));
+        logger.debug("API handler started in {} ms", (endTime - startTime));
     }
 
     @Override
     protected void doStop() throws Exception {
-        logger.info("API handler is now stopping, closing context for {} ...", this);
+        logger.debug("API handler is now stopping, closing context for {} ...", this);
 
         applicationContext.getBean(PolicyManager.class).stop();
         applicationContext.getBean(ResourceLifecycleManager.class).stop();
         applicationContext.getBean(GroupLifecyleManager.class).stop();
 
         super.doStop();
-        logger.info("API handler is now stopped: {}", this);
+        logger.debug("API handler is now stopped: {}", this);
     }
 
     @Override
