@@ -201,22 +201,10 @@ services:
   # and management UI
   sync:
     # Synchronization is done each 5 seconds
-    cron: '*/5 * * * * *'
+    delay: 5000
+    unit: MILLISECONDS
     distributed: false # By enabling this mode, data synchronization process is distributed over clustered API gateways.
-
-  # Service used to store and cache api-keys from the management repository to avoid direct repository communication
-  # while serving requests.
-  apikeyscache:
-    delay: 10000
-    unit: MILLISECONDS
-    threads: 3 # Threads core size used to retrieve api-keys from repository.
-
-  # Service used to store and cache subscriptions from the management repository to avoid direct repository communication
-  # while serving requests.
-  subscriptions:
-    delay: 10000
-    unit: MILLISECONDS
-    threads: 3 # Threads core size used to retrieve subscriptions from repository.
+    bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, api keys, ...).
 
   # Local registry service.
   # This registry is used to load API Definition with json format from the file system. By doing so, you do not need

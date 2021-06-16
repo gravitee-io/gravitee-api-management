@@ -13,21 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.apikeys.spring;
+package io.gravitee.gateway.services.sync.cache.task;
 
-import io.gravitee.gateway.services.sync.apikeys.ApiKeysCacheService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.Subscription;
+
+import java.util.Collection;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class ApiKeysConfiguration {
+public class FullSubscriptionRefresher extends SubscriptionRefresher {
 
-    @Bean
-    public ApiKeysCacheService apiKeysCacheService() {
-        return new ApiKeysCacheService();
+    private final Collection<String> plans;
+
+    public FullSubscriptionRefresher(Collection<String> plans) {
+        this.plans = plans;
+    }
+
+    @Override
+    public Result<Boolean> call() {
+        return doRefresh(new SubscriptionCriteria.Builder()
+                .status(Subscription.Status.ACCEPTED)
+                .plans(plans)
+                .build());
     }
 }

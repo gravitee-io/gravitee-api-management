@@ -292,7 +292,7 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
 
     @Override
     protected void doStop() throws Exception {
-        LOGGER.info("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), requestTracker.get());
+        LOGGER.debug("Graceful shutdown of HTTP Client for endpoint[{}] target[{}] requests[{}]", endpoint.getName(), endpoint.getTarget(), requestTracker.get());
         long shouldEndAt = System.currentTimeMillis() + endpoint.getHttpClientOptions().getReadTimeout();
 
         while (requestTracker.get() != 0 && System.currentTimeMillis() <= shouldEndAt) {
@@ -317,8 +317,8 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
     }
 
     private void printHttpClientConfiguration() {
-        LOGGER.info("Create HTTP connector with configuration: ");
-        LOGGER.info("\t" + options.getProtocolVersion() + " {" +
+        LOGGER.debug("Create HTTP connector with configuration: ");
+        LOGGER.debug("\t" + options.getProtocolVersion() + " {" +
                 "ConnectTimeout='" + options.getConnectTimeout() + '\'' +
                 ", KeepAlive='" + options.isKeepAlive() + '\'' +
                 ", IdleTimeout='" + options.getIdleTimeout() + '\'' +
@@ -331,14 +331,14 @@ public abstract class AbstractConnector<T extends HttpEndpoint> extends Abstract
                 '}');
 
         if (options.isSsl()) {
-            LOGGER.info("\tSSL {" +
+            LOGGER.debug("\tSSL {" +
                     "TrustAll='" + options.isTrustAll() + '\'' +
                     ", VerifyHost='" + options.isVerifyHost() + '\'' +
                     '}');
         }
 
         if (options.getProxyOptions() != null) {
-            LOGGER.info("\tProxy {" +
+            LOGGER.debug("\tProxy {" +
                     "Type='" + options.getProxyOptions().getType() +
                     ", Host='" + options.getProxyOptions().getHost() + '\'' +
                     ", Port='" + options.getProxyOptions().getPort() + '\'' +

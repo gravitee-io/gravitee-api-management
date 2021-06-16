@@ -16,14 +16,19 @@
 package io.gravitee.gateway.services.sync.spring;
 
 import io.gravitee.gateway.services.sync.SyncManager;
-import io.gravitee.gateway.services.sync.apikeys.spring.ApiKeysConfiguration;
 import io.gravitee.gateway.services.sync.cache.CacheManager;
-import io.gravitee.gateway.services.sync.subscriptions.spring.SubscriptionsConfiguration;
+import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
+import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
+import io.reactivex.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,25 +37,47 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
  */
 @Configuration
 @Import({
-        ApiKeysConfiguration.class,
-        SubscriptionsConfiguration.class
+        LocalCacheConfiguration.class
 })
 public class SyncConfiguration {
 
+    public static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
+
     @Bean
-    public SyncManager syncStateManager() {
+    public SyncManager syncManager() {
         return new SyncManager();
     }
 
-    @Bean
-    public TaskScheduler taskScheduler() {
-        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("gio.sync-");
-        return scheduler;
+    @Bean("syncExecutor")
+    public ThreadPoolExecutor syncExecutor() {
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(PARALLELISM, PARALLELISM, 60L, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(),
+                new ThreadFactory() {
+                    private int counter = 0;
+
+                    @Override
+                    public Thread newThread(@NonNull Runnable r) {
+                        return new Thread(r, "gio.sync-" + counter++);
+                    }
+                });
+
+        threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+        return threadPoolExecutor;
     }
 
     @Bean
     public CacheManager cacheManager() {
         return new CacheManager();
+    }
+
+    @Bean
+    public ApiSynchronizer apiSynchronizer() {
+        return new ApiSynchronizer();
+    }
+
+    @Bean
+    public DictionarySynchronizer dictionarySynchronizer() {
+        return new DictionarySynchronizer();
     }
 }
