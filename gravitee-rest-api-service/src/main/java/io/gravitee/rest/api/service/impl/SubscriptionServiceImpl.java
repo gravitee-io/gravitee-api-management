@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
@@ -331,7 +332,14 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                 if (managementURL.endsWith("/")) {
                     managementURL = managementURL.substring(0, managementURL.length() - 1);
                 }
-                subscriptionsUrl = managementURL + "/#!/apis/" + api.getId() + "/subscriptions/" + subscription.getId();
+                subscriptionsUrl =
+                    managementURL +
+                    "/#!/environments/" +
+                    GraviteeContext.getCurrentEnvironmentOrDefault() +
+                    "/apis/" +
+                    api.getId() +
+                    "/subscriptions/" +
+                    subscription.getId();
             }
 
             final Map<String, Object> params = new NotificationParamsBuilder()
