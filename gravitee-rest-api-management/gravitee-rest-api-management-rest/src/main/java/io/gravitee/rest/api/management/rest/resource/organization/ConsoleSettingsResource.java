@@ -20,9 +20,14 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.service.ConfigService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.MaintenanceModeException;
 import io.swagger.annotations.*;
 import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
@@ -45,6 +50,9 @@ public class ConsoleSettingsResource {
 
     @Inject
     private ConfigService configService;
+
+    @Inject
+    private ParameterService parameterService;
 
     @Context
     private ResourceContext resourceContext;
@@ -75,7 +83,29 @@ public class ConsoleSettingsResource {
     )
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
     public Response saveConsoleSettings(@ApiParam(name = "config", required = true) @NotNull ConsoleSettingsEntity consoleSettingsEntity) {
+        // reject settings update if maintenanceMode isn't disabled into the payload
+        checkMaintenanceMode(consoleSettingsEntity);
+
         configService.save(consoleSettingsEntity);
         return Response.ok().entity(consoleSettingsEntity).build();
+    }
+
+    private void checkMaintenanceMode(ConsoleSettingsEntity consoleSettingsEntity) {
+        boolean maintenanceMode = parameterService.findAsBoolean(
+            Key.MAINTENANCE_MODE_ENABLED,
+            GraviteeContext.getCurrentOrganization(),
+            ParameterReferenceType.ORGANIZATION
+        );
+
+        if (
+            maintenanceMode &&
+            (
+                consoleSettingsEntity.getMaintenance() == null ||
+                consoleSettingsEntity.getMaintenance().getEnabled() == null ||
+                consoleSettingsEntity.getMaintenance().getEnabled()
+            )
+        ) {
+            throw new MaintenanceModeException();
+        }
     }
 }
