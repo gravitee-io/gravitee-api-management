@@ -65,6 +65,9 @@ public class PromotionServiceTest {
     @Mock
     private CockpitService cockpitService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     @Test(expected = BridgeOperationException.class)
     public void shouldFailToListPromotionTargets() {
         // Given
@@ -82,24 +85,32 @@ public class PromotionServiceTest {
         // Given
         PromotionTargetEntity envA = new PromotionTargetEntity();
         envA.setId("my-env-A");
+        envA.setHrids(Collections.singletonList("my-env-A"));
         envA.setOrganizationId(ORGANIZATION_ID);
         envA.setName("ENV A");
         envA.setInstallationId(INSTALLATION_ID);
 
         PromotionTargetEntity envB = new PromotionTargetEntity();
         envB.setId("my-env-B");
+        envB.setHrids(Collections.singletonList("my-env-B"));
         envB.setOrganizationId(ORGANIZATION_ID);
         envB.setName("ENV B");
         envB.setInstallationId(INSTALLATION_ID);
 
         PromotionTargetEntity currentEnv = new PromotionTargetEntity();
         currentEnv.setId(ENVIRONMENT_ID);
+        currentEnv.setHrids(Collections.singletonList(ENVIRONMENT_ID));
         currentEnv.setOrganizationId(ORGANIZATION_ID);
         currentEnv.setName("My Environment");
         currentEnv.setInstallationId(INSTALLATION_ID);
 
         when(cockpitService.listPromotionTargets(ORGANIZATION_ID))
             .thenReturn(new CockpitReply<>(Arrays.asList(envA, envB, currentEnv), CockpitReplyStatus.SUCCEEDED));
+
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setId(ENVIRONMENT_ID);
+        environmentEntity.setHrids(Collections.singletonList(ENVIRONMENT_ID));
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environmentEntity);
 
         final List<PromotionTargetEntity> promotionTargetEntities = promotionService.listPromotionTargets(ORGANIZATION_ID, ENVIRONMENT_ID);
 

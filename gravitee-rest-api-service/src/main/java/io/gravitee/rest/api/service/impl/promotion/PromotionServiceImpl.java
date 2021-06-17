@@ -19,11 +19,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionStatus;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
@@ -51,27 +53,33 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     private final CockpitService cockpitService;
     private final InstallationService installationService;
     private final PromotionRepository promotionRepository;
+    private final EnvironmentService environmentService;
 
     public PromotionServiceImpl(
         ApiService apiService,
         CockpitService cockpitService,
         InstallationService installationService,
-        PromotionRepository promotionRepository
+        PromotionRepository promotionRepository,
+        EnvironmentService environmentService
     ) {
         this.apiService = apiService;
         this.cockpitService = cockpitService;
         this.installationService = installationService;
         this.promotionRepository = promotionRepository;
+        this.environmentService = environmentService;
     }
 
     @Override
     public List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId) {
+        EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
+
         final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = this.cockpitService.listPromotionTargets(organizationId);
         if (listCockpitReply.getStatus() == CockpitReplyStatus.SUCCEEDED) {
             return listCockpitReply
                 .getReply()
                 .stream()
-                .filter(target -> !target.getId().equals(environmentId))
+                // Check using HRID instead of ID because the 'DEFAULT' env id has been overridden by Cockpit
+                .filter(target -> !target.getHrids().equals(environmentEntity.getHrids()))
                 .collect(Collectors.toList());
         }
         throw new BridgeOperationException(BridgeOperation.LIST_ENVIRONMENT);

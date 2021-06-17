@@ -45,13 +45,13 @@ public class PromotionTargetEntity {
 
     public PromotionTargetEntity() {}
 
-    public PromotionTargetEntity(EnvironmentEntity environmentEntity, String installationId) {
+    public PromotionTargetEntity(EnvironmentEntity environmentEntity, String organizationId, String environmentId, String installationId) {
+        this.organizationId = organizationId;
+        this.id = environmentId;
+        this.installationId = installationId;
         this.description = environmentEntity.getDescription();
         this.hrids = environmentEntity.getHrids();
-        this.id = environmentEntity.getId();
         this.name = environmentEntity.getName();
-        this.installationId = installationId;
-        this.organizationId = environmentEntity.getOrganizationId();
     }
 
     public String getId() {

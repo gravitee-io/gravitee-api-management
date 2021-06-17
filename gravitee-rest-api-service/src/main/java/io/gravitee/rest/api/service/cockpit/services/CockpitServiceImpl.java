@@ -75,7 +75,15 @@ public class CockpitServiceImpl implements CockpitService {
                         try {
                             final EnvironmentEntity environmentEntity =
                                 this.objectMapper.readValue(simpleReply.getPayload(), EnvironmentEntity.class);
-                            return new PromotionTargetEntity(environmentEntity, simpleReply.getInstallationId());
+
+                            // Be careful with env and org ids, we need to use the one from the reply and not the payload
+                            // because cockpit has updated them to handle the case were id is "DEFAULT"
+                            return new PromotionTargetEntity(
+                                environmentEntity,
+                                simpleReply.getOrganizationId(),
+                                simpleReply.getEnvironmentId(),
+                                simpleReply.getInstallationId()
+                            );
                         } catch (JsonProcessingException e) {
                             logger.warn(
                                 "Problem while deserializing environment {} with payload {}",
