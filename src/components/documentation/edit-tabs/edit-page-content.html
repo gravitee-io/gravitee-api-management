@@ -15,22 +15,29 @@
     limitations under the License.
 
 -->
-<!-- edit SWAGGER inline -->
-<div ng-if="$ctrl.isSwagger()" style="display: inline-block; width: 100%">
-  <div layout="row" ng-class="{'newPageEditor': $ctrl.newPage, 'editPageEditor': !$ctrl.newPage}" style="height: calc(100vh - 400px)">
-    <div ng-if="$ctrl.canUpdate" flex="50">
-      <textarea
-        ui-codemirror
-        ui-codemirror-opts="$ctrl.swaggerCodeMirrorOptions"
-        ng-model="$ctrl.page.content"
-        aria-label="page content"
-        ng-disabled="$ctrl.page.source"
-        md-autofocus
-      ></textarea>
-    </div>
-    <div ng-if="!$ctrl.newPage" style="height: 100%; overflow-y: scroll" flex="50">
-      <gv-page-swagger page="$ctrl.page" edit="$ctrl.canUpdate"></gv-page-swagger>
-    </div>
+<!-- edit AsciiDoc or SWAGGER inline -->
+<div ng-if="$ctrl.isSwagger() || $ctrl.isAsciiDoc()" style="display: inline-block; width: 100%">
+  <div layout="row" ng-class="{'newPageEditor': $ctrl.newPage, 'editPageEditor': !$ctrl.newPage}">
+    <gv-code
+      ng-if="$ctrl.canUpdate"
+      class="editPanel"
+      flex="50"
+      autofocus
+      ng-attr-value="{{$ctrl.page.content}}"
+      ng-attr-options="{{$ctrl.codeMirrorOptions}}"
+      ng-model="$ctrl.page.content"
+      gv-model
+    ></gv-code>
+    <gv-page-ascii-doc ng-if="$ctrl.isAsciiDoc()" class="editPanel" flex="50" page-content="$ctrl.page.content"></gv-page-ascii-doc>
+    <gv-page-swagger
+      ng-if="$ctrl.isSwagger()"
+      class="editPanel"
+      flex="50"
+      page="$ctrl.page"
+      page-content="$ctrl.page.content"
+      page-configuration="$ctrl.page.configuration"
+      edit="$ctrl.canUpdate"
+    ></gv-page-swagger>
   </div>
 </div>
 

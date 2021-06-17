@@ -52,7 +52,12 @@ class EditPageTranslationsComponentController implements IController {
       parentId: this.page.id,
       configuration: {},
     };
-    if (this.page.type === PageType.MARKDOWN || this.page.type === PageType.SWAGGER || this.page.type === PageType.LINK) {
+    if (
+      this.page.type === PageType.MARKDOWN ||
+      this.page.type === PageType.SWAGGER ||
+      this.page.type === PageType.LINK ||
+      this.page.type === PageType.ASCIIDOC
+    ) {
       this.currentTranslation.configuration.inheritContent = 'true';
     }
   }

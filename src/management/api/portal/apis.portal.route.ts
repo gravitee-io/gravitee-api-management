@@ -402,7 +402,10 @@ function apisPortalRouterConfig($stateProvider) {
             q.homepage = false;
             q.published = true;
             return DocumentationService.search(q, $stateParams.apiId).then((response) =>
-              response.data.filter((page) => page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER'),
+              response.data.filter(
+                (page) =>
+                  page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER' || page.type.toUpperCase() === 'ASCIIDOC',
+              ),
             );
           }
         },
@@ -501,13 +504,16 @@ function apisPortalRouterConfig($stateProvider) {
             return DocumentationService.search(q, $stateParams.apiId).then((response) =>
               response.data.filter(
                 (page) =>
-                  (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId,
+                  (page.type.toUpperCase() === 'MARKDOWN' ||
+                    page.type.toUpperCase() === 'SWAGGER' ||
+                    page.type.toUpperCase() === 'ASCIIDOC') &&
+                  page.id !== $stateParams.pageId,
               ),
             );
           }
         },
         attachedResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          if ($stateParams.type === 'MARKDOWN') {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'ASCIIDOC') {
             return DocumentationService.getMedia($stateParams.pageId, $stateParams.apiId).then((response) => response.data);
           }
         },

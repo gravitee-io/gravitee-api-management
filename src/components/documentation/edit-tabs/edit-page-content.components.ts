@@ -15,6 +15,7 @@
  */
 import { IController, IScope } from 'angular';
 import { PageType } from '../../../services/documentation.service';
+import '@gravitee/ui-components/wc/gv-code';
 
 interface IPageScope extends IScope {
   editorReadonly: boolean;
@@ -27,12 +28,16 @@ class EditPageContentComponentController implements IController {
   pagesToLink: any[];
   pageType: string;
 
-  swaggerCodeMirrorOptions: any;
+  // for asciidoc & swagger
+  codeMirrorOptions: any;
 
   constructor(private $scope: IPageScope) {
     'ngInject';
   }
 
+  isAsciiDoc(): boolean {
+    return PageType.ASCIIDOC === this.pageType;
+  }
   isSwagger(): boolean {
     return PageType.SWAGGER === this.pageType;
   }
@@ -48,13 +53,17 @@ class EditPageContentComponentController implements IController {
       this.pageType = this.page.type;
     }
 
-    this.swaggerCodeMirrorOptions = {
-      viewportMargin: 50,
+    this.codeMirrorOptions = {
       lineWrapping: true,
       lineNumbers: true,
       readOnly: this.$scope.editorReadonly,
-      mode: { name: 'javascript', json: true },
     };
+    if (this.isSwagger()) {
+      this.codeMirrorOptions.mode = 'json';
+    }
+    if (this.isAsciiDoc()) {
+      this.codeMirrorOptions.mode = 'asciidoc';
+    }
   }
 }
 

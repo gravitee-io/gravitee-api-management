@@ -176,6 +176,9 @@ class EditPageComponentController implements IController {
   isMarkdownTemplate(): boolean {
     return PageType.MARKDOWN_TEMPLATE === this.page.type;
   }
+  isAsciiDoc(): boolean {
+    return PageType.ASCIIDOC === this.page.type;
+  }
 
   initEditor() {
     this.$scope.editorReadonly = false;

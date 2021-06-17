@@ -563,7 +563,7 @@ require('angular-moment-picker');
 (<any>window).tinycolor = tinycolor;
 require('md-color-picker');
 
-const graviteeManagementModule = angular.module('gravitee-management', [
+angular.module('gravitee-management', [
   uiRouter,
   permission,
   uiPermission,
@@ -596,6 +596,8 @@ const graviteeManagementModule = angular.module('gravitee-management', [
   'mdColorPicker',
   'gravitee-component-documentation',
 ]);
+
+const graviteeManagementModule = angular.module('gravitee-management');
 
 graviteeManagementModule.config([
   'cfpLoadingBarProvider',
@@ -841,7 +843,7 @@ graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPi
 graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
 graviteeManagementModule.component('gvError', ErrorComponent);
 graviteeManagementModule.component('gvPolicyStudioWrapper', PolicyStudioWrapperComponent);
-graviteeManagementModule.controller('errorCtrl', ErrorController);
+graviteeManagementModule.controller('ErrorController', ErrorController);
 
 graviteeManagementModule.component('categories', CategoriesComponent);
 graviteeManagementModule.component('category', CategoryComponent);

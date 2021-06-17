@@ -34,12 +34,11 @@ const DisableTryItOutPlugin = function () {
 };
 
 class PageSwaggerComponentController implements IController {
-  page: any;
+  pageConfiguration: any;
+  pageContent: string;
   edit: boolean;
 
   cfg: Record<string, unknown>;
-  pageId: string;
-  url: string;
   constructor(
     private readonly Constants,
     private readonly UserService: UserService,
@@ -66,17 +65,16 @@ class PageSwaggerComponentController implements IController {
 
   tryItEnabled() {
     return (
-      this.page.configuration?.tryIt === 'true' &&
-      (this.UserService.isAuthenticated() || this.page.configuration?.tryItAnonymous === 'true')
+      this.pageConfiguration?.tryIt === 'true' && (this.UserService.isAuthenticated() || this.pageConfiguration?.tryItAnonymous === 'true')
     );
   }
 
   loadContent(): any {
     let contentAsJson = {};
     try {
-      contentAsJson = angular.fromJson(this.page.content);
+      contentAsJson = angular.fromJson(this.pageContent);
     } catch (e) {
-      contentAsJson = jsyaml.safeLoad(this.page.content);
+      contentAsJson = jsyaml.safeLoad(this.pageContent);
     }
     return contentAsJson;
   }
@@ -99,40 +97,40 @@ class PageSwaggerComponentController implements IController {
   }
 
   $onChanges() {
-    this.pageId = this.page === undefined ? this.$state.params.pageId : this.page.id;
-    if (this.$state.params.apiId) {
-      this.url = this.Constants.env.baseURL + '/apis/' + this.$state.params.apiId + '/pages/' + this.pageId + '/content';
-    } else {
-      this.url = this.Constants.env.baseURL + '/portal/pages/' + this.pageId + '/content';
-    }
-    if (this.url.includes('{:envId}')) {
-      this.url = this.url.replace('{:envId}', this.Constants.org.currentEnv.id);
-    }
-
     const plugins = this.loadPlugins();
     const spec = this.loadContent();
     const oauth2RedirectUrl = this.loadOauth2RedirectUrl();
     const config: any = Object.assign({}, this.cfg, { plugins, spec, oauth2RedirectUrl });
 
-    if (this.page.configuration?.showURL === 'true') {
-      config.url = this.url;
+    if (this.pageConfiguration?.showURL === 'true') {
+      let url = '';
+      if (this.$state.params.apiId) {
+        url = `${this.Constants.env.baseURL}/apis/${this.$state.params.apiId}/pages/${this.$state.params.pageId}/content'`;
+      } else {
+        url = `${this.Constants.env.baseURL}/portal/pages/${this.$state.params.pageId}/content'`;
+      }
+      if (url.includes('{:envId}')) {
+        url = url.replace('{:envId}', this.Constants.org.currentEnv.id);
+      }
+
+      config.url = url;
       config.spec = undefined;
     }
-    config.docExpansion = this.page.configuration?.docExpansion ?? 'none';
-    config.displayOperationId = this.page.configuration?.displayOperationId === 'true';
-    config.filter = this.page.configuration?.enableFiltering === 'true';
-    config.showExtensions = this.page.configuration?.showExtensions === 'true';
-    config.showCommonExtensions = this.page.configuration?.showCommonExtensions === 'true';
+    config.docExpansion = this.pageConfiguration?.docExpansion ?? 'none';
+    config.displayOperationId = this.pageConfiguration?.displayOperationId === 'true';
+    config.filter = this.pageConfiguration?.enableFiltering === 'true';
+    config.showExtensions = this.pageConfiguration?.showExtensions === 'true';
+    config.showCommonExtensions = this.pageConfiguration?.showCommonExtensions === 'true';
     config.maxDisplayedTags =
-      _.isNaN(Number(this.page.configuration.maxDisplayedTags)) || this.page.configuration.maxDisplayedTags === '-1'
+      _.isNaN(Number(this.pageConfiguration.maxDisplayedTags)) || this.pageConfiguration.maxDisplayedTags === '-1'
         ? undefined
-        : Number(this.page.configuration.maxDisplayedTags);
+        : Number(this.pageConfiguration.maxDisplayedTags);
 
-    const ui = SwaggerUIBundle(
+    const swaggerRenderer = SwaggerUIBundle(
       _.merge(config, {
         onComplete: () => {
           // May be used in a short future, so keeping this part of the code to not forget about it.
-          ui.initOAuth({
+          swaggerRenderer.initOAuth({
             clientId: '',
             //              appName: "Swagger UI",
             scopeSeparator: ' ',
@@ -148,7 +146,8 @@ class PageSwaggerComponentController implements IController {
 export const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('./page-swagger.html'),
   bindings: {
-    page: '<',
+    pageConfiguration: '<',
+    pageContent: '<',
     edit: '<',
   },
   controller: PageSwaggerComponentController,

@@ -93,6 +93,7 @@ class DocumentationManagementComponentController implements IController {
 
   canCreateShortCut(pageId: string, pageType: string) {
     return (
+      pageType === 'ASCIIDOC' ||
       pageType === 'SWAGGER' ||
       pageType === 'MARKDOWN' ||
       (pageType === 'FOLDER' &&

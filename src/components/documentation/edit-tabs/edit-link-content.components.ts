@@ -14,14 +14,33 @@
  * limitations under the License.
  */
 import { IController } from 'angular';
+import DocumentationService from '../../../services/documentation.service';
 
 class EditLinkContentComponentController implements IController {
   categoryResources: any[];
+  foldersById: any;
   page: any;
   pageList: any[];
+  systemFoldersById: any;
 
-  constructor() {
+  constructor(private readonly DocumentationService: DocumentationService) {
     'ngInject';
+  }
+
+  checkIfFolder() {
+    if (this.page.content) {
+      if (this.page.content === 'root') {
+        this.page.configuration.isFolder = true;
+        this.page.configuration.inherit = 'false';
+      } else {
+        const folder = this.DocumentationService.getFolder(this.systemFoldersById, this.foldersById, this.page.content);
+        if (folder) {
+          this.page.configuration.isFolder = true;
+        } else {
+          this.page.configuration.isFolder = false;
+        }
+      }
+    }
   }
 
   onChangeLinkType() {
@@ -61,8 +80,10 @@ class EditLinkContentComponentController implements IController {
 export const EditLinkContentComponent: ng.IComponentOptions = {
   bindings: {
     categoryResources: '<',
+    foldersById: '<',
     page: '<',
     pageList: '<',
+    systemFoldersById: '<',
   },
   template: require('./edit-link-content.html'),
   controller: EditLinkContentComponentController,

@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const ErrorComponent: ng.IComponentOptions = {
-  template: require('./error.html'),
-  controller: 'ErrorController',
-  bindings: {
-    error: '<',
-  },
-};
+import '@gravitee/ui-components/wc/gv-documentation';
 
-export default ErrorComponent;
+class PageAsciiDocComponentController implements ng.IComponentController {
+  pageContent: any;
+}
+
+export const PageAsciiDocComponent: ng.IComponentOptions = {
+  template: require('./page-asciidoc.html'),
+  bindings: {
+    pageContent: '<',
+  },
+  controller: PageAsciiDocComponentController,
+};

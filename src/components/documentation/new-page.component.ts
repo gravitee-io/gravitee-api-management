@@ -96,6 +96,8 @@ class NewPageComponentController implements IController {
 
   getPageName(): string {
     switch (this.page.type) {
+      case PageType.ASCIIDOC:
+        return 'New AsciiDoc';
       case PageType.FOLDER:
         return 'New Folder';
       case PageType.LINK:

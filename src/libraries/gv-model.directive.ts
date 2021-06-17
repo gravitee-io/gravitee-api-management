@@ -36,7 +36,7 @@ class GvModelDirective {
           element[0].value = ngModel.$viewValue;
         };
 
-        element.on('input', (e) => {
+        element.on(`${element[0].localName}:input`, (e) => {
           ngModel.$setViewValue(e.target.value);
         });
       },

@@ -97,9 +97,11 @@
               ></gv-edit-page-content>
               <gv-edit-link-content
                 ng-if="$ctrl.isLink()"
-                categoryResources="$ctrl.categoryResources"
+                category-resources="$ctrl.categoryResources"
+                folders-by-id="$ctrl.foldersById"
                 page="$ctrl.page"
-                pageList="$ctrl.pageList"
+                page-list="$ctrl.pageList"
+                system-folders-by-id="$ctrl.systemFoldersById"
               ></gv-edit-link-content>
             </div>
           </md-tab-body>
@@ -144,13 +146,14 @@
         </md-tab>
 
         <!-- Attached resources -->
-        <md-tab md-on-select="$ctrl.selectTab(5)" ng-if="$ctrl.canUpdate && $ctrl.isMarkdown()">
+        <md-tab md-on-select="$ctrl.selectTab(5)" ng-if="$ctrl.canUpdate && ($ctrl.isMarkdown() || $ctrl.isAsciiDoc())">
           <md-tab-label>Attached resources</md-tab-label>
           <md-tab-body>
             <gv-edit-page-attached-resources
+              api-id="$ctrl.apiId"
               attached-resources="$ctrl.attachedResources"
-              goto-function="$ctrl.reset"
               page="$ctrl.page"
+              on-save="$ctrl.reset()"
             ></gv-edit-page-attached-resources>
           </md-tab-body>
         </md-tab>

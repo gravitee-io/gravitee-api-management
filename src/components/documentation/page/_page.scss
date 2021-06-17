@@ -188,6 +188,7 @@
 
 .CodeMirror {
   font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  height: 100%;
 }
 
 .newPageEditor {
@@ -198,8 +199,9 @@
   height: calc(100vh - 400px);
 }
 
-.CodeMirror {
+.editPanel {
   height: 100%;
+  overflow-y: scroll;
 }
 
 .tui-editor-contents *:not(table) {

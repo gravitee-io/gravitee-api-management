@@ -288,7 +288,10 @@ function configurationRouterConfig($stateProvider) {
             q.homepage = false;
             q.published = true;
             return DocumentationService.search(q).then((response) =>
-              response.data.filter((page) => page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER'),
+              response.data.filter(
+                (page) =>
+                  page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER' || page.type.toUpperCase() === 'ASCIIDOC',
+              ),
             );
           }
         },
@@ -385,7 +388,10 @@ function configurationRouterConfig($stateProvider) {
             return DocumentationService.search(q).then((response) =>
               response.data.filter(
                 (page) =>
-                  (page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER') && page.id !== $stateParams.pageId,
+                  (page.type.toUpperCase() === 'MARKDOWN' ||
+                    page.type.toUpperCase() === 'SWAGGER' ||
+                    page.type.toUpperCase() === 'ASCIIDOC') &&
+                  page.id !== $stateParams.pageId,
               ),
             );
           }
@@ -412,7 +418,7 @@ function configurationRouterConfig($stateProvider) {
           }
         },
         attachedResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          if ($stateParams.type === 'MARKDOWN') {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'ASCIIDOC') {
             return DocumentationService.getMedia($stateParams.pageId, null).then((response) => response.data);
           }
         },
