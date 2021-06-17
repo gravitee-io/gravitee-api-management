@@ -16,14 +16,14 @@
 package io.gravitee.gateway.http.connector.http;
 
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.http.connector.AbstractConnector;
 import io.gravitee.gateway.http.connector.AbstractHttpProxyConnection;
 import io.gravitee.gateway.http.connector.http.ws.WebSocketProxyConnection;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static io.gravitee.gateway.http.connector.http.ws.WebSocketUtils.isWebSocket;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,9 +41,7 @@ public class HttpConnector<T extends HttpEndpoint> extends AbstractConnector<T> 
         String connectionHeader = proxyRequest.headers().getFirst(HttpHeaders.CONNECTION);
         String upgradeHeader = proxyRequest.headers().getFirst(HttpHeaders.UPGRADE);
 
-        boolean websocket = proxyRequest.method() == HttpMethod.GET &&
-                HttpHeaderValues.UPGRADE.contentEqualsIgnoreCase(connectionHeader) &&
-                HttpHeaderValues.WEBSOCKET.contentEqualsIgnoreCase(upgradeHeader);
+        boolean websocket = isWebSocket(proxyRequest.method().name(), connectionHeader, upgradeHeader);
 
         return websocket ?
                 new WebSocketProxyConnection(endpoint, proxyRequest) :
