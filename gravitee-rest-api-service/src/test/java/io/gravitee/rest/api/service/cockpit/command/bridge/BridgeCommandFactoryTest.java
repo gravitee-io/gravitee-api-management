@@ -83,7 +83,7 @@ public class BridgeCommandFactoryTest {
     @Test
     public void shouldCreatePromoteApiCommand() {
         PromotionEntity promotionEntity = new PromotionEntity();
-        promotionEntity.setTargetEnvironmentId("env#target");
+        promotionEntity.setTargetEnvCockpitId("env#target");
 
         final BridgeCommand promoteApiCommand = bridgeCommandFactory.createPromoteApiCommand("env#target", "{ \"id\": \"test\"}");
 

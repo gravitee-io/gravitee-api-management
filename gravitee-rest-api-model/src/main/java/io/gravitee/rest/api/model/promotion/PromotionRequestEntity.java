@@ -22,22 +22,22 @@ package io.gravitee.rest.api.model.promotion;
  */
 public class PromotionRequestEntity {
 
-    private String targetEnvironmentId;
-    private String targetInstallationId;
+    private String targetEnvCockpitId;
+    private String targetEnvName;
 
-    public String getTargetEnvironmentId() {
-        return targetEnvironmentId;
+    public String getTargetEnvCockpitId() {
+        return targetEnvCockpitId;
     }
 
-    public void setTargetEnvironmentId(String targetEnvironmentId) {
-        this.targetEnvironmentId = targetEnvironmentId;
+    public void setTargetEnvCockpitId(String targetEnvCockpitId) {
+        this.targetEnvCockpitId = targetEnvCockpitId;
     }
 
-    public String getTargetInstallationId() {
-        return targetInstallationId;
+    public String getTargetEnvName() {
+        return targetEnvName;
     }
 
-    public void setTargetInstallationId(String targetInstallationId) {
-        this.targetInstallationId = targetInstallationId;
+    public void setTargetEnvName(String targetEnvName) {
+        this.targetEnvName = targetEnvName;
     }
 }

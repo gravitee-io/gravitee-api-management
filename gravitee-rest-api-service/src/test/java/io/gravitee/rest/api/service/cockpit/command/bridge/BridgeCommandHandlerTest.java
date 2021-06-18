@@ -15,43 +15,22 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.bridge;
 
-import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.PICTURE;
-import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.SUB;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.user.UserCommand;
-import io.gravitee.cockpit.api.command.user.UserPayload;
-import io.gravitee.cockpit.api.command.user.UserReply;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.model.NewExternalUserEntity;
-import io.gravitee.rest.api.model.UpdateUserEntity;
-import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperationHandler;
-import io.gravitee.rest.api.service.cockpit.command.bridge.operation.ListEnvironmentOperationHandler;
-import io.gravitee.rest.api.service.cockpit.command.handler.UserCommandHandler;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
-import java.util.HashMap;
-import java.util.List;
-import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -61,29 +40,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class BridgeCommandHandlerTest {
 
-    @Mock
-    private EnvironmentService environmentService;
-
-    @Mock
-    private InstallationService installationService;
-
-    private ObjectMapper objectMapper = new GraviteeMapper();
-
     public BridgeCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new BridgeCommandHandler(environmentService, installationService, objectMapper);
-    }
-
-    @Test
-    public void testAvailableOperationHandlers() {
-        cut.afterPropertiesSet();
-
-        final List<BridgeOperationHandler> operationHandlers = cut.operationHandlers;
-        assertNotNull(operationHandlers);
-        assertEquals(1, operationHandlers.size());
-        assertEquals(ListEnvironmentOperationHandler.class, operationHandlers.get(0).getClass());
+        cut = new BridgeCommandHandler(Collections.emptyList());
     }
 
     @Test
@@ -111,25 +72,12 @@ public class BridgeCommandHandlerTest {
     public void shouldHandleListEnvironmentsOperation() {
         BridgeCommand command = new BridgeCommand();
         command.setOperation(BridgeOperation.LIST_ENVIRONMENT.name());
+        command.setId("command-id");
 
-        cut.operationHandlers.clear();
-        cut.operationHandlers.add(
-            new BridgeOperationHandler() {
-                @Override
-                public boolean canHandle(String bridgeOperation) {
-                    return true;
-                }
-
-                @Override
-                public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
-                    final BridgeMultiReply reply = new BridgeMultiReply();
-                    reply.setCommandId(command.getId());
-                    reply.setCommandStatus(CommandStatus.SUCCEEDED);
-                    reply.setMessage("Fake operation handler");
-                    return Single.just(reply);
-                }
-            }
-        );
+        cut =
+            new BridgeCommandHandler(
+                Arrays.asList(new TestingFakeListEnvironmentOperationHandler(), new AnotherTestingFakeOperationHandler())
+            );
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
@@ -140,5 +88,39 @@ public class BridgeCommandHandlerTest {
                 reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
                 reply.getMessage().equals("Fake operation handler")
         );
+    }
+
+    static class TestingFakeListEnvironmentOperationHandler implements BridgeOperationHandler {
+
+        @Override
+        public boolean canHandle(String bridgeOperation) {
+            return BridgeOperation.LIST_ENVIRONMENT.name().equals(bridgeOperation);
+        }
+
+        @Override
+        public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
+            final BridgeMultiReply reply = new BridgeMultiReply();
+            reply.setCommandId(bridgeCommand.getId());
+            reply.setCommandStatus(CommandStatus.SUCCEEDED);
+            reply.setMessage("Fake operation handler");
+            return Single.just(reply);
+        }
+    }
+
+    static class AnotherTestingFakeOperationHandler implements BridgeOperationHandler {
+
+        @Override
+        public boolean canHandle(String bridgeOperation) {
+            return "ANOTHER_OPERATION".equals(bridgeOperation);
+        }
+
+        @Override
+        public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
+            final BridgeMultiReply reply = new BridgeMultiReply();
+            reply.setCommandId(bridgeCommand.getId());
+            reply.setCommandStatus(CommandStatus.SUCCEEDED);
+            reply.setMessage("Another fake operation handler");
+            return Single.just(reply);
+        }
     }
 }

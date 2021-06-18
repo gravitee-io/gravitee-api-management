@@ -15,7 +15,11 @@
  */
 package io.gravitee.rest.api.service.promotion;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
+import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import java.util.List;
@@ -34,5 +38,9 @@ public interface PromotionService {
      */
     List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId);
 
-    PromotionEntity promote(String api, PromotionRequestEntity promotionRequest);
+    PromotionEntity promote(String api, PromotionRequestEntity promotionRequest, String userId);
+
+    PromotionEntity createOrUpdate(PromotionEntity promotionEntity);
+
+    Page<PromotionEntity> search(PromotionQuery query, Sortable sortable, Pageable pageable);
 }

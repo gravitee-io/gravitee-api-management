@@ -25,47 +25,36 @@ import java.util.Date;
 public class PromotionEntity {
 
     private String id;
+    private String apiDefinition;
+    private String apiId;
 
-    private String targetEnvironmentId;
-    private String targetInstallationId;
-    private String sourceEnvironmentId;
-    private String sourceInstallationId;
+    private PromotionEntityStatus status;
+
+    private String targetEnvCockpitId;
+    private String targetEnvName;
+
+    private String sourceEnvCockpitId;
+    private String sourceEnvName;
 
     private Date createdAt;
     private Date updatedAt;
-    private String apiDefinition;
-    private PromotionEntityStatus status;
 
-    public String getTargetEnvironmentId() {
-        return targetEnvironmentId;
+    private PromotionEntityAuthor author;
+
+    public String getTargetEnvCockpitId() {
+        return targetEnvCockpitId;
     }
 
-    public void setTargetEnvironmentId(String targetEnvironmentId) {
-        this.targetEnvironmentId = targetEnvironmentId;
+    public void setTargetEnvCockpitId(String targetEnvCockpitId) {
+        this.targetEnvCockpitId = targetEnvCockpitId;
     }
 
-    public String getTargetInstallationId() {
-        return targetInstallationId;
+    public String getSourceEnvCockpitId() {
+        return sourceEnvCockpitId;
     }
 
-    public void setTargetInstallationId(String targetInstallationId) {
-        this.targetInstallationId = targetInstallationId;
-    }
-
-    public String getSourceEnvironmentId() {
-        return sourceEnvironmentId;
-    }
-
-    public void setSourceEnvironmentId(String sourceEnvironmentId) {
-        this.sourceEnvironmentId = sourceEnvironmentId;
-    }
-
-    public String getSourceInstallationId() {
-        return sourceInstallationId;
-    }
-
-    public void setSourceInstallationId(String sourceInstallationId) {
-        this.sourceInstallationId = sourceInstallationId;
+    public void setSourceEnvCockpitId(String sourceEnvCockpitId) {
+        this.sourceEnvCockpitId = sourceEnvCockpitId;
     }
 
     public Date getCreatedAt() {
@@ -106,5 +95,37 @@ public class PromotionEntity {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
+    public String getTargetEnvName() {
+        return targetEnvName;
+    }
+
+    public void setTargetEnvName(String targetEnvName) {
+        this.targetEnvName = targetEnvName;
+    }
+
+    public String getSourceEnvName() {
+        return sourceEnvName;
+    }
+
+    public void setSourceEnvName(String sourceEnvName) {
+        this.sourceEnvName = sourceEnvName;
+    }
+
+    public PromotionEntityAuthor getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(PromotionEntityAuthor author) {
+        this.author = author;
     }
 }

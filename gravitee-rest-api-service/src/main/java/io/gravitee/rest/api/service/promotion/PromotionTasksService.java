@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.rest.api.service.promotion;
+
+import io.gravitee.rest.api.model.TaskEntity;
+import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum TaskType {
-    SUBSCRIPTION_APPROVAL,
-    IN_REVIEW,
-    REQUEST_FOR_CHANGES,
-    USER_REGISTRATION_APPROVAL,
-    PROMOTION_APPROVAL,
+public interface PromotionTasksService {
+    List<TaskEntity> getPromotionTasks(String userId);
 }

@@ -109,7 +109,7 @@ public class CockpitServiceImpl implements CockpitService {
         }
 
         final BridgeCommand promoteApiCommand =
-            this.bridgeCommandFactory.createPromoteApiCommand(promotionEntity.getTargetEnvironmentId(), serializedPromotion);
+            this.bridgeCommandFactory.createPromoteApiCommand(promotionEntity.getTargetEnvCockpitId(), serializedPromotion);
         BridgeReply bridgeReply = cockpitCommandService.send(promoteApiCommand);
 
         if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {

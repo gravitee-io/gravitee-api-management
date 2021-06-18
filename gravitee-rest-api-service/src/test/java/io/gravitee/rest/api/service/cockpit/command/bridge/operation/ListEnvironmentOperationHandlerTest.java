@@ -15,33 +15,27 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.bridge.operation;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
 import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandHandler;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.reactivex.Single;
 import io.reactivex.observers.TestObserver;
 import java.util.Arrays;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**

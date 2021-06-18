@@ -32,7 +32,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
 
     private final Logger logger = LoggerFactory.getLogger(ListEnvironmentOperationHandler.class);

@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -25,7 +29,11 @@ import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.service.impl.TaskServiceImpl;
-import java.util.*;
+import io.gravitee.rest.api.service.promotion.PromotionTasksService;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -41,7 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class TaskServiceTest {
 
     @InjectMocks
-    private TaskService taskService = new TaskServiceImpl();
+    private final TaskService taskService = new TaskServiceImpl();
 
     @Mock
     private ApiService apiService;
@@ -66,6 +74,12 @@ public class TaskServiceTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private PromotionTasksService promotionTasksService;
 
     @Test
     public void shouldFindAll() throws TechnicalException {
@@ -100,15 +114,18 @@ public class TaskServiceTest {
 
         when(roleService.findById("API_USER")).thenReturn(roleEntityWithoutPerm);
 
+        when(promotionTasksService.getPromotionTasks(any())).thenReturn(emptyList());
+
         Set<MembershipEntity> memberships = new HashSet<>();
         memberships.add(m1);
         memberships.add(m2);
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(memberships);
 
-        when(userService.search(any(UserCriteria.class), any())).thenReturn(new Page<>(Collections.emptyList(), 1, 0, 0));
+        when(userService.search(any(UserCriteria.class), any())).thenReturn(new Page<>(emptyList(), 1, 0, 0));
 
         taskService.findAll("user");
 
         verify(subscriptionService, times(1)).search(any());
+        verify(promotionTasksService, times(1)).getPromotionTasks(any());
     }
 }

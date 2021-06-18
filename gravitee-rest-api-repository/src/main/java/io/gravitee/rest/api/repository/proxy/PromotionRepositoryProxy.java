@@ -15,8 +15,12 @@
  */
 package io.gravitee.rest.api.repository.proxy;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.PromotionCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Promotion;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
@@ -42,5 +46,10 @@ public class PromotionRepositoryProxy extends AbstractProxy<PromotionRepository>
     @Override
     public void delete(String id) throws TechnicalException {
         target.delete(id);
+    }
+
+    @Override
+    public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
+        return target.search(criteria, sortable, pageable);
     }
 }

@@ -13,16 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model;
+package io.gravitee.rest.api.model.promotion;
+
+import java.util.List;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum TaskType {
-    SUBSCRIPTION_APPROVAL,
-    IN_REVIEW,
-    REQUEST_FOR_CHANGES,
-    USER_REGISTRATION_APPROVAL,
-    PROMOTION_APPROVAL,
+public class PromotionQuery {
+
+    private List<String> targetEnvCockpitIds;
+    private PromotionEntityStatus status;
+
+    public List<String> getTargetEnvCockpitIds() {
+        return targetEnvCockpitIds;
+    }
+
+    public void setTargetEnvCockpitIds(List<String> targetEnvCockpitIds) {
+        this.targetEnvCockpitIds = targetEnvCockpitIds;
+    }
+
+    public PromotionEntityStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(PromotionEntityStatus status) {
+        this.status = status;
+    }
 }

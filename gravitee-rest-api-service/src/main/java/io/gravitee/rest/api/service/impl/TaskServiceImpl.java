@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.permissions.ApiPermission.*;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
@@ -34,10 +35,11 @@ import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
+import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +68,6 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
     private MembershipService membershipService;
 
     @Autowired
-    private GroupService groupService;
-
-    @Autowired
     private RoleService roleService;
 
     @Autowired
@@ -79,6 +78,9 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
 
     @Autowired
     private WorkflowService workflowService;
+
+    @Autowired
+    private PromotionTasksService promotionTasksService;
 
     @Override
     public List<TaskEntity> findAll(String userId) {
@@ -142,9 +144,13 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                     }
                 );
             }
+
+            // search for TO_BE_VALIDATED promotions
+            tasks.addAll(promotionTasksService.getPromotionTasks(GraviteeContext.getCurrentOrganization()));
+
             return tasks;
         } catch (TechnicalException e) {
-            LOGGER.error("Error retreiving user tasks {}", e.getMessage());
+            LOGGER.error("Error retrieving user tasks {}", e.getMessage());
             throw new TechnicalManagementException("Error retreiving user tasks", e);
         }
     }

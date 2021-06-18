@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandFactory;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Before;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -54,7 +55,7 @@ public class CockpitServiceTest {
     private CockpitService cockpitService;
 
     @Before
-    public void setup() {
+    public void setUp() {
         cockpitService = new CockpitServiceImpl(bridgeCommandFactory, cockpitCommandService, objectMapper);
     }
 
