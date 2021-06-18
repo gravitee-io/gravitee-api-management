@@ -15,7 +15,13 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.PromotionCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Promotion;
 
 public interface PromotionRepository extends CrudRepository<Promotion, String> {
+    Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;
 }
