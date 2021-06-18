@@ -118,6 +118,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
             "alert_triggers",
             "entrypoints",
             "page_metadata",
+            "promotions",
             "invitations",
             "tag_groups",
             "workflows",
