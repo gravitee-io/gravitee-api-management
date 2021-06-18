@@ -56,7 +56,7 @@ export class AuthService {
 
   login(username: string, password: string, redirectUrl: string = ''): Promise<boolean> {
     return new Promise((resolve) => {
-      const authorization: string = 'Basic ' + btoa(`${username}:${password}`);
+      const authorization: string = 'Basic ' + this.encode(`${username}:${password}`);
       return this.authenticationService.login({ Authorization: authorization }).subscribe(
         () => {
           this.currentUserService.load().then(() => {
@@ -71,6 +71,17 @@ export class AuthService {
       );
     });
   }
+
+  encode = (str) => {
+    // first we use encodeURIComponent to get percent-encoded UTF-8,
+    // then we convert the percent encodings into raw bytes which
+    // can be fed into btoa.
+    return btoa(
+      encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
+        return String.fromCharCode(Number('0x' + p1));
+      }),
+    );
+  };
 
   authenticate(provider) {
     if (provider) {
