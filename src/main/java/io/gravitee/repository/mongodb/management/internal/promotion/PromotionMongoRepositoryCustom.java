@@ -16,10 +16,14 @@
 package io.gravitee.repository.mongodb.management.internal.promotion;
 
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.PromotionCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PromotionMongoRepository extends MongoRepository<PromotionMongo, String>, PromotionMongoRepositoryCustom {
+public interface PromotionMongoRepositoryCustom {
+    Page<PromotionMongo> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable);
 }

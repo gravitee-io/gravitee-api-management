@@ -15,12 +15,18 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.api.search.PromotionCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.management.internal.promotion.PromotionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+
+import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,5 +92,16 @@ public class MongoPromotionRepository implements PromotionRepository {
 
     private Promotion map(PromotionMongo promotion) {
         return mapper.map(promotion, Promotion.class);
+    }
+
+    @Override
+    public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) {
+        logger.debug("Searching promotions");
+
+        Page<PromotionMongo> promotions = internalRepository.search(criteria, sortable, pageable);
+        List<Promotion> content = mapper.collection2list(promotions.getContent(), PromotionMongo.class, Promotion.class);
+
+        logger.debug("Searching promotions - Done");
+        return new Page<>(content, promotions.getPageNumber(), (int) promotions.getPageElements(), promotions.getTotalElements());
     }
 }
