@@ -15,13 +15,20 @@
  */
 package io.gravitee.repository.config.mock;
 
+import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.PromotionRepository;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.PromotionCriteria;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionStatus;
 
@@ -43,6 +50,69 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
 
         Promotion promotionToDelete = getAPromotion("promotion#to-delete");
         when(repository.findById(promotionToDelete.getId())).thenReturn(of(promotionToDelete), empty());
+
+        Promotion promotionToBeValidatedEnv1 = getAPromotion("promotion#to_be_validated_env_1");
+        promotionToBeValidatedEnv1.setTargetEnvironmentId("env#1");
+
+        Promotion promotionToBeValidatedEnv2 = getAPromotion("promotion#to_be_validated_env_2");
+
+        Page<Promotion> searchAllResult = new Page<>(asList(promotion, promotionToDelete, promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 4);
+
+        // shouldSearchWithoutCriteria
+        when(repository.search(nullable(PromotionCriteria.class), nullable(Sortable.class), any())).thenReturn(searchAllResult);
+
+        // shouldSearchWithEmptyCriteria
+        when(repository.search(
+                argThat(o -> o != null && o.getTargetEnvironmentIds() == null && o.getStatus() == null),
+                nullable(Sortable.class),
+                any())
+        ).thenReturn(searchAllResult);
+
+        // shouldSearchWithCriteriaTargetEnvironment1
+        when(repository.search(
+                argThat(o -> o != null
+                        && o.getTargetEnvironmentIds() != null && o.getTargetEnvironmentIds().contains("env#1")
+                        && o.getStatus() == null),
+                nullable(Sortable.class),
+                any())
+        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv1), 0 , 0, 1));
+
+        // shouldSearchWithCriteriaStatus
+        when(repository.search(
+                argThat(o -> o != null
+                        && o.getTargetEnvironmentIds() == null
+                        && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
+                nullable(Sortable.class),
+                any())
+        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 2));
+
+        // shouldSearchWithCriteriaStatusSortByCreatedAtDesc
+        when(repository.search(
+                argThat(o -> o != null
+                        && o.getTargetEnvironmentIds() == null
+                        && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
+                argThat(sortable -> sortable != null
+                        && sortable.field().equals("created_at")
+                        && sortable.order().equals(Order.DESC)
+                ),
+                argThat(pageable -> pageable != null
+                    && pageable.pageSize() == (Integer.MAX_VALUE)
+                ))
+        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv2, promotionToBeValidatedEnv1), 0 , 0, 2));
+
+        // shouldSearchWithCriteriaStatusPaginated
+        when(repository.search(
+                argThat(o -> o != null
+                        && o.getTargetEnvCockpitIds() == null
+                        && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
+                argThat(sortable -> sortable != null
+                        && sortable.field().equals("created_at")
+                        && sortable.order().equals(Order.DESC)
+                ),
+                argThat(pageable -> pageable != null
+                    && pageable.pageSize() == 1
+                ))
+        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv2), 0 , 0, 1));
     }
 
     private Promotion getAPromotion(String id) {

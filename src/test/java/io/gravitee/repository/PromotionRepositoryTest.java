@@ -18,8 +18,14 @@ package io.gravitee.repository;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.PromotionCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.*;
 import java.util.Date;
+import java.util.List;
+
 import org.junit.Test;
 
 public class PromotionRepositoryTest extends AbstractRepositoryTest {
@@ -91,5 +97,76 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
 
         boolean presentAfter = promotionRepository.findById(idOfPromotionToDelete).isPresent();
         assertFalse("must not exists anymore after deletion", presentAfter);
+    }
+
+    @Test
+    public void shouldSearchWithoutCriteria() throws Exception {
+        final List<Promotion> promotions = promotionRepository.search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 4, promotions.size());
+        assertEquals("promotion#1", promotions.get(0).getId());
+        assertEquals("promotion#to-delete", promotions.get(1).getId());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(2).getId());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(3).getId());
+    }
+
+    @Test
+    public void shouldSearchWithEmptyCriteria() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().build();
+        final List<Promotion> promotions = promotionRepository.search(criteria,
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 4, promotions.size());
+        assertEquals("promotion#1", promotions.get(0).getId());
+        assertEquals("promotion#to-delete", promotions.get(1).getId());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(2).getId());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(3).getId());
+    }
+
+    @Test
+    public void shouldSearchWithCriteriaTargetEnvironment1() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().targetEnvironementIds("env#1").build();
+        final List<Promotion> promotions = promotionRepository.search(criteria,
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 1, promotions.size());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
+    }
+
+    @Test
+    public void shouldSearchWithCriteriaStatus() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
+        final List<Promotion> promotions = promotionRepository.search(criteria,
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 2, promotions.size());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(1).getId());
+    }
+
+    @Test
+    public void shouldSearchWithCriteriaStatusSortByCreatedAtDesc() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
+        final List<Promotion> promotions = promotionRepository.search(criteria,
+                new SortableBuilder().field("created_at").order(Order.DESC).build(),
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 2, promotions.size());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(0).getId());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(1).getId());
+    }
+
+    @Test
+    public void shouldSearchWithCriteriaStatusPaginated() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
+        final List<Promotion> promotions = promotionRepository.search(criteria,
+                new SortableBuilder().field("created_at").order(Order.DESC).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 1, promotions.size());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(0).getId());
     }
 }
