@@ -257,6 +257,7 @@ import UserComponent from '../user/user.component';
 import { submenuFilter } from '../components/sidenav/submenu.filter';
 // User Tasks
 import { TasksComponent } from './tasks/tasks.component';
+import { PromotionTaskComponent } from './tasks/promotion/promotion-task.component';
 import TaskService from '../services/task.service';
 // Portal notifications
 import PortalNotificationsComponent from './portalnotifications/portalnotifications.component';
@@ -938,6 +939,8 @@ graviteeManagementModule.controller('DialogTransferApplicationController', Dialo
 graviteeManagementModule.component('user', UserComponent);
 
 graviteeManagementModule.component('tasks', TasksComponent);
+graviteeManagementModule.component('promotionTask', PromotionTaskComponent);
+
 graviteeManagementModule.service('TaskService', TaskService);
 
 graviteeManagementModule.component('portalNotifications', PortalNotificationsComponent);

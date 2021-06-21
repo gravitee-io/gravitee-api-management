@@ -15,7 +15,7 @@
  */
 import { Workflow } from '../workflow/workflow';
 
-export type TaskType = 'SUBSCRIPTION_APPROVAL' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | 'USER_REGISTRATION_APPROVAL';
+export type TaskType = 'SUBSCRIPTION_APPROVAL' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | 'USER_REGISTRATION_APPROVAL' | 'PROMOTION_APPROVAL';
 
 export interface GenericTask<Type = TaskType, Data = any> {
   type: Type;
@@ -23,10 +23,22 @@ export interface GenericTask<Type = TaskType, Data = any> {
   created_at: number;
 }
 
+export interface PromotionApprovalTaskData {
+  apiName: string;
+  sourceEnvironmentName: string;
+  targetEnvironmentName: string;
+  authorDisplayName: string;
+  authorEmail?: string;
+  authorPicture?: string;
+}
+
+export type PromotionTask = GenericTask<'PROMOTION_APPROVAL', PromotionApprovalTaskData>;
+
 export type Task =
   // TODO: Improve types
   | GenericTask<'SUBSCRIPTION_APPROVAL', any>
   | GenericTask<'IN_REVIEW', Workflow>
   | GenericTask<'REQUEST_FOR_CHANGES', Workflow>
   // TODO: Improve types
-  | GenericTask<'USER_REGISTRATION_APPROVAL', any>;
+  | GenericTask<'USER_REGISTRATION_APPROVAL', any>
+  | PromotionTask;

@@ -38,26 +38,36 @@ class TasksComponentController implements IController, IOnInit {
         const planName = this.tasks.metadata[task.data.plan].name;
         const apiId = this.tasks.metadata[task.data.plan].api;
         const apiName = this.tasks.metadata[apiId].name;
-        return 'The application "' + appName + '" requests a subscription for API: ' + apiName + ' (plan: ' + planName + ')';
+        return `The application <code>${appName}</code> requested a subscription for API <code>${apiName}</code> (plan: ${planName})`;
       }
       case 'IN_REVIEW':
-        return `The API "${this.tasks.metadata[task.data.referenceId].name}" is ready to be reviewed`;
+        return `The API <code>${this.tasks.metadata[task.data.referenceId].name}</code> is ready to be reviewed`;
       case 'REQUEST_FOR_CHANGES': {
-        let message = `The API "${this.tasks.metadata[task.data.referenceId].name}" need changes`;
+        let message = `The API <code>${
+          this.tasks.metadata[task.data.referenceId].name
+        }</code> has been reviewed and some changes are requested by the reviewer`;
         if (task.data.comment) {
           message += ': ' + task.data.comment;
         }
         return message;
       }
       case 'USER_REGISTRATION_APPROVAL':
-        return `The registration of the user "${task.data.displayName}" has to be validated`;
+        return `The registration of the user <strong>${task.data.displayName}</strong> has to be validated`;
       default:
         return 'Unknown task';
     }
   }
 
-  title(task: Task) {
-    return startCase(task.type);
+  title(task: Task): string {
+    switch (task.type) {
+      case 'SUBSCRIPTION_APPROVAL':
+        return 'Subscription';
+      case 'IN_REVIEW':
+      case 'REQUEST_FOR_CHANGES':
+        return 'API Review';
+      case 'USER_REGISTRATION_APPROVAL':
+        return 'User Registration';
+    }
   }
 
   go(task: Task): void {
@@ -81,12 +91,14 @@ class TasksComponentController implements IController, IOnInit {
   icon(task: Task): string {
     switch (task.type) {
       case 'SUBSCRIPTION_APPROVAL':
-        return 'vpn_key';
+        return 'communication:vpn_key';
       case 'IN_REVIEW':
       case 'REQUEST_FOR_CHANGES':
-        return 'rate_review';
+        return 'maps:rate_review';
       case 'USER_REGISTRATION_APPROVAL':
-        return 'user';
+        return 'general:user';
+      case 'PROMOTION_APPROVAL':
+        return 'maps:rocket';
       default:
         return '';
     }
