@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Workflow } from '../workflow/workflow';
 
-class Page {
-  readonly current: number;
-  readonly size: number;
-  readonly per_page: number;
-  readonly total_pages: number;
-  readonly total_elements: number;
+export type TaskType = 'SUBSCRIPTION_APPROVAL' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | 'USER_REGISTRATION_APPROVAL';
+
+export interface GenericTask<Type = TaskType, Data = any> {
+  type: Type;
+  data: Data;
+  created_at: number;
 }
 
-export class PagedResult<T = any> {
-  public data: T[] = [];
-  public metadata: Record<string, Record<string, any>> = {};
-  public page: Page = new Page();
-
-  constructor() {
-    'ngInject';
-  }
-
-  populate(responseData: any) {
-    this.data = responseData.data;
-    this.metadata = responseData.metadata;
-    this.page = responseData.page;
-  }
-}
+export type Task =
+  // TODO: Improve types
+  | GenericTask<'SUBSCRIPTION_APPROVAL', any>
+  | GenericTask<'IN_REVIEW', Workflow>
+  | GenericTask<'REQUEST_FOR_CHANGES', Workflow>
+  // TODO: Improve types
+  | GenericTask<'USER_REGISTRATION_APPROVAL', any>;

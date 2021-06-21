@@ -13,80 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
 import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
+import { IController, IOnInit } from 'angular';
+import { PagedResult } from '../../entities/pagedResult';
+import { startCase } from 'lodash';
+import { Task } from '../../entities/task/task';
 
-const TasksComponent: ng.IComponentOptions = {
-  template: require('./tasks.html'),
-  controller: function ($state: StateService, UserService: UserService) {
+class TasksComponentController implements IController, IOnInit {
+  private tasks: PagedResult<Task>;
+
+  constructor(private readonly $state: StateService, private readonly UserService: UserService) {
     'ngInject';
+  }
 
-    this.$onInit = () => {
-      this.tasks = UserService.currentUser.tasks;
-    };
+  $onInit(): void {
+    this.tasks = this.UserService.currentUser.tasks;
+  }
 
-    this.taskMessage = (task) => {
-      switch (task.type) {
-        case 'SUBSCRIPTION_APPROVAL': {
-          const appName = this.tasks.metadata[task.data.application].name;
-          const planName = this.tasks.metadata[task.data.plan].name;
-          const apiId = this.tasks.metadata[task.data.plan].api;
-          const apiName = this.tasks.metadata[apiId].name;
-          return 'The application "' + appName + '" requests a subscription for API: ' + apiName + ' (plan: ' + planName + ')';
+  taskMessage(task: Task): string {
+    switch (task.type) {
+      case 'SUBSCRIPTION_APPROVAL': {
+        const appName = this.tasks.metadata[task.data.application].name;
+        const planName = this.tasks.metadata[task.data.plan].name;
+        const apiId = this.tasks.metadata[task.data.plan].api;
+        const apiName = this.tasks.metadata[apiId].name;
+        return 'The application "' + appName + '" requests a subscription for API: ' + apiName + ' (plan: ' + planName + ')';
+      }
+      case 'IN_REVIEW':
+        return `The API "${this.tasks.metadata[task.data.referenceId].name}" is ready to be reviewed`;
+      case 'REQUEST_FOR_CHANGES': {
+        let message = `The API "${this.tasks.metadata[task.data.referenceId].name}" need changes`;
+        if (task.data.comment) {
+          message += ': ' + task.data.comment;
         }
-        case 'IN_REVIEW':
-          return 'The API "' + this.tasks.metadata[task.data.referenceId].name + '" is ready to be reviewed';
-        case 'REQUEST_FOR_CHANGES': {
-          let message = 'The API "' + this.tasks.metadata[task.data.referenceId].name + '" need changes';
-          if (task.data.comment) {
-            message += ': ' + task.data.comment;
-          }
-          return message;
-        }
-        case 'USER_REGISTRATION_APPROVAL':
-          return 'The registration of the user "' + task.data.displayName + '" has to be validated';
-        default:
-          return 'Unknown task';
+        return message;
       }
-    };
+      case 'USER_REGISTRATION_APPROVAL':
+        return `The registration of the user "${task.data.displayName}" has to be validated`;
+      default:
+        return 'Unknown task';
+    }
+  }
 
-    this.title = (task) => {
-      return _.startCase(task.type);
-    };
+  title(task: Task) {
+    return startCase(task.type);
+  }
 
-    this.go = (task) => {
-      switch (task.type) {
-        case 'SUBSCRIPTION_APPROVAL':
-          $state.go('management.apis.detail.portal.subscriptions.subscription', {
-            apiId: task.data.api,
-            subscriptionId: task.data.id,
-          });
-          break;
-        case 'IN_REVIEW':
-        case 'REQUEST_FOR_CHANGES':
-          $state.go('management.apis.detail.portal.general', { apiId: task.data.referenceId });
-          break;
-        case 'USER_REGISTRATION_APPROVAL':
-          $state.go('organization.settings.user', { userId: task.data.id });
-          break;
-      }
-    };
+  go(task: Task): void {
+    switch (task.type) {
+      case 'SUBSCRIPTION_APPROVAL':
+        this.$state.go('management.apis.detail.portal.subscriptions.subscription', {
+          apiId: task.data.api,
+          subscriptionId: task.data.id,
+        });
+        break;
+      case 'IN_REVIEW':
+      case 'REQUEST_FOR_CHANGES':
+        this.$state.go('management.apis.detail.portal.general', { apiId: task.data.referenceId });
+        break;
+      case 'USER_REGISTRATION_APPROVAL':
+        this.$state.go('organization.settings.user', { userId: task.data.id });
+        break;
+    }
+  }
 
-    this.icon = (task) => {
-      switch (task.type) {
-        case 'SUBSCRIPTION_APPROVAL':
-          return 'vpn_key';
-        case 'IN_REVIEW':
-        case 'REQUEST_FOR_CHANGES':
-          return 'rate_review';
-        case 'USER_REGISTRATION_APPROVAL':
-          return 'user';
-        default:
-          return '';
-      }
-    };
-  },
+  icon(task: Task): string {
+    switch (task.type) {
+      case 'SUBSCRIPTION_APPROVAL':
+        return 'vpn_key';
+      case 'IN_REVIEW':
+      case 'REQUEST_FOR_CHANGES':
+        return 'rate_review';
+      case 'USER_REGISTRATION_APPROVAL':
+        return 'user';
+      default:
+        return '';
+    }
+  }
+}
+
+export const TasksComponent: ng.IComponentOptions = {
+  template: require('./tasks.html'),
+  controller: TasksComponentController,
 };
-
-export default TasksComponent;

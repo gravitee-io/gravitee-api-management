@@ -256,7 +256,7 @@ import UserController from '../user/user.controller';
 import UserComponent from '../user/user.component';
 import { submenuFilter } from '../components/sidenav/submenu.filter';
 // User Tasks
-import TasksComponent from '../management/tasks/tasks.component';
+import { TasksComponent } from './tasks/tasks.component';
 import TaskService from '../services/task.service';
 // Portal notifications
 import PortalNotificationsComponent from './portalnotifications/portalnotifications.component';

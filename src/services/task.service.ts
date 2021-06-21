@@ -17,9 +17,11 @@
 import { PagedResult } from '../entities/pagedResult';
 import { IHttpPromise } from 'angular';
 import UserService from './user.service';
+import { Constants } from '../entities/Constants';
+import { User } from '../entities/user';
 
 class TaskService {
-  constructor(private $http: ng.IHttpService, private Constants, private UserService: UserService) {
+  constructor(private readonly $http: ng.IHttpService, private readonly Constants: Constants, private readonly UserService: UserService) {
     'ngInject';
   }
 
@@ -35,7 +37,7 @@ class TaskService {
     return this.$http.get(this.Constants.org.baseURL + '/user/tasks', config);
   }
 
-  fillUserTasks(tasks: PagedResult) {
+  fillUserTasks(tasks: PagedResult): User {
     return this.UserService.setTasks(tasks);
   }
 }

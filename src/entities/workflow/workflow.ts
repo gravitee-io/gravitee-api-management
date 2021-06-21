@@ -13,27 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-class Page {
-  readonly current: number;
-  readonly size: number;
-  readonly per_page: number;
-  readonly total_pages: number;
-  readonly total_elements: number;
-}
-
-export class PagedResult<T = any> {
-  public data: T[] = [];
-  public metadata: Record<string, Record<string, any>> = {};
-  public page: Page = new Page();
-
-  constructor() {
-    'ngInject';
-  }
-
-  populate(responseData: any) {
-    this.data = responseData.data;
-    this.metadata = responseData.metadata;
-    this.page = responseData.page;
-  }
+export interface Workflow {
+  id: string;
+  referenceType: string;
+  referenceId: string;
+  type?: string;
+  state?: string;
+  comment?: string;
+  user?: string;
+  createdAt?: Date;
 }
