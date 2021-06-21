@@ -78,6 +78,9 @@ export class GvPageComponent implements OnChanges, OnDestroy {
           const { GvPageSwaggerUIComponent } = await import('../gv-page-swaggerui/gv-page-swaggerui.component');
           componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageSwaggerUIComponent);
         }
+      } else if (this.page.type.toUpperCase() === Page.TypeEnum.ASCIIDOC) {
+        const { GvPageAsciiDocComponent } = await import('../gv-page-asciidoc/gv-page-asciidoc.component');
+        componentFactory = this.componentFactoryResolver.resolveComponentFactory(GvPageAsciiDocComponent);
       }
       this.appGvPageContentSlot.viewContainerRef.clear();
       if (componentFactory) {

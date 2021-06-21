@@ -31,6 +31,7 @@ import { ApiStatesPipe } from './../pipes/api-states.pipe';
 
 import { GvPageComponent } from '../components/gv-page/gv-page.component';
 import { GvPageContentSlotDirective } from '../directives/gv-page-content-slot.directive';
+import { GvPageAsciiDocComponent } from '../components/gv-page-asciidoc/gv-page-asciidoc.component';
 import { GvPageMarkdownComponent } from '../components/gv-page-markdown/gv-page-markdown.component';
 import { GvPageRedocComponent } from '../components/gv-page-redoc/gv-page-redoc.component';
 import { GvPageSwaggerUIComponent } from '../components/gv-page-swaggerui/gv-page-swaggerui.component';
@@ -46,12 +47,13 @@ import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdow
     GvCheckboxControlValueAccessorDirective,
     GvPageComponent,
     GvPageContentSlotDirective,
+    GvPageAsciiDocComponent,
     GvPageMarkdownComponent,
     GvPageRedocComponent,
     GvPageSwaggerUIComponent,
     GvMarkdownTocComponent,
   ],
-  entryComponents: [GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+  entryComponents: [GvPageAsciiDocComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
   imports: [
     CommonModule,
     HttpClientModule,

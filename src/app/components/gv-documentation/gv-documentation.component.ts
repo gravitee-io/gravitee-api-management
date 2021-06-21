@@ -220,6 +220,10 @@ export class GvDocumentationComponent implements AfterViewInit {
     this.hasTreeClosed = closed;
   }
 
+  isAsciiDoc(page: Page) {
+    return page && page.type.toUpperCase() === Page.TypeEnum.ASCIIDOC;
+  }
+
   isMarkdown(page: Page) {
     return page && page.type.toUpperCase() === Page.TypeEnum.MARKDOWN;
   }
@@ -230,7 +234,7 @@ export class GvDocumentationComponent implements AfterViewInit {
 
   private getFirstPage(pages: any[], pageId?: string) {
     for (const page of pages) {
-      if (this.isSwagger(page) || this.isMarkdown(page)) {
+      if (this.isAsciiDoc(page) || this.isSwagger(page) || this.isMarkdown(page)) {
         if (pageId) {
           if (pageId === page.id) {
             return page;
