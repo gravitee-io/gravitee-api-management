@@ -156,11 +156,14 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             return targetURI;
         }
 
+        final String uri;
         if (path.startsWith("/") || path.startsWith("?")) {
-            return URI.create(targetURI + path);
+            uri = targetURI + path;
+        } else {
+            uri = targetURI + "/" + path;
         }
 
-        return URI.create(targetURI + "/" + path);
+        return URI.create(DUPLICATE_SLASH_REMOVER.matcher(uri).replaceAll("/"));
 
     }
 
