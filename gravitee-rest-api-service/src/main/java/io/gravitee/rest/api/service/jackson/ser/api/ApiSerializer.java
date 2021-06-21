@@ -177,6 +177,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 List<PageEntity> pages = applicationContext
                     .getBean(PageService.class)
                     .search(new PageQuery.Builder().api(apiEntity.getId()).build(), true);
+
                 if (this.version().getVersion().startsWith("1.")) {
                     pages =
                         pages
@@ -185,8 +186,26 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 pageEntity ->
                                     !pageEntity.getType().equals(PageType.LINK.name()) &&
                                     !pageEntity.getType().equals(PageType.TRANSLATION.name()) &&
-                                    !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name())
+                                    !pageEntity.getType().equals(PageType.SYSTEM_FOLDER.name()) &&
+                                    !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
+                                    !pageEntity.getType().equals(PageType.ASCIIDOC.name())
                             )
+                            .collect(Collectors.toList());
+                } else if (this.version().getVersion().equals("3.0")) {
+                    pages =
+                        pages
+                            .stream()
+                            .filter(
+                                pageEntity ->
+                                    !pageEntity.getType().equals(PageType.MARKDOWN_TEMPLATE.name()) &&
+                                    !pageEntity.getType().equals(PageType.ASCIIDOC.name())
+                            )
+                            .collect(Collectors.toList());
+                } else if (this.version().getVersion().equals("3.7")) {
+                    pages =
+                        pages
+                            .stream()
+                            .filter(pageEntity -> !pageEntity.getType().equals(PageType.ASCIIDOC.name()))
                             .collect(Collectors.toList());
                 }
                 jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
@@ -216,11 +235,12 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
     }
 
     public enum Version {
-        DEFAULT("default"),
+        DEFAULT("default"), // AsciiDoc in 3.10
         V_1_15("1.15"),
         V_1_20("1.20"),
         V_1_25("1.25"),
-        V_3_0("3.0");
+        V_3_0("3.0"), // System folders & Links & translations
+        V_3_7("3.7"); // Markdown template
 
         private final String version;
 

@@ -1,6 +1,6 @@
 {
-  "description": "Gravitee.io 2.0.0",
-  "gravitee": "2.0.0",
+  "description": "Gravitee.io",
+  "gravitee": "1.0.0",
   "resources": [],
   "properties": [],
   "primaryOwner": {
@@ -79,6 +79,16 @@
       "published": false,
       "homepage": false,
       "excludedAccessControls": false
+    },
+    {
+      "name": "My Template",
+      "type": "MARKDOWN_TEMPLATE",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
     }
   ],
   "plans": [
@@ -122,6 +132,7 @@
       "apiId": "id-api"
     }
   ],
+  "id": "id-api",
   "path_mappings": [],
   "proxy": {
     "virtual_hosts": [
@@ -156,6 +167,25 @@
               "maxConcurrentConnections": 100,
               "useCompression": true,
               "followRedirects": false
+            }
+          },
+          {
+            "name": "EndPoint GRPC",
+            "target": "grpc://localhost:8888",
+            "weight": 1,
+            "backup": false,
+            "type": "GRPC",
+            "http": {
+              "connectTimeout": 5000,
+              "idleTimeout": 60000,
+              "keepAlive": true,
+              "readTimeout": 10000,
+              "pipelining": false,
+              "maxConcurrentConnections": 100,
+              "useCompression": true,
+              "followRedirects": false,
+              "version": "HTTP_2",
+              "clearTextUpgrade": true
             }
           }
         ],

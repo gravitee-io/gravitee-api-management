@@ -21,15 +21,34 @@
       ]
     }
   ],
-  "pages": [
+  "pages" : [
     {
-      "name": "My Title",
-      "type": "MARKDOWN",
-      "content": "Read the doc",
-      "order": 1,
+      "name" : "My Folder",
+      "type" : "FOLDER",
+      "order" : 1,
       "visibility": "PUBLIC",
-      "published": false,
-      "homepage": false,
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Title",
+      "type" : "MARKDOWN",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Swagger",
+      "type" : "SWAGGER",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
       "excludedAccessControls": false
     },
     {
@@ -38,6 +57,46 @@
       "order": 1,
       "visibility": "PUBLIC",
       "published": true,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Link",
+      "type": "LINK",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Translation",
+      "type": "TRANSLATION",
+      "content" : "Lire la documentation",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Template",
+      "type": "MARKDOWN_TEMPLATE",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My asciidoc",
+      "type": "ASCIIDOC",
+      "content" : "Read the asciidoc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
       "homepage": false,
       "excludedAccessControls": false
     }

@@ -137,6 +137,9 @@ public class ApiService_ExportAsJsonTestSetup {
         //V_3_0
         ApiSerializer apiPrior30VersionSerializer = new Api3_0VersionSerializer();
         apiPrior30VersionSerializer.setApplicationContext(applicationContext);
+        //V_3_7
+        ApiSerializer apiPrior37VersionSerializer = new Api3_7VersionSerializer();
+        apiPrior37VersionSerializer.setApplicationContext(applicationContext);
 
         apiCompositeSerializer.setSerializers(
             Arrays.asList(
@@ -144,7 +147,8 @@ public class ApiService_ExportAsJsonTestSetup {
                 apiPrior115VersionSerializer,
                 apiPrior120VersionSerializer,
                 apiPrior125VersionSerializer,
-                apiPrior30VersionSerializer
+                apiPrior30VersionSerializer,
+                apiPrior37VersionSerializer
             )
         );
         SimpleModule module = new SimpleModule();
@@ -163,19 +167,57 @@ public class ApiService_ExportAsJsonTestSetup {
         api.setEnvironmentId("DEFAULT");
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        PageEntity page = new PageEntity();
-        page.setName("My Title");
-        page.setOrder(1);
-        page.setType(PageType.MARKDOWN.toString());
-        page.setContent("Read the doc");
-        page.setVisibility(Visibility.PUBLIC);
+        PageEntity folder = new PageEntity();
+        folder.setName("My Folder");
+        folder.setOrder(1);
+        folder.setType(PageType.FOLDER.toString());
+        folder.setVisibility(Visibility.PUBLIC);
+        PageEntity markdownPage = new PageEntity();
+        markdownPage.setName("My Title");
+        markdownPage.setOrder(1);
+        markdownPage.setType(PageType.MARKDOWN.toString());
+        markdownPage.setContent("Read the doc");
+        markdownPage.setVisibility(Visibility.PUBLIC);
         PageEntity asideFolder = new PageEntity();
         asideFolder.setName("Aside");
         asideFolder.setOrder(1);
         asideFolder.setPublished(true);
         asideFolder.setType(PageType.SYSTEM_FOLDER.toString());
         asideFolder.setVisibility(Visibility.PUBLIC);
-        when(pageService.search(any(), eq(true))).thenReturn(Arrays.asList(page, asideFolder));
+        PageEntity swaggerPage = new PageEntity();
+        swaggerPage.setName("My Swagger");
+        swaggerPage.setOrder(1);
+        swaggerPage.setType(PageType.SWAGGER.toString());
+        swaggerPage.setContent("Read the doc");
+        swaggerPage.setVisibility(Visibility.PUBLIC);
+        PageEntity linkPage = new PageEntity();
+        linkPage.setName("My Link");
+        linkPage.setOrder(1);
+        linkPage.setType(PageType.LINK.toString());
+        linkPage.setContent("Read the doc");
+        linkPage.setVisibility(Visibility.PUBLIC);
+        PageEntity translationPage = new PageEntity();
+        translationPage.setName("My Translation");
+        translationPage.setOrder(1);
+        translationPage.setType(PageType.TRANSLATION.toString());
+        translationPage.setContent("Lire la documentation");
+        translationPage.setVisibility(Visibility.PUBLIC);
+        PageEntity markdownTemplatePage = new PageEntity();
+        markdownTemplatePage.setName("My Template");
+        markdownTemplatePage.setOrder(1);
+        markdownTemplatePage.setType(PageType.MARKDOWN_TEMPLATE.toString());
+        markdownTemplatePage.setContent("Read the doc");
+        markdownTemplatePage.setVisibility(Visibility.PUBLIC);
+        PageEntity asciidocPage = new PageEntity();
+        asciidocPage.setName("My asciidoc");
+        asciidocPage.setOrder(1);
+        asciidocPage.setType(PageType.ASCIIDOC.toString());
+        asciidocPage.setContent("Read the asciidoc");
+        asciidocPage.setVisibility(Visibility.PUBLIC);
+        when(pageService.search(any(), eq(true)))
+            .thenReturn(
+                Arrays.asList(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage)
+            );
 
         RoleEntity poRole = new RoleEntity();
         poRole.setName("PRIMARY_OWNER");

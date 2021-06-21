@@ -1,14 +1,14 @@
 {
-  "description": "Gravitee.io 2.0.0",
-  "gravitee": "2.0.0",
+  "description": "Gravitee.io",
+  "gravitee": "1.0.0",
   "resources": [],
-  "properties": [],
+  "properties" : [ ],
+  "flow_mode": "DEFAULT",
   "primaryOwner": {
     "id": "johndoe",
     "displayName": "johndoe-sourceId",
     "type": "USER"
   },
-  "flow_mode": "DEFAULT",
   "groups": [
     "My Group"
   ],
@@ -79,37 +79,16 @@
       "published": false,
       "homepage": false,
       "excludedAccessControls": false
-    }
-  ],
-  "plans": [
+    },
     {
-      "id": "plan-id",
-      "description": "free plan",
-      "validation": "AUTO",
-      "security": "API_KEY",
-      "type": "API",
-      "status": "PUBLISHED",
-      "api": "id-api",
-      "order": 0,
-      "paths": {
-        "/": [
-          {
-            "methods": [
-              "GET"
-            ],
-            "rate-limit": {
-              "rate": {
-                "limit": 1,
-                "periodTime": 1,
-                "periodTimeUnit": "SECONDS"
-              }
-            },
-            "enabled": true
-          }
-        ]
-      },
-      "flows": [],
-      "comment_required": false
+      "name": "My Template",
+      "type": "MARKDOWN_TEMPLATE",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
     }
   ],
   "metadata": [
@@ -122,6 +101,7 @@
       "apiId": "id-api"
     }
   ],
+  "id": "id-api",
   "path_mappings": [],
   "proxy": {
     "virtual_hosts": [

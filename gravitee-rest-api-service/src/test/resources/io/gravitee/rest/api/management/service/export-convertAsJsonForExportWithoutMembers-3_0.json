@@ -12,11 +12,49 @@
   "groups": [
     "My Group"
   ],
-  "pages": [
+  "pages" : [
     {
-      "name": "My Title",
-      "type": "MARKDOWN",
-      "content": "Read the doc",
+      "name" : "My Folder",
+      "type" : "FOLDER",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Title",
+      "type" : "MARKDOWN",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Swagger",
+      "type" : "SWAGGER",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "Aside",
+      "type": "SYSTEM_FOLDER",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": true,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Link",
+      "type": "LINK",
+      "content" : "Read the doc",
       "order": 1,
       "visibility": "PUBLIC",
       "published": false,
@@ -24,11 +62,12 @@
       "excludedAccessControls": false
     },
     {
-      "name": "Aside",
-      "type": "SYSTEM_FOLDER",
+      "name": "My Translation",
+      "type": "TRANSLATION",
+      "content" : "Lire la documentation",
       "order": 1,
-      "published": true,
       "visibility": "PUBLIC",
+      "published": false,
       "homepage": false,
       "excludedAccessControls": false
     }

@@ -50,6 +50,11 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
     }
 
     @Test
+    public void shouldConvertAsJsonForExport_3_7() throws TechnicalException, IOException {
+        shouldConvertAsJsonForExport(ApiSerializer.Version.V_3_7, "3_7");
+    }
+
+    @Test
     public void shouldConvertAsJsonForExport_3_0() throws TechnicalException, IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.V_3_0, "3_0");
     }
@@ -72,6 +77,11 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
     @Test
     public void shouldConvertAsJsonWithoutMembers() throws IOException {
         shouldConvertAsJsonWithoutMembers(ApiSerializer.Version.DEFAULT, null);
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutMembers_3_7() throws IOException {
+        shouldConvertAsJsonWithoutMembers(ApiSerializer.Version.V_3_7, "3_7");
     }
 
     @Test
@@ -100,6 +110,11 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
     }
 
     @Test
+    public void shouldConvertAsJsonWithoutPages_3_7() throws IOException {
+        shouldConvertAsJsonWithoutPages(ApiSerializer.Version.V_3_7, "3_7");
+    }
+
+    @Test
     public void shouldConvertAsJsonWithoutPages_3_0() throws IOException {
         shouldConvertAsJsonWithoutPages(ApiSerializer.Version.V_3_0, "3_0");
     }
@@ -122,6 +137,11 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
     @Test
     public void shouldConvertAsJsonWithoutPlans() throws IOException {
         shouldConvertAsJsonWithoutPlans(ApiSerializer.Version.DEFAULT, null);
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutPlans_3_7() throws IOException {
+        shouldConvertAsJsonWithoutPlans(ApiSerializer.Version.V_3_7, "3_7");
     }
 
     @Test
@@ -208,6 +228,11 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
     @Test
     public void shouldConvertAsJsonWithoutMetadata() throws IOException {
         shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version.DEFAULT, null);
+    }
+
+    @Test
+    public void shouldConvertAsJsonWithoutMetadata_3_7() throws IOException {
+        shouldConvertAsJsonWithoutMetadata(ApiSerializer.Version.V_3_7, "3_7");
     }
 
     @Test

@@ -10,16 +10,37 @@
     "sourceId":"johndoe-sourceId",
     "role" : "PRIMARY_OWNER"
   } ],
-  "pages" : [ {
-    "name" : "My Title",
-    "type" : "MARKDOWN",
-    "content" : "Read the doc",
-    "order" : 1,
-    "visibility": "PUBLIC",
-    "published" : false,
-    "homepage" : false,
-    "excludedAccessControls": false
-  } ],
+  "pages" : [
+    {
+      "name" : "My Folder",
+      "type" : "FOLDER",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Title",
+      "type" : "MARKDOWN",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    },
+    {
+      "name" : "My Swagger",
+      "type" : "SWAGGER",
+      "content" : "Read the doc",
+      "order" : 1,
+      "visibility": "PUBLIC",
+      "published" : false,
+      "homepage" : false,
+      "excludedAccessControls": false
+    }
+  ],
   "plans" : [ {
     "id" : "plan-id",
     "description" : "free plan",

@@ -30,9 +30,9 @@ import java.util.stream.Collectors;
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiDefaultSerializer extends ApiSerializer {
+public class Api3_7VersionSerializer extends ApiSerializer {
 
-    public ApiDefaultSerializer() {
+    public Api3_7VersionSerializer() {
         super(ApiEntity.class);
     }
 
@@ -63,6 +63,22 @@ public class ApiDefaultSerializer extends ApiSerializer {
 
         // proxy part
         if (apiEntity.getProxy() != null) {
+            Set<EndpointGroup> groups = apiEntity.getProxy().getGroups();
+            if (groups != null) {
+                groups.forEach(
+                    grp -> {
+                        if (grp.getEndpoints() != null) {
+                            grp.setEndpoints(
+                                grp
+                                    .getEndpoints()
+                                    .stream()
+                                    .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
+                                    .collect(Collectors.toSet())
+                            );
+                        }
+                    }
+                );
+            }
             jsonGenerator.writeObjectField("proxy", apiEntity.getProxy());
         }
 
@@ -89,6 +105,6 @@ public class ApiDefaultSerializer extends ApiSerializer {
 
     @Override
     public Version version() {
-        return Version.DEFAULT;
+        return Version.V_3_7;
     }
 }

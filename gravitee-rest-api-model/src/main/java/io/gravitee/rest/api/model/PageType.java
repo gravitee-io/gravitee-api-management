@@ -29,6 +29,7 @@ import java.util.List;
  *
  */
 public enum PageType {
+    ASCIIDOC(unmodifiableList(asList("adoc")), 200),
     MARKDOWN(unmodifiableList(asList("md", "markdown")), 200),
     MARKDOWN_TEMPLATE(emptyList(), 200),
     SWAGGER(unmodifiableList(asList("json", "yaml", "yml")), 200),

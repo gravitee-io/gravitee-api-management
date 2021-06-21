@@ -3543,6 +3543,7 @@ components:
           description: Type of documentation.
           type: string
           enum:
+            - ASCIIDOC
             - SWAGGER
             - MARKDOWN
             - FOLDER
