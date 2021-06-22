@@ -66,7 +66,7 @@
         <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
         <spring-integration.version>5.2.5.RELEASE</spring-integration.version>
         <snakeyaml.version>1.26</snakeyaml.version>
-        <jackson.version>2.10.3</jackson.version>
+        <jackson-bom.version>2.10.5.20201202</jackson-bom.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
         <json-patch.version>1.13</json-patch.version>
         <classgraph.version>4.8.90</classgraph.version>
@@ -296,10 +296,12 @@
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
+
+            <!-- Security upgrades see https://github.com/gravitee-io/issues/issues/5726 -->
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
-                <version>${jackson.version}</version>
+                <version>${jackson-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
