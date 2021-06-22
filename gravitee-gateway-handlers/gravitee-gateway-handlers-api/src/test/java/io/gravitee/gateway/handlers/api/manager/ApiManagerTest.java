@@ -331,7 +331,8 @@ public class ApiManagerTest {
 
     @Test
     public void shouldUndeployApi_noMorePlan() throws Exception {
-        final Api api = new ApiBuilder().id("api-test").deployedAt(new Date()).build();
+        final Date updatedAt = new Date();
+        final Api api = new ApiBuilder().id("api-test").deployedAt(updatedAt).build();
         final Plan mockedPlan = mock(Plan.class);
 
         api.setPlans(singletonList(mockedPlan));
@@ -341,7 +342,7 @@ public class ApiManagerTest {
         verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
 
         final Api api2 = new Api(api);
-        api2.setDeployedAt(new Date());
+        api2.setDeployedAt(new Date(updatedAt.getTime() + 100));
         api2.setPlans(Collections.<Plan>emptyList());
 
         apiManager.register(api2);
