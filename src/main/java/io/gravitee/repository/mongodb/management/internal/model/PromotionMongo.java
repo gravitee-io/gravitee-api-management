@@ -26,12 +26,18 @@ public class PromotionMongo extends Auditable {
     private String id;
 
     private String apiDefinition;
+    private String apiId;
     private String status;
 
     private String targetEnvironmentId;
+    private String targetEnvironmentName;
     private String targetInstallationId;
+
     private String sourceEnvironmentId;
+    private String sourceEnvironmentName;
     private String sourceInstallationId;
+
+    private PromotionAuthorMongo author;
 
     public String getId() {
         return id;
@@ -89,16 +95,48 @@ public class PromotionMongo extends Auditable {
         this.sourceInstallationId = sourceInstallationId;
     }
 
+    public String getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
+    public String getTargetEnvironmentName() {
+        return targetEnvironmentName;
+    }
+
+    public void setTargetEnvironmentName(String targetEnvironmentName) {
+        this.targetEnvironmentName = targetEnvironmentName;
+    }
+
+    public String getSourceEnvironmentName() {
+        return sourceEnvironmentName;
+    }
+
+    public void setSourceEnvironmentName(String sourceEnvironmentName) {
+        this.sourceEnvironmentName = sourceEnvironmentName;
+    }
+
+    public PromotionAuthorMongo getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(PromotionAuthorMongo author) {
+        this.author = author;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionMongo that = (PromotionMongo) o;
-        return Objects.equals(id, that.id) && Objects.equals(apiDefinition, that.apiDefinition) && Objects.equals(status, that.status) && Objects.equals(targetEnvironmentId, that.targetEnvironmentId) && Objects.equals(targetInstallationId, that.targetInstallationId) && Objects.equals(sourceEnvironmentId, that.sourceEnvironmentId) && Objects.equals(sourceInstallationId, that.sourceInstallationId);
+        return Objects.equals(id, that.id) && Objects.equals(apiDefinition, that.apiDefinition) && Objects.equals(apiId, that.apiId) && status == that.status && Objects.equals(targetEnvironmentName, that.targetEnvironmentName) && Objects.equals(targetEnvironmentId, that.targetEnvironmentId) && Objects.equals(targetInstallationId, that.targetInstallationId) && Objects.equals(sourceEnvironmentName, that.sourceEnvironmentName) && Objects.equals(sourceEnvironmentId, that.sourceEnvironmentId) && Objects.equals(sourceInstallationId, that.sourceInstallationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, apiDefinition, status, targetEnvironmentId, targetInstallationId, sourceEnvironmentId, sourceInstallationId);
+        return Objects.hash(id, apiDefinition, apiId, status, targetEnvironmentName, targetEnvironmentId, targetInstallationId, sourceEnvironmentName, sourceEnvironmentId, sourceInstallationId);
     }
 }
