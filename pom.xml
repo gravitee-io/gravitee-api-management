@@ -38,7 +38,7 @@
         <gravitee-common.version>1.20.1</gravitee-common.version>
         <gravitee-definition.version>1.27.1</gravitee-definition.version>
         <gravitee-plugin.version>1.16.0</gravitee-plugin.version>
-        <gravitee-repository.version>3.8.2</gravitee-repository.version>
+        <gravitee-repository.version>3.8.3-SNAPSHOT</gravitee-repository.version>
         <gravitee-gateway-api.version>1.20.1</gravitee-gateway-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-expression-language.version>1.5.0</gravitee-expression-language.version>
