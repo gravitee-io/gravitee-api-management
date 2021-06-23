@@ -23,7 +23,8 @@
 	<parent>
 		<groupId>io.gravitee</groupId>
 		<artifactId>gravitee-parent</artifactId>
-		<version>19</version>
+		<!-- <version>19</version> -->
+		<version>19.2.1</version>
 	</parent>
 
 	<groupId>io.gravitee.repository</groupId>
@@ -32,7 +33,7 @@
 	<name>Gravitee.io APIM - Repository - Redis</name>
 
 	<properties>
-		<gravitee-repository.version>3.2.0</gravitee-repository.version>
+		<gravitee-repository.version>3.2.1</gravitee-repository.version>
 		<lettuce.version>5.3.4.RELEASE</lettuce.version>
 		<spring-data-redis.version>2.3.4.RELEASE</spring-data-redis.version>
 		<maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
