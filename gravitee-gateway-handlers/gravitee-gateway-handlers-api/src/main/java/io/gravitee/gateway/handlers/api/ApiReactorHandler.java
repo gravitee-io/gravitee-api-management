@@ -75,6 +75,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
         context.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, request.contextPath());
         context.setAttribute(ExecutionContext.ATTR_API, api.getId());
+        context.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
         context.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
 
         // Prepare request metrics
