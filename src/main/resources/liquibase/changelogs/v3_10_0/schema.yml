@@ -20,13 +20,22 @@ databaseChangeLog:
             columns:
               - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: api_definition, type: nclob, constraints: { nullable: false } }
+              - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: status, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: target_environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target_environment_name, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: target_installation_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: source_environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: source_environment_name, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: source_installation_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: author_user_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: author_display_name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: author_email, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: author_picture, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: author_source, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: author_source_id, type: nvarchar(64), constraints: { nullable: false } }
         - addColumn:
             tableName: ${gravitee_prefix}environments
             columns:

@@ -52,13 +52,22 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
         return JdbcObjectMapper.builder(Promotion.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("api_definition", Types.NCLOB, String.class)
+            .addColumn("api_id", Types.NVARCHAR, String.class)
             .addColumn("status", Types.NVARCHAR, PromotionStatus.class)
             .addColumn("target_environment_id", Types.NVARCHAR, String.class)
+            .addColumn("target_environment_name", Types.NVARCHAR, String.class)
             .addColumn("target_installation_id", Types.NVARCHAR, String.class)
             .addColumn("source_environment_id", Types.NVARCHAR, String.class)
+            .addColumn("source_environment_name", Types.NVARCHAR, String.class)
             .addColumn("source_installation_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("author_user_id", Types.NVARCHAR, String.class)
+            .addColumn("author_display_name", Types.NVARCHAR, String.class)
+            .addColumn("author_email", Types.NVARCHAR, String.class)
+            .addColumn("author_picture", Types.NVARCHAR, String.class)
+            .addColumn("author_source", Types.NVARCHAR, String.class)
+            .addColumn("author_source_id", Types.NVARCHAR, String.class)
             .build();
     }
 
