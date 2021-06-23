@@ -22,15 +22,22 @@ public class Promotion {
 
     private String id;
     private String apiDefinition;
+    private String apiId;
+
     private PromotionStatus status;
 
     private String targetEnvironmentId;
+    private String targetEnvironmentName;
     private String targetInstallationId;
+
     private String sourceEnvironmentId;
+    private String sourceEnvironmentName;
     private String sourceInstallationId;
 
     private Date createdAt;
     private Date updatedAt;
+
+    private PromotionAuthor author = new PromotionAuthor();
 
     public String getId() {
         return id;
@@ -104,16 +111,119 @@ public class Promotion {
         return status;
     }
 
+    public String getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
+    public String getTargetEnvironmentName() {
+        return targetEnvironmentName;
+    }
+
+    public void setTargetEnvironmentName(String targetEnvironmentName) {
+        this.targetEnvironmentName = targetEnvironmentName;
+    }
+
+    public String getSourceEnvironmentName() {
+        return sourceEnvironmentName;
+    }
+
+    public void setSourceEnvironmentName(String sourceEnvironmentName) {
+        this.sourceEnvironmentName = sourceEnvironmentName;
+    }
+
+    public PromotionAuthor getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(PromotionAuthor author) {
+        this.author = author;
+    }
+
+    /*
+     * ⚠️ We define getter/setter for author's properties to be able to map these fields to db columns in JDBC world
+     * instead of dealing with another table (or even an associative table 🤯)
+     */
+    public String getAuthorUserId() {
+        return this.author.getUserId();
+    }
+
+    public void setAuthorUserId(String userId) {
+        this.author.setUserId(userId);
+    }
+
+    public String getAuthorDisplayName() {
+        return this.author.getDisplayName();
+    }
+
+    public void setAuthorDisplayName(String displayName) {
+        this.author.setDisplayName(displayName);
+    }
+
+    public String getAuthorEmail() {
+        return this.author.getEmail();
+    }
+
+    public void setAuthorEmail(String email) {
+        this.author.setEmail(email);
+    }
+
+    public String getAuthorPicture() {
+        return this.author.getPicture();
+    }
+
+    public void setAuthorPicture(String picture) {
+        this.author.setPicture(picture);
+    }
+
+    public String getAuthorSource() {
+        return this.author.getSource();
+    }
+
+    public void setAuthorSource(String source) {
+        this.author.setSource(source);
+    }
+
+    public String getAuthorSourceId() {
+        return this.author.getSourceId();
+    }
+
+    public void setAuthorSourceId(String sourceId) {
+        this.author.setSourceId(sourceId);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Promotion promotion = (Promotion) o;
-        return Objects.equals(id, promotion.id) && Objects.equals(apiDefinition, promotion.apiDefinition) && status == promotion.status && Objects.equals(targetEnvironmentId, promotion.targetEnvironmentId) && Objects.equals(targetInstallationId, promotion.targetInstallationId) && Objects.equals(sourceEnvironmentId, promotion.sourceEnvironmentId) && Objects.equals(sourceInstallationId, promotion.sourceInstallationId);
+        return Objects.equals(id, promotion.id) && Objects.equals(apiDefinition, promotion.apiDefinition) && Objects.equals(apiId, promotion.apiId) && status == promotion.status && Objects.equals(targetEnvironmentName, promotion.targetEnvironmentName) && Objects.equals(targetEnvironmentId, promotion.targetEnvironmentId) && Objects.equals(targetInstallationId, promotion.targetInstallationId) && Objects.equals(sourceEnvironmentName, promotion.sourceEnvironmentName) && Objects.equals(sourceEnvironmentId, promotion.sourceEnvironmentId) && Objects.equals(sourceInstallationId, promotion.sourceInstallationId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, apiDefinition, status, targetEnvironmentId, targetInstallationId, sourceEnvironmentId, sourceInstallationId);
+        return Objects.hash(id, apiDefinition, apiId, status, targetEnvironmentName, targetEnvironmentId, targetInstallationId, sourceEnvironmentName, sourceEnvironmentId, sourceInstallationId);
+    }
+
+    @Override
+    public String toString() {
+        return "Promotion{" +
+            "id='" + id + '\'' +
+            ", apiDefinition='" + apiDefinition + '\'' +
+            ", apiId='" + apiId + '\'' +
+            ", status=" + status +
+            ", targetEnvironmentId='" + targetEnvironmentId + '\'' +
+            ", targetEnvironmentName='" + targetEnvironmentName + '\'' +
+            ", targetInstallationId='" + targetInstallationId + '\'' +
+            ", sourceEnvironmentId='" + sourceEnvironmentId + '\'' +
+            ", sourceEnvironmentName='" + sourceEnvironmentName + '\'' +
+            ", sourceInstallationId='" + sourceInstallationId + '\'' +
+            ", createdAt=" + createdAt +
+            ", updatedAt=" + updatedAt +
+            ", author=" + author +
+            '}';
     }
 }
