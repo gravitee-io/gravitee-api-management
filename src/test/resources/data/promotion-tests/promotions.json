@@ -2,45 +2,89 @@
   {
     "id": "promotion#1",
     "status": "CREATED",
-    "apiDefinition": "{\"id\" : \"anAPIID\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "apiId": "api#1",
+    "apiDefinition": "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
     "sourceEnvironmentId": "env#1",
+    "sourceEnvironmentName": "Demo",
     "sourceInstallationId": "inst#1",
     "targetEnvironmentId": "env#2",
+    "targetEnvironmentName": "Prod",
     "targetInstallationId": "inst#2",
     "createdAt": 1623154561000,
-    "updatedAt": 1623154561000
+    "updatedAt": 1623154561000,
+    "author": {
+      "userId": "user#1",
+      "displayName": "Gaetan Maisse",
+      "email": "gm@gv.io",
+      "picture": "http://image.png",
+      "source": "internal",
+      "sourceId": "internal#1"
+    }
   },
   {
     "id": "promotion#to-delete",
     "status": "CREATED",
+    "apiId": "product",
     "apiDefinition": "{\"id\" : \"product\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
     "sourceEnvironmentId": "env#1",
+    "sourceEnvironmentName": "Demo",
     "sourceInstallationId": "inst#1",
     "targetEnvironmentId": "env#2",
+    "targetEnvironmentName": "Prod",
     "targetInstallationId": "inst#2",
     "createdAt": 1623154561000,
-    "updatedAt": 1623154561000
+    "updatedAt": 1623154561000,
+    "author": {
+      "userId": "user#1",
+      "displayName": "Gaetan Maisse",
+      "email": "gm@gv.io",
+      "picture": "http://image.png",
+      "source": "internal",
+      "sourceId": "internal#1"
+    }
   },
   {
     "id": "promotion#to_be_validated_env_1",
     "status": "TO_BE_VALIDATED",
-    "apiDefinition": "{\"id\" : \"anAPIID\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "apiId": "api#1",
+    "apiDefinition": "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
     "sourceEnvironmentId": "env#1",
+    "sourceEnvironmentName": "Demo",
     "sourceInstallationId": "inst#1",
     "targetEnvironmentId": "env#1",
+    "targetEnvironmentName": "Demo",
     "targetInstallationId": "inst#1",
     "createdAt": 1623154561000,
-    "updatedAt": 1623154561000
+    "updatedAt": 1623154561000,
+    "author": {
+      "userId": "user#1",
+      "displayName": "Gaetan Maisse",
+      "email": "gm@gv.io",
+      "picture": "http://image.png",
+      "source": "internal",
+      "sourceId": "internal#1"
+    }
   },
   {
     "id": "promotion#to_be_validated_env_2",
     "status": "TO_BE_VALIDATED",
-    "apiDefinition": "{\"id\" : \"anAPIID\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
+    "apiId": "api#1",
+    "apiDefinition": "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}",
     "sourceEnvironmentId": "env#1",
+    "sourceEnvironmentName": "Demo",
     "sourceInstallationId": "inst#1",
     "targetEnvironmentId": "env#2",
+    "targetEnvironmentName": "Prod",
     "targetInstallationId": "inst#2",
     "createdAt": 1623922190000,
-    "updatedAt": 1623154561000
+    "updatedAt": 1623154561000,
+    "author": {
+      "userId": "user#1",
+      "displayName": "Gaetan Maisse",
+      "email": "gm@gv.io",
+      "picture": "http://image.png",
+      "source": "internal",
+      "sourceId": "internal#1"
+    }
   }
 ]

@@ -30,7 +30,9 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Promotion;
+import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
+import java.util.Date;
 
 public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRepository> {
 
@@ -116,14 +118,27 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
     }
 
     private Promotion getAPromotion(String id) {
+        final PromotionAuthor promotionAuthor = new PromotionAuthor();
+        promotionAuthor.setUserId("user#1");
+        promotionAuthor.setDisplayName("Gaetan Maisse");
+        promotionAuthor.setEmail("gm@gv.io");
+        promotionAuthor.setPicture("http://image.png");
+        promotionAuthor.setSource("internal");
+        promotionAuthor.setSourceId("internal#1");
+
         final Promotion promotion = new Promotion();
         promotion.setId(id);
-        promotion.setApiDefinition("{\"id\" : \"anAPIID\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
+        promotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         promotion.setStatus(PromotionStatus.CREATED);
         promotion.setSourceEnvironmentId("env#1");
+        promotion.setSourceEnvironmentName("Demo");
         promotion.setSourceInstallationId("inst#1");
+        promotion.setTargetEnvironmentName("Prod");
         promotion.setTargetEnvironmentId("env#2");
         promotion.setTargetInstallationId("inst#2");
+        promotion.setCreatedAt(new Date());
+        promotion.setAuthor(promotionAuthor);
+        promotion.setApiId("api#1");
 
         return promotion;
     }

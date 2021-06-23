@@ -37,15 +37,27 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldCreate() throws Exception {
+        final PromotionAuthor promotionAuthor = new PromotionAuthor();
+        promotionAuthor.setUserId("user#1");
+        promotionAuthor.setDisplayName("Gaetan Maisse");
+        promotionAuthor.setEmail("gm@gv.io");
+        promotionAuthor.setPicture("http://image.png");
+        promotionAuthor.setSource("internal");
+        promotionAuthor.setSourceId("internal#1");
+
         final Promotion promotion = new Promotion();
         promotion.setId("promotion#new");
-        promotion.setApiDefinition("{\"id\" : \"anAPIID\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
+        promotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         promotion.setStatus(PromotionStatus.CREATED);
         promotion.setSourceEnvironmentId("env#1");
+        promotion.setSourceEnvironmentName("Demo");
         promotion.setSourceInstallationId("inst#1");
+        promotion.setTargetEnvironmentName("Prod");
         promotion.setTargetEnvironmentId("env#2");
         promotion.setTargetInstallationId("inst#2");
         promotion.setCreatedAt(new Date());
+        promotion.setAuthor(promotionAuthor);
+        promotion.setApiId("api#1");
 
         boolean presentBefore = promotionRepository.findById("promotion#new").isPresent();
         assertFalse("must not exists before creation", presentBefore);
@@ -61,16 +73,31 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     public void shouldFindById() throws Exception {
         Promotion storedPromotion = promotionRepository.findById("promotion#1").get();
 
+        final PromotionAuthor promotionAuthor = new PromotionAuthor();
+        promotionAuthor.setUserId("user#1");
+        promotionAuthor.setDisplayName("Gaetan Maisse");
+        promotionAuthor.setEmail("gm@gv.io");
+        promotionAuthor.setPicture("http://image.png");
+        promotionAuthor.setSource("internal");
+        promotionAuthor.setSourceId("internal#1");
+
         final Promotion expectedPromotion = new Promotion();
         expectedPromotion.setId("promotion#1");
-        expectedPromotion.setApiDefinition("{\"id\" : \"anAPIID\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
+        expectedPromotion.setApiId("api#1");
+        expectedPromotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         expectedPromotion.setStatus(PromotionStatus.CREATED);
         expectedPromotion.setSourceEnvironmentId("env#1");
+        expectedPromotion.setSourceEnvironmentName("Demo");
         expectedPromotion.setSourceInstallationId("inst#1");
+        expectedPromotion.setTargetEnvironmentName("Prod");
         expectedPromotion.setTargetEnvironmentId("env#2");
         expectedPromotion.setTargetInstallationId("inst#2");
+        expectedPromotion.setCreatedAt(new Date());
+        expectedPromotion.setAuthor(promotionAuthor);
 
         assertEquals(expectedPromotion, storedPromotion);
+
+        assertEquals(expectedPromotion.getAuthor(), storedPromotion.getAuthor());
     }
 
     @Test
