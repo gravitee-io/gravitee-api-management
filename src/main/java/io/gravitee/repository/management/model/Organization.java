@@ -25,6 +25,7 @@ import java.util.Objects;
 public class Organization {
 
     private String id;
+    private String cockpitId;
     private List<String> hrids;
     private String name;
     private String description;
@@ -79,12 +80,21 @@ public class Organization {
         this.flowMode = flowMode;
     }
 
+    public String getCockpitId() {
+        return cockpitId;
+    }
+
+    public void setCockpitId(String cockpitId) {
+        this.cockpitId = cockpitId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Organization that = (Organization) o;
         return Objects.equals(id, that.id) &&
+                Objects.equals(cockpitId, that.cockpitId) &&
                 Objects.equals(hrids, that.hrids) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(description, that.description) &&
@@ -94,17 +104,19 @@ public class Organization {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, hrids, name, description, domainRestrictions, flowMode);
+        return Objects.hash(id, cockpitId, hrids, name, description, domainRestrictions, flowMode);
     }
 
     @Override
     public String toString() {
         return "Organization{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", domainRestrictions=" + domainRestrictions +
-                '}';
+            "id='" + id + '\'' +
+            ", cockpitId='" + cockpitId + '\'' +
+            ", hrids=" + hrids +
+            ", name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", domainRestrictions=" + domainRestrictions +
+            ", flowMode='" + flowMode + '\'' +
+            '}';
     }
 }
