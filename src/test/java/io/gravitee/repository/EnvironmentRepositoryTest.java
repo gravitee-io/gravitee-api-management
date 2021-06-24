@@ -42,6 +42,7 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreate() throws Exception {
         final Environment environment = new Environment();
         environment.setId("DEFAULT-create");
+        environment.setCockpitId("cockpit-create");
         environment.setHrids(Arrays.asList("hrid1", "hrid2"));
         environment.setName("Default env for create");
         environment.setDescription("Default env description for create");
@@ -51,7 +52,8 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
         final Environment createdEnv = environmentRepository.create(environment);
 
         assertEquals(environment.getId(), createdEnv.getId());
-        assertEquals(environment.getHrids(), environment.getHrids());
+        assertEquals(environment.getCockpitId(), createdEnv.getCockpitId());
+        assertEquals(environment.getHrids(), createdEnv.getHrids());
         assertEquals(environment.getName(), createdEnv.getName());
         assertEquals(environment.getDescription(), createdEnv.getDescription());
         assertEquals(environment.getOrganizationId(), createdEnv.getOrganizationId());
@@ -61,8 +63,14 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
         assertTrue(domainRestrictions.contains("domain"));
         assertTrue(domainRestrictions.contains("restriction"));
         
-        Optional<Environment> optional = environmentRepository.findById("DEFAULT-create");
-        Assert.assertTrue("Environment to create not found", optional.isPresent());
+        Optional<Environment> optionalEnv = environmentRepository.findById("DEFAULT-create");
+        Assert.assertTrue("Environment to create not found", optionalEnv.isPresent());
+        assertEquals(environment.getId(), optionalEnv.get().getId());
+        assertEquals(environment.getCockpitId(), optionalEnv.get().getCockpitId());
+        assertEquals(environment.getHrids(), optionalEnv.get().getHrids());
+        assertEquals(environment.getName(), optionalEnv.get().getName());
+        assertEquals(environment.getDescription(), optionalEnv.get().getDescription());
+        assertEquals(environment.getOrganizationId(), optionalEnv.get().getOrganizationId());
     }
 
     @Test
@@ -73,10 +81,12 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
 
         final Environment env = optional.get();
         env.setName("New name");
+        env.setCockpitId("env#cockpit-new");
 
         final Environment fetchedEnvironment = environmentRepository.update(env);
         assertEquals(env.getName(), fetchedEnvironment.getName());
-        
+        assertEquals(env.getCockpitId(), fetchedEnvironment.getCockpitId());
+
         optional = environmentRepository.findById("DEFAULT-update");
         Assert.assertTrue("Environment to update not found", optional.isPresent());
     }

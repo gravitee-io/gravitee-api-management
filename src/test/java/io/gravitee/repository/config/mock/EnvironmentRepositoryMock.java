@@ -43,6 +43,8 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
 
         final Environment envCreate = new Environment();
         envCreate.setId("DEFAULT-create");
+        envCreate.setCockpitId("cockpit-create");
+        envCreate.setHrids(Arrays.asList("hrid1", "hrid2"));
         envCreate.setName("Default env for create");
         envCreate.setDescription("Default env description for create");
         envCreate.setOrganizationId("DEFAULT-ORG");
@@ -55,7 +57,8 @@ public class EnvironmentRepositoryMock extends AbstractRepositoryMock<Environmen
         final Environment envUpdated = new Environment();
         envUpdated.setId("DEFAULT-update");
         envUpdated.setName("New name");
-        
+        envUpdated.setCockpitId("env#cockpit-new");
+
         final Environment envDelete = new Environment();
         envDelete.setId("DEFAULT-delete");
         envDelete.setName("Default env for delete");
