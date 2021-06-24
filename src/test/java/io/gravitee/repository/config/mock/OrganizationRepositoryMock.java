@@ -42,6 +42,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
 
         final Organization orgCreate = new Organization();
         orgCreate.setId("DEFAULT-ORG-create");
+        orgCreate.setCockpitId("cockpit-org-create");
         orgCreate.setHrids(Arrays.asList("hrid1", "hrid2"));
         orgCreate.setName("Default org for create");
         orgCreate.setDescription("Default org description for create");
@@ -55,6 +56,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         final Organization orgUpdated = new Organization();
         orgUpdated.setId("DEFAULT-ORG-update");
         orgUpdated.setName("New name");
+        orgUpdated.setCockpitId("org#cockpit-new");
         orgUpdated.setDescription("New description");
         orgUpdated.setDomainRestrictions(Collections.singletonList("New domain restriction"));
         orgUpdated.setHrids(Collections.singletonList("New hrid"));
@@ -68,6 +70,10 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         orgFindById.setId("DEFAULT-ORG-findById");
         orgFindById.setName("Default org for findById");
 
+        final Organization orgDefault = new Organization();
+        orgDefault.setId("DEFAULT");
+        orgDefault.setName("Default org");
+
         when(organizationRepository.create(any(Organization.class))).thenReturn(orgCreate);
         when(organizationRepository.update(any(Organization.class))).thenReturn(orgUpdated);
         when(organizationRepository.update(any(Organization.class))).thenReturn(orgUpdated);
@@ -77,8 +83,8 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         when(organizationRepository.findById("DEFAULT-ORG-delete")).thenReturn(of(orgDelete), Optional.empty());
         when(organizationRepository.findById("DEFAULT-ORG-findById")).thenReturn(of(orgFindById));
 
-        when(organizationRepository.count()).thenReturn(3L);
-        when(organizationRepository.findAll()).thenReturn(Arrays.asList(orgCreate, orgUpdated, orgFindById));
+        when(organizationRepository.count()).thenReturn(4L);
+        when(organizationRepository.findAll()).thenReturn(Arrays.asList(orgCreate, orgUpdated, orgFindById, orgDefault));
 
         when(organizationRepository.findByHrids(newSet("def", "ate"))).thenReturn(newSet(orgFindById, orgUpdated));
     }

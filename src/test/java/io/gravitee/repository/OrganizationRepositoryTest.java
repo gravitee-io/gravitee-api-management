@@ -35,6 +35,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
     public void shouldCreate() throws Exception {
         final Organization organization = new Organization();
         organization.setId("DEFAULT-ORG-create");
+        organization.setCockpitId("cockpit-org-create");
         organization.setHrids(Arrays.asList("hrid1", "hrid2"));
         organization.setName("Default org for create");
         organization.setDescription("Default org description for create");
@@ -44,6 +45,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         final Organization createdOrg = organizationRepository.create(organization);
 
         assertEquals(organization.getId(), createdOrg.getId());
+        assertEquals(organization.getCockpitId(), createdOrg.getCockpitId());
         assertEquals(organization.getName(), createdOrg.getName());
         assertEquals(organization.getDescription(), createdOrg.getDescription());
         assertEquals(organization.getFlowMode(), createdOrg.getFlowMode());
@@ -54,8 +56,14 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         assertTrue(domainRestrictions.contains("domain"));
         assertTrue(domainRestrictions.contains("restriction"));
 
-        Optional<Organization> optional = organizationRepository.findById("DEFAULT-ORG-create");
-        Assert.assertTrue("Organization to create not found", optional.isPresent());
+        Optional<Organization> optionalOrg = organizationRepository.findById("DEFAULT-ORG-create");
+        Assert.assertTrue("Organization to create not found", optionalOrg.isPresent());
+        assertEquals(organization.getId(), optionalOrg.get().getId());
+        assertEquals(organization.getCockpitId(), optionalOrg.get().getCockpitId());
+        assertEquals(organization.getName(), optionalOrg.get().getName());
+        assertEquals(organization.getDescription(), optionalOrg.get().getDescription());
+        assertEquals(organization.getFlowMode(), optionalOrg.get().getFlowMode());
+        assertEquals(organization.getHrids(), optionalOrg.get().getHrids());
     }
 
     @Test
@@ -66,6 +74,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
         final Organization org = optional.get();
         org.setName("New name");
+        org.setCockpitId("org#cockpit-new");
         org.setDescription("New description");
         org.setDomainRestrictions(Collections.singletonList("New domain restriction"));
         org.setHrids(Collections.singletonList("New hrid"));
@@ -73,6 +82,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
         final Organization fetchedOrganization = organizationRepository.update(org);
         assertEquals(org.getName(), fetchedOrganization.getName());
+        assertEquals(org.getCockpitId(), fetchedOrganization.getCockpitId());
         assertEquals(org.getDescription(), fetchedOrganization.getDescription());
         assertEquals(org.getHrids(), fetchedOrganization.getHrids());
         assertEquals(org.getDomainRestrictions(), fetchedOrganization.getDomainRestrictions());
@@ -100,15 +110,15 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldCount() throws Exception {
         final long count = organizationRepository.count();
-        // Should count 3 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update and DEFAULT-ORG-findById)
-        Assert.assertEquals("Organization count should be 3",3L, count);
+        // Should count 4 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update, DEFAULT-ORG-findById and DEFAULT)
+        Assert.assertEquals("Organization count should be 4",4L, count);
     }
 
     @Test
     public void shouldFindAll() throws Exception {
         final Collection<Organization> organizations = organizationRepository.findAll();
-        // Should count 3 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update and DEFAULT-ORG-findById)
-        Assert.assertEquals("Organization count should be 3",3L, organizations.size());
+        // Should count 4 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update, DEFAULT-ORG-findById and DEFAULT)
+        Assert.assertEquals("Organization count should be 4",4L, organizations.size());
     }
 
     @Test
