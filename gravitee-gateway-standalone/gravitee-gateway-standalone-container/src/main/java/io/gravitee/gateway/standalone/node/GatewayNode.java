@@ -70,7 +70,6 @@ public class GatewayNode extends AbstractNode {
     public List<Class<? extends LifecycleComponent>> components() {
         final List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
-        components.add(NodeMonitoringReporterService.class);
         components.add(Reactor.class);
         components.add(VertxEmbeddedContainer.class);
         components.add(ClusterService.class);
