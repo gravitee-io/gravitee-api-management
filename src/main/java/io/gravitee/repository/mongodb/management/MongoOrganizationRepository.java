@@ -85,6 +85,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
         try {
             //Update
             organizationMongo.setName(organization.getName());
+            organizationMongo.setCockpitId(organization.getCockpitId());
             organizationMongo.setDescription(organization.getDescription());
             organizationMongo.setHrids(organization.getHrids());
             organizationMongo.setDomainRestrictions(organization.getDomainRestrictions());

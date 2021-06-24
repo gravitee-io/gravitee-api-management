@@ -31,6 +31,8 @@ public class OrganizationMongo {
 	@Id
 	private String id;
 
+	private String cockpitId;
+
 	private List<String> hrids;
 
 	private String name;
@@ -89,6 +91,14 @@ public class OrganizationMongo {
 		this.flowMode = flowMode;
 	}
 
+	public String getCockpitId() {
+		return cockpitId;
+	}
+
+	public void setCockpitId(String cockpitId) {
+		this.cockpitId = cockpitId;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -104,12 +114,14 @@ public class OrganizationMongo {
 
 	@Override
 	public String toString() {
-		return "EnvironmentMongo{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", domain restrictions='" + domainRestrictions + '\'' +
-				", flowMode='" + flowMode + '\'' +
-				'}';
+		return "OrganizationMongo{" +
+			"id='" + id + '\'' +
+			", cockpitId='" + cockpitId + '\'' +
+			", hrids=" + hrids +
+			", name='" + name + '\'' +
+			", description='" + description + '\'' +
+			", domainRestrictions=" + domainRestrictions +
+			", flowMode='" + flowMode + '\'' +
+			'}';
 	}
 }
