@@ -90,14 +90,15 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
             environmentMongo.setDescription(environment.getDescription());
             environmentMongo.setHrids(environment.getHrids());
             environmentMongo.setDomainRestrictions(environment.getDomainRestrictions());
+            environmentMongo.setCockpitId(environment.getCockpitId());
 
             EnvironmentMongo environmentMongoUpdated = internalEnvironmentRepo.save(environmentMongo);
             return mapper.map(environmentMongoUpdated, Environment.class);
 
         } catch (Exception e) {
 
-            LOGGER.error("An error occured when updating environment", e);
-            throw new TechnicalException("An error occured when updating environment");
+            LOGGER.error("An error occurred when updating environment", e);
+            throw new TechnicalException("An error occurred when updating environment");
         }
     }
 
