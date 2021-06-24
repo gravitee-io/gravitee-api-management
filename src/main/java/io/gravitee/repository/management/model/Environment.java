@@ -25,6 +25,7 @@ import java.util.Objects;
 public class Environment {
 
     private String id;
+    private String cockpitId;
     private List<String> hrids;
     private String name;
     private String description;
@@ -79,12 +80,21 @@ public class Environment {
         this.hrids = hrids;
     }
 
+    public String getCockpitId() {
+        return cockpitId;
+    }
+
+    public void setCockpitId(String cockpitId) {
+        this.cockpitId = cockpitId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Environment that = (Environment) o;
         return Objects.equals(id, that.id) &&
+                Objects.equals(cockpitId, that.cockpitId) &&
                 Objects.equals(hrids, that.hrids) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(description, that.description) &&
@@ -94,18 +104,19 @@ public class Environment {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, hrids, name, description, organizationId, domainRestrictions);
+        return Objects.hash(id, cockpitId, hrids, name, description, organizationId, domainRestrictions);
     }
 
     @Override
     public String toString() {
         return "Environment{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", domainRestrictions=" + domainRestrictions +
-                '}';
+            "id='" + id + '\'' +
+            ", cockpitId='" + cockpitId + '\'' +
+            ", hrids=" + hrids +
+            ", name='" + name + '\'' +
+            ", description='" + description + '\'' +
+            ", organizationId='" + organizationId + '\'' +
+            ", domainRestrictions=" + domainRestrictions +
+            '}';
     }
 }
