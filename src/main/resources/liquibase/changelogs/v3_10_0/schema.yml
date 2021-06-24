@@ -27,3 +27,7 @@ databaseChangeLog:
               - column: {name: source_installation_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+        - addColumn:
+            tableName: ${gravitee_prefix}environments
+            columns:
+              - column: {name: cockpit_id, type: nvarchar(64), constraints: { nullable: true } }
