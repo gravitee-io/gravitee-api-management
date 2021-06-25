@@ -28,6 +28,8 @@ import javax.validation.constraints.Size;
  */
 public class UpdateOrganizationEntity {
 
+    private String cockpitId;
+
     private List<String> hrids;
 
     @NotNull
@@ -90,12 +92,31 @@ public class UpdateOrganizationEntity {
         this.flows = flows;
     }
 
+    public String getCockpitId() {
+        return cockpitId;
+    }
+
+    public void setCockpitId(String cockpitId) {
+        this.cockpitId = cockpitId;
+    }
+
+    public UpdateOrganizationEntity() {}
+
+    public UpdateOrganizationEntity(OrganizationEntity organization) {
+        this.cockpitId = organization.getCockpitId();
+        this.hrids = organization.getHrids();
+        this.name = organization.getName();
+        this.description = organization.getDescription();
+        this.domainRestrictions = organization.getDomainRestrictions();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UpdateOrganizationEntity that = (UpdateOrganizationEntity) o;
         return (
+            Objects.equals(cockpitId, that.cockpitId) &&
             Objects.equals(hrids, that.hrids) &&
             Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
@@ -106,14 +127,17 @@ public class UpdateOrganizationEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hrids, name, description, domainRestrictions, flowMode);
+        return Objects.hash(cockpitId, hrids, name, description, domainRestrictions, flowMode);
     }
 
     @Override
     public String toString() {
         return (
             "UpdateOrganizationEntity{" +
-            "hrids=" +
+            "cockpitId='" +
+            cockpitId +
+            '\'' +
+            ", hrids=" +
             hrids +
             ", name='" +
             name +
@@ -123,9 +147,10 @@ public class UpdateOrganizationEntity {
             '\'' +
             ", domainRestrictions=" +
             domainRestrictions +
-            '\'' +
-            ", flowMode='" +
+            ", flowMode=" +
             flowMode +
+            ", flows=" +
+            flows +
             '}'
         );
     }

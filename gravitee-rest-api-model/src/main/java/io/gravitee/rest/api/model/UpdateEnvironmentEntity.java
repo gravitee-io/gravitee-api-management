@@ -26,6 +26,8 @@ import javax.validation.constraints.Size;
  */
 public class UpdateEnvironmentEntity {
 
+    private String cockpitId;
+
     private List<String> hrids;
 
     @NotNull
@@ -68,12 +70,31 @@ public class UpdateEnvironmentEntity {
         this.hrids = hrids;
     }
 
+    public String getCockpitId() {
+        return cockpitId;
+    }
+
+    public void setCockpitId(String cockpitId) {
+        this.cockpitId = cockpitId;
+    }
+
+    public UpdateEnvironmentEntity() {}
+
+    public UpdateEnvironmentEntity(EnvironmentEntity environment) {
+        this.cockpitId = environment.getCockpitId();
+        this.hrids = environment.getHrids();
+        this.name = environment.getName();
+        this.description = environment.getDescription();
+        this.domainRestrictions = environment.getDomainRestrictions();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UpdateEnvironmentEntity that = (UpdateEnvironmentEntity) o;
         return (
+            Objects.equals(cockpitId, that.cockpitId) &&
             Objects.equals(hrids, that.hrids) &&
             Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
@@ -83,14 +104,17 @@ public class UpdateEnvironmentEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hrids, name, description, domainRestrictions);
+        return Objects.hash(cockpitId, hrids, name, description, domainRestrictions);
     }
 
     @Override
     public String toString() {
         return (
             "UpdateEnvironmentEntity{" +
-            "hrids=" +
+            "cockpitId='" +
+            cockpitId +
+            '\'' +
+            ", hrids=" +
             hrids +
             ", name='" +
             name +

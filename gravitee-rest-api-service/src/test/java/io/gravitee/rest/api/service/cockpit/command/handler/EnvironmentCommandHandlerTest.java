@@ -64,6 +64,7 @@ public class EnvironmentCommandHandlerTest {
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
         environmentPayload.setId("env#1");
+        environmentPayload.setCockpitId("env#cockpit-1");
         environmentPayload.setHrids(Collections.singletonList("env-1"));
         environmentPayload.setOrganizationId("orga#1");
         environmentPayload.setDescription("Environment description");
@@ -76,6 +77,7 @@ public class EnvironmentCommandHandlerTest {
                 eq("env#1"),
                 argThat(
                     newEnvironment ->
+                        newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
                         newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
                         newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
                         newEnvironment.getName().equals(environmentPayload.getName()) &&
@@ -97,6 +99,7 @@ public class EnvironmentCommandHandlerTest {
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
         environmentPayload.setId("env#1");
+        environmentPayload.setCockpitId("env#cockpit-1");
         environmentPayload.setOrganizationId("orga#1");
         environmentPayload.setDescription("Environment description");
         environmentPayload.setName("Environment name");

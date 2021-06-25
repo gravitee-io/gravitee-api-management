@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,6 +164,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     private Organization convert(final UpdateOrganizationEntity organizationEntity) {
         final Organization organization = new Organization();
         organization.setHrids(organizationEntity.getHrids());
+        organization.setCockpitId(organizationEntity.getCockpitId());
         organization.setName(organizationEntity.getName());
         organization.setDescription(organizationEntity.getDescription());
         organization.setDomainRestrictions(organizationEntity.getDomainRestrictions());
@@ -174,6 +176,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     private OrganizationEntity convert(final Organization organization) {
         final OrganizationEntity organizationEntity = new OrganizationEntity();
         organizationEntity.setId(organization.getId());
+        organizationEntity.setCockpitId(organization.getCockpitId());
         organizationEntity.setHrids(organization.getHrids());
         organizationEntity.setName(organization.getName());
         organizationEntity.setDescription(organization.getDescription());
@@ -200,9 +203,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     @Override
-    public Collection<Organization> findAll() {
+    public Collection<OrganizationEntity> findAll() {
         try {
-            return organizationRepository.findAll();
+            return organizationRepository.findAll().stream().map(this::convert).collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to list all organizations", ex);
             throw new TechnicalManagementException("An error occurs while trying to list all organizations", ex);

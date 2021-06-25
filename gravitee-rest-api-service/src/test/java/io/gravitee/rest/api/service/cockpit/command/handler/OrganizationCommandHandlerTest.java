@@ -64,6 +64,7 @@ public class OrganizationCommandHandlerTest {
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
         organizationPayload.setId("orga#1");
+        organizationPayload.setCockpitId("org#cockpit-1");
         organizationPayload.setHrids(Collections.singletonList("orga-1"));
         organizationPayload.setDescription("Organization description");
         organizationPayload.setName("Organization name");
@@ -74,6 +75,7 @@ public class OrganizationCommandHandlerTest {
                 eq("orga#1"),
                 argThat(
                     newOrganization ->
+                        newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
                         newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
                         newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
                         newOrganization.getName().equals(organizationPayload.getName()) &&

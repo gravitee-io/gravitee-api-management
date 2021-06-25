@@ -28,6 +28,8 @@ public class EnvironmentEntity {
 
     private String id;
 
+    private String cockpitId;
+
     private List<String> hrids;
 
     @NotNull
@@ -89,6 +91,14 @@ public class EnvironmentEntity {
         this.hrids = hrids;
     }
 
+    public String getCockpitId() {
+        return cockpitId;
+    }
+
+    public void setCockpitId(String cockpitId) {
+        this.cockpitId = cockpitId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -96,6 +106,7 @@ public class EnvironmentEntity {
         EnvironmentEntity that = (EnvironmentEntity) o;
         return (
             Objects.equals(id, that.id) &&
+            Objects.equals(cockpitId, that.cockpitId) &&
             Objects.equals(hrids, that.hrids) &&
             Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
@@ -106,7 +117,7 @@ public class EnvironmentEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, hrids, name, description, organizationId, domainRestrictions);
+        return Objects.hash(id, cockpitId, hrids, name, description, organizationId, domainRestrictions);
     }
 
     @Override
@@ -115,6 +126,9 @@ public class EnvironmentEntity {
             "EnvironmentEntity{" +
             "id='" +
             id +
+            '\'' +
+            ", cockpitId='" +
+            cockpitId +
             '\'' +
             ", hrids=" +
             hrids +

@@ -55,6 +55,7 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
 
         try {
             UpdateEnvironmentEntity newEnvironment = new UpdateEnvironmentEntity();
+            newEnvironment.setCockpitId(environmentPayload.getCockpitId());
             newEnvironment.setHrids(environmentPayload.getHrids());
             newEnvironment.setName(environmentPayload.getName());
             newEnvironment.setDescription(environmentPayload.getDescription());

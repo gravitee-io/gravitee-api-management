@@ -55,6 +55,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
 
         try {
             UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
+            newOrganization.setCockpitId(organizationPayload.getCockpitId());
             newOrganization.setHrids(organizationPayload.getHrids());
             newOrganization.setName(organizationPayload.getName());
             newOrganization.setDescription(organizationPayload.getDescription());

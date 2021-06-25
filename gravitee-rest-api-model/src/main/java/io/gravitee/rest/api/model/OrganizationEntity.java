@@ -30,6 +30,8 @@ public class OrganizationEntity {
 
     private String id;
 
+    private String cockpitId;
+
     private List<String> hrids;
 
     @NotNull
@@ -100,6 +102,14 @@ public class OrganizationEntity {
         this.flows = flows;
     }
 
+    public String getCockpitId() {
+        return cockpitId;
+    }
+
+    public void setCockpitId(String cockpitId) {
+        this.cockpitId = cockpitId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -107,6 +117,7 @@ public class OrganizationEntity {
         OrganizationEntity that = (OrganizationEntity) o;
         return (
             Objects.equals(id, that.id) &&
+            Objects.equals(cockpitId, that.cockpitId) &&
             Objects.equals(hrids, that.hrids) &&
             Objects.equals(name, that.name) &&
             Objects.equals(description, that.description) &&
@@ -118,7 +129,7 @@ public class OrganizationEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, hrids, name, description, domainRestrictions, flowMode, flows);
+        return Objects.hash(id, cockpitId, hrids, name, description, domainRestrictions, flowMode, flows);
     }
 
     @Override
@@ -127,6 +138,9 @@ public class OrganizationEntity {
             "OrganizationEntity{" +
             "id='" +
             id +
+            '\'' +
+            ", cockpitId='" +
+            cockpitId +
             '\'' +
             ", hrids=" +
             hrids +
@@ -138,11 +152,9 @@ public class OrganizationEntity {
             '\'' +
             ", domainRestrictions=" +
             domainRestrictions +
-            '\'' +
-            ", flowMode='" +
+            ", flowMode=" +
             flowMode +
-            '\'' +
-            ", flows='" +
+            ", flows=" +
             flows +
             '}'
         );

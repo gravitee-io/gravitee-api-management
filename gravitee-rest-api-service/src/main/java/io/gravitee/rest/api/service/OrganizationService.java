@@ -42,5 +42,5 @@ public interface OrganizationService {
      *
      * @return the list of all organizations.
      */
-    Collection<Organization> findAll();
+    Collection<OrganizationEntity> findAll();
 }

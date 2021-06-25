@@ -157,6 +157,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
 
     private Environment convert(final UpdateEnvironmentEntity environmentEntity) {
         final Environment environment = new Environment();
+        environment.setCockpitId(environmentEntity.getCockpitId());
         environment.setHrids(environmentEntity.getHrids());
         environment.setName(environmentEntity.getName());
         environment.setDescription(environmentEntity.getDescription());
@@ -167,6 +168,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     private EnvironmentEntity convert(final Environment environment) {
         final EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setId(environment.getId());
+        environmentEntity.setCockpitId(environment.getCockpitId());
         environmentEntity.setHrids(environment.getHrids());
         environmentEntity.setName(environment.getName());
         environmentEntity.setDescription(environment.getDescription());

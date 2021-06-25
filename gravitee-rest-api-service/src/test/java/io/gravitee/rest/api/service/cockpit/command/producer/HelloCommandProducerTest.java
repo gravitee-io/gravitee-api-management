@@ -17,14 +17,23 @@ package io.gravitee.rest.api.service.cockpit.command.producer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.cockpit.api.command.Command;
+import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloPayload;
+import io.gravitee.cockpit.api.command.hello.HelloReply;
 import io.gravitee.node.api.Node;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.observers.TestObserver;
@@ -50,13 +59,19 @@ public class HelloCommandProducerTest {
     private InstallationService installationService;
 
     @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
+    private OrganizationService organizationService;
+
+    @Mock
     private Node node;
 
     private HelloCommandProducer cut;
 
     @Before
     public void before() {
-        cut = new HelloCommandProducer(node, installationService);
+        cut = new HelloCommandProducer(node, installationService, environmentService, organizationService);
     }
 
     @Test
@@ -101,5 +116,45 @@ public class HelloCommandProducerTest {
     public void produceWithException() {
         when(installationService.getOrInitialize()).thenThrow(new TechnicalManagementException());
         final TestObserver<HelloCommand> obs = cut.prepare(new HelloCommand()).test();
+    }
+
+    @Test
+    public void handleReplay_shouldUpdateDefaultEnvironmentCockpitId() {
+        HelloReply helloReply = new HelloReply();
+        helloReply.setCommandStatus(CommandStatus.SUCCEEDED);
+        helloReply.setDefaultEnvironmentCockpitId("env#cockpit-1");
+
+        String defaultEnvId = "DEFAULT";
+        EnvironmentEntity defaultEnvironment = new EnvironmentEntity();
+        defaultEnvironment.setId(defaultEnvId);
+        defaultEnvironment.setOrganizationId("org#1");
+
+        when(environmentService.findById(defaultEnvId)).thenReturn(defaultEnvironment);
+
+        cut.handleReply(helloReply);
+
+        verify(environmentService)
+            .createOrUpdate(
+                eq(defaultEnvironment.getOrganizationId()),
+                eq(defaultEnvId),
+                argThat(env -> env.getCockpitId().equals("env#cockpit-1"))
+            );
+    }
+
+    @Test
+    public void handleReplay_shouldUpdateDefaultOrganizationCockpitId() {
+        HelloReply helloReply = new HelloReply();
+        helloReply.setCommandStatus(CommandStatus.SUCCEEDED);
+        helloReply.setDefaultOrganizationCockpitId("org#cockpit-1");
+
+        String defaultOrgId = "DEFAULT";
+        OrganizationEntity defaultOrganization = new OrganizationEntity();
+        defaultOrganization.setId(defaultOrgId);
+
+        when(organizationService.findById(defaultOrgId)).thenReturn(defaultOrganization);
+
+        cut.handleReply(helloReply);
+
+        verify(organizationService).createOrUpdate(eq(defaultOrgId), argThat(org -> org.getCockpitId().equals("org#cockpit-1")));
     }
 }

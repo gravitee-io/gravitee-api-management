@@ -21,8 +21,10 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.hello.HelloCommand;
 import io.gravitee.cockpit.api.command.hello.HelloReply;
 import io.gravitee.node.api.Node;
-import io.gravitee.rest.api.model.InstallationEntity;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.Single;
 import java.util.HashMap;
@@ -48,10 +50,19 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
 
     private final Node node;
     private final InstallationService installationService;
+    private final EnvironmentService environmentService;
+    private final OrganizationService organizationService;
 
-    public HelloCommandProducer(Node node, InstallationService installationService) {
+    public HelloCommandProducer(
+        Node node,
+        InstallationService installationService,
+        EnvironmentService environmentService,
+        OrganizationService organizationService
+    ) {
         this.node = node;
         this.installationService = installationService;
+        this.environmentService = environmentService;
+        this.organizationService = organizationService;
     }
 
     @Override
@@ -81,8 +92,34 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
             additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_ID, reply.getInstallationId());
             additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, reply.getInstallationStatus());
             installationService.setAdditionalInformation(additionalInformation);
+
+            if (reply.getDefaultEnvironmentCockpitId() != null) {
+                updateDefaultEnvironmentCockpitId(reply.getDefaultEnvironmentCockpitId());
+            }
+
+            if (reply.getDefaultOrganizationCockpitId() != null) {
+                updateDefaultOrganizationCockpitId(reply.getDefaultOrganizationCockpitId());
+            }
         }
 
         return Single.just(reply);
+    }
+
+    private void updateDefaultEnvironmentCockpitId(String defaultEnvironmentCockpitId) {
+        EnvironmentEntity defaultEnvironment = environmentService.findById(GraviteeContext.getDefaultEnvironment());
+
+        UpdateEnvironmentEntity updateEnvironment = new UpdateEnvironmentEntity(defaultEnvironment);
+        updateEnvironment.setCockpitId(defaultEnvironmentCockpitId);
+
+        environmentService.createOrUpdate(defaultEnvironment.getOrganizationId(), defaultEnvironment.getId(), updateEnvironment);
+    }
+
+    private void updateDefaultOrganizationCockpitId(String defaultOrganizationCockpitId) {
+        OrganizationEntity defaultOrganization = organizationService.findById(GraviteeContext.getDefaultOrganization());
+
+        UpdateOrganizationEntity updateOrganization = new UpdateOrganizationEntity(defaultOrganization);
+        updateOrganization.setCockpitId(defaultOrganizationCockpitId);
+
+        organizationService.createOrUpdate(defaultOrganization.getId(), updateOrganization);
     }
 }
