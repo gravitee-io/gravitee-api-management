@@ -53,8 +53,8 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
         Query query = new Query();
 
         if (criteria != null) {
-            if (!isEmpty(criteria.getTargetEnvironmentIds())) {
-                query.addCriteria(where("targetEnvironmentId").in(criteria.getTargetEnvironmentIds()));
+            if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
+                query.addCriteria(where("targetEnvCockpitId").in(criteria.getTargetEnvCockpitIds()));
             }
 
             if (criteria.getStatus() != null) {

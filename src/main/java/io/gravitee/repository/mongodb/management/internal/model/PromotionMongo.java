@@ -29,13 +29,11 @@ public class PromotionMongo extends Auditable {
     private String apiId;
     private String status;
 
-    private String targetEnvironmentId;
-    private String targetEnvironmentName;
-    private String targetInstallationId;
+    private String targetEnvCockpitId;
+    private String targetEnvName;
 
-    private String sourceEnvironmentId;
-    private String sourceEnvironmentName;
-    private String sourceInstallationId;
+    private String sourceEnvCockpitId;
+    private String sourceEnvName;
 
     private PromotionAuthorMongo author;
 
@@ -63,36 +61,20 @@ public class PromotionMongo extends Auditable {
         this.status = status;
     }
 
-    public String getTargetEnvironmentId() {
-        return targetEnvironmentId;
+    public String getTargetEnvCockpitId() {
+        return targetEnvCockpitId;
     }
 
-    public void setTargetEnvironmentId(String targetEnvironmentId) {
-        this.targetEnvironmentId = targetEnvironmentId;
+    public void setTargetEnvCockpitId(String targetEnvCockpitId) {
+        this.targetEnvCockpitId = targetEnvCockpitId;
     }
 
-    public String getTargetInstallationId() {
-        return targetInstallationId;
+    public String getSourceEnvCockpitId() {
+        return sourceEnvCockpitId;
     }
 
-    public void setTargetInstallationId(String targetInstallationId) {
-        this.targetInstallationId = targetInstallationId;
-    }
-
-    public String getSourceEnvironmentId() {
-        return sourceEnvironmentId;
-    }
-
-    public void setSourceEnvironmentId(String sourceEnvironmentId) {
-        this.sourceEnvironmentId = sourceEnvironmentId;
-    }
-
-    public String getSourceInstallationId() {
-        return sourceInstallationId;
-    }
-
-    public void setSourceInstallationId(String sourceInstallationId) {
-        this.sourceInstallationId = sourceInstallationId;
+    public void setSourceEnvCockpitId(String sourceEnvCockpitId) {
+        this.sourceEnvCockpitId = sourceEnvCockpitId;
     }
 
     public String getApiId() {
@@ -103,20 +85,20 @@ public class PromotionMongo extends Auditable {
         this.apiId = apiId;
     }
 
-    public String getTargetEnvironmentName() {
-        return targetEnvironmentName;
+    public String getTargetEnvName() {
+        return targetEnvName;
     }
 
-    public void setTargetEnvironmentName(String targetEnvironmentName) {
-        this.targetEnvironmentName = targetEnvironmentName;
+    public void setTargetEnvName(String targetEnvName) {
+        this.targetEnvName = targetEnvName;
     }
 
-    public String getSourceEnvironmentName() {
-        return sourceEnvironmentName;
+    public String getSourceEnvName() {
+        return sourceEnvName;
     }
 
-    public void setSourceEnvironmentName(String sourceEnvironmentName) {
-        this.sourceEnvironmentName = sourceEnvironmentName;
+    public void setSourceEnvName(String sourceEnvName) {
+        this.sourceEnvName = sourceEnvName;
     }
 
     public PromotionAuthorMongo getAuthor() {
@@ -132,11 +114,11 @@ public class PromotionMongo extends Auditable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionMongo that = (PromotionMongo) o;
-        return Objects.equals(id, that.id) && Objects.equals(apiDefinition, that.apiDefinition) && Objects.equals(apiId, that.apiId) && status == that.status && Objects.equals(targetEnvironmentName, that.targetEnvironmentName) && Objects.equals(targetEnvironmentId, that.targetEnvironmentId) && Objects.equals(targetInstallationId, that.targetInstallationId) && Objects.equals(sourceEnvironmentName, that.sourceEnvironmentName) && Objects.equals(sourceEnvironmentId, that.sourceEnvironmentId) && Objects.equals(sourceInstallationId, that.sourceInstallationId);
+        return Objects.equals(id, that.id) && Objects.equals(apiDefinition, that.apiDefinition) && Objects.equals(apiId, that.apiId) && status == that.status && Objects.equals(targetEnvName, that.targetEnvName) && Objects.equals(targetEnvCockpitId, that.targetEnvCockpitId) && Objects.equals(sourceEnvName, that.sourceEnvName) && Objects.equals(sourceEnvCockpitId, that.sourceEnvCockpitId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, apiDefinition, apiId, status, targetEnvironmentName, targetEnvironmentId, targetInstallationId, sourceEnvironmentName, sourceEnvironmentId, sourceInstallationId);
+        return Objects.hash(id, apiDefinition, apiId, status, targetEnvName, targetEnvCockpitId, sourceEnvName, sourceEnvCockpitId);
     }
 }
