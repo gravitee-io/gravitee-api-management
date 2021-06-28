@@ -54,12 +54,10 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
             .addColumn("api_definition", Types.NCLOB, String.class)
             .addColumn("api_id", Types.NVARCHAR, String.class)
             .addColumn("status", Types.NVARCHAR, PromotionStatus.class)
-            .addColumn("target_environment_id", Types.NVARCHAR, String.class)
-            .addColumn("target_environment_name", Types.NVARCHAR, String.class)
-            .addColumn("target_installation_id", Types.NVARCHAR, String.class)
-            .addColumn("source_environment_id", Types.NVARCHAR, String.class)
-            .addColumn("source_environment_name", Types.NVARCHAR, String.class)
-            .addColumn("source_installation_id", Types.NVARCHAR, String.class)
+            .addColumn("target_env_cockpit_id", Types.NVARCHAR, String.class)
+            .addColumn("target_env_name", Types.NVARCHAR, String.class)
+            .addColumn("source_env_cockpit_id", Types.NVARCHAR, String.class)
+            .addColumn("source_env_name", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("author_user_id", Types.NVARCHAR, String.class)
@@ -91,9 +89,9 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
             } else {
                 query.append(" where 1=1 ");
 
-                if (!isEmpty(criteria.getTargetEnvironmentIds())) {
-                    query.append(" and target_environment_id in ( ")
-                         .append(getOrm().buildInClause(criteria.getTargetEnvironmentIds()))
+                if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
+                    query.append(" and target_env_cockpit_id in ( ")
+                         .append(getOrm().buildInClause(criteria.getTargetEnvCockpitIds()))
                          .append(" ) ");
                 }
 
@@ -106,8 +104,8 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                 result = jdbcTemplate.query(query.toString(),
                         (PreparedStatement ps) -> {
                             int idx = 1;
-                            if (!isEmpty(criteria.getTargetEnvironmentIds())) {
-                                idx = getOrm().setArguments(ps, criteria.getTargetEnvironmentIds(), idx);
+                            if (!isEmpty(criteria.getTargetEnvCockpitIds())) {
+                                idx = getOrm().setArguments(ps, criteria.getTargetEnvCockpitIds(), idx);
                             }
 
                             if (!isEmpty(criteria.getStatus())) {

@@ -22,12 +22,10 @@ databaseChangeLog:
               - column: {name: api_definition, type: nclob, constraints: { nullable: false } }
               - column: {name: api_id, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: status, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: target_environment_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: target_environment_name, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: target_installation_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: source_environment_id, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: source_environment_name, type: nvarchar(64), constraints: { nullable: false } }
-              - column: {name: source_installation_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target_env_cockpit_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target_env_name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: source_env_cockpit_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: source_env_name, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
               - column: {name: author_user_id, type: nvarchar(64), constraints: { nullable: false } }
