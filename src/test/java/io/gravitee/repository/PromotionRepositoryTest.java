@@ -49,12 +49,10 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         promotion.setId("promotion#new");
         promotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         promotion.setStatus(PromotionStatus.CREATED);
-        promotion.setSourceEnvironmentId("env#1");
-        promotion.setSourceEnvironmentName("Demo");
-        promotion.setSourceInstallationId("inst#1");
-        promotion.setTargetEnvironmentName("Prod");
-        promotion.setTargetEnvironmentId("env#2");
-        promotion.setTargetInstallationId("inst#2");
+        promotion.setSourceEnvCockpitId("env#cockpit-1");
+        promotion.setSourceEnvName("Demo");
+        promotion.setTargetEnvCockpitId("env#cockpit-2");
+        promotion.setTargetEnvName("Prod");
         promotion.setCreatedAt(new Date());
         promotion.setAuthor(promotionAuthor);
         promotion.setApiId("api#1");
@@ -86,12 +84,10 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         expectedPromotion.setApiId("api#1");
         expectedPromotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         expectedPromotion.setStatus(PromotionStatus.CREATED);
-        expectedPromotion.setSourceEnvironmentId("env#1");
-        expectedPromotion.setSourceEnvironmentName("Demo");
-        expectedPromotion.setSourceInstallationId("inst#1");
-        expectedPromotion.setTargetEnvironmentName("Prod");
-        expectedPromotion.setTargetEnvironmentId("env#2");
-        expectedPromotion.setTargetInstallationId("inst#2");
+        expectedPromotion.setSourceEnvCockpitId("env#cockpit-1");
+        expectedPromotion.setSourceEnvName("Demo");
+        expectedPromotion.setTargetEnvCockpitId("env#cockpit-2");
+        expectedPromotion.setTargetEnvName("Prod");
         expectedPromotion.setCreatedAt(new Date());
         expectedPromotion.setAuthor(promotionAuthor);
 
@@ -152,8 +148,8 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldSearchWithCriteriaTargetEnvironment1() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().targetEnvironementIds("env#1").build();
+    public void shouldSearchWithCriteriaTargetEnvIds() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().targetEnvCockpitIds("env#cockpit-1").build();
         final List<Promotion> promotions = promotionRepository.search(criteria,
                 null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();

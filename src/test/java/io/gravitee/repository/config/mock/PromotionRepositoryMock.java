@@ -54,7 +54,7 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
         when(repository.findById(promotionToDelete.getId())).thenReturn(of(promotionToDelete), empty());
 
         Promotion promotionToBeValidatedEnv1 = getAPromotion("promotion#to_be_validated_env_1");
-        promotionToBeValidatedEnv1.setTargetEnvironmentId("env#1");
+        promotionToBeValidatedEnv1.setTargetEnvCockpitId("env#cockpit-1");
 
         Promotion promotionToBeValidatedEnv2 = getAPromotion("promotion#to_be_validated_env_2");
 
@@ -65,15 +65,15 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
 
         // shouldSearchWithEmptyCriteria
         when(repository.search(
-                argThat(o -> o != null && o.getTargetEnvironmentIds() == null && o.getStatus() == null),
+                argThat(o -> o != null && o.getTargetEnvCockpitIds() == null && o.getStatus() == null),
                 nullable(Sortable.class),
                 any())
         ).thenReturn(searchAllResult);
 
-        // shouldSearchWithCriteriaTargetEnvironment1
+        // shouldSearchWithCriteriaTargetEnvIds
         when(repository.search(
                 argThat(o -> o != null
-                        && o.getTargetEnvironmentIds() != null && o.getTargetEnvironmentIds().contains("env#1")
+                        && o.getTargetEnvCockpitIds() != null && o.getTargetEnvCockpitIds().contains("env#cockpit-1")
                         && o.getStatus() == null),
                 nullable(Sortable.class),
                 any())
@@ -82,7 +82,7 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
         // shouldSearchWithCriteriaStatus
         when(repository.search(
                 argThat(o -> o != null
-                        && o.getTargetEnvironmentIds() == null
+                        && o.getTargetEnvCockpitIds() == null
                         && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
                 nullable(Sortable.class),
                 any())
@@ -91,7 +91,7 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
         // shouldSearchWithCriteriaStatusSortByCreatedAtDesc
         when(repository.search(
                 argThat(o -> o != null
-                        && o.getTargetEnvironmentIds() == null
+                        && o.getTargetEnvCockpitIds() == null
                         && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
                 argThat(sortable -> sortable != null
                         && sortable.field().equals("created_at")
@@ -130,12 +130,10 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
         promotion.setId(id);
         promotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
         promotion.setStatus(PromotionStatus.CREATED);
-        promotion.setSourceEnvironmentId("env#1");
-        promotion.setSourceEnvironmentName("Demo");
-        promotion.setSourceInstallationId("inst#1");
-        promotion.setTargetEnvironmentName("Prod");
-        promotion.setTargetEnvironmentId("env#2");
-        promotion.setTargetInstallationId("inst#2");
+        promotion.setSourceEnvCockpitId("env#cockpit-1");
+        promotion.setSourceEnvName("Demo");
+        promotion.setTargetEnvCockpitId("env#cockpit-2");
+        promotion.setTargetEnvName("Prod");
         promotion.setCreatedAt(new Date());
         promotion.setAuthor(promotionAuthor);
         promotion.setApiId("api#1");
