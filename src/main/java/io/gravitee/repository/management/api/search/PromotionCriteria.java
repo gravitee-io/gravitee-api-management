@@ -27,21 +27,21 @@ import static java.util.Arrays.asList;
  */
 public class PromotionCriteria {
 
-    private List<String> targetEnvironmentIds;
+    private List<String> targetEnvCockpitIds;
 
     private PromotionStatus status;
 
     PromotionCriteria(PromotionCriteria.Builder builder) {
-        this.targetEnvironmentIds = builder.targetEnvironmentIds;
+        this.targetEnvCockpitIds = builder.targetEnvCockpitIds;
         this.status = builder.status;
     }
 
-    public List<String> getTargetEnvironmentIds() {
-        return targetEnvironmentIds;
+    public List<String> getTargetEnvCockpitIds() {
+        return targetEnvCockpitIds;
     }
 
-    public void setTargetEnvironmentIds(List<String> targetEnvironmentIds) {
-        this.targetEnvironmentIds = targetEnvironmentIds;
+    public void setTargetEnvCockpitIds(List<String> targetEnvCockpitIds) {
+        this.targetEnvCockpitIds = targetEnvCockpitIds;
     }
 
     public PromotionStatus getStatus() {
@@ -54,12 +54,12 @@ public class PromotionCriteria {
 
     public static class Builder {
 
-        private List<String> targetEnvironmentIds;
+        private List<String> targetEnvCockpitIds;
 
         private PromotionStatus status;
 
-        public Builder targetEnvironementIds(String... targetEnvironmentIds) {
-            this.targetEnvironmentIds = asList(targetEnvironmentIds);
+        public Builder targetEnvCockpitIds(String... targetEnvironmentIds) {
+            this.targetEnvCockpitIds = asList(targetEnvironmentIds);
             return this;
         }
 

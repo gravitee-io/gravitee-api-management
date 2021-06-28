@@ -26,13 +26,11 @@ public class Promotion {
 
     private PromotionStatus status;
 
-    private String targetEnvironmentId;
-    private String targetEnvironmentName;
-    private String targetInstallationId;
+    private String targetEnvCockpitId;
+    private String targetEnvName;
 
-    private String sourceEnvironmentId;
-    private String sourceEnvironmentName;
-    private String sourceInstallationId;
+    private String sourceEnvCockpitId;
+    private String sourceEnvName;
 
     private Date createdAt;
     private Date updatedAt;
@@ -47,36 +45,20 @@ public class Promotion {
         this.id = id;
     }
 
-    public String getTargetEnvironmentId() {
-        return targetEnvironmentId;
+    public String getTargetEnvCockpitId() {
+        return targetEnvCockpitId;
     }
 
-    public void setTargetEnvironmentId(String targetEnvironmentId) {
-        this.targetEnvironmentId = targetEnvironmentId;
+    public void setTargetEnvCockpitId(String targetEnvCockpitId) {
+        this.targetEnvCockpitId = targetEnvCockpitId;
     }
 
-    public String getTargetInstallationId() {
-        return targetInstallationId;
+    public String getSourceEnvCockpitId() {
+        return sourceEnvCockpitId;
     }
 
-    public void setTargetInstallationId(String targetInstallationId) {
-        this.targetInstallationId = targetInstallationId;
-    }
-
-    public String getSourceEnvironmentId() {
-        return sourceEnvironmentId;
-    }
-
-    public void setSourceEnvironmentId(String sourceEnvironmentId) {
-        this.sourceEnvironmentId = sourceEnvironmentId;
-    }
-
-    public String getSourceInstallationId() {
-        return sourceInstallationId;
-    }
-
-    public void setSourceInstallationId(String sourceInstallationId) {
-        this.sourceInstallationId = sourceInstallationId;
+    public void setSourceEnvCockpitId(String sourceEnvCockpitId) {
+        this.sourceEnvCockpitId = sourceEnvCockpitId;
     }
 
     public Date getCreatedAt() {
@@ -119,20 +101,20 @@ public class Promotion {
         this.apiId = apiId;
     }
 
-    public String getTargetEnvironmentName() {
-        return targetEnvironmentName;
+    public String getTargetEnvName() {
+        return targetEnvName;
     }
 
-    public void setTargetEnvironmentName(String targetEnvironmentName) {
-        this.targetEnvironmentName = targetEnvironmentName;
+    public void setTargetEnvName(String targetEnvName) {
+        this.targetEnvName = targetEnvName;
     }
 
-    public String getSourceEnvironmentName() {
-        return sourceEnvironmentName;
+    public String getSourceEnvName() {
+        return sourceEnvName;
     }
 
-    public void setSourceEnvironmentName(String sourceEnvironmentName) {
-        this.sourceEnvironmentName = sourceEnvironmentName;
+    public void setSourceEnvName(String sourceEnvName) {
+        this.sourceEnvName = sourceEnvName;
     }
 
     public PromotionAuthor getAuthor() {
@@ -200,12 +182,12 @@ public class Promotion {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Promotion promotion = (Promotion) o;
-        return Objects.equals(id, promotion.id) && Objects.equals(apiDefinition, promotion.apiDefinition) && Objects.equals(apiId, promotion.apiId) && status == promotion.status && Objects.equals(targetEnvironmentName, promotion.targetEnvironmentName) && Objects.equals(targetEnvironmentId, promotion.targetEnvironmentId) && Objects.equals(targetInstallationId, promotion.targetInstallationId) && Objects.equals(sourceEnvironmentName, promotion.sourceEnvironmentName) && Objects.equals(sourceEnvironmentId, promotion.sourceEnvironmentId) && Objects.equals(sourceInstallationId, promotion.sourceInstallationId);
+        return Objects.equals(id, promotion.id) && Objects.equals(apiDefinition, promotion.apiDefinition) && Objects.equals(apiId, promotion.apiId) && status == promotion.status && Objects.equals(targetEnvName, promotion.targetEnvName) && Objects.equals(targetEnvCockpitId, promotion.targetEnvCockpitId) && Objects.equals(sourceEnvName, promotion.sourceEnvName) && Objects.equals(sourceEnvCockpitId, promotion.sourceEnvCockpitId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, apiDefinition, apiId, status, targetEnvironmentName, targetEnvironmentId, targetInstallationId, sourceEnvironmentName, sourceEnvironmentId, sourceInstallationId);
+        return Objects.hash(id, apiDefinition, apiId, status, targetEnvName, targetEnvCockpitId, sourceEnvName, sourceEnvCockpitId);
     }
 
     @Override
@@ -215,12 +197,10 @@ public class Promotion {
             ", apiDefinition='" + apiDefinition + '\'' +
             ", apiId='" + apiId + '\'' +
             ", status=" + status +
-            ", targetEnvironmentId='" + targetEnvironmentId + '\'' +
-            ", targetEnvironmentName='" + targetEnvironmentName + '\'' +
-            ", targetInstallationId='" + targetInstallationId + '\'' +
-            ", sourceEnvironmentId='" + sourceEnvironmentId + '\'' +
-            ", sourceEnvironmentName='" + sourceEnvironmentName + '\'' +
-            ", sourceInstallationId='" + sourceInstallationId + '\'' +
+            ", targetEnvironmentId='" + targetEnvCockpitId + '\'' +
+            ", targetEnvironmentName='" + targetEnvName + '\'' +
+            ", sourceEnvironmentId='" + sourceEnvCockpitId + '\'' +
+            ", sourceEnvironmentName='" + sourceEnvName + '\'' +
             ", createdAt=" + createdAt +
             ", updatedAt=" + updatedAt +
             ", author=" + author +
