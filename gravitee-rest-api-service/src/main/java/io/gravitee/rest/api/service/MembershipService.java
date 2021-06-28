@@ -50,6 +50,13 @@ public interface MembershipService {
     void deleteMembership(String membershipId);
     void deleteReference(MembershipReferenceType referenceType, String referenceId);
     void deleteReferenceMember(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
+    void deleteReferenceMemberBySource(
+        MembershipReferenceType referenceType,
+        String referenceId,
+        MembershipMemberType memberType,
+        String memberId,
+        String sourceId
+    );
     List<UserMembership> findUserMembership(MembershipReferenceType referenceType, String userId);
     List<UserMembership> findUserMembershipBySource(MembershipReferenceType referenceType, String userId, String sourceId);
     Metadata findUserMembershipMetadata(List<UserMembership> memberships, MembershipReferenceType type);

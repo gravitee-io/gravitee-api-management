@@ -201,7 +201,7 @@ public class QualityRuleServiceTest {
                         "DESC".equals(argument.getDescription()) &&
                         Integer.valueOf(1).equals(argument.getWeight()) &&
                         QUALITY_RULE_ID.equals(argument.getId()) &&
-                        argument.getCreatedAt() == null &&
+                        argument.getCreatedAt() != null &&
                         argument.getUpdatedAt() != null
                 )
             );

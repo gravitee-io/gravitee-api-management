@@ -139,13 +139,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             new MembershipMember(memberId, null, memberType),
             new MembershipRole(roleToAdd.getScope(), roleToAdd.getName()),
             source,
-            true
+            true,
+            false
         );
     }
 
     @Override
     public MemberEntity addRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role) {
-        return _addRoleToMemberOnReference(reference, member, role, DEFAULT_SOURCE, true);
+        return _addRoleToMemberOnReference(reference, member, role, DEFAULT_SOURCE, true, false);
     }
 
     private MemberEntity _addRoleToMemberOnReference(
@@ -153,7 +154,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipMember member,
         MembershipRole role,
         String source,
-        boolean notify
+        boolean notify,
+        boolean update
     ) {
         try {
             LOGGER.debug("Add a new member for {} {}", reference.getType(), reference.getId());
@@ -173,13 +175,19 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                         reference.getId(),
                         roleEntity.getId()
                     );
+
                     if (!similarMemberships.isEmpty()) {
-                        throw new MembershipAlreadyExistsException(
-                            member.getMemberId(),
-                            member.getMemberType(),
-                            reference.getId(),
-                            reference.getType()
-                        );
+                        if (update) {
+                            UserEntity userEntity = findUserFromMembershipMember(member);
+                            return getUserMember(reference.getType(), reference.getId(), userEntity.getId());
+                        } else {
+                            throw new MembershipAlreadyExistsException(
+                                member.getMemberId(),
+                                member.getMemberType(),
+                                reference.getId(),
+                                reference.getType()
+                            );
+                        }
                     }
                 }
                 Date updateDate = new Date();
@@ -557,6 +565,17 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         MembershipMemberType memberType,
         String memberId
     ) {
+        deleteReferenceMemberBySource(referenceType, referenceId, memberType, memberId, null);
+    }
+
+    @Override
+    public void deleteReferenceMemberBySource(
+        MembershipReferenceType referenceType,
+        String referenceId,
+        MembershipMemberType memberType,
+        String memberId,
+        String sourceId
+    ) {
         try {
             final Optional<RoleEntity> optApiPORole = roleService.findByScopeAndName(RoleScope.API, PRIMARY_OWNER.name());
             Set<io.gravitee.repository.management.model.Membership> memberships = membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
@@ -567,9 +586,11 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             );
             if (!memberships.isEmpty()) {
                 for (io.gravitee.repository.management.model.Membership membership : memberships) {
-                    LOGGER.debug("Delete membership {}", membership.getId());
-                    membershipRepository.delete(membership.getId());
-                    createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
+                    if (sourceId == null || membership.getSource().equals(sourceId)) {
+                        LOGGER.debug("Delete membership {}", membership.getId());
+                        membershipRepository.delete(membership.getId());
+                        createAuditLog(MEMBERSHIP_DELETED, new Date(), membership, null);
+                    }
 
                     if (MembershipReferenceType.APPLICATION.equals(referenceType) && MembershipMemberType.USER.equals(memberType)) {
                         UserEntity userEntity = findUserFromMembershipMember(new MembershipMember(memberId, null, memberType));
@@ -1463,7 +1484,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             }
             return roles
                 .stream()
-                .map(role -> _addRoleToMemberOnReference(reference, member, role, source, notify))
+                .map(role -> _addRoleToMemberOnReference(reference, member, role, source, notify, false))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to update member for {} {}", reference.getType(), reference.getId(), ex);
@@ -1481,6 +1502,9 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         Collection<MembershipRole> roles,
         String source
     ) {
-        return roles.stream().map(role -> _addRoleToMemberOnReference(reference, member, role, source, false)).collect(Collectors.toList());
+        return roles
+            .stream()
+            .map(role -> _addRoleToMemberOnReference(reference, member, role, source, false, true))
+            .collect(Collectors.toList());
     }
 }

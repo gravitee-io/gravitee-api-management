@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.TagService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIDescriptorVisitor;
 import io.gravitee.rest.api.service.impl.swagger.visitor.v3.OAIOperationVisitor;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
@@ -44,7 +45,6 @@ import io.swagger.v3.oas.models.servers.ServerVariable;
 import io.swagger.v3.oas.models.servers.ServerVariables;
 import java.net.URI;
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,16 +62,42 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
     private static final String PICTURE_REGEX = "^data:image/[\\w]+;base64,.*$";
 
-    protected final Collection<? extends OAIOperationVisitor> visitors;
+    private Collection<? extends OAIOperationVisitor> visitors;
+    protected final ImportSwaggerDescriptorEntity swaggerDescriptor;
+    private final PolicyOperationVisitorManager policyOperationVisitorManager;
+    private final GroupService groupService;
+    private final TagService tagService;
 
-    private GroupService groupService;
-
-    private TagService tagService;
-
-    public OAIToAPIConverter(Collection<? extends OAIOperationVisitor> visitors, GroupService groupService, TagService tagService) {
-        this.visitors = visitors;
+    public OAIToAPIConverter(
+        ImportSwaggerDescriptorEntity swaggerDescriptor,
+        PolicyOperationVisitorManager policyOperationVisitorManager,
+        GroupService groupService,
+        TagService tagService
+    ) {
+        this.swaggerDescriptor = swaggerDescriptor;
+        this.policyOperationVisitorManager = policyOperationVisitorManager;
         this.groupService = groupService;
         this.tagService = tagService;
+    }
+
+    protected Collection<? extends OAIOperationVisitor> getVisitors() {
+        if (visitors == null) {
+            visitors = new ArrayList<>();
+            if (swaggerDescriptor.isWithPolicyPaths()) {
+                visitors =
+                    policyOperationVisitorManager
+                        .getPolicyVisitors()
+                        .stream()
+                        .filter(
+                            operationVisitor ->
+                                swaggerDescriptor.getWithPolicies() != null &&
+                                swaggerDescriptor.getWithPolicies().contains(operationVisitor.getId())
+                        )
+                        .map(operationVisitor -> policyOperationVisitorManager.getOAIOperationVisitor(operationVisitor.getId()))
+                        .collect(Collectors.toList());
+            }
+        }
+        return visitors;
     }
 
     @Override
@@ -258,27 +284,25 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
     protected SwaggerApiEntity fill(final SwaggerApiEntity apiEntity, OpenAPI oai) {
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
 
-        // Paths
-        Map<String, List<Rule>> paths = new HashMap<>();
+        if (swaggerDescriptor.isWithPolicyPaths()) {
+            // Paths
+            Map<String, List<Rule>> paths = new HashMap<>();
 
-        oai
-            .getPaths()
-            .entrySet()
-            .forEach(
-                entry -> {
-                    String path = entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
+            oai
+                .getPaths()
+                .entrySet()
+                .forEach(
+                    entry -> {
+                        String path = entry.getKey().replaceAll("\\{(.[^/\\}]*)\\}", ":$1");
 
-                    Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
-                    List<Rule> rules = new ArrayList<>();
+                        Map<PathItem.HttpMethod, Operation> operations = entry.getValue().readOperationsMap();
+                        List<Rule> rules = new ArrayList<>();
 
-                    operations.forEach(
-                        new BiConsumer<PathItem.HttpMethod, Operation>() {
-                            @Override
-                            public void accept(PathItem.HttpMethod httpMethod, Operation operation) {
-                                visitors.forEach(
-                                    new Consumer<OAIOperationVisitor>() {
-                                        @Override
-                                        public void accept(OAIOperationVisitor oaiOperationVisitor) {
+                        operations.forEach(
+                            (httpMethod, operation) ->
+                                getVisitors()
+                                    .forEach(
+                                        (Consumer<OAIOperationVisitor>) oaiOperationVisitor -> {
                                             // Consider only policy visitor for now
                                             Optional<Policy> policy = (Optional<Policy>) oaiOperationVisitor.visit(oai, operation);
 
@@ -303,20 +327,31 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
                                                 rules.add(rule);
                                             }
                                         }
-                                    }
-                                );
-                            }
-                        }
-                    );
-                    paths.put(path, rules);
-                }
-            );
+                                    )
+                        );
+                        paths.put(path, rules);
+                    }
+                );
 
-        apiEntity.setPaths(paths);
+            apiEntity.setPaths(paths);
+        }
 
         // Path Mappings
         if (apiEntity.getPaths() != null) {
             apiEntity.setPathMappings(apiEntity.getPaths().keySet());
+        }
+
+        final String defaultDeclaredPath = "/";
+        Map<String, List<Rule>> paths = new HashMap<>();
+
+        paths.put(defaultDeclaredPath, new ArrayList<>());
+
+        if (!swaggerDescriptor.isWithPolicyPaths()) {
+            apiEntity.setPaths(paths);
+        }
+
+        if (!swaggerDescriptor.isWithPathMapping()) {
+            apiEntity.setPathMappings(singleton(defaultDeclaredPath));
         }
 
         return apiEntity;

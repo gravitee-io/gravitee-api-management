@@ -782,6 +782,7 @@ public class ApiService_UpdateTest {
                     "localhost",
                     "https://10.140.238.25:8080",
                     "(http|https)://[a-z]{6}.domain.[a-zA-Z]{2,6}",
+                    ".*.company.com",
                     "/test^"
                 )
             );
