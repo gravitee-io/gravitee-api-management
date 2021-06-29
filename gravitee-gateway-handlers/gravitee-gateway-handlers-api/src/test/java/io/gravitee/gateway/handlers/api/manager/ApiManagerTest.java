@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -90,7 +91,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
+        api.setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -103,11 +104,53 @@ public class ApiManagerTest {
         shouldDeployApiWithTags("test,!test", new String[] {});
     }
 
+    @Test
+    public void shouldDeployApiWithTagOnGatewayWithoutTag() throws Exception {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = mock(Plan.class);
+
+        api.setPlans(singletonList(mockedPlan));
+        api.setTags(new HashSet<>(singletonList("test")));
+
+        apiManager.register(api);
+
+        verify(eventManager).publishEvent(ReactorEvent.DEPLOY, api);
+    }
+
+    @Test
+    public void shouldNotDeployApiWithTagOnGatewayTagExclusion() throws Exception {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = mock(Plan.class);
+
+        api.setPlans(singletonList(mockedPlan));
+        api.setTags(new HashSet<>(Arrays.asList("product", "international")));
+
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList("product", "!international")));
+
+        apiManager.register(api);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+    }
+
+    @Test
+    public void shouldNotDeployApiWithTagOnGatewayWithoutTag() throws Exception {
+        final Api api = buildTestApi();
+        final Plan mockedPlan = mock(Plan.class);
+
+        api.setPlans(singletonList(mockedPlan));
+
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("product")));
+
+        apiManager.register(api);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+    }
+
     private void shouldDeployApiWithTags(final String tags, final String[] apiTags) throws Exception {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
+        api.setPlans(singletonList(mockedPlan));
         api.setTags(new HashSet<>(Arrays.asList(apiTags)));
 
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Arrays.asList(tags.split(","))));
@@ -120,13 +163,13 @@ public class ApiManagerTest {
     @Test
     public void shouldDeployApiWithPlanMatchingTag() throws Exception {
         final Api api = buildTestApi();
-        api.setTags(new HashSet<>(Collections.singletonList("test")));
+        api.setTags(new HashSet<>(singletonList("test")));
 
         final Plan mockedPlan = mock(Plan.class);
-        when(mockedPlan.getTags()).thenReturn(new HashSet<>(Collections.singletonList("test")));
-        api.setPlans(Collections.singletonList(mockedPlan));
+        when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test")));
+        api.setPlans(singletonList(mockedPlan));
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Collections.singletonList("test")));
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
         apiManager.register(api);
 
@@ -136,13 +179,13 @@ public class ApiManagerTest {
     @Test
     public void shouldNotDeployApiWithoutPlanMatchingTag() throws Exception {
         final Api api = buildTestApi();
-        api.setTags(new HashSet<>(Collections.singletonList("test")));
+        api.setTags(new HashSet<>(singletonList("test")));
 
         final Plan mockedPlan = mock(Plan.class);
-        when(mockedPlan.getTags()).thenReturn(new HashSet<>(Collections.singletonList("test2")));
-        api.setPlans(Collections.singletonList(mockedPlan));
+        when(mockedPlan.getTags()).thenReturn(new HashSet<>(singletonList("test2")));
+        api.setPlans(singletonList(mockedPlan));
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Collections.singletonList("test")));
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
         apiManager.register(api);
 
@@ -199,7 +242,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
+        api.setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -208,7 +251,7 @@ public class ApiManagerTest {
         final Api api2 = buildTestApi();
         Instant deployDateInst = api.getDeployedAt().toInstant().plus(Duration.ofHours(1));
         api2.setDeployedAt(Date.from(deployDateInst));
-        api2.setPlans(Collections.singletonList(mockedPlan));
+        api2.setPlans(singletonList(mockedPlan));
 
         apiManager.register(api2);
 
@@ -220,7 +263,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
+        api.setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -240,16 +283,16 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
-        api.setTags(new HashSet<>(Collections.singletonList("test")));
+        api.setPlans(singletonList(mockedPlan));
+        api.setTags(new HashSet<>(singletonList("test")));
 
-        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(Collections.singletonList("test")));
+        when(gatewayConfiguration.shardingTags()).thenReturn(Optional.of(singletonList("test")));
 
         apiManager.register(api);
 
         final Api api2 = buildTestApi();
         api2.setDeployedAt(new Date());
-        api2.setTags(new HashSet<>(Collections.singletonList("other-tag")));
+        api2.setTags(new HashSet<>(singletonList("other-tag")));
 
         apiManager.register(api2);
 
@@ -262,7 +305,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
+        api.setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -278,7 +321,7 @@ public class ApiManagerTest {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
+        api.setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -290,12 +333,11 @@ public class ApiManagerTest {
     }
 
     @Test
-    @Ignore
     public void shouldUndeployApi_noMorePlan() throws Exception {
         final Api api = buildTestApi();
         final Plan mockedPlan = mock(Plan.class);
 
-        api.setPlans(Collections.singletonList(mockedPlan));
+        api.setPlans(singletonList(mockedPlan));
 
         apiManager.register(api);
 
@@ -328,7 +370,7 @@ public class ApiManagerTest {
 
         when(eventRepository.search(
                 any(EventCriteria.class)
-        )).thenReturn(Collections.singletonList(mockEvent));
+        )).thenReturn(singletonList(mockEvent));
 
         syncManager.refresh();
 
@@ -368,7 +410,7 @@ public class ApiManagerTest {
 
         when(eventRepository.search(
                 any(EventCriteria.class)
-        )).thenReturn(Collections.singletonList(mockEvent2));
+        )).thenReturn(singletonList(mockEvent2));
 
         final Api apiDefinition = new Api(mockApi);
         apiDefinition.setEnabled(api.getLifecycleState() == LifecycleState.STARTED);
@@ -410,7 +452,7 @@ public class ApiManagerTest {
 
         when(eventRepository.search(
                 any(EventCriteria.class)
-        )).thenReturn(Collections.singletonList(mockEvent2));
+        )).thenReturn(singletonList(mockEvent2));
 
         syncManager.refresh();
 
@@ -707,7 +749,7 @@ public class ApiManagerTest {
 
     private Api buildTestApi() {
         Proxy proxy = new Proxy();
-        proxy.setVirtualHosts(Collections.singletonList(mock(VirtualHost.class)));
+        proxy.setVirtualHosts(singletonList(mock(VirtualHost.class)));
         return new ApiBuilder().id("api-test").name("api-name-test").proxy(proxy).deployedAt(new Date()).build();
     }
 
