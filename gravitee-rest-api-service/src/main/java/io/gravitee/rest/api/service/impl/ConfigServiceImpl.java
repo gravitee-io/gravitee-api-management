@@ -135,7 +135,12 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                 }
             }
         }
-        Map<String, List<String>> parameterMap = parameterService.findAll(parameterKeys, referenceId, referenceType);
+        Map<String, List<String>> parameterMap = parameterService.findAll(
+            parameterKeys,
+            value -> value == null ? null : value.trim(),
+            referenceId,
+            referenceType
+        );
 
         // set values
         for (Object o : objects) {

@@ -198,6 +198,43 @@ public class ParameterServiceTest {
     }
 
     @Test
+    public void shouldFindAllKeysWithFilterMapper() throws TechnicalException {
+        final Key p1key = PORTAL_TOP_APIS;
+        final Key p2key = PORTAL_ANALYTICS_ENABLED;
+        final Key p3key = PORTAL_ANALYTICS_TRACKINGID;
+        final Parameter parameter1 = new Parameter();
+        parameter1.setKey(PORTAL_TOP_APIS.key());
+        parameter1.setValue("api1;api2 ;; api1");
+
+        final Parameter parameter2 = new Parameter();
+        parameter2.setKey(PORTAL_ANALYTICS_ENABLED.key());
+        parameter2.setValue("api3;api4 ;; api5");
+
+        final Parameter parameter3 = new Parameter();
+        parameter3.setKey(PORTAL_ANALYTICS_TRACKINGID.key());
+
+        when(
+            parameterRepository.findByKeys(
+                Arrays.asList(PORTAL_TOP_APIS.key(), PORTAL_ANALYTICS_ENABLED.key(), PORTAL_ANALYTICS_TRACKINGID.key()),
+                "DEFAULT",
+                ParameterReferenceType.ENVIRONMENT
+            )
+        )
+            .thenReturn(Arrays.asList(parameter1, parameter2, parameter3));
+
+        final Map<String, List<String>> values = parameterService.findAll(
+            Arrays.asList(p1key, p2key, p3key),
+            value -> value.trim(),
+            value -> !value.isEmpty(),
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals(asList("api1", "api2", "api1"), values.get(p1key.key()));
+        assertEquals(asList("api3", "api4", "api5"), values.get(p2key.key()));
+        assertTrue(values.get(p3key.key()).isEmpty());
+    }
+
+    @Test
     public void shouldFindAllKeysWithFilterFromEnvVar() throws TechnicalException {
         final Key p1key = API_LABELS_DICTIONARY;
         final Key p2key = PORTAL_ANALYTICS_ENABLED;
