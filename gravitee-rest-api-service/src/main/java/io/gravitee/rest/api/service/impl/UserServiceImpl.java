@@ -1524,9 +1524,24 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
 
         if (created || socialProvider.isSyncMappings()) {
-            refreshUserMemberships(user.getId(), socialProvider.getId(), groupMemberships, MembershipReferenceType.GROUP);
-            refreshUserMemberships(user.getId(), socialProvider.getId(), envRoleMemberships, MembershipReferenceType.ENVIRONMENT);
-            refreshUserMemberships(user.getId(), socialProvider.getId(), orgRoleMemberships, MembershipReferenceType.ORGANIZATION);
+            final boolean hasGroupMapping = socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty();
+            refreshUserMemberships(user.getId(), socialProvider.getId(), groupMemberships, hasGroupMapping, MembershipReferenceType.GROUP);
+
+            final boolean hasRoleMapping = socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty();
+            refreshUserMemberships(
+                user.getId(),
+                socialProvider.getId(),
+                orgRoleMemberships,
+                hasRoleMapping,
+                MembershipReferenceType.ORGANIZATION
+            );
+            refreshUserMemberships(
+                user.getId(),
+                socialProvider.getId(),
+                envRoleMemberships,
+                hasRoleMapping,
+                MembershipReferenceType.ENVIRONMENT
+            );
         }
 
         return user;
@@ -1829,12 +1844,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @param userId User identifier.
      * @param identityProviderId The identity provider used to authenticate the user.
      * @param memberships List of memberships to associate to the user
+     * @param hasMapping If the social provider has a mapping for the given type
      * @param types The types of user memberships to manage
      */
     private void refreshUserMemberships(
         String userId,
         String identityProviderId,
         List<MembershipService.Membership> memberships,
+        boolean hasMapping,
         MembershipReferenceType... types
     ) {
         // Get existing memberships for a given type
@@ -1862,13 +1879,16 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             membership -> {
                 // Consider only membership "created by" the identity provider
                 if (identityProviderId.equals(membership.getSource())) {
-                    membershipService.deleteReferenceMemberBySource(
-                        MembershipReferenceType.valueOf(membership.getReferenceType().name()),
-                        membership.getReferenceId(),
-                        MembershipMemberType.USER,
-                        userId,
-                        membership.getSource()
-                    );
+                    // if there is no mapping configured on the social idp, we do not remove / reset it
+                    if (hasMapping) {
+                        membershipService.deleteReferenceMemberBySource(
+                            MembershipReferenceType.valueOf(membership.getReferenceType().name()),
+                            membership.getReferenceId(),
+                            MembershipMemberType.USER,
+                            userId,
+                            membership.getSource()
+                        );
+                    }
                 } else {
                     overrideUserMemberships.add(membership);
                 }
