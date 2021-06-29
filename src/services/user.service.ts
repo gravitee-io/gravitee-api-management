@@ -302,7 +302,7 @@ class UserService {
   }
 
   subscribeNewsletter(email): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.org.baseURL}/user/newsletter/subscribe`, email);
+    return this.$http.post(`${this.Constants.org.baseURL}/user/newsletter/_subscribe`, email);
   }
 
   getNewsletterTaglines(): ng.IPromise<any> {
