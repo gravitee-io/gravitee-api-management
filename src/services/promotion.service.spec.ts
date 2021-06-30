@@ -59,8 +59,8 @@ describe('PromotionService', () => {
       const promotion = fakePromotion();
       $httpBackend
         .expectPOST('http://url.test/apis/apiId/_promote', {
-          targetEnvironmentId: 'env#1',
-          targetInstallationId: 'inst#1',
+          targetEnvCockpitId: 'env#1',
+          targetEnvName: 'A name',
         })
         .respond(promotion);
 

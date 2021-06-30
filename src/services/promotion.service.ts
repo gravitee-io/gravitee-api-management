@@ -27,8 +27,8 @@ export class PromotionService {
 
   promote(apiId: string, promotionTarget: PromotionTarget): IPromise<Promotion> {
     const promotionRequest: PromotionRequest = {
-      targetEnvironmentId: promotionTarget.id,
-      targetInstallationId: promotionTarget.installationId,
+      targetEnvCockpitId: promotionTarget.id,
+      targetEnvName: promotionTarget.name,
     };
     return this.$http
       .post<Promotion>(`${this.Constants.env.baseURL}/apis/${apiId}/_promote`, promotionRequest)

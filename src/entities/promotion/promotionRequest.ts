@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 export interface PromotionRequest {
-  targetEnvironmentId: string;
-  targetInstallationId: string;
+  targetEnvCockpitId: string;
+  targetEnvName: string;
 }
