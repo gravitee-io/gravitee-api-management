@@ -589,6 +589,7 @@ md-card.no-box-shadow {
 
 .gv-main-container {
   height: calc(100vh - #{$navbarHeaderHeight});
+  background-color: var(--gv-theme-neutral-color-lighter);
 }
 
 .gv-button-toggled {
