@@ -148,7 +148,11 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                 context.response().status((proxyResponse == null) ? HttpStatusCode.SERVICE_UNAVAILABLE_503 : proxyResponse.status());
                 context.request().metrics().setApiResponseTimeMs(System.currentTimeMillis() -
                         context.request().metrics().getApiResponseTimeMs());
-                handler.handle(context);
+                if (proxyResponse instanceof ProcessorFailure) {
+                    handleError(context, (ProcessorFailure) proxyResponse);
+                } else {
+                    handler.handle(context);
+                }
             } else {
                 handleClientResponse(context, proxyResponse);
             }
