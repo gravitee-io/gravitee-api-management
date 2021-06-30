@@ -201,6 +201,11 @@
                     alert="$ctrl.alert"
                   ></gv-alert-trigger-node-lifecycle-changed>
 
+                  <gv-alert-trigger-node-healthcheck
+                    ng-if="$ctrl.alert.type === 'NODE_HEALTHCHECK@NODE_HEALTHCHECK'"
+                    alert="$ctrl.alert"
+                  ></gv-alert-trigger-node-healthcheck>
+
                   <gv-alert-trigger-application-quota
                     ng-if="$ctrl.alert.type === 'REQUEST@APPLICATION_QUOTA'"
                     alert="$ctrl.alert"

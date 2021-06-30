@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
+const AlertTriggerNodeHealthcheckComponent: ng.IComponentOptions = {
   bindings: {
     alert: '<',
   },
@@ -44,4 +44,4 @@ const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
   },
 };
 
-export default AlertTriggerNodeLifecycleChangedComponent;
+export default AlertTriggerNodeHealthcheckComponent;
