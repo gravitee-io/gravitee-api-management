@@ -18,6 +18,7 @@ module.exports = {
   testMatch: ['<rootDir>/src/**/?(*.)+(spec|test).ts'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testRunner: 'jest-jasmine2',
   verbose: true,
   moduleFileExtensions: ['js', 'ts', 'html'],
   moduleNameMapper: {
