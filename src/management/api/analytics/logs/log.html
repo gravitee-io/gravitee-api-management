@@ -174,14 +174,13 @@
 
   <div class="gv-form gv-form-danger" ng-if="$ctrl.log.message">
     <h2>Error</h2>
-    <div class="gv-form-content" layout="column">
-      <div
-        flex
-        ui-codemirror
-        ui-codemirror-opts="{lineNumbers: true, readOnly: true, mode: 'text/x-java'}"
-        ng-model="$ctrl.log.message"
-      ></div>
-    </div>
+    <gv-code
+      flex
+      readonly
+      ng-attr-value="{{$ctrl.log.message}}"
+      ng-attr-options="{{$ctrl.codeMirrorOptions()}}"
+      ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
+    ></gv-code>
   </div>
 
   <div class="gv-form">
@@ -241,21 +240,14 @@
             <br />
 
             <div ng-if="$ctrl.log.clientRequest.body" class="log-body">
-              <div
-                ui-codemirror
-                ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.clientRequest)}"
-                ng-model="$ctrl.log.clientRequest.body"
-              ></div>
-              <button class="copy">
-                <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
-                <ng-md-icon
-                  icon="content_copy"
-                  ngclipboard
-                  data-clipboard-text="{{$ctrl.log.clientRequest.body}}"
-                  ngclipboard-success="$ctrl.onCopyBodySuccess(e);"
-                  role="button"
-                ></ng-md-icon>
-              </button>
+              <gv-code
+                flex
+                readonly
+                ng-attr-clipboard="true"
+                ng-attr-value="{{$ctrl.log.clientRequest.body}}"
+                ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.clientRequest)}}"
+                ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
+              ></gv-code>
             </div>
           </div>
           <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientRequest">
@@ -306,21 +298,14 @@
             <br />
 
             <div ng-if="$ctrl.log.proxyRequest.body" class="log-body">
-              <div
-                ui-codemirror
-                ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyRequest)}"
-                ng-model="$ctrl.log.proxyRequest.body"
-              ></div>
-              <button class="copy">
-                <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
-                <ng-md-icon
-                  icon="content_copy"
-                  ngclipboard
-                  data-clipboard-text="{{$ctrl.log.proxyRequest.body}}"
-                  ngclipboard-success="$ctrl.onCopyBodySuccess(e);"
-                  role="button"
-                ></ng-md-icon>
-              </button>
+              <gv-code
+                flex
+                readonly
+                ng-attr-clipboard="true"
+                ng-attr-value="{{$ctrl.log.proxyRequest.body}}"
+                ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.proxyRequest)}}"
+                ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
+              ></gv-code>
             </div>
           </div>
           <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyRequest">
@@ -374,21 +359,14 @@
             <br />
 
             <div ng-if="$ctrl.log.clientResponse.body" class="log-body">
-              <div
-                ui-codemirror
-                ui-codemirror-opts="{lineNumbers: true, readOnly: true, lineWrapping: true, mode: $ctrl.getMimeType($ctrl.log.clientResponse)}"
-                ng-model="$ctrl.log.clientResponse.body"
-              ></div>
-              <button class="copy">
-                <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
-                <ng-md-icon
-                  icon="content_copy"
-                  ngclipboard
-                  data-clipboard-text="{{$ctrl.log.clientResponse.body}}"
-                  ngclipboard-success="$ctrl.onCopyBodySuccess(e);"
-                  role="button"
-                ></ng-md-icon>
-              </button>
+              <gv-code
+                flex
+                readonly
+                ng-attr-clipboard="true"
+                ng-attr-value="{{$ctrl.log.clientResponse.body}}"
+                ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.clientResponse)}}"
+                ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
+              ></gv-code>
             </div>
           </div>
           <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.clientResponse">
@@ -437,21 +415,14 @@
             <br />
 
             <div ng-if="$ctrl.log.proxyResponse.body" class="log-body">
-              <div
-                ui-codemirror
-                ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.proxyResponse)}"
-                ng-model="$ctrl.log.proxyResponse.body"
-              ></div>
-              <button class="copy">
-                <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
-                <ng-md-icon
-                  icon="content_copy"
-                  ngclipboard
-                  data-clipboard-text="{{$ctrl.log.proxyResponse.body}}"
-                  ngclipboard-success="$ctrl.onCopyBodySuccess(e);"
-                  role="button"
-                ></ng-md-icon>
-              </button>
+              <gv-code
+                flex
+                readonly
+                ng-attr-clipboard="true"
+                ng-attr-value="{{$ctrl.log.proxyResponse.body}}"
+                ng-attr-options="{{$ctrl.codeMirrorOptions($ctrl.log.proxyResponse)}}"
+                ng-on-gv-code:clipboard-copy="$ctrl.onCopyBodySuccess($event);"
+              ></gv-code>
             </div>
           </div>
           <div layout="column" flex="45" layout-align="center center" ng-if="!$ctrl.log.proxyResponse">

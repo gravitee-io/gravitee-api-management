@@ -1,6 +1,3 @@
-import { StateService } from '@uirouter/core';
-import NotificationService from '../../../../services/notification.service';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -16,6 +13,10 @@ import NotificationService from '../../../../services/notification.service';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import NotificationService from '../../../../services/notification.service';
+import '@gravitee/ui-components/wc/gv-code';
+
 const LogComponent: ng.IComponentOptions = {
   bindings: {
     log: '<',
@@ -31,6 +32,24 @@ const LogComponent: ng.IComponentOptions = {
       q: $state.params.q,
       page: $state.params.page,
       size: $state.params.size,
+    };
+
+    this.codeMirrorOptions = (log) => {
+      if (log) {
+        const codeMirrorOptions = {
+          lineNumbers: true,
+          lineWrapping: true,
+          matchBrackets: true,
+          mode: this.getMimeType(log),
+        };
+        return codeMirrorOptions;
+      }
+
+      // codeMirrorOptions for error block
+      return {
+        lineNumbers: true,
+        mode: 'text/x-java',
+      };
     };
 
     this.$onInit = () => {
@@ -56,17 +75,30 @@ const LogComponent: ng.IComponentOptions = {
     };
 
     this.getMimeType = function (log) {
-      if (log.headers['Content-Type'] !== undefined) {
-        let contentType = log.headers['Content-Type'][0];
-        return contentType.split(';', 1)[0];
+      if (log.headers) {
+        let contentType;
+        if (log.headers['content-type']) {
+          contentType = log.headers['content-type'][0];
+        } else if (log.headers['Content-Type']) {
+          contentType = log.headers['Content-Type'][0];
+        }
+        if (contentType) {
+          const splitElement = contentType.split(';', 1)[0];
+          // hack to manage some "application/xxx" content-type.
+          if (splitElement.includes('json') || splitElement.includes('javascript')) {
+            return 'javascript';
+          }
+          if (splitElement.includes('xml')) {
+            return 'xml';
+          }
+          return splitElement;
+        }
       }
-
       return null;
     };
 
     this.onCopyBodySuccess = function (evt) {
       this.NotificationService.show('Body has been copied to clipboard');
-      evt.clearSelection();
     };
   },
   template: require('./log.html'),
