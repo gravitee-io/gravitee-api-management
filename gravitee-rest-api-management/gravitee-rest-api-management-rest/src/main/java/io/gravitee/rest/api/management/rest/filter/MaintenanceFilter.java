@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.exceptions.MaintenanceModeException;
 import java.io.IOException;
+import java.util.regex.Pattern;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -44,10 +45,24 @@ public class MaintenanceFilter implements ContainerRequestFilter {
     @Inject
     ParameterService parameterService;
 
+    private Pattern organizationSettings = Pattern.compile("organizations/[^/]+/settings");
+
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
+        final boolean maintenanceModeEnabled = parameterService.findAsBoolean(
+            MAINTENANCE_MODE_ENABLED,
+            ParameterReferenceType.ORGANIZATION
+        );
         if (
-            parameterService.findAsBoolean(MAINTENANCE_MODE_ENABLED, ParameterReferenceType.ORGANIZATION) &&
+            maintenanceModeEnabled &&
+            organizationSettings.matcher(requestContext.getUriInfo().getPath()).matches() &&
+            "POST".equals(requestContext.getRequest().getMethod())
+        ) {
+            return;
+        }
+
+        if (
+            maintenanceModeEnabled &&
             !requestContext.getUriInfo().getPath().equals("portal") &&
             !requestContext.getUriInfo().getPath().equals("portal/")
         ) {

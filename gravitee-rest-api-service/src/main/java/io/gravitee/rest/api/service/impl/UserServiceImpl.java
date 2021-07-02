@@ -58,7 +58,6 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -1529,9 +1528,24 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         );
 
         if (created || socialProvider.isSyncMappings()) {
-            refreshUserMemberships(user.getId(), socialProvider.getId(), groupMemberships, MembershipReferenceType.GROUP);
-            refreshUserMemberships(user.getId(), socialProvider.getId(), roleOrganizationMemberships, MembershipReferenceType.ORGANIZATION);
-            refreshUserMemberships(user.getId(), socialProvider.getId(), roleEnvironmentMemberships, MembershipReferenceType.ENVIRONMENT);
+            final boolean hasGroupMapping = socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty();
+            refreshUserMemberships(user.getId(), socialProvider.getId(), groupMemberships, hasGroupMapping, MembershipReferenceType.GROUP);
+
+            final boolean hasRoleMapping = socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty();
+            refreshUserMemberships(
+                user.getId(),
+                socialProvider.getId(),
+                roleOrganizationMemberships,
+                hasRoleMapping,
+                MembershipReferenceType.ORGANIZATION
+            );
+            refreshUserMemberships(
+                user.getId(),
+                socialProvider.getId(),
+                roleEnvironmentMemberships,
+                hasRoleMapping,
+                MembershipReferenceType.ENVIRONMENT
+            );
         }
 
         return user;
@@ -1868,12 +1882,14 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      * @param userId User identifier.
      * @param identityProviderId The identity provider used to authenticate the user.
      * @param memberships List of memberships to associate to the user
+     * @param hasMapping If the social provider has a mapping for the given type
      * @param types The types of user memberships to manage
      */
     private void refreshUserMemberships(
         String userId,
         String identityProviderId,
         List<MembershipService.Membership> memberships,
+        boolean hasMapping,
         MembershipReferenceType... types
     ) {
         // Get existing memberships for a given type
@@ -1895,27 +1911,40 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
         }
 
+        List<Membership> overrideUserMemberships = new ArrayList<>();
         // Delete existing memberships
         userMemberships.forEach(
             membership -> {
-                membershipService.deleteReferenceMember(
-                    MembershipReferenceType.valueOf(membership.getReferenceType().name()),
-                    membership.getReferenceId(),
-                    MembershipMemberType.USER,
-                    userId
-                );
+                // Consider only membership "created by" the identity provider
+                if (identityProviderId.equals(membership.getSource())) {
+                    // if there is no mapping configured on the social idp, we do not remove / reset it
+                    if (hasMapping) {
+                        membershipService.deleteReferenceMemberBySource(
+                            MembershipReferenceType.valueOf(membership.getReferenceType().name()),
+                            membership.getReferenceId(),
+                            MembershipMemberType.USER,
+                            userId,
+                            membership.getSource()
+                        );
+                    }
+                } else {
+                    overrideUserMemberships.add(membership);
+                }
             }
         );
 
         Map<MembershipService.MembershipReference, Map<MembershipService.MembershipMember, Map<String, Collection<MembershipService.MembershipRole>>>> groupedRoles = new HashMap<>();
-        memberships.forEach(
-            membership ->
-                groupedRoles
-                    .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
-                    .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
-                    .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
-                    .add(membership.getRole())
-        );
+        memberships
+            .stream()
+            .filter(membership -> !containsMembership(overrideUserMemberships, membership))
+            .forEach(
+                membership ->
+                    groupedRoles
+                        .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
+                        .computeIfAbsent(membership.getMember(), ignore -> new HashMap<>())
+                        .computeIfAbsent(membership.getSource(), ignore -> new ArrayList<>())
+                        .add(membership.getRole())
+            );
         // Create updated memberships
         groupedRoles.forEach(
             (reference, memberMapping) ->
@@ -1926,6 +1955,20 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         )
                 )
         );
+    }
+
+    private boolean containsMembership(List<Membership> overrideUserMemberships, MembershipService.Membership membership) {
+        return overrideUserMemberships
+            .stream()
+            .anyMatch(
+                membership1 -> {
+                    if (membership1.getReferenceId().equals(membership.getReference().getId())) {
+                        RoleEntity byId = roleService.findById(membership1.getRoleId());
+                        return membership.getRole().getScope().equals(byId.getScope());
+                    }
+                    return false;
+                }
+            );
     }
 
     @Override

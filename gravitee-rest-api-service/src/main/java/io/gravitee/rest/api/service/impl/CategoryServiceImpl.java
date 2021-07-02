@@ -123,7 +123,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public CategoryEntity create(NewCategoryEntity newCategory) {
         // First we prevent the duplicate category name
-        final Optional<CategoryEntity> optionalCategory = findAll()
+        final List<CategoryEntity> categories = findAll();
+        final Optional<CategoryEntity> optionalCategory = categories
             .stream()
             .filter(v -> v.getName().equals((newCategory.getName())))
             .findAny();
@@ -142,6 +143,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
             category.setCreatedAt(createdAt);
             category.setUpdatedAt(createdAt);
             category.setEnvironmentId(environment);
+            category.setOrder(categories.size());
             CategoryEntity createdCategory = convert(categoryRepository.create(category));
             auditService.createEnvironmentAuditLog(
                 Collections.singletonMap(CATEGORY, category.getId()),

@@ -19,6 +19,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.WhitespaceTokenizer;
+import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilter;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -29,6 +30,6 @@ public class CustomWhitespaceAnalyzer extends Analyzer {
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
         final Tokenizer tokenizer = new WhitespaceTokenizer();
-        return new TokenStreamComponents(tokenizer, new LowerCaseFilter(tokenizer));
+        return new TokenStreamComponents(tokenizer, new ASCIIFoldingFilter(new LowerCaseFilter(tokenizer)));
     }
 }
