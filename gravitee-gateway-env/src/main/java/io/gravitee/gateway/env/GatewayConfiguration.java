@@ -176,22 +176,25 @@ public class GatewayConfiguration implements InitializingBean {
                 }
 
                 return (
-                    inclusionTags
-                        .stream()
-                        .anyMatch(
-                            tag ->
-                                tags
-                                    .stream()
-                                    .anyMatch(
-                                        crtTag -> {
-                                            final Collator collator = Collator.getInstance();
-                                            collator.setStrength(Collator.NO_DECOMPOSITION);
-                                            return collator.compare(tag, crtTag) == 0;
-                                        }
-                                    )
-                        ) ||
                     (
-                        !exclusionTags.isEmpty() &&
+                        inclusionTags.isEmpty() ||
+                        inclusionTags
+                            .stream()
+                            .anyMatch(
+                                tag ->
+                                    tags
+                                        .stream()
+                                        .anyMatch(
+                                            crtTag -> {
+                                                final Collator collator = Collator.getInstance();
+                                                collator.setStrength(Collator.NO_DECOMPOSITION);
+                                                return collator.compare(tag, crtTag) == 0;
+                                            }
+                                        )
+                            )
+                    ) &&
+                    (
+                        exclusionTags.isEmpty() ||
                         exclusionTags
                             .stream()
                             .noneMatch(
