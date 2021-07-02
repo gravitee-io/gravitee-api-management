@@ -34,13 +34,11 @@
   padding: var(--gv-page-asciidoc--p, 2rem 4rem);
 }
 
-
 :host ::ng-deep code {
   max-width: 100%;
   display: inline;
   overflow: auto;
 }
-
 
 /* (1440x900) WXGA+ Display */
 @media screen and (max-width: 1440px) {

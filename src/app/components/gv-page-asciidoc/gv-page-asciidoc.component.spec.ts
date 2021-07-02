@@ -18,11 +18,13 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { createComponentFactory, Spectator } from '@ngneat/spectator';
 
 import { GvPageAsciiDocComponent } from './gv-page-asciidoc.component';
+import { SafePipe } from '../../pipes/safe.pipe';
 
 describe('GvPageAsciiDocComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageAsciiDocComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
+    declarations: [SafePipe],
     imports: [HttpClientTestingModule],
   });
 
@@ -32,6 +34,7 @@ describe('GvPageAsciiDocComponent', () => {
   beforeEach(() => {
     spectator = createComponent();
     component = spectator.component;
+    component.pageContent = null;
   });
 
   it('should create', () => {

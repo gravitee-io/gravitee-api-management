@@ -27,20 +27,17 @@ export class GvPageAsciiDocComponent implements OnInit {
   page: Page;
   pageContent: string;
 
-  constructor(
-    private pageService: PageService,
-  ) {}
+  constructor(private pageService: PageService) {}
 
   ngOnInit() {
     this.page = this.pageService.getCurrentPage();
     const asiidocContainer = document.querySelector('.gv-page-container');
 
-    if (asiidocContainer) {
-      toDom(this.page.content).then( ({title, element}) => {
-        element.style.maxWidth= 'inherit';
+    if (this.page && this.page.content && asiidocContainer) {
+      toDom(this.page.content).then(({ element }) => {
+        element.style.maxWidth = 'inherit';
         this.pageContent = element.innerHTML;
       });
-
     }
   }
 
