@@ -239,7 +239,6 @@ class ApiPortalController {
     this.computeQualityMetrics();
     this.$scope.$on('apiPictureChangeSuccess', (event, args) => {
       this.api.picture = args.image;
-      this.formApi.$setDirty();
     });
   }
 

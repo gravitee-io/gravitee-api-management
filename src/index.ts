@@ -101,7 +101,7 @@ function preselectOrganization() {
   const lastOrganization = $window.localStorage.getItem('gv-last-organization-loaded');
   if (organizationParam) {
     orgId = organizationParam.replace(/\/$/, '');
-    window.history.replaceState({}, '', `${window.location.origin}/${window.location.hash}`);
+    window.history.replaceState({}, '', `${window.location.origin}${window.location.pathname}${window.location.hash}`);
   } else if (lastOrganization) {
     orgId = lastOrganization.replace(/\/$/, '');
   }
