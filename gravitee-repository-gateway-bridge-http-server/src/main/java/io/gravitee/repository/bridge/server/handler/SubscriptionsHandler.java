@@ -63,7 +63,7 @@ public class SubscriptionsHandler extends AbstractHandler {
 
         Long toVal = payload.getLong("to");
         if (toVal != null && toVal > 0) {
-            builder.from(toVal);
+            builder.to(toVal);
         }
 
         String clientIdVal = payload.getString("clientId");

@@ -51,7 +51,8 @@ public class HttpServerSpringConfiguration {
         HttpServerOptions options =
             new HttpServerOptions()
                 .setPort(httpServerConfiguration.getPort())
-                .setHost(httpServerConfiguration.getHost());
+                .setHost(httpServerConfiguration.getHost())
+                .setCompressionSupported(true);
 
         if (httpServerConfiguration.isSecured()) {
             options.setSsl(httpServerConfiguration.isSecured());
