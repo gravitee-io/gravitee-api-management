@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.5.14
+      author: GraviteeSource Team
+      changes:
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}parameters set `key` = REPLACE(`key`, 'portal.http.cors', 'http.api.portal.cors') where `key` like 'portal.http.cors.%';
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}parameters set `key` = REPLACE(`key`, 'console.http.cors', 'http.api.management.cors') where `key` like 'console.http.cors.%';
+
+        # dbms: postgres
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}parameters set "key" = REPLACE("key", 'portal.http.cors', 'http.api.portal.cors') where "key" like 'portal.http.cors.%';
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}parameters set "key" = REPLACE("key", 'console.http.cors', 'http.api.management.cors') where "key" like 'console.http.cors.%';
+
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}parameters set [key] = REPLACE([key], 'portal.http.cors', 'http.api.portal.cors') where [key] like 'portal.http.cors.%';
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}parameters set [key] = REPLACE([key], 'console.http.cors', 'http.api.management.cors') where [key] like 'console.http.cors.%';
