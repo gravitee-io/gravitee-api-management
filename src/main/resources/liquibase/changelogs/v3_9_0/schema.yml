@@ -1,0 +1,146 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.9.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}tags
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+                  defaultValue: ORGANIZATION
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: ${gravitee_prefix}tenants
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+                  defaultValue: ORGANIZATION
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: ${gravitee_prefix}entrypoints
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reference_type
+                  type: nvarchar(64)
+                  defaultValue: ORGANIZATION
+                  constraints:
+                    nullable: false
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}entrypoints set reference_type = 'ORGANIZATION', reference_id = (SELECT organization_id from ${gravitee_prefix}environments env where ${gravitee_prefix}entrypoints.environment_id = env.id) from ${gravitee_prefix}entrypoints ent where ent.environment_id IS NOT NULL OR ent.environment_id <> '';
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}entrypoints set reference_type = 'ORGANIZATION', reference_id = ${gravitee_prefix}environments.organization_id from ${gravitee_prefix}entrypoints inner join ${gravitee_prefix}environments on ${gravitee_prefix}environments.id = ${gravitee_prefix}entrypoints.environment_id where ${gravitee_prefix}entrypoints.environment_id IS NOT NULL OR ${gravitee_prefix}entrypoints.environment_id <> '';
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}entrypoints inner join ${gravitee_prefix}environments on ${gravitee_prefix}environments.id = ${gravitee_prefix}entrypoints.environment_id set reference_type = 'ORGANIZATION', reference_id = ${gravitee_prefix}environments.organization_id where ${gravitee_prefix}entrypoints.environment_id IS NOT NULL OR ${gravitee_prefix}entrypoints.environment_id <> '';
+
+        - dropColumn:
+            cascadeConstraints: true
+            columnName: environment_id
+            tableName: ${gravitee_prefix}entrypoints
+
+        - createTable:
+            tableName: ${gravitee_prefix}event_environments
+            columns:
+              - column: { name: event_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+
+        - sql:
+            sql: insert into ${gravitee_prefix}event_environments (event_id, environment_id) select id, environment_id from ${gravitee_prefix}events;
+
+        - dropColumn:
+            cascadeConstraints: true
+            columnName: environment_id
+            tableName: ${gravitee_prefix}events
+
+        - createTable:
+            tableName: ${gravitee_prefix}flows
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: condition, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: enabled, type: boolean, constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: path, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: operator, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: order, type: integer, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flows
+            columnNames: id
+            tableName: ${gravitee_prefix}flows
+
+        - createTable:
+            tableName: ${gravitee_prefix}flow_steps
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: configuration, type: nclob, constraints: { nullable: true } }
+              - column: { name: description, type: nvarchar(256), constraints: { nullable: true } }
+              - column: { name: enabled, type: boolean, constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: { name: policy, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: order, type: integer, constraints: { nullable: true } }
+              - column: { name: phase, type: nvarchar(32), constraints: { nullable: false } }
+
+        - createTable:
+            tableName: ${gravitee_prefix}flow_methods
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: method, type: nvarchar(32), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_methods
+            columnNames: flow_id, method
+            tableName: ${gravitee_prefix}flow_methods
+
+        - createTable:
+            tableName: ${gravitee_prefix}flow_consumers
+            columns:
+              - column: { name: flow_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: consumer_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: consumer_type, type: nvarchar(32), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}flow_consumers
+            columnNames: flow_id, consumer_id, consumer_type
+            tableName: ${gravitee_prefix}flow_consumers
+
+        - addColumn:
+            tableName: ${gravitee_prefix}organizations
+            columns:
+              - column:
+                  name: flow_mode
+                  type: nvarchar(32)
+                  defaultValue: DEFAULT
+                  constraints:
+                    nullable: false
+

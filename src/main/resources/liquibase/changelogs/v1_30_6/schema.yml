@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.30.6
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+              tableName: ${gravitee_prefix}views
+              columns:
+                  - column:
+                        name: key
+                        type: nvarchar(128)

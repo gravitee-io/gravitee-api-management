@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.5.0
+      author: GraviteeSource Team
+      changes:
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}parameters
+            columnDataType: nvarchar(32)
+            columnName: reference_type
+        - dropPrimaryKey:
+            constraintName: pk_${gravitee_prefix}parameters
+            tableName: ${gravitee_prefix}parameters
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}parameters
+            columnNames: key, reference_id, reference_type
+            tableName: ${gravitee_prefix}parameters
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: insert into ${gravitee_prefix}parameters (`key`, reference_id, reference_type, value) select CONCAT('console.', `key`), 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where (`key` = 'authentication.localLogin.enabled' or `key` like 'scheduler.%' or `key` like 'reCaptcha.%' or `key` like 'http.cors.%');
+        - sql:
+            dbms: mariadb, mysql
+            sql: insert into ${gravitee_prefix}parameters (`key`, reference_id, reference_type, value) select 'console.support.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where `key` = 'portal.support.enabled';
+        - sql:
+            dbms: mariadb, mysql
+            sql: insert into ${gravitee_prefix}parameters (`key`, reference_id, reference_type, value) select 'console.userCreation.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where `key` = 'portal.userCreation.enabled';
+        - sql:
+            dbms: mariadb, mysql
+            sql: insert into ${gravitee_prefix}parameters (`key`, reference_id, reference_type, value) select 'console.userCreation.automaticValidation.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where `key` = 'portal.userCreation.automaticValidation.enabled';
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}parameters set `key` = CONCAT('portal.', `key`) where (`key` = 'authentication.localLogin.enabled' or `key` = 'authentication.forceLogin.enabled' or `key` like 'scheduler.%' or `key` like 'reCaptcha.%' or `key` like 'http.cors.%');
+
+        # dbms: postgres
+        - sql:
+            dbms: postgres
+            sql: insert into ${gravitee_prefix}parameters ("key", reference_id, reference_type, value) select CONCAT('console.', "key"), 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where ("key" = 'authentication.localLogin.enabled' or "key" like 'scheduler.%' or "key" like 'reCaptcha.%' or "key" like 'http.cors.%');
+        - sql:
+            dbms: postgres
+            sql: insert into ${gravitee_prefix}parameters ("key", reference_id, reference_type, value) select 'console.support.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where "key" = 'portal.support.enabled';
+        - sql:
+            dbms: postgres
+            sql: insert into ${gravitee_prefix}parameters ("key", reference_id, reference_type, value) select 'console.userCreation.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where "key" = 'portal.userCreation.enabled';
+        - sql:
+            dbms: postgres
+            sql: insert into ${gravitee_prefix}parameters ("key", reference_id, reference_type, value) select 'console.userCreation.automaticValidation.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where "key" = 'portal.userCreation.automaticValidation.enabled';
+        - sql:
+            dbms: postgres
+            sql: update ${gravitee_prefix}parameters set "key" = CONCAT('portal.', "key") where ("key" = 'authentication.localLogin.enabled' or "key" = 'authentication.forceLogin.enabled' or "key" like 'scheduler.%' or "key" like 'reCaptcha.%' or "key" like 'http.cors.%');
+
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: insert into ${gravitee_prefix}parameters ([key], reference_id, reference_type, value) select CONCAT('console.', [key]), 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where ([key] = 'authentication.localLogin.enabled' or [key] like 'scheduler.%' or [key] like 'reCaptcha.%' or [key] like 'http.cors.%');
+        - sql:
+            dbms: mssql
+            sql: insert into ${gravitee_prefix}parameters ([key], reference_id, reference_type, value) select 'console.support.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where [key] = 'portal.support.enabled';
+        - sql:
+            dbms: mssql
+            sql: insert into ${gravitee_prefix}parameters ([key], reference_id, reference_type, value) select 'console.userCreation.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where [key] = 'portal.userCreation.enabled';
+        - sql:
+            dbms: mssql
+            sql: insert into ${gravitee_prefix}parameters ([key], reference_id, reference_type, value) select 'console.userCreation.automaticValidation.enabled', 'DEFAULT', 'ORGANIZATION', value from ${gravitee_prefix}parameters where [key] = 'portal.userCreation.automaticValidation.enabled';
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}parameters set [key] = CONCAT('portal.', [key]) where ([key] = 'authentication.localLogin.enabled' or [key] = 'authentication.forceLogin.enabled' or [key] like 'scheduler.%' or [key] like 'reCaptcha.%' or [key] like 'http.cors.%');

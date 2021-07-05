@@ -1,0 +1,69 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.23.0
+        author: GraviteeSource Team
+        changes:
+        - createTable:
+              tableName: ${gravitee_prefix}page_metadata
+              columns:
+                  - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+                  - column: {name: k, type: nvarchar(64), constraints: { nullable: false } }
+                  - column: {name: v, type: nvarchar(200), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+              constraintName: pk_${gravitee_prefix}page_metadata
+              columnNames: page_id, k, v
+              tableName: ${gravitee_prefix}page_metadata
+
+        - addColumn:
+              tableName: ${gravitee_prefix}views
+              columns:
+                  - column:
+                      name: picture
+                      type: nclob
+
+        - addColumn:
+            tableName: ${gravitee_prefix}groups
+            columns:
+              - column:
+                  name: max_invitation
+                  type: int
+              - column:
+                  name: lock_api_role
+                  type: boolean
+              - column:
+                  name: lock_application_role
+                  type: boolean
+              - column:
+                  name: system_invitation
+                  type: boolean
+              - column:
+                  name: email_invitation
+                  type: boolean
+
+        - createTable:
+            tableName: ${gravitee_prefix}invitations
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: email, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: api_role, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: application_role, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}invitations
+            columnNames: id
+            tableName: ${gravitee_prefix}invitations
+
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: name
+            tableName: ${gravitee_prefix}pages
+
+        - modifyDataType:
+            tableName: ${gravitee_prefix}pages
+            columnName: source_configuration
+            newDataType: nvarchar(512)

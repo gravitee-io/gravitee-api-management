@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.1.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: background
+                  type: nclob
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: ${gravitee_prefix}applications
+            columns:
+              - column:
+                  name: background
+                  type: nclob
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: ${gravitee_prefix}categories
+            columns:
+              - column:
+                  name: background
+                  type: nclob
+                  constraints:
+                    nullable: true

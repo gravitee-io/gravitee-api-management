@@ -1,0 +1,7 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.18.0
+        author: GraviteeSource Team
+        changes:
+        - dropTable:
+            tableName: ${gravitee_prefix}user_roles

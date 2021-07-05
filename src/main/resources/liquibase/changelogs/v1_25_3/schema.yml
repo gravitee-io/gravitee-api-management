@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.3
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}identity_providers
+            columns:
+                - column:
+                    name: email_required
+                    type: boolean

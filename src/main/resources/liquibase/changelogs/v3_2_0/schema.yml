@@ -1,0 +1,135 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.2.0
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}page_revisions
+            columns:
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: revision, type: int, constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: hash, type: nvarchar(256), constraints: { nullable: true } }
+              - column: {name: content, type: nclob, constraints: { nullable: true } }
+              - column: {name: contributor, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}page_revisions
+            columnNames: page_id, revision
+            tableName: ${gravitee_prefix}page_revisions
+
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column:
+                  name: general_conditions
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+              - column:
+                  name: general_conditions_accepted
+                  type: boolean
+                  constraints:
+                    nullable: true
+              - column:
+                  name: general_conditions_content_page_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: general_conditions_content_revision
+                  type: int
+                  constraints:
+                    nullable: true
+        - addColumn:
+            tableName: ${gravitee_prefix}categories
+            columns:
+              - column:
+                  name: page
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+
+        - addColumn:
+            tableName: ${gravitee_prefix}pages
+            columns:
+              - column:
+                  name: use_auto_fetch
+                  type: boolean
+                  constraints:
+                    nullable: true
+        - createIndex:
+            indexName: idx_${gravitee_prefix}pages_with_auto_fetch
+            columns:
+              - column:
+                  name: use_auto_fetch
+                  type: boolean
+            tableName: ${gravitee_prefix}pages
+
+        - createTable:
+            tableName: ${gravitee_prefix}custom_user_fields
+            columns:
+              - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: {name: label, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: format, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: required, type: boolean, constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}custom_user_fields
+            columnNames: key, reference_type, reference_id
+            tableName: ${gravitee_prefix}custom_user_fields
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}custom_user_fields_by_ref
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+            tableName: ${gravitee_prefix}custom_user_fields
+
+        - createTable:
+            tableName: ${gravitee_prefix}custom_user_fields_values
+            columns:
+              - column: {name: key, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: { name: value, type: nvarchar(1024), constraints: { nullable: false } }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}custom_user_fields_values
+            columns:
+              - column:
+                  name: key
+                  type: nvarchar(64)
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+            tableName: ${gravitee_prefix}custom_user_fields_values
+
+        - createTable:
+            tableName: ${gravitee_prefix}page_attached_media
+            columns:
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: media_hash, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: media_name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: attached_at, type: timestamp(6), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}page_attached_media
+            columnNames: page_id, media_hash, media_name, attached_at
+            tableName: ${gravitee_prefix}page_attached_media
+

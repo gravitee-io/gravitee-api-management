@@ -1,0 +1,31 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.22.0
+        author: GraviteeSource Team
+        changes:
+
+        - addColumn:
+            tableName: ${gravitee_prefix}keys
+            columns:
+                - column:
+                    name: paused
+                    type: boolean
+
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+                - column:
+                    name: paused_at
+                    type: timestamp(6)
+
+        - createTable:
+            tableName: ${gravitee_prefix}entrypoints
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: value, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: tags, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}entrypoints
+            columnNames: id
+            tableName: ${gravitee_prefix}entrypoints

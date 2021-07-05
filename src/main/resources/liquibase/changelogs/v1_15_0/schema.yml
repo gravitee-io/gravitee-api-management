@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.15.0
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscriptions
+            columns:
+                - column:
+                    name: request
+                    type: nvarchar(1024)

@@ -1,0 +1,48 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.18.0-pageconfiguration
+        author: GraviteeSource Team
+        preConditions:
+            onFail: MARK_RAN
+            not:
+                dbms:
+                  type: mssql
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}pages
+            columns:
+                - column: {name: parent_id, type: nvarchar(64), constraints: { nullable: true } }
+        - createTable:
+            tableName: ${gravitee_prefix}page_configuration
+            columns:
+                - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: k, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: v, type: nvarchar(200), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}page_configuration
+            columnNames: page_id, k, v
+            tableName: ${gravitee_prefix}page_configuration
+
+        - sql:
+            comment: Move tryIt to a the dedicated table
+            sql: >
+              insert into ${gravitee_prefix}page_configuration (page_id, k, v)
+              select id, 'tryIt', configuration_try_it
+              from ${gravitee_prefix}pages
+              where configuration_try_it is true
+
+        - sql:
+            comment: Move tryItURL to a the dedicated table
+            sql: >
+              insert into ${gravitee_prefix}page_configuration (page_id, k, v)
+              select id, 'tryItURL', configuration_try_it_url
+              from ${gravitee_prefix}pages
+              where configuration_try_it_url is not null
+
+        - dropColumn:
+            columnName: configuration_try_it_url
+            tableName: ${gravitee_prefix}pages
+        - dropColumn:
+            columnName: configuration_try_it
+            tableName: ${gravitee_prefix}pages

@@ -1,0 +1,20 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.30.13
+        author: GraviteeSource Team
+        changes:
+        - createTable:
+              tableName: ${gravitee_prefix}tokens
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: token, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: expires_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: last_use_at, type: timestamp(6), constraints: { nullable: true } }
+        - modifyDataType:
+            tableName: ${gravitee_prefix}audits
+            columnName: user
+            newDataType: nvarchar(128)

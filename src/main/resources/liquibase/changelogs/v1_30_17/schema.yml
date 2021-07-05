@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.30.17
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}groups
+            columns:
+              - column:
+                  name: disable_membership_notifications
+                  type: boolean
+
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: disable_membership_notifications
+                  type: boolean
+
+        - addColumn:
+            tableName: ${gravitee_prefix}applications
+            columns:
+              - column:
+                  name: disable_membership_notifications
+                  type: boolean

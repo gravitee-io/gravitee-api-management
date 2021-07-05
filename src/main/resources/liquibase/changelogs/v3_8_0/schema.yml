@@ -1,0 +1,76 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.8.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}pages
+            columns:
+              - column:
+                  name: visibility
+                  type: nvarchar(64)
+                  defaultValue: PUBLIC
+                  constraints:
+                    nullable: false
+        - addColumn:
+            tableName: ${gravitee_prefix}themes
+            columns:
+              - column:
+                  name: favicon
+                  type: nclob
+                  constraints:
+                    nullable: true
+
+        - createTable:
+            tableName: ${gravitee_prefix}node_monitoring
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: node_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: payload, type: nclob, constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: evaluated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+              - addPrimaryKey:
+                  constraintName: pk_${gravitee_prefix}node_monitoring
+                  columnNames: id
+
+        - addColumn:
+            tableName: ${gravitee_prefix}pages
+            columns:
+              - column:
+                  name: excluded_access_controls
+                  type: boolean
+
+        - createTable:
+            tableName: ${gravitee_prefix}page_acl
+            columns:
+              - column: {name: page_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}page_acl
+            columnNames: page_id, reference_id, reference_type
+            tableName: ${gravitee_prefix}page_acl
+
+        - sql:
+            sql: insert into ${gravitee_prefix}page_acl (page_id, reference_id, reference_type) select page_id, excluded_group, 'GROUP' from ${gravitee_prefix}page_excluded_groups;
+
+        # dbms: postgres
+        - sql:
+            dbms: postgres
+            sql: update ${gravitee_prefix}pages set excluded_access_controls = true, visibility = 'PRIVATE' from ${gravitee_prefix}page_excluded_groups where ${gravitee_prefix}page_excluded_groups.page_id = ${gravitee_prefix}pages.id and (${gravitee_prefix}page_excluded_groups.excluded_group IS NOT NULL OR ${gravitee_prefix}page_excluded_groups.excluded_group <> '');
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}pages set excluded_access_controls = 'TRUE', visibility = 'PRIVATE' from ${gravitee_prefix}pages inner join ${gravitee_prefix}page_excluded_groups on ${gravitee_prefix}page_excluded_groups.page_id = ${gravitee_prefix}pages.id where ${gravitee_prefix}page_excluded_groups.excluded_group IS NOT NULL OR ${gravitee_prefix}page_excluded_groups.excluded_group <> '';
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}pages inner join ${gravitee_prefix}page_excluded_groups on ${gravitee_prefix}page_excluded_groups.page_id = ${gravitee_prefix}pages.id set excluded_access_controls = true, visibility = 'PRIVATE' where ${gravitee_prefix}page_excluded_groups.excluded_group IS NOT NULL OR ${gravitee_prefix}page_excluded_groups.excluded_group <> ''
+        - dropTable:
+            cascadeConstraints: true
+            tableName: ${gravitee_prefix}page_excluded_groups
+

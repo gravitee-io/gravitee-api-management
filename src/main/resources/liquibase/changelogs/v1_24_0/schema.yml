@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.24.0
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+              - column:
+                  name: comment_message
+                  type: nvarchar(64)

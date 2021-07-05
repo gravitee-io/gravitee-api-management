@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.18.0-views
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}views
+            columns:
+                - column:
+                    name: highlight_api
+                    type: nvarchar(128)

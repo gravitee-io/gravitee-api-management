@@ -1,0 +1,42 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.6.0
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}organization_hrids
+            columns:
+              - column: { name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: hrid, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: pos, type: integer, constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}organization_hrids
+            columnNames: organization_id, hrid
+            tableName: ${gravitee_prefix}organization_hrids
+
+        - createTable:
+            tableName: ${gravitee_prefix}environment_hrids
+            columns:
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: hrid, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: pos, type: integer, constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}environment_hrids
+            columnNames: environment_id, hrid
+            tableName: ${gravitee_prefix}environment_hrids
+
+        - createTable:
+            tableName: ${gravitee_prefix}installation
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - createTable:
+            tableName: ${gravitee_prefix}installation_informations
+            columns:
+              - column: { name: installation_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: information_key, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: information_value, type: nvarchar(256), constraints: { nullable: true } }

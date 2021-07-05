@@ -1,0 +1,7 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.23
+        author: GraviteeSource Team
+        changes:
+          - sql:
+                sql: delete from ${gravitee_prefix}memberships where reference_type = 'APPLICATION' and reference_id in (select id from ${gravitee_prefix}applications where status = 'ARCHIVED')

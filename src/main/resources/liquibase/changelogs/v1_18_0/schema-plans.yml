@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.18.0-plans
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+                - column:
+                    name: definition
+                    type: nclob

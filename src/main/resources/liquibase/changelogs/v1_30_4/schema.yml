@@ -1,0 +1,17 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.30.4
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}identity_providers
+            columns:
+                - column:
+                    name: sync_mappings
+                    type: boolean
+        - addColumn:
+              tableName: ${gravitee_prefix}memberships
+              columns:
+                  - column:
+                        name: source
+                        type: nvarchar(64)
