@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mappings xmlns="http://dozermapper.github.io/schema/bean-mapping"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://dozermapper.github.io/schema/bean-mapping http://dozermapper.github.io/schema/bean-mapping.xsd">
+
+    <mapping>
+        <class-a>io.gravitee.repository.management.model.ApiQualityRule</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.ApiQualityRuleMongo</class-b>
+        <field>
+            <a>api</a>
+            <b>id.api</b>
+        </field>
+        <field>
+            <a>qualityRule</a>
+            <b>id.qualityRule</b>
+        </field>
+    </mapping>
+
+    <mapping>
+        <class-a>io.gravitee.repository.management.model.Page</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.PageMongo</class-b>
+        <field custom-converter="io.gravitee.repository.mongodb.management.mapper.NullToDefaultValueConverter"
+                custom-converter-param="PUBLIC"
+        >
+            <a>visibility</a>
+            <b>visibility</b>
+        </field>
+    </mapping>
+
+    <mapping>
+        <class-a>io.gravitee.repository.management.model.PageRevision</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.PageRevisionMongo</class-b>
+        <field>
+            <a>pageId</a>
+            <b>id.pageId</b>
+        </field>
+        <field>
+            <a>revision</a>
+            <b>id.revision</b>
+        </field>
+    </mapping>
+
+    <mapping map-null="false">
+        <class-a>io.gravitee.repository.management.model.Subscription</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo</class-b>
+        <field>
+            <a>generalConditionsContentPageId</a>
+            <b>generalConditionsContentRevision.pageId</b>
+        </field>
+        <field>
+            <a>generalConditionsContentRevision</a>
+            <b>generalConditionsContentRevision.revision</b>
+        </field>
+    </mapping>
+
+    <mapping >
+        <class-a>io.gravitee.repository.management.model.CustomUserField</class-a>
+        <class-b>io.gravitee.repository.mongodb.management.internal.model.CustomUserFieldMongo</class-b>
+        <field>
+            <a>key</a>
+            <b>id.key</b>
+        </field>
+        <field>
+            <a>referenceId</a>
+            <b>id.referenceId</b>
+        </field>
+        <field>
+            <a>referenceType</a>
+            <b>id.referenceType</b>
+        </field>
+    </mapping>
+</mappings>
