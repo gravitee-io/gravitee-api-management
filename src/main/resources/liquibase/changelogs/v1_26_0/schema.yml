@@ -1,0 +1,48 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.26.0
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}client_registration_providers
+            columns:
+              - column:
+                  name: initial_access_token
+                  type: nvarchar(1000)
+              - column:
+                  name: initial_access_token_type
+                  type: nvarchar(64)
+        - dropNotNullConstraint:
+            tableName: ${gravitee_prefix}client_registration_providers
+            columnName: client_id
+            columnDataType: nvarchar(128)
+        - dropNotNullConstraint:
+            tableName: ${gravitee_prefix}client_registration_providers
+            columnName: client_secret
+            columnDataType: nvarchar(128)
+
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: api_lifecycle_state
+                  type: nvarchar(64)
+        - sql:
+            sql: update ${gravitee_prefix}apis set api_lifecycle_state='PUBLISHED'
+
+        - createTable:
+            tableName: ${gravitee_prefix}workflows
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: state, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: comment, type: nvarchar(500), constraints: { nullable: true } }
+              - column: {name: user, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}workflows
+            columnNames: id
+            tableName: ${gravitee_prefix}workflows

@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.1.2
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}users
+            columns:
+              - column:
+                  name: first_connection_at
+                  type: timestamp(6)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: newsletter_subscribed
+                  type: boolean
+                  constraints:
+                    nullable: true

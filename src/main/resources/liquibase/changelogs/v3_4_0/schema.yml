@@ -1,0 +1,62 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.4.0
+      author: GraviteeSource Team
+      changes:
+        - sql:
+            - sql: update ${gravitee_prefix}audits set reference_type = 'ORGANIZATION' where reference_type = 'PORTAL' and (event like 'IDENTITY_PROVIDER%' or event like 'ROLE%' or event like 'USER%' or (event like 'MEMBERSHIP%' and patch like '%organization%'));
+        - sql:
+            - sql: update ${gravitee_prefix}audits set reference_type = 'ENVIRONMENT' where reference_type = 'PORTAL';
+
+        - createTable:
+            tableName: ${gravitee_prefix}identity_provider_activations
+            columns:
+              - column: {name: identity_provider_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}identity_provider_activations
+            columnNames: identity_provider_id, reference_id, reference_type
+            tableName: ${gravitee_prefix}identity_provider_activations
+        - createTable:
+            tableName: ${gravitee_prefix}notification_templates
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: hook, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: scope, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: title, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: content, type: nclob, constraints: { nullable: true } }
+              - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+
+              - addPrimaryKey:
+                  constraintName: pk_${gravitee_prefix}notification_templates
+                  columnNames: id
+
+        - createTable:
+            tableName: ${gravitee_prefix}tickets
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: from_user, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: api, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: application, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: subject, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: content, type: nclob, constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}tickets
+            columnNames: id
+            tableName: ${gravitee_prefix}tickets
+
+        - sql:
+            sql: delete from ${gravitee_prefix}role_permissions where role_id = (select id from ${gravitee_prefix}roles r where r.scope = 'API' and r.name='REVIEWER') and permission like '30%';
+        - sql:
+            sql: insert into ${gravitee_prefix}role_permissions (role_id, permission) select r.id, '3014' from ${gravitee_prefix}roles r where r.scope = 'API' and r.name='REVIEWER';

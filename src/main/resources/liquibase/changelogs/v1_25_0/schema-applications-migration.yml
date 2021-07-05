@@ -1,0 +1,11 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.0-applications-migration
+        author: GraviteeSource Team
+        changes:
+        - sql:
+            sql: insert into ${gravitee_prefix}application_metadata (application_id, k, v) select id, 'type', type from ${gravitee_prefix}applications where type is not null
+        - sql:
+            sql: insert into ${gravitee_prefix}application_metadata (application_id, k, v) select id, 'client_id', client_id from ${gravitee_prefix}applications where client_id is not null
+        - sql:
+            sql: update ${gravitee_prefix}applications set type='SIMPLE'

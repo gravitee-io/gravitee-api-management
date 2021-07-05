@@ -1,0 +1,9 @@
+management:
+  type: jdbc
+  jdbc:
+    prefix: test_gio_
+
+ratelimit:
+  type: jdbc
+  jdbc:
+    prefix: test_rl

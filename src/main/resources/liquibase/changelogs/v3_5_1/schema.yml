@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.5.1
+      author: GraviteeSource Team
+      changes:
+        - sql:
+            sql: UPDATE ${gravitee_prefix}memberships SET reference_id = 'DEFAULT' WHERE reference_id IS null AND reference_type ='ENVIRONMENT';

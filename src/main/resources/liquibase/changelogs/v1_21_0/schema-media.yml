@@ -1,0 +1,17 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.21.0-media
+        author: GraviteeSource Team
+        changes:
+        - createTable:
+            tableName: ${gravitee_prefix}media
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: sub_type, type: nvarchar(128), constraints: { nullable: false } }
+                - column: {name: file_name, type: nvarchar(128), constraints: { nullable: false } }
+                - column: {name: size, type: int, constraints: { nullable: false } }
+                - column: {name: data, type: longblob, constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: api, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: hash, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }

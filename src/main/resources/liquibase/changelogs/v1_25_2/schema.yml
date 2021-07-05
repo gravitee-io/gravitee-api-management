@@ -1,0 +1,45 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.2
+        author: GraviteeSource Team
+        validCheckSum:
+        - 8:67ff408ab1ca458f85386d06f45e395b
+        - 8:a1872ce916e96806b18767089dde811d
+        changes:
+        - addColumn:
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+            columns:
+                - column:
+                    name: subscription
+                    type: nvarchar(64)
+                - column:
+                    name: limit
+                    type: bigint
+        - dropColumn:
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+            columnName: last_request
+        - dropColumn:
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+            columnName: created_at
+        - dropColumn:
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+            columnName: updated_at
+        - dropColumn:
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+            columnName: async
+        - addNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: subscription
+            defaultNullValue: 'unknown'
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+        - dropPrimaryKey:
+            constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+        - modifyDataType:
+            tableName: ${gravitee_rate_limit_prefix}ratelimit
+            columnName: key
+            newDataType: nvarchar(128) not null
+        - addPrimaryKey:
+             constraintName: pk_${gravitee_rate_limit_prefix}ratelimit
+             columnNames: key
+             tableName: ${gravitee_rate_limit_prefix}ratelimit

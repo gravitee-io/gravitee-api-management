@@ -1,0 +1,13 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.30.3
+        author: GraviteeSource Team
+        changes:
+          - createTable:
+              tableName: ${gravitee_prefix}alert_events
+              columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true } }
+                - column: {name: alert, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: message, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }

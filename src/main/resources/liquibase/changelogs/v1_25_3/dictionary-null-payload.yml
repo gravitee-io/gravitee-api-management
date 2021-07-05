@@ -1,0 +1,9 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.3-dropNotNullConstraint-event-payload
+        author: GraviteeSource Team
+        changes:
+        - dropNotNullConstraint:
+            columnDataType: nclob
+            columnName: payload
+            tableName: ${gravitee_prefix}events

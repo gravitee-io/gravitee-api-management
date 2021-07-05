@@ -1,0 +1,44 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.0
+        author: GraviteeSource Team
+        changes:
+        - createTable:
+            tableName: ${gravitee_prefix}tag_groups
+            columns:
+              - column: {name: tag_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+        - createTable:
+              tableName: ${gravitee_prefix}application_metadata
+              columns:
+                  - column: {name: application_id, type: nvarchar(64), constraints: { nullable: false } }
+                  - column: {name: k, type: nvarchar(128), constraints: { nullable: false } }
+                  - column: {name: v, type: nvarchar(4000), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+              constraintName: pk_${gravitee_prefix}application_metadata
+              columnNames: application_id, k
+              tableName: ${gravitee_prefix}application_metadata
+
+        - createTable:
+            tableName: ${gravitee_prefix}client_registration_providers
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+              - column: {name: discovery_endpoint, type: nvarchar(4000), constraints: { nullable: false } }
+              - column: {name: client_id, type: nvarchar(128), constraints: { nullable: false } }
+              - column: {name: client_secret, type: nvarchar(128), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}client_registration_providers
+            columnNames: id
+            tableName: ${gravitee_prefix}client_registration_providers
+
+        - createTable:
+            tableName: ${gravitee_prefix}client_registration_provider_scopes
+            columns:
+              - column: {name: client_registration_provider_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: scope, type: nvarchar(64), constraints: { nullable: false } }

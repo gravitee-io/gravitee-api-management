@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.1.3
+      author: GraviteeSource Team
+      changes:
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+            tableName: ${gravitee_prefix}memberships
+
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+            tableName: ${gravitee_prefix}audits
