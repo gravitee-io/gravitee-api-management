@@ -1,0 +1,20 @@
+[
+   {
+      "id": "fa29c012-a0d2-4721-a9c0-12a0d26721db",
+      "environmentId": "DEFAULT",
+      "value": "https://public-api.company.com",
+      "tags": "public"
+   },
+   {
+      "id": "aaeddaec-0e94-4f49-adda-ec0e947f4965",
+      "environmentId": "DEFAULT",
+      "value": "https://store-api.company.com",
+      "tags": "public;store"
+   },
+   {
+      "id": "fbbc53ea3-357e-45bf-853e-a3357ed5bfdd",
+      "environmentId": "DEFAULT",
+      "value": "https://internal-api.company.com",
+      "tags": "private;store"
+   }
+]

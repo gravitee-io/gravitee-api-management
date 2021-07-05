@@ -1,0 +1,53 @@
+[
+   {
+      "key":"boolean",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION",
+      "label":"Boolean",
+      "format":"BOOLEAN",
+      "required": false,
+      "createdAt": 1486771200000,
+      "updatedAt": 1486771200000
+   },
+   {
+      "key":"string",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION",
+      "label":"String",
+      "format":"STRING",
+      "required": false,
+      "values": ["test_values"],
+      "createdAt": 1486771200000,
+      "updatedAt": 1486771200000
+   },
+   {
+      "key":"mail",
+      "referenceId": "NOTDEFAULT",
+      "referenceType": "ORGANIZATION",
+      "label":"Mail",
+      "format":"MAIL",
+      "required": false,
+      "createdAt": 1486771200000,
+      "updatedAt": 1486771200000
+   },
+   {
+      "key":"updateKey",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION",
+      "label":"label",
+      "format":"MAIL",
+      "required": false,
+      "createdAt": 1486771200000,
+      "updatedAt": 1486771200000
+   },
+   {
+      "key":"deleteKey",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION",
+      "label":"label",
+      "format":"MAIL",
+      "required": false,
+      "createdAt": 1486771200000,
+      "updatedAt": 1486771200000
+   }
+]

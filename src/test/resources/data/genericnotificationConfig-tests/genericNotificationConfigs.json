@@ -1,0 +1,80 @@
+[
+  {
+    "id": "notif-to-delete",
+    "name": "notif-to-delete",
+    "notifier": "notifierId",
+    "referenceType": "API",
+    "referenceId": "config-to-delete",
+    "config": "my config",
+    "hooks": ["A", "B"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "notif-to-update",
+    "name": "notif-to-update",
+    "notifier": "notifierId",
+    "referenceType": "API",
+    "referenceId": "config-to-update",
+    "config": "my config",
+    "hooks": ["A", "B"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "notif-to-find",
+    "name": "notif-to-find",
+    "notifier": "notifierId",
+    "referenceType": "API",
+    "referenceId": "config-to-find",
+    "config": "my config",
+    "useSystemProxy": true,
+    "hooks": ["A", "B"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "notif-to-find-a",
+    "name": "notif-to-find-a",
+    "notifier": "notifierA",
+    "referenceType": "APPLICATION",
+    "referenceId": "search",
+    "config": "my config",
+    "hooks": ["A", "B"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "notif-to-find-b",
+    "name": "notif-to-find-b",
+    "notifier": "notifierB",
+    "referenceType": "APPLICATION",
+    "referenceId": "search",
+    "config": "my config",
+    "hooks": ["B", "C"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "notif-to-find-c",
+    "name": "notif-to-find-c",
+    "notifier": "notifierC",
+    "referenceType": "APPLICATION",
+    "referenceId": "search",
+    "config": "my config",
+    "hooks": ["A", "C"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "config-to-delete",
+    "name": "config-to-delete",
+    "notifier": "email",
+    "referenceType": "APPLICATION",
+    "referenceId": "search",
+    "config": "test@gravitee.io",
+    "hooks": ["A", "C"],
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  }
+]

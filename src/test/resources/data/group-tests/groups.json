@@ -1,0 +1,26 @@
+[
+  {
+    "id": "group-application-1",
+    "environmentId": "group-application-1 environment-id",
+    "name": "group-application-1 name",
+    "lockApiRole": true,
+    "lockApplicationRole": true,
+    "systemInvitation": true,
+    "emailInvitation": true,
+    "disableMembershipNotifications": true,
+    "maxInvitation": 99,
+    "eventRules": [
+      {
+        "event": "API_CREATE"
+      },
+      {
+        "event": "APPLICATION_CREATE"
+      }
+    ]
+  },
+  {
+    "id": "group-api-to-delete",
+    "environmentId": "DEFAULT",
+    "name": "group-api-to-delete name"
+  }
+]

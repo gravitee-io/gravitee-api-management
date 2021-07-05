@@ -1,0 +1,28 @@
+[
+   {
+      "id":"ec48086d-0bfb-4b9a-a641-d374c6465dd4",
+      "referenceType": "API",
+      "referenceId": "api-id",
+      "email": "invitation@api.com",
+      "apiRole": "USER",
+      "applicationRole": "USER",
+      "createdAt": 1439022010883
+   },
+   {
+      "id":"e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce",
+      "referenceType": "APPLICATION",
+      "referenceId": "application-id",
+      "email": "invitation@application.com",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"dd09c20c-2d73-4228-824f-8c9a48bb8632",
+      "referenceType": "APPLICATION",
+      "referenceId": "application-id",
+      "email": "invitation2@application.com",
+      "apiRole": "OWNER",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]

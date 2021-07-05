@@ -1,0 +1,39 @@
+[
+  {
+    "id": "ORGANIZATION_to_delete",
+    "name": "to delete",
+    "referenceId": "DEFAULT",
+    "referenceType": "ORGANIZATION",
+    "scope": "ORGANIZATION",
+    "permissions": [1,2,3]
+  },
+  {
+    "id": "ENVIRONMENT_to_update",
+    "name": "to update",
+    "referenceId": "DEFAULT",
+    "referenceType": "ORGANIZATION",
+    "defaultRole": false,
+    "scope": "ENVIRONMENT",
+    "permissions": [1,2,3]
+  },
+  {
+    "id": "API_find_by_scope_1",
+    "name": "find by scope 1",
+    "referenceId": "DEFAULT",
+    "referenceType": "ORGANIZATION",
+    "description": "role description",
+    "scope": "API",
+    "defaultRole": true,
+    "system": true,
+    "permissions": [1]
+  },
+  {
+    "id": "API_find_by_scope_2",
+    "name": "find by scope 2",
+    "referenceId": "DEV",
+    "referenceType": "ORGANIZATION",
+    "defaultRole": false,
+    "scope": "API",
+    "permissions": [1]
+  }
+]
