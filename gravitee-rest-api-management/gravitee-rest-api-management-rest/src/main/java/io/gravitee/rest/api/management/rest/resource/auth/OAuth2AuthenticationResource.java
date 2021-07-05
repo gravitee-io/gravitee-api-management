@@ -17,7 +17,7 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.el.spel.function.JsonPathFunction;
+import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.utils.BlindTrustManager;
 import io.gravitee.rest.api.model.UserEntity;

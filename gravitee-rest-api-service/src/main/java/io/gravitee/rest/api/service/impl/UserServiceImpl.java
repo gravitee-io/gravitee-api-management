@@ -35,7 +35,7 @@ import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.Maps;
 import io.gravitee.el.TemplateEngine;
-import io.gravitee.el.spel.function.JsonPathFunction;
+import io.gravitee.el.spel.function.json.JsonPathFunction;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
