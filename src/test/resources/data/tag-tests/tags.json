@@ -1,0 +1,31 @@
+[
+   {
+      "id":"international",
+      "name":"International",
+      "description": "Description for international tag",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION"
+   },
+   {
+      "id":"products",
+      "name":"Products",
+      "description": "Description for products tag",
+      "restrictedGroups" : ["group1", "group2"],
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION"
+   },
+   {
+      "id":"stores",
+      "name":"Stores",
+      "description": "Description for stores tag",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION"
+   },
+   {
+      "id":"other",
+      "name":"Other",
+      "description": "Description for other tag",
+      "referenceId": "OTHER",
+      "referenceType": "ORGANIZATION"
+   }
+]

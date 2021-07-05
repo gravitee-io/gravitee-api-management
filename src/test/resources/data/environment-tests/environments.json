@@ -1,0 +1,28 @@
+[
+   {
+      "id": "DEFAULT-update",
+      "cockpitId": "cockpitId-update",
+      "name": "Default env for update",
+      "organizationId": "ANOTHER-ORG",
+      "hrids": ["def", "ault"]
+   },
+   {
+      "id": "DEFAULT-delete",
+      "cockpitId": "cockpitId-delete",
+      "name": "Default env for delete",
+      "organizationId": "ANOTHER-ORG"
+   },
+   {
+      "id": "DEFAULT-findById",
+      "cockpitId": "cockpitId-findById",
+      "name": "Default env for findById",
+      "organizationId": "DEFAULT-ORG",
+      "hrids": ["find"]
+   },
+   {
+      "id": "DEFAULT",
+      "name": "Default env",
+      "organizationId": "DEFAULT",
+      "hrids": ["default"]
+   }
+]

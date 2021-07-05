@@ -1,0 +1,150 @@
+[
+  {
+    "id": "application-sample",
+    "environmentId": "DEFAULT",
+    "name": "application-sample",
+    "description": "Sample application description",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "client_id": "my-client-id",
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "updated-app",
+    "environmentId": "DEFAULT",
+    "name": "updated-app",
+    "description": "Sample updated-app description",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "picture": "New picture",
+    "metadata": {
+      "client_id": "my-client-id",
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "deleted-app",
+    "environmentId": "DEFAULT",
+    "name": "deleted-app",
+    "description": "Sample deleted-app description",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "client_id": "my-client-id",
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "grouped-app1",
+    "environmentId": "DEFAULT",
+    "name": "grouped-app",
+    "description": "Sample grouped-app description",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "groups": ["application-group"],
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "grouped-app2",
+    "environmentId": "DEFAULT",
+    "name": "grouped-app",
+    "description": "Sample grouped-app description",
+    "status": "ARCHIVED",
+    "type": "SIMPLE",
+    "groups": ["application-group"],
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "searched-app1",
+    "environmentId": "DEV",
+    "name": "searched-app1",
+    "description": "Sample searched app",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "searched-app2",
+    "environmentId": "TEST",
+    "name": "searched-app2",
+    "description": "Sample searched app",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "app-with-client-id",
+    "environmentId": "PROD",
+    "name": "app-with-client-id",
+    "description": "Sample searched app",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "client_id": "my-client-id",
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "app-with-long-client-id",
+    "environmentId": "DEV",
+    "name": "app-with-long-client-id",
+    "description": "Sample searched app",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "client_id": "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  },
+  {
+    "id": "app-with-long-name",
+    "environmentId": "DEV",
+    "name": "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012",
+    "description": "Sample searched app",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "type": "Web"
+    },
+    "disableMembershipNotifications": false
+  }
+]

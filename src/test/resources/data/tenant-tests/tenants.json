@@ -1,0 +1,30 @@
+[
+   {
+      "id":"europe",
+      "name":"Europe",
+      "description": "Description for europe tenant",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION"
+   },
+   {
+      "id":"asia",
+      "name":"Asia",
+      "description": "Description for asia tenant",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION"
+   },
+   {
+      "id":"us",
+      "name":"US",
+      "description": "Description for US tenant",
+      "referenceId": "DEFAULT",
+      "referenceType": "ORGANIZATION"
+   },
+   {
+      "id":"other-us",
+      "name":"US",
+      "description": "Description for other US tenant",
+      "referenceId": "OTHER",
+      "referenceType": "ORGANIZATION"
+   }
+]

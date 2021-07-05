@@ -1,0 +1,42 @@
+[
+   {
+      "id":"dark",
+      "referenceType": "ENVIRONMENT",
+      "referenceId": "DEFAULT",
+      "name":"Theme dark",
+      "enabled": true,
+      "definition": "{\"def\": \"value\"}",
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "logo": "logo",
+      "backgroundImage": "backgroundImage",
+      "optionalLogo": "optionalLogo"
+   },
+   {
+      "id":"light",
+      "name":"Light",
+      "referenceType": "ENVIRONMENT",
+      "referenceId": "DEFAULT",
+      "enabled": false,
+      "definition": "{\"def\": \"value\"}",
+      "createdAt": 1000000111111,
+      "updatedAt": 1111111111111,
+      "logo": "logo",
+      "backgroundImage": "backgroundImage",
+      "optionalLogo": "optionalLogo"
+   },
+   {
+      "id":"simple",
+      "referenceType": "ENVIRONMENT",
+      "referenceId": "TEST",
+      "name":"Theme simple",
+      "enabled": false,
+      "definition": "{\"def\": \"value\"}",
+      "createdAt": 1000002222222,
+      "updatedAt": 1111111111111,
+      "logo": "logo",
+      "backgroundImage": "backgroundImage",
+      "optionalLogo": "optionalLogo",
+      "favicon": "favicon"
+   }
+]

@@ -1,0 +1,23 @@
+[
+   {
+      "key":"boolean",
+      "referenceId":"_",
+      "referenceType":"DEFAULT",
+      "name":"Boolean",
+      "format":"BOOLEAN"
+   },
+   {
+      "key":"string",
+      "referenceId":"apiId",
+      "referenceType":"API",
+      "name":"String",
+      "format":"STRING"
+   },
+   {
+      "key":"mail",
+      "referenceId":"applicationId",
+      "referenceType":"APPLICATION",
+      "name":"Mail",
+      "format":"MAIL"
+   }
+]

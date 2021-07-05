@@ -1,0 +1,60 @@
+[
+   {
+      "id":"health-check",
+      "name":"Health-check",
+      "description": "Description for alert health-check",
+      "referenceType": "API",
+      "referenceId": "api-id",
+      "definition": "{}",
+      "type": "HEALTH_CHECK",
+      "eventRules": [
+         {
+            "event": "API_CREATE"
+         }
+      ],
+      "enabled": true,
+      "createdAt": 1439022010883
+   },
+   {
+      "id":"quota80",
+      "name":"Quota80",
+      "description": "Description for alert API quota 80%",
+      "referenceType": "APPLICATION",
+      "referenceId": "application-id",
+      "type": "QUOTA",
+      "definition": "{}",
+      "enabled": false,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"quota90",
+      "name":"Quota90",
+      "description": "Description for alert API quota 90%",
+      "referenceType": "APPLICATION",
+      "referenceId": "application-id",
+      "type": "QUOTA",
+      "definition": "{}",
+      "enabled": true,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883,
+      "template": true,
+      "eventRules": [
+         {
+            "event": "API_CREATE"
+         }
+      ]
+   },
+   {
+      "id":"quota100",
+      "name":"Quota100",
+      "description": "Description for alert API quota 100%",
+      "referenceType": "API",
+      "referenceId": "application-id",
+      "type": "QUOTA",
+      "definition": "{}",
+      "enabled": false,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]

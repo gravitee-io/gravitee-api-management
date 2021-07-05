@@ -1,0 +1,29 @@
+[
+   {
+      "id": "DEFAULT-ORG-update",
+      "cockpitId": "cockpitId-org-update",
+      "name": "Default org for update",
+      "hrids": ["upd", "ate"],
+      "flowMode": "DEFAULT"
+   },
+   {
+      "id": "DEFAULT-ORG-delete",
+      "cockpitId": "cockpitId-org-delete",
+      "name": "Default org for delete",
+      "hrids": ["del", "ete"],
+      "flowMode": "DEFAULT"
+   },
+   {
+      "id": "DEFAULT-ORG-findById",
+      "cockpitId": "cockpitId-org-findById",
+      "name": "Default org for findById",
+      "hrids": ["def", "ault"],
+      "flowMode": "DEFAULT"
+   },
+   {
+      "id": "DEFAULT",
+      "name": "Default org",
+      "hrids": ["org"],
+      "flowMode": "DEFAULT"
+   }
+]

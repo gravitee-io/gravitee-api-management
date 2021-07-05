@@ -1,0 +1,37 @@
+[
+   {
+      "id":"workflow-api",
+      "referenceType": "API",
+      "referenceId": "api-id",
+      "type": "REVIEW",
+      "state": "IN_REVIEW",
+      "createdAt": 1439022010885
+   },
+   {
+      "id":"workflow",
+      "referenceType": "API",
+      "referenceId": "api-id",
+      "type": "REVIEW",
+      "state": "REVIEW_OK",
+      "comment": "Perfect",
+      "createdAt": 1549893357000
+   },
+   {
+      "id":"old-workflow",
+      "referenceType": "API",
+      "referenceId": "api-id",
+      "type": "REVIEW",
+      "state": "DRAFT",
+      "user": "User",
+      "comment": "Comment",
+      "createdAt": 1518357357000
+   },
+   {
+      "id":"workflow-app",
+      "referenceType": "APPLICATION",
+      "referenceId": "application-id",
+      "type": "REVIEW",
+      "state": "DRAFT",
+      "createdAt": 1439022010885
+   }
+]
