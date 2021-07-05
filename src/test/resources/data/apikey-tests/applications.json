@@ -1,0 +1,29 @@
+[
+  {
+    "id": "application1",
+    "name": "application-sample1",
+    "environmentId": "DEFAULT",
+    "description": "Sample application1 description",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "client_id": "my-client-id",
+      "type": "Web"
+    }
+  },
+  {
+    "id": "application2",
+    "name": "application-sample2",
+    "environmentId": "DEFAULT",
+    "description": "Sample application2 description",
+    "status": "ACTIVE",
+    "type": "SIMPLE",
+    "createdAt": "1439022010883",
+    "updatedAt": "1439022010883",
+    "metadata": {
+      "type": "Web"
+    }
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "id" : "api-to-findById_admin",
+    "memberId" : "admin",
+    "memberType" : "USER",
+    "referenceId" : "api-to-findById",
+    "referenceType" : "API",
+    "roleId": "API_PRIMARY_OWNER",
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
+  },
+  {
+    "id" : "api-to-findById_user",
+    "memberId" : "user",
+    "memberType" : "USER",
+    "referenceId" : "api-to-findById",
+    "referenceType" : "API",
+    "roleId" : "API_USER",
+    "createdAt" : "1439022010883",
+    "updatedAt" : "1439022010883"
+  }
+]

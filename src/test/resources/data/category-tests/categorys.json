@@ -1,0 +1,49 @@
+[
+   {
+      "id":"international",
+      "key":"international",
+      "environmentId": "DEFAULT",
+      "name":"International",
+      "description": "Description for international category",
+      "hidden": false,
+      "order": 0,
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "page": "documentationPageId"
+   },
+   {
+      "id":"products",
+      "key":"products",
+      "environmentId": "DEFAULT",
+      "name":"Products",
+      "description": "Description for products category",
+      "hidden": false,
+      "order": 1,
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "page": "documentationPageId"
+   },
+   {
+      "id":"stores",
+      "key":"stores",
+      "environmentId": "DEFAULT",
+      "name":"Stores",
+      "description": "Description for stores category",
+      "hidden": false,
+      "order": 2,
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "page": "documentationPageId"
+   },
+   {
+      "id":"123",
+      "key":"my-category",
+      "name":"my-category",
+      "environmentId": "DEFAULT",
+      "description": "Description for my category",
+      "hidden": false,
+      "order": 3,
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111
+   }
+]

@@ -1,0 +1,68 @@
+[
+  {
+    "id": "msg-to-create",
+    "environmentId": "DEFAULT",
+    "from": "node0",
+    "to": "someone",
+    "tags": ["DATA_TO_INDEX", "INSERT"],
+    "content": "Hello, is it me you're looking for?",
+    "acknowledgments": ["1", "a"],
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000,
+    "expiredAt": 1551402946000
+  },
+  {
+    "id": "msg-to-delete",
+    "environmentId": "DEV",
+    "from": "node0",
+    "to": "node3",
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000,
+    "expiredAt": 1551402946000
+  },
+  {
+    "id": "msg-to-update",
+    "environmentId": "DEV",
+    "from": "node0",
+    "to": "message to update",
+    "tags": ["DATA_TO_INDEX", "INSERT"],
+    "content": "Hello, is it me you're looking for?",
+    "acknowledgments": ["1", "a"],
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000,
+    "expiredAt": 1551402946000
+  },
+  {
+    "id": "search1",
+    "environmentId": "PROD",
+    "from": "node1",
+    "to": "MANAGEMENT_API",
+    "tags": ["DATA_TO_INDEX", "INSERT"],
+    "acknowledgments": ["node2", "node3"],
+    "expiredAt": 978295982000,
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000
+  },
+  {
+    "id": "search2",
+    "environmentId": "PROD",
+    "from": "node2",
+    "to": "MANAGEMENT_API",
+    "tags": ["DATA_TO_INDEX", "INSERT"],
+    "acknowledgments": ["node1", "node2"],
+    "expiredAt": 1640983982000,
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000
+  },
+  {
+    "id": "search3",
+    "environmentId": "TEST",
+    "from": "node2",
+    "to": "node1",
+    "tags": ["DATA_TO_INDEX", "DELETE"],
+    "acknowledgments": ["node1", "node3"],
+    "expiredAt": 978295982000,
+    "createdAt": 1546305346000,
+    "updatedAt": 1548983746000
+  }
+]

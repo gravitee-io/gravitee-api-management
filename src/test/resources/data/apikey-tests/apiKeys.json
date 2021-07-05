@@ -1,0 +1,55 @@
+[
+	{
+		"key":"d449098d-8c31-4275-ad59-8dd707865a33",
+		"revoked": true,
+		"expireAt": 1439022010883,
+		"subscription": "subscription1",
+		"createdAt": 1439022010883,
+		"paused": true
+	},
+	{
+		"key":"d449098d-8c31-4275-ad59-8dd707865a34",
+		"revoked":false,
+		"expireAt": 1439022010883,
+		"subscription": "subscription2",
+		"createdAt": 1439022010883
+	},
+	{
+		"key":"d449098d-8c31-4275-ad59-8dd707865a35",
+		"revoked":false,
+		"expireAt": 1439022010883,
+		"subscription": "subscription1",
+		"createdAt": 1439022010883
+	},
+	{
+		"key": "findByCriteria1",
+		"subscription": "sub1",
+		"application": "app1",
+		"plan": "plan1",
+		"expireAt": 29919401755,
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771200000,
+		"revoked": false
+	},
+	{
+		"key": "findByCriteria1Revoked",
+		"subscription": "sub1",
+		"application": "app1",
+		"plan": "plan1",
+		"expireAt": 29919401755,
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771400000,
+		"revoked": true
+	},
+	{
+		"key": "findByCriteria2",
+		"subscription": "sub2",
+		"application": "app2",
+		"plan": "plan1",
+		"expireAt": 29919401755,
+		"createdAt": 1486771200000,
+		"updatedAt": 1486771600000,
+		"revoked": false
+	}
+]
+

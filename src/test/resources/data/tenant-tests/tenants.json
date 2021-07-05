@@ -1,0 +1,17 @@
+[
+   {
+      "id":"europe",
+      "name":"Europe",
+      "description": "Description for europe tenant"
+   },
+   {
+      "id":"asia",
+      "name":"Asia",
+      "description": "Description for asia tenant"
+   },
+   {
+      "id":"us",
+      "name":"US",
+      "description": "Description for US tenant"
+   }
+]

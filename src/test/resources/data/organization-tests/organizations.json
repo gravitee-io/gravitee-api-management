@@ -1,0 +1,14 @@
+[
+   {
+      "id": "DEFAULT-ORG-update",
+      "name": "Default org for update"
+   },
+   {
+      "id": "DEFAULT-ORG-delete",
+      "name": "Default org for delete"
+   },
+   {
+      "id": "DEFAULT-ORG-findById",
+      "name": "Default org for findById"
+   }
+]

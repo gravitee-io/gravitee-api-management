@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ticket0",
+    "api": "api1",
+    "application": "application0",
+    "subject": "subject0",
+    "content": "This is the ticket 0 content",
+    "fromUser": "user1",
+    "createdAt": 1439022010883
+  },
+  {
+    "id": "ticket1",
+    "api": "api0",
+    "application": "application1",
+    "subject": "subject1",
+    "content": "This is the ticket 1 content",
+    "fromUser": "user0",
+    "createdAt": 1439022010883
+  },
+  {
+    "id": "ticket2",
+    "api": "api0",
+    "application": "application2",
+    "subject": "Subject2",
+    "content": "This is the ticket 2 content",
+    "fromUser": "user0",
+    "createdAt": 1439022010883
+  },
+  {
+    "id": "ticket3",
+    "api": "api0",
+    "application": "application3",
+    "subject": "subject3",
+    "content": "This is the ticket 3 content",
+    "fromUser": "user0",
+    "createdAt": 1439022010883
+  }
+]

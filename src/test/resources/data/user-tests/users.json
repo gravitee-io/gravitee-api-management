@@ -1,0 +1,104 @@
+[
+  {
+    "id": "user0",
+    "organizationId": "DEFAULT",
+    "firstname": "David",
+    "lastname": "Brassely",
+    "email": "user0@gravitee.io",
+    "status": "ARCHIVED",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "user1",
+    "organizationId": "DEV",
+    "firstname": "Titouan",
+    "lastname": "Compiègne",
+    "email": "user1@gravitee.io",
+    "status": "ACTIVE",
+    "source": "gravitee",
+    "sourceId": "user1",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "user2",
+    "organizationId": "TEST",
+    "firstname": "Nicolas",
+    "lastname": "Géraud",
+    "email": "user2@gravitee.io",
+    "status": "ACTIVE",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "user3",
+    "organizationId": "PROD",
+    "firstname": "Azize",
+    "lastname": "Elamrani",
+    "email": "user3@gravitee.io",
+    "status": "ACTIVE",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "user4",
+    "organizationId": "DEV",
+    "firstname": "Nimo",
+    "lastname": "Géraud",
+    "email": "user4@gravitee.io",
+    "status": "ACTIVE",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "user5",
+    "organizationId": "TEST",
+    "firstname": "Nibo",
+    "lastname": "Géraud",
+    "email": "user5@gravitee.io",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "user2delete",
+    "organizationId": "PROD",
+    "firstname": "Deleted",
+    "lastname": "User",
+    "email": "user2delete@gravitee.io",
+    "status": "ACTIVE",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "id2update",
+    "organizationId": "DEV",
+    "source": "source2update",
+    "sourceId": "sourceId2update",
+    "password": "password2update",
+    "email": "email2update",
+    "status": "ACTIVE",
+    "firstname": "Firstname2update",
+    "lastname": "Lastname2update",
+    "picture": "picture2update",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439032010883,
+    "lastConnectionAt": 1439042010883,
+    "loginCount": 122
+  },
+  {
+    "id": "idSpecialChar",
+    "organizationId": "DEV",
+    "source": "sourceSpecialChar",
+    "sourceId": "sourceIdSpecialChar+test@me",
+    "password": "passwordSpecialChar",
+    "email": "emailSpecialChar",
+    "status": "ACTIVE",
+    "firstname": "FirstnameSpecialChar",
+    "lastname": "LastnameSpecialChar",
+    "picture": "pictureSpecialChar",
+    "createdAt": 1439022010883,
+    "updatedAt": 1439032010883,
+    "lastConnectionAt": 1439042010883
+  }
+]

@@ -1,0 +1,17 @@
+[
+   {
+      "id": "DEFAULT-update",
+      "name": "Default env for update",
+      "organizationId": "ANOTHER-ORG"
+   },
+   {
+      "id": "DEFAULT-delete",
+      "name": "Default env for delete",
+      "organizationId": "ANOTHER-ORG"
+   },
+   {
+      "id": "DEFAULT-findById",
+      "name": "Default env for findById",
+      "organizationId": "DEFAULT-ORG"
+   }
+]

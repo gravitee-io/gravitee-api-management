@@ -1,0 +1,24 @@
+[
+   {
+      "id":"quality-rule1",
+      "name":"Description in english",
+      "description":"Description must be in english",
+      "weight": 1,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }, {
+      "id":"quality-rule2",
+      "name":"Description in french",
+      "description":"Description must be in french",
+      "weight": 2,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }, {
+      "id":"quality-rule3",
+      "name":"Api-key plan",
+      "description":"A plan api-key is published",
+      "weight": 3,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]

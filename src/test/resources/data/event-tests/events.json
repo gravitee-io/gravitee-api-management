@@ -1,0 +1,71 @@
+[
+  {
+    "id": "event1",
+    "environmentId": "DEFAULT",
+    "type": "PUBLISH_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-1"
+    },
+    "updatedAt": 1451606400000
+  },
+  {
+    "id": "event2",
+    "environmentId": "DEFAULT",
+    "type": "UNPUBLISH_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-1"
+    },
+    "updatedAt": 1454284800000
+  },
+  {
+    "id": "event3",
+    "environmentId": "DEFAULT",
+    "type": "PUBLISH_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-2"
+    },
+    "createdAt": 1456790400000,
+    "updatedAt": 1456790400000
+  },
+  {
+    "id": "event4",
+    "environmentId": "DEFAULT",
+    "type": "STOP_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-3"
+    },
+    "updatedAt": 1459468800000
+  },
+  {
+    "id": "event5",
+    "environmentId": "DEFAULT",
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-2"
+    },
+    "createdAt": 1462060800000,
+    "updatedAt": 1462060800000
+  },
+  {
+    "id": "event6",
+    "environmentId": "DEFAULT",
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-2"
+    },
+    "createdAt": 1464739200000,
+    "updatedAt": 1464739200000
+  }
+]

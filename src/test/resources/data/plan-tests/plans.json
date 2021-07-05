@@ -1,0 +1,67 @@
+[
+   {
+      "id":"my-plan",
+      "name":"Free plan",
+      "description": "Description of the free plan",
+      "api": "api1",
+      "security": "API_KEY",
+      "validation": "AUTO",
+      "type": "API",
+      "status": "PUBLISHED",
+      "order": 2,
+      "createdAt": 1506964899000,
+      "updatedAt": 1507032062000,
+      "publishedAt": 1506878460000,
+      "closedAt": 1507611600000,
+      "needRedeployAt": 1507611670000,
+      "characteristics": [
+         "charac 1",
+         "charac 2"
+      ],
+      "excludedGroups": [ "grp1" ],
+      "commentRequired": true,
+      "commentMessage": "What is your project code?",
+      "generalConditions": "GCU-my-plan",
+      "tags": [ "tag1", "tag2" ]
+   },
+   {
+      "id":"updated-plan",
+      "name":"old plan",
+      "api": "api3",
+      "commentRequired": true
+   },
+   {
+      "id":"products",
+      "name":"Products",
+      "description": "Description for products view",
+      "api": "api1",
+      "commentRequired": false
+   },
+   {
+      "id":"stores",
+      "name":"Stores",
+      "description": "Description for stores view",
+      "api": "api2"
+   },
+   {
+      "id": "plan-oauth2",
+      "name": "oauth2",
+      "description": "Description of oauth2",
+      "validation": "MANUAL",
+      "security": "OAUTH2",
+      "securityDefinition": "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+      "definition": "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
+      "selectionRule": "#context.attributes['jwt'].claims['iss'] == 'toto'",
+      "type": "API",
+      "status": "STAGING",
+      "api": "4e0db366-f772-4489-8db3-66f772b48989",
+      "order": 0,
+      "characteristics": [],
+      "createdAt": 1455148800000,
+      "updatedAt": 1455235200000,
+      "excludedGroups": [
+         "7c546c6b-2f2f-4487-946c-6b2f2f648784"
+      ],
+      "commentRequired": false
+   }
+]

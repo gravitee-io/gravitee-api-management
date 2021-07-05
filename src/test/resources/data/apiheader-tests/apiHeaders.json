@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1",
+    "environmentId": "DEFAULT",
+    "name": "h1",
+    "value": "val1",
+    "order": 1,
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "2",
+    "environmentId": "DEFAULT",
+    "name": "h2",
+    "value": "val2",
+    "order": 2,
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
+  },
+  {
+    "id": "toUpdate",
+    "environmentId": "ToBeUpdated",
+    "name": "oldName",
+    "value": "oldValue",
+    "order": 3,
+    "createdAt": 1439022010882,
+    "updatedAt": 1439022010883
+  }
+]
