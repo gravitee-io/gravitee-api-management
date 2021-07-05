@@ -115,10 +115,10 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('selected-flows-id', JSON.stringify(selectedFlows));
     this.studio.setAttribute('resource-types', JSON.stringify(this.resolvedResources.data));
     this.studio.setAttribute('policies', JSON.stringify(this.resolvedPolicies.data));
-    this.studio.setAttribute('flowSchema', JSON.stringify(this.resolvedFlowSchema.data));
-    this.studio.setAttribute('configurationSchema', JSON.stringify(this.resolvedConfigurationSchema.data));
+    this.studio.setAttribute('flow-schema', JSON.stringify(this.resolvedFlowSchema.data));
+    this.studio.setAttribute('configuration-schema', JSON.stringify(this.resolvedConfigurationSchema.data));
     this.studio.setAttribute(
-      'configurationInformation',
+      'configuration-information',
       'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.',
     );
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
