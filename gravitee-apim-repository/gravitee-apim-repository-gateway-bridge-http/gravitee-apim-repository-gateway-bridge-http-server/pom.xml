@@ -22,19 +22,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.gateway</groupId>
-        <artifactId>gravitee-repository-gateway-bridge-http</artifactId>
-        <version>3.5.6-SNAPSHOT</version>
+        <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
+        <artifactId>gravitee-apim-repository-gateway-bridge-http</artifactId>
+        <version>3.5.18-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-repository-gateway-bridge-http-client</artifactId>
-    <name>Gravitee.io APIM - Gateway - Repository - HTTP Bridge - Client</name>
+    <artifactId>gravitee-apim-repository-gateway-bridge-http-server</artifactId>
+    <name>Gravitee.io APIM - Gateway - Repository - HTTP Bridge - Server</name>
 
     <dependencies>
         <!-- Gravitee dependencies -->
         <dependency>
-            <groupId>io.gravitee.repository</groupId>
-            <artifactId>gravitee-repository</artifactId>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -61,37 +61,9 @@
         <!-- Vert.x -->
         <dependency>
             <groupId>io.vertx</groupId>
-            <artifactId>vertx-web-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-core</artifactId>
-            <version>${vertx.version}</version>
+            <artifactId>vertx-web</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-web-common</artifactId>
-            <version>${vertx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-circuit-breaker</artifactId>
-            <version>${vertx.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- Test scope -->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
