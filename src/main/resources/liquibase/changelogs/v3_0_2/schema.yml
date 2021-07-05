@@ -1,0 +1,76 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.0.2
+      author: GraviteeSource Team
+      changes:
+        ## rename View into Category
+        - renameColumn:
+            newColumnName: category
+            oldColumnName: view
+            columnDataType: nvarchar(64)
+            tableName: ${gravitee_prefix}api_views
+        - renameTable:
+            newTableName: ${gravitee_prefix}api_categories
+            oldTableName: ${gravitee_prefix}api_views
+        - renameTable:
+            newTableName: ${gravitee_prefix}categories
+            oldTableName: ${gravitee_prefix}views
+
+        ## update existing view LINK to category LINK
+        - sql:
+            sql: update ${gravitee_prefix}page_configuration set v='category' where k='resourceType' and v='view';
+
+        ## update parameters keys
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}parameters set `key` = 'portal.apis.categoryMode.enabled' where `key`='portal.apis.viewMode.enabled';
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}parameters set `key` = 'portal.apis.apiheader.showcategories.enabled' where `key`='portal.apis.apiheader.showviews.enabled';
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}parameters set `key` = 'api.quality.metrics.categories.weight' where `key`='api.quality.metrics.views.weight';
+
+        # dbms: postgresql
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}parameters set "key" = 'portal.apis.categoryMode.enabled' where "key"='portal.apis.viewMode.enabled';
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}parameters set "key" = 'portal.apis.apiheader.showcategories.enabled' where "key"='portal.apis.apiheader.showviews.enabled';
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}parameters set "key" = 'api.quality.metrics.categories.weight' where "key"='api.quality.metrics.views.weight';
+
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}parameters set [key] = 'portal.apis.categoryMode.enabled' where [key]='portal.apis.viewMode.enabled';
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}parameters set [key] = 'portal.apis.apiheader.showcategories.enabled' where [key]='portal.apis.apiheader.showviews.enabled';
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}parameters set [key] = 'api.quality.metrics.categories.weight' where [key]='api.quality.metrics.views.weight';
+
+        ## Update Audit logs to replace VIEW with CATEGORY
+        - sql:
+            sql: update ${gravitee_prefix}audits set event='CATEGORY_CREATED' where event='VIEW_CREATED';
+        - sql:
+            sql: update ${gravitee_prefix}audits set event='CATEGORY_UPDATED' where event='VIEW_UPDATED';
+        - sql:
+            sql: update ${gravitee_prefix}audits set event='CATEGORY_DELETED' where event='VIEW_DELETED';
+        - sql:
+            dbms: mariadb, mysql
+            sql: update ${gravitee_prefix}audit_properties set `key` = 'CATEGORY' where `key`='VIEW';
+        - sql:
+            dbms: postgresql
+            sql: update ${gravitee_prefix}audit_properties set "key" = 'CATEGORY' where "key"='VIEW';
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}audit_properties set [key] = 'CATEGORY' where [key]='VIEW';
+
+        ## Update Events payload
+        - sql:
+            sql: update ${gravitee_prefix}events set payload = replace(payload, 'views', 'categories') where payload like '%views%';

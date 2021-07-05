@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.7.0
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}groups
+            columns:
+              - column:
+                  name: api_primary_owner
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+

@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.0.4
+      author: GraviteeSource Team
+      changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}subscriptions
+            columnName: client_id
+            newDataType: nvarchar(300)

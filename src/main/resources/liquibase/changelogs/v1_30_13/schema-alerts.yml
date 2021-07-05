@@ -1,0 +1,16 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.30.13.1
+        author: GraviteeSource Team
+        changes:
+        - createTable:
+            tableName: ${gravitee_prefix}alert_event_rules
+            columns:
+              - column: {name: alert_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: alert_event, type: nvarchar(64), constraints: { nullable: false } }
+        - addColumn:
+            tableName: ${gravitee_prefix}alert_triggers
+            columns:
+              - column:
+                  name: template
+                  type: boolean

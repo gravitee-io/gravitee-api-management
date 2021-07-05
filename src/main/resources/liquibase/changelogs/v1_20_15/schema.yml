@@ -1,0 +1,15 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.20.15
+        author: GraviteeSource Team
+        changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}users
+            columns:
+                - column:
+                    name: status
+                    type: nvarchar(64)
+        - addDefaultValue:
+            tableName: ${gravitee_prefix}users
+            columnName: status
+            defaultValue: ACTIVE

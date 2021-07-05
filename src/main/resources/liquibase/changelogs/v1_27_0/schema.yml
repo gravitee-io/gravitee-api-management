@@ -1,0 +1,35 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.27.0
+        author: GraviteeSource Team
+        changes:
+          - createTable:
+              tableName: ${gravitee_prefix}plan_tags
+              columns:
+                - column: {name: plan_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: tag, type: nvarchar(64), constraints: { nullable: false } }
+
+          - addPrimaryKey:
+              constraintName: pk_${gravitee_prefix}plan_tags
+              columnNames: plan_id, tag
+              tableName: ${gravitee_prefix}plan_tags
+
+          - addColumn:
+              tableName: ${gravitee_prefix}plans
+              columns:
+                - column:
+                    name: selection_rule
+                    type: nvarchar(256)
+
+          - addColumn:
+              tableName: ${gravitee_prefix}client_registration_providers
+              columns:
+                - column:
+                    name: renew_client_secret_support
+                    type: boolean
+                - column:
+                    name: renew_client_secret_endpoint
+                    type: nvarchar(1000)
+                - column:
+                    name: renew_client_secret_method
+                    type: nvarchar(64)

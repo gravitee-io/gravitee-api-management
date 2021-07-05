@@ -1,0 +1,10 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.16.0-plans
+        author: GraviteeSource Team
+        changes:
+        - renameColumn:
+            tableName: ${gravitee_prefix}plans
+            columnDataType: nclob
+            newColumnName: security_definition
+            oldColumnName: definition

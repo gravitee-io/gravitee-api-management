@@ -1,0 +1,13 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.25.4
+        author: GraviteeSource Team
+        changes:
+        - modifyDataType:
+            tableName: ${gravitee_prefix}apis
+            columnName: name
+            newDataType: nvarchar(512)
+        - modifyDataType:
+            tableName: ${gravitee_prefix}applications
+            columnName: name
+            newDataType: nvarchar(512)

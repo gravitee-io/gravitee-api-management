@@ -1,0 +1,49 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.19.0
+        author: GraviteeSource Team
+        changes:
+        - createTable:
+            tableName: ${gravitee_prefix}group_roles
+            columns:
+                - column: {name: group_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: role_scope, type: int, constraints: { nullable: false } }
+                - column: {name: role_name, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}group_roles
+            columnNames: group_id, role_scope
+            tableName: ${gravitee_prefix}group_roles
+
+        - createTable:
+            tableName: ${gravitee_prefix}dictionaries
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: state, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: deployed_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: provider_type, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: provider_configuration, type: nvarchar(1000), constraints: { nullable: true } }
+                - column: {name: trigger_rate, type: int, constraints: { nullable: true } }
+                - column: {name: trigger_unit, type: nvarchar(64), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}dictionaries
+            columnNames: id
+            tableName: ${gravitee_prefix}dictionaries
+
+        - createTable:
+            tableName: ${gravitee_prefix}dictionary_property
+            columns:
+                - column: {name: dictionary_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: k, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: v, type: nvarchar(1000), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}dictionary_property
+            columnNames: dictionary_id, k
+            tableName: ${gravitee_prefix}dictionary_property

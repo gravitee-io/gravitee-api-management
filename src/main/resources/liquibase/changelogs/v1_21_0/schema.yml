@@ -1,0 +1,70 @@
+databaseChangeLog:
+    - changeSet:
+        id: 1.21.0
+        author: GraviteeSource Team
+        changes:
+        - dropColumn:
+            tableName: ${gravitee_prefix}users
+            columnName: username
+
+        - addColumn:
+            tableName: ${gravitee_prefix}plans
+            columns:
+                - column:
+                    name: comment_required
+                    type: boolean
+
+        - addColumn:
+            tableName: ${gravitee_prefix}generic_notification_configs
+            columns:
+                - column:
+                    name: use_system_proxy
+                    type: boolean
+
+        - modifyDataType:
+            tableName: ${gravitee_prefix}pages
+            columnName: source_configuration
+            newDataType: nvarchar(256)
+
+        - createTable:
+            tableName: ${gravitee_prefix}identity_providers
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+                - column: {name: configuration, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: group_mappings, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: role_mappings, type: nvarchar(4000), constraints: { nullable: true } }
+                - column: {name: user_profile_mapping, type: nvarchar(4000), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}identity_providers
+            columnNames: id
+            tableName: ${gravitee_prefix}identity_providers
+
+        - createTable:
+            tableName: ${gravitee_prefix}alerts
+            columns:
+                - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: description, type: nvarchar(256), constraints: { nullable: true } }
+                - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: type, type: nvarchar(64), constraints: { nullable: false } }
+                - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+                - column: {name: metric_type, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: metric, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: threshold_type, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: threshold, type: double, constraints: { nullable: true } }
+                - column: {name: plan, type: nvarchar(64), constraints: { nullable: true } }
+                - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+                - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}alerts
+            columnNames: id
+            tableName: ${gravitee_prefix}alerts

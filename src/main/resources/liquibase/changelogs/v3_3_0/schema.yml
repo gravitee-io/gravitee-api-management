@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.3.0
+      author: GraviteeSource Team
+      changes:
+        - renameColumn:
+            newColumnName: organization_id
+            oldColumnName: reference_id
+            columnDataType: nvarchar(64)
+            tableName: ${gravitee_prefix}identity_providers
+        - dropColumn:
+            columnName: reference_type
+            tableName: ${gravitee_prefix}identity_providers
+
+        - renameColumn:
+            newColumnName: organization_id
+            oldColumnName: reference_id
+            columnDataType: nvarchar(64)
+            tableName: ${gravitee_prefix}users
+        - dropColumn:
+            columnName: reference_type
+            tableName: ${gravitee_prefix}users
+
+        ## Update APIs definition for json-validation configuration
+        - sql:
+            sql: "update ${gravitee_prefix}apis set definition = replace(definition, '\"json-validation\" : {\"scope\":\"REQUEST\"', '\"json-validation\" : {\"scope\":\"REQUEST_CONTENT\"') where definition like '%\"json-validation\" : {\"scope\":\"REQUEST\"%';"
+        - sql:
+            sql: "update ${gravitee_prefix}apis set definition = replace(definition, '\"json-validation\" : {\"scope\":\"RESPONSE\"', '\"json-validation\" : {\"scope\":\"RESPONSE_CONTENT\"') where definition like '%\"json-validation\" : {\"scope\":\"REQUEST\"%';"
