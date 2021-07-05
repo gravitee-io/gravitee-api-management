@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.cockpit.services.CockpitService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -46,6 +47,7 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,6 +109,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
         // FIXME, does promotion already exist
         Promotion promotionToSave = convert(apiId, apiDefinition, currentEnvironmentEntity, promotionRequest, author);
+        promotionToSave.setId(RandomString.generate());
         Promotion createdPromotion = null;
         try {
             createdPromotion = promotionRepository.create(promotionToSave);
