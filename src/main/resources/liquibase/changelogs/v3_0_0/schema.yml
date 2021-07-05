@@ -1,0 +1,674 @@
+databaseChangeLog:
+  ## UUID
+  - property:
+      name: uuid_function
+      value: NEWID()
+      dbms: mssql
+  - property:
+      name: uuid_function
+      value: uuid()
+      dbms: mariadb, mysql
+  - property:
+      name: uuid_function
+      value: md5(random()::text || clock_timestamp()::text)::uuid
+      dbms: postgresql
+  ## LENGTH function
+  - property:
+      name: length
+      value: len
+      dbms: mssql
+  - property:
+      name: length
+      value: length
+      dbms: mariadb, mysql, postgresql
+
+  - changeSet:
+      id: 3.0.0
+      author: GraviteeSource Team
+      validCheckSum: 1:any
+      changes:
+        ## roles, permissions & memberships migration ##
+        # roles_permissions
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('29',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '10%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('30',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '11%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('17',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '12%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('31',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '13%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('32',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '14%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('26',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '15%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('33',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '16%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('34',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '17%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT', permission = CONCAT('35',substring(permission, 3, ${length}(permission))) where role_scope = 'PORTAL' and permission like '18%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ORGANIZATION', permission = CONCAT('12',substring(permission, 3, ${length}(permission))) where role_scope = 'MANAGEMENT' and permission like '16%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ORGANIZATION', permission = CONCAT('10',substring(permission, 3, ${length}(permission))) where role_scope = 'MANAGEMENT' and permission like '21%'
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT' where role_scope = 'MANAGEMENT' and permission like '17%' and not exists (select * from (select * from role_permissions) rp2 where rp2.role_scope = 'ENVIRONMENT' and rp2.permission like '17%' and rp2.role_name = role_name)
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT' where role_scope = 'MANAGEMENT' and permission like '26%' and not exists (select * from (select * from role_permissions) rp2 where rp2.role_scope = 'ENVIRONMENT' and rp2.permission like '26%' and rp2.role_name = role_name)
+        - sql:
+            sql: update role_permissions set role_scope = 'ENVIRONMENT' where role_scope = 'MANAGEMENT' and permission not like '17%' and permission not like '26%'
+        - sql:
+            sql: delete from role_permissions where role_scope = 'MANAGEMENT'
+        - addColumn:
+            tableName: role_permissions
+            columns:
+              - column:
+                  name: role_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update role_permissions set role_id = CONCAT(role_scope,'_',role_name)
+        - addNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: role_id
+            tableName: role_permissions
+        - dropPrimaryKey:
+            constraintName: pk_role_permissions
+            tableName: role_permissions
+        - addPrimaryKey:
+            constraintName: pk_role_permissions
+            columnNames: role_id, permission
+            tableName: role_permissions
+        - dropColumn:
+            columnName: role_scope
+            tableName: role_permissions
+        - dropColumn:
+            columnName: role_name
+            tableName: role_permissions
+
+        # roles
+        - sql:
+            sql: update roles set scope = 'ENVIRONMENT' where scope = 'PORTAL'
+
+        ## insert roles
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: insert into roles (scope, name, description, default_role, `system`, created_at, updated_at) select 'ORGANIZATION', r.name, r.description, r.default_role, r.system, r.created_at, r.updated_at from roles r where r.scope = 'MANAGEMENT' and exists (select 1 from role_permissions rp where rp.role_id = CONCAT('ORGANIZATION_',r.name))
+        # dbms: postgresql, mssql
+        - sql:
+            dbms: postgresql, mssql
+            sql: insert into roles (scope, name, description, default_role, system, created_at, updated_at) select 'ORGANIZATION', r.name, r.description, r.default_role, r.system, r.created_at, r.updated_at from roles r where r.scope = 'MANAGEMENT' and exists (select 1 from role_permissions rp where rp.role_id = CONCAT('ORGANIZATION_',r.name))
+
+        - sql:
+            sql: update roles set scope = 'ENVIRONMENT' where scope = 'MANAGEMENT' and not exists (select 1 from (select * from roles) r2 where r2.scope = 'ENVIRONMENT' and r2.name = name)
+        - sql:
+            sql: delete from roles where scope = 'MANAGEMENT'
+        - addColumn:
+            tableName: roles
+            columns:
+              - column:
+                  name: id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update roles set id = CONCAT(scope,'_',name)
+        - addNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: id
+            tableName: roles
+        - dropPrimaryKey:
+            constraintName: pk_roles
+            tableName: roles
+        - addPrimaryKey:
+            constraintName: pk_roles
+            columnNames: id
+            tableName: roles
+
+        # membership_roles
+        - dropPrimaryKey:
+            constraintName: pk_membership_roles
+            tableName: membership_roles
+        - modifyDataType:
+            columnName: role_scope
+            newDataType: nvarchar(64)
+            tableName: membership_roles
+        - sql:
+            sql: update membership_roles set role_scope = 'MANAGEMENT' where role_scope = '1';
+        - sql:
+            sql: update membership_roles set role_scope = 'PORTAL' where role_scope = '2';
+        - sql:
+            sql: update membership_roles set role_scope = 'API' where role_scope = '3';
+        - sql:
+            sql: update membership_roles set role_scope = 'APPLICATION' where role_scope = '4';
+        - sql:
+            sql: update membership_roles set role_scope = 'GROUP' where role_scope = '5';
+        - sql:
+            sql: update membership_roles set reference_type = 'ENVIRONMENT', role_scope = 'ENVIRONMENT' WHERE reference_type = 'PORTAL' and role_scope = 'PORTAL'
+        - sql:
+            sql: insert into membership_roles (user_id, reference_id, reference_type, role_scope, role_name) select user_id, reference_id, 'ORGANIZATION', 'ORGANIZATION', role_name from membership_roles mr where mr.reference_type = 'MANAGEMENT' and mr.role_scope = 'MANAGEMENT' and exists (select 1 from roles r where r.id = CONCAT('ORGANIZATION_',mr.role_name))
+        - sql:
+            sql: update membership_roles set reference_type = 'ENVIRONMENT', role_scope = 'ENVIRONMENT' where reference_type = 'MANAGEMENT' and role_scope = 'MANAGEMENT' and not exists (select 1 from (select * from membership_roles) mr2 where mr2.reference_type = 'ENVIRONMENT' and mr2.role_scope = 'ENVIRONMENT' and mr2.role_name = role_name and mr2.user_id = user_id)
+        - sql:
+            sql: delete from membership_roles where reference_type = 'MANAGEMENT' and role_scope = 'MANAGEMENT'
+
+        # memberships
+        - dropPrimaryKey:
+            constraintName: pk_memberships
+            tableName: memberships
+        - sql:
+            sql: update memberships set reference_type = 'ENVIRONMENT' WHERE reference_type = 'PORTAL'
+        - sql:
+            sql: insert into memberships (user_id, reference_id, reference_type, created_at, updated_at) select user_id, reference_id, 'ORGANIZATION', created_at, updated_at from memberships m where m.reference_type = 'MANAGEMENT' and exists (select 1 from membership_roles mr where mr.user_id = m.user_id and mr.reference_id = m.reference_id and mr.reference_type = 'ORGANIZATION')
+        - sql:
+            sql: update memberships set reference_type = 'ENVIRONMENT' where reference_type = 'MANAGEMENT' and not exists (select 1 from (select * from memberships) m2 where m2.user_id = user_id and reference_id = m2.reference_id and m2.reference_type = 'ENVIRONMENT')
+        - sql:
+            sql: delete from memberships where reference_type = 'MANAGEMENT'
+        - addColumn:
+            tableName: memberships
+            columns:
+              - column:
+                  name: id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: member_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: member_type
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: role_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: user_id
+            tableName: memberships
+           
+        - sql:
+            sql: insert into memberships (id, member_id, member_type, reference_id, reference_type, role_id, created_at, updated_at) select ${uuid_function} as id, m.user_id, 'USER', m.reference_id, m.reference_type, CONCAT(mr.role_scope,'_',mr.role_name) as role_id, m.created_at, m.updated_at from memberships m inner join membership_roles mr on mr.user_id = m.user_id and mr.reference_id = m.reference_id and mr.reference_type = m.reference_type
+        - sql:
+            sql: delete from memberships where id is null
+        - dropIndex:
+            indexName:  idx_memberships_userid_referencetype
+            tableName:  memberships
+        - dropColumn:
+            columnName: user_id
+            tableName: memberships
+        - addNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: id
+            tableName: memberships
+        - addPrimaryKey:
+            constraintName: pk_memberships
+            columnNames: id
+            tableName: memberships
+
+        - dropTable:
+            tableName: membership_roles
+            
+        ## group, group_roles & memberships ##
+        - dropPrimaryKey:
+            constraintName: pk_group_roles
+            tableName: group_roles
+        - modifyDataType:
+            columnName: role_scope
+            newDataType: nvarchar(64)
+            tableName: group_roles
+        - sql:
+            sql: update group_roles set role_scope = 'API' where role_scope = '3';
+        - sql:
+            sql: update group_roles set role_scope = 'APPLICATION' where role_scope = '4';
+      
+        - dropNotNullConstraint:
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+            tableName: memberships
+
+        ## insert memberships
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: insert into memberships (id, member_id, member_type, reference_id, reference_type, role_id, created_at, updated_at) select ${uuid_function} as id, g.id, 'GROUP', null, gr.role_scope, CONCAT(gr.role_scope,'_',gr.role_name) as role_id, g.created_at, g.updated_at from `groups` g inner join group_roles gr on gr.group_id = g.id
+        # dbms: postgresql, mssql
+        - sql:
+            dbms: postgresql, mssql
+            sql: insert into memberships (id, member_id, member_type, reference_id, reference_type, role_id, created_at, updated_at) select ${uuid_function} as id, g.id, 'GROUP', null, gr.role_scope, CONCAT(gr.role_scope,'_',gr.role_name) as role_id, g.created_at, g.updated_at from groups g inner join group_roles gr on gr.group_id = g.id
+
+        - dropTable:
+            tableName: group_roles
+           
+
+        ## a plan is now associated to one and only one API ##
+        - addColumn:
+            tableName: plans
+            columns:
+              - column:
+                  name: api
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+
+        - sql:
+            sql: update plans set api = (select pa.api from plan_apis pa where pa.plan_id = id)
+
+        - addNotNullConstraint:
+            tableName: plans
+            columnDataType: nvarchar(64)
+            columnName: api
+
+        - dropIndex:
+            tableName: plan_apis
+            indexName: idx_planapis_api
+
+        - dropPrimaryKey:
+            constraintName: pk_plan_apis
+            tableName: plan_apis
+
+        - dropTable:
+            tableName: plan_apis
+
+        ## organization and environments ##
+        - addColumn:
+            tableName: pages
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update pages set reference_type='API', reference_id=api where api is not null
+        - sql:
+            sql: update pages set reference_type='ENVIRONMENT', reference_id='DEFAULT' where api is null
+        - dropIndex:
+            indexName:  idx_pages_api
+            tableName:  pages
+        - dropColumn:
+            columnName: api
+            tableName: pages
+        - addNotNullConstraint:
+            tableName: pages
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+        - addNotNullConstraint:
+            tableName: pages
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+
+        - addColumn:
+            tableName: ratings
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update ratings set reference_type='API', reference_id=api where api is not null
+        - sql:
+            sql: update ratings set reference_type='ENVIRONMENT', reference_id='DEFAULT' where api is null
+        - dropIndex:
+            indexName:  idx_ratings_api
+            tableName:  ratings
+        - dropColumn:
+            columnName: api
+            tableName: ratings
+        - addNotNullConstraint:
+            tableName: ratings
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+        - addNotNullConstraint:
+            tableName: ratings
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+
+        - addColumn:
+            tableName: identity_providers
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update identity_providers set reference_type='ENVIRONMENT', reference_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: identity_providers
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+        - addNotNullConstraint:
+            tableName: identity_providers
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+
+        - addColumn:
+            tableName: parameters
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update parameters set reference_type='ENVIRONMENT', reference_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: parameters
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+        - addNotNullConstraint:
+            tableName: parameters
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+
+        - addColumn:
+            tableName: roles
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update roles set reference_type='ORGANIZATION', reference_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: roles
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+        - addNotNullConstraint:
+            tableName: roles
+            columnDataType: nvarchar(32)
+            columnName: reference_type
+
+        - addColumn:
+            tableName: apis
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update apis set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: apis
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: api_headers
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update api_headers set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: api_headers
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: applications
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: picture
+                  type: nclob
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update applications set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: applications
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: commands
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update commands set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: commands
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: dictionaries
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update dictionaries set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: dictionaries
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: entrypoints
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update entrypoints set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: entrypoints
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update events set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: events
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: groups
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+
+        ## update groups
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: update `groups` set environment_id='DEFAULT'
+        # dbms: postgresql, mssql
+        - sql:
+            dbms: postgresql, mssql
+            sql: update groups set environment_id='DEFAULT'
+
+        - addNotNullConstraint:
+            tableName: groups
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update users set reference_type='ORGANIZATION', reference_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: users
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+        - addNotNullConstraint:
+            tableName: users
+            columnDataType: nvarchar(64)
+            columnName: reference_id
+
+        - addColumn:
+            tableName: views
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - sql:
+            sql: update views set environment_id='DEFAULT'
+        - addNotNullConstraint:
+            tableName: views
+            columnDataType: nvarchar(64)
+            columnName: environment_id
+
+        - createTable:
+            tableName: environments
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+        - addPrimaryKey:
+            constraintName: pk_environments
+            columnNames: id
+            tableName: environments
+        - sql:
+            sql: insert into environments (id, name, description, organization_id) values ('DEFAULT', 'Default environment', 'Default environment', 'DEFAULT')
+
+        - createTable:
+            tableName: environment_domain_restrictions
+            columns:
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_environment_domain_restrictions
+            columnNames: environment_id, domain_restriction
+            tableName: environment_domain_restrictions
+
+        - createTable:
+            tableName: organizations
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: description, type: nvarchar(64), constraints: { nullable: true } }
+        - addPrimaryKey:
+            constraintName: pk_organizations
+            columnNames: id
+            tableName: organizations
+        - sql:
+            sql: insert into organizations (id, name, description) values ('DEFAULT', 'Default organization', 'Default organization')
+
+        - createTable:
+            tableName: organization_domain_restrictions
+            columns:
+              - column: {name: organization_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: domain_restriction, type: nvarchar(64), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_organization_domain_restrictions
+            columnNames: organization_id, domain_restriction
+            tableName: organization_domain_restrictions
+
+        - createTable:
+            tableName: themes
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: true } }
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: {name: enabled, type: boolean, constraints: { nullable: false } }
+              - column: {name: definition, type: nclob, constraints: { nullable: true } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: true } }
+              - column: {name: logo, type: nclob, constraints: { nullable: true } }
+              - column: {name: optional_logo, type: nclob, constraints: { nullable: true } }
+              - column: {name: background_image, type: nclob, constraints: { nullable: true } }
+        - addPrimaryKey:
+              constraintName: pk_themes
+              columnNames: id
+              tableName: themes
+
+        ## others
+        - addColumn:
+            tableName: users
+            columns:
+                - column:
+                    name: login_count
+                    type: bigint
+
+        - sql:
+            sql: delete from parameters where "key" = 'portal.devMode.enabled';
+
+        - sql:
+            sql: delete from views where id = 'all';
+        - dropColumn:
+            columnName: default_view
+            tableName: views
