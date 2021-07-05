@@ -22,14 +22,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee</groupId>
-        <artifactId>gravitee-parent</artifactId>
-        <version>19.2.1</version>
+        <groupId>io.gravitee.apim.repository</groupId>
+        <artifactId>gravitee-apim-repository</artifactId>
+        <version>3.9.3-SNAPSHOT</version>
     </parent>
 
-    <groupId>io.gravitee.repository</groupId>
-    <artifactId>gravitee-repository</artifactId>
-    <version>3.9.2-SNAPSHOT</version>
+    <artifactId>gravitee-apim-repository-api</artifactId>
+    <version>3.9.3-SNAPSHOT</version>
     <name>Gravitee.io APIM - Repository - API</name>
 
     <properties>
