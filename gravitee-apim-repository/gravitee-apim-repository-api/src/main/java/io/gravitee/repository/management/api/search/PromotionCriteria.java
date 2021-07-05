@@ -31,7 +31,7 @@ public class PromotionCriteria {
 
     private PromotionStatus status;
 
-    PromotionCriteria(PromotionCriteria.Builder builder) {
+    PromotionCriteria(Builder builder) {
         this.targetEnvCockpitIds = builder.targetEnvCockpitIds;
         this.status = builder.status;
     }
