@@ -1,0 +1,12 @@
+[
+   {
+      "id": "ORGANIZATION_1",
+      "name": "ORGANIZATION_1 name",
+      "flowMode": "DEFAULT"
+   },
+   {
+      "id": "ORGANIZATION_2",
+      "name": "ORGANIZATION_2 name",
+      "flowMode": "DEFAULT"
+   }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "installation-1",
+    "createdAt": 1000000000000,
+    "updatedAt": 1100000000000,
+    "additionalInformation": {
+      "key1": "value1",
+      "key2": "value2"
+    }
+  },
+  {
+    "id": "installation-to-delete"
+  }
+]

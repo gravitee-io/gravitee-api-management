@@ -1,0 +1,40 @@
+[
+  {
+    "id": "oidc1",
+    "name": "OIDC-1",
+    "description": "OIDC Client registration provider",
+    "discoveryEndpoint": "http://localhost:8092/oidc/.well-known/openid-configuration",
+    "initialAccessTokenType": "CLIENT_CREDENTIALS",
+    "clientId": "my-client-id",
+    "clientSecret": "my-client-secret",
+    "scopes": ["scope1", "scope2", "scope3"],
+    "createdAt": 1000000000000,
+    "updatedAt": 1486771200000
+  },
+  {
+    "id": "oidc2",
+    "name": "OIDC-2",
+    "description": "OIDC Client registration provider",
+    "discoveryEndpoint": "http://localhost:8092/oidc/.well-known/openid-configuration",
+    "initialAccessTokenType": "CLIENT_CREDENTIALS",
+    "clientId": "my-client-id",
+    "clientSecret": "my-client-secret",
+    "createdAt": 1000000000000,
+    "updatedAt": 1486771200000
+  },
+  {
+    "id": "oidc3",
+    "name": "OIDC-3",
+    "description": "OIDC Client registration provider",
+    "discoveryEndpoint": "http://localhost:8092/oidc/.well-known/openid-configuration",
+    "initialAccessTokenType": "CLIENT_CREDENTIALS",
+    "clientId": "my-client-id",
+    "clientSecret": "my-client-secret",
+    "scopes": ["scope1", "scope2", "scope3"],
+    "renewClientSecretSupport": true,
+    "renewClientSecretEndpoint": "http://localhost/endpoint",
+    "renewClientSecretMethod": "POST",
+    "createdAt": 1000000000000,
+    "updatedAt": 1486771200000
+  }
+]

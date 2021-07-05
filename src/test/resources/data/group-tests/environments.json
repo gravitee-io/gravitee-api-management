@@ -1,0 +1,17 @@
+[
+   {
+      "id": "ENV_ORG_1",
+      "name": "Default env",
+      "organizationId": "ORGANIZATION_1"
+   },
+   {
+      "id": "SECOND_ENV_ORG_1",
+      "name": "Second environment belonging to organization 1",
+      "organizationId": "ORGANIZATION_1"
+   },
+   {
+      "id": "ENV_ORG_2",
+      "name": "Env belonging to organization 2",
+      "organizationId": "ORGANIZATION_2"
+   }
+]

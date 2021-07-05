@@ -1,0 +1,194 @@
+[
+   {
+      "id":"FindApiPage",
+      "referenceType":"API",
+      "referenceId":"my-api",
+      "name":"Find apiPage by apiId or Id",
+      "content": "Content of the page",
+      "type": "MARKDOWN",
+      "lastContributor": "john_doe",
+      "order": 2,
+      "visibility": "PUBLIC",
+      "published": true,
+      "source": {
+         "type": "sourceType",
+         "configuration": "sourceConfiguration"
+      },
+      "configuration": {
+         "tryItURL": "http://company.com",
+         "tryIt": true,
+         "showURL": true,
+         "displayOperationId": true,
+         "docExpansion": "FULL",
+         "enableFiltering": true,
+         "showExtensions": true,
+         "showCommonExtensions": true,
+         "maxDisplayedTags": 1234
+      },
+      "metadata": {
+         "edit_url": "http://provider.com/edit/page",
+         "size": 256
+      },
+      "homepage": true,
+      "excludedAccessControls": true,
+      "accessControls": [
+          {
+             "referenceId": "grp1",
+             "referenceType": "GROUP"
+          },
+          {
+             "referenceId": "grp2",
+             "referenceType": "GROUP"
+          },
+          {
+             "referenceId": "role1",
+             "referenceType": "ROLE"
+          }
+      ],
+      "attachedMedia": [
+         {
+            "mediaHash": "media_id_1",
+            "mediaName": "media_name_1",
+            "attachedAt": 1586771200000
+         },
+         {
+            "mediaHash": "media_id_2",
+            "mediaName": "media_name_2",
+            "attachedAt": 1587771200000
+         }
+      ],
+      "createdAt": 1486771200000,
+      "updatedAt": 1486771200000,
+      "useAutoFetch": true
+   },
+   {
+      "id":"updatePage",
+      "referenceType":"API",
+      "referenceId":"my-api-2",
+      "name":"Update Page",
+      "visibility": "PRIVATE",
+      "content": "Content of the update page",
+      "order": 0,
+      "type": "MARKDOWN",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"page3",
+      "referenceType":"API",
+      "referenceId":"my-api-2",
+      "name":"Page 3",
+      "visibility": "PRIVATE",
+      "content": "Content of the page 3",
+      "order": 1,
+      "type": "MARKDOWN",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"home",
+      "referenceType":"API",
+      "referenceId":"my-api-2",
+      "name":"HOME",
+      "homepage": true,
+      "visibility": "PRIVATE",
+      "content": "HOME Content",
+      "order": 2,
+      "type": "MARKDOWN",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"updatePageFolder",
+      "referenceType":"API",
+      "referenceId":"my-api-3",
+      "name":"Update Page Folder",
+      "visibility": "PRIVATE",
+      "content": "Content of the update page folder",
+      "order": 0,
+      "type": "MARKDOWN",
+      "parentId": "2",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"page-to-be-deleted",
+      "referenceType":"API",
+      "referenceId":"api-id-page-to-be-deleted",
+      "name":"should be deleted",
+      "homepage": false,
+      "visibility": "PRIVATE",
+      "content": "lorem ipsum",
+      "type": "MARKDOWN",
+      "order": 0,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"FindPortalPage-homepage",
+      "referenceType":"ENVIRONMENT",
+      "referenceId":"DEFAULT",
+      "name":"find portal homepage",
+      "homepage": true,
+      "visibility": "PRIVATE",
+      "content": "lorem ipsum",
+      "type": "MARKDOWN",
+      "order": 10,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"FindPortalPage-nothomepage",
+      "referenceType":"ENVIRONMENT",
+      "referenceId":"DEFAULT",
+      "name":"find portal not homepage",
+      "homepage": false,
+      "visibility": "PRIVATE",
+      "content": "lorem ipsum",
+      "type": "MARKDOWN",
+      "order": 20,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"page-to-be-removed-parentId-1",
+      "referenceType":"API",
+      "referenceId":"api-with-parent-id-to-be-deleted",
+      "name":"parentId should be removed",
+      "homepage": false,
+      "visibility": "PRIVATE",
+      "content": "lorem ipsum",
+      "type": "MARKDOWN",
+      "parentId": "page-to-be-removed-parentId",
+      "order": 0,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"page-to-be-removed-parentId-2",
+      "referenceType":"API",
+      "referenceId":"api-with-parent-id-to-be-deleted",
+      "name":"parentId should be removed",
+      "homepage": false,
+      "visibility": "PRIVATE",
+      "content": "lorem ipsum",
+      "type": "MARKDOWN",
+      "order": 1,
+      "parentId": "page-to-be-removed-parentId",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "id":"page-to-be-removed-parentId-3",
+      "referenceType":"API",
+      "referenceId":"api-with-parent-id-to-be-deleted",
+      "name":"should be deleted",
+      "homepage": false,
+      "visibility": "PRIVATE",
+      "content": "lorem ipsum",
+      "type": "MARKDOWN",
+      "order": 2,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]

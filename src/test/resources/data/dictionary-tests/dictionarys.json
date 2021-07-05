@@ -1,0 +1,71 @@
+[
+   {
+      "id":"dic-1",
+      "environmentId": "DEFAULT",
+      "name":"My dic 1",
+      "description": "Description for my dic 1",
+      "type": "DYNAMIC",
+      "createdAt": 1000000000000,
+      "updatedAt": 1439032010883,
+      "deployedAt": 1111111111111,
+      "properties" : {
+         "localhost" : "localhost",
+         "localhost:8082" : "localhost:8082",
+         "127.0.0.1:8082" : "127.0.0.1:8082"
+      }
+   },
+   {
+      "id":"dic-2",
+      "environmentId": "DEFAULT",
+      "name":"My dic 2",
+      "description": "Description for my dic 2",
+      "type": "DYNAMIC",
+      "provider": {
+         "type": "HTTP",
+         "configuration": "{}"
+      },
+      "trigger": {
+         "rate": 5,
+         "unit": "SECONDS"
+      },
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "deployedAt": 1111111111111
+   },
+   {
+      "id":"dic-3",
+      "environmentId": "DEFAULT",
+      "name":"My dic 3",
+      "description": "Description for my dic 3",
+      "type": "MANUAL",
+      "provider": {
+         "type": "HTTP",
+         "configuration": "{}"
+      },
+      "trigger": {
+         "rate": 10,
+         "unit": "MINUTES"
+      },
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "deployedAt": 1111111111111
+   },
+   {
+      "id":"dic-4",
+      "environmentId": "OTHER_ENV",
+      "name":"My dic 4",
+      "description": "Description for my dic 3",
+      "type": "DYNAMIC",
+      "provider": {
+         "type": "HTTP",
+         "configuration": "{}"
+      },
+      "trigger": {
+         "rate": 10,
+         "unit": "MINUTES"
+      },
+      "createdAt": 1000000000000,
+      "updatedAt": 1111111111111,
+      "deployedAt": 1111111111111
+   }
+]

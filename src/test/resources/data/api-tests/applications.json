@@ -1,0 +1,12 @@
+[
+	{
+	   	"id":"application-sample",
+        "environmentId": "DEFAULT",
+		"name":"application-sample",
+	   	"description":"Sample application1 description",
+		"type": "SIMPLE",
+		"status": "ACTIVE",
+		"createdAt": 1439022010883,
+		"updatedAt": 1439022010883
+	}	
+]

@@ -1,0 +1,95 @@
+[
+  {
+    "id": "github",
+    "organizationId": "DEFAULT",
+    "name": "GitHub",
+    "description": "GitHub Identity Provider",
+    "enabled": true,
+    "type": "GITHUB",
+    "configuration": {
+    },
+    "groupMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "group1",
+        "group2"
+      ]
+    },
+    "roleMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "role1",
+        "role2"
+      ]
+    },
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111
+  },
+  {
+    "id": "idp-3",
+    "organizationId": "DEFAULT",
+    "name": "Gravitee.io AM",
+    "description": "Gravitee.io AM Identity Provider",
+    "enabled": false,
+    "type": "GRAVITEEIO_AM",
+    "configuration": {
+      "scopes": [
+        "openid"
+      ],
+      "clientId": "my-client-id",
+      "clientSecret": "my-client-secret",
+      "serverURL": "http://localhost:8092",
+      "domain": "portal",
+      "color": "#a93d3d"
+    },
+    "groupMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "group1",
+        "group2"
+      ]
+    },
+    "roleMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "role1",
+        "role2"
+      ]
+    },
+    "userProfileMapping": {
+      "sub": "id",
+      "firstname": "firstname",
+      "email": "mail"
+    },
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111
+  },
+  {
+    "id": "idp-1",
+    "organizationId": "DEFAULT",
+    "name": "Google",
+    "description": "Google Identity Provider",
+    "enabled": true,
+    "type": "GOOGLE",
+    "configuration": {
+      "scopes": [
+        "openid"
+      ],
+      "clientId": "qsdqsd",
+      "clientSecret": "qsdqsdqsd",
+      "serverURL": "http://localhost:8092",
+      "domain": "portal",
+      "color": "#a93d3d"
+    },
+    "groupMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "group1",
+        "group2"
+      ]
+    },
+    "roleMappings": {
+      "{#jsonPath('$.email_verified')}": [
+        "role1",
+        "role2"
+      ]
+    },
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111
+  }
+]

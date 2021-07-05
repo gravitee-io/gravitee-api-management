@@ -1,0 +1,30 @@
+[
+  {
+    "id": "notif-toUpdate",
+    "title": "notif-title-toUpdate",
+    "message": "notif-message-toUpdate",
+    "user": "notif-userId-toUpdate",
+    "createdAt": 1439022010883
+  },
+  {
+    "id": "notif-toDelete",
+    "title": "notif-title-toDelete",
+    "message": "notif-message-toDelete",
+    "user": "notif-userId-toDelete",
+    "createdAt": 1439022010883
+  },
+  {
+    "id": "notif-findByUserId",
+    "title": "notif-title-findByUserId",
+    "message": "notif-message-findByUserId",
+    "user": "notif-userId-findByUserId",
+    "createdAt": 1439022010883
+  },
+  {
+    "id": "notif-findById",
+    "title": "notif-title-findById",
+    "message": "notif-message-findById",
+    "user": "notif-userId-findById",
+    "createdAt": 1439022010883
+  }
+]

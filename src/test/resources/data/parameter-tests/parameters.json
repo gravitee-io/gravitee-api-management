@@ -1,0 +1,26 @@
+[
+   {
+      "key": "portal.top-apis",
+      "referenceId": "DEFAULT",
+      "referenceType": "ENVIRONMENT",
+      "value": "api1;api2;api2"
+   },
+   {
+      "key": "management.oAuth.clientId",
+      "referenceId": "DEFAULT",
+      "referenceType": "ENVIRONMENT",
+      "value": "MyClientId"
+   },
+   {
+      "key": "management.oAuth.clientSecret",
+      "referenceId": "DEFAULT",
+      "referenceType": "ENVIRONMENT",
+      "value": "MyClientSecret"
+   },
+   {
+      "key": "management.oAuth.clientSecret.prof",
+      "referenceId": "PROD",
+      "referenceType": "ENVIRONMENT",
+      "value": "MyClientSecretProd"
+   }
+]

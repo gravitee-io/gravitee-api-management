@@ -1,0 +1,16 @@
+[
+   {
+      "id":"answer-id",
+      "rating":"rating-id",
+      "user":"user",
+      "comment": "Answer",
+      "createdAt": 1486771200000
+   },
+   {
+      "id":"answer2-id",
+      "rating":"rating3-id",
+      "user":"admin",
+      "comment": "Answer2",
+      "createdAt": 1459032010883
+   }
+]

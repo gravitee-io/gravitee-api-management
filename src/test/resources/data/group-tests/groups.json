@@ -1,0 +1,42 @@
+[
+  {
+    "id": "group-application-1",
+    "environmentId": "group-application-1 environment-id",
+    "name": "group-application-1 name",
+    "lockApiRole": true,
+    "lockApplicationRole": true,
+    "systemInvitation": true,
+    "emailInvitation": true,
+    "disableMembershipNotifications": true,
+    "maxInvitation": 99,
+    "eventRules": [
+      {
+        "event": "API_CREATE"
+      },
+      {
+        "event": "APPLICATION_CREATE"
+      }
+    ],
+    "apiPrimaryOwner": "api-primary-owner-id"
+  },
+  {
+    "id": "group-api-to-delete",
+    "environmentId": "DEFAULT",
+    "name": "group-api-to-delete name"
+  },
+  {
+    "id": "group_env_1_org_1",
+    "environmentId": "ENV_ORG_1",
+    "name": "group env 1 org 1"
+  },
+  {
+    "id": "group_env_2_org_1",
+    "environmentId": "SECOND_ENV_ORG_1",
+    "name": "group env 2 org 1"
+  },
+  {
+    "id": "group_env_org_2",
+    "environmentId": "ENV_ORG_2",
+    "name": "group env org 1"
+  }
+]

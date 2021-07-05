@@ -1,0 +1,30 @@
+[
+   {
+      "api":"api1",
+      "qualityRule":"quality-rule1",
+      "checked": false,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "api":"api2",
+      "qualityRule":"quality-rule1",
+      "checked": true,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "api":"api1",
+      "qualityRule":"quality-rule2",
+      "checked": true,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "api":"api1",
+      "qualityRule":"quality-rule3",
+      "checked": true,
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]
