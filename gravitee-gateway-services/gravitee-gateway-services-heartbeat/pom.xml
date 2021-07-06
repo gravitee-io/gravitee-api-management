@@ -60,8 +60,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.repository</groupId>
-            <artifactId>gravitee-repository</artifactId>
+            <groupId>io.gravitee.apim.repository</groupId>
+            <artifactId>gravitee-apim-repository-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
