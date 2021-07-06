@@ -25,7 +25,7 @@
         <artifactId>gravitee-parent</artifactId>
         <version>19.2.1</version>
     </parent>
-
+    <!-- restored next version -->
     <groupId>io.gravitee.rest.api</groupId>
     <artifactId>gravitee-rest-api</artifactId>
     <packaging>pom</packaging>
