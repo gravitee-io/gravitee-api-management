@@ -27,23 +27,24 @@
     </parent>
 
     <artifactId>gravitee-apim-repository-jdbc</artifactId>
-    <version>3.10.0-SNAPSHOT</version>
+
     <name>Gravitee.io APIM - Repository - JDBC</name>
 
     <properties>
-        <gravitee-definition.version>1.25.0</gravitee-definition.version>
-        <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
+        <!-- Dependencies version -->
         <HikariCP.version>3.4.1</HikariCP.version>
         <liquibase.version>3.8.0</liquibase.version>
         <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
+        <mariaDB.version>2.4.0</mariaDB.version>
+        <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
         <mysql-connector-java.version>8.0.17</mysql-connector-java.version>
         <postgresql.version>42.2.16</postgresql.version>
-        <mariaDB.version>2.4.0</mariaDB.version>
-        <wix-embedded-mysql.version>4.6.0</wix-embedded-mysql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
         <testcontainers.version>1.15.2</testcontainers.version>
+        <wix-embedded-mysql.version>4.6.0</wix-embedded-mysql.version>
+
+        <!-- Plugin configuration -->
         <default-database.jdbcType>postgresql-te</default-database.jdbcType>
-        <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     </properties>
 
     <dependencies>
@@ -58,11 +59,34 @@
         <dependency>
             <groupId>io.gravitee.definition</groupId>
             <artifactId>gravitee-definition-jackson</artifactId>
-            <version>${gravitee-definition.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- Runtime scope -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mattbertolini</groupId>
+            <artifactId>liquibase-slf4j</artifactId>
+            <version>${liquibase-slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>${HikariCP.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
@@ -74,54 +98,24 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.23</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mattbertolini</groupId>
-            <artifactId>liquibase-slf4j</artifactId>
-            <version>${liquibase-slf4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>${HikariCP.version}</version>
-        </dependency>
 
-        <!-- Jackson dependencies -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>${spring.version}</version>
         </dependency>
 
-        <!--  Logging -->
+        <!-- Test scope -->
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
-            <scope>provided</scope>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <scope>test</scope>
         </dependency>
-
-        <!--  Test scope -->
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-test</artifactId>
@@ -131,9 +125,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <version>${testcontainers.version}</version>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
             <scope>test</scope>
         </dependency>
 
@@ -218,12 +211,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.6</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -237,42 +224,9 @@
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.4</version>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptors>
-                        <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-plugin-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>unpack-repository-tests</id>
-                        <phase>process-test-resources</phase>
-                        <goals>
-                            <goal>unpack-dependencies</goal>
-                        </goals>
-                        <configuration>
-                            <includeGroupIds>io.gravitee.apim.repository</includeGroupIds>
-                            <includeArtifactIds>gravitee-apim-repository-test</includeArtifactIds>
-                            <includeClassifiers>tests</includeClassifiers>
-                            <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

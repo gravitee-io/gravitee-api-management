@@ -28,6 +28,7 @@
     </parent>
 
     <artifactId>gravitee-apim-repository-gateway-bridge-http-client</artifactId>
+
     <name>Gravitee.io APIM - Gateway - Repository - HTTP Bridge - Client</name>
 
     <dependencies>
@@ -75,6 +76,7 @@
             <artifactId>vertx-circuit-breaker</artifactId>
             <scope>provided</scope>
         </dependency>
+
         <!-- Test scope -->
         <dependency>
             <groupId>junit</groupId>
@@ -98,22 +100,6 @@
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptors>
-                        <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-plugin-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

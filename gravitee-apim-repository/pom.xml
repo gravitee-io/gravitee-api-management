@@ -30,7 +30,6 @@
     <artifactId>gravitee-apim-repository</artifactId>
     <packaging>pom</packaging>
 
-    <version>3.10.0-SNAPSHOT</version>
     <name>Gravitee.io APIM - Repository</name>
 
     <modules>
@@ -42,4 +41,34 @@
         <module>gravitee-apim-repository-hazelcast</module>
         <module>gravitee-apim-repository-gateway-bridge-http</module>
     </modules>
+
+    <properties>
+        <maven-dependency-plugin.version>3.0.0</maven-dependency-plugin.version>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>unpack-repository-tests</id>
+                            <phase>test-compile</phase>
+                            <goals>
+                                <goal>unpack-dependencies</goal>
+                            </goals>
+                            <configuration>
+                                <includeGroupIds>io.gravitee.apim.repository</includeGroupIds>
+                                <includeArtifactIds>gravitee-apim-repository-test</includeArtifactIds>
+                                <includeClassifiers>tests</includeClassifiers>
+                                <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 </project>

@@ -28,6 +28,7 @@
     </parent>
 
     <artifactId>gravitee-apim-repository-gateway-bridge-http-server</artifactId>
+
     <name>Gravitee.io APIM - Gateway - Repository - HTTP Bridge - Server</name>
 
     <dependencies>
@@ -74,22 +75,6 @@
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.3</version>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptors>
-                        <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-plugin-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

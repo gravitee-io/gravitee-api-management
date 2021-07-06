@@ -23,14 +23,14 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>19.2.3</version>
+        <version>20.0</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
+    <version>3.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <version>3.10.0-SNAPSHOT</version>
     <name>Gravitee.io APIM - API Management</name>
 
     <scm>
@@ -49,41 +49,199 @@
     </modules>
 
     <properties>
-        <gravitee-parent.version>19.2.3</gravitee-parent.version>
+        <!-- Gravitee dependencies version -->
+        <gravitee-bom.version>1.1</gravitee-bom.version>
+        <gravitee-common.version>1.18.0</gravitee-common.version>
+        <gravitee-definition.version>1.28.0</gravitee-definition.version>
+        <gravitee-node-api.version>1.12.1</gravitee-node-api.version>
+        <!-- Other dependencies version -->
+        <commons-io.version>2.7</commons-io.version>
+        <commons-lang3.version>3.9</commons-lang3.version>
+        <commons-pool2.version>2.9.0</commons-pool2.version>
+        <dozer.version>6.4.1</dozer.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <hazelcast.version>3.12.9</hazelcast.version>
+        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
+        <jaxb-api.version>2.3.0</jaxb-api.version>
+        <javax.activation-api.version>1.2.0</javax.activation-api.version>
+        <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
+        <javax.inject.version>1</javax.inject.version>
+        <reactor-adapter.version>3.2.2.RELEASE</reactor-adapter.version>
+        <snakeyaml.version>1.23</snakeyaml.version>
+        <testcontainers.version>1.15.3</testcontainers.version>
+        <!-- Plugins version -->
+        <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-            <!-- Import parent to properly inherit all dependencies -->
+            <!-- Gravitee dependencies -->
+            <!-- Import bom to properly inherit all dependencies -->
             <dependency>
                 <groupId>io.gravitee</groupId>
-                <artifactId>gravitee-parent</artifactId>
-                <version>${gravitee-parent.version}</version>
+                <artifactId>gravitee-bom</artifactId>
+                <version>${gravitee-bom.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
 
+            <dependency>
+                <groupId>io.gravitee.common</groupId>
+                <artifactId>gravitee-common</artifactId>
+                <version>${gravitee-common.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.definition</groupId>
+                <artifactId>gravitee-definition-jackson</artifactId>
+                <version>${gravitee-definition.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.node</groupId>
+                <artifactId>gravitee-node-api</artifactId>
+                <version>${gravitee-node-api.version}</version>
+            </dependency>
+
+            <!-- Other dependencies -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons-io.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.dozermapper</groupId>
+                <artifactId>dozer-core</artifactId>
+                <version>${dozer.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>${hamcrest.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.hazelcast</groupId>
+                <artifactId>hazelcast</artifactId>
+                <version>${hazelcast.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.projectreactor.addons</groupId>
+                <artifactId>reactor-adapter</artifactId>
+                <version>${reactor-adapter.version}</version>
+            </dependency>
+
+            <!-- JAXB API & implementation -->
+            <dependency>
+                <groupId>com.sun.xml.bind</groupId>
+                <artifactId>jaxb-impl</artifactId>
+                <!-- FIXME: upgrade version when upgrading spring version -->
+                <version>2.1.2</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.activation</groupId>
+                <artifactId>javax.activation-api</artifactId>
+                <version>${javax.activation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.annotation</groupId>
+                <artifactId>javax.annotation-api</artifactId>
+                <version>${javax.annotation-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>${javax.inject.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>${commons-lang3.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-pool2</artifactId>
+                <version>${commons-pool2.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.codehaus.jackson</groupId>
+                <artifactId>jackson-mapper-asl</artifactId>
+                <version>${jackson-mapper-asl.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.yaml</groupId>
+                <artifactId>snakeyaml</artifactId>
+                <version>${snakeyaml.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven-assembly-plugin.version}</version>
+                    <configuration>
+                        <appendAssemblyId>false</appendAssemblyId>
+                        <descriptors>
+                            <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
+                        </descriptors>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>make-plugin-assembly</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>single</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>com.hubspot.maven.plugins</groupId>
+                    <artifactId>prettier-maven-plugin</artifactId>
+                    <version>0.12</version>
+                    <configuration>
+                        <nodeVersion>12.13.0</nodeVersion>
+                        <prettierJavaVersion>1.0.1</prettierJavaVersion>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
-                <version>0.12</version>
-                <configuration>
-                    <nodeVersion>12.13.0</nodeVersion>
-                    <prettierJavaVersion>1.0.1</prettierJavaVersion>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
