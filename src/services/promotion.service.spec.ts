@@ -36,7 +36,9 @@ describe('PromotionService', () => {
     it('returns the data', (done) => {
       const environments: PromotionTarget[] = [fakePromotionTarget(), fakePromotionTarget()];
 
-      $httpBackend.expectGET('http://url.test/promotion-targets').respond(environments);
+      $httpBackend
+        .expectGET('https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/promotion-targets')
+        .respond(environments);
 
       promotionService
         .listPromotionTargets()
@@ -58,7 +60,7 @@ describe('PromotionService', () => {
       });
       const promotion = fakePromotion();
       $httpBackend
-        .expectPOST('http://url.test/apis/apiId/_promote', {
+        .expectPOST('https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/apis/apiId/_promote', {
           targetEnvCockpitId: 'env#1',
           targetEnvName: 'A name',
         })

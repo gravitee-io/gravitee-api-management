@@ -35,7 +35,9 @@ describe('QualityRuleService', () => {
   describe('list', () => {
     it('returns the data', (done) => {
       const qualityRules: QualityRule[] = [{ name: 'name', description: 'description', weight: 42 }];
-      $httpBackend.expectGET('http://url.test/configuration/quality-rules/').respond(qualityRules);
+      $httpBackend
+        .expectGET('https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT/configuration/quality-rules/')
+        .respond(qualityRules);
 
       QualityRuleService.list()
         .then((result) => {

@@ -42,13 +42,13 @@ require('./src/index');
 
 angular.module('gravitee-management').constant('Constants', {
   org: {
-    baseURL: 'http://url.test',
+    baseURL: 'https://url.test:3000/management/organizations/DEFAULT',
     settings: {
       reCaptcha: false,
     },
   },
   env: {
-    baseURL: 'http://url.test',
+    baseURL: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT',
   },
 });
 
