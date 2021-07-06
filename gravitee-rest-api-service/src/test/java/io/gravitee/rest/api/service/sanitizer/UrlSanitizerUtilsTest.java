@@ -21,6 +21,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import java.util.Collections;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.text.RandomStringGenerator;
 import org.junit.Test;
 
 /**
@@ -51,7 +52,8 @@ public class UrlSanitizerUtilsTest {
 
     @Test(expected = InvalidDataException.class)
     public void checkAllowed_invalidUrl() {
-        UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + RandomStringUtils.random(5), Collections.emptyList(), false);
+        RandomStringGenerator generator = new RandomStringGenerator.Builder().withinRange('a', 'z').build();
+        UrlSanitizerUtils.checkAllowed("https://invalid-url.not-exist" + generator.generate(5), Collections.emptyList(), false);
     }
 
     @Test(expected = UrlForbiddenException.class)

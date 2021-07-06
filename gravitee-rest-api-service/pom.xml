@@ -257,6 +257,11 @@
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 	<build>

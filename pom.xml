@@ -58,6 +58,7 @@
         <lucene.version>7.5.0</lucene.version>
         <powermock.version>2.0.0</powermock.version>
         <commons-lang3.version>3.9</commons-lang3.version>
+        <commons-text.version>1.9</commons-text.version>
         <swagger.version>1.6.2</swagger.version>
         <nimbus-jose-jwt.version>8.15</nimbus-jose-jwt.version>
         <flexmark.version>0.61.16</flexmark.version>
@@ -308,6 +309,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-text</artifactId>
+                <version>${commons-text.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
