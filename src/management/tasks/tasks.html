@@ -16,13 +16,13 @@
 
 -->
 <div class="tasks">
-  <span class="tasks__title">My Tasks ({{$ctrl.tasks.data.length}})</span>
-  <div ng-if="$ctrl.tasks.page.total_elements > 0" class="tasks__list">
+  <div ng-if="$ctrl.tasks.data.length > 0" class="tasks__list">
+    <span class="tasks__list__title">My Tasks ({{$ctrl.tasks.data.length}})</span>
     <md-card class="tasks__list__task" ng-repeat="task in $ctrl.tasks.data | orderBy: '-created_at'">
       <div ng-if="task.type !== 'PROMOTION_APPROVAL'" ng-click="$ctrl.go(task)">
         <div class="tasks__list__task__header">
           <div class="tasks__list__task__header__left">
-            <gv-icon class="tasks__list__task__header__left__icon" shape="{{$ctrl.icon(task)}}"></gv-icon>
+            <gv-icon ng-if="$ctrl.icon(task)" class="tasks__list__task__header__left__icon" shape="{{$ctrl.icon(task)}}"></gv-icon>
             <div class="tasks__list__task__header__left__title">{{$ctrl.title(task)}}</div>
           </div>
           <div class="tasks__list__task__header__right">
@@ -33,16 +33,18 @@
         <div class="tasks__list__task__description">
           <div ng-bind-html="$ctrl.taskMessage(task)"></div>
         </div>
-        <div class="tasks__list__task__actions"></div>
+        <div class="tasks__list__task__actions">
+          <md-button>{{$ctrl.actionLabel(task)}}</md-button>
+        </div>
       </div>
 
-      <promotion-task ng-if="task.type === 'PROMOTION_APPROVAL'" task="task"></promotion-task>
+      <promotion-task ng-if="task.type === 'PROMOTION_APPROVAL'" task="task" task-handled="$ctrl.removeTask(task)"></promotion-task>
     </md-card>
   </div>
 
   <gravitee-empty-state
     class="tasks__empty"
-    ng-if="$ctrl.tasks.page.total_elements == 0"
+    ng-if="!$ctrl.tasks.data || $ctrl.tasks.data.length === 0"
     icon="wb_sunny"
     message="Congratulations, you did all your tasks!"
   ></gravitee-empty-state>

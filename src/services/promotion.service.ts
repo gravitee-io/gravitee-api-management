@@ -15,9 +15,10 @@
  */
 import { IHttpService, IPromise, IQService } from 'angular';
 import { Promotion, PromotionRequest, PromotionTarget } from '../entities/promotion';
+import { Constants } from '../entities/Constants';
 
 export class PromotionService {
-  constructor(private $http: IHttpService, private Constants: any, private $q: IQService) {
+  constructor(private $http: IHttpService, private Constants: Constants, private $q: IQService) {
     'ngInject';
   }
 
@@ -32,6 +33,12 @@ export class PromotionService {
     };
     return this.$http
       .post<Promotion>(`${this.Constants.env.baseURL}/apis/${apiId}/_promote`, promotionRequest)
+      .then((response) => response.data);
+  }
+
+  processPromotion(promotionId: string, isAccepted: boolean) {
+    return this.$http
+      .post<Promotion>(`${this.Constants.org.baseURL}/promotions/${promotionId}/_process`, isAccepted)
       .then((response) => response.data);
   }
 }

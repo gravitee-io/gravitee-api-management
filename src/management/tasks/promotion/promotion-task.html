@@ -29,8 +29,23 @@
   <div class="promotion-task__description">
     <div>
       <strong>{{:: $ctrl.task.data.authorDisplayName}}</strong> requested the promotion of API
-      <code>{{::$ctrl.task.data.apiName}}</code> from <strong>{{::$ctrl.task.data.sourceEnvironmentName}}</strong> to
-      <strong>{{::$ctrl.task.data.targetEnvironmentName}}</strong>
+      <code>{{::$ctrl.task.data.apiName}}</code> from environment <strong>{{::$ctrl.task.data.sourceEnvironmentName}}</strong> to
+      environment <strong>{{::$ctrl.task.data.targetEnvironmentName}}</strong>
+    </div>
+    <div class="promotion-task__description__details">
+      <div ng-if="$ctrl.task.data.isApiUpdate">
+        As the API has already been promoted to this environment, accepting this promotion will update the existing API.
+      </div>
+      <div ng-if="!$ctrl.task.data.isApiUpdate">Accepting this promotion will create a new API in the specified environment.</div>
+    </div>
+  </div>
+
+  <div class="promotion-task__actions">
+    <div class="promotion-task__actions__reject">
+      <md-button ng-click="$ctrl.openRejectDialog()"><gv-icon shape="content:clear"></gv-icon>REJECT</md-button>
+    </div>
+    <div class="promotion-task__actions__accept">
+      <md-button ng-click="$ctrl.openAcceptDialog()"><gv-icon shape="action:done"></gv-icon>ACCEPT</md-button>
     </div>
   </div>
 </div>

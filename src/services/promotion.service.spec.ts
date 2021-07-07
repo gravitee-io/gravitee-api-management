@@ -77,4 +77,29 @@ describe('PromotionService', () => {
       $httpBackend.flush();
     });
   });
+
+  describe('processPromotion', () => {
+    it('call the endpoint', (done) => {
+      const promotion = fakePromotion();
+      const isPromotionAccepted = true;
+
+      $httpBackend
+        .expectPOST(
+          `https://url.test:3000/management/organizations/DEFAULT/promotions/${promotion.id}/_process`,
+          // Need to cast because this function doesn't accept boolean
+          isPromotionAccepted as any,
+        )
+        .respond(promotion);
+
+      promotionService
+        .processPromotion(promotion.id, isPromotionAccepted)
+        .then((result) => {
+          expect(result).toEqual(promotion);
+          done();
+        })
+        .catch(done.fail);
+
+      $httpBackend.flush();
+    });
+  });
 });

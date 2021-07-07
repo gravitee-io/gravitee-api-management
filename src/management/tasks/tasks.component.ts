@@ -17,7 +17,6 @@ import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
 import { IController, IOnInit } from 'angular';
 import { PagedResult } from '../../entities/pagedResult';
-import { startCase } from 'lodash';
 import { Task } from '../../entities/task/task';
 
 class TasksComponentController implements IController, IOnInit {
@@ -102,6 +101,25 @@ class TasksComponentController implements IController, IOnInit {
       default:
         return '';
     }
+  }
+
+  actionLabel(task: Task): string {
+    switch (task.type) {
+      case 'SUBSCRIPTION_APPROVAL':
+        return 'Validate';
+      case 'IN_REVIEW':
+        return 'Review';
+      case 'REQUEST_FOR_CHANGES':
+        return 'Make changes';
+      case 'USER_REGISTRATION_APPROVAL':
+        return 'Validate';
+      default:
+        return 'Details';
+    }
+  }
+
+  removeTask(taskToRemove: Task): void {
+    this.tasks.data = this.tasks.data.filter((task) => task !== taskToRemove);
   }
 }
 

@@ -24,9 +24,12 @@ export interface GenericTask<Type = TaskType, Data = any> {
 }
 
 export interface PromotionApprovalTaskData {
+  promotionId: string;
   apiName: string;
   sourceEnvironmentName: string;
   targetEnvironmentName: string;
+  targetApiId?: string;
+  isApiUpdate: boolean;
   authorDisplayName: string;
   authorEmail?: string;
   authorPicture?: string;

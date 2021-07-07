@@ -33,7 +33,27 @@
   }
 
   &__description {
+    display: flex;
+    flex-direction: column;
     margin: 16px 0 8px 0;
     font-size: 14px;
+
+    &__details {
+      margin-top: 2px;
+      font-size: 12px;
+      color: hsl(0, 0%, 45%);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+
+    &__reject,
+    &__accept {
+      --gv-icon--s: 22px;
+    }
   }
 }
