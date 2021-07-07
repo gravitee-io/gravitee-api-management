@@ -191,6 +191,15 @@ reporters:
     enabled: false # Is the reporter enabled or not (default to false)
 #    fileName: ${gravitee.home}/metrics/%s-yyyy_mm_dd
 #    output: json # Can be csv, json, elasticsearch or message_pack
+#    request: # (Following mapping section is also available for other types: node, health-check, log)
+#     exclude: # Can be a wildcard (ie '*') to exclude all fields (supports json path)
+#       - response-time
+#       - log.clientRequest
+#     include: # Only if exclude is used (supports json path)
+#       - api
+#     rename: # (supports json path)
+#       application: app
+#       request.ip: address
 
 # Gateway service configurations. Provided values are default values.
 # All services are enabled by default. To stop one of them, you have to add the property 'enabled: false' (See the
