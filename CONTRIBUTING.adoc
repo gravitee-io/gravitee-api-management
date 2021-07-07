@@ -1,15 +1,15 @@
 = Contributing to Gravitee.io
 
-You think Gravitee.io is awesome and want to contribute?
-Here are few guidelines that should help you get started.
+You think Gravitee.io is awesome and you'd like to contribute?
+Here are some guidelines that should help you get started.
 
 == Using GitHub issues
 
-We are using GitHub issues to track bugs and enhancements. Found a bug in the source code? Want to propose new features or enhancements?
+We use GitHub issues to track bugs and enhancements. Found a bug in the source code? Want to propose new features or enhancements?
 You can help us by submitting an issue in our https://github.com/gravitee-io/issues/issues[repository].
-Before submitting your issue, search the https://github.com/gravitee-io/issues/issues[issues archive] maybe your question has already been answered.
+Before submitting your issue, please search the https://github.com/gravitee-io/issues/issues[issues archive] to see if your question has already been answered.
 
-Providing the following information will help us to deal quickly with your issue:
+Providing the following information will help us deal quickly with your issue:
 
 * **Overview of the issue** : describe the issue and why this is a bug for you. 
 * **Gravitee.io version(s)** : possible regression ?
@@ -18,7 +18,7 @@ Providing the following information will help us to deal quickly with your issue
 
 == Submitting changes
 
-You've submitted an issue to the project and know how to fix it? You can contribute to the project by https://guides.github.com/activities/forking/[forking the repository] and https://guides.github.com/activities/forking/#making-a-pull-request[submitting your pull requests].
+Have you submitted an issue to the project and know how to fix it? You can contribute to the project by https://guides.github.com/activities/forking/[forking the repository] and https://guides.github.com/activities/forking/#making-a-pull-request[submitting your pull requests].
 
 Before you submit your pull request consider the following guidelines:
 
