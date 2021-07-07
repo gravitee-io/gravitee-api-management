@@ -145,4 +145,15 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
                 .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
                 .collect(Collectors.toSet());
     }
+
+    @Override
+    public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
+        LOGGER.debug("Find environment by cockpit ID [{}]", cockpitId);
+
+        return internalEnvironmentRepo.findByCockpitId(cockpitId)
+            .map(environment -> {
+                LOGGER.debug("Find environment by cockpit ID [{}] - Done", environment);
+                return mapper.map(environment, Environment.class);
+            });
+    }
 }

@@ -36,6 +36,7 @@ public class Promotion {
     private Date updatedAt;
 
     private PromotionAuthor author = new PromotionAuthor();
+    private String targetApiId;
 
     public String getId() {
         return id;
@@ -204,6 +205,15 @@ public class Promotion {
             ", createdAt=" + createdAt +
             ", updatedAt=" + updatedAt +
             ", author=" + author +
+            ", targetApiId=" + targetApiId +
             '}';
+    }
+
+    public String getTargetApiId() {
+        return targetApiId;
+    }
+
+    public void setTargetApiId(String targetApiId) {
+        this.targetApiId = targetApiId;
     }
 }

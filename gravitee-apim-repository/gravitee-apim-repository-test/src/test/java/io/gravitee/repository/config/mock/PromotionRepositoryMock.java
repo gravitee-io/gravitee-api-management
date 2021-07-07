@@ -115,6 +115,27 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
                     && pageable.pageSize() == 1
                 ))
         ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv2), 0 , 0, 1));
+
+        // shouldSearchWithCriteriaApiId
+        when(repository.search(
+                argThat(o -> o != null
+                        && o.getTargetEnvCockpitIds() == null
+                        && o.getStatus() == null
+                        && o.getApiId() != null && o.getApiId().equals("api#1")),
+                nullable(Sortable.class),
+                any())
+        ).thenReturn(new Page<>(asList(promotion, promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 3));
+
+        // shouldSearchWithCriteriaTargetApiId
+        when(repository.search(
+                argThat(o -> o != null
+                        && o.getTargetEnvCockpitIds() == null
+                        && o.getStatus() == null
+                        && o.getTargetApiExists() != null && o.getTargetApiExists().equals(true)),
+                nullable(Sortable.class),
+                any())
+        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 2));
+
     }
 
     private Promotion getAPromotion(String id) {

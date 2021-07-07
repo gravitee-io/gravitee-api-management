@@ -23,6 +23,10 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 @Repository
 public interface PromotionMongoRepositoryCustom {
     Page<PromotionMongo> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable);

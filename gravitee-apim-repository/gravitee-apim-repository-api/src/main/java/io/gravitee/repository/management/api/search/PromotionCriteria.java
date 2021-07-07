@@ -28,12 +28,15 @@ import static java.util.Arrays.asList;
 public class PromotionCriteria {
 
     private List<String> targetEnvCockpitIds;
-
     private PromotionStatus status;
+    private Boolean targetApiExists;
+    private String apiId;
 
     PromotionCriteria(Builder builder) {
         this.targetEnvCockpitIds = builder.targetEnvCockpitIds;
         this.status = builder.status;
+        this.targetApiExists = builder.targetApiExists;
+        this.apiId = builder.apiId;
     }
 
     public List<String> getTargetEnvCockpitIds() {
@@ -52,20 +55,46 @@ public class PromotionCriteria {
         this.status = status;
     }
 
+    public Boolean getTargetApiExists() {
+        return targetApiExists;
+    }
+
+    public void setTargetApiExists(Boolean targetApiExists) {
+        this.targetApiExists = targetApiExists;
+    }
+
+    public String getApiId() {
+        return apiId;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
     public static class Builder {
 
         private List<String> targetEnvCockpitIds;
-
         private PromotionStatus status;
+        private Boolean targetApiExists;
+        private String apiId;
 
         public Builder targetEnvCockpitIds(String... targetEnvironmentIds) {
             this.targetEnvCockpitIds = asList(targetEnvironmentIds);
             return this;
         }
 
-
         public Builder status(PromotionStatus status) {
             this.status = status;
+            return this;
+        }
+
+        public Builder targetApiExists(Boolean targetApiExists) {
+            this.targetApiExists = targetApiExists;
+            return this;
+        }
+
+        public Builder apiId(String apiId) {
+            this.apiId = apiId;
             return this;
         }
 

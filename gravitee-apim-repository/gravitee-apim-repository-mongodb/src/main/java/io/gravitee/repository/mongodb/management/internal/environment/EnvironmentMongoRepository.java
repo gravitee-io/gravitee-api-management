@@ -21,6 +21,7 @@ import org.springframework.stereotype.Repository;
 
 import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
 
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -41,6 +42,9 @@ public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentM
 
     @Query("{ organizationId: {$in: ?0}, hrids: {$in: ?1} }")
     Set<EnvironmentMongo> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids);
+
+    @Query("{ cockpitId: ?0 }")
+    Optional<EnvironmentMongo> findByCockpitId(String cockpitId);
 }
 
 

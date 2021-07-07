@@ -37,6 +37,8 @@ public class PromotionMongo extends Auditable {
 
     private PromotionAuthorMongo author;
 
+    private String targetApiId;
+
     public String getId() {
         return id;
     }
@@ -109,16 +111,32 @@ public class PromotionMongo extends Auditable {
         this.author = author;
     }
 
+    public String getTargetApiId() {
+        return targetApiId;
+    }
+
+    public void setTargetApiId(String targetApiId) {
+        this.targetApiId = targetApiId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionMongo that = (PromotionMongo) o;
-        return Objects.equals(id, that.id) && Objects.equals(apiDefinition, that.apiDefinition) && Objects.equals(apiId, that.apiId) && status == that.status && Objects.equals(targetEnvName, that.targetEnvName) && Objects.equals(targetEnvCockpitId, that.targetEnvCockpitId) && Objects.equals(sourceEnvName, that.sourceEnvName) && Objects.equals(sourceEnvCockpitId, that.sourceEnvCockpitId);
+        return Objects.equals(id, that.id)
+                && Objects.equals(apiDefinition, that.apiDefinition)
+                && Objects.equals(apiId, that.apiId)
+                && Objects.equals(status, that.status)
+                && Objects.equals(targetEnvName, that.targetEnvName)
+                && Objects.equals(targetEnvCockpitId, that.targetEnvCockpitId)
+                && Objects.equals(sourceEnvName, that.sourceEnvName)
+                && Objects.equals(sourceEnvCockpitId, that.sourceEnvCockpitId)
+                && Objects.equals(targetApiId, that.targetApiId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, apiDefinition, apiId, status, targetEnvName, targetEnvCockpitId, sourceEnvName, sourceEnvCockpitId);
+        return Objects.hash(id, apiDefinition, apiId, status, targetEnvName, targetEnvCockpitId, sourceEnvName, sourceEnvCockpitId, targetApiId);
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -59,6 +60,14 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
 
             if (criteria.getStatus() != null) {
                 query.addCriteria(where("status").is(criteria.getStatus()));
+            }
+
+            if (criteria.getTargetApiExists() != null) {
+                query.addCriteria(where("targetApiId").exists(criteria.getTargetApiExists()));
+            }
+
+            if (!StringUtils.isEmpty(criteria.getApiId())) {
+                query.addCriteria(where("apiId").is(criteria.getApiId()));
             }
         }
 

@@ -196,4 +196,28 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         }
     }
 
+    @Override
+    public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
+
+        LOGGER.debug("JdbcEnvironmentRepository.findByCockpit({})", cockpitId);
+        try {
+            List<Environment> environments = jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " where cockpit_id = ?"
+                    , getOrm().getRowMapper()
+                    , cockpitId
+            );
+
+            final Optional<Environment> environment = environments.stream().findFirst();
+
+            environment.ifPresent(env -> {
+                this.addDomainRestrictions(env);
+                this.addHrids(env);
+            });
+
+            return environment;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find environments by cockpit:", ex);
+            throw new TechnicalException("Failed to find environments by cockpit", ex);
+        }
+    }
 }

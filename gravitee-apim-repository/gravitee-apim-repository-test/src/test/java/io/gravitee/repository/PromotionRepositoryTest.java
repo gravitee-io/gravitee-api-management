@@ -192,4 +192,29 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid promotions numbers in search", 1, promotions.size());
         assertEquals("promotion#to_be_validated_env_2", promotions.get(0).getId());
     }
+
+    @Test
+    public void shouldSearchWithCriteriaApiId() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().apiId("api#1").build();
+        final List<Promotion> promotions = promotionRepository.search(criteria,
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 3, promotions.size());
+        assertEquals("promotion#1", promotions.get(0).getId());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(1).getId());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(2).getId());
+    }
+
+    @Test
+    public void shouldSearchWithCriteriaTargetApiId() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().targetApiExists(true).build();
+        final List<Promotion> promotions = promotionRepository.search(criteria,
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 2, promotions.size());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(1).getId());
+    }
 }

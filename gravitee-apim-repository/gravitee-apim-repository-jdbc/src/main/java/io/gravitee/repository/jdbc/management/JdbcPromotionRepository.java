@@ -66,6 +66,7 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
             .addColumn("author_picture", Types.NVARCHAR, String.class)
             .addColumn("author_source", Types.NVARCHAR, String.class)
             .addColumn("author_source_id", Types.NVARCHAR, String.class)
+            .addColumn("target_api_id", Types.NVARCHAR, String.class)
             .build();
     }
 
@@ -95,8 +96,21 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                          .append(" ) ");
                 }
 
-                if (!isEmpty(criteria.getStatus())) {
+                if (criteria.getStatus() != null) {
                     query.append(" and status = ?");
+                }
+
+                if (criteria.getTargetApiExists() != null) {
+                    query.append(" and target_api_id");
+                    if (criteria.getTargetApiExists()) {
+                        query.append(" IS NOT NULL");
+                    } else {
+                        query.append(" IS NULL");
+                    }
+                }
+
+                if (!isEmpty(criteria.getApiId())) {
+                    query.append(" and api_id = ?");
                 }
 
                 applySortable(sortable, query);
@@ -108,8 +122,12 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                                 idx = getOrm().setArguments(ps, criteria.getTargetEnvCockpitIds(), idx);
                             }
 
-                            if (!isEmpty(criteria.getStatus())) {
-                                ps.setString(idx, criteria.getStatus().name());
+                            if (criteria.getStatus() != null) {
+                                ps.setString(idx++, criteria.getStatus().name());
+                            }
+
+                            if (!isEmpty(criteria.getApiId())) {
+                                ps.setString(idx++, criteria.getApiId());
                             }
                         },
                         getOrm().getRowMapper()

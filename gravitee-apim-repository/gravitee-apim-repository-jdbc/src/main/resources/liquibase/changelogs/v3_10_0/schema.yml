@@ -34,6 +34,7 @@ databaseChangeLog:
               - column: {name: author_picture, type: nvarchar(64), constraints: { nullable: true } }
               - column: {name: author_source, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: author_source_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: target_api_id, type: nvarchar(64) }
         - addColumn:
             tableName: ${gravitee_prefix}environments
             columns:

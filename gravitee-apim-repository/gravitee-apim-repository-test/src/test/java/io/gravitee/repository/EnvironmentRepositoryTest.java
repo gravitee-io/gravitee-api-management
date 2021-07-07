@@ -160,4 +160,10 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
         Set<Environment> environments = environmentRepository.findByOrganizationsAndHrids(organizations, hrids);
         Assert.assertTrue("Environment found", environments.isEmpty());
     }
+
+    @Test
+    public void shouldFindByCockpit() throws Exception {
+        Optional<Environment> orgEnvironments = environmentRepository.findByCockpit("cockpitId-findById");
+        Assert.assertTrue("No environment found", orgEnvironments.isPresent());
+    }
 }
