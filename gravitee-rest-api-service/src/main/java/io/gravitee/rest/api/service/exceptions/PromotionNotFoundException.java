@@ -13,15 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.promotion;
+package io.gravitee.rest.api.service.exceptions;
 
-import io.gravitee.rest.api.model.TaskEntity;
-import java.util.List;
+import static java.util.Collections.singletonMap;
+
+import java.util.Map;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PromotionTasksService {
-    List<TaskEntity> getPromotionTasks(String organizationId);
+public class PromotionNotFoundException extends AbstractNotFoundException {
+
+    private final String promotionId;
+
+    public PromotionNotFoundException(String promotionId) {
+        this.promotionId = promotionId;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Promotion [" + promotionId + "] can not be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "promotion.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("promotion", promotionId);
+    }
 }

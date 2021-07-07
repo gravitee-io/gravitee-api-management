@@ -25,12 +25,14 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiContextPathAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvalidVirtualHostException;
 import io.gravitee.rest.api.service.impl.VirtualHostServiceImpl;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +63,13 @@ public class VirtualHostServiceTest {
 
     @Before
     public void init() {
+        GraviteeContext.setCurrentEnvironment("DEFAULT");
         when(environmentService.findById(any())).thenReturn(mock(EnvironmentEntity.class));
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test

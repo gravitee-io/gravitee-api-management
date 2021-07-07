@@ -113,7 +113,28 @@ public class CockpitServiceImpl implements CockpitService {
         BridgeReply bridgeReply = cockpitCommandService.send(promoteApiCommand);
 
         if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {
-            logger.warn("Problem while send API promotion request through cockpit. \n {}", bridgeReply.getMessage());
+            logger.warn("Problem while sending API promotion request through cockpit. \n {}", bridgeReply.getMessage());
+            return new CockpitReply<>(null, CockpitReplyStatus.ERROR);
+        }
+
+        return new CockpitReply<>(promotionEntity, CockpitReplyStatus.SUCCEEDED);
+    }
+
+    @Override
+    public CockpitReply<PromotionEntity> processPromotion(PromotionEntity promotionEntity) {
+        String serializedPromotion = null;
+        try {
+            serializedPromotion = objectMapper.writeValueAsString(promotionEntity);
+        } catch (JsonProcessingException e) {
+            logger.warn("Problem while serializing promotion {}", promotionEntity.getId());
+        }
+
+        final BridgeCommand processPromotionCommand =
+            this.bridgeCommandFactory.createProcessPromotionCommand(promotionEntity.getSourceEnvCockpitId(), serializedPromotion);
+        final BridgeReply bridgeReply = cockpitCommandService.send(processPromotionCommand);
+
+        if (bridgeReply.getCommandStatus() != CommandStatus.SUCCEEDED) {
+            logger.warn("Problem while processing API promotion request through cockpit. \n {}", bridgeReply.getMessage());
             return new CockpitReply<>(null, CockpitReplyStatus.ERROR);
         }
 

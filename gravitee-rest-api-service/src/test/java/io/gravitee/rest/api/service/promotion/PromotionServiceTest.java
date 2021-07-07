@@ -15,9 +15,13 @@
  */
 package io.gravitee.rest.api.service.promotion;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,17 +33,21 @@ import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.cockpit.services.CockpitService;
 import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
 import java.util.Arrays;
@@ -63,6 +71,8 @@ public class PromotionServiceTest {
     public static final String INSTALLATION_ID = "my-installation-id";
     public static final String ORGANIZATION_ID = "my-organization-id";
     public static final String ENVIRONMENT_ID = "my-environment-id";
+    public static final String PROMOTION_ID = "my-promotion-id";
+    public static final String USER_ID = "my-user-id";
 
     private PromotionService promotionService;
 
@@ -81,9 +91,13 @@ public class PromotionServiceTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private PermissionService permissionService;
+
     @Before
     public void setUp() {
-        promotionService = new PromotionServiceImpl(apiService, cockpitService, promotionRepository, environmentService, userService);
+        promotionService =
+            new PromotionServiceImpl(apiService, cockpitService, promotionRepository, environmentService, userService, permissionService);
     }
 
     @Test(expected = BridgeOperationException.class)
@@ -177,6 +191,109 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenThrow(new TechnicalException());
 
         promotionService.search(any(), any(), any());
+    }
+
+    @Test
+    public void shouldProcessAcceptedPromotionCreateApi() throws Exception {
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
+        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+
+        Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        when(apiService.createWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
+
+        CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
+        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+
+        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+
+        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+
+        verify(apiService, times(1)).createWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(promotionRepository, times(1)).update(any());
+    }
+
+    @Test
+    public void shouldProcessAcceptedPromotionUpdateApi() throws Exception {
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
+        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+
+        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        when(apiService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiService.exists(any())).thenReturn(true);
+
+        CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
+        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+
+        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+
+        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+
+        verify(apiService, times(1)).updateWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(promotionRepository, times(1)).update(any());
+    }
+
+    @Test
+    public void shouldProcessRejecttedPromotion() throws Exception {
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
+        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+
+        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
+        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+
+        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+
+        promotionService.processPromotion(PROMOTION_ID, false, USER_ID);
+
+        verify(apiService, never()).createWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(apiService, never()).updateWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(promotionRepository, times(1)).update(any());
+    }
+
+    @Test(expected = PromotionNotFoundException.class)
+    public void shouldNotProcessPromotionIfPromotionNotFound() throws Exception {
+        when(promotionRepository.findById(any())).thenReturn(Optional.empty());
+
+        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+    }
+
+    @Test(expected = ForbiddenAccessException.class)
+    public void shouldNotProcessPromotionIfNoPermissionForTargetEnvironment() throws Exception {
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
+        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
+
+        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+    }
+
+    @Test(expected = BridgeOperationException.class)
+    public void shouldNotProcessPromotionIfCockpitReplyError() throws Exception {
+        when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
+        when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
+
+        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        when(apiService.exists(any())).thenReturn(true);
+        when(apiService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
+
+        CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
+        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+
+        promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
+
+        verify(apiService, times(1)).updateWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(promotionRepository, times(0)).update(any());
     }
 
     private PromotionEntity getAPromotionEntity() {

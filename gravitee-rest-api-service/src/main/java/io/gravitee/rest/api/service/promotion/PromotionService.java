@@ -43,4 +43,6 @@ public interface PromotionService {
     PromotionEntity createOrUpdate(PromotionEntity promotionEntity);
 
     Page<PromotionEntity> search(PromotionQuery query, Sortable sortable, Pageable pageable);
+
+    PromotionEntity processPromotion(String promotion, boolean accepted, String user);
 }

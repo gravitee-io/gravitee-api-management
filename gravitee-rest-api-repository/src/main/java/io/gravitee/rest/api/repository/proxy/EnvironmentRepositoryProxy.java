@@ -63,4 +63,9 @@ public class EnvironmentRepositoryProxy extends AbstractProxy<EnvironmentReposit
     public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids) throws TechnicalException {
         return target.findByOrganizationsAndHrids(organizations, hrids);
     }
+
+    @Override
+    public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
+        return target.findByCockpit(cockpitId);
+    }
 }

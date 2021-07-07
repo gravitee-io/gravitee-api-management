@@ -62,6 +62,21 @@ public class BridgeCommandFactory {
         return createPromoteApiCommand;
     }
 
+    public BridgeCommand createProcessPromotionCommand(String sourceEnvCockpitId, String serializedPromotion) {
+        BridgeCommand processPromotionCommand = initBridgeCommand();
+        processPromotionCommand.setOperation(BridgeOperation.PROCESS_API_PROMOTION.name());
+
+        BridgePayload payload = new BridgePayload();
+        payload.setContent(serializedPromotion);
+        processPromotionCommand.setPayload(payload);
+
+        BridgeTarget target = new BridgeTarget();
+        target.setEnvironmentId(sourceEnvCockpitId);
+        processPromotionCommand.setTarget(target);
+
+        return processPromotionCommand;
+    }
+
     private BridgeCommand initBridgeCommand() {
         BridgeCommand command = new BridgeCommand();
         command.setEnvironmentId(GraviteeContext.getCurrentEnvironment());

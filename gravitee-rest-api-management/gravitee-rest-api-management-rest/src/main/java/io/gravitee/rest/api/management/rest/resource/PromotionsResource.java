@@ -13,15 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.promotion;
+package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.TaskEntity;
-import java.util.List;
+import io.swagger.annotations.Api;
+import javax.ws.rs.Path;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 
 /**
+ * Defines the REST resources to manage Promotions.
+ *
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PromotionTasksService {
-    List<TaskEntity> getPromotionTasks(String organizationId);
+@Api(tags = { "Promotions" })
+public class PromotionsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
+
+    @Path("{promotion}")
+    public PromotionResource getPolicyResource() {
+        return resourceContext.getResource(PromotionResource.class);
+    }
 }

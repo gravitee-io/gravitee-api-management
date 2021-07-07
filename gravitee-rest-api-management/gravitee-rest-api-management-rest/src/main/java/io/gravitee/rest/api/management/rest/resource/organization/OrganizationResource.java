@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.resource.EnvironmentsResource;
+import io.gravitee.rest.api.management.rest.resource.PromotionsResource;
 import io.gravitee.rest.api.management.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.management.rest.resource.installation.InstallationResource;
 import io.gravitee.rest.api.management.rest.resource.portal.SocialIdentityProvidersResource;
@@ -215,5 +216,10 @@ public class OrganizationResource extends AbstractResource {
     @Path("groups")
     public GroupsResource getGroupsResource() {
         return resourceContext.getResource(GroupsResource.class);
+    }
+
+    @Path("promotions")
+    public PromotionsResource getPromotionsResource() {
+        return resourceContext.getResource(PromotionsResource.class);
     }
 }

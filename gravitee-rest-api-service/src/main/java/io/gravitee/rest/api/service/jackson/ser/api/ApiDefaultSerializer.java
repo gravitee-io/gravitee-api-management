@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.jackson.ser.api;
 
+import static java.util.Collections.emptyList;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.EndpointGroup;
@@ -22,6 +24,7 @@ import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,7 +43,10 @@ public class ApiDefaultSerializer extends ApiSerializer {
     public void serialize(ApiEntity apiEntity, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         super.serialize(apiEntity, jsonGenerator, serializerProvider);
 
-        if (apiEntity.getId() != null) {
+        // handle filtered fields list
+        List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().getOrDefault(METADATA_FILTERED_FIELDS_LIST, emptyList());
+
+        if (apiEntity.getId() != null && !filteredFieldsList.contains("id")) {
             jsonGenerator.writeStringField("id", apiEntity.getId());
         }
 

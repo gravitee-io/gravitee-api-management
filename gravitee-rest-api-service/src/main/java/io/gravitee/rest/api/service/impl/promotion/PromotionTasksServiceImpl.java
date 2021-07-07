@@ -18,7 +18,9 @@ package io.gravitee.rest.api.service.impl.promotion;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static java.util.stream.Collectors.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,15 +36,16 @@ import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -63,14 +66,14 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         PromotionService promotionService,
         PermissionService permissionService,
         EnvironmentService environmentService,
-        ApiService apiService,
-        ObjectMapper objectMapper
+        ObjectMapper objectMapper,
+        ApiService apiService
     ) {
         this.promotionService = promotionService;
         this.permissionService = permissionService;
         this.environmentService = environmentService;
-        this.apiService = apiService;
         this.objectMapper = objectMapper;
+        this.apiService = apiService;
     }
 
     @Override
@@ -81,15 +84,47 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
             .filter(environment -> permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE, UPDATE))
             .collect(toList());
 
-        List<String> cockpitIds = environments.stream().map(EnvironmentEntity::getCockpitId).filter(Objects::nonNull).collect(toList());
+        List<String> envCockpitIds = environments.stream().map(EnvironmentEntity::getCockpitId).filter(Objects::nonNull).collect(toList());
 
         final PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatus(PromotionEntityStatus.TO_BE_VALIDATED);
-        promotionQuery.setTargetEnvCockpitIds(cockpitIds);
+        promotionQuery.setTargetEnvCockpitIds(envCockpitIds);
 
         final Page<PromotionEntity> promotionsPage = promotionService.search(promotionQuery, new SortableImpl("created_at", false), null);
 
-        return promotionsPage.getContent().stream().map(this::convert).collect(toList());
+        final PromotionQuery previousPromotionsQuery = new PromotionQuery();
+        previousPromotionsQuery.setStatus(PromotionEntityStatus.ACCEPTED);
+        previousPromotionsQuery.setTargetEnvCockpitIds(envCockpitIds);
+        previousPromotionsQuery.setTargetApiExists(true);
+
+        List<PromotionEntity> previousPromotions = promotionService
+            .search(previousPromotionsQuery, new SortableImpl("created_at", false), null)
+            .getContent();
+
+        final Map<String, List<String>> promotionByApiWithTargetApiId = previousPromotions
+            .stream()
+            .collect(groupingBy(PromotionEntity::getApiId, Collectors.mapping(PromotionEntity::getTargetApiId, toList())));
+
+        return promotionsPage
+            .getContent()
+            .stream()
+            .map(this::convert)
+            .peek(
+                task -> {
+                    final Map<String, Object> data = ((Map<String, Object>) task.getData());
+                    Optional<String> foundTargetApiId = promotionByApiWithTargetApiId
+                        .getOrDefault((String) data.get("apiId"), emptyList())
+                        .stream()
+                        .filter(targetApiId -> !StringUtils.isEmpty(targetApiId))
+                        .findFirst();
+
+                    boolean isUpdate = foundTargetApiId.isPresent() && apiService.exists(foundTargetApiId.get());
+
+                    data.put("isApiUpdate", isUpdate);
+                    foundTargetApiId.ifPresent(targetApiId -> data.put("targetApiId", targetApiId));
+                }
+            )
+            .collect(toList());
     }
 
     private TaskEntity convert(PromotionEntity promotionEntity) {
@@ -107,14 +142,13 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
 
         Map<String, Object> data = new HashMap<>();
         data.put("apiName", apiEntity.getName());
+        data.put("apiId", promotionEntity.getApiId());
         data.put("sourceEnvironmentName", promotionEntity.getSourceEnvName());
         data.put("targetEnvironmentName", promotionEntity.getTargetEnvName());
         data.put("authorDisplayName", promotionEntity.getAuthor().getDisplayName());
         data.put("authorEmail", promotionEntity.getAuthor().getEmail());
         data.put("authorPicture", promotionEntity.getAuthor().getPicture());
-        // FIXME: Need to check the parent API and not the api directly
-        // Will be done with "Accepting/Rejecting a Promotion Request"
-        data.put("isApiUpdate", apiService.exists(promotionEntity.getApiId()));
+        data.put("promotionId", promotionEntity.getId());
 
         taskEntity.setData(data);
         return taskEntity;

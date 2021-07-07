@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.promotion;
 
+import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static java.util.Collections.singletonList;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PromotionRepository;
@@ -27,11 +32,14 @@ import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.promotion.*;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
@@ -40,6 +48,8 @@ import io.gravitee.rest.api.service.cockpit.services.CockpitService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -47,12 +57,12 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -68,19 +78,22 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     private final PromotionRepository promotionRepository;
     private final EnvironmentService environmentService;
     private final UserService userService;
+    private final PermissionService permissionService;
 
     public PromotionServiceImpl(
         ApiService apiService,
         CockpitService cockpitService,
         PromotionRepository promotionRepository,
         EnvironmentService environmentService,
-        UserService userService
+        UserService userService,
+        PermissionService permissionService
     ) {
         this.apiService = apiService;
         this.cockpitService = cockpitService;
         this.promotionRepository = promotionRepository;
         this.environmentService = environmentService;
         this.userService = userService;
+        this.permissionService = permissionService;
     }
 
     @Override
@@ -102,7 +115,15 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public PromotionEntity promote(String apiId, PromotionRequestEntity promotionRequest, String userId) {
         // TODO: do we have to use filteredFields like for duplicate (i think no need members and groups)
         // FIXME: can we get the version from target environment
-        String apiDefinition = apiService.exportAsJson(apiId, ApiSerializer.Version.DEFAULT.getVersion());
+        String apiDefinition = apiService.exportAsJson(
+            apiId,
+            ApiSerializer.Version.DEFAULT.getVersion(),
+            "id",
+            "pages",
+            "plans",
+            "members",
+            "groups"
+        );
 
         EnvironmentEntity currentEnvironmentEntity = environmentService.findById(GraviteeContext.getCurrentEnvironment());
         UserEntity author = userService.findById(userId);
@@ -181,8 +202,67 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             return new Page<>(entities, promotions.getPageNumber() + 1, (int) promotions.getPageElements(), promotions.getTotalElements());
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to search tickets", ex);
-            throw new TechnicalManagementException("An error occurs while trying to search tickets", ex);
+            LOGGER.error("An error occurs while trying to search promotions", ex);
+            throw new TechnicalManagementException("An error occurs while trying to search promotions", ex);
+        }
+    }
+
+    @Override
+    public PromotionEntity processPromotion(String promotion, boolean accepted, String user) {
+        try {
+            final Promotion existing = promotionRepository.findById(promotion).orElseThrow(() -> new PromotionNotFoundException(promotion));
+
+            EnvironmentEntity environment = environmentService.findByCockpitId(existing.getTargetEnvCockpitId());
+
+            final boolean canProcessPromotion = permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE, UPDATE);
+
+            if (!canProcessPromotion) {
+                throw new ForbiddenAccessException();
+            }
+
+            existing.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
+
+            final PromotionQuery promotionQuery = new PromotionQuery();
+            promotionQuery.setStatus(PromotionEntityStatus.ACCEPTED);
+            promotionQuery.setTargetEnvCockpitIds(singletonList(existing.getTargetEnvCockpitId()));
+            promotionQuery.setTargetApiExists(true);
+            promotionQuery.setApiId(existing.getApiId());
+
+            List<PromotionEntity> previousPromotions = search(promotionQuery, new SortableImpl("created_at", false), null).getContent();
+
+            // Should create a new API if there is no previous promotion for this API or if the API existed once (after a promotion) but has been deleted since
+            boolean shouldCreate =
+                CollectionUtils.isEmpty(previousPromotions) || !apiService.exists(previousPromotions.get(0).getTargetApiId());
+
+            if (PromotionStatus.ACCEPTED.equals(existing.getStatus())) {
+                ApiEntity promoted = null;
+
+                // FIXME: All the methods should take then env id as input instead of relying on GraviteeContext.getCurrentEnv
+                GraviteeContext.setCurrentEnvironment(environment.getId());
+                if (shouldCreate) {
+                    promoted = apiService.createWithImportedDefinition(null, existing.getApiDefinition(), user);
+                } else {
+                    PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
+                    final ApiEntity existingApi = apiService.findById(lastAcceptedPromotion.getTargetApiId());
+                    promoted = apiService.updateWithImportedDefinition(existingApi, existing.getApiDefinition(), user);
+                }
+                existing.setTargetApiId(promoted.getId());
+            }
+
+            final PromotionEntity promotionEntity = convert(existing);
+
+            final CockpitReply<PromotionEntity> cockpitReply = cockpitService.processPromotion(promotionEntity);
+
+            if (cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED) {
+                throw new BridgeOperationException(BridgeOperation.PROMOTE_API);
+            }
+
+            final Promotion updated = promotionRepository.update(existing);
+
+            return convert(updated);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to process promotion", ex);
+            throw new TechnicalManagementException("An error occurs while trying to process promotion", ex);
         }
     }
 
@@ -240,6 +320,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         promotionEntity.setStatus(convert(promotion.getStatus()));
         promotionEntity.setAuthor(promotionEntityAuthor);
 
+        promotionEntity.setTargetApiId(promotion.getTargetApiId());
+
         return promotionEntity;
     }
 
@@ -287,6 +369,14 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         }
         if (query.getStatus() != null) {
             builder.status(convert(query.getStatus()));
+        }
+
+        if (query.getTargetApiExists() != null) {
+            builder.targetApiExists(query.getTargetApiExists());
+        }
+
+        if (!StringUtils.isEmpty(query.getApiId())) {
+            builder.apiId(query.getApiId());
         }
 
         return builder;

@@ -18,4 +18,5 @@ package io.gravitee.rest.api.service.cockpit.command.bridge.operation;
 public enum BridgeOperation {
     LIST_ENVIRONMENT,
     PROMOTE_API,
+    PROCESS_API_PROMOTION,
 }

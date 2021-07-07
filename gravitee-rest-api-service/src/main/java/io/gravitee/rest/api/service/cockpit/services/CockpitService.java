@@ -25,4 +25,5 @@ import java.util.List;
 public interface CockpitService {
     CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId);
     CockpitReply<PromotionEntity> requestPromotion(PromotionEntity promotionEntity);
+    CockpitReply<PromotionEntity> processPromotion(PromotionEntity promotionEntity);
 }

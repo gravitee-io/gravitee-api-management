@@ -41,6 +41,8 @@ public class PromotionEntity {
 
     private PromotionEntityAuthor author;
 
+    private String targetApiId;
+
     public String getTargetEnvCockpitId() {
         return targetEnvCockpitId;
     }
@@ -127,5 +129,13 @@ public class PromotionEntity {
 
     public void setAuthor(PromotionEntityAuthor author) {
         this.author = author;
+    }
+
+    public String getTargetApiId() {
+        return targetApiId;
+    }
+
+    public void setTargetApiId(String targetApiId) {
+        this.targetApiId = targetApiId;
     }
 }

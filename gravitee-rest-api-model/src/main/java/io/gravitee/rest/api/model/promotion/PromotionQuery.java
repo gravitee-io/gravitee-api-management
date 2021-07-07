@@ -25,6 +25,8 @@ public class PromotionQuery {
 
     private List<String> targetEnvCockpitIds;
     private PromotionEntityStatus status;
+    private Boolean targetApiExists;
+    private String apiId;
 
     public List<String> getTargetEnvCockpitIds() {
         return targetEnvCockpitIds;
@@ -40,5 +42,21 @@ public class PromotionQuery {
 
     public void setStatus(PromotionEntityStatus status) {
         this.status = status;
+    }
+
+    public void setTargetApiExists(Boolean targetApiExists) {
+        this.targetApiExists = targetApiExists;
+    }
+
+    public Boolean getTargetApiExists() {
+        return targetApiExists;
+    }
+
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
+    }
+
+    public String getApiId() {
+        return apiId;
     }
 }

@@ -23,9 +23,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
+import io.gravitee.cockpit.api.command.bridge.BridgeReply;
 import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
 import io.gravitee.rest.api.service.cockpit.command.CockpitCommandService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.BridgeCommandFactory;
@@ -133,5 +135,37 @@ public class CockpitServiceTest {
         assertThat(environmentEntities).isNotNull();
         assertThat(environmentEntities).isNotEmpty();
         assertThat(environmentEntities.size()).isEqualTo(2);
+    }
+
+    @Test
+    public void shouldNotProcessPromotionCommandError() {
+        BridgeReply reply = new BridgeSimpleReply();
+        reply.setCommandStatus(CommandStatus.ERROR);
+
+        when(cockpitCommandService.send(any())).thenReturn(reply);
+
+        final CockpitReply<PromotionEntity> result = cockpitService.processPromotion(new PromotionEntity());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(CockpitReplyStatus.ERROR);
+        final PromotionEntity entity = result.getReply();
+        assertThat(entity).isNull();
+    }
+
+    @Test
+    public void shouldProcessPromotion() {
+        BridgeReply reply = new BridgeSimpleReply();
+        reply.setCommandStatus(CommandStatus.SUCCEEDED);
+
+        when(cockpitCommandService.send(any())).thenReturn(reply);
+
+        final PromotionEntity promotionEntity = new PromotionEntity();
+
+        final CockpitReply<PromotionEntity> result = cockpitService.processPromotion(promotionEntity);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(CockpitReplyStatus.SUCCEEDED);
+        final PromotionEntity entity = result.getReply();
+        assertThat(entity).isNotNull();
     }
 }
