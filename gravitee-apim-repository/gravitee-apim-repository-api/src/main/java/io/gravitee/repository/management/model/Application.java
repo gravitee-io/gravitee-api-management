@@ -27,9 +27,13 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Application {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        APPLICATION_CREATED, APPLICATION_UPDATED, APPLICATION_ARCHIVED
+        APPLICATION_CREATED,
+        APPLICATION_UPDATED,
+        APPLICATION_ARCHIVED,
     }
+
     /**
      * The application ID.
      */
@@ -80,7 +84,7 @@ public class Application {
 
     private String background;
 
-    public Application(){}
+    public Application() {}
 
     public Application(Application cloned) {
         this.id = cloned.id;
@@ -214,16 +218,35 @@ public class Application {
 
     @Override
     public String toString() {
-        return "Application{" +
-                "id='" + id + '\'' +
-                ", environmentId='" + environmentId + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", groups='" + groups + '\'' +
-                ", status='" + status + '\'' +
-                ", createdAt=" + createdAt + '\'' +
-                ", updatedAt=" + updatedAt + '\'' +
-                ", disableMembershipNotifications=" + disableMembershipNotifications +
-                '}';
+        return (
+            "Application{" +
+            "id='" +
+            id +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", groups='" +
+            groups +
+            '\'' +
+            ", status='" +
+            status +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            '\'' +
+            ", updatedAt=" +
+            updatedAt +
+            '\'' +
+            ", disableMembershipNotifications=" +
+            disableMembershipNotifications +
+            '}'
+        );
     }
 }

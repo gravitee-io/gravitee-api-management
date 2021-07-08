@@ -19,13 +19,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TokenRepository;
 import io.gravitee.repository.management.model.Token;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -36,16 +35,17 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTokenRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Token.class, "tokens", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("token", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("expires_at", Types.TIMESTAMP, Date.class)
-            .addColumn("last_use_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Token.class, "tokens", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("name", Types.NVARCHAR, String.class)
+        .addColumn("token", Types.NVARCHAR, String.class)
+        .addColumn("reference_type", Types.NVARCHAR, String.class)
+        .addColumn("reference_id", Types.NVARCHAR, String.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("expires_at", Types.TIMESTAMP, Date.class)
+        .addColumn("last_use_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -61,8 +61,12 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
     public List<Token> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcTokenRepository.findByReference({}, {})", referenceType, referenceId);
         try {
-            return jdbcTemplate.query("select * from tokens where reference_type = ? and reference_id = ?"
-                    , ORM.getRowMapper(), referenceType, referenceId);
+            return jdbcTemplate.query(
+                "select * from tokens where reference_type = ? and reference_id = ?",
+                ORM.getRowMapper(),
+                referenceType,
+                referenceId
+            );
         } catch (final Exception ex) {
             final String message = "Failed to find tokens by reference";
             LOGGER.error(message, ex);

@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.Page;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -32,39 +31,36 @@ import java.util.stream.Collectors;
 public class BodyCodecs {
 
     public static <T> BodyCodec<Optional<T>> optional(Class<T> clazz) {
-        return new BodyCodecImpl<>(
-                buffer -> Optional.of(buffer.toJsonObject().mapTo(clazz)));
+        return new BodyCodecImpl<>(buffer -> Optional.of(buffer.toJsonObject().mapTo(clazz)));
     }
 
     public static <T> BodyCodec<List<T>> list(Class<T> clazz) {
         return new BodyCodecImpl<>(
-                buffer -> buffer.toJsonArray()
-                        .stream()
-                        .map(x -> ((JsonObject) x).mapTo(clazz))
-                        .collect(Collectors.toList()));
+            buffer -> buffer.toJsonArray().stream().map(x -> ((JsonObject) x).mapTo(clazz)).collect(Collectors.toList())
+        );
     }
 
     public static <T> BodyCodec<Set<T>> set(Class<T> clazz) {
         return new BodyCodecImpl<>(
-                buffer -> buffer.toJsonArray()
-                        .stream()
-                        .map(x -> ((JsonObject) x).mapTo(clazz))
-                        .collect(Collectors.toSet()));
+            buffer -> buffer.toJsonArray().stream().map(x -> ((JsonObject) x).mapTo(clazz)).collect(Collectors.toSet())
+        );
     }
 
     public static <T> BodyCodec<Page<T>> page(Class<T> clazz) {
-        return new BodyCodecImpl<>(buffer -> {
+        return new BodyCodecImpl<>(
+            buffer -> {
+                JsonObject pageObj = buffer.toJsonObject();
+                int page = pageObj.getInteger("pageNumber");
+                int size = pageObj.getInteger("pageElements");
+                int total = pageObj.getInteger("totalElements");
 
-            JsonObject pageObj = buffer.toJsonObject();
-            int page = pageObj.getInteger("pageNumber");
-            int size = pageObj.getInteger("pageElements");
-            int total = pageObj.getInteger("totalElements");
-
-            List<T> content = pageObj.getJsonArray("content")
+                List<T> content = pageObj
+                    .getJsonArray("content")
                     .stream()
                     .map(x -> ((JsonObject) x).mapTo(clazz))
                     .collect(Collectors.toList());
-            return new Page<>(content, page, size, total);
-        });
+                return new Page<>(content, page, size, total);
+            }
+        );
     }
 }

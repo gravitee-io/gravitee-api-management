@@ -22,14 +22,17 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Parameter {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        PARAMETER_CREATED, PARAMETER_UPDATED, PARAMETER_DELETED
+        PARAMETER_CREATED,
+        PARAMETER_UPDATED,
+        PARAMETER_DELETED,
     }
 
     private String key;
     private String referenceId;
     private ParameterReferenceType referenceType;
-    
+
     private String value;
 
     public String getKey() {
@@ -69,24 +72,35 @@ public class Parameter {
         if (this == o) return true;
         if (!(o instanceof Parameter)) return false;
         Parameter parameter = (Parameter) o;
-        return Objects.equals(key, parameter.key) &&
-                Objects.equals(referenceId, parameter.referenceId) &&
-                referenceType == parameter.referenceType;
+        return (
+            Objects.equals(key, parameter.key) &&
+            Objects.equals(referenceId, parameter.referenceId) &&
+            referenceType == parameter.referenceType
+        );
     }
 
     @Override
     public int hashCode() {
-
         return Objects.hash(key, referenceId, referenceType);
     }
 
     @Override
     public String toString() {
-        return "Parameter{" +
-                "key='" + key + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", value='" + value + '\'' +
-                '}';
+        return (
+            "Parameter{" +
+            "key='" +
+            key +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", value='" +
+            value +
+            '\'' +
+            '}'
+        );
     }
 }

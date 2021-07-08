@@ -21,13 +21,12 @@ import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.mongodb.management.internal.identityprovider.IdentityProviderMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -92,7 +91,6 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
 
             IdentityProviderMongo identityProviderMongoUpdated = internalIdentityProviderRepository.save(identityProviderMongo);
             return map(identityProviderMongoUpdated);
-
         } catch (Exception e) {
             LOGGER.error("An error occurs when updating identity provider", e);
             throw new TechnicalException("An error occurs when updating identity provider");
@@ -113,9 +111,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     public Set<IdentityProvider> findAll() throws TechnicalException {
         LOGGER.debug("Find all identity providers");
 
-        Set<IdentityProvider> res = internalIdentityProviderRepository.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        Set<IdentityProvider> res = internalIdentityProviderRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
 
         LOGGER.debug("Find all identity providers - Done");
         return res;
@@ -155,19 +151,32 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
         IdentityProvider identityProvider = mapper.map(identityProviderMongo, IdentityProvider.class);
 
         if (identityProviderMongo.getGroupMappings() != null) {
-            identityProviderMongo.getGroupMappings()
-                    .forEach((condition, groups) -> {
-                        identityProvider.getGroupMappings().put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getGroupMappings().get(condition));
+            identityProviderMongo
+                .getGroupMappings()
+                .forEach(
+                    (condition, groups) -> {
+                        identityProvider
+                            .getGroupMappings()
+                            .put(
+                                new String(Base64.getDecoder().decode(condition)),
+                                identityProviderMongo.getGroupMappings().get(condition)
+                            );
                         identityProvider.getGroupMappings().remove(condition);
-                    });
+                    }
+                );
         }
 
         if (identityProviderMongo.getRoleMappings() != null) {
-            identityProviderMongo.getRoleMappings()
-                    .forEach((condition, roles) -> {
-                        identityProvider.getRoleMappings().put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getRoleMappings().get(condition));
+            identityProviderMongo
+                .getRoleMappings()
+                .forEach(
+                    (condition, roles) -> {
+                        identityProvider
+                            .getRoleMappings()
+                            .put(new String(Base64.getDecoder().decode(condition)), identityProviderMongo.getRoleMappings().get(condition));
                         identityProvider.getRoleMappings().remove(condition);
-                    });
+                    }
+                );
         }
 
         return identityProvider;
@@ -177,9 +186,11 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
     public Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException {
         LOGGER.debug("Find all identity providers by organization");
 
-        Set<IdentityProvider> res = internalIdentityProviderRepository.findByOrganizationId(organizationId).stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        Set<IdentityProvider> res = internalIdentityProviderRepository
+            .findByOrganizationId(organizationId)
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
 
         LOGGER.debug("Find all identity providers by organization - Done");
         return res;

@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.model.Workflow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -38,16 +37,17 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcWorkflowRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Workflow.class, "workflows", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("state", Types.NVARCHAR, String.class)
-            .addColumn("comment", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Workflow.class, "workflows", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("reference_type", Types.NVARCHAR, String.class)
+        .addColumn("reference_id", Types.NVARCHAR, String.class)
+        .addColumn("type", Types.NVARCHAR, String.class)
+        .addColumn("state", Types.NVARCHAR, String.class)
+        .addColumn("comment", Types.NVARCHAR, String.class)
+        .addColumn("user", Types.NVARCHAR, String.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -60,11 +60,19 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
     }
 
     @Override
-    public List<Workflow> findByReferenceAndType(final String referenceType, final String referenceId, final String type) throws TechnicalException {
+    public List<Workflow> findByReferenceAndType(final String referenceType, final String referenceId, final String type)
+        throws TechnicalException {
         LOGGER.debug("JdbcWorkflowRepository.findByReferenceAndType({}, {}, {})", referenceType, referenceId, type);
         try {
-            return jdbcTemplate.query("select * from workflows where reference_type = ? and reference_id = ? and "
-                    + escapeReservedWord("type") + " = ? order by created_at desc", ORM.getRowMapper(), referenceType, referenceId, type);
+            return jdbcTemplate.query(
+                "select * from workflows where reference_type = ? and reference_id = ? and " +
+                escapeReservedWord("type") +
+                " = ? order by created_at desc",
+                ORM.getRowMapper(),
+                referenceType,
+                referenceId,
+                type
+            );
         } catch (final Exception ex) {
             final String message = "Failed to find workflows by reference";
             LOGGER.error(message, ex);

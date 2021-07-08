@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Tag;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.Optional;
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Tag;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TagRepositoryTest extends AbstractRepositoryTest {
 

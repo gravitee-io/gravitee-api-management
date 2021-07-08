@@ -15,36 +15,38 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.model.PortalNotification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author njt
  */
 @Repository
-public class JdbcPortalNotificationRepository extends JdbcAbstractCrudRepository<PortalNotification, String> implements PortalNotificationRepository {
+public class JdbcPortalNotificationRepository
+    extends JdbcAbstractCrudRepository<PortalNotification, String>
+    implements PortalNotificationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(PortalNotification.class, "portal_notifications", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("title", Types.NVARCHAR, String.class)
-            .addColumn("message", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)           
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(PortalNotification.class, "portal_notifications", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("title", Types.NVARCHAR, String.class)
+        .addColumn("message", Types.NVARCHAR, String.class)
+        .addColumn("user", Types.NVARCHAR, String.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -60,9 +62,10 @@ public class JdbcPortalNotificationRepository extends JdbcAbstractCrudRepository
     public List<PortalNotification> findByUser(String user) throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationRepository.findByUser({})", user);
         try {
-            List<PortalNotification> items = jdbcTemplate.query("select * from portal_notifications where " + escapeReservedWord("user") + " = ?"
-                    , getRowMapper()
-                    ,user
+            List<PortalNotification> items = jdbcTemplate.query(
+                "select * from portal_notifications where " + escapeReservedWord("user") + " = ?",
+                getRowMapper(),
+                user
             );
             return items;
         } catch (final Exception ex) {

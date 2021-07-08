@@ -15,16 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -32,6 +22,15 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.Event;
+import io.gravitee.repository.management.model.EventType;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -104,93 +103,141 @@ public class EventRepositoryMock extends AbstractRepositoryMock<EventRepository>
 
         when(pageEvent.getTotalElements()).thenReturn(2L);
         when(pageEvent.getContent()).thenReturn(asList(event6, event5));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent);
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+            )
+        )
+            .thenReturn(pageEvent);
 
         when(pageEvent2.getTotalElements()).thenReturn(3L);
         when(pageEvent2.getContent()).thenReturn(asList(event6, event5, event4));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent2);
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+            )
+        )
+            .thenReturn(pageEvent2);
 
         when(pageEvent3.getTotalElements()).thenReturn(2L);
         when(pageEvent3.getContent()).thenReturn(asList(event2, event1));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1451606400000L).to(1470157767000L)
-                        .property(Event.EventProperties.API_ID.getValue(), "api-1")
-                        .build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent3);
+                    .from(1451606400000L)
+                    .to(1470157767000L)
+                    .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                    .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+            )
+        )
+            .thenReturn(pageEvent3);
 
         when(pageEvent4.getTotalElements()).thenReturn(0L);
         when(pageEvent4.getContent()).thenReturn(Collections.emptyList());
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder().from(1420070400000L).to(1422748800000L).types(EventType.START_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent4);
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+            )
+        )
+            .thenReturn(pageEvent4);
 
         when(pageEvent5.getTotalElements()).thenReturn(1L);
         when(pageEvent5.getContent()).thenReturn(singletonList(event4));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1451606400000L).to(1470157767000L)
-                        .property(Event.EventProperties.API_ID.getValue(), "api-3")
-                        .types(EventType.START_API, EventType.STOP_API)
-                        .build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(pageEvent5);
+                    .from(1451606400000L)
+                    .to(1470157767000L)
+                    .property(Event.EventProperties.API_ID.getValue(), "api-3")
+                    .types(EventType.START_API, EventType.STOP_API)
+                    .build(),
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+            )
+        )
+            .thenReturn(pageEvent5);
 
         when(pageEvent6.getTotalElements()).thenReturn(2L);
         when(pageEvent6.getContent()).thenReturn(asList(event2, event1));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1451606400000L).to(1470157767000L)
-                        .property(Event.EventProperties.API_ID.getValue(), "api-1")
-                        .build(),
-                null)).thenReturn(pageEvent6);
+                    .from(1451606400000L)
+                    .to(1470157767000L)
+                    .property(Event.EventProperties.API_ID.getValue(), "api-1")
+                    .build(),
+                null
+            )
+        )
+            .thenReturn(pageEvent6);
 
         when(pageEvent7.getTotalElements()).thenReturn(3L);
         when(pageEvent7.getContent()).thenReturn(asList(event4, event2, event1));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1451606400000L).to(1470157767000L)
-                        .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
-                        .build(),
-                null)).thenReturn(pageEvent7);
+                    .from(1451606400000L)
+                    .to(1470157767000L)
+                    .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
+                    .build(),
+                null
+            )
+        )
+            .thenReturn(pageEvent7);
 
         when(pageEvent8.getTotalElements()).thenReturn(3L);
         when(pageEvent8.getPageElements()).thenReturn(2L);
         when(pageEvent8.getContent()).thenReturn(asList(event6, event2));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(2).build())).thenReturn(pageEvent8);
+                new PageableBuilder().pageNumber(0).pageSize(2).build()
+            )
+        )
+            .thenReturn(pageEvent8);
 
         when(pageEvent9.getTotalElements()).thenReturn(3L);
         when(pageEvent9.getPageElements()).thenReturn(1L);
         when(pageEvent9.getContent()).thenReturn(singletonList(event4));
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(1).pageSize(2).build())).thenReturn(pageEvent9);
+                new PageableBuilder().pageNumber(1).pageSize(2).build()
+            )
+        )
+            .thenReturn(pageEvent9);
 
-        when(eventRepository.search(
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder()
-                        .from(1451606400000L).to(1470157767000L)
-                        .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
-                        .build())).thenReturn(asList(event4, event2, event1));
+                    .from(1451606400000L)
+                    .to(1470157767000L)
+                    .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
+                    .build()
+            )
+        )
+            .thenReturn(asList(event4, event2, event1));
 
-        when(eventRepository.search(
-                new EventCriteria.Builder()
-                        .property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3"))
-                        .build())).thenReturn(asList(event4, event2, event1));
+        when(
+            eventRepository.search(
+                new EventCriteria.Builder().property(Event.EventProperties.API_ID.getValue(), asList("api-1", "api-3")).build()
+            )
+        )
+            .thenReturn(asList(event4, event2, event1));
 
-        when(eventRepository.search(
-                new EventCriteria.Builder()
-                        .environmentId("DEFAULT")
-                        .build())).thenReturn(asList(event6, event5, event4, event3, event2, event1));
-        
-        when(eventRepository.search(
+        when(eventRepository.search(new EventCriteria.Builder().environmentId("DEFAULT").build()))
+            .thenReturn(asList(event6, event5, event4, event3, event2, event1));
+
+        when(
+            eventRepository.search(
                 new EventCriteria.Builder().types(EventType.GATEWAY_STARTED).build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build())).thenReturn(
-                new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 2, 0));
+                new PageableBuilder().pageNumber(0).pageSize(10).build()
+            )
+        )
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(Collections.emptyList(), 0, 2, 0));
 
         when(eventRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }

@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +26,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface MetadataRepository {
-
     Metadata create(Metadata metadata) throws TechnicalException;
 
     Metadata update(Metadata metadata) throws TechnicalException;
@@ -41,5 +39,4 @@ public interface MetadataRepository {
     List<Metadata> findByReferenceType(MetadataReferenceType referenceType) throws TechnicalException;
 
     List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) throws TechnicalException;
-
 }

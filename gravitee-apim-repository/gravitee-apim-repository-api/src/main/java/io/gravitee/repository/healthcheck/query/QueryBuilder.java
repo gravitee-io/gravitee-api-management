@@ -21,6 +21,5 @@ package io.gravitee.repository.healthcheck.query;
  */
 @FunctionalInterface
 public interface QueryBuilder {
-
     Query<?> build();
 }

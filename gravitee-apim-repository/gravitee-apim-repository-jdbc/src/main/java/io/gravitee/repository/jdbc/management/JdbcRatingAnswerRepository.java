@@ -19,13 +19,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  *
@@ -35,15 +34,16 @@ import java.util.List;
 public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<RatingAnswer, String> implements RatingAnswerRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRatingAnswerRepository.class);
-    
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(RatingAnswer.class, "rating_answers", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("rating", Types.NVARCHAR, String.class)
-            .addColumn("user", Types.NVARCHAR, String.class)
-            .addColumn("comment", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(RatingAnswer.class, "rating_answers", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("rating", Types.NVARCHAR, String.class)
+        .addColumn("user", Types.NVARCHAR, String.class)
+        .addColumn("comment", Types.NVARCHAR, String.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -71,10 +71,7 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
     public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
         LOGGER.debug("JdbcRatingAnswerRepository.findByRating({})", rating);
         try {
-            return jdbcTemplate.query("select ra.* from rating_answers ra where rating = ?"
-                    , ORM.getRowMapper()
-                    , rating
-            );
+            return jdbcTemplate.query("select ra.* from rating_answers ra where rating = ?", ORM.getRowMapper(), rating);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find rating answers by rating:", ex);
             throw new TechnicalException("Failed to find rating answers by rating", ex);

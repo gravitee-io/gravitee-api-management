@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.ApiQualityRule;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ApiQualityRuleRepositoryTest extends AbstractRepositoryTest {
 
@@ -43,7 +42,11 @@ public class ApiQualityRuleRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(apiQualityRules);
         assertEquals(1, apiQualityRules.size());
-        final ApiQualityRule apiQualityRuleProduct = apiQualityRules.stream().filter(apiQualityRule -> "quality-rule1".equals(apiQualityRule.getQualityRule())).findAny().get();
+        final ApiQualityRule apiQualityRuleProduct = apiQualityRules
+            .stream()
+            .filter(apiQualityRule -> "quality-rule1".equals(apiQualityRule.getQualityRule()))
+            .findAny()
+            .get();
         assertTrue(apiQualityRuleProduct.isChecked());
         assertTrue(compareDate(DATE, apiQualityRuleProduct.getCreatedAt()));
         assertTrue(compareDate(DATE, apiQualityRuleProduct.getUpdatedAt()));

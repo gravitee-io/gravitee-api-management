@@ -20,7 +20,6 @@ package io.gravitee.repository.analytics.query;
  * @author GraviteeSource Team
  */
 public enum Order {
-
     ASC,
-    DESC;
+    DESC,
 }

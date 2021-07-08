@@ -20,5 +20,6 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum PageReferenceType {
-    ENVIRONMENT, API
+    ENVIRONMENT,
+    API,
 }

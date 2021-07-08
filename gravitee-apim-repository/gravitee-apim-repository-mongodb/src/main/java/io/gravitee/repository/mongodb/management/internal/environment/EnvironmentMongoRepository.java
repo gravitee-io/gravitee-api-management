@@ -15,18 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.environment;
 
+import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentMongo, String> {
-
-}
-
-
+public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentMongo, String> {}

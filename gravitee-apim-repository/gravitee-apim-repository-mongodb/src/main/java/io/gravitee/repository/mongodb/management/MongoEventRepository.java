@@ -25,13 +25,12 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.mongodb.management.internal.event.EventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

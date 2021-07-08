@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * Mongo object model for user
@@ -169,7 +168,6 @@ public class UserMongo extends Auditable {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(id);
     }
 

@@ -15,13 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.CustomUserFieldsRepository;
-import io.gravitee.repository.management.model.CustomUserField;
-import io.gravitee.repository.management.model.MetadataFormat;
-
-import java.util.Arrays;
-import java.util.Date;
-
 import static io.gravitee.repository.management.model.CustomUserFieldReferenceType.ORGANIZATION;
 import static java.util.Arrays.asList;
 import static java.util.Optional.empty;
@@ -30,6 +23,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.management.api.CustomUserFieldsRepository;
+import io.gravitee.repository.management.model.CustomUserField;
+import io.gravitee.repository.management.model.MetadataFormat;
+import java.util.Arrays;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,10 +52,14 @@ public class CustomUserFieldsRepositoryMock extends AbstractRepositoryMock<Custo
         when(stringCustomUserField.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(stringCustomUserField.getUpdatedAt()).thenReturn(new Date(1486771200000L));
 
-        when(customUserFieldsRepository.findById(argThat(key -> "string".equals(key)),
+        when(
+            customUserFieldsRepository.findById(
+                argThat(key -> "string".equals(key)),
                 argThat(refid -> "DEFAULT".equals(refid)),
-                argThat(org -> ORGANIZATION.equals(org))))
-                .thenReturn(of(stringCustomUserField));
+                argThat(org -> ORGANIZATION.equals(org))
+            )
+        )
+            .thenReturn(of(stringCustomUserField));
 
         CustomUserField string = new CustomUserField();
         string.setKey("string");
@@ -68,7 +71,7 @@ public class CustomUserFieldsRepositoryMock extends AbstractRepositoryMock<Custo
         delete.setKey("deleteKey");
 
         when(customUserFieldsRepository.findByReferenceIdAndReferenceType("DEFAULT", ORGANIZATION))
-                .thenReturn(asList(string, bool, update, delete));
+            .thenReturn(asList(string, bool, update, delete));
 
         // mock for shouldCreate
         CustomUserField newCustomUserField = new CustomUserField();
@@ -79,10 +82,14 @@ public class CustomUserFieldsRepositoryMock extends AbstractRepositoryMock<Custo
         newCustomUserField.setFormat(MetadataFormat.MAIL);
         newCustomUserField.setRequired(false);
         newCustomUserField.setValues(Arrays.asList("test@domain.net"));
-        when(customUserFieldsRepository.findById(argThat(key -> "newkey".equals(key)),
+        when(
+            customUserFieldsRepository.findById(
+                argThat(key -> "newkey".equals(key)),
                 argThat(refid -> "DEFAULT".equals(refid)),
-                argThat(org -> ORGANIZATION.equals(org))))
-                .thenReturn(empty(), of(newCustomUserField));
+                argThat(org -> ORGANIZATION.equals(org))
+            )
+        )
+            .thenReturn(empty(), of(newCustomUserField));
         when(customUserFieldsRepository.create(any())).thenReturn(newCustomUserField);
 
         // mock for shouldUpdate
@@ -102,15 +109,23 @@ public class CustomUserFieldsRepositoryMock extends AbstractRepositoryMock<Custo
         updatedField.setFormat(MetadataFormat.MAIL);
         updatedField.setRequired(true);
         updatedField.setValues(Arrays.asList("test@domain.net2"));
-        when(customUserFieldsRepository.findById(argThat(key -> "updateKey".equals(key)),
+        when(
+            customUserFieldsRepository.findById(
+                argThat(key -> "updateKey".equals(key)),
                 argThat(refid -> "DEFAULT".equals(refid)),
-                argThat(refType -> ORGANIZATION.equals(refType))))
-                .thenReturn(of(toUpdateField), of(updatedField));
+                argThat(refType -> ORGANIZATION.equals(refType))
+            )
+        )
+            .thenReturn(of(toUpdateField), of(updatedField));
         when(customUserFieldsRepository.update(any())).thenReturn(updatedField);
 
-        when(customUserFieldsRepository.findById(argThat(key -> "deleteKey".equals(key)),
+        when(
+            customUserFieldsRepository.findById(
+                argThat(key -> "deleteKey".equals(key)),
                 argThat(refid -> "DEFAULT".equals(refid)),
-                argThat(refType -> ORGANIZATION.equals(refType))))
-                .thenReturn(of(new CustomUserField()), empty());
+                argThat(refType -> ORGANIZATION.equals(refType))
+            )
+        )
+            .thenReturn(of(new CustomUserField()), empty());
     }
 }

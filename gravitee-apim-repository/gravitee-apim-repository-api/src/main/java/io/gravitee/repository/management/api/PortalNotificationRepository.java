@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.PortalNotification;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +25,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface PortalNotificationRepository extends CrudRepository<PortalNotification, String> {
-
     List<PortalNotification> findByUser(String user) throws TechnicalException;
 
     void create(List<PortalNotification> notifications) throws TechnicalException;

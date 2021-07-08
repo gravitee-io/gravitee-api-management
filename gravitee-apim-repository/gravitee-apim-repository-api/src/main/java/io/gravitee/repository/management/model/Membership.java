@@ -24,15 +24,18 @@ import java.util.*;
  * @author GraviteeSource Team
  */
 public class Membership {
+
     public enum AuditEvent implements Audit.ApiAuditEvent {
-        MEMBERSHIP_CREATED, MEMBERSHIP_UPDATED, MEMBERSHIP_DELETED
+        MEMBERSHIP_CREATED,
+        MEMBERSHIP_UPDATED,
+        MEMBERSHIP_DELETED,
     }
-    
+
     /**
      * Membership technical ID
      */
     private String id;
-    
+
     /**
      * The memberId
      */
@@ -79,7 +82,14 @@ public class Membership {
         super();
     }
 
-    public Membership(String id, String memberId, MembershipMemberType memberType, String referenceId, MembershipReferenceType referenceType, String roleId) {
+    public Membership(
+        String id,
+        String memberId,
+        MembershipMemberType memberType,
+        String referenceId,
+        MembershipReferenceType referenceType,
+        String roleId
+    ) {
         this.id = id;
         this.memberId = memberId;
         this.memberType = memberType;
@@ -175,7 +185,7 @@ public class Membership {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Membership m = (Membership)o;
+        Membership m = (Membership) o;
         return Objects.equals(id, m.id);
     }
 
@@ -185,16 +195,34 @@ public class Membership {
     }
 
     public String toString() {
-        return "Membership{" +
-                "id='" + id + '\'' +
-                ", memberId='" + memberId + '\'' +
-                ", memberType='" + memberType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", roleId='" + roleId + '\'' +
-                ", source='" + source + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "Membership{" +
+            "id='" +
+            id +
+            '\'' +
+            ", memberId='" +
+            memberId +
+            '\'' +
+            ", memberType='" +
+            memberType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", roleId='" +
+            roleId +
+            '\'' +
+            ", source='" +
+            source +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

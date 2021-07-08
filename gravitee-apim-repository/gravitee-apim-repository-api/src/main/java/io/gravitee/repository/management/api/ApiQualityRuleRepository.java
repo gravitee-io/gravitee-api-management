@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ApiQualityRule;
 import io.gravitee.repository.management.model.Membership;
-
 import java.util.List;
 import java.util.Optional;
 

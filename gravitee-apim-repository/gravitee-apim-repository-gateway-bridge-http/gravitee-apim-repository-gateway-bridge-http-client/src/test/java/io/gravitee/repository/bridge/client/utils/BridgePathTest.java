@@ -15,20 +15,20 @@
  */
 package io.gravitee.repository.bridge.client.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Field;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
-import java.lang.reflect.Field;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
 public class BridgePathTest {
+
     @Mock
     Environment environment;
 
@@ -88,7 +88,7 @@ public class BridgePathTest {
 
     private void resetStatic() throws NoSuchFieldException, IllegalAccessException {
         Field pathField = BridgePath.class.getDeclaredField("path");
-        pathField.setAccessible( true );
+        pathField.setAccessible(true);
         pathField.set(null, null);
     }
 }

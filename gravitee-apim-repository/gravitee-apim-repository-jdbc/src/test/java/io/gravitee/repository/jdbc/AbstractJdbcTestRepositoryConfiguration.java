@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.jdbc;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.setEscapeReservedWordFromJDBCUrl;
+
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.testcontainers.containers.JdbcDatabaseContainer;
-
-import javax.sql.DataSource;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.setEscapeReservedWordFromJDBCUrl;
 
 /**
  *
@@ -53,7 +52,7 @@ public abstract class AbstractJdbcTestRepositoryConfiguration {
     protected String getJdbcUrl(JdbcDatabaseContainer jdbcDatabaseContainer) {
         String url = jdbcDatabaseContainer.getJdbcUrl().replaceFirst("jdbc:", "jdbc:tc:");
         String user = ";user=" + jdbcDatabaseContainer.getUsername();
-        String password = ";password=" + jdbcDatabaseContainer.getPassword() +";";
+        String password = ";password=" + jdbcDatabaseContainer.getPassword() + ";";
         System.err.println(url + user + password);
         return url + user + password;
     }

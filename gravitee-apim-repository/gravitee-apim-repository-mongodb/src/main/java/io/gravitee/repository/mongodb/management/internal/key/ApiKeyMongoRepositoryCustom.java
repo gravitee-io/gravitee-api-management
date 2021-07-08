@@ -26,9 +26,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ApiKeyMongoRepositoryCustom {
-
     Page<ApiKeyMongo> search(ApiKeyCriteria filter);
-
 }
-
-

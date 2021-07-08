@@ -18,11 +18,10 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AlertTriggerRepository;
 import io.gravitee.repository.management.model.AlertTrigger;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,6 +29,7 @@ import java.util.Set;
  */
 @Component
 public class HttpAlertTriggerRepository extends AbstractRepository implements AlertTriggerRepository {
+
     @Override
     public Set<AlertTrigger> findAll() throws TechnicalException {
         throw new IllegalStateException();

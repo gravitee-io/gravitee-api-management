@@ -23,15 +23,14 @@ import io.gravitee.repository.mongodb.management.internal.api.TokenMongoReposito
 import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
 import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -109,9 +108,7 @@ public class MongoTokenRepository implements TokenRepository {
     @Override
     public Set<Token> findAll() throws TechnicalException {
         final List<TokenMongo> tokens = internalTokenRepo.findAll();
-        return tokens.stream()
-                .map(tokenMongo -> mapper.map(tokenMongo, Token.class))
-                .collect(Collectors.toSet());
+        return tokens.stream().map(tokenMongo -> mapper.map(tokenMongo, Token.class)).collect(Collectors.toSet());
     }
 
     @Override

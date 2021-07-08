@@ -15,15 +15,14 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Dashboard;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.*;
-
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Dashboard;
+import java.util.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class DashboardRepositoryTest extends AbstractRepositoryTest {
 
@@ -45,7 +44,11 @@ public class DashboardRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(dashboards);
         assertEquals(3, dashboards.size());
-        final Dashboard dashboardProduct = dashboards.stream().filter(dashboard -> "4eeb1c56-6f4a-4925-ab1c-566f4aa925b8".equals(dashboard.getId())).findAny().get();
+        final Dashboard dashboardProduct = dashboards
+            .stream()
+            .filter(dashboard -> "4eeb1c56-6f4a-4925-ab1c-566f4aa925b8".equals(dashboard.getId()))
+            .findAny()
+            .get();
         assertEquals("Geo dashboard", dashboardProduct.getName());
         final Iterator<Dashboard> iterator = dashboards.iterator();
         assertEquals("Global dashboard", iterator.next().getName());

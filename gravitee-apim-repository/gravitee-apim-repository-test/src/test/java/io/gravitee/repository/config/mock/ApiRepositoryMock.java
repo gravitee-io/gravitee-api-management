@@ -15,15 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.*;
-import org.mockito.internal.util.collections.Sets;
-
-import java.util.List;
-
 import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.LifecycleState.STARTED;
 import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
@@ -37,6 +28,14 @@ import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.*;
+import java.util.List;
+import org.mockito.internal.util.collections.Sets;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -103,7 +102,6 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         when(apiRepository.findById("grouped-api")).thenReturn(of(groupedApi));
         when(groupedApi.getDefinition()).thenReturn("\"proxy\" : {  \"context_path\" : \"/product\" }");
 
-
         final Api apiToFindById = mock(Api.class);
         when(apiToFindById.getId()).thenReturn("api-to-findById");
         when(apiToFindById.getEnvironmentId()).thenReturn("DEFAULT");
@@ -122,43 +120,44 @@ public class ApiRepositoryMock extends AbstractRepositoryMock<ApiRepository> {
         final List<Api> searchedApis = asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class));
         final List<Api> searchedApisAfterDeletion = asList(mock(Api.class), mock(Api.class), mock(Api.class));
         when(apiRepository.search(null)).thenReturn(searchedApis, searchedApis, searchedApis, searchedApisAfterDeletion);
-        when(apiRepository.search(new ApiCriteria.Builder().build())).thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
+        when(apiRepository.search(new ApiCriteria.Builder().build()))
+            .thenReturn(asList(mock(Api.class), mock(Api.class), mock(Api.class), mock(Api.class)));
 
-        when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build())).
-                thenReturn(asList(apiToUpdate, apiToDelete));
+        when(apiRepository.search(new ApiCriteria.Builder().ids("api-to-delete", "api-to-update", "unknown").build()))
+            .thenReturn(asList(apiToUpdate, apiToDelete));
 
         when(apiRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").build())).thenReturn(singletonList(apiToFindById));
         when(apiRepository.search(new ApiCriteria.Builder().category("my-category").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().build())).thenReturn(singletonList(apiToFindById));
+        when(apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build()))
+            .thenReturn(singletonList(apiToFindById));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
+                new ApiFieldExclusionFilter.Builder().excludeDefinition().build()
+            )
+        )
+            .thenReturn(singletonList(apiToFindById));
         when(apiRepository.search(new ApiCriteria.Builder().groups("api-group", "unknown").build())).thenReturn(singletonList(groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().version("1").build())).thenReturn(asList(apiToFindById,
-                groupedApi, apiToDelete, apiToUpdate));
+        when(apiRepository.search(new ApiCriteria.Builder().version("1").build()))
+            .thenReturn(asList(apiToFindById, groupedApi, apiToDelete, apiToUpdate));
         when(apiRepository.search(new ApiCriteria.Builder().label("label 1").build())).thenReturn(singletonList(apiToFindById));
-        when(apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build())).thenReturn(asList(apiToFindById,
-                groupedApi, apiToDelete, apiToUpdate));
-        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(asList(apiToFindById,
-                groupedApi));
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build())).thenReturn(asList(apiToFindById,
-                groupedApi));
-        when(apiRepository.search(
-                new ApiCriteria.Builder().version("1").build(),
-                new PageableBuilder().pageNumber(0).pageSize(2).build())).thenReturn(
-                new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById), 0, 2, 4));
-        when(apiRepository.search(
-                new ApiCriteria.Builder().version("1").build(),
-                new PageableBuilder().pageNumber(1).pageSize(2).build())).thenReturn(
-                new io.gravitee.common.data.domain.Page<>(asList(apiToUpdate, groupedApi), 1, 2, 4));
-        when(apiRepository.search(
-                new ApiCriteria.Builder().version("1").build(), new PageableBuilder().build())).thenReturn(
-                new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById, apiToUpdate, groupedApi), 0, 4, 4));
+        when(apiRepository.search(new ApiCriteria.Builder().state(STOPPED).build()))
+            .thenReturn(asList(apiToFindById, groupedApi, apiToDelete, apiToUpdate));
+        when(apiRepository.search(new ApiCriteria.Builder().visibility(PUBLIC).build())).thenReturn(asList(apiToFindById, groupedApi));
+        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build()))
+            .thenReturn(asList(apiToFindById, groupedApi));
+        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(0).pageSize(2).build()))
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById), 0, 2, 4));
+        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(1).pageSize(2).build()))
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToUpdate, groupedApi), 1, 2, 4));
+        when(apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().build()))
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(apiToDelete, apiToFindById, apiToUpdate, groupedApi), 0, 4, 4));
 
         when(apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build()))
-                .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
+            .thenReturn(asList(apiToUpdate, groupedApi, apiToUpdate));
         when(apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build()))
-                .thenReturn(asList(apiToDelete, apiToUpdate, groupedApi));
+            .thenReturn(asList(apiToDelete, apiToUpdate, groupedApi));
     }
 }

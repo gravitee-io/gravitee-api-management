@@ -17,19 +17,18 @@ package io.gravitee.repository.mongodb.management.internal.notification;
 
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationConfigMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationConfigPkMongo;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface PortalNotificationConfigMongoRepository extends MongoRepository<PortalNotificationConfigMongo, PortalNotificationConfigPkMongo> {
-
+public interface PortalNotificationConfigMongoRepository
+    extends MongoRepository<PortalNotificationConfigMongo, PortalNotificationConfigPkMongo> {
     @Query("{ 'hooks': ?0, 'id.referenceType': ?1, 'id.referenceId': ?2 }")
     Set<PortalNotificationConfigMongo> findByReferenceAndHook(String hook, String referenceType, String referenceId);
 
@@ -39,6 +38,3 @@ public interface PortalNotificationConfigMongoRepository extends MongoRepository
     @Query(value = "{ 'id.referenceType': ?0, 'id.referenceId': ?1 }", delete = true)
     void deleteByReference(String referenceType, String referenceId);
 }
-
-
-

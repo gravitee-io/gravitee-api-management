@@ -15,24 +15,23 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+import static java.lang.String.format;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.model.ApiQualityRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -46,34 +45,37 @@ public class JdbcApiQualityRuleRepository extends TransactionalRepository implem
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(ApiQualityRule.class, "api_quality_rules")
-            .updateSql("update api_quality_rules set "
-                    + " api = ?"
-                    + " , quality_rule = ?"
-                    + " , checked = ?"
-                    + " , created_at = ? "
-                    + " , updated_at = ? "
-                    + WHERE_CLAUSE
-                    + " api = ? "
-                    + " and quality_rule = ? "
-            )
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("quality_rule", Types.NVARCHAR, String.class)
-            .addColumn("checked", Types.BOOLEAN, boolean.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(ApiQualityRule.class, "api_quality_rules")
+        .updateSql(
+            "update api_quality_rules set " +
+            " api = ?" +
+            " , quality_rule = ?" +
+            " , checked = ?" +
+            " , created_at = ? " +
+            " , updated_at = ? " +
+            WHERE_CLAUSE +
+            " api = ? " +
+            " and quality_rule = ? "
+        )
+        .addColumn("api", Types.NVARCHAR, String.class)
+        .addColumn("quality_rule", Types.NVARCHAR, String.class)
+        .addColumn("checked", Types.BOOLEAN, boolean.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     public Optional<ApiQualityRule> findById(String api, String qualityRule) throws TechnicalException {
         LOGGER.debug("JdbcApiQualityRuleRepository.findById({}, {})", api, qualityRule);
         try {
-            final List<ApiQualityRule> apiQualityRules = jdbcTemplate.query("select"
-                            + " api, quality_rule, checked, created_at, updated_at "
-                            + " from api_quality_rules where api = ? and quality_rule = ?"
-                    , ORM.getRowMapper()
-                    , api
-                    , qualityRule
+            final List<ApiQualityRule> apiQualityRules = jdbcTemplate.query(
+                "select" +
+                " api, quality_rule, checked, created_at, updated_at " +
+                " from api_quality_rules where api = ? and quality_rule = ?",
+                ORM.getRowMapper(),
+                api,
+                qualityRule
             );
             return apiQualityRules.stream().findFirst();
         } catch (final Exception ex) {
@@ -103,12 +105,16 @@ public class JdbcApiQualityRuleRepository extends TransactionalRepository implem
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(apiQualityRule
-                    , apiQualityRule.getApi()
-                    , apiQualityRule.getQualityRule()
-            ));
-            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule()).orElseThrow(() ->
-                    new IllegalStateException(format("No apiQualityRule found with id [%s, %s]", apiQualityRule.getApi(), apiQualityRule.getQualityRule())));
+            jdbcTemplate.update(
+                ORM.buildUpdatePreparedStatementCreator(apiQualityRule, apiQualityRule.getApi(), apiQualityRule.getQualityRule())
+            );
+            return findById(apiQualityRule.getApi(), apiQualityRule.getQualityRule())
+                .orElseThrow(
+                    () ->
+                        new IllegalStateException(
+                            format("No apiQualityRule found with id [%s, %s]", apiQualityRule.getApi(), apiQualityRule.getQualityRule())
+                        )
+                );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -122,10 +128,7 @@ public class JdbcApiQualityRuleRepository extends TransactionalRepository implem
     public void delete(String api, String qualityRule) throws TechnicalException {
         LOGGER.debug("JdbcApiQualityRuleRepository.delete({}, {})", api, qualityRule);
         try {
-            jdbcTemplate.update("delete from api_quality_rules where api = ? and quality_rule = ? "
-                    , api
-                    , qualityRule
-            );
+            jdbcTemplate.update("delete from api_quality_rules where api = ? and quality_rule = ? ", api, qualityRule);
         } catch (final Exception ex) {
             final String error = "Failed to delete apiQualityRule";
             LOGGER.error(error, ex);
@@ -137,9 +140,8 @@ public class JdbcApiQualityRuleRepository extends TransactionalRepository implem
     public List<ApiQualityRule> findByQualityRule(String qualityRule) throws TechnicalException {
         LOGGER.debug("JdbcApiQualityRuleRepository.findByQualityRule({})", qualityRule);
         try {
-            final String query = "select "
-                    + " api, quality_rule, checked, created_at, updated_at "
-                    + " from api_quality_rules where quality_rule = ? ";
+            final String query =
+                "select " + " api, quality_rule, checked, created_at, updated_at " + " from api_quality_rules where quality_rule = ? ";
             return jdbcTemplate.query(query, (PreparedStatement ps) -> ps.setString(1, qualityRule), ORM.getRowMapper());
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by quality rule";
@@ -152,9 +154,8 @@ public class JdbcApiQualityRuleRepository extends TransactionalRepository implem
     public List<ApiQualityRule> findByApi(String api) throws TechnicalException {
         LOGGER.debug("JdbcApiQualityRuleRepository.findByApi({})", api);
         try {
-            final String query = "select "
-                    + " api, quality_rule, checked, created_at, updated_at "
-                    + " from api_quality_rules where api = ? ";
+            final String query =
+                "select " + " api, quality_rule, checked, created_at, updated_at " + " from api_quality_rules where api = ? ";
             return jdbcTemplate.query(query, (PreparedStatement ps) -> ps.setString(1, api), ORM.getRowMapper());
         } catch (final Exception ex) {
             final String error = "Failed to find apiQualityRule by api";

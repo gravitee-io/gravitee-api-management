@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.Subscription;
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -103,6 +102,7 @@ public class SubscriptionCriteria {
     }
 
     public static class Builder {
+
         private Collection<String> apis;
 
         private Collection<String> applications;

@@ -19,7 +19,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
-
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -40,6 +39,7 @@ import java.util.function.*;
  */
 @SuppressWarnings("WeakerAccess")
 public class VertxCompletableFuture<T> extends CompletableFuture<T> implements CompletionStage<T> {
+
     private final Executor executor;
 
     /**
@@ -78,13 +78,17 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
      */
     private VertxCompletableFuture(Context context, CompletableFuture<T> future) {
         this(context);
-        Objects.requireNonNull(future).whenComplete((res, err) -> {
-            if (err != null) {
-                completeExceptionally(err);
-            } else {
-                complete(res);
-            }
-        });
+        Objects
+            .requireNonNull(future)
+            .whenComplete(
+                (res, err) -> {
+                    if (err != null) {
+                        completeExceptionally(err);
+                    } else {
+                        complete(res);
+                    }
+                }
+            );
     }
 
     /**
@@ -143,13 +147,17 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
      */
     public static <T> VertxCompletableFuture<T> from(Context context, CompletableFuture<T> future) {
         VertxCompletableFuture<T> res = new VertxCompletableFuture<>(Objects.requireNonNull(context));
-        Objects.requireNonNull(future).whenComplete((result, error) -> {
-            if (context == Vertx.currentContext()) {
-                res.complete(result, error);
-            } else {
-                res.context.runOnContext(v -> res.complete(result, error));
-            }
-        });
+        Objects
+            .requireNonNull(future)
+            .whenComplete(
+                (result, error) -> {
+                    if (context == Vertx.currentContext()) {
+                        res.complete(result, error);
+                    } else {
+                        res.context.runOnContext(v -> res.complete(result, error));
+                    }
+                }
+            );
         return res;
     }
 
@@ -169,13 +177,17 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
      */
     public static <T> VertxCompletableFuture<T> from(Context context, Future<T> future) {
         VertxCompletableFuture<T> res = new VertxCompletableFuture<>(Objects.requireNonNull(context));
-        Objects.requireNonNull(future).setHandler(ar -> {
-            if (context == Vertx.currentContext()) {
-                res.completeFromAsyncResult(ar);
-            } else {
-                res.context.runOnContext(v -> res.completeFromAsyncResult(ar));
-            }
-        });
+        Objects
+            .requireNonNull(future)
+            .setHandler(
+                ar -> {
+                    if (context == Vertx.currentContext()) {
+                        res.completeFromAsyncResult(ar);
+                    } else {
+                        res.context.runOnContext(v -> res.completeFromAsyncResult(ar));
+                    }
+                }
+            );
         return res;
     }
 
@@ -225,13 +237,15 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     public static <T> VertxCompletableFuture<T> supplyAsync(Context context, Supplier<T> supplier) {
         Objects.requireNonNull(supplier);
         VertxCompletableFuture<T> future = new VertxCompletableFuture<>(Objects.requireNonNull(context));
-        context.runOnContext(v -> {
-            try {
-                future.complete(supplier.get());
-            } catch (Throwable e) {
-                future.completeExceptionally(e);
+        context.runOnContext(
+            v -> {
+                try {
+                    future.complete(supplier.get());
+                } catch (Throwable e) {
+                    future.completeExceptionally(e);
+                }
             }
-        });
+        );
         return future;
     }
 
@@ -249,14 +263,16 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     public static VertxCompletableFuture<Void> runAsync(Context context, Runnable runnable) {
         Objects.requireNonNull(runnable);
         VertxCompletableFuture<Void> future = new VertxCompletableFuture<>(context);
-        context.runOnContext(v -> {
-            try {
-                runnable.run();
-                future.complete(null);
-            } catch (Throwable e) {
-                future.completeExceptionally(e);
+        context.runOnContext(
+            v -> {
+                try {
+                    runnable.run();
+                    future.complete(null);
+                } catch (Throwable e) {
+                    future.completeExceptionally(e);
+                }
             }
-        });
+        );
         return future;
     }
 
@@ -308,15 +324,15 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
         Objects.requireNonNull(runnable);
         VertxCompletableFuture<Void> future = new VertxCompletableFuture<>(Objects.requireNonNull(context));
         context.executeBlocking(
-                fut -> {
-                    try {
-                        runnable.run();
-                        future.complete(null);
-                    } catch (Throwable e) {
-                        future.completeExceptionally(e);
-                    }
-                },
-                null
+            fut -> {
+                try {
+                    runnable.run();
+                    future.complete(null);
+                } catch (Throwable e) {
+                    future.completeExceptionally(e);
+                }
+            },
+            null
         );
         return future;
     }
@@ -337,20 +353,20 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
         Objects.requireNonNull(supplier);
         VertxCompletableFuture<T> future = new VertxCompletableFuture<>(context);
         context.<T>executeBlocking(
-                fut -> {
-                    try {
-                        fut.complete(supplier.get());
-                    } catch (Throwable e) {
-                        fut.fail(e);
-                    }
-                },
-                ar -> {
-                    if (ar.failed()) {
-                        future.completeExceptionally(ar.cause());
-                    } else {
-                        future.complete(ar.result());
-                    }
+            fut -> {
+                try {
+                    fut.complete(supplier.get());
+                } catch (Throwable e) {
+                    fut.fail(e);
                 }
+            },
+            ar -> {
+                if (ar.failed()) {
+                    future.completeExceptionally(ar.cause());
+                } else {
+                    future.complete(ar.result());
+                }
+            }
         );
         return future;
     }
@@ -367,13 +383,17 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
      */
     public static <T> Future<T> toFuture(CompletableFuture<T> future) {
         Future<T> fut = Future.future();
-        Objects.requireNonNull(future).whenComplete((res, err) -> {
-            if (err != null) {
-                fut.fail(err);
-            } else {
-                fut.complete(res);
-            }
-        });
+        Objects
+            .requireNonNull(future)
+            .whenComplete(
+                (res, err) -> {
+                    if (err != null) {
+                        fut.fail(err);
+                    } else {
+                        fut.complete(res);
+                    }
+                }
+            );
         return fut;
     }
 
@@ -500,13 +520,15 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
      */
     public VertxCompletableFuture<T> withContext(Context context) {
         VertxCompletableFuture<T> future = new VertxCompletableFuture<>(Objects.requireNonNull(context));
-        whenComplete((res, err) -> {
-            if (err != null) {
-                future.completeExceptionally(err);
-            } else {
-                future.complete(res);
+        whenComplete(
+            (res, err) -> {
+                if (err != null) {
+                    future.completeExceptionally(err);
+                } else {
+                    future.complete(res);
+                }
             }
-        });
+        );
         return future;
     }
 
@@ -545,7 +567,10 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     }
 
     @Override
-    public <U, V> VertxCompletableFuture<V> thenCombine(CompletionStage<? extends U> other, BiFunction<? super T, ? super U, ? extends V> fn) {
+    public <U, V> VertxCompletableFuture<V> thenCombine(
+        CompletionStage<? extends U> other,
+        BiFunction<? super T, ? super U, ? extends V> fn
+    ) {
         return new VertxCompletableFuture<>(context, super.thenCombine(other, fn));
     }
 
@@ -555,7 +580,11 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     }
 
     @Override
-    public <U> VertxCompletableFuture<Void> thenAcceptBothAsync(CompletionStage<? extends U> other, BiConsumer<? super T, ? super U> action, Executor executor) {
+    public <U> VertxCompletableFuture<Void> thenAcceptBothAsync(
+        CompletionStage<? extends U> other,
+        BiConsumer<? super T, ? super U> action,
+        Executor executor
+    ) {
         return new VertxCompletableFuture<>(context, super.thenAcceptBothAsync(other, action, executor));
     }
 
@@ -575,7 +604,11 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     }
 
     @Override
-    public <U> VertxCompletableFuture<U> applyToEitherAsync(CompletionStage<? extends T> other, Function<? super T, U> fn, Executor executor) {
+    public <U> VertxCompletableFuture<U> applyToEitherAsync(
+        CompletionStage<? extends T> other,
+        Function<? super T, U> fn,
+        Executor executor
+    ) {
         return new VertxCompletableFuture<>(context, super.applyToEitherAsync(other, fn, executor));
     }
 
@@ -585,7 +618,11 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     }
 
     @Override
-    public VertxCompletableFuture<Void> acceptEitherAsync(CompletionStage<? extends T> other, Consumer<? super T> action, Executor executor) {
+    public VertxCompletableFuture<Void> acceptEitherAsync(
+        CompletionStage<? extends T> other,
+        Consumer<? super T> action,
+        Executor executor
+    ) {
         return new VertxCompletableFuture<>(context, super.acceptEitherAsync(other, action, executor));
     }
 
@@ -645,14 +682,18 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     }
 
     @Override
-    public <U, V> VertxCompletableFuture<V> thenCombineAsync(CompletionStage<? extends U> other,
-                                                             BiFunction<? super T, ? super U, ? extends V> fn) {
+    public <U, V> VertxCompletableFuture<V> thenCombineAsync(
+        CompletionStage<? extends U> other,
+        BiFunction<? super T, ? super U, ? extends V> fn
+    ) {
         return new VertxCompletableFuture<>(context, super.thenCombineAsync(other, fn, executor));
     }
 
     @Override
-    public <U> VertxCompletableFuture<Void> thenAcceptBothAsync(CompletionStage<? extends U> other,
-                                                                BiConsumer<? super T, ? super U> action) {
+    public <U> VertxCompletableFuture<Void> thenAcceptBothAsync(
+        CompletionStage<? extends U> other,
+        BiConsumer<? super T, ? super U> action
+    ) {
         return new VertxCompletableFuture<>(context, super.thenAcceptBothAsync(other, action, executor));
     }
 
@@ -660,7 +701,6 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     public VertxCompletableFuture<Void> runAfterBothAsync(CompletionStage<?> other, Runnable action) {
         return new VertxCompletableFuture<>(context, super.runAfterBothAsync(other, action, executor));
     }
-
 
     @Override
     public <U> VertxCompletableFuture<U> applyToEitherAsync(CompletionStage<? extends T> other, Function<? super T, U> fn) {
@@ -671,7 +711,6 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     public VertxCompletableFuture<Void> acceptEitherAsync(CompletionStage<? extends T> other, Consumer<? super T> action) {
         return new VertxCompletableFuture<>(context, super.acceptEitherAsync(other, action, executor));
     }
-
 
     @Override
     public VertxCompletableFuture<Void> runAfterEitherAsync(CompletionStage<?> other, Runnable action) {
@@ -689,8 +728,10 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
     }
 
     public <U, V> VertxCompletableFuture<V> thenCombineAsync(
-            CompletionStage<? extends U> other,
-            BiFunction<? super T, ? super U, ? extends V> fn, Executor executor) {
+        CompletionStage<? extends U> other,
+        BiFunction<? super T, ? super U, ? extends V> fn,
+        Executor executor
+    ) {
         return new VertxCompletableFuture<>(context, super.thenCombineAsync(other, fn, executor));
     }
 
@@ -704,14 +745,12 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
         return new VertxCompletableFuture<>(context, super.handleAsync(fn, executor));
     }
 
-
     @Override
     public VertxCompletableFuture<T> toCompletableFuture() {
         return this;
     }
 
     // ============= other instance methods =============
-
 
     /**
      * Creates a new {@link Future} object completed / failed when the current {@link VertxCompletableFuture} is
@@ -738,5 +777,4 @@ public class VertxCompletableFuture<T> extends CompletableFuture<T> implements C
             super.completeExceptionally(ar.cause());
         }
     }
-
 }

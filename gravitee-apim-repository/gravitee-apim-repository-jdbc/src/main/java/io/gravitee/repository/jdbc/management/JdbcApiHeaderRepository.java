@@ -15,20 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.ApiHeaderRepository;
+import io.gravitee.repository.management.model.ApiHeader;
 import java.sql.Types;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.ApiHeaderRepository;
-import io.gravitee.repository.management.model.ApiHeader;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -39,15 +37,16 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiHeaderRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(ApiHeader.class, "api_headers", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("value", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(ApiHeader.class, "api_headers", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("environment_id", Types.NVARCHAR, String.class)
+        .addColumn("name", Types.NVARCHAR, String.class)
+        .addColumn("value", Types.NVARCHAR, String.class)
+        .addColumn("order", Types.INTEGER, int.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -63,9 +62,10 @@ public class JdbcApiHeaderRepository extends JdbcAbstractCrudRepository<ApiHeade
     public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         LOGGER.debug("JdbcApiHeaderRepository.findAllByEnvironment({})", environmentId);
         try {
-            List<ApiHeader> apiHeaders = jdbcTemplate.query("select * from api_headers where environment_id = ?"
-                    , ORM.getRowMapper()
-                    , environmentId
+            List<ApiHeader> apiHeaders = jdbcTemplate.query(
+                "select * from api_headers where environment_id = ?",
+                ORM.getRowMapper(),
+                environmentId
             );
             return new HashSet<>(apiHeaders);
         } catch (final Exception ex) {

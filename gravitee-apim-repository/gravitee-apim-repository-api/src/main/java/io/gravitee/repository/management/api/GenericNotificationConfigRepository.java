@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +31,8 @@ public interface GenericNotificationConfigRepository {
     GenericNotificationConfig update(GenericNotificationConfig genericNotificationConfig) throws TechnicalException;
     void delete(String id) throws TechnicalException;
     Optional<GenericNotificationConfig> findById(String id) throws TechnicalException;
-    List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
+    List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException;
     List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
     void deleteByConfig(String config) throws TechnicalException;
 }

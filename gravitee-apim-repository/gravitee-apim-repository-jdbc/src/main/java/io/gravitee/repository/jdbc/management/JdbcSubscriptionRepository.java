@@ -15,6 +15,11 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -22,51 +27,46 @@ import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
-
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 /**
  * @author njt
  */
 @Repository
-public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String>implements SubscriptionRepository {
+public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subscription, String> implements SubscriptionRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcSubscriptionRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Subscription.class, "subscriptions", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("plan", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("starting_at", Types.TIMESTAMP, Date.class)
-            .addColumn("ending_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("processed_at", Types.TIMESTAMP, Date.class)
-            .addColumn("processed_by", Types.NVARCHAR, String.class)
-            .addColumn("subscribed_by", Types.NVARCHAR, String.class)
-            .addColumn("client_id", Types.NVARCHAR, String.class)
-            .addColumn("request", Types.NVARCHAR, String.class)
-            .addColumn("reason", Types.NVARCHAR, String.class)
-            .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
-            .addColumn("paused_at", Types.TIMESTAMP, Date.class)
-            .addColumn("general_conditions_content_page_id", Types.NVARCHAR, String.class)
-            .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
-            .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Subscription.class, "subscriptions", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("plan", Types.NVARCHAR, String.class)
+        .addColumn("application", Types.NVARCHAR, String.class)
+        .addColumn("api", Types.NVARCHAR, String.class)
+        .addColumn("starting_at", Types.TIMESTAMP, Date.class)
+        .addColumn("ending_at", Types.TIMESTAMP, Date.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .addColumn("processed_at", Types.TIMESTAMP, Date.class)
+        .addColumn("processed_by", Types.NVARCHAR, String.class)
+        .addColumn("subscribed_by", Types.NVARCHAR, String.class)
+        .addColumn("client_id", Types.NVARCHAR, String.class)
+        .addColumn("request", Types.NVARCHAR, String.class)
+        .addColumn("reason", Types.NVARCHAR, String.class)
+        .addColumn("status", Types.NVARCHAR, Subscription.Status.class)
+        .addColumn("paused_at", Types.TIMESTAMP, Date.class)
+        .addColumn("general_conditions_content_page_id", Types.NVARCHAR, String.class)
+        .addColumn("general_conditions_content_revision", Types.INTEGER, Integer.class)
+        .addColumn("general_conditions_accepted", Types.BOOLEAN, Boolean.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {

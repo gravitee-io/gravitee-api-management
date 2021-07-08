@@ -15,22 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
+import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
+import io.gravitee.repository.mongodb.management.internal.organization.OrganizationMongoRepository;
+import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Organization;
-import io.gravitee.repository.mongodb.management.internal.organization.OrganizationMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
-import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -89,9 +87,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
 
             OrganizationMongo organizationMongoUpdated = internalOrganizationRepo.save(organizationMongo);
             return mapper.map(organizationMongoUpdated, Organization.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating organization", e);
             throw new TechnicalException("An error occured when updating organization");
         }
@@ -110,13 +106,16 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findAll() throws TechnicalException {
         final List<OrganizationMongo> organizations = internalOrganizationRepo.findAll();
-        return organizations.stream()
-                .map(organizationMongo -> {
+        return organizations
+            .stream()
+            .map(
+                organizationMongo -> {
                     final Organization organization = new Organization();
                     organization.setId(organizationMongo.getId());
                     organization.setName(organizationMongo.getName());
                     return organization;
-                })
-                .collect(Collectors.toSet());
+                }
+            )
+            .collect(Collectors.toSet());
     }
 }

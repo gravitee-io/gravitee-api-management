@@ -15,14 +15,13 @@
  */
 package io.gravitee.repository.jdbc.orm;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.springframework.util.StringUtils.capitalize;
 
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static org.springframework.util.StringUtils.capitalize;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -57,7 +56,10 @@ public class JdbcColumn {
         try {
             this.setter = owningClass.getMethod("set" + this.name, fieldType);
         } catch (NoSuchMethodException ex) {
-            throw new IllegalStateException("Method " + owningClass.getSimpleName() + ".set" + this.name + "( " + fieldType.getSimpleName() + ") not found", ex);
+            throw new IllegalStateException(
+                "Method " + owningClass.getSimpleName() + ".set" + this.name + "( " + fieldType.getSimpleName() + ") not found",
+                ex
+            );
         }
     }
 

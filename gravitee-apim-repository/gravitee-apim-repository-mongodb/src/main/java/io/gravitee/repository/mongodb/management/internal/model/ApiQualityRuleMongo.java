@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -28,44 +27,42 @@ import java.util.Objects;
 @Document(collection = "apiqualityrules")
 public class ApiQualityRuleMongo extends Auditable {
 
-	@Id
-	private ApiQualityRulePkMongo id;
-	private boolean checked;
+    @Id
+    private ApiQualityRulePkMongo id;
 
-	public ApiQualityRulePkMongo getId() {
-		return id;
-	}
+    private boolean checked;
 
-	public void setId(ApiQualityRulePkMongo id) {
-		this.id = id;
-	}
+    public ApiQualityRulePkMongo getId() {
+        return id;
+    }
 
-	public boolean isChecked() {
-		return checked;
-	}
+    public void setId(ApiQualityRulePkMongo id) {
+        this.id = id;
+    }
 
-	public void setChecked(boolean checked) {
-		this.checked = checked;
-	}
+    public boolean isChecked() {
+        return checked;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		ApiQualityRuleMongo that = (ApiQualityRuleMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    public void setChecked(boolean checked) {
+        this.checked = checked;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApiQualityRuleMongo that = (ApiQualityRuleMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public String toString() {
-		return "ApiQualityRuleMongo{" +
-				"id=" + id +
-				", checked=" + checked +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "ApiQualityRuleMongo{" + "id=" + id + ", checked=" + checked + '}';
+    }
 }

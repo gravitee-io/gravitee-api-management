@@ -20,45 +20,44 @@ package io.gravitee.repository.cache.model;
  * @author GraviteeSource Team
  */
 public interface Element {
+    static Element from(final Object key, final Object value) {
+        return new Element() {
+            @Override
+            public Object key() {
+                return key;
+            }
 
-	static Element from(final Object key, final Object value) {
-		return new Element() {
-			@Override
-			public Object key() {
-				return key;
-			}
+            @Override
+            public Object value() {
+                return value;
+            }
+        };
+    }
 
-			@Override
-			public Object value() {
-				return value;
-			}
-		};
-	}
+    static Element from(final Object key, final Object value, final int timeToLive) {
+        return new Element() {
+            @Override
+            public Object key() {
+                return key;
+            }
 
-	static Element from(final Object key, final Object value, final int timeToLive) {
-		return new Element() {
-			@Override
-			public Object key() {
-				return key;
-			}
+            @Override
+            public Object value() {
+                return value;
+            }
 
-			@Override
-			public Object value() {
-				return value;
-			}
+            @Override
+            public int timeToLive() {
+                return timeToLive;
+            }
+        };
+    }
 
-			@Override
-			public int timeToLive() {
-				return timeToLive;
-			}
-		};
-	}
+    Object key();
 
-	Object key();
+    Object value();
 
-	Object value();
-
-	default int timeToLive() {
-		return 0;
-	}
+    default int timeToLive() {
+        return 0;
+    }
 }

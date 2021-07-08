@@ -17,14 +17,12 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Tag;
-
 import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TagRepository extends CrudRepository<Tag, String>{
-
+public interface TagRepository extends CrudRepository<Tag, String> {
     Set<Tag> findAll() throws TechnicalException;
 }

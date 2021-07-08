@@ -17,17 +17,16 @@ package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  *
@@ -51,10 +50,7 @@ public abstract class JdbcAbstractCrudRepository<T, I> extends JdbcAbstractPagea
     public Optional<T> findById(I id) throws TechnicalException {
         LOGGER.debug("JdbcAbstractCrudRepository<{}>.findById({})", getOrm().getTableName(), id);
         try {
-            List<T> items = jdbcTemplate.query(getOrm().getSelectByIdSql()
-                    , getRowMapper()
-                    , id
-            );
+            List<T> items = jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find {} items by id:", getOrm().getTableName(), ex);

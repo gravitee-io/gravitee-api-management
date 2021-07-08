@@ -28,8 +28,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface TicketMongoRepositoryCustom {
-
-	Page<TicketMongo> search(TicketCriteria criteria, Sortable sortable, Pageable pageable);
+    Page<TicketMongo> search(TicketCriteria criteria, Sortable sortable, Pageable pageable);
 }
-
-

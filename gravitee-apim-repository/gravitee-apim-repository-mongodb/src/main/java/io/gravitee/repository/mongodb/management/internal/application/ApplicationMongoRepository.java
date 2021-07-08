@@ -15,15 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
+import io.gravitee.repository.management.model.ApplicationStatus;
+import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import java.util.List;
 import java.util.Set;
-
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.management.model.ApplicationStatus;
-import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,7 +30,6 @@ import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo
  */
 @Repository
 public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom {
-
     @Query("{ _id: {$in: ?0} }")
     Set<ApplicationMongo> findByIds(List<String> ids);
 
@@ -47,13 +44,10 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
 
     @Query("{ status: {$in: ?0} }")
     List<ApplicationMongo> findAll(List<ApplicationStatus> statuses);
-    
+
     @Query("{ environmentId: ?0, status: {$in: ?1} }")
     List<ApplicationMongo> findAllByEnvironmentId(String environmentId, List<ApplicationStatus> statuses);
-    
+
     @Query("{ environmentId: ?0 }")
     List<ApplicationMongo> findAllByEnvironmentId(String environmentId);
 }
-
-
-

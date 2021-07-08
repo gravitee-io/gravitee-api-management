@@ -22,7 +22,9 @@ import java.util.Objects;
 public class ClientRegistrationProvider {
 
     public enum AuditEvent implements Audit.AuditEvent {
-        CLIENT_REGISTRATION_PROVIDER_CREATED, CLIENT_REGISTRATION_PROVIDER_UPDATED, CLIENT_REGISTRATION_PROVIDER_DELETED
+        CLIENT_REGISTRATION_PROVIDER_CREATED,
+        CLIENT_REGISTRATION_PROVIDER_UPDATED,
+        CLIENT_REGISTRATION_PROVIDER_DELETED,
     }
 
     /**
@@ -212,12 +214,11 @@ public class ClientRegistrationProvider {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(id);
     }
 
     public enum InitialAccessTokenType {
         INITIAL_ACCESS_TOKEN,
-        CLIENT_CREDENTIALS
+        CLIENT_CREDENTIALS,
     }
 }

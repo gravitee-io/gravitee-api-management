@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageRevision;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +27,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface PageRevisionRepository {
-
     Page<PageRevision> findAll(Pageable pageable) throws TechnicalException;
 
     Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException;
@@ -40,13 +38,12 @@ public interface PageRevisionRepository {
      * @param pageId
      * @return
      */
-    List<PageRevision> findAllByPageId(String pageId)  throws TechnicalException ;
+    List<PageRevision> findAllByPageId(String pageId) throws TechnicalException;
 
     /**
      * get the most recent revision for a given pageId
      * @param pageId
      * @return
      */
-    Optional<PageRevision> findLastByPageId(String pageId)  throws TechnicalException;
-
+    Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException;
 }

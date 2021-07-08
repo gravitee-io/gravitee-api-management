@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management.internal.message;
 
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
-
 import java.util.List;
 
 /**
@@ -25,6 +24,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface CommandMongoRepositoryCustom {
-
     List<CommandMongo> search(CommandCriteria criteria);
 }

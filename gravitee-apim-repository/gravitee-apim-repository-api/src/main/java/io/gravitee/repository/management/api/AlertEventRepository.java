@@ -25,7 +25,6 @@ import io.gravitee.repository.management.model.AlertEvent;
  * @author GraviteeSource Team
  */
 public interface AlertEventRepository extends CrudRepository<AlertEvent, String> {
-
     /**
      * Search for {@link AlertEvent} with {@link Pageable} feature.
      *

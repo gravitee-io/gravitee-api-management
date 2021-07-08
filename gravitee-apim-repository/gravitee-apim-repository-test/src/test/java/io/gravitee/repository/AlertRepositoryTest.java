@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class AlertRepositoryTest extends AbstractRepositoryTest {
 
@@ -42,9 +41,7 @@ public class AlertRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(alerts);
         assertEquals(3, alerts.size());
-        final Optional<AlertTrigger> optionalAlert = alerts.stream()
-                .filter(alert -> "quota90".equals(alert.getId()))
-                .findAny();
+        final Optional<AlertTrigger> optionalAlert = alerts.stream().filter(alert -> "quota90".equals(alert.getId())).findAny();
         assertTrue(optionalAlert.isPresent());
         assertEquals("Quota90", optionalAlert.get().getName());
         assertEquals("Description for alert API quota 90%", optionalAlert.get().getDescription());

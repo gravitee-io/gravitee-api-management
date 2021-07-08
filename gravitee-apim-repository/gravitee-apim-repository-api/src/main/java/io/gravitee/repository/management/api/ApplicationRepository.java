@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
-
 import java.util.List;
 import java.util.Set;
 
@@ -31,13 +30,12 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApplicationRepository extends CrudRepository<Application, String> {
-
     /**
      * List all applications.
      *
      * @return All public applications.
      */
-    Set<Application> findAll(ApplicationStatus ... statuses) throws TechnicalException;
+    Set<Application> findAll(ApplicationStatus... statuses) throws TechnicalException;
 
     /**
      * List all applications for a given environment.
@@ -45,8 +43,8 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @return All public applications.
      * @throws TechnicalException
      */
-    Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus ... statuses) throws TechnicalException;
-    
+    Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) throws TechnicalException;
+
     /**
      * find a list of Applications via their ids.
      * @param ids a list of applications id
@@ -59,7 +57,7 @@ public interface ApplicationRepository extends CrudRepository<Application, Strin
      * @param groupIds a list of group ids
      * @return applications
      */
-    Set<Application> findByGroups(List<String> groupIds, ApplicationStatus ... statuses) throws TechnicalException;
+    Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) throws TechnicalException;
 
     /**
      * find applications by name. Support partial name (works like `contains`)

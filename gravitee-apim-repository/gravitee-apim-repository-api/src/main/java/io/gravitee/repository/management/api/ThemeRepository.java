@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Dashboard;
 import io.gravitee.repository.management.model.Theme;
-
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +25,7 @@ import java.util.Set;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ThemeRepository extends CrudRepository<Theme, String>{
+public interface ThemeRepository extends CrudRepository<Theme, String> {
     Set<Theme> findAll() throws TechnicalException;
     Set<Theme> findByReferenceIdAndReferenceType(String referenceId, String referenceType) throws TechnicalException;
 }

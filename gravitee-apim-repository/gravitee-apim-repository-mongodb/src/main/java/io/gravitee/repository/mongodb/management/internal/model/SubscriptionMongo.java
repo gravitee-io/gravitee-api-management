@@ -16,10 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.Plan;
+import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

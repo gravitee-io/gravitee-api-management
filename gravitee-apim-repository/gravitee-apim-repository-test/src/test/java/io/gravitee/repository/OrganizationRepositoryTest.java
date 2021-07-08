@@ -15,18 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Organization;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.Assert.*;
-
 import org.junit.Assert;
 import org.junit.Test;
-
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Organization;
 
 public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
@@ -69,7 +67,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
         final Organization fetchedOrganization = organizationRepository.update(org);
         assertEquals(org.getName(), fetchedOrganization.getName());
-        
+
         optional = organizationRepository.findById("DEFAULT-ORG-update");
         Assert.assertTrue("Organization to update not found", optional.isPresent());
     }
@@ -88,7 +86,7 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
         Optional<Organization> optional = organizationRepository.findById("DEFAULT-ORG-findById");
         Assert.assertTrue("Organization to find not found", optional.isPresent());
     }
-    
+
     @Test
     public void shouldFindAll() throws Exception {
         Set<Organization> allOrganizations = organizationRepository.findAll();

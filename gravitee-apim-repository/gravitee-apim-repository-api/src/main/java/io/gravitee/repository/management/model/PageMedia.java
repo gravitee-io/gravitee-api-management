@@ -24,63 +24,69 @@ import java.util.Objects;
  */
 public class PageMedia {
 
-	private String mediaHash;
-	private String mediaName;
-	private Date attachedAt;
+    private String mediaHash;
+    private String mediaName;
+    private Date attachedAt;
 
-	public PageMedia() {
-	}
+    public PageMedia() {}
 
-	public PageMedia(String mediaHash, String mediaName, Date attachedAt) {
-		this.mediaHash = mediaHash;
-		this.mediaName = mediaName;
-		this.attachedAt = attachedAt;
-	}
+    public PageMedia(String mediaHash, String mediaName, Date attachedAt) {
+        this.mediaHash = mediaHash;
+        this.mediaName = mediaName;
+        this.attachedAt = attachedAt;
+    }
 
-	public String getMediaHash() {
-		return mediaHash;
-	}
+    public String getMediaHash() {
+        return mediaHash;
+    }
 
-	public void setMediaHash(String mediaHash) {
-		this.mediaHash = mediaHash;
-	}
+    public void setMediaHash(String mediaHash) {
+        this.mediaHash = mediaHash;
+    }
 
-	public String getMediaName() {
-		return mediaName;
-	}
+    public String getMediaName() {
+        return mediaName;
+    }
 
-	public void setMediaName(String mediaName) {
-		this.mediaName = mediaName;
-	}
+    public void setMediaName(String mediaName) {
+        this.mediaName = mediaName;
+    }
 
-	public Date getAttachedAt() {
-		return attachedAt;
-	}
+    public Date getAttachedAt() {
+        return attachedAt;
+    }
 
-	public void setAttachedAt(Date attachedAt) {
-		this.attachedAt = attachedAt;
-	}
+    public void setAttachedAt(Date attachedAt) {
+        this.attachedAt = attachedAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		PageMedia pageMedia = (PageMedia) o;
-		return Objects.equals(mediaHash, pageMedia.mediaHash) &&
-				Objects.equals(mediaName, pageMedia.mediaName);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PageMedia pageMedia = (PageMedia) o;
+        return Objects.equals(mediaHash, pageMedia.mediaHash) && Objects.equals(mediaName, pageMedia.mediaName);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(mediaHash, mediaName);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(mediaHash, mediaName);
+    }
 
-	@Override
-	public String toString() {
-		return "PageMedia{" +
-				"mediaHash='" + mediaHash + '\'' +
-				", mediaName='" + mediaName + '\'' +
-				", attachedAt='" + attachedAt + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "PageMedia{" +
+            "mediaHash='" +
+            mediaHash +
+            '\'' +
+            ", mediaName='" +
+            mediaName +
+            '\'' +
+            ", attachedAt='" +
+            attachedAt +
+            '\'' +
+            '}'
+        );
+    }
 }

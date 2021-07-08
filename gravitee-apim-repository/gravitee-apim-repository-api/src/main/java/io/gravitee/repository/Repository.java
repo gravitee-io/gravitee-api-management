@@ -20,7 +20,6 @@ package io.gravitee.repository;
  * @author GraviteeSource Team
  */
 public interface Repository {
-
     /**
      * The type of the repository implementation (mongodb, jpa, ...)
      *
@@ -32,7 +31,7 @@ public interface Repository {
      * Scopes handled by the repository implementation.
      * @return
      */
-    Scope [] scopes();
+    Scope[] scopes();
 
     /**
      * Retrieve a configuration class (annotated with @Configuration) for a given scope.

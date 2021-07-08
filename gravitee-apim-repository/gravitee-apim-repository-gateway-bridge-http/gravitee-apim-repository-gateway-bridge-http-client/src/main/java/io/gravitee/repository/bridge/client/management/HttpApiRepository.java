@@ -23,10 +23,9 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,8 +36,7 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
 
     @Override
     public Optional<Api> findById(String apiId) throws TechnicalException {
-        return blockingGet(get("/apis/" + apiId, BodyCodecs.optional(Api.class))
-                .send());
+        return blockingGet(get("/apis/" + apiId, BodyCodecs.optional(Api.class)).send());
     }
 
     @Override
@@ -69,10 +67,12 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         try {
-            return blockingGet(get("/apis", BodyCodecs.list(Api.class))
+            return blockingGet(
+                get("/apis", BodyCodecs.list(Api.class))
                     .addQueryParam("excludeDefinition", Boolean.toString(apiFieldExclusionFilter.isDefinition()))
                     .addQueryParam("excludePicture", Boolean.toString(apiFieldExclusionFilter.isPicture()))
-                    .send());
+                    .send()
+            );
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);

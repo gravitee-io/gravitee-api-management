@@ -24,8 +24,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface TenantMongoRepository extends MongoRepository<TenantMongo, String> {
-
-}
-
-
+public interface TenantMongoRepository extends MongoRepository<TenantMongo, String> {}

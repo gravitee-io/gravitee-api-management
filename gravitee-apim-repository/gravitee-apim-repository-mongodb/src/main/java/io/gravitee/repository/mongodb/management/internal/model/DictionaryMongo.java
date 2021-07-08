@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Map;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,36 +27,36 @@ import java.util.Map;
 @Document(collection = "dictionaries")
 public class DictionaryMongo extends Auditable {
 
-	@Id
-	private String id;
+    @Id
+    private String id;
 
-	private String environmentId;
-	
-	private String name;
+    private String environmentId;
 
-	private String description;
+    private String name;
 
-	private String type;
+    private String description;
 
-	private DictionaryProviderMongo provider;
+    private String type;
 
-	private DictionaryTriggerMongo trigger;
+    private DictionaryProviderMongo provider;
 
-	private Map<String, String> properties;
+    private DictionaryTriggerMongo trigger;
 
-	private Date deployedAt;
+    private Map<String, String> properties;
 
-	private String state;
+    private Date deployedAt;
 
-	public String getId() {
-		return id;
-	}
+    private String state;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getEnvironmentId() {
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getEnvironmentId() {
         return environmentId;
     }
 
@@ -66,81 +65,81 @@ public class DictionaryMongo extends Auditable {
     }
 
     public String getName() {
-		return name;
-	}
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public DictionaryProviderMongo getProvider() {
-		return provider;
-	}
+    public DictionaryProviderMongo getProvider() {
+        return provider;
+    }
 
-	public void setProvider(DictionaryProviderMongo provider) {
-		this.provider = provider;
-	}
+    public void setProvider(DictionaryProviderMongo provider) {
+        this.provider = provider;
+    }
 
-	public Map<String, String> getProperties() {
-		return properties;
-	}
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 
-	public DictionaryTriggerMongo getTrigger() {
-		return trigger;
-	}
+    public DictionaryTriggerMongo getTrigger() {
+        return trigger;
+    }
 
-	public void setTrigger(DictionaryTriggerMongo trigger) {
-		this.trigger = trigger;
-	}
+    public void setTrigger(DictionaryTriggerMongo trigger) {
+        this.trigger = trigger;
+    }
 
-	public void setProperties(Map<String, String> properties) {
-		this.properties = properties;
-	}
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
 
-	public Date getDeployedAt() {
-		return deployedAt;
-	}
+    public Date getDeployedAt() {
+        return deployedAt;
+    }
 
-	public void setDeployedAt(Date deployedAt) {
-		this.deployedAt = deployedAt;
-	}
+    public void setDeployedAt(Date deployedAt) {
+        this.deployedAt = deployedAt;
+    }
 
-	public String getState() {
-		return state;
-	}
+    public String getState() {
+        return state;
+    }
 
-	public void setState(String state) {
-		this.state = state;
-	}
+    public void setState(String state) {
+        this.state = state;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		DictionaryMongo that = (DictionaryMongo) o;
+        DictionaryMongo that = (DictionaryMongo) o;
 
-		return id.equals(that.id);
-	}
+        return id.equals(that.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

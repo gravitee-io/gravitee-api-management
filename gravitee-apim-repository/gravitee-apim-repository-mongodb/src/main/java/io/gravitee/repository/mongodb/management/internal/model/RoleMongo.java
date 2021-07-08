@@ -15,19 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Objects;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Document(collection = "roles")
 public class RoleMongo extends Auditable {
+
     @Id
     private String id;
+
     private String scope;
     private String name;
     private String referenceId;
@@ -40,6 +41,7 @@ public class RoleMongo extends Auditable {
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
@@ -47,6 +49,7 @@ public class RoleMongo extends Auditable {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -62,12 +65,15 @@ public class RoleMongo extends Auditable {
     public String getReferenceId() {
         return referenceId;
     }
+
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
     }
+
     public String getReferenceType() {
         return referenceType;
     }
+
     public void setReferenceType(String referenceType) {
         this.referenceType = referenceType;
     }
@@ -75,6 +81,7 @@ public class RoleMongo extends Auditable {
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -82,6 +89,7 @@ public class RoleMongo extends Auditable {
     public boolean isDefaultRole() {
         return defaultRole;
     }
+
     public void setDefaultRole(boolean defaultRole) {
         this.defaultRole = defaultRole;
     }
@@ -89,6 +97,7 @@ public class RoleMongo extends Auditable {
     public boolean isSystem() {
         return system;
     }
+
     public void setSystem(boolean system) {
         this.system = system;
     }
@@ -96,6 +105,7 @@ public class RoleMongo extends Auditable {
     public int[] getPermissions() {
         return permissions;
     }
+
     public void setPermissions(int[] permissions) {
         this.permissions = permissions;
     }
@@ -115,14 +125,30 @@ public class RoleMongo extends Auditable {
 
     @Override
     public String toString() {
-        return "RoleMongo{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", scope='" + scope + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", defaultRole='" + defaultRole + '\'' +
-                ", system='" + system + '\'' +
-                '}';
+        return (
+            "RoleMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", scope='" +
+            scope +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", defaultRole='" +
+            defaultRole +
+            '\'' +
+            ", system='" +
+            system +
+            '\'' +
+            '}'
+        );
     }
 }

@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.ParameterRepository;
-import io.gravitee.repository.management.model.Parameter;
-import io.gravitee.repository.management.model.ParameterReferenceType;
-
-import java.util.Arrays;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.ParameterRepository;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
+import java.util.Arrays;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,12 +61,13 @@ public class ParameterRepositoryMock extends AbstractRepositoryMock<ParameterRep
 
         when(parameterRepository.findById("new-parameter", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(empty(), of(parameter));
         when(parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(of(parameter2), empty());
-        when(parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(of(parameter2), of(parameter2Updated));
+        when(parameterRepository.findById("portal.top-apis", REFERENCE_ID, REFERENCE_TYPE))
+            .thenReturn(of(parameter2), of(parameter2Updated));
 
         when(parameterRepository.update(argThat(o -> o == null || o.getKey().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(parameterRepository.findByKeys(any(), any(), any())).thenReturn(Arrays.asList(mock(Parameter.class), mock(Parameter.class)));
-        when(parameterRepository.findAll(eq(REFERENCE_ID), eq(REFERENCE_TYPE))).thenReturn(Arrays.asList(parameter, parameter2, parameter2Updated));
-
+        when(parameterRepository.findAll(eq(REFERENCE_ID), eq(REFERENCE_TYPE)))
+            .thenReturn(Arrays.asList(parameter, parameter2, parameter2Updated));
     }
 }

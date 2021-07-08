@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -28,104 +27,122 @@ import java.util.Objects;
 @Document(collection = "workflows")
 public class WorkflowMongo {
 
-	@Id
-	private String id;
-	private String referenceType;
-	private String referenceId;
-	private String type;
-	private String state;
-	private String comment;
-	private String user;
-	private Date createdAt;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String referenceType;
+    private String referenceId;
+    private String type;
+    private String state;
+    private String comment;
+    private String user;
+    private Date createdAt;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getReferenceType() {
-		return referenceType;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setReferenceType(String referenceType) {
-		this.referenceType = referenceType;
-	}
+    public String getReferenceType() {
+        return referenceType;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public String getState() {
-		return state;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public void setState(String state) {
-		this.state = state;
-	}
+    public String getState() {
+        return state;
+    }
 
-	public String getComment() {
-		return comment;
-	}
+    public void setState(String state) {
+        this.state = state;
+    }
 
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+    public String getComment() {
+        return comment;
+    }
 
-	public String getUser() {
-		return user;
-	}
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
-	public void setUser(String user) {
-		this.user = user;
-	}
+    public String getUser() {
+        return user;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public void setUser(String user) {
+        this.user = user;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof WorkflowMongo)) return false;
-		WorkflowMongo that = (WorkflowMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WorkflowMongo)) return false;
+        WorkflowMongo that = (WorkflowMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public String toString() {
-		return "WorkflowMongo{" +
-				"id='" + id + '\'' +
-				", referenceType='" + referenceType + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", type='" + type + '\'' +
-				", state='" + state + '\'' +
-				", comment='" + comment + '\'' +
-				", user='" + user + '\'' +
-				", createdAt=" + createdAt +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "WorkflowMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", type='" +
+            type +
+            '\'' +
+            ", state='" +
+            state +
+            '\'' +
+            ", comment='" +
+            comment +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            '}'
+        );
+    }
 }

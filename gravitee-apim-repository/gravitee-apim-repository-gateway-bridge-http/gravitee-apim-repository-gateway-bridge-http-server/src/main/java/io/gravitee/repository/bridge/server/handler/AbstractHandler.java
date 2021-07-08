@@ -24,12 +24,11 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,7 +56,7 @@ public abstract class AbstractHandler {
             }
 
             response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            response.setStatusCode( (data != null) ? HttpStatusCode.OK_200 : HttpStatusCode.NOT_FOUND_404);
+            response.setStatusCode((data != null) ? HttpStatusCode.OK_200 : HttpStatusCode.NOT_FOUND_404);
             response.setChunked(true);
 
             Json.prettyMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);

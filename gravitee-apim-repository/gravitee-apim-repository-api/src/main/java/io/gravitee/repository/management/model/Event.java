@@ -34,7 +34,7 @@ public class Event implements Serializable {
      * The ID of the environment the event is attached to
      */
     private String environmentId;
-    
+
     /**
      * The event Type
      */

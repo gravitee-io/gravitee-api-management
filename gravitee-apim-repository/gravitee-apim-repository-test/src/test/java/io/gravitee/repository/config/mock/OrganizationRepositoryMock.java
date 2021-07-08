@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Organization;
-
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
-
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -39,7 +38,6 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
 
     @Override
     void prepare(OrganizationRepository organizationRepository) throws Exception {
-
         final Organization orgCreate = new Organization();
         orgCreate.setId("DEFAULT-ORG-create");
         orgCreate.setName("Default org for create");
@@ -49,19 +47,18 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         final Organization org2Update = new Organization();
         org2Update.setId("DEFAULT-ORG-update");
         org2Update.setName("Default org for update");
-        
+
         final Organization orgUpdated = new Organization();
         orgUpdated.setId("DEFAULT-ORG-update");
         orgUpdated.setName("New name");
-        
+
         final Organization orgDelete = new Organization();
         orgDelete.setId("DEFAULT-ORG-delete");
         orgDelete.setName("Default org for delete");
-        
+
         final Organization orgFindById = new Organization();
         orgFindById.setId("DEFAULT-ORG-findById");
         orgFindById.setName("Default org for findById");
-
 
         when(organizationRepository.create(any(Organization.class))).thenReturn(orgCreate);
         when(organizationRepository.update(any(Organization.class))).thenReturn(orgUpdated);
@@ -71,10 +68,9 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         when(organizationRepository.findById("DEFAULT-ORG-update")).thenReturn(of(org2Update), of(orgUpdated));
         when(organizationRepository.findById("DEFAULT-ORG-delete")).thenReturn(of(orgDelete), Optional.empty());
         when(organizationRepository.findById("DEFAULT-ORG-findById")).thenReturn(of(orgFindById));
-        
-        final Set<Organization> allOrganizations = newSet(orgCreate, org2Update, orgUpdated, orgDelete, orgFindById);
-        
-        when(organizationRepository.findAll()).thenReturn(allOrganizations);
 
+        final Set<Organization> allOrganizations = newSet(orgCreate, org2Update, orgUpdated, orgDelete, orgFindById);
+
+        when(organizationRepository.findAll()).thenReturn(allOrganizations);
     }
 }

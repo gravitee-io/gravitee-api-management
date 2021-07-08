@@ -23,14 +23,13 @@ import io.gravitee.repository.mongodb.management.internal.model.CustomUserFieldM
 import io.gravitee.repository.mongodb.management.internal.model.CustomUserFieldPkMongo;
 import io.gravitee.repository.mongodb.management.internal.user.CustomUserFieldsMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -54,7 +53,7 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
         }
 
         logger.debug("Create CustomUserField [{}]", field);
-        CustomUserFieldMongo createdField = internalMongoRepo.insert(mapper.map(field,CustomUserFieldMongo.class));
+        CustomUserFieldMongo createdField = internalMongoRepo.insert(mapper.map(field, CustomUserFieldMongo.class));
         logger.debug("Create CustomUserField [{}] - Done", field);
         return mapper.map(createdField, CustomUserField.class);
     }
@@ -65,14 +64,18 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
             throw new IllegalStateException("CustomUserField to update must have an id");
         }
 
-        final CustomUserFieldPkMongo id = new CustomUserFieldPkMongo(field.getKey(), field.getReferenceId(), field.getReferenceType().name());
+        final CustomUserFieldPkMongo id = new CustomUserFieldPkMongo(
+            field.getKey(),
+            field.getReferenceId(),
+            field.getReferenceType().name()
+        );
         final Optional<CustomUserFieldMongo> previousField = internalMongoRepo.findById(id);
         if (!previousField.isPresent()) {
             throw new IllegalStateException(String.format("No CustomUserField found with id [%s]", id));
         }
 
         logger.debug("Update CustomUserField [{}]", field);
-        CustomUserFieldMongo updatedField = internalMongoRepo.save(mapper.map(field,CustomUserFieldMongo.class));
+        CustomUserFieldMongo updatedField = internalMongoRepo.save(mapper.map(field, CustomUserFieldMongo.class));
         logger.debug("Update CustomUserField [{}] - Done", field);
         return mapper.map(updatedField, CustomUserField.class);
     }
@@ -86,7 +89,8 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
     }
 
     @Override
-    public Optional<CustomUserField> findById(String key, String refId, CustomUserFieldReferenceType referenceType) throws TechnicalException {
+    public Optional<CustomUserField> findById(String key, String refId, CustomUserFieldReferenceType referenceType)
+        throws TechnicalException {
         final CustomUserFieldPkMongo id = new CustomUserFieldPkMongo(key, refId, referenceType.name());
         logger.debug("Find CustomUserField by ID [{}]", id);
 
@@ -97,7 +101,8 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
     }
 
     @Override
-    public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType referenceType) throws TechnicalException {
+    public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType referenceType)
+        throws TechnicalException {
         logger.debug("Find CustomUserField by Reference [{}/{}]", refId, referenceType);
 
         final List<CustomUserFieldMongo> fields = internalMongoRepo.findByReference(refId, referenceType.name());

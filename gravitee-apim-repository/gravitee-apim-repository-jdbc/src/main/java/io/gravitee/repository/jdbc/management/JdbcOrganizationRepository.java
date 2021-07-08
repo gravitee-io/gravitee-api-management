@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import java.sql.Types;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
+import java.sql.Types;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -36,11 +35,12 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcOrganizationRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Organization.class, "organizations", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Organization.class, "organizations", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("name", Types.NVARCHAR, String.class)
+        .addColumn("description", Types.NVARCHAR, String.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -52,11 +52,10 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         return item.getId();
     }
 
-    
     @Override
     public Optional<Organization> findById(String id) throws TechnicalException {
         Optional<Organization> findById = super.findById(id);
-        if(findById.isPresent()) {
+        if (findById.isPresent()) {
             addDomainRestrictions(findById.get());
         }
         return findById;
@@ -90,18 +89,24 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
     }
 
     private void addDomainRestrictions(Organization parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from organization_domain_restrictions where organization_id = ?", String.class, parent.getId());
+        List<String> domainRestrictions = jdbcTemplate.queryForList(
+            "select domain_restriction from organization_domain_restrictions where organization_id = ?",
+            String.class,
+            parent.getId()
+        );
         parent.setDomainRestrictions(domainRestrictions);
     }
-    
+
     private void storeDomainRestrictions(Organization organization, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update("delete from organization_domain_restrictions where organization_id = ?", organization.getId());
         }
         List<String> filteredDomainRestrictions = ORM.filterStrings(organization.getDomainRestrictions());
         if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into organization_domain_restrictions (organization_id, domain_restriction) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(organization.getId(), filteredDomainRestrictions));
+            jdbcTemplate.batchUpdate(
+                "insert into organization_domain_restrictions (organization_id, domain_restriction) values ( ?, ? )",
+                ORM.getBatchStringSetter(organization.getId(), filteredDomainRestrictions)
+            );
         }
     }
 }

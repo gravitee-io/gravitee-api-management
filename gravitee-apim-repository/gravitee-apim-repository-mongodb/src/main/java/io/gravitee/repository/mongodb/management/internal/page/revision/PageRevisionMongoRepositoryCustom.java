@@ -16,16 +16,15 @@
 package io.gravitee.repository.mongodb.management.internal.page.revision;
 
 import io.gravitee.repository.mongodb.management.internal.model.PageRevisionMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PageRevisionMongoRepositoryCustom  {
+public interface PageRevisionMongoRepositoryCustom {
     Optional<PageRevisionMongo> findLastByPageId(String pageId);
 }

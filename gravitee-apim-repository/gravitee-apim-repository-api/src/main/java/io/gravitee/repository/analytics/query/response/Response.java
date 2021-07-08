@@ -19,6 +19,4 @@ package io.gravitee.repository.analytics.query.response;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Response {
-
-}
+public interface Response {}

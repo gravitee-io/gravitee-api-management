@@ -24,9 +24,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface ClientRegistrationProviderMongoRepository extends MongoRepository<ClientRegistrationProviderMongo, String> {
-
-}
-
-
-
+public interface ClientRegistrationProviderMongoRepository extends MongoRepository<ClientRegistrationProviderMongo, String> {}

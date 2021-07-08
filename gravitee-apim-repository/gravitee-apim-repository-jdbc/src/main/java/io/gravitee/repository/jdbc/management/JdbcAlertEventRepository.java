@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.AlertEventRepository;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AlertEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
@@ -32,9 +31,9 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.repository.jdbc.management.JdbcHelper.AND_CLAUSE;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,13 +44,14 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcAlertEventRepository.class);
 
-    private static final JdbcObjectMapper<AlertEvent> ORM = JdbcObjectMapper.builder(AlertEvent.class, "alert_events", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("alert", Types.NVARCHAR, String.class)
-            .addColumn("message", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper<AlertEvent> ORM = JdbcObjectMapper
+        .builder(AlertEvent.class, "alert_events", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("alert", Types.NVARCHAR, String.class)
+        .addColumn("message", Types.NVARCHAR, String.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -86,7 +86,7 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
             started = true;
         }
 
-        if (criteria.getAlert() != null && ! criteria.getAlert().isEmpty()) {
+        if (criteria.getAlert() != null && !criteria.getAlert().isEmpty()) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("alert = ?");
             args.add(criteria.getAlert());
@@ -97,19 +97,22 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
         LOGGER.debug("SQL: {}", sql);
         LOGGER.debug("Args: {}", args);
 
-        List<AlertEvent> events = jdbcTemplate.query((Connection cnctn) -> {
-            PreparedStatement stmt = cnctn.prepareStatement(sql);
-            int idx = 1;
-            for (final Object arg : args) {
-                if (arg instanceof Date) {
-                    final Date date = (Date) arg;
-                    stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                } else {
-                    stmt.setObject(idx++, arg);
+        List<AlertEvent> events = jdbcTemplate.query(
+            (Connection cnctn) -> {
+                PreparedStatement stmt = cnctn.prepareStatement(sql);
+                int idx = 1;
+                for (final Object arg : args) {
+                    if (arg instanceof Date) {
+                        final Date date = (Date) arg;
+                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                    } else {
+                        stmt.setObject(idx++, arg);
+                    }
                 }
-            }
-            return stmt;
-        }, ORM.getRowMapper());
+                return stmt;
+            },
+            ORM.getRowMapper()
+        );
 
         LOGGER.debug("Alert events found: {}", events);
 
@@ -122,9 +125,6 @@ public class JdbcAlertEventRepository extends JdbcAbstractCrudRepository<AlertEv
     }
 
     private String criteriaToString(AlertEventCriteria criteria) {
-        return "{ " + "from: " + criteria.getFrom() +
-                ", " + "alert: " + criteria.getAlert() +
-                ", " + "to: " + criteria.getTo() +
-                " }";
+        return "{ " + "from: " + criteria.getFrom() + ", " + "alert: " + criteria.getAlert() + ", " + "to: " + criteria.getTo() + " }";
     }
 }

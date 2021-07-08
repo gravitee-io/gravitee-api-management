@@ -19,13 +19,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -36,16 +35,17 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
 
     private final Logger LOGGER = LoggerFactory.getLogger(JdbcInvitationRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Invitation.class, "invitations", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
-            .addColumn("reference_id", Types.NVARCHAR, String.class)
-            .addColumn("email", Types.NVARCHAR, String.class)
-            .addColumn("api_role", Types.NVARCHAR, String.class)
-            .addColumn("application_role", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Invitation.class, "invitations", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("reference_type", Types.NVARCHAR, String.class)
+        .addColumn("reference_id", Types.NVARCHAR, String.class)
+        .addColumn("email", Types.NVARCHAR, String.class)
+        .addColumn("api_role", Types.NVARCHAR, String.class)
+        .addColumn("application_role", Types.NVARCHAR, String.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -61,8 +61,12 @@ public class JdbcInvitationRepository extends JdbcAbstractCrudRepository<Invitat
     public List<Invitation> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcInvitationRepository.findByReference({}, {})", referenceType, referenceId);
         try {
-            return jdbcTemplate.query("select * from invitations where reference_type = ? and reference_id = ?"
-                    , ORM.getRowMapper(), referenceType, referenceId);
+            return jdbcTemplate.query(
+                "select * from invitations where reference_type = ? and reference_id = ?",
+                ORM.getRowMapper(),
+                referenceType,
+                referenceId
+            );
         } catch (final Exception ex) {
             final String message = "Failed to find invitations by reference";
             LOGGER.error(message, ex);

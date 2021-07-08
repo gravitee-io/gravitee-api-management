@@ -23,10 +23,9 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface AuditMongoRepositoryCustom {
-
     Page<AuditMongo> search(AuditCriteria filter, Pageable pageable);
 }

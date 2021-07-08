@@ -23,8 +23,7 @@ import io.gravitee.repository.exceptions.RepositoryException;
  */
 public class AnalyticsException extends RepositoryException {
 
-    public AnalyticsException() {
-    }
+    public AnalyticsException() {}
 
     public AnalyticsException(Throwable cause) {
         super(cause);

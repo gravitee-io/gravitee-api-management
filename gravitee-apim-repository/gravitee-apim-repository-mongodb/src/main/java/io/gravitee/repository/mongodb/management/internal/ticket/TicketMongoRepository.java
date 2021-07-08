@@ -24,8 +24,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface TicketMongoRepository extends MongoRepository<TicketMongo, String>, TicketMongoRepositoryCustom {
-
-}
-
-
+public interface TicketMongoRepository extends MongoRepository<TicketMongo, String>, TicketMongoRepositoryCustom {}

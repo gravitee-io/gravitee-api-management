@@ -15,14 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.QualityRuleRepositoryTest;
-import io.gravitee.repository.management.api.QualityRuleRepository;
-import io.gravitee.repository.management.model.QualityRule;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import static io.gravitee.repository.QualityRuleRepositoryTest.DATE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -30,6 +22,13 @@ import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.QualityRuleRepositoryTest;
+import io.gravitee.repository.management.api.QualityRuleRepository;
+import io.gravitee.repository.management.model.QualityRule;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -75,7 +74,8 @@ public class QualityRuleRepositoryMock extends AbstractRepositoryMock<QualityRul
         final Set<QualityRule> qualityRulesAfterDelete = newSet(qualityRule, qualityRule2);
         final Set<QualityRule> qualityRulesAfterAdd = newSet(qualityRule, qualityRule2, mock(QualityRule.class), mock(QualityRule.class));
 
-        when(qualityRuleRepository.findAll()).thenReturn(qualityRules, qualityRulesAfterAdd, qualityRules, qualityRulesAfterDelete, qualityRules);
+        when(qualityRuleRepository.findAll())
+            .thenReturn(qualityRules, qualityRulesAfterAdd, qualityRules, qualityRulesAfterDelete, qualityRules);
 
         when(qualityRuleRepository.create(any(QualityRule.class))).thenReturn(qualityRule);
 

@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TagRepository;
 import io.gravitee.repository.management.model.Tag;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
+import org.springframework.stereotype.Repository;
 
 /**
  *
@@ -35,11 +34,12 @@ import static java.util.stream.Collectors.toSet;
 @Repository
 public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> implements TagRepository {
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Tag.class, "tags", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Tag.class, "tags", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("name", Types.NVARCHAR, String.class)
+        .addColumn("description", Types.NVARCHAR, String.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -90,8 +90,10 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
         }
         List<String> filteredGroups = ORM.filterStrings(tag.getRestrictedGroups());
         if (!filteredGroups.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into tag_groups (tag_id, group_id) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(tag.getId(), filteredGroups));
+            jdbcTemplate.batchUpdate(
+                "insert into tag_groups (tag_id, group_id) values ( ?, ? )",
+                ORM.getBatchStringSetter(tag.getId(), filteredGroups)
+            );
         }
     }
 

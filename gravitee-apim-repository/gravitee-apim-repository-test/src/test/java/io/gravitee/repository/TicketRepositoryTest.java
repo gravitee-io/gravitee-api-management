@@ -15,6 +15,11 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
@@ -22,15 +27,9 @@ import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Ticket;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 public class TicketRepositoryTest extends AbstractRepositoryTest {
 
@@ -41,7 +40,9 @@ public class TicketRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchWithNullCriteria() throws TechnicalException {
-        List<Ticket> tickets = ticketRepository.search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        List<Ticket> tickets = ticketRepository
+            .search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
 
         assertNotNull(tickets);
         assertEquals("Invalid tickets numbers in search", 4, tickets.size());
@@ -53,11 +54,9 @@ public class TicketRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchAllWithEmptyCriteria() throws Exception {
-        List<Ticket> tickets = ticketRepository.search(
-                new TicketCriteria.Builder().build(),
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-        ).getContent();
+        List<Ticket> tickets = ticketRepository
+            .search(new TicketCriteria.Builder().build(), null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
 
         assertNotNull(tickets);
         assertEquals("Invalid tickets numbers in search", 4, tickets.size());
@@ -69,11 +68,13 @@ public class TicketRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchAllWithCriteriaFromUserEmpty() throws Exception {
-        List<Ticket> tickets = ticketRepository.search(
+        List<Ticket> tickets = ticketRepository
+            .search(
                 new TicketCriteria.Builder().fromUser("").build(),
                 null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-        ).getContent();
+            )
+            .getContent();
 
         assertNotNull(tickets);
         assertEquals("Invalid tickets numbers in search", 4, tickets.size());
@@ -85,14 +86,13 @@ public class TicketRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchAllWithCriteriaFromUser0SortedBySubjectDescendingOnThreeElements() throws Exception {
-        List<Ticket> tickets = ticketRepository.search(
-                new TicketCriteria.Builder()
-                        .fromUser("user0")
-                        .api("api0")
-                        .build(),
+        List<Ticket> tickets = ticketRepository
+            .search(
+                new TicketCriteria.Builder().fromUser("user0").api("api0").build(),
                 new SortableBuilder().field("subject").order(Order.DESC).build(),
                 new PageableBuilder().pageNumber(0).pageSize(3).build()
-        ).getContent();
+            )
+            .getContent();
 
         assertNotNull(tickets);
         assertEquals("Invalid tickets numbers in search", 3, tickets.size());
@@ -103,7 +103,6 @@ public class TicketRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldCreateTicketTest() throws Exception {
-
         Ticket ticket = new Ticket();
         ticket.setId("createticket1");
         ticket.setApi("api1");
@@ -117,11 +116,13 @@ public class TicketRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull("Ticket created is null", ticketCreated);
 
-        List<Ticket> tickets = ticketRepository.search(
+        List<Ticket> tickets = ticketRepository
+            .search(
                 new TicketCriteria.Builder().fromUser("creationUser").build(),
                 null,
                 new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
-        ).getContent();
+            )
+            .getContent();
 
         assertTrue("Unable to find saved ticket", tickets.size() == 1);
         Ticket ticketFound = tickets.get(0);

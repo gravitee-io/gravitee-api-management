@@ -15,20 +15,19 @@
  */
 package io.gravitee.repository.mongodb.management.internal.application;
 
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
-
-import java.util.List;
-
-import static org.springframework.data.domain.Sort.Direction.ASC;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -68,9 +67,6 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
 
         long total = mongoTemplate.count(query, ApplicationMongo.class);
 
-        return new Page<>(apps,
-                pageable != null ? pageable.pageNumber() : 0,
-                pageable != null ? pageable.pageSize() : 0,
-                total);
+        return new Page<>(apps, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
     }
 }

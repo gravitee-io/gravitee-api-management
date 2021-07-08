@@ -15,17 +15,15 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static org.springframework.util.CollectionUtils.isEmpty;
-
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  *
@@ -40,7 +38,7 @@ public class JdbcHelper {
     public interface ChildAdder<T> {
         void addChild(T parent, ResultSet rs) throws SQLException;
     }
-    
+
     public static class CollatingRowMapper<T> implements RowCallbackHandler {
 
         private final RowMapper<T> mapper;
@@ -56,18 +54,16 @@ public class JdbcHelper {
             this.idColumn = idColumn;
             this.rows = new ArrayList<>();
         }
-        
+
         @Override
         public void processRow(ResultSet rs) throws SQLException {
-            
-            Comparable currentId = (Comparable)rs.getObject(idColumn);
+            Comparable currentId = (Comparable) rs.getObject(idColumn);
             if ((lastId == null) || (lastId.compareTo(currentId) != 0)) {
                 lastId = currentId;
                 current = mapper.mapRow(rs, rows.size() + 1);
                 rows.add(current);
             }
             childAdder.addChild(current, rs);
-            
         }
 
         public List<T> getRows() {
@@ -93,18 +89,12 @@ public class JdbcHelper {
             this.idColumn2 = idColumn2;
             this.rows = new ArrayList<>();
         }
-        
+
         @Override
         public void processRow(ResultSet rs) throws SQLException {
-            
-            Comparable currentId1 = (Comparable)rs.getObject(idColumn1);
-            Comparable currentId2 = (Comparable)rs.getObject(idColumn2);
-            if (
-                    (lastId1 == null) 
-                    || (lastId1.compareTo(currentId1) != 0)
-                    || (lastId2 == null) 
-                    || (lastId2.compareTo(currentId2) != 0)
-                    ) {
+            Comparable currentId1 = (Comparable) rs.getObject(idColumn1);
+            Comparable currentId2 = (Comparable) rs.getObject(idColumn2);
+            if ((lastId1 == null) || (lastId1.compareTo(currentId1) != 0) || (lastId2 == null) || (lastId2.compareTo(currentId2) != 0)) {
                 lastId1 = currentId1;
                 lastId2 = currentId2;
                 current = mapper.mapRow(rs, rows.size() + 1);
@@ -118,8 +108,13 @@ public class JdbcHelper {
         }
     }
 
-    static boolean addCondition(final boolean first, final StringBuilder builder, final String propName,
-                                 final Object propVal, final List<Object> args) {
+    static boolean addCondition(
+        final boolean first,
+        final StringBuilder builder,
+        final String propName,
+        final Object propVal,
+        final List<Object> args
+    ) {
         if (!first) {
             builder.append(" or ");
         }
@@ -134,8 +129,13 @@ public class JdbcHelper {
         return false;
     }
 
-    static boolean addStringsWhereClause(final Collection<String> collection, final String columnName, final List<Object> argsList,
-                                          final StringBuilder builder, boolean started) {
+    static boolean addStringsWhereClause(
+        final Collection<String> collection,
+        final String columnName,
+        final List<Object> argsList,
+        final StringBuilder builder,
+        boolean started
+    ) {
         if (!isEmpty(collection)) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("( ");

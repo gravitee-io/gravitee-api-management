@@ -18,14 +18,13 @@ package io.gravitee.repository.mongodb.management.internal.key;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
+import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,7 +39,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
     public Page<ApiKeyMongo> search(ApiKeyCriteria filter) {
         Query query = new Query();
 
-        if (! filter.isIncludeRevoked()) {
+        if (!filter.isIncludeRevoked()) {
             query.addCriteria(Criteria.where("revoked").is(false));
         }
 

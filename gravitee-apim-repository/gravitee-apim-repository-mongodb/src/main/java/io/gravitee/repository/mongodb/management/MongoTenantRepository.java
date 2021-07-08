@@ -21,15 +21,14 @@ import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.mongodb.management.internal.api.TenantMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.TenantMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -89,9 +88,7 @@ public class MongoTenantRepository implements TenantRepository {
 
             TenantMongo tenantMongoUpdated = internalTenantRepo.save(tenantMongo);
             return mapper.map(tenantMongoUpdated, Tenant.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating tenant", e);
             throw new TechnicalException("An error occured when updating tenant");
         }
@@ -110,14 +107,17 @@ public class MongoTenantRepository implements TenantRepository {
     @Override
     public Set<Tenant> findAll() throws TechnicalException {
         final List<TenantMongo> tenants = internalTenantRepo.findAll();
-        return tenants.stream()
-                .map(tenantMongo -> {
+        return tenants
+            .stream()
+            .map(
+                tenantMongo -> {
                     final Tenant tenant = new Tenant();
                     tenant.setId(tenantMongo.getId());
                     tenant.setName(tenantMongo.getName());
                     tenant.setDescription(tenantMongo.getDescription());
                     return tenant;
-                })
-                .collect(Collectors.toSet());
+                }
+            )
+            .collect(Collectors.toSet());
     }
 }

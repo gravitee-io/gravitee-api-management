@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -27,21 +26,22 @@ import java.util.Objects;
 @Document(collection = "entrypoints")
 public class EntrypointMongo {
 
-	@Id
-	private String id;
-	private String environmentId;
-	private String value;
-	private String tags;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String environmentId;
+    private String value;
+    private String tags;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getEnvironmentId() {
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getEnvironmentId() {
         return environmentId;
     }
 
@@ -50,41 +50,51 @@ public class EntrypointMongo {
     }
 
     public String getValue() {
-		return value;
-	}
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public String getTags() {
-		return tags;
-	}
+    public String getTags() {
+        return tags;
+    }
 
-	public void setTags(String tags) {
-		this.tags = tags;
-	}
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof EntrypointMongo)) return false;
-		EntrypointMongo that = (EntrypointMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EntrypointMongo)) return false;
+        EntrypointMongo that = (EntrypointMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "EntrypointMongo{" +
-				"id='" + id + '\'' +
-                ", environmentId='" + environmentId + '\'' +
-				", value='" + value + '\'' +
-				", tags='" + tags + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "EntrypointMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
+            '\'' +
+            ", value='" +
+            value +
+            '\'' +
+            ", tags='" +
+            tags +
+            '\'' +
+            '}'
+        );
+    }
 }

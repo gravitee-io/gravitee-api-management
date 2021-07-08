@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.event;
 
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
-
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -26,6 +25,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface EventMongoRepository extends MongoRepository<EventMongo, String>, EventMongoRepositoryCustom {
-
-}
+public interface EventMongoRepository extends MongoRepository<EventMongo, String>, EventMongoRepositoryCustom {}

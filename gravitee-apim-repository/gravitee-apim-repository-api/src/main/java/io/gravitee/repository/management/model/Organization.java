@@ -44,7 +44,7 @@ public class Organization {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getDescription() {
         return description;
     }
@@ -76,11 +76,21 @@ public class Organization {
 
     @Override
     public String toString() {
-        return "Environment{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
-                '}';
+        return (
+            "Environment{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", domain restrictions='" +
+            domainRestrictions +
+            '\'' +
+            '}'
+        );
     }
 }

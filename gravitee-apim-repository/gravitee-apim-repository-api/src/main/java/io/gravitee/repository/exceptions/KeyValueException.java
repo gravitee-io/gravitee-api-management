@@ -20,25 +20,26 @@ package io.gravitee.repository.exceptions;
  * @author GraviteeSource Team
  */
 public class KeyValueException extends RuntimeException {
-	private static final long serialVersionUID = -2516662042502191870L;
 
-	public KeyValueException() {
-		super();
-	}
+    private static final long serialVersionUID = -2516662042502191870L;
 
-	public KeyValueException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
+    public KeyValueException() {
+        super();
+    }
 
-	public KeyValueException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    public KeyValueException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 
-	public KeyValueException(String message) {
-		super(message);
-	}
+    public KeyValueException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-	public KeyValueException(Throwable cause) {
-		super(cause);
-	}
+    public KeyValueException(String message) {
+        super(message);
+    }
+
+    public KeyValueException(Throwable cause) {
+        super(cause);
+    }
 }

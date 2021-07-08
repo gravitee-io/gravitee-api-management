@@ -50,6 +50,7 @@ public class UserCriteria {
     }
 
     public static class Builder {
+
         private UserStatus[] statuses;
         private boolean noStatus;
         private String organizationId;

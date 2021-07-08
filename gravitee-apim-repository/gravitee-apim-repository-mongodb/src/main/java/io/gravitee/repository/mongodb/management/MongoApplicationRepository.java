@@ -25,11 +25,10 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,114 +38,115 @@ import java.util.stream.Collectors;
 @Component
 public class MongoApplicationRepository implements ApplicationRepository {
 
-	@Autowired
-	private ApplicationMongoRepository internalApplicationRepo;
+    @Autowired
+    private ApplicationMongoRepository internalApplicationRepo;
 
-	@Autowired
-	private GraviteeMapper mapper;
-
-	@Override
-	public Set<Application> findAll(ApplicationStatus... statuses) throws TechnicalException {
-		List<ApplicationMongo> applications;
-		if(statuses != null && statuses.length > 0) {
-			applications = internalApplicationRepo.findAll(Arrays.asList(statuses));
-		} else {
-			applications = internalApplicationRepo.findAll();
-        }
-		return mapApplications(applications);
-	}
-
-	@Override
-	public Application create(Application application) throws TechnicalException {
-		ApplicationMongo applicationMongo = mapApplication(application);
-		ApplicationMongo applicationMongoCreated = internalApplicationRepo.insert(applicationMongo);
-		return mapApplication(applicationMongoCreated);
-	}
-
-	@Override
-	public Application update(Application application) throws TechnicalException {
-		if (application == null || application.getId() == null) {
-			throw new IllegalStateException("Application to update must have an id");
-		}
-
-		final ApplicationMongo applicationMongo = internalApplicationRepo.findById(application.getId()).orElse(null);
-		if (applicationMongo == null) {
-			throw new IllegalStateException(String.format("No application found with id [%s]", application.getId()));
-		}
-		
-		applicationMongo.setName(application.getName());
-		applicationMongo.setEnvironmentId(application.getEnvironmentId());
-		applicationMongo.setDescription(application.getDescription());
-		applicationMongo.setCreatedAt(application.getCreatedAt());
-		applicationMongo.setUpdatedAt(application.getUpdatedAt());
-		applicationMongo.setType(application.getType().toString());
-		applicationMongo.setGroups(application.getGroups());
-		applicationMongo.setPicture(application.getPicture());
-		applicationMongo.setBackground(application.getBackground());
-		applicationMongo.setStatus(application.getStatus().toString());
-		applicationMongo.setMetadata(application.getMetadata());
-		applicationMongo.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
-
-		ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
-		return mapApplication(applicationMongoUpdated);
-	}
-
-	@Override
-	public Optional<Application> findById(String applicationId) throws TechnicalException {
-		ApplicationMongo application = internalApplicationRepo.findById(applicationId).orElse(null);
-		return Optional.ofNullable(mapApplication(application));
-	}
-
-	@Override
-	public Set<Application> findByIds(List<String> ids) throws TechnicalException {
-		return mapApplications(internalApplicationRepo.findByIds(ids));
-	}
-
-	@Override
-	public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus ... statuses) throws TechnicalException {
-		if (statuses != null && statuses.length>0) {
-			return mapApplications(internalApplicationRepo.findByGroups(groupIds, Arrays.asList(statuses)));
-		} else {
-			return mapApplications(internalApplicationRepo.findByGroups(groupIds));
-		}
-	}
-
-	@Override
-	public Set<Application> findByName(String partialName) throws TechnicalException {
-		return mapApplications(internalApplicationRepo.findByName(partialName));
-	}
-
-	@Override
-	public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) {
-		final Page<ApplicationMongo> applicationsMongo = internalApplicationRepo.search(applicationCriteria, pageable);
-		final List<Application> applications = new ArrayList<>(mapApplications(applicationsMongo.getContent()));
-		return new Page<>(applications,
-				applicationsMongo.getPageNumber(),
-				(int) applicationsMongo.getPageElements(),
-				applicationsMongo.getTotalElements());
-	}
-
-	@Override
-	public void delete(String applicationId) throws TechnicalException {
-		internalApplicationRepo.deleteById(applicationId);
-	}
-
-	private Set<Application> mapApplications(Collection<ApplicationMongo> applications){
-		return applications.stream().map(this::mapApplication).collect(Collectors.toSet());
-	}
-	
-	private Application mapApplication(ApplicationMongo applicationMongo) {
-		return (applicationMongo == null) ? null : mapper.map(applicationMongo, Application.class);
-	}
-	
-	private ApplicationMongo mapApplication(Application application) {
-		return (application == null) ? null : mapper.map(application, ApplicationMongo.class);
-	}
+    @Autowired
+    private GraviteeMapper mapper;
 
     @Override
-    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses)
-            throws TechnicalException {
-        if (statuses != null && statuses.length>0) {
+    public Set<Application> findAll(ApplicationStatus... statuses) throws TechnicalException {
+        List<ApplicationMongo> applications;
+        if (statuses != null && statuses.length > 0) {
+            applications = internalApplicationRepo.findAll(Arrays.asList(statuses));
+        } else {
+            applications = internalApplicationRepo.findAll();
+        }
+        return mapApplications(applications);
+    }
+
+    @Override
+    public Application create(Application application) throws TechnicalException {
+        ApplicationMongo applicationMongo = mapApplication(application);
+        ApplicationMongo applicationMongoCreated = internalApplicationRepo.insert(applicationMongo);
+        return mapApplication(applicationMongoCreated);
+    }
+
+    @Override
+    public Application update(Application application) throws TechnicalException {
+        if (application == null || application.getId() == null) {
+            throw new IllegalStateException("Application to update must have an id");
+        }
+
+        final ApplicationMongo applicationMongo = internalApplicationRepo.findById(application.getId()).orElse(null);
+        if (applicationMongo == null) {
+            throw new IllegalStateException(String.format("No application found with id [%s]", application.getId()));
+        }
+
+        applicationMongo.setName(application.getName());
+        applicationMongo.setEnvironmentId(application.getEnvironmentId());
+        applicationMongo.setDescription(application.getDescription());
+        applicationMongo.setCreatedAt(application.getCreatedAt());
+        applicationMongo.setUpdatedAt(application.getUpdatedAt());
+        applicationMongo.setType(application.getType().toString());
+        applicationMongo.setGroups(application.getGroups());
+        applicationMongo.setPicture(application.getPicture());
+        applicationMongo.setBackground(application.getBackground());
+        applicationMongo.setStatus(application.getStatus().toString());
+        applicationMongo.setMetadata(application.getMetadata());
+        applicationMongo.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
+
+        ApplicationMongo applicationMongoUpdated = internalApplicationRepo.save(applicationMongo);
+        return mapApplication(applicationMongoUpdated);
+    }
+
+    @Override
+    public Optional<Application> findById(String applicationId) throws TechnicalException {
+        ApplicationMongo application = internalApplicationRepo.findById(applicationId).orElse(null);
+        return Optional.ofNullable(mapApplication(application));
+    }
+
+    @Override
+    public Set<Application> findByIds(List<String> ids) throws TechnicalException {
+        return mapApplications(internalApplicationRepo.findByIds(ids));
+    }
+
+    @Override
+    public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) throws TechnicalException {
+        if (statuses != null && statuses.length > 0) {
+            return mapApplications(internalApplicationRepo.findByGroups(groupIds, Arrays.asList(statuses)));
+        } else {
+            return mapApplications(internalApplicationRepo.findByGroups(groupIds));
+        }
+    }
+
+    @Override
+    public Set<Application> findByName(String partialName) throws TechnicalException {
+        return mapApplications(internalApplicationRepo.findByName(partialName));
+    }
+
+    @Override
+    public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) {
+        final Page<ApplicationMongo> applicationsMongo = internalApplicationRepo.search(applicationCriteria, pageable);
+        final List<Application> applications = new ArrayList<>(mapApplications(applicationsMongo.getContent()));
+        return new Page<>(
+            applications,
+            applicationsMongo.getPageNumber(),
+            (int) applicationsMongo.getPageElements(),
+            applicationsMongo.getTotalElements()
+        );
+    }
+
+    @Override
+    public void delete(String applicationId) throws TechnicalException {
+        internalApplicationRepo.deleteById(applicationId);
+    }
+
+    private Set<Application> mapApplications(Collection<ApplicationMongo> applications) {
+        return applications.stream().map(this::mapApplication).collect(Collectors.toSet());
+    }
+
+    private Application mapApplication(ApplicationMongo applicationMongo) {
+        return (applicationMongo == null) ? null : mapper.map(applicationMongo, Application.class);
+    }
+
+    private ApplicationMongo mapApplication(Application application) {
+        return (application == null) ? null : mapper.map(application, ApplicationMongo.class);
+    }
+
+    @Override
+    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) throws TechnicalException {
+        if (statuses != null && statuses.length > 0) {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId, Arrays.asList(statuses)));
         } else {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId));

@@ -20,6 +20,7 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public class DictionaryProvider {
+
     private String type;
     private String configuration;
 
@@ -40,9 +41,6 @@ public class DictionaryProvider {
     }
 
     public String toString() {
-        return "DictionaryProvider{" +
-                "type='" + type + '\'' +
-                ", configuration='" + configuration + '\'' +
-                '}';
+        return "DictionaryProvider{" + "type='" + type + '\'' + ", configuration='" + configuration + '\'' + '}';
     }
 }

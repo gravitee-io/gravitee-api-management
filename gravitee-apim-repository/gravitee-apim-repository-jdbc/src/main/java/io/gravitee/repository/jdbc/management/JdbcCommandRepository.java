@@ -15,25 +15,24 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static java.lang.String.format;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -47,16 +46,17 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Command.class, "commands", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("environment_id", Types.NVARCHAR, String.class)
-            .addColumn("from", Types.NVARCHAR, String.class)
-            .addColumn("to", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.NVARCHAR, String.class)
-            .addColumn("expired_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Command.class, "commands", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("environment_id", Types.NVARCHAR, String.class)
+        .addColumn("from", Types.NVARCHAR, String.class)
+        .addColumn("to", Types.NVARCHAR, String.class)
+        .addColumn("content", Types.NVARCHAR, String.class)
+        .addColumn("expired_at", Types.TIMESTAMP, Date.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .build();
 
     private static final JdbcHelper.ChildAdder<Command> CHILD_ADDER = (Command parent, ResultSet rs) -> {
         List<String> acknowledgments = parent.getAcknowledgments();
@@ -95,12 +95,15 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         LOGGER.debug("JdbcCommandRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query("select * from " + escapeReservedWord("commands") + " c " +
-                            "left join command_acknowledgments ca on c.id = ca.command_id " +
-                            "left join command_tags ct on c.id = ct.command_id " +
-                            "where c.id = ?"
-                    , rowMapper
-                    , id
+            jdbcTemplate.query(
+                "select * from " +
+                escapeReservedWord("commands") +
+                " c " +
+                "left join command_acknowledgments ca on c.id = ca.command_id " +
+                "left join command_tags ct on c.id = ct.command_id " +
+                "where c.id = ?",
+                rowMapper,
+                id
             );
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
@@ -146,8 +149,8 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(item, item.getId()));
             storeAcknowledgments(item, true);
             storeTags(item, true);
-            return findById(item.getId()).orElseThrow(() ->
-                    new IllegalStateException(format("No command found with id [%s]", item.getId())));
+            return findById(item.getId())
+                .orElseThrow(() -> new IllegalStateException(format("No command found with id [%s]", item.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -161,17 +164,21 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         LOGGER.debug("JdbcCommandRepository.search({})", criteria);
         JdbcHelper.CollatingRowMapper<Command> rowMapper = new JdbcHelper.CollatingRowMapper<>(ORM.getRowMapper(), CHILD_ADDER, "id");
         final StringBuilder query = new StringBuilder(
-                "select * from " + escapeReservedWord("commands") + " c " +
-                "left join command_acknowledgments ca on c.id = ca.command_id " +
-                "left join command_tags ct on c.id = ct.command_id " +
-                "where 1=1 ");
+            "select * from " +
+            escapeReservedWord("commands") +
+            " c " +
+            "left join command_acknowledgments ca on c.id = ca.command_id " +
+            "left join command_tags ct on c.id = ct.command_id " +
+            "where 1=1 "
+        );
 
         if (criteria.getNotAckBy() != null) {
-            query.append(" and not exists (")
-                    .append("select 1 from command_acknowledgments cak ")
-                    .append("where cak.command_id = c.id ")
-                    .append("and cak.acknowledgment = ? ")
-                    .append(")");
+            query
+                .append(" and not exists (")
+                .append("select 1 from command_acknowledgments cak ")
+                .append("where cak.command_id = c.id ")
+                .append("and cak.acknowledgment = ? ")
+                .append(")");
         }
         if (criteria.getNotFrom() != null) {
             query.append(" and c.").append(escapeReservedWord("from")).append(" != ? ");
@@ -188,24 +195,28 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
         List<Command> commands;
         try {
-            jdbcTemplate.query(query.toString(), (PreparedStatement ps) -> {
-                int lastIndex = 1;
-                if (criteria.getNotAckBy() != null) {
-                    ps.setString(lastIndex++, criteria.getNotAckBy());
-                }
-                if (criteria.getNotFrom() != null) {
-                    ps.setString(lastIndex++, criteria.getNotFrom());
-                }
-                if (criteria.getTo() != null) {
-                    ps.setString(lastIndex++, criteria.getTo());
-                }
-                if (criteria.getEnvironmentId() != null) {
-                    ps.setString(lastIndex++, criteria.getEnvironmentId());
-                }
-                if (criteria.isNotExpired()) {
-                    ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));
-                }
-            }, rowMapper);
+            jdbcTemplate.query(
+                query.toString(),
+                (PreparedStatement ps) -> {
+                    int lastIndex = 1;
+                    if (criteria.getNotAckBy() != null) {
+                        ps.setString(lastIndex++, criteria.getNotAckBy());
+                    }
+                    if (criteria.getNotFrom() != null) {
+                        ps.setString(lastIndex++, criteria.getNotFrom());
+                    }
+                    if (criteria.getTo() != null) {
+                        ps.setString(lastIndex++, criteria.getTo());
+                    }
+                    if (criteria.getEnvironmentId() != null) {
+                        ps.setString(lastIndex++, criteria.getEnvironmentId());
+                    }
+                    if (criteria.isNotExpired()) {
+                        ps.setDate(lastIndex++, new java.sql.Date(System.currentTimeMillis()));
+                    }
+                },
+                rowMapper
+            );
             commands = rowMapper.getRows();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find command records:", ex);
@@ -213,7 +224,8 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         }
 
         if (criteria.getTags() != null && criteria.getTags().length > 0) {
-            commands = commands
+            commands =
+                commands
                     .stream()
                     .filter(command -> command.getTags() != null && command.getTags().containsAll(Arrays.asList(criteria.getTags())))
                     .collect(Collectors.toList());
@@ -230,8 +242,10 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         }
         List<String> acknowledgments = ORM.filterStrings(command.getAcknowledgments());
         if (!acknowledgments.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into command_acknowledgments ( command_id, acknowledgment ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(command.getId(), acknowledgments));
+            jdbcTemplate.batchUpdate(
+                "insert into command_acknowledgments ( command_id, acknowledgment ) values ( ?, ? )",
+                ORM.getBatchStringSetter(command.getId(), acknowledgments)
+            );
         }
     }
 
@@ -243,8 +257,10 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
 
         List<String> tags = ORM.filterStrings(command.getTags());
         if (!tags.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into command_tags ( command_id, tag ) values ( ?, ? )"
-                    , ORM.getBatchStringSetter(command.getId(), tags));
+            jdbcTemplate.batchUpdate(
+                "insert into command_tags ( command_id, tag ) values ( ?, ? )",
+                ORM.getBatchStringSetter(command.getId(), tags)
+            );
         }
     }
 }

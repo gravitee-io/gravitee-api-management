@@ -21,5 +21,5 @@ package io.gravitee.repository.management.model;
  */
 public enum AlertEventType {
     API_CREATE,
-    APPLICATION_CREATE
+    APPLICATION_CREATE,
 }

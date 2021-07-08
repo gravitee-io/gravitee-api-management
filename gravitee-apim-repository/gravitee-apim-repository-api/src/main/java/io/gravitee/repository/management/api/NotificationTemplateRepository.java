@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -28,7 +27,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface NotificationTemplateRepository {
-
     Optional<NotificationTemplate> findById(String id) throws TechnicalException;
 
     NotificationTemplate create(NotificationTemplate item) throws TechnicalException;
@@ -39,9 +37,19 @@ public interface NotificationTemplateRepository {
 
     Set<NotificationTemplate> findAll() throws TechnicalException;
 
-    Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException;
+    Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
+        throws TechnicalException;
 
-    Set<NotificationTemplate> findByHookAndScopeAndReferenceIdAndReferenceType(String hook, String scope, String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException;
+    Set<NotificationTemplate> findByHookAndScopeAndReferenceIdAndReferenceType(
+        String hook,
+        String scope,
+        String referenceId,
+        NotificationTemplateReferenceType referenceType
+    ) throws TechnicalException;
 
-    Set<NotificationTemplate> findByTypeAndReferenceIdAndReferenceType(NotificationTemplateType type, String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException;
+    Set<NotificationTemplate> findByTypeAndReferenceIdAndReferenceType(
+        NotificationTemplateType type,
+        String referenceId,
+        NotificationTemplateReferenceType referenceType
+    ) throws TechnicalException;
 }

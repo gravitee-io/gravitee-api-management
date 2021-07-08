@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -28,34 +27,34 @@ import java.util.Objects;
 @Document(collection = "environments")
 public class EnvironmentMongo {
 
-	@Id
-	private String id;
+    @Id
+    private String id;
 
-	private String name;
+    private String name;
 
-	private String description;
+    private String description;
 
-	private String organizationId;
+    private String organizationId;
 
-	private List<String> domainRestrictions;
+    private List<String> domainRestrictions;
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getDescription() {
+    public String getDescription() {
         return description;
     }
 
@@ -80,26 +79,38 @@ public class EnvironmentMongo {
     }
 
     @Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof EnvironmentMongo)) return false;
-		EnvironmentMongo envMongo = (EnvironmentMongo) o;
-		return Objects.equals(id, envMongo.id);
-	}
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EnvironmentMongo)) return false;
+        EnvironmentMongo envMongo = (EnvironmentMongo) o;
+        return Objects.equals(id, envMongo.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "EnvironmentMongo{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", organizationId='" + organizationId + '\'' +
-				", domain restrictions='" + domainRestrictions + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "EnvironmentMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", domain restrictions='" +
+            domainRestrictions +
+            '\'' +
+            '}'
+        );
+    }
 }

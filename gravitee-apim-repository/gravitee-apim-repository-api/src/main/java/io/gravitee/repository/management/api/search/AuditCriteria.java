@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.EventType;
-
 import java.util.*;
 
 /**
@@ -39,11 +38,10 @@ public class AuditCriteria {
         this.to = builder.to;
         this.references = new HashMap<>(builder.references);
         this.properties = new HashMap<>(builder.properties);
-        if(builder.events != null) {
+        if (builder.events != null) {
             this.events = builder.events;
         }
     }
-
 
     public Map<Audit.AuditReferenceType, List<String>> getReferences() {
         return references;
@@ -108,6 +106,7 @@ public class AuditCriteria {
     }
 
     public static class Builder {
+
         private Map<String, String> properties = new HashMap<>();
 
         private Map<Audit.AuditReferenceType, List<String>> references = new HashMap<>();

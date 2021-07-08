@@ -19,10 +19,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,7 +51,8 @@ public class HttpParameterRepository extends AbstractRepository implements Param
     }
 
     @Override
-    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 

@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -27,83 +26,95 @@ import java.util.Objects;
 @Document(collection = "ratingAnswers")
 public class RatingAnswerMongo {
 
-	private String id;
-	private String rating;
-	private String user;
-	private String comment;
-	private Date createdAt;
-	private Date updatedAt;
+    private String id;
+    private String rating;
+    private String user;
+    private String comment;
+    private Date createdAt;
+    private Date updatedAt;
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getRating() {
-		return rating;
-	}
+    public String getRating() {
+        return rating;
+    }
 
-	public void setRating(String rating) {
-		this.rating = rating;
-	}
+    public void setRating(String rating) {
+        this.rating = rating;
+    }
 
-	public String getUser() {
-		return user;
-	}
+    public String getUser() {
+        return user;
+    }
 
-	public void setUser(String user) {
-		this.user = user;
-	}
+    public void setUser(String user) {
+        this.user = user;
+    }
 
-	public String getComment() {
-		return comment;
-	}
+    public String getComment() {
+        return comment;
+    }
 
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof RatingAnswerMongo)) return false;
-		RatingAnswerMongo that = (RatingAnswerMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RatingAnswerMongo)) return false;
+        RatingAnswerMongo that = (RatingAnswerMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "RatingAnswerMongo{" +
-				"id='" + id + '\'' +
-				", rating='" + rating + '\'' +
-				", user='" + user + '\'' +
-				", comment='" + comment + '\'' +
-				", createdAt=" + createdAt +
-				", updatedAt=" + updatedAt +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "RatingAnswerMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", rating='" +
+            rating +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", comment='" +
+            comment +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
+    }
 }

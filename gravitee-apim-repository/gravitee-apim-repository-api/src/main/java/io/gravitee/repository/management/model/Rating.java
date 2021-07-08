@@ -23,9 +23,13 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Rating {
+
     public enum RatingEvent implements Audit.ApiAuditEvent {
-        RATING_CREATED, RATING_UPDATED, RATING_DELETED
+        RATING_CREATED,
+        RATING_UPDATED,
+        RATING_DELETED,
     }
+
     private String id;
     private String referenceId;
     private RatingReferenceType referenceType;
@@ -36,8 +40,7 @@ public class Rating {
     private Date createdAt;
     private Date updatedAt;
 
-    public Rating() {
-    }
+    public Rating() {}
 
     public Rating(Rating cloned) {
         this.id = cloned.id;
@@ -50,7 +53,6 @@ public class Rating {
         this.referenceId = cloned.referenceId;
         this.referenceType = cloned.referenceType;
     }
-
 
     public String getId() {
         return id;
@@ -108,7 +110,6 @@ public class Rating {
         this.updatedAt = updatedAt;
     }
 
-    
     public String getReferenceId() {
         return referenceId;
     }
@@ -140,16 +141,32 @@ public class Rating {
 
     @Override
     public String toString() {
-        return "Rating{" +
-                "id='" + id + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType=" + referenceType +
-                ", user='" + user + '\'' +
-                ", rate=" + rate +
-                ", title='" + title + '\'' +
-                ", comment='" + comment + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "Rating{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", user='" +
+            user +
+            '\'' +
+            ", rate=" +
+            rate +
+            ", title='" +
+            title +
+            '\'' +
+            ", comment='" +
+            comment +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

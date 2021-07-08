@@ -23,6 +23,7 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class PortalNotification {
+
     private String id;
     private String title;
     private String message;
@@ -84,12 +85,24 @@ public class PortalNotification {
 
     @Override
     public String toString() {
-        return "Notification{" +
-                "id='" + id + '\'' +
-                ", title='" + title + '\'' +
-                ", message='" + message + '\'' +
-                ", user='" + user + '\'' +
-                ", createdAt='" + createdAt + '\'' +
-                '}';
+        return (
+            "Notification{" +
+            "id='" +
+            id +
+            '\'' +
+            ", title='" +
+            title +
+            '\'' +
+            ", message='" +
+            message +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", createdAt='" +
+            createdAt +
+            '\'' +
+            '}'
+        );
     }
 }

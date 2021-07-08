@@ -25,8 +25,7 @@ public class Sort {
     private Order order = Order.ASC;
     private SortType type = SortType.AVG;
 
-    Sort() {
-    }
+    Sort() {}
 
     public String getField() {
         return field;

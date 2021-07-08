@@ -18,9 +18,8 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
+import org.springframework.stereotype.Repository;
 
 /**
  *
@@ -29,11 +28,12 @@ import java.sql.Types;
 @Repository
 public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, String> implements TenantRepository {
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Tenant.class, "tenants", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Tenant.class, "tenants", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("name", Types.NVARCHAR, String.class)
+        .addColumn("description", Types.NVARCHAR, String.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -44,5 +44,4 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
     protected String getId(Tenant item) {
         return item.getId();
     }
-
 }

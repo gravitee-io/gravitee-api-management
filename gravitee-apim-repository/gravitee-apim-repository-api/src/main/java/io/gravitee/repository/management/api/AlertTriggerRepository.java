@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.AlertTrigger;
-
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +25,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface AlertTriggerRepository extends CrudRepository<AlertTrigger, String> {
-
     Set<AlertTrigger> findAll() throws TechnicalException;
 
     List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException;

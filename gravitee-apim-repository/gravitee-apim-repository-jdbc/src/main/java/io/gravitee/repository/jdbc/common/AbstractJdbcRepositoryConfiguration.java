@@ -18,6 +18,9 @@ package io.gravitee.repository.jdbc.common;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.gravitee.repository.jdbc.exception.DatabaseInitializationException;
+import java.sql.Connection;
+import java.util.Map;
+import javax.sql.DataSource;
 import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.jvm.JdbcConnection;
@@ -33,10 +36,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.util.Map;
 
 /**
  *
@@ -64,7 +63,7 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
 
     private static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
     private static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
-    
+
     private static final String DEFAULT_PAGING_QUERY = "LIMIT %d OFFSET %d ";
     private static final String MSSQL_PAGING_QUERY = "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY ";
 
@@ -172,12 +171,15 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         System.setProperty("liquibase.databaseChangeLogLockTableName", "databasechangeloglock");
 
         try (Connection conn = dataSource.getConnection()) {
-            final Liquibase liquibase = new Liquibase("liquibase/master.yml"
-                    , new ClassLoaderResourceAccessor(this.getClass().getClassLoader()), new JdbcConnection(conn));
+            final Liquibase liquibase = new Liquibase(
+                "liquibase/master.yml",
+                new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),
+                new JdbcConnection(conn)
+            );
             liquibase.setIgnoreClasspathPrefix(true);
             liquibase.update((Contexts) null);
         } catch (Exception ex) {
-            throw new DatabaseInitializationException("Failed to set up database", ex) ;
+            throw new DatabaseInitializationException("Failed to set up database", ex);
         }
     }
 

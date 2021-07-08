@@ -15,21 +15,20 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.PortalNotificationConfig;
-import io.gravitee.repository.management.model.NotificationReferenceType;
-import org.junit.Test;
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.PortalNotificationConfig;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTest {
 
@@ -99,8 +98,11 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
         cfg.setUpdatedAt(new Date(1439022010883L));
         cfg.setCreatedAt(new Date(1439022010883L));
 
-        Optional<PortalNotificationConfig> optNotificationFound =
-                portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-find");
+        Optional<PortalNotificationConfig> optNotificationFound = portalNotificationConfigRepository.findById(
+            "userid",
+            NotificationReferenceType.API,
+            "config-to-find"
+        );
 
         assertTrue(optNotificationFound.isPresent());
         PortalNotificationConfig notificationFound = optNotificationFound.get();
@@ -116,31 +118,25 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
     public void shouldNotFoundById() throws Exception {
         Optional<PortalNotificationConfig> optNotificationFound;
         //userid
-        optNotificationFound = portalNotificationConfigRepository.findById(
-                "userid-unknown",
-                NotificationReferenceType.API,
-                "config-to-find");
+        optNotificationFound =
+            portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find");
         assertFalse(optNotificationFound.isPresent());
         //type
-        optNotificationFound = portalNotificationConfigRepository.findById(
-                "userid",
-                NotificationReferenceType.APPLICATION,
-                "config-to-find");
+        optNotificationFound =
+            portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find");
         assertFalse(optNotificationFound.isPresent());
         //ref
-        optNotificationFound = portalNotificationConfigRepository.findById(
-                "userid",
-                NotificationReferenceType.API,
-                "config-to-not-find");
+        optNotificationFound = portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find");
         assertFalse(optNotificationFound.isPresent());
     }
 
     @Test
     public void shouldFindByHookAndReference() throws Exception {
         List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByReferenceAndHook(
-                "B",
-                NotificationReferenceType.APPLICATION,
-                "search");
+            "B",
+            NotificationReferenceType.APPLICATION,
+            "search"
+        );
 
         assertEquals("size", 2, configs.size());
         List<String> userIds = configs.stream().map(PortalNotificationConfig::getUser).collect(Collectors.toList());
@@ -151,9 +147,10 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
     @Test
     public void shouldNotFindByHookAndReference() throws Exception {
         List<PortalNotificationConfig> configs = portalNotificationConfigRepository.findByReferenceAndHook(
-                "D",
-                NotificationReferenceType.APPLICATION,
-                "search");
+            "D",
+            NotificationReferenceType.APPLICATION,
+            "search"
+        );
 
         assertTrue("size", configs.isEmpty());
     }
@@ -167,12 +164,24 @@ public class PortalNotificationConfigRepositoryTest extends AbstractRepositoryTe
 
     @Test
     public void shouldDeleteReference() throws Exception {
-        assertTrue("should exists before delete {apiToDelete-1}", portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent());
-        assertTrue("should exists before delete {apiToDelete-2}", portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent());
+        assertTrue(
+            "should exists before delete {apiToDelete-1}",
+            portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent()
+        );
+        assertTrue(
+            "should exists before delete {apiToDelete-2}",
+            portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent()
+        );
 
         portalNotificationConfigRepository.deleteReference(NotificationReferenceType.API, "apiToDelete");
 
-        assertFalse("should be deleted {apiToDelete-1}", portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent());
-        assertFalse("should be deleted {apiToDelete-2}", portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent());
+        assertFalse(
+            "should be deleted {apiToDelete-1}",
+            portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete").isPresent()
+        );
+        assertFalse(
+            "should be deleted {apiToDelete-2}",
+            portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete").isPresent()
+        );
     }
 }

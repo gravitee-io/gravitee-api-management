@@ -21,12 +21,11 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.PlanMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,10 +42,7 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
-            return internalPlanRepository.findByApi(apiId)
-                    .stream()
-                    .map(this::map)
-                    .collect(Collectors.toSet());
+        return internalPlanRepository.findByApi(apiId).stream().map(this::map).collect(Collectors.toSet());
     }
 
     @Override
@@ -73,7 +69,7 @@ public class MongoPlanRepository implements PlanRepository {
         if (planMongo == null) {
             throw new IllegalStateException(String.format("No plan found with id [%s]", plan.getId()));
         }
-        
+
         planMongo = map(plan);
         planMongo = internalPlanRepository.save(planMongo);
         return map(planMongo);
@@ -84,11 +80,11 @@ public class MongoPlanRepository implements PlanRepository {
         internalPlanRepository.deleteById(plan);
     }
 
-    private PlanMongo map(Plan plan){
+    private PlanMongo map(Plan plan) {
         return (plan == null) ? null : mapper.map(plan, PlanMongo.class);
     }
 
-    private Plan map(PlanMongo planMongo){
+    private Plan map(PlanMongo planMongo) {
         return (planMongo == null) ? null : mapper.map(planMongo, Plan.class);
     }
 }

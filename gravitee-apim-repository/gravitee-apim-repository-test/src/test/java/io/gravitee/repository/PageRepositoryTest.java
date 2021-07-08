@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -22,12 +25,8 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageMedia;
 import io.gravitee.repository.management.model.PageReferenceType;
-import org.junit.Test;
-
 import java.util.*;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -40,10 +39,11 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         return "/data/page-tests/";
     }
 
-
     @Test
     public void shouldFindAll() throws Exception {
-        final io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(new PageableBuilder().pageNumber(0).pageSize(100).build());
+        final io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(
+            new PageableBuilder().pageNumber(0).pageSize(100).build()
+        );
 
         assertNotNull(pages);
         assertEquals(11, pages.getTotalElements());
@@ -123,14 +123,18 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         final List<PageMedia> attachedMedia = page.getAttachedMedia();
         assertNotNull(attachedMedia);
         assertEquals("attachedMedia", 2, attachedMedia.size());
-        assertEquals("attachedMedia", Arrays.asList(
+        assertEquals(
+            "attachedMedia",
+            Arrays.asList(
                 new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
-                new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L)))
-                , attachedMedia);
+                new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L))
+            ),
+            attachedMedia
+        );
 
         assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
         assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
-        assertTrue("no autofetch",page.getUseAutoFetch().booleanValue());
+        assertTrue("no autofetch", page.getUseAutoFetch().booleanValue());
     }
 
     @Test
@@ -427,7 +431,10 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindDefaultMaxApiPageOrderByApiId() throws TechnicalException {
-        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("unknown api id", PageReferenceType.API);
+        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(
+            "unknown api id",
+            PageReferenceType.API
+        );
         assertEquals(Integer.valueOf(0), maxApiPageOrderByApiId);
     }
 

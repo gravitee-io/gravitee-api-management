@@ -15,23 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.model.Theme;
 import io.gravitee.repository.mongodb.management.internal.ThemeMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -99,9 +98,7 @@ public class MongoThemeRepository implements ThemeRepository {
 
             ThemeMongo themeMongoUpdated = internalThemeRepo.save(themeMongo);
             return mapper.map(themeMongoUpdated, Theme.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating theme", e);
             throw new TechnicalException("An error occured when updating theme");
         }
@@ -120,16 +117,12 @@ public class MongoThemeRepository implements ThemeRepository {
     @Override
     public Set<Theme> findAll() {
         final List<ThemeMongo> themes = internalThemeRepo.findAll();
-        return themes.stream()
-                .map(themeMongo -> mapper.map(themeMongo, Theme.class))
-                .collect(Collectors.toSet());
+        return themes.stream().map(themeMongo -> mapper.map(themeMongo, Theme.class)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Theme> findByReferenceIdAndReferenceType(String referenceId, String referenceType) {
         final Set<ThemeMongo> themes = internalThemeRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return themes.stream()
-                .map(themeMongo -> mapper.map(themeMongo, Theme.class))
-                .collect(Collectors.toSet());
+        return themes.stream().map(themeMongo -> mapper.map(themeMongo, Theme.class)).collect(Collectors.toSet());
     }
 }

@@ -23,8 +23,9 @@ import io.gravitee.repository.management.model.Audit;
  * @author GraviteeSource Team
  */
 public class Log {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        LOG_READ
+        LOG_READ,
     }
 
     private String id;

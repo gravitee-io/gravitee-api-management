@@ -15,17 +15,12 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Types;
@@ -34,8 +29,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Guillaume GILLON
@@ -48,24 +47,25 @@ public class JdbcMediaRepository extends TransactionalRepository implements Medi
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMediaRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Media.class, "media", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("type", Types.NVARCHAR, String.class)
-            .addColumn("sub_type", Types.NVARCHAR, String.class)
-            .addColumn("file_name", Types.NVARCHAR, String.class)
-            .addColumn("size", Types.INTEGER, Long.class)
-            .addColumn("data", Types.BLOB, byte[].class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("hash", Types.NVARCHAR, String.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Media.class, "media", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("type", Types.NVARCHAR, String.class)
+        .addColumn("sub_type", Types.NVARCHAR, String.class)
+        .addColumn("file_name", Types.NVARCHAR, String.class)
+        .addColumn("size", Types.INTEGER, Long.class)
+        .addColumn("data", Types.BLOB, byte[].class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("api", Types.NVARCHAR, String.class)
+        .addColumn("hash", Types.NVARCHAR, String.class)
+        .build();
 
     @Override
     public List<Media> findAllByApi(String api) {
         LOGGER.debug("JdbcMediaRepository.findAllByApi({})", api);
 
         String sql = "select * from media where api = ?";
-        Object[] param = new Object[]{api};
+        Object[] param = new Object[] { api };
 
         List<Media> mediaList = jdbcTemplate.query(sql, ORM.getRowMapper(), param);
 
@@ -154,7 +154,7 @@ public class JdbcMediaRepository extends TransactionalRepository implements Medi
         if (withContent) {
             select += ", data";
         }
-        String sql = select + " from "+ escapeReservedWord("media")+" where hash = ?";
+        String sql = select + " from " + escapeReservedWord("media") + " where hash = ?";
         List<Object> paramList = new ArrayList<>();
         paramList.add(hash);
         Object[] param;
@@ -167,9 +167,7 @@ public class JdbcMediaRepository extends TransactionalRepository implements Medi
             paramList.add(mediaType);
         }
 
-        List<Media> mediaList = jdbcTemplate.query(sql,
-                ORM.getRowMapper(),
-                paramList.toArray());
+        List<Media> mediaList = jdbcTemplate.query(sql, ORM.getRowMapper(), paramList.toArray());
 
         return mediaList.stream().findFirst();
     }

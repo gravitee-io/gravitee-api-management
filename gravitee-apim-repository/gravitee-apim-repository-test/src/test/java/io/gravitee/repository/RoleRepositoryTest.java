@@ -21,18 +21,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.Test;
-
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
 
 public class RoleRepositoryTest extends AbstractRepositoryTest {
 
@@ -59,7 +57,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(roles);
         assertEquals(3, roles.size());
     }
-    
+
     @Test
     public void shouldCreate() throws Exception {
         final Role role = new Role();
@@ -68,7 +66,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         role.setScope(RoleScope.API);
         role.setReferenceId(REFERENCE_ID);
         role.setReferenceType(REFERENCE_TYPE);
-        role.setPermissions(new int[]{3});
+        role.setPermissions(new int[] { 3 });
 
         boolean presentBefore = roleRepository.findById("API_to_create").isPresent();
         Role newRole = roleRepository.create(role);
@@ -92,7 +90,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         role.setReferenceId(REFERENCE_ID);
         role.setReferenceType(REFERENCE_TYPE);
         role.setDescription("new description");
-        role.setPermissions(new int[]{4, 5});
+        role.setPermissions(new int[] { 4, 5 });
         role.setDefaultRole(true);
 
         Role update = roleRepository.update(role);
@@ -122,7 +120,12 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByScopeAndName() throws Exception {
-        Optional<Role> role = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.API, "find by scope 1", REFERENCE_ID, REFERENCE_TYPE);
+        Optional<Role> role = roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(
+            RoleScope.API,
+            "find by scope 1",
+            REFERENCE_ID,
+            REFERENCE_TYPE
+        );
         assertNotNull(role);
         assertTrue("No roles found", role.isPresent());
         assertTrue("not contains scope1", "find by scope 1".equals(role.get().getName()));
@@ -137,7 +140,7 @@ public class RoleRepositoryTest extends AbstractRepositoryTest {
         List<String> names = roles.stream().map(Role::getName).collect(Collectors.toList());
         assertTrue("not contains scope1", names.contains("find by scope 1"));
     }
-    
+
     @Test
     public void shouldFindById() throws Exception {
         Optional<Role> role = roleRepository.findById("API_find_by_scope_1");

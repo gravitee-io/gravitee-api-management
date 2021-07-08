@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.CommandRepository;
-import io.gravitee.repository.management.model.Command;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
-
 import static java.util.Collections.singletonList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.model.Command;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -66,20 +65,16 @@ public class CommandRepositoryMock extends AbstractRepositoryMock<CommandReposit
         updatedCommand.setCreatedAt(new Date(1546405346000L));
         updatedCommand.setUpdatedAt(new Date(1546505346000L));
         updatedCommand.setExpiredAt(new Date(1546605346000L));
-        when(commandRepository.update(argThat(o -> o != null && o.getId().equals("msg-to-update"))))
-                .thenReturn(updatedCommand);
+        when(commandRepository.update(argThat(o -> o != null && o.getId().equals("msg-to-update")))).thenReturn(updatedCommand);
 
         //shouldNotUpdateUnknownMessage
-        when(commandRepository.update(argThat(o -> o != null && o.getId() == null)))
-                .thenThrow(new IllegalStateException());
+        when(commandRepository.update(argThat(o -> o != null && o.getId() == null))).thenThrow(new IllegalStateException());
 
         //shouldNotUpdateNull
-        when(commandRepository.update(argThat(Objects::isNull)))
-                .thenThrow(new IllegalStateException());
+        when(commandRepository.update(argThat(Objects::isNull))).thenThrow(new IllegalStateException());
 
         //shouldDelete
-        when(commandRepository.findById("msg-to-delete"))
-                .thenReturn(of(mock(Command.class)), empty());
+        when(commandRepository.findById("msg-to-delete")).thenReturn(of(mock(Command.class)), empty());
 
         //search
         Command search1 = new Command();
@@ -88,19 +83,17 @@ public class CommandRepositoryMock extends AbstractRepositoryMock<CommandReposit
         search2.setId("search2");
         Command search3 = new Command();
         search3.setId("search3");
-        when(commandRepository.search(argThat(o-> o != null && o.getNotFrom() != null)))
-                .thenReturn(Arrays.asList(newCommand, updatedCommand, mock(Command.class), search2, search3));
-        when(commandRepository.search(argThat(o -> o != null && o.getTo() != null)))
-                .thenReturn(singletonList(search3));
+        when(commandRepository.search(argThat(o -> o != null && o.getNotFrom() != null)))
+            .thenReturn(Arrays.asList(newCommand, updatedCommand, mock(Command.class), search2, search3));
+        when(commandRepository.search(argThat(o -> o != null && o.getTo() != null))).thenReturn(singletonList(search3));
         when(commandRepository.search(argThat(o -> o != null && o.getTags() != null && o.getTags().length == 1)))
-                .thenReturn(Arrays.asList(newCommand, updatedCommand, search1, search2));
+            .thenReturn(Arrays.asList(newCommand, updatedCommand, search1, search2));
         when(commandRepository.search(argThat(o -> o != null && o.getTags() != null && o.getTags().length == 2)))
-                .thenReturn(singletonList(search3));
+            .thenReturn(singletonList(search3));
         when(commandRepository.search(argThat(o -> o != null && o.getNotAckBy() != null)))
-                .thenReturn(Arrays.asList(newCommand, updatedCommand, mock(Command.class), search2));
-        when(commandRepository.search(argThat(o ->  o != null && o.isNotExpired())))
-                .thenReturn(singletonList(search2));
-        when(commandRepository.search(argThat(o ->  o != null && "DEFAULT".equals(o.getEnvironmentId()))))
-                .thenReturn(singletonList(newCommand));
+            .thenReturn(Arrays.asList(newCommand, updatedCommand, mock(Command.class), search2));
+        when(commandRepository.search(argThat(o -> o != null && o.isNotExpired()))).thenReturn(singletonList(search2));
+        when(commandRepository.search(argThat(o -> o != null && "DEFAULT".equals(o.getEnvironmentId()))))
+            .thenReturn(singletonList(newCommand));
     }
 }

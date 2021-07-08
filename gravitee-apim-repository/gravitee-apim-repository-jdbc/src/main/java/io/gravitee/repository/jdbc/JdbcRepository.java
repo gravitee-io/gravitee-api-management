@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.jdbc;
 
-import io.gravitee.repository.jdbc.management.JdbcManagementRepositoryConfiguration;
-import io.gravitee.repository.jdbc.ratelimit.JdbcRateLimitRepositoryConfiguration;
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
+import io.gravitee.repository.jdbc.management.JdbcManagementRepositoryConfiguration;
+import io.gravitee.repository.jdbc.ratelimit.JdbcRateLimitRepositoryConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public class JdbcRepository implements Repository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcRepository.class);
-    
+
     @Override
     public String type() {
         LOGGER.debug("JdbcRepository.type()");
@@ -39,10 +39,7 @@ public class JdbcRepository implements Repository {
     @Override
     public Scope[] scopes() {
         LOGGER.debug("JdbcRepository.scopes()");
-        return new Scope [] {
-                Scope.MANAGEMENT,
-                Scope.RATE_LIMIT
-        };
+        return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT };
     }
 
     @Override
@@ -53,8 +50,8 @@ public class JdbcRepository implements Repository {
                 return JdbcManagementRepositoryConfiguration.class;
             case RATE_LIMIT:
                 return JdbcRateLimitRepositoryConfiguration.class;
-                default:
-                    break;
+            default:
+                break;
         }
         return null;
     }

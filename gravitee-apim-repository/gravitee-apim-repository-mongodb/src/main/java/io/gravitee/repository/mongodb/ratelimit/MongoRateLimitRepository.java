@@ -18,6 +18,10 @@ package io.gravitee.repository.mongodb.ratelimit;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.reactivex.Single;
+import java.util.Date;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import javax.annotation.PostConstruct;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,11 +36,6 @@ import org.springframework.stereotype.Component;
 import reactor.adapter.rxjava.RxJava2Adapter;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
-import java.util.Date;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -48,66 +47,70 @@ public class MongoRateLimitRepository implements RateLimitRepository<RateLimit> 
     @Qualifier("rateLimitMongoTemplate")
     private ReactiveMongoOperations mongoOperations;
 
-    private final static String RATE_LIMIT_COLLECTION = "ratelimit";
+    private static final String RATE_LIMIT_COLLECTION = "ratelimit";
 
-    private final static String FIELD_KEY = "_id";
-    private final static String FIELD_COUNTER = "counter";
-    private final static String FIELD_RESET_TIME = "reset_time";
-    private final static String FIELD_LIMIT = "limit";
-    private final static String FIELD_SUBSCRIPTION = "subscription";
+    private static final String FIELD_KEY = "_id";
+    private static final String FIELD_COUNTER = "counter";
+    private static final String FIELD_RESET_TIME = "reset_time";
+    private static final String FIELD_LIMIT = "limit";
+    private static final String FIELD_SUBSCRIPTION = "subscription";
 
     private final FindAndModifyOptions INC_AND_GET_OPTIONS = new FindAndModifyOptions().returnNew(true).upsert(true);
 
     @PostConstruct
     public void ensureTTLIndex() {
-        mongoOperations.indexOps(RATE_LIMIT_COLLECTION).ensureIndex(
-                new Index(FIELD_RESET_TIME, Sort.Direction.ASC).expire(0L))
-                .subscribe();
+        mongoOperations.indexOps(RATE_LIMIT_COLLECTION).ensureIndex(new Index(FIELD_RESET_TIME, Sort.Direction.ASC).expire(0L)).subscribe();
     }
 
     @Override
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
         final Date now = new Date();
         RateLimit rateLimit = supplier.get();
-        return RxJava2Adapter
-                .monoToSingle(
-                        Mono
-                                .just(rateLimit)
-                                .flatMap(new Function<RateLimit, Mono<Document>>() {
-                                    @Override
-                                    public Mono<Document> apply(RateLimit rateLimit) {
-                                        return mongoOperations
-                                                .findAndModify(
-                                                        new Query(Criteria.where(FIELD_KEY).is(key)),
-                                                        new Update()
-                                                                .inc(FIELD_COUNTER, weight)
-                                                                .setOnInsert(FIELD_RESET_TIME, new Date(rateLimit.getResetTime()))
-                                                                .setOnInsert(FIELD_LIMIT, rateLimit.getLimit())
-                                                                .setOnInsert(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
-                                                        INC_AND_GET_OPTIONS,
-                                                        Document.class,
-                                                        RATE_LIMIT_COLLECTION);
-                                    }
-                                }).flatMap(new Function<Document, Mono<Document>>() {
-                                    @Override
-                                    public Mono<Document> apply(Document document) {
-                                        if (document.getDate(FIELD_RESET_TIME).before(now)) {
-                                            return mongoOperations
-                                                    .findAndModify(
-                                                            new Query(Criteria.where(FIELD_KEY).is(key)),
-                                                            new Update()
-                                                                    .set(FIELD_COUNTER, weight)
-                                                                    .set(FIELD_RESET_TIME, new Date(rateLimit.getResetTime()))
-                                                                    .set(FIELD_LIMIT, rateLimit.getLimit())
-                                                                    .set(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
-                                                            INC_AND_GET_OPTIONS,
-                                                            Document.class,
-                                                            RATE_LIMIT_COLLECTION);
-                                        } else {
-                                            return Mono.just(document);
-                                        }
-                                    }
-                                }).map(this::convert));
+        return RxJava2Adapter.monoToSingle(
+            Mono
+                .just(rateLimit)
+                .flatMap(
+                    new Function<RateLimit, Mono<Document>>() {
+                        @Override
+                        public Mono<Document> apply(RateLimit rateLimit) {
+                            return mongoOperations.findAndModify(
+                                new Query(Criteria.where(FIELD_KEY).is(key)),
+                                new Update()
+                                    .inc(FIELD_COUNTER, weight)
+                                    .setOnInsert(FIELD_RESET_TIME, new Date(rateLimit.getResetTime()))
+                                    .setOnInsert(FIELD_LIMIT, rateLimit.getLimit())
+                                    .setOnInsert(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
+                                INC_AND_GET_OPTIONS,
+                                Document.class,
+                                RATE_LIMIT_COLLECTION
+                            );
+                        }
+                    }
+                )
+                .flatMap(
+                    new Function<Document, Mono<Document>>() {
+                        @Override
+                        public Mono<Document> apply(Document document) {
+                            if (document.getDate(FIELD_RESET_TIME).before(now)) {
+                                return mongoOperations.findAndModify(
+                                    new Query(Criteria.where(FIELD_KEY).is(key)),
+                                    new Update()
+                                        .set(FIELD_COUNTER, weight)
+                                        .set(FIELD_RESET_TIME, new Date(rateLimit.getResetTime()))
+                                        .set(FIELD_LIMIT, rateLimit.getLimit())
+                                        .set(FIELD_SUBSCRIPTION, rateLimit.getSubscription()),
+                                    INC_AND_GET_OPTIONS,
+                                    Document.class,
+                                    RATE_LIMIT_COLLECTION
+                                );
+                            } else {
+                                return Mono.just(document);
+                            }
+                        }
+                    }
+                )
+                .map(this::convert)
+        );
     }
 
     private RateLimit convert(Document document) {

@@ -20,10 +20,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageRevision;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -31,6 +30,7 @@ import java.util.Optional;
  */
 @Component
 public class HttpPageRevisionRepository extends AbstractRepository implements PageRevisionRepository {
+
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
         throw new IllegalStateException();

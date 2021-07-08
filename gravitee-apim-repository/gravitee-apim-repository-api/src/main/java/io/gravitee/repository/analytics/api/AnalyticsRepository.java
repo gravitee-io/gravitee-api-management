@@ -24,6 +24,5 @@ import io.gravitee.repository.analytics.query.response.Response;
  * @author GraviteeSource Team
  */
 public interface AnalyticsRepository {
-
-   <T extends Response> T query(Query<T> query) throws AnalyticsException;
+    <T extends Response> T query(Query<T> query) throws AnalyticsException;
 }

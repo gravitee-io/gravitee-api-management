@@ -24,8 +24,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class CustomUserField {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        CUSTOM_USER_FIELD_CREATED, CUSTOM_USER_FIELD_UPDATED, CUSTOM_USER_FIELD_DELETED
+        CUSTOM_USER_FIELD_CREATED,
+        CUSTOM_USER_FIELD_UPDATED,
+        CUSTOM_USER_FIELD_DELETED,
     }
 
     private String key;
@@ -94,7 +97,6 @@ public class CustomUserField {
         this.updatedAt = updatedAt;
     }
 
-
     public String getReferenceId() {
         return referenceId;
     }
@@ -116,15 +118,17 @@ public class CustomUserField {
         if (this == o) return true;
         if (!(o instanceof CustomUserField)) return false;
         CustomUserField that = (CustomUserField) o;
-        return required == that.required &&
-                Objects.equals(key, that.key) &&
-                Objects.equals(referenceId, that.referenceId) &&
-                referenceType == that.referenceType &&
-                Objects.equals(label, that.label) &&
-                format == that.format &&
-                Objects.equals(values, that.values) &&
-                Objects.equals(createdAt, that.createdAt) &&
-                Objects.equals(updatedAt, that.updatedAt);
+        return (
+            required == that.required &&
+            Objects.equals(key, that.key) &&
+            Objects.equals(referenceId, that.referenceId) &&
+            referenceType == that.referenceType &&
+            Objects.equals(label, that.label) &&
+            format == that.format &&
+            Objects.equals(values, that.values) &&
+            Objects.equals(createdAt, that.createdAt) &&
+            Objects.equals(updatedAt, that.updatedAt)
+        );
     }
 
     @Override
@@ -134,16 +138,30 @@ public class CustomUserField {
 
     @Override
     public String toString() {
-        return "CustomUserField{" +
-                "key='" + key + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType=" + referenceType +
-                ", label='" + label + '\'' +
-                ", format=" + format +
-                ", required=" + required +
-                ", values=" + values +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "CustomUserField{" +
+            "key='" +
+            key +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", label='" +
+            label +
+            '\'' +
+            ", format=" +
+            format +
+            ", required=" +
+            required +
+            ", values=" +
+            values +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

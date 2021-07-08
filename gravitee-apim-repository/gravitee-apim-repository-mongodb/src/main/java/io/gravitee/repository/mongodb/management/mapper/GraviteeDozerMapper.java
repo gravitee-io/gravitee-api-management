@@ -19,7 +19,6 @@ import com.github.dozermapper.core.DozerBeanMapperBuilder;
 import com.github.dozermapper.core.Mapper;
 import com.github.dozermapper.core.MapperModelContext;
 import com.github.dozermapper.core.MappingException;
-
 import java.util.*;
 
 /**
@@ -28,56 +27,50 @@ import java.util.*;
  */
 public class GraviteeDozerMapper implements GraviteeMapper {
 
-	private final Mapper mapper;
+    private final Mapper mapper;
 
-	public GraviteeDozerMapper() {
-		mapper = DozerBeanMapperBuilder.create()
-				.withMappingFiles("dozer.xml")
-				.withClassLoader(new RepositoryDozerClassLoader())
-				.build();
-	}
-	
-	public  <T> T map(Object source, Class<T> destinationClass) throws MappingException {
-		if(source == null) 
-			return null;
-		return mapper.map(source, destinationClass);
-	}
+    public GraviteeDozerMapper() {
+        mapper = DozerBeanMapperBuilder.create().withMappingFiles("dozer.xml").withClassLoader(new RepositoryDozerClassLoader()).build();
+    }
 
-	@Override
-	public void map(Object o, Object o1) throws MappingException {
-		mapper.map(o, o1);
-	}
+    public <T> T map(Object source, Class<T> destinationClass) throws MappingException {
+        if (source == null) return null;
+        return mapper.map(source, destinationClass);
+    }
 
-	@Override
-	public <T> T map(Object o, Class<T> aClass, String s) throws MappingException {
-		return mapper.map(o, aClass, s);
-	}
+    @Override
+    public void map(Object o, Object o1) throws MappingException {
+        mapper.map(o, o1);
+    }
 
-	@Override
-	public void map(Object o, Object o1, String s) throws MappingException {
-		mapper.map(o, o1, s);
-	}
+    @Override
+    public <T> T map(Object o, Class<T> aClass, String s) throws MappingException {
+        return mapper.map(o, aClass, s);
+    }
 
-	@Override
-	public MapperModelContext getMapperModelContext() {
-		return mapper.getMapperModelContext();
-	}
+    @Override
+    public void map(Object o, Object o1, String s) throws MappingException {
+        mapper.map(o, o1, s);
+    }
 
-	public <T,F> Set<T> collection2set(Collection<F> elements, Class<F> formClass, Class<T> toClass){
-		
-		Set<T> res = new HashSet<>();
-		for (F elt : elements) {
-			res.add(map(elt,toClass));
-		}
-		return res;
-	}
-	
-	public  <T,F> List<T> collection2list(Collection<F> elements, Class<F> formClass, Class<T> toClass){
-		
-		List<T> res = new ArrayList<>();
-		for (F elt : elements) {
-			res.add(map(elt,toClass));
-		}
-		return res;
-	}
+    @Override
+    public MapperModelContext getMapperModelContext() {
+        return mapper.getMapperModelContext();
+    }
+
+    public <T, F> Set<T> collection2set(Collection<F> elements, Class<F> formClass, Class<T> toClass) {
+        Set<T> res = new HashSet<>();
+        for (F elt : elements) {
+            res.add(map(elt, toClass));
+        }
+        return res;
+    }
+
+    public <T, F> List<T> collection2list(Collection<F> elements, Class<F> formClass, Class<T> toClass) {
+        List<T> res = new ArrayList<>();
+        for (F elt : elements) {
+            res.add(map(elt, toClass));
+        }
+        return res;
+    }
 }

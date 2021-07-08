@@ -29,7 +29,7 @@ public class Environment {
     private String description;
     private String organizationId;
     private List<String> domainRestrictions;
-    
+
     public String getId() {
         return id;
     }
@@ -85,12 +85,24 @@ public class Environment {
 
     @Override
     public String toString() {
-        return "Environment{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", domain restrictions='" + domainRestrictions + '\'' +
-                '}';
+        return (
+            "Environment{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", domain restrictions='" +
+            domainRestrictions +
+            '\'' +
+            '}'
+        );
     }
 }

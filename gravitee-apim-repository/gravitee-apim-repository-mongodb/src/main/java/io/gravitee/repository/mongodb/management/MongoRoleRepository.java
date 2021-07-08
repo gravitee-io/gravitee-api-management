@@ -15,16 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
@@ -32,6 +22,14 @@ import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.repository.mongodb.management.internal.model.RoleMongo;
 import io.gravitee.repository.mongodb.management.internal.role.RoleMongoRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -88,9 +86,7 @@ public class MongoRoleRepository implements RoleRepository {
 
             RoleMongo roleMongoUpdated = internalRoleRepo.save(roleMongo);
             return map(roleMongoUpdated);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating role", e);
             throw new TechnicalException("An error occured when updating role");
         }
@@ -107,13 +103,20 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
-    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException {
+    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(
+        RoleScope scope,
+        String name,
+        String referenceId,
+        RoleReferenceType referenceType
+    ) throws TechnicalException {
         LOGGER.debug("Find role by scope and name [{}, {}, {}, {}]", scope, name, referenceId, referenceType);
 
-        final Optional<Role> role = internalRoleRepo.findByScopeAndNameAndReferenceIdAndReferenceType(scope.name(), name, referenceId, referenceType.name()).stream()
-                .map(this::map)
-                .findFirst();
-        
+        final Optional<Role> role = internalRoleRepo
+            .findByScopeAndNameAndReferenceIdAndReferenceType(scope.name(), name, referenceId, referenceType.name())
+            .stream()
+            .map(this::map)
+            .findFirst();
+
         LOGGER.debug("Find role by scope and name [{}, {}, {}, {}] - Done", scope, name, referenceId, referenceType);
         return role;
     }
@@ -121,9 +124,7 @@ public class MongoRoleRepository implements RoleRepository {
     @Override
     public Set<Role> findAll() throws TechnicalException {
         final List<RoleMongo> roles = internalRoleRepo.findAll();
-        return roles.stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return roles.stream().map(this::map).collect(Collectors.toSet());
     }
 
     private Role map(RoleMongo roleMongo) {
@@ -167,20 +168,21 @@ public class MongoRoleRepository implements RoleRepository {
     }
 
     @Override
-    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
-            throws TechnicalException {
+    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         final List<RoleMongo> roles = internalRoleRepo.findByReferenceIdAndReferenceType(referenceId, referenceType.name());
-        return roles.stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return roles.stream().map(this::map).collect(Collectors.toSet());
     }
 
     @Override
-    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId,
-            RoleReferenceType referenceType) throws TechnicalException {
+    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
+        throws TechnicalException {
         LOGGER.debug("Find role by scope and ref [{}, {}, {}]", scope, referenceId, referenceType);
 
-        final Set<RoleMongo> roles = internalRoleRepo.findByScopeAndReferenceIdAndReferenceType(scope.name(), referenceId, referenceType.name());
+        final Set<RoleMongo> roles = internalRoleRepo.findByScopeAndReferenceIdAndReferenceType(
+            scope.name(),
+            referenceId,
+            referenceType.name()
+        );
 
         LOGGER.debug("Find role by scope [{}, {}, {}] - Done", scope, referenceId, referenceType);
         return roles.stream().map(this::map).collect(Collectors.toSet());

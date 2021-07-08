@@ -20,13 +20,12 @@ import io.gravitee.repository.management.api.NotificationTemplateRepository;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -58,17 +57,29 @@ public class HttpNotificationTemplateRepository extends AbstractRepository imple
     }
 
     @Override
-    public Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException {
+    public Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(
+        String referenceId,
+        NotificationTemplateReferenceType referenceType
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<NotificationTemplate> findByHookAndScopeAndReferenceIdAndReferenceType(String hook, String scope, String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException {
+    public Set<NotificationTemplate> findByHookAndScopeAndReferenceIdAndReferenceType(
+        String hook,
+        String scope,
+        String referenceId,
+        NotificationTemplateReferenceType referenceType
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<NotificationTemplate> findByTypeAndReferenceIdAndReferenceType(NotificationTemplateType type, String referenceId, NotificationTemplateReferenceType referenceType) throws TechnicalException {
+    public Set<NotificationTemplate> findByTypeAndReferenceIdAndReferenceType(
+        NotificationTemplateType type,
+        String referenceId,
+        NotificationTemplateReferenceType referenceType
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
 }

@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -28,64 +27,74 @@ import java.util.Objects;
 @Document(collection = "tags")
 public class TagMongo {
 
-	@Id
-	private String id;
-	private String name;
-	private String description;
-	private List<String> restrictedGroups;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String name;
+    private String description;
+    private List<String> restrictedGroups;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public List<String> getRestrictedGroups() {
-		return restrictedGroups;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public void setRestrictedGroups(List<String> restrictedGroups) {
-		this.restrictedGroups = restrictedGroups;
-	}
+    public List<String> getRestrictedGroups() {
+        return restrictedGroups;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof TagMongo)) return false;
-		TagMongo tagMongo = (TagMongo) o;
-		return Objects.equals(id, tagMongo.id);
-	}
+    public void setRestrictedGroups(List<String> restrictedGroups) {
+        this.restrictedGroups = restrictedGroups;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TagMongo)) return false;
+        TagMongo tagMongo = (TagMongo) o;
+        return Objects.equals(id, tagMongo.id);
+    }
 
-	@Override
-	public String toString() {
-		return "TagMongo{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", restrictedGroups=" + restrictedGroups +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "TagMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", restrictedGroups=" +
+            restrictedGroups +
+            '}'
+        );
+    }
 }

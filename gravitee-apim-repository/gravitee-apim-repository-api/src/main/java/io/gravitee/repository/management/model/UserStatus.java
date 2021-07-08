@@ -16,12 +16,12 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum UserStatus {
     ACTIVE,
     ARCHIVED,
     REJECTED,
-    PENDING
+    PENDING,
 }

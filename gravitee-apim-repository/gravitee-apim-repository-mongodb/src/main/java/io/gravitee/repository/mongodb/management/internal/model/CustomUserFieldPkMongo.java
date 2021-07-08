@@ -24,64 +24,73 @@ import java.util.Objects;
  */
 public class CustomUserFieldPkMongo implements Serializable {
 
-	private String key;
-	private String referenceId;
-	private String referenceType;
+    private String key;
+    private String referenceId;
+    private String referenceType;
 
-	public CustomUserFieldPkMongo() {
-	}
+    public CustomUserFieldPkMongo() {}
 
-	public CustomUserFieldPkMongo(String key, String referenceId, String referenceType) {
-		this.key = key;
-		this.referenceId = referenceId;
-		this.referenceType = referenceType;
-	}
+    public CustomUserFieldPkMongo(String key, String referenceId, String referenceType) {
+        this.key = key;
+        this.referenceId = referenceId;
+        this.referenceType = referenceType;
+    }
 
-	public String getKey() {
-		return key;
-	}
+    public String getKey() {
+        return key;
+    }
 
-	public void setKey(String key) {
-		this.key = key;
-	}
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public String getReferenceType() {
-		return referenceType;
-	}
+    public String getReferenceType() {
+        return referenceType;
+    }
 
-	public void setReferenceType(String referenceType) {
-		this.referenceType = referenceType;
-	}
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof CustomUserFieldPkMongo)) return false;
-		CustomUserFieldPkMongo that = (CustomUserFieldPkMongo) o;
-		return Objects.equals(key, that.key) &&
-				Objects.equals(referenceId, that.referenceId) &&
-				Objects.equals(referenceType, that.referenceType);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CustomUserFieldPkMongo)) return false;
+        CustomUserFieldPkMongo that = (CustomUserFieldPkMongo) o;
+        return (
+            Objects.equals(key, that.key) &&
+            Objects.equals(referenceId, that.referenceId) &&
+            Objects.equals(referenceType, that.referenceType)
+        );
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(key, referenceId, referenceType);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(key, referenceId, referenceType);
+    }
 
-	@Override
-	public String toString() {
-		return "CustomUserFieldPkMongo{" +
-				"key='" + key + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", referenceType='" + referenceType + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "CustomUserFieldPkMongo{" +
+            "key='" +
+            key +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            '}'
+        );
+    }
 }

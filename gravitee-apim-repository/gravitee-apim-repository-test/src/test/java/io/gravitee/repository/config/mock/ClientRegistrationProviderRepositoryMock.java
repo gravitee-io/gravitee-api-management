@@ -15,13 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
-import io.gravitee.repository.management.model.ClientRegistrationProvider;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Set;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.any;
@@ -29,6 +22,12 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
+import io.gravitee.repository.management.model.ClientRegistrationProvider;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,8 +44,10 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
         final ClientRegistrationProvider newClientRegistrationProvider = mock(ClientRegistrationProvider.class);
         when(newClientRegistrationProvider.getName()).thenReturn("new DCR");
         when(newClientRegistrationProvider.getDescription()).thenReturn("Description for my new DCR");
-        when(newClientRegistrationProvider.getDiscoveryEndpoint()).thenReturn("http://localhost:8092/oidc/.well-known/openid-configuration");
-        when(newClientRegistrationProvider.getInitialAccessTokenType()).thenReturn(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
+        when(newClientRegistrationProvider.getDiscoveryEndpoint())
+            .thenReturn("http://localhost:8092/oidc/.well-known/openid-configuration");
+        when(newClientRegistrationProvider.getInitialAccessTokenType())
+            .thenReturn(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
         when(newClientRegistrationProvider.getClientId()).thenReturn("my-client-id");
         when(newClientRegistrationProvider.getClientSecret()).thenReturn("my-client-secret");
         when(newClientRegistrationProvider.getScopes()).thenReturn(Arrays.asList("scope1", "scope2", "scope3"));
@@ -68,20 +69,41 @@ public class ClientRegistrationProviderRepositoryMock extends AbstractRepository
 
         final ClientRegistrationProvider clientRegistrationProvider3 = createMock();
 
-        final Set<ClientRegistrationProvider> clientRegistrationProviders = newSet(newClientRegistrationProvider, clientRegistrationProvider1, mock(ClientRegistrationProvider.class));
-        final Set<ClientRegistrationProvider> clientRegistrationProvidersAfterDelete = newSet(newClientRegistrationProvider, clientRegistrationProvider1);
-        final Set<ClientRegistrationProvider> clientRegistrationProvidersAfterAdd = newSet(newClientRegistrationProvider, clientRegistrationProvider1, mock(ClientRegistrationProvider.class), mock(ClientRegistrationProvider.class));
+        final Set<ClientRegistrationProvider> clientRegistrationProviders = newSet(
+            newClientRegistrationProvider,
+            clientRegistrationProvider1,
+            mock(ClientRegistrationProvider.class)
+        );
+        final Set<ClientRegistrationProvider> clientRegistrationProvidersAfterDelete = newSet(
+            newClientRegistrationProvider,
+            clientRegistrationProvider1
+        );
+        final Set<ClientRegistrationProvider> clientRegistrationProvidersAfterAdd = newSet(
+            newClientRegistrationProvider,
+            clientRegistrationProvider1,
+            mock(ClientRegistrationProvider.class),
+            mock(ClientRegistrationProvider.class)
+        );
 
-        when(clientRegistrationProviderRepository.findAll()).thenReturn(clientRegistrationProviders, clientRegistrationProvidersAfterAdd, clientRegistrationProviders, clientRegistrationProvidersAfterDelete, clientRegistrationProviders);
+        when(clientRegistrationProviderRepository.findAll())
+            .thenReturn(
+                clientRegistrationProviders,
+                clientRegistrationProvidersAfterAdd,
+                clientRegistrationProviders,
+                clientRegistrationProvidersAfterDelete,
+                clientRegistrationProviders
+            );
 
         when(clientRegistrationProviderRepository.create(any(ClientRegistrationProvider.class))).thenReturn(newClientRegistrationProvider);
 
         when(clientRegistrationProviderRepository.findById("new-dcr")).thenReturn(of(newClientRegistrationProvider));
         when(clientRegistrationProviderRepository.findById("unknown")).thenReturn(empty());
-        when(clientRegistrationProviderRepository.findById("oidc1")).thenReturn(of(clientRegistrationProvider1), of(clientRegistrationProviderUpdated));
+        when(clientRegistrationProviderRepository.findById("oidc1"))
+            .thenReturn(of(clientRegistrationProvider1), of(clientRegistrationProviderUpdated));
         when(clientRegistrationProviderRepository.findById("oidc3")).thenReturn(of(clientRegistrationProvider3));
 
-        when(clientRegistrationProviderRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(clientRegistrationProviderRepository.update(argThat(o -> o == null || o.getId().equals("unknown"))))
+            .thenThrow(new IllegalStateException());
     }
 
     private ClientRegistrationProvider createMock() {

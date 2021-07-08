@@ -17,14 +17,12 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Tenant;
-
 import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TenantRepository extends CrudRepository<Tenant, String>{
-
+public interface TenantRepository extends CrudRepository<Tenant, String> {
     Set<Tenant> findAll() throws TechnicalException;
 }

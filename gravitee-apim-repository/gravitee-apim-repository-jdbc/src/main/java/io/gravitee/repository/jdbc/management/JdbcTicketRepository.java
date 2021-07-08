@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -24,17 +26,14 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  */
@@ -43,15 +42,16 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcTicketRepository.class);
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(Ticket.class, "tickets", "id")
-            .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("from_user", Types.NVARCHAR, String.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("api", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("subject", Types.NVARCHAR, String.class)
-            .addColumn("content", Types.CLOB, String.class)
-            .build();
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(Ticket.class, "tickets", "id")
+        .addColumn("id", Types.NVARCHAR, String.class)
+        .addColumn("from_user", Types.NVARCHAR, String.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("api", Types.NVARCHAR, String.class)
+        .addColumn("application", Types.NVARCHAR, String.class)
+        .addColumn("subject", Types.NVARCHAR, String.class)
+        .addColumn("content", Types.CLOB, String.class)
+        .build();
 
     @Override
     protected JdbcObjectMapper getOrm() {
@@ -75,7 +75,6 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
                 applySortable(sortable, query);
                 result = jdbcTemplate.query(query.toString(), getRowMapper());
             } else {
-
                 query.append(" where 1=1 ");
 
                 if (criteria.getFromUser() != null && criteria.getFromUser().length() > 0) {
@@ -88,7 +87,9 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
 
                 applySortable(sortable, query);
 
-                result = jdbcTemplate.query(query.toString(),
+                result =
+                    jdbcTemplate.query(
+                        query.toString(),
                         (PreparedStatement ps) -> {
                             int idx = 1;
                             if (criteria.getFromUser() != null && criteria.getFromUser().length() > 0) {
@@ -98,13 +99,11 @@ public class JdbcTicketRepository extends JdbcAbstractCrudRepository<Ticket, Str
                             if (criteria.getApi() != null && criteria.getApi().length() > 0) {
                                 idx = ORM.setArguments(ps, Arrays.asList(criteria.getApi()), idx);
                             }
-                        }
-                        , ORM.getRowMapper()
-                );
+                        },
+                        ORM.getRowMapper()
+                    );
             }
-            return getResultAsPage(
-                    pageable,
-                    result);
+            return getResultAsPage(pageable, result);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);

@@ -24,7 +24,8 @@ import java.util.Date;
 public class NotificationTemplate {
 
     public enum AuditEvent implements Audit.AuditEvent {
-        NOTIFICATION_TEMPLATE_CREATED, NOTIFICATION_TEMPLATE_UPDATED
+        NOTIFICATION_TEMPLATE_CREATED,
+        NOTIFICATION_TEMPLATE_UPDATED,
     }
 
     /**
@@ -92,7 +93,6 @@ public class NotificationTemplate {
      * Notification template status
      */
     private boolean enabled;
-
 
     public String getId() {
         return id;

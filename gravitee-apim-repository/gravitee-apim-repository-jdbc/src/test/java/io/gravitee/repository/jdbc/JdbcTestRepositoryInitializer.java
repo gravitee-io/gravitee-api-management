@@ -15,7 +15,14 @@
  */
 package io.gravitee.repository.jdbc;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.config.TestRepositoryInitializer;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import javax.sql.DataSource;
 import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.jvm.JdbcConnection;
@@ -25,14 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 /**
  *
@@ -46,87 +45,86 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     private final DataSource dataSource;
 
     private static final List<String> tablesToTruncate = Arrays.asList(
-            "apis",
-            "keys",
-            "api_groups",
-            "api_headers",
-            "api_labels",
-            "api_tags",
-            "api_categories",
-            "applications",
-            "application_groups",
-            "application_metadata",
-            "audits",
-            "audit_properties",
-            "commands",
-            "command_acknowledgments",
-            "command_tags",
-            "client_registration_providers",
-            "client_registration_provider_scopes",
-            "custom_user_fields",
-            "custom_user_fields_values",
-            "dictionaries",
-            "dictionary_property",
-            "environments",
-            "environment_domain_restrictions",
-            "events",
-            "event_properties",
-            "generic_notification_configs",
-            "generic_notification_config_hooks",
-            "groups",
-            "group_event_rules",
-            "identity_providers",
-            "identity_provider_activations",
-            "memberships",
-            "metadata",
-            "media",
-            "notification_templates",
-            "organizations",
-            "organization_domain_restrictions",
-            "parameters",
-            "pages",
-            "page_excluded_groups",
-            "page_attached_media",
-            "page_configuration",
-            "page_revisions",
-            "plans",
-            "plan_characteristics",
-            "plan_excluded_groups",
-            "plan_tags",
-            "portal_notifications",
-            "portal_notification_configs",
-            "portal_notification_config_hooks",
-            "ratelimit",
-            "ratings",
-            "rating_answers",
-            "roles",
-            "role_permissions",
-            "subscriptions",
-            "tags",
-            "tickets",
-            "tenants",
-            "users",
-            "categories",
-            "alert_triggers",
-            "entrypoints",
-            "page_metadata",
-            "invitations",
-            "tag_groups",
-            "workflows",
-            "quality_rules",
-            "api_quality_rules",
-            "dashboards",
-            "alert_events",
-            "themes",
-            "alert_event_rules",
-            "tokens"
+        "apis",
+        "keys",
+        "api_groups",
+        "api_headers",
+        "api_labels",
+        "api_tags",
+        "api_categories",
+        "applications",
+        "application_groups",
+        "application_metadata",
+        "audits",
+        "audit_properties",
+        "commands",
+        "command_acknowledgments",
+        "command_tags",
+        "client_registration_providers",
+        "client_registration_provider_scopes",
+        "custom_user_fields",
+        "custom_user_fields_values",
+        "dictionaries",
+        "dictionary_property",
+        "environments",
+        "environment_domain_restrictions",
+        "events",
+        "event_properties",
+        "generic_notification_configs",
+        "generic_notification_config_hooks",
+        "groups",
+        "group_event_rules",
+        "identity_providers",
+        "identity_provider_activations",
+        "memberships",
+        "metadata",
+        "media",
+        "notification_templates",
+        "organizations",
+        "organization_domain_restrictions",
+        "parameters",
+        "pages",
+        "page_excluded_groups",
+        "page_attached_media",
+        "page_configuration",
+        "page_revisions",
+        "plans",
+        "plan_characteristics",
+        "plan_excluded_groups",
+        "plan_tags",
+        "portal_notifications",
+        "portal_notification_configs",
+        "portal_notification_config_hooks",
+        "ratelimit",
+        "ratings",
+        "rating_answers",
+        "roles",
+        "role_permissions",
+        "subscriptions",
+        "tags",
+        "tickets",
+        "tenants",
+        "users",
+        "categories",
+        "alert_triggers",
+        "entrypoints",
+        "page_metadata",
+        "invitations",
+        "tag_groups",
+        "workflows",
+        "quality_rules",
+        "api_quality_rules",
+        "dashboards",
+        "alert_events",
+        "themes",
+        "alert_event_rules",
+        "tokens"
     );
 
-    private static final List<String> tablesToDrop = concatenate(tablesToTruncate
-            , Arrays.asList(
-                    "databasechangelog",
-                    "databasechangeloglock"
-            ));
+    private static final List<String> tablesToDrop = concatenate(
+        tablesToTruncate,
+        Arrays.asList("databasechangelog", "databasechangeloglock")
+    );
 
     private static <T> List<T> concatenate(List<T> first, List<T> second) {
         final List result = new ArrayList<>(first.size() + second.size());
@@ -151,8 +149,11 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         LOGGER.debug("setUp");
         LOGGER.debug("Running Liquibase on {}", dataSource);
         try (final Connection conn = dataSource.getConnection()) {
-            final Liquibase liquibase = new Liquibase("liquibase/master.yml",
-                    new ClassLoaderResourceAccessor(this.getClass().getClassLoader()), new JdbcConnection(conn));
+            final Liquibase liquibase = new Liquibase(
+                "liquibase/master.yml",
+                new ClassLoaderResourceAccessor(this.getClass().getClassLoader()),
+                new JdbcConnection(conn)
+            );
             liquibase.setIgnoreClasspathPrefix(true);
             liquibase.update((Contexts) null);
         } catch (final Exception ex) {
@@ -164,11 +165,13 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
     public void tearDown() {
         LOGGER.debug("tearDown");
         final JdbcTemplate jt = new JdbcTemplate(dataSource);
-        jt.execute((Connection con) -> {
-            for (final String table : tablesToTruncate) {
-                jt.execute("truncate table " + escapeReservedWord(table));
+        jt.execute(
+            (Connection con) -> {
+                for (final String table : tablesToTruncate) {
+                    jt.execute("truncate table " + escapeReservedWord(table));
+                }
+                return null;
             }
-            return null;
-        });
+        );
     }
 }

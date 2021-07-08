@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import java.sql.Types;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
-import java.util.*;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 /**
  *
@@ -37,20 +36,21 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, String> implements ApiKeyRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiKeyRepository.class);
-    
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper.builder(ApiKey.class,  "keys", "key")
-            .addColumn("key", Types.NVARCHAR, String.class)
-            .addColumn("subscription", Types.NVARCHAR, String.class)
-            .addColumn("application", Types.NVARCHAR, String.class)
-            .addColumn("plan", Types.NVARCHAR, String.class)
-            .addColumn("expire_at", Types.TIMESTAMP, Date.class)
-            .addColumn("created_at", Types.TIMESTAMP, Date.class)
-            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-            .addColumn("revoked", Types.BOOLEAN, boolean.class)
-            .addColumn("paused", Types.BOOLEAN, boolean.class)
-            .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
-            .build();    
-    
+
+    private static final JdbcObjectMapper ORM = JdbcObjectMapper
+        .builder(ApiKey.class, "keys", "key")
+        .addColumn("key", Types.NVARCHAR, String.class)
+        .addColumn("subscription", Types.NVARCHAR, String.class)
+        .addColumn("application", Types.NVARCHAR, String.class)
+        .addColumn("plan", Types.NVARCHAR, String.class)
+        .addColumn("expire_at", Types.TIMESTAMP, Date.class)
+        .addColumn("created_at", Types.TIMESTAMP, Date.class)
+        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+        .addColumn("revoked", Types.BOOLEAN, boolean.class)
+        .addColumn("paused", Types.BOOLEAN, boolean.class)
+        .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
+        .build();
+
     @Override
     protected JdbcObjectMapper getOrm() {
         return ORM;
@@ -66,9 +66,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         LOGGER.debug("JdbcApiKeyRepository.findByCriteria({})", akc);
         try {
             List<Object> args = new ArrayList<>();
-            StringBuilder query = new StringBuilder("select * from ")
-                    .append(escapeReservedWord("keys"))
-                    .append(" ");
+            StringBuilder query = new StringBuilder("select * from ").append(escapeReservedWord("keys")).append(" ");
 
             boolean first = true;
             if (!akc.isIncludeRevoked()) {
@@ -101,10 +99,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 args.add(new Date(akc.getTo()));
             }
             query.append(" order by updated_at desc ");
-            return jdbcTemplate.query(query.toString()
-                    , args.toArray()
-                    , ORM.getRowMapper()
-            );
+            return jdbcTemplate.query(query.toString(), args.toArray(), ORM.getRowMapper());
         } catch (final Exception ex) {
             LOGGER.error("Failed to find api keys by criteria:", ex);
             throw new TechnicalException("Failed to find api keys by criteria", ex);
@@ -119,14 +114,15 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
         return false;
     }
-    
+
     @Override
     public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
         LOGGER.debug("JdbcApiKeyRepository.findBySubscription({})", subscription);
         try {
-            List<ApiKey> apiKeys = jdbcTemplate.query("select * from " + escapeReservedWord("keys") + " where subscription = ?"
-                    , ORM.getRowMapper()
-                    , subscription
+            List<ApiKey> apiKeys = jdbcTemplate.query(
+                "select * from " + escapeReservedWord("keys") + " where subscription = ?",
+                ORM.getRowMapper(),
+                subscription
             );
             return new HashSet<>(apiKeys);
         } catch (final Exception ex) {
@@ -139,9 +135,10 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
         LOGGER.debug("JdbcApiKeyRepository.findByPlan({})", plan);
         try {
-            List<ApiKey> items = jdbcTemplate.query("select * from " + escapeReservedWord("keys") + " where plan = ?"
-                    , getOrm().getRowMapper()
-                    , plan
+            List<ApiKey> items = jdbcTemplate.query(
+                "select * from " + escapeReservedWord("keys") + " where plan = ?",
+                getOrm().getRowMapper(),
+                plan
             );
             return new HashSet<>(items);
         } catch (final Exception ex) {

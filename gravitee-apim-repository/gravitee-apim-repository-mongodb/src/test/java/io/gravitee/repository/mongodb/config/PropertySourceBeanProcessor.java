@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.config;
 
+import java.util.Properties;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -23,12 +24,11 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertiesPropertySource;
 
-import java.util.Properties;
-
 /**
  * @author Guillaume GILLON (guillaume.gillon@outlook.com)
  */
 public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Ordered {
+
     private Environment environment;
 
     private Properties properties;
@@ -45,7 +45,7 @@ public class PropertySourceBeanProcessor implements BeanFactoryPostProcessor, Or
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        ((ConfigurableEnvironment) environment).getPropertySources().addFirst(
-                new PropertiesPropertySource("graviteeConfiguration", properties));
+        ((ConfigurableEnvironment) environment).getPropertySources()
+            .addFirst(new PropertiesPropertySource("graviteeConfiguration", properties));
     }
 }

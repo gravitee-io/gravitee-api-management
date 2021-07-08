@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
-import org.junit.Test;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class CommandRepositoryTest extends AbstractRepositoryTest {
 
@@ -76,7 +75,10 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
         assertEquals("from", command.getFrom(), updatedCommand.getFrom());
         assertTrue("tags: DATA_TO_INDEX", command.getTags().containsAll(updatedCommand.getTags()));
         assertEquals("content", command.getContent(), updatedCommand.getContent());
-        assertTrue("acknowledgments: " + updatedCommand.getAcknowledgments().size() + "/" + command.getAcknowledgments().size(), command.getAcknowledgments().containsAll(updatedCommand.getAcknowledgments()));
+        assertTrue(
+            "acknowledgments: " + updatedCommand.getAcknowledgments().size() + "/" + command.getAcknowledgments().size(),
+            command.getAcknowledgments().containsAll(updatedCommand.getAcknowledgments())
+        );
         assertTrue("createdAt", compareDate(command.getCreatedAt(), updatedCommand.getCreatedAt()));
         assertTrue("updatedAt", compareDate(command.getUpdatedAt(), updatedCommand.getUpdatedAt()));
         assertTrue("deleteAt", compareDate(command.getExpiredAt(), updatedCommand.getExpiredAt()));
@@ -109,10 +111,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchByNotFrom() {
-
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
-                .notFrom("node1")
-                .build());
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notFrom("node1").build());
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
@@ -125,10 +124,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchByTo() {
-
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
-                .to("node1")
-                .build());
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).to("node1").build());
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
@@ -138,10 +134,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchByTag() {
-
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
-                .tags("INSERT")
-                .build());
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).tags("INSERT").build());
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
@@ -155,10 +148,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchByTags() {
-
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
-                .tags("DATA_TO_INDEX", "DELETE")
-                .build());
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).tags("DATA_TO_INDEX", "DELETE").build());
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
@@ -168,10 +158,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchByNotAck() {
-
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
-                .notAckBy("node3")
-                .build());
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notAckBy("node3").build());
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
@@ -183,10 +170,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchByNotDeleted() {
-
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
-                .notDeleted()
-                .build());
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).notDeleted().build());
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
@@ -196,10 +180,7 @@ public class CommandRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchByEnvironment() {
-
-        List<Command> commands = commandRepository.search((new CommandCriteria.Builder())
-                .environmentId("DEFAULT")
-                .build());
+        List<Command> commands = commandRepository.search((new CommandCriteria.Builder()).environmentId("DEFAULT").build());
 
         assertNotNull("not null", commands);
         assertFalse("not empty", commands.isEmpty());
