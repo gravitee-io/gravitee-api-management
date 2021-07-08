@@ -44,6 +44,7 @@
         <gravitee-alert-api.version>1.6.0</gravitee-alert-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-notifier-api.version>1.2.1</gravitee-notifier-api.version>
+        <gravitee-api-management.version>3.5.18-SNAPSHOT</gravitee-api-management.version>
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
         <apacheds-server-jndi.version>1.5.5</apacheds-server-jndi.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
@@ -108,7 +109,7 @@
             <dependency>
                 <groupId>io.gravitee.apim.repository</groupId>
                 <artifactId>gravitee-apim-repository-api</artifactId>
-                <version>${project.version}</version>
+                <version>${gravitee-api-management.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.gravitee.common</groupId>
