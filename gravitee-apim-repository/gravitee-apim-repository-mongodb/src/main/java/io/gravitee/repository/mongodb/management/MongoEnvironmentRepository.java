@@ -21,17 +21,16 @@ import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.mongodb.management.internal.environment.EnvironmentMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -93,9 +92,7 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
 
             EnvironmentMongo environmentMongoUpdated = internalEnvironmentRepo.save(environmentMongo);
             return mapper.map(environmentMongoUpdated, Environment.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating environment", e);
             throw new TechnicalException("An error occured when updating environment");
         }
@@ -114,22 +111,17 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     @Override
     public Set<Environment> findAll() throws TechnicalException {
         final List<EnvironmentMongo> environments = internalEnvironmentRepo.findAll();
-        return environments.stream()
-                .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
-                .collect(Collectors.toSet());
+        return environments.stream().map(environmentMongo -> mapper.map(environmentMongo, Environment.class)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
         final Set<EnvironmentMongo> environments = internalEnvironmentRepo.findByOrganizationId(organizationId);
-        return environments.stream()
-                .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
-                .collect(Collectors.toSet());
+        return environments.stream().map(environmentMongo -> mapper.map(environmentMongo, Environment.class)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<Environment> findByOrganizationsAndHrids(Set<String> organizations, Set<String> hrids) throws TechnicalException {
-
         Set<EnvironmentMongo> environments = new HashSet<>();
 
         if (!CollectionUtils.isEmpty(organizations) && !CollectionUtils.isEmpty(hrids)) {
@@ -140,8 +132,6 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
             environments = internalEnvironmentRepo.findByHrids(hrids);
         }
 
-        return environments.stream()
-                .map(environmentMongo -> mapper.map(environmentMongo, Environment.class))
-                .collect(Collectors.toSet());
+        return environments.stream().map(environmentMongo -> mapper.map(environmentMongo, Environment.class)).collect(Collectors.toSet());
     }
 }

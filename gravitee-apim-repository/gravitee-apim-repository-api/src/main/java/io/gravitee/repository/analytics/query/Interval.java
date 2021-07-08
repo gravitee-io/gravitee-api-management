@@ -20,6 +20,5 @@ package io.gravitee.repository.analytics.query;
  * @author GraviteeSource Team
  */
 public interface Interval {
-
     long toMillis();
 }

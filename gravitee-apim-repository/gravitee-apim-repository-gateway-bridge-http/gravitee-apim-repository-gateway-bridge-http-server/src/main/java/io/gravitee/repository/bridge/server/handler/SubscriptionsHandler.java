@@ -24,11 +24,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,14 +42,19 @@ public class SubscriptionsHandler extends AbstractHandler {
         final JsonObject searchPayload = ctx.getBodyAsJson();
         final SubscriptionCriteria subscriptionCriteria = readCriteria(searchPayload);
 
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                promise.complete(subscriptionRepository.search(subscriptionCriteria));
-            } catch (TechnicalException te) {
-                LOGGER.error("Unable to search for subscriptions", te);
-                promise.fail(te);
-            }
-        }, (Handler<AsyncResult<List<Subscription>>>) result -> handleResponse(ctx, result));
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        promise.complete(subscriptionRepository.search(subscriptionCriteria));
+                    } catch (TechnicalException te) {
+                        LOGGER.error("Unable to search for subscriptions", te);
+                        promise.fail(te);
+                    }
+                },
+                (Handler<AsyncResult<List<Subscription>>>) result -> handleResponse(ctx, result)
+            );
     }
 
     private SubscriptionCriteria readCriteria(JsonObject payload) {
@@ -92,9 +96,9 @@ public class SubscriptionsHandler extends AbstractHandler {
         JsonArray statusArr = payload.getJsonArray("status");
         if (statusArr != null) {
             Set<Subscription.Status> statuses = statusArr
-                    .stream()
-                    .map(obj -> Subscription.Status.valueOf((String) obj))
-                    .collect(Collectors.toSet());
+                .stream()
+                .map(obj -> Subscription.Status.valueOf((String) obj))
+                .collect(Collectors.toSet());
             builder.statuses(statuses);
         }
 

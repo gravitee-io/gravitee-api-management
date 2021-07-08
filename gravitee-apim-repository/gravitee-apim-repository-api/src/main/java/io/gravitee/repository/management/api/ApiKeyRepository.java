@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -28,44 +27,43 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiKeyRepository {
-
-	/**
-	 * Give the API Key detail from the given key
-	 * 
-	 * @param apiKey API key
-	 * @return API Key Details
-	 */
+    /**
+     * Give the API Key detail from the given key
+     *
+     * @param apiKey API key
+     * @return API Key Details
+     */
     Optional<ApiKey> findById(String apiKey) throws TechnicalException;
 
-	/**
-	 * Create a new API Key
-	 *
-	 * @param apiKey API Key
-	 * @return Newly created API Key
-	 */
-	ApiKey create(ApiKey apiKey) throws TechnicalException;
-
-	/**
-	 * Update an API Key
-	 *
-	 * @param key The API Key to update
-	 * @return Updated API key
-	 */
-	ApiKey update(ApiKey key) throws TechnicalException;
-
-	/**
-	 * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Subscription}
-	 *
-	 * @param subscription
-	 * @return
-	 * @throws TechnicalException
+    /**
+     * Create a new API Key
+     *
+     * @param apiKey API Key
+     * @return Newly created API Key
      */
-	Set<ApiKey> findBySubscription(String subscription) throws TechnicalException;
+    ApiKey create(ApiKey apiKey) throws TechnicalException;
 
-	/**
-	 * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Plan}
-	 */
-	Set<ApiKey> findByPlan(String plan) throws TechnicalException;
+    /**
+     * Update an API Key
+     *
+     * @param key The API Key to update
+     * @return Updated API key
+     */
+    ApiKey update(ApiKey key) throws TechnicalException;
 
-	List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException;
+    /**
+     * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Subscription}
+     *
+     * @param subscription
+     * @return
+     * @throws TechnicalException
+     */
+    Set<ApiKey> findBySubscription(String subscription) throws TechnicalException;
+
+    /**
+     * List of {@link ApiKey} for a given {@link io.gravitee.repository.management.model.Plan}
+     */
+    Set<ApiKey> findByPlan(String plan) throws TechnicalException;
+
+    List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException;
 }

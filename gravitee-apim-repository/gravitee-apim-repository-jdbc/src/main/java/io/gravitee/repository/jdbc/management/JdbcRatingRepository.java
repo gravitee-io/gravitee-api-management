@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -22,18 +24,14 @@ import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  *
@@ -50,17 +48,18 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
 
     @Override
     protected JdbcObjectMapper<Rating> buildOrm() {
-        return JdbcObjectMapper.builder(Rating.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
-                .addColumn("reference_id", Types.NVARCHAR, String.class)
-                .addColumn("user", Types.NVARCHAR, String.class)
-                .addColumn("rate", Types.TINYINT, byte.class)
-                .addColumn("title", Types.NVARCHAR, String.class)
-                .addColumn("comment", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Rating.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, RatingReferenceType.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("user", Types.NVARCHAR, String.class)
+            .addColumn("rate", Types.TINYINT, byte.class)
+            .addColumn("title", Types.NVARCHAR, String.class)
+            .addColumn("comment", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     @Override
@@ -81,32 +80,35 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     }
 
     @Override
-    public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable page) throws TechnicalException {
+    public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable page)
+        throws TechnicalException {
         LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypePageable({}, {}, {})", referenceId, referenceType, page);
         final List<Rating> ratings;
         try {
-            ratings = jdbcTemplate.query("select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? order by created_at desc"
-                    , getOrm().getRowMapper()
-                    , referenceId
-                    , referenceType.name()
-            );
+            ratings =
+                jdbcTemplate.query(
+                    "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? order by created_at desc",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name()
+                );
         } catch (final Exception ex) {
             final String message = "Failed to find ratings by api pageable";
             LOGGER.error(message, ex);
             throw new TechnicalException(message, ex);
         }
         return getResultAsPage(page, ratings);
-
     }
-    
+
     @Override
     public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException {
         LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceType({}, {})", referenceId, referenceType);
         try {
-            return jdbcTemplate.query("select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? "
-                    , getOrm().getRowMapper()
-                    , referenceId
-                    , referenceType.name()
+            return jdbcTemplate.query(
+                "select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ? ",
+                getOrm().getRowMapper(),
+                referenceId,
+                referenceType.name()
             );
         } catch (final Exception ex) {
             LOGGER.error("Failed to find ratings by ref:", ex);
@@ -115,14 +117,20 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
     }
 
     @Override
-    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user) throws TechnicalException {
+    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
+        throws TechnicalException {
         LOGGER.debug("JdbcRatingRepository.findByReferenceIdAndReferenceTypeAndUser({}, {}, {})", referenceId, referenceType, user);
         try {
-            List<Rating> ratings = jdbcTemplate.query("select r.* from " + this.tableName + " r where reference_id = ? and reference_type = ?  and " + escapeReservedWord("user") + " = ?"
-                    , getOrm().getRowMapper()
-                    , referenceId
-                    , referenceType.name()
-                    , user
+            List<Rating> ratings = jdbcTemplate.query(
+                "select r.* from " +
+                this.tableName +
+                " r where reference_id = ? and reference_type = ?  and " +
+                escapeReservedWord("user") +
+                " = ?",
+                getOrm().getRowMapper(),
+                referenceId,
+                referenceType.name(),
+                user
             );
             return ratings.stream().findFirst();
         } catch (final Exception ex) {
@@ -130,5 +138,4 @@ public class JdbcRatingRepository extends JdbcAbstractCrudRepository<Rating, Str
             throw new TechnicalException("Failed to find ratings by api", ex);
         }
     }
-
 }

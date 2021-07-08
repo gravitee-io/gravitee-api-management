@@ -24,15 +24,14 @@ import io.gravitee.repository.mongodb.management.internal.model.PageRevisionMong
 import io.gravitee.repository.mongodb.management.internal.model.PageRevisionPkMongo;
 import io.gravitee.repository.mongodb.management.internal.page.revision.PageRevisionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -51,15 +50,15 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
 
     @Override
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
-        org.springframework.data.domain.Page<PageRevisionMongo> revisions = internalPageRevisionRepo.findAll(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
+        org.springframework.data.domain.Page<PageRevisionMongo> revisions = internalPageRevisionRepo.findAll(
+            PageRequest.of(pageable.pageNumber(), pageable.pageSize())
+        );
         return new Page<>(
-                revisions.getContent()
-                        .stream()
-                        .map(page -> mapper.map(page, PageRevision.class))
-                        .collect(Collectors.toList()),
-                pageable.pageNumber(),
-                revisions.getNumberOfElements(),
-                revisions.getTotalElements());
+            revisions.getContent().stream().map(page -> mapper.map(page, PageRevision.class)).collect(Collectors.toList()),
+            pageable.pageNumber(),
+            revisions.getNumberOfElements(),
+            revisions.getTotalElements()
+        );
     }
 
     @Override
@@ -90,10 +89,11 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public List<PageRevision> findAllByPageId(String pageId) throws TechnicalException {
         try {
-            return internalPageRevisionRepo.findAllByPageId(pageId)
-                    .stream()
-                    .map(rev -> mapper.map(rev, PageRevision.class))
-                    .collect(Collectors.toList());
+            return internalPageRevisionRepo
+                .findAllByPageId(pageId)
+                .stream()
+                .map(rev -> mapper.map(rev, PageRevision.class))
+                .collect(Collectors.toList());
         } catch (Exception e) {
             logger.error("An error occurred when querying all revisions for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying page revisions");
@@ -103,8 +103,7 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
     @Override
     public Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException {
         try {
-            return internalPageRevisionRepo.findLastByPageId(pageId)
-                    .map(rev -> mapper.map(rev, PageRevision.class));
+            return internalPageRevisionRepo.findLastByPageId(pageId).map(rev -> mapper.map(rev, PageRevision.class));
         } catch (Exception e) {
             logger.error("An error occurred when querying last revision for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying the last page revision");

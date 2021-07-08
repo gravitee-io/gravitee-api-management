@@ -25,6 +25,5 @@ import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo
  * @author GraviteeSource Team
  */
 public interface ApplicationMongoRepositoryCustom {
-
     Page<ApplicationMongo> search(ApplicationCriteria applicationCriteria, final Pageable pageable);
 }

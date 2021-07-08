@@ -19,6 +19,4 @@ package io.gravitee.repository.analytics.query;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface DateRange extends Range<Long> {
-
-}
+public interface DateRange extends Range<Long> {}

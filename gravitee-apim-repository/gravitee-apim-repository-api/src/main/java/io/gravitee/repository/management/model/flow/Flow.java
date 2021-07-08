@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.model.flow;
 
 import io.gravitee.common.http.HttpMethod;
-
 import java.util.*;
 
 public class Flow {
@@ -87,8 +86,7 @@ public class Flow {
      */
     private List<FlowConsumer> consumers;
 
-    public Flow() {
-    }
+    public Flow() {}
 
     public Flow(Flow other) {
         this.id = other.id;
@@ -243,22 +241,44 @@ public class Flow {
 
     @Override
     public String toString() {
-        return "Flow{" +
-            "id='" + id + '\'' +
-            ", referenceType=" + referenceType +
-            ", referenceId='" + referenceId + '\'' +
-            ", name='" + name + '\'' +
-            ", pre=" + pre +
-            ", post=" + post +
-            ", enabled=" + enabled +
-            ", condition='" + condition + '\'' +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", path='" + path + '\'' +
-            ", operator=" + operator +
-            ", methods=" + methods +
-            ", order=" + order +
-            ", consumers=" + consumers +
-            '}';
+        return (
+            "Flow{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", pre=" +
+            pre +
+            ", post=" +
+            post +
+            ", enabled=" +
+            enabled +
+            ", condition='" +
+            condition +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", path='" +
+            path +
+            '\'' +
+            ", operator=" +
+            operator +
+            ", methods=" +
+            methods +
+            ", order=" +
+            order +
+            ", consumers=" +
+            consumers +
+            '}'
+        );
     }
 }

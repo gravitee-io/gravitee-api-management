@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * Mongo model for Api Key
@@ -31,138 +30,138 @@ import java.util.Objects;
 @Document(collection = "keys")
 public class ApiKeyMongo {
 
-	/**
-	 * Api Key
-	 */
-	@Id
-	private String key;
+    /**
+     * Api Key
+     */
+    @Id
+    private String key;
 
-	/**
-	 * The subscription for which the Api Key is generated
-	 */
-	private String subscription;
+    /**
+     * The subscription for which the Api Key is generated
+     */
+    private String subscription;
 
-	/**
-	 * The application used to make the subscription
-	 */
-	private String application;
+    /**
+     * The application used to make the subscription
+     */
+    private String application;
 
-	/**
-	 * The subscribed plan
-	 */
-	private String plan;
+    /**
+     * The subscribed plan
+     */
+    private String plan;
 
-	/**
-	 * Expiration date (end date) of the Api Key
-	 */
-	private Date expireAt;
+    /**
+     * Expiration date (end date) of the Api Key
+     */
+    private Date expireAt;
 
-	/**
-	 * API key creation date
-	 */
-	private Date createdAt;
+    /**
+     * API key creation date
+     */
+    private Date createdAt;
 
-	/**
-	 * API key updated date
-	 */
-	private Date updatedAt;
+    /**
+     * API key updated date
+     */
+    private Date updatedAt;
 
-	/**
-	 * Flag to indicate if the Api Key is revoked ?
-	 */
-	private boolean revoked;
+    /**
+     * Flag to indicate if the Api Key is revoked ?
+     */
+    private boolean revoked;
 
-	/**
-	 * Flag to indicate if the Api Key is paused ?
-	 */
-	private boolean paused;
+    /**
+     * Flag to indicate if the Api Key is paused ?
+     */
+    private boolean paused;
 
-	/**
-	 * If the key is revoked, the revocation date
-	 */
-	private Date revokedAt;
+    /**
+     * If the key is revoked, the revocation date
+     */
+    private Date revokedAt;
 
-	public String getKey() {
-		return key;
-	}
+    public String getKey() {
+        return key;
+    }
 
-	public void setKey(String key) {
-		this.key = key;
-	}
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-	public String getSubscription() {
-		return subscription;
-	}
+    public String getSubscription() {
+        return subscription;
+    }
 
-	public void setSubscription(String subscription) {
-		this.subscription = subscription;
-	}
+    public void setSubscription(String subscription) {
+        this.subscription = subscription;
+    }
 
-	public String getApplication() {
-		return application;
-	}
+    public String getApplication() {
+        return application;
+    }
 
-	public void setApplication(String application) {
-		this.application = application;
-	}
+    public void setApplication(String application) {
+        this.application = application;
+    }
 
-	public String getPlan() {
-		return plan;
-	}
+    public String getPlan() {
+        return plan;
+    }
 
-	public void setPlan(String plan) {
-		this.plan = plan;
-	}
+    public void setPlan(String plan) {
+        this.plan = plan;
+    }
 
-	public Date getExpireAt() {
-		return expireAt;
-	}
+    public Date getExpireAt() {
+        return expireAt;
+    }
 
-	public void setExpireAt(Date expireAt) {
-		this.expireAt = expireAt;
-	}
+    public void setExpireAt(Date expireAt) {
+        this.expireAt = expireAt;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-	public boolean isRevoked() {
-		return revoked;
-	}
+    public boolean isRevoked() {
+        return revoked;
+    }
 
-	public void setRevoked(boolean revoked) {
-		this.revoked = revoked;
-	}
+    public void setRevoked(boolean revoked) {
+        this.revoked = revoked;
+    }
 
-	public Date getRevokedAt() {
-		return revokedAt;
-	}
+    public Date getRevokedAt() {
+        return revokedAt;
+    }
 
-	public void setRevokedAt(Date revokedAt) {
-		this.revokedAt = revokedAt;
-	}
+    public void setRevokedAt(Date revokedAt) {
+        this.revokedAt = revokedAt;
+    }
 
-	public boolean isPaused() {
-		return paused;
-	}
+    public boolean isPaused() {
+        return paused;
+    }
 
-	public void setPaused(boolean paused) {
-		this.paused = paused;
-	}
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -180,8 +179,8 @@ public class ApiKeyMongo {
         final StringBuilder sb = new StringBuilder("ApiKey{");
         sb.append("name='").append(key).append('\'');
         sb.append(", expiration=").append(expireAt).append('\'');
-		sb.append(", revoked=").append(revoked).append('\'');
-		sb.append(", revokedAt=").append(revokedAt);
+        sb.append(", revoked=").append(revoked).append('\'');
+        sb.append(", revokedAt=").append(revokedAt);
         sb.append('}');
         return sb.toString();
     }

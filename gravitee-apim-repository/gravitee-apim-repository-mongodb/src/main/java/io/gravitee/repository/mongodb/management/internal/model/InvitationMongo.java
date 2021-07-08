@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -28,104 +27,121 @@ import java.util.Objects;
 @Document(collection = "invitations")
 public class InvitationMongo {
 
-	@Id
-	private String id;
-	private String referenceType;
-	private String referenceId;
-	private String email;
-	private String apiRole;
-	private String applicationRole;
-	private Date createdAt;
-	private Date updatedAt;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String referenceType;
+    private String referenceId;
+    private String email;
+    private String apiRole;
+    private String applicationRole;
+    private Date createdAt;
+    private Date updatedAt;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getReferenceType() {
-		return referenceType;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setReferenceType(String referenceType) {
-		this.referenceType = referenceType;
-	}
+    public String getReferenceType() {
+        return referenceType;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public String getApiRole() {
-		return apiRole;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public void setApiRole(String apiRole) {
-		this.apiRole = apiRole;
-	}
+    public String getApiRole() {
+        return apiRole;
+    }
 
-	public String getApplicationRole() {
-		return applicationRole;
-	}
+    public void setApiRole(String apiRole) {
+        this.apiRole = apiRole;
+    }
 
-	public void setApplicationRole(String applicationRole) {
-		this.applicationRole = applicationRole;
-	}
+    public String getApplicationRole() {
+        return applicationRole;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public void setApplicationRole(String applicationRole) {
+        this.applicationRole = applicationRole;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof InvitationMongo)) return false;
-		InvitationMongo that = (InvitationMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof InvitationMongo)) return false;
+        InvitationMongo that = (InvitationMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public String toString() {
-		return "InvitationMongo{" +
-				"id='" + id + '\'' +
-				", referenceType='" + referenceType + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", email='" + email + '\'' +
-				", apiRole='" + apiRole + '\'' +
-				", applicationRole='" + applicationRole + '\'' +
-				", createdAt=" + createdAt +
-				", updatedAt=" + updatedAt +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "InvitationMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", apiRole='" +
+            apiRole +
+            '\'' +
+            ", applicationRole='" +
+            applicationRole +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
+    }
 }

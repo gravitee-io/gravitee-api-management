@@ -15,28 +15,28 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Objects;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Document(collection = "memberships")
 public class MembershipMongo extends Auditable {
+
     @Id
     private String id;
 
     private String memberId;
-    
+
     private String memberType;
-    
+
     private String referenceId;
-    
+
     private String referenceType;
-    
+
     private String roleId;
 
     private String source;
@@ -112,13 +112,27 @@ public class MembershipMongo extends Auditable {
 
     @Override
     public String toString() {
-        return "MembershipMongo{" +
-                "id='" + id + '\'' +
-                ", memberId='" + memberId + '\'' +
-                ", memberType='" + memberType + '\'' +
-                ", referenceId ='" + referenceId + '\'' +
-                ", referenceType ='" + referenceType + '\'' +
-                ", roleId ='" + roleId + '\'' +
-                '}';
+        return (
+            "MembershipMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", memberId='" +
+            memberId +
+            '\'' +
+            ", memberType='" +
+            memberType +
+            '\'' +
+            ", referenceId ='" +
+            referenceId +
+            '\'' +
+            ", referenceType ='" +
+            referenceType +
+            '\'' +
+            ", roleId ='" +
+            roleId +
+            '\'' +
+            '}'
+        );
     }
 }

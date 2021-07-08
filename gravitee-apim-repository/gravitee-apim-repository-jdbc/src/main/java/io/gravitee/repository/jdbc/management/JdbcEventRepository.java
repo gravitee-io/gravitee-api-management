@@ -15,6 +15,11 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -23,6 +28,10 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import java.sql.*;
+import java.util.*;
+import java.util.Date;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,16 +39,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import java.sql.*;
-import java.util.Date;
-import java.util.*;
-import java.util.Map.Entry;
-
-import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  *
@@ -60,14 +59,15 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
 
     @Override
     protected JdbcObjectMapper<Event> buildOrm() {
-        return JdbcObjectMapper.builder(Event.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("type", Types.NVARCHAR, EventType.class)
-                .addColumn("payload", Types.NVARCHAR, String.class)
-                .addColumn("parent_id", Types.NVARCHAR, String.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Event.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("type", Types.NVARCHAR, EventType.class)
+            .addColumn("payload", Types.NVARCHAR, String.class)
+            .addColumn("parent_id", Types.NVARCHAR, String.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     private static final JdbcHelper.ChildAdder<Event> CHILD_ADDER = (Event parent, ResultSet rs) -> {
@@ -99,20 +99,22 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         if (event.getProperties() != null) {
             List<Entry<String, String>> list = new ArrayList<>(event.getProperties().entrySet());
-            jdbcTemplate.batchUpdate("insert into " + EVENT_PROPERTIES + " ( event_id, property_key, property_value ) values ( ?, ?, ? )"
-                    , new BatchPreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    ps.setString(1, event.getId());
-                    ps.setString(2, list.get(i).getKey());
-                    ps.setString(3, list.get(i).getValue());
-                }
+            jdbcTemplate.batchUpdate(
+                "insert into " + EVENT_PROPERTIES + " ( event_id, property_key, property_value ) values ( ?, ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, event.getId());
+                        ps.setString(2, list.get(i).getKey());
+                        ps.setString(3, list.get(i).getValue());
+                    }
 
-                @Override
-                public int getBatchSize() {
-                    return list.size();
+                    @Override
+                    public int getBatchSize() {
+                        return list.size();
+                    }
                 }
-            });
+            );
         }
     }
 
@@ -122,19 +124,21 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         if (event.getEnvironments() != null) {
             List<String> list = new ArrayList<>(event.getEnvironments());
-            jdbcTemplate.batchUpdate("insert into " + EVENT_ENVIRONMENTS + " ( event_id, environment_id) values ( ?, ? )"
-                    , new BatchPreparedStatementSetter() {
-                        @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setString(1, event.getId());
-                            ps.setString(2, list.get(i));
-                        }
+            jdbcTemplate.batchUpdate(
+                "insert into " + EVENT_ENVIRONMENTS + " ( event_id, environment_id) values ( ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, event.getId());
+                        ps.setString(2, list.get(i));
+                    }
 
-                        @Override
-                        public int getBatchSize() {
-                            return list.size();
-                        }
-                    });
+                    @Override
+                    public int getBatchSize() {
+                        return list.size();
+                    }
+                }
+            );
         }
     }
 
@@ -142,22 +146,23 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     public Optional<Event> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcEventRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Event> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-            final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql()+ " e ");
+            JdbcHelper.CollatingRowMapper<Event> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER,
+                "id"
+            );
+            final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql() + " e ");
             builder.append("left join ").append(EVENT_PROPERTIES).append(" ep on e.id = ep.event_id ");
             builder.append("left join ").append(EVENT_ENVIRONMENTS).append(" ev on e.id = ev.event_id ");
             builder.append("where e.id = ?");
-            jdbcTemplate.query(builder.toString()
-                    , rowMapper
-                    , id
-            );
+            jdbcTemplate.query(builder.toString(), rowMapper, id);
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find event by id", ex);
             throw new TechnicalException("Failed to find event by id", ex);
         }
     }
-    
+
     @Override
     public Event create(Event event) throws TechnicalException {
         LOGGER.debug("JdbcEventRepository.create({})", event);
@@ -182,7 +187,8 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(event, event.getId()));
             storeProperties(event, true);
             storeEnvironments(event, true);
-            return findById(event.getId()).orElseThrow(() -> new IllegalStateException(format("No event found with id [%s]", event.getId())));
+            return findById(event.getId())
+                .orElseThrow(() -> new IllegalStateException(format("No event found with id [%s]", event.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -190,7 +196,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             throw new TechnicalException("Failed to update event", ex);
         }
     }
-    
+
     @Override
     public void delete(final String id) throws TechnicalException {
         LOGGER.debug("JdbcEventRepository.delete({})", id);
@@ -203,7 +209,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             throw new TechnicalException("Failed to delete event", ex);
         }
     }
-    
+
     @Override
     public Page<Event> search(EventCriteria filter, Pageable page) {
         if (LOGGER.isDebugEnabled()) {
@@ -247,21 +253,27 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         String sql = builder.toString();
         LOGGER.debug("SQL: {}", sql);
         LOGGER.debug("Args: {}", args);
-        final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler
-                = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-        jdbcTemplate.query((Connection cnctn) -> {
-            PreparedStatement stmt = cnctn.prepareStatement(sql);
-            int idx = 1;
-            for (final Object arg : args) {
-                if (arg instanceof Date) {
-                    final Date date = (Date) arg;
-                    stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                } else {
-                    stmt.setObject(idx++, arg);
+        final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler = new JdbcHelper.CollatingRowMapper<>(
+            getOrm().getRowMapper(),
+            CHILD_ADDER,
+            "id"
+        );
+        jdbcTemplate.query(
+            (Connection cnctn) -> {
+                PreparedStatement stmt = cnctn.prepareStatement(sql);
+                int idx = 1;
+                for (final Object arg : args) {
+                    if (arg instanceof Date) {
+                        final Date date = (Date) arg;
+                        stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                    } else {
+                        stmt.setObject(idx++, arg);
+                    }
                 }
-            }
-            return stmt;
-        }, rowCallbackHandler);
+                return stmt;
+            },
+            rowCallbackHandler
+        );
         final List<Event> events = rowCallbackHandler.getRows();
         LOGGER.debug("Events found: {}", events);
         return events;
@@ -287,13 +299,25 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
         return false;
     }
-    
+
     private String criteriaToString(EventCriteria filter) {
-        return "{ " + "from: " + filter.getFrom() +
-                ", " + "props: " + filter.getProperties() +
-                ", " + "to: " + filter.getTo() +
-                ", " + "environments: " + filter.getEnvironments() +
-                ", " + "types: " + filter.getTypes() +
-                " }";
+        return (
+            "{ " +
+            "from: " +
+            filter.getFrom() +
+            ", " +
+            "props: " +
+            filter.getProperties() +
+            ", " +
+            "to: " +
+            filter.getTo() +
+            ", " +
+            "environments: " +
+            filter.getEnvironments() +
+            ", " +
+            "types: " +
+            filter.getTypes() +
+            " }"
+        );
     }
 }

@@ -19,9 +19,8 @@ import io.gravitee.node.api.Monitoring;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.subscribers.TestSubscriber;
-import org.junit.Test;
-
 import java.util.Date;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,9 +40,7 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByNodeIdAndType() {
-        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository
-                .findByNodeIdAndType("nodeId1", Monitoring.NODE_INFOS)
-                .test();
+        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("nodeId1", Monitoring.NODE_INFOS).test();
 
         testObserver.assertComplete();
         testObserver.assertNoErrors();
@@ -52,9 +49,7 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByUnknownNodeId() {
-        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository
-                .findByNodeIdAndType("unknown", Monitoring.NODE_INFOS)
-                .test();
+        final TestObserver<Monitoring> testObserver = nodeMonitoringRepository.findByNodeIdAndType("unknown", Monitoring.NODE_INFOS).test();
 
         testObserver.assertComplete();
         testObserver.assertNoErrors();
@@ -64,8 +59,8 @@ public class NodeMonitoringRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldFindByTypeAndTimeFrame() {
         final TestSubscriber<Monitoring> testObserver = nodeMonitoringRepository
-                .findByTypeAndTimeFrame(Monitoring.HEALTH_CHECK, 1617753600000L, 1617926400000L)
-                .test();
+            .findByTypeAndTimeFrame(Monitoring.HEALTH_CHECK, 1617753600000L, 1617926400000L)
+            .test();
 
         testObserver.assertComplete();
         testObserver.assertNoErrors();

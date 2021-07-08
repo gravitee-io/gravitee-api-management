@@ -15,12 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.ApiQualityRuleRepository;
-import io.gravitee.repository.management.model.ApiQualityRule;
-
-import java.util.Collections;
-import java.util.List;
-
 import static io.gravitee.repository.ApiQualityRuleRepositoryTest.DATE;
 import static io.gravitee.repository.ApiQualityRuleRepositoryTest.NEW_DATE;
 import static java.util.Arrays.asList;
@@ -29,6 +23,11 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.ApiQualityRuleRepository;
+import io.gravitee.repository.management.model.ApiQualityRule;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -66,7 +65,8 @@ public class ApiQualityRuleRepositoryMock extends AbstractRepositoryMock<ApiQual
         final List<ApiQualityRule> apiQualityRules = asList(apiQualityRule, apiQualityRule2, mock(ApiQualityRule.class));
         final List<ApiQualityRule> apiQualityRulesAfterDelete = asList(apiQualityRule, apiQualityRule2);
 
-        when(apiQualityRuleRepository.findByApi("api1")).thenReturn(apiQualityRules, apiQualityRulesAfterDelete, apiQualityRules, emptyList());
+        when(apiQualityRuleRepository.findByApi("api1"))
+            .thenReturn(apiQualityRules, apiQualityRulesAfterDelete, apiQualityRules, emptyList());
         when(apiQualityRuleRepository.findByQualityRule("quality-rule2")).thenReturn(apiQualityRules, emptyList());
 
         final ApiQualityRule api2QualityRule = mock(ApiQualityRule.class);
@@ -85,6 +85,7 @@ public class ApiQualityRuleRepositoryMock extends AbstractRepositoryMock<ApiQual
         when(apiQualityRuleRepository.findById("api2", "new-apiQualityRule")).thenReturn(of(apiQualityRule));
         when(apiQualityRuleRepository.findById("api2", "quality-rule1")).thenReturn(of(apiQualityRule2), of(apiQualityRule2Updated));
 
-        when(apiQualityRuleRepository.update(argThat(o -> o == null || "unknown".equals(o.getApi())))).thenThrow(new IllegalStateException());
+        when(apiQualityRuleRepository.update(argThat(o -> o == null || "unknown".equals(o.getApi()))))
+            .thenThrow(new IllegalStateException());
     }
 }

@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryType;
+import java.util.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.internal.util.collections.Sets;
-
-import java.util.*;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
 
 public class DictionaryRepositoryTest extends AbstractRepositoryTest {
 
@@ -75,7 +74,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(optionalDictionary);
         assertTrue(optionalDictionary.isPresent());
         final Dictionary dictionary = optionalDictionary.get();
-        Assert.assertEquals("Invalid saved environment id.",  "DEFAULT", dictionary.getEnvironmentId());
+        Assert.assertEquals("Invalid saved environment id.", "DEFAULT", dictionary.getEnvironmentId());
         Assert.assertEquals("Invalid saved dictionary name.", "My dic 1", dictionary.getName());
         Assert.assertEquals("Invalid dictionary description.", "Description for my dic 1", dictionary.getDescription());
         Assert.assertTrue("Invalid dictionary createdAt.", compareDate(new Date(1000000000000L), dictionary.getCreatedAt()));
@@ -83,7 +82,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertEquals("Invalid dictionary properties.", 3, dictionary.getProperties().size());
         Assert.assertEquals("Invalid dictionary property.", "127.0.0.1:8082", dictionary.getProperties().get("127.0.0.1:8082"));
     }
-    
+
     @Test
     public void shouldCreate() throws Exception {
         final Dictionary dictionary = new Dictionary();
@@ -105,7 +104,7 @@ public class DictionaryRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Dictionary saved not found", optional.isPresent());
 
         final Dictionary dictionarySaved = optional.get();
-        Assert.assertEquals("Invalid saved environment id.",  dictionary.getEnvironmentId(), dictionarySaved.getEnvironmentId());
+        Assert.assertEquals("Invalid saved environment id.", dictionary.getEnvironmentId(), dictionarySaved.getEnvironmentId());
         Assert.assertEquals("Invalid saved dictionary name.", dictionary.getName(), dictionarySaved.getName());
         Assert.assertEquals("Invalid dictionary description.", dictionary.getDescription(), dictionarySaved.getDescription());
         Assert.assertTrue("Invalid dictionary createdAt.", compareDate(dictionary.getCreatedAt(), dictionarySaved.getCreatedAt()));

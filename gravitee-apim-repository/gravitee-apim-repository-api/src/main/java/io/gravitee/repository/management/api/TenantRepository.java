@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,8 +25,7 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TenantRepository extends CrudRepository<Tenant, String>{
-
+public interface TenantRepository extends CrudRepository<Tenant, String> {
     Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType) throws TechnicalException;
 
     Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType) throws TechnicalException;

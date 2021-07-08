@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.MetadataRepository;
-import io.gravitee.repository.management.model.Metadata;
-import io.gravitee.repository.management.model.MetadataFormat;
-import io.gravitee.repository.management.model.MetadataReferenceType;
-
-import java.util.List;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.model.Metadata;
+import io.gravitee.repository.management.model.MetadataFormat;
+import io.gravitee.repository.management.model.MetadataReferenceType;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -62,17 +61,20 @@ public class MetadataRepositoryMock extends AbstractRepositoryMock<MetadataRepos
         final List<Metadata> metadataListAfterAdd = asList(booleanMetadata, stringMetadata, mock(Metadata.class), mock(Metadata.class));
         final List<Metadata> metadataListAfterDelete = asList(booleanMetadata, stringMetadata);
 
-
-        when(metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT)).thenReturn(metadataList, metadataListAfterAdd, metadataList, metadataList);
-        when(metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")).thenReturn(metadataList, metadataListAfterDelete);
-        when(metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "apiId")).thenReturn(singletonList(stringMetadata));
+        when(metadataRepository.findByReferenceType(MetadataReferenceType.DEFAULT))
+            .thenReturn(metadataList, metadataListAfterAdd, metadataList, metadataList);
+        when(metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId"))
+            .thenReturn(metadataList, metadataListAfterDelete);
+        when(metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.API, "apiId"))
+            .thenReturn(singletonList(stringMetadata));
         when(metadataRepository.findByReferenceType(MetadataReferenceType.APPLICATION)).thenReturn(singletonList(metadata2Updated));
         when(metadataRepository.findByKeyAndReferenceType("string", MetadataReferenceType.API)).thenReturn(singletonList(stringMetadata));
 
         when(metadataRepository.create(any(Metadata.class))).thenReturn(booleanMetadata);
 
         when(metadataRepository.findById("new-metadata", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(stringMetadata));
-        when(metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT)).thenReturn(of(booleanMetadata), of(metadata2Updated));
+        when(metadataRepository.findById("boolean", "_", MetadataReferenceType.DEFAULT))
+            .thenReturn(of(booleanMetadata), of(metadata2Updated));
 
         when(metadataRepository.update(argThat(o -> o == null || o.getKey().equals("unknown")))).thenThrow(new IllegalStateException());
     }

@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -28,104 +27,120 @@ import java.util.Objects;
 @Document(collection = "tokens")
 public class TokenMongo {
 
-	@Id
-	private String id;
-	private String token;
-	private String referenceType;
-	private String referenceId;
-	private String name;
-	private Date expiresAt;
-	private Date createdAt;
-	private Date lastUseAt;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String token;
+    private String referenceType;
+    private String referenceId;
+    private String name;
+    private Date expiresAt;
+    private Date createdAt;
+    private Date lastUseAt;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getToken() {
-		return token;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setToken(String token) {
-		this.token = token;
-	}
+    public String getToken() {
+        return token;
+    }
 
-	public String getReferenceType() {
-		return referenceType;
-	}
+    public void setToken(String token) {
+        this.token = token;
+    }
 
-	public void setReferenceType(String referenceType) {
-		this.referenceType = referenceType;
-	}
+    public String getReferenceType() {
+        return referenceType;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public Date getExpiresAt() {
-		return expiresAt;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setExpiresAt(Date expiresAt) {
-		this.expiresAt = expiresAt;
-	}
+    public Date getExpiresAt() {
+        return expiresAt;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public void setExpiresAt(Date expiresAt) {
+        this.expiresAt = expiresAt;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public Date getLastUseAt() {
-		return lastUseAt;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public void setLastUseAt(Date lastUseAt) {
-		this.lastUseAt = lastUseAt;
-	}
+    public Date getLastUseAt() {
+        return lastUseAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof TokenMongo)) return false;
-		TokenMongo tokenMongo = (TokenMongo) o;
-		return Objects.equals(id, tokenMongo.id);
-	}
+    public void setLastUseAt(Date lastUseAt) {
+        this.lastUseAt = lastUseAt;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TokenMongo)) return false;
+        TokenMongo tokenMongo = (TokenMongo) o;
+        return Objects.equals(id, tokenMongo.id);
+    }
 
-	@Override
-	public String toString() {
-		return "TokenMongo{" +
-				"id='" + id + '\'' +
-				", token='" + token + '\'' +
-				", referenceType='" + referenceType + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", name='" + name + '\'' +
-				", expiresAt=" + expiresAt +
-				", createdAt=" + createdAt +
-				", lastUseAt=" + lastUseAt +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "TokenMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", token='" +
+            token +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", expiresAt=" +
+            expiresAt +
+            ", createdAt=" +
+            createdAt +
+            ", lastUseAt=" +
+            lastUseAt +
+            '}'
+        );
+    }
 }

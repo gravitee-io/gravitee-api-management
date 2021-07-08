@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.node;
 
 import io.gravitee.repository.mongodb.management.internal.model.MonitoringMongo;
-
 import java.util.List;
 
 /**
@@ -24,6 +23,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface NodeMonitoringMongoRepositoryCustom {
-
     List<MonitoringMongo> findByTypeAndTimeFrame(String type, long from, long to);
 }

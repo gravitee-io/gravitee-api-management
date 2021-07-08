@@ -16,9 +16,8 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-
+import io.gravitee.repository.management.model.PortalNotificationConfig;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,8 +29,10 @@ public interface PortalNotificationConfigRepository {
     PortalNotificationConfig create(PortalNotificationConfig portalNotificationConfig) throws TechnicalException;
     PortalNotificationConfig update(PortalNotificationConfig portalNotificationConfig) throws TechnicalException;
     void delete(PortalNotificationConfig portalNotificationConfig) throws TechnicalException;
-    Optional<PortalNotificationConfig> findById(String user, NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
-    List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
+    Optional<PortalNotificationConfig> findById(String user, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException;
+    List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException;
     void deleteByUser(String user) throws TechnicalException;
     void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException;
 }

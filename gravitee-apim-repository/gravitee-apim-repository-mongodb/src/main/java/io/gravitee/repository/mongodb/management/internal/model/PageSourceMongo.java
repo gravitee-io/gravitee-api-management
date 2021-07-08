@@ -20,6 +20,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
  * @author GraviteeSource Team
  */
 public class PageSourceMongo {
+
     private String type;
     private String configuration;
 

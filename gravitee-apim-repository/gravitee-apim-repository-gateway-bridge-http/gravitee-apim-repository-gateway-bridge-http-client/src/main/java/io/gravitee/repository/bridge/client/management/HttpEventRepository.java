@@ -23,10 +23,9 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.vertx.ext.web.codec.BodyCodec;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,14 +41,12 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
 
     @Override
     public Event create(Event event) throws TechnicalException {
-        return blockingGet(post("/events", BodyCodec.json(Event.class))
-                .send(event)).payload();
+        return blockingGet(post("/events", BodyCodec.json(Event.class)).send(event)).payload();
     }
 
     @Override
     public Event update(Event event) throws TechnicalException {
-        return blockingGet(put("/events/" + event.getId(), BodyCodec.json(Event.class))
-                .send(event)).payload();
+        return blockingGet(put("/events/" + event.getId(), BodyCodec.json(Event.class)).send(event)).payload();
     }
 
     @Override
@@ -60,10 +57,13 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     @Override
     public Page<Event> search(EventCriteria filter, Pageable pageable) {
         try {
-            return blockingGet(post("/events/_search", BodyCodecs.page(Event.class))
+            return blockingGet(
+                post("/events/_search", BodyCodecs.page(Event.class))
                     .addQueryParam("page", Integer.toString(pageable.pageNumber()))
                     .addQueryParam("size", Integer.toString(pageable.pageSize()))
-                    .send(filter)).payload();
+                    .send(filter)
+            )
+                .payload();
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);
@@ -73,8 +73,7 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     @Override
     public List<Event> search(EventCriteria filter) {
         try {
-            return blockingGet(post("/events/_search", BodyCodecs.list(Event.class))
-                    .send(filter)).payload();
+            return blockingGet(post("/events/_search", BodyCodecs.list(Event.class)).send(filter)).payload();
         } catch (TechnicalException te) {
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);

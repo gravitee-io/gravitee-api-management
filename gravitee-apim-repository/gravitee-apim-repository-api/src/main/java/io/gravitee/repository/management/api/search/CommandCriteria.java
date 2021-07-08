@@ -20,6 +20,7 @@ package io.gravitee.repository.management.api.search;
  * @author GraviteeSource Team
  */
 public class CommandCriteria {
+
     private String to;
     private String[] tags;
     private boolean notExpired;
@@ -62,23 +63,32 @@ public class CommandCriteria {
 
     @Override
     public String toString() {
-        return "criteria {" +
-                "to: " + to +
-                "tags: " + tags +
-                "notExpired: " + notExpired +
-                "notFrom: " + notFrom +
-                "notAckBy:" + notAckBy +
-                "environmentId:" + environmentId +
-                "}";
+        return (
+            "criteria {" +
+            "to: " +
+            to +
+            "tags: " +
+            tags +
+            "notExpired: " +
+            notExpired +
+            "notFrom: " +
+            notFrom +
+            "notAckBy:" +
+            notAckBy +
+            "environmentId:" +
+            environmentId +
+            "}"
+        );
     }
 
     public static class Builder {
+
         private String to;
         private String[] tags;
         private boolean notDeleted;
         private String notFrom;
         private String notAckBy;
-        private  String environmentId;
+        private String environmentId;
 
         public CommandCriteria build() {
             return new CommandCriteria(this);
@@ -108,7 +118,7 @@ public class CommandCriteria {
             this.notAckBy = by;
             return this;
         }
-        
+
         public Builder environmentId(String environmentId) {
             this.environmentId = environmentId;
             return this;

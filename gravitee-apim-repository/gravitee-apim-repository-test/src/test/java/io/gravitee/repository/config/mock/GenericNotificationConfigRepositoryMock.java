@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
-import io.gravitee.repository.management.model.GenericNotificationConfig;
-import io.gravitee.repository.management.model.NotificationReferenceType;
-
-import java.util.Arrays;
-import java.util.Date;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
+import io.gravitee.repository.management.model.GenericNotificationConfig;
+import io.gravitee.repository.management.model.NotificationReferenceType;
+import java.util.Arrays;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -67,10 +66,9 @@ public class GenericNotificationConfigRepositoryMock extends AbstractRepositoryM
         when(genericNotificationConfigRepository.update(any())).thenReturn(updatedCfg);
 
         //delete
-        when(genericNotificationConfigRepository.findById("notif-to-delete")).
-                thenReturn(of(mock(GenericNotificationConfig.class)), empty());
-        when(genericNotificationConfigRepository.findById("config-to-delete")).
-                thenReturn(empty());
+        when(genericNotificationConfigRepository.findById("notif-to-delete"))
+            .thenReturn(of(mock(GenericNotificationConfig.class)), empty());
+        when(genericNotificationConfigRepository.findById("config-to-delete")).thenReturn(empty());
 
         //findById
         final GenericNotificationConfig foundCfg = new GenericNotificationConfig();
@@ -94,9 +92,7 @@ public class GenericNotificationConfigRepositoryMock extends AbstractRepositoryM
         when(n1.getNotifier()).thenReturn("notifierA");
         GenericNotificationConfig n2 = mock(GenericNotificationConfig.class);
         when(n2.getNotifier()).thenReturn("notifierB");
-        when(genericNotificationConfigRepository.findByReferenceAndHook(
-                "B",
-                NotificationReferenceType.APPLICATION,
-                "search")).thenReturn(Arrays.asList(n1, n2));
+        when(genericNotificationConfigRepository.findByReferenceAndHook("B", NotificationReferenceType.APPLICATION, "search"))
+            .thenReturn(Arrays.asList(n1, n2));
     }
 }

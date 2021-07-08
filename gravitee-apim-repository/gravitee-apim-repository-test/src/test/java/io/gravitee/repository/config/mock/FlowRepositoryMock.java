@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.repository.management.api.FlowRepository;
-import io.gravitee.repository.management.model.flow.*;
-
-import java.util.*;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.management.api.FlowRepository;
+import io.gravitee.repository.management.model.flow.*;
+import java.util.*;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -105,7 +104,5 @@ public class FlowRepositoryMock extends AbstractRepositoryMock<FlowRepository> {
 
         when(repository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted"))
             .thenReturn(Arrays.asList(flow1, mock(Flow.class)), Collections.emptyList());
-
     }
-
 }

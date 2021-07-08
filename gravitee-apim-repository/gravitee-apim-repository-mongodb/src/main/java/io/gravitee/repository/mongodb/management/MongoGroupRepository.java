@@ -21,6 +21,8 @@ import io.gravitee.repository.management.model.Group;
 import io.gravitee.repository.mongodb.management.internal.group.GroupMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,11 +33,8 @@ import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Component
@@ -66,10 +65,7 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findByIds(Set<String> ids) throws TechnicalException {
         logger.debug("Find groups by ids");
-        Set<Group> groups = internalRepository.findByIds(ids)
-                .stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        Set<Group> groups = internalRepository.findByIds(ids).stream().map(this::map).collect(Collectors.toSet());
         logger.debug("Find groups by ids - Found {}", groups);
         return groups;
     }
@@ -92,7 +88,7 @@ public class MongoGroupRepository implements GroupRepository {
         if (groupMongo == null) {
             throw new IllegalStateException(String.format("No group found with id [%s]", group.getId()));
         }
-        
+
         logger.debug("Update group [{}]", group.getName());
         Group updatedGroup = map(internalRepository.save(map(group)));
         logger.debug("Update group [{}] - Done", updatedGroup.getName());
@@ -109,10 +105,7 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findAll() throws TechnicalException {
         logger.debug("Find all groups");
-        Set<Group> all = internalRepository.findAll().
-                stream().
-                map(this::map).
-                collect(Collectors.toSet());
+        Set<Group> all = internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
         logger.debug("Find all groups - Found {}", all);
         return all;
     }
@@ -128,10 +121,7 @@ public class MongoGroupRepository implements GroupRepository {
     @Override
     public Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException {
         logger.debug("Find all groups by environment");
-        Set<Group> all = internalRepository.findByEnvironmentId(environmentId).
-                stream().
-                map(this::map).
-                collect(Collectors.toSet());
+        Set<Group> all = internalRepository.findByEnvironmentId(environmentId).stream().map(this::map).collect(Collectors.toSet());
         logger.debug("Find all groups by environment - Found {}", all);
         return all;
     }
@@ -140,28 +130,24 @@ public class MongoGroupRepository implements GroupRepository {
     public Set<Group> findAllByOrganization(String organizationId) throws TechnicalException {
         logger.debug("Find all groups by organization");
 
-        LookupOperation lookupOperation = LookupOperation.newLookup()
-                .from(getTableNameFor("environments"))
-                .localField("environmentId")
-                .foreignField("_id")
-                .as("environment");
+        LookupOperation lookupOperation = LookupOperation
+            .newLookup()
+            .from(getTableNameFor("environments"))
+            .localField("environmentId")
+            .foreignField("_id")
+            .as("environment");
 
-        Aggregation aggregation = Aggregation
-                .newAggregation(
-                        lookupOperation,
-                        Aggregation.match(
-                                Criteria
-                                    .where("environment.organizationId")
-                                    .is(organizationId)
-                        )
-                );
+        Aggregation aggregation = Aggregation.newAggregation(
+            lookupOperation,
+            Aggregation.match(Criteria.where("environment.organizationId").is(organizationId))
+        );
 
-
-        Set<Group> groups = mongoTemplate.aggregate(aggregation, getTableNameFor("groups"), GroupMongo.class)
-                .getMappedResults()
-                .stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        Set<Group> groups = mongoTemplate
+            .aggregate(aggregation, getTableNameFor("groups"), GroupMongo.class)
+            .getMappedResults()
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
 
         logger.debug("Find all groups by organization - Found {}", groups);
         return groups;

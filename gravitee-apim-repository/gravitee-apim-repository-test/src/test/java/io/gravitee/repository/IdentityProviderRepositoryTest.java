@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderType;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,7 +45,7 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(identityProviders);
         assertEquals(3, identityProviders.size());
-        for (IdentityProvider idp: identityProviders) {
+        for (IdentityProvider idp : identityProviders) {
             final Map<String, String[]> groupMappings = idp.getGroupMappings();
             assertNotNull(groupMappings);
             for (Map.Entry<String, String[]> gm : groupMappings.entrySet()) {
@@ -129,14 +128,36 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
 
         final IdentityProvider identityProviderSaved = optional.get();
         Assert.assertEquals("Invalid saved identity provider name.", identityProvider.getName(), identityProviderSaved.getName());
-        Assert.assertEquals("Invalid saved identity provider organization id.", identityProvider.getOrganizationId(), identityProviderSaved.getOrganizationId());
-        Assert.assertEquals("Invalid identity provider description.", identityProvider.getDescription(), identityProviderSaved.getDescription());
-        Assert.assertTrue("Invalid identity provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderSaved.getCreatedAt()));
-        Assert.assertTrue("Invalid identity provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderSaved.getUpdatedAt()));
+        Assert.assertEquals(
+            "Invalid saved identity provider organization id.",
+            identityProvider.getOrganizationId(),
+            identityProviderSaved.getOrganizationId()
+        );
+        Assert.assertEquals(
+            "Invalid identity provider description.",
+            identityProvider.getDescription(),
+            identityProviderSaved.getDescription()
+        );
+        Assert.assertTrue(
+            "Invalid identity provider createdAt.",
+            compareDate(identityProvider.getCreatedAt(), identityProviderSaved.getCreatedAt())
+        );
+        Assert.assertTrue(
+            "Invalid identity provider updatedAt.",
+            compareDate(identityProvider.getUpdatedAt(), identityProviderSaved.getUpdatedAt())
+        );
         Assert.assertEquals("Invalid identity provider type.", identityProvider.getType(), identityProviderSaved.getType());
         Assert.assertEquals("Invalid identity provider enabled.", identityProvider.isEnabled(), identityProviderSaved.isEnabled());
-        Assert.assertEquals("Invalid identity provider emailRequired.", identityProvider.getEmailRequired(), identityProviderSaved.getEmailRequired());
-        Assert.assertEquals("Invalid identity provider syncMappings.", identityProvider.getSyncMappings(), identityProviderSaved.getSyncMappings());
+        Assert.assertEquals(
+            "Invalid identity provider emailRequired.",
+            identityProvider.getEmailRequired(),
+            identityProviderSaved.getEmailRequired()
+        );
+        Assert.assertEquals(
+            "Invalid identity provider syncMappings.",
+            identityProvider.getSyncMappings(),
+            identityProviderSaved.getSyncMappings()
+        );
     }
 
     @Test
@@ -167,14 +188,36 @@ public class IdentityProviderRepositoryTest extends AbstractRepositoryTest {
 
         final IdentityProvider identityProviderUpdated = optionalUpdated.get();
         Assert.assertEquals("Invalid saved identity provider name.", identityProvider.getName(), identityProviderUpdated.getName());
-        Assert.assertEquals("Invalid saved identity provider organization id.", identityProvider.getOrganizationId(), identityProviderUpdated.getOrganizationId());
-        Assert.assertEquals("Invalid identity provider description.", identityProvider.getDescription(), identityProviderUpdated.getDescription());
-        Assert.assertTrue("Invalid identity provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt()));
-        Assert.assertTrue("Invalid identity provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt()));
+        Assert.assertEquals(
+            "Invalid saved identity provider organization id.",
+            identityProvider.getOrganizationId(),
+            identityProviderUpdated.getOrganizationId()
+        );
+        Assert.assertEquals(
+            "Invalid identity provider description.",
+            identityProvider.getDescription(),
+            identityProviderUpdated.getDescription()
+        );
+        Assert.assertTrue(
+            "Invalid identity provider createdAt.",
+            compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt())
+        );
+        Assert.assertTrue(
+            "Invalid identity provider updatedAt.",
+            compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt())
+        );
         Assert.assertEquals("Invalid identity provider type.", identityProvider.getType(), identityProviderUpdated.getType());
         Assert.assertEquals("Invalid identity provider enabled.", identityProvider.isEnabled(), identityProviderUpdated.isEnabled());
-        Assert.assertEquals("Invalid identity provider emailRequired.", identityProvider.getEmailRequired(), identityProviderUpdated.getEmailRequired());
-        Assert.assertEquals("Invalid identity provider syncMappings.", identityProvider.getSyncMappings(), identityProviderUpdated.getSyncMappings());
+        Assert.assertEquals(
+            "Invalid identity provider emailRequired.",
+            identityProvider.getEmailRequired(),
+            identityProviderUpdated.getEmailRequired()
+        );
+        Assert.assertEquals(
+            "Invalid identity provider syncMappings.",
+            identityProvider.getSyncMappings(),
+            identityProviderUpdated.getSyncMappings()
+        );
     }
 
     @Test

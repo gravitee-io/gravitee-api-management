@@ -15,22 +15,21 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.NotificationTemplateRepository;
-import io.gravitee.repository.management.model.NotificationTemplate;
-import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
-import io.gravitee.repository.management.model.NotificationTemplateType;
-
-import java.util.Date;
-import java.util.Set;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
+import io.gravitee.repository.management.api.NotificationTemplateRepository;
+import io.gravitee.repository.management.model.NotificationTemplate;
+import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
+import io.gravitee.repository.management.model.NotificationTemplateType;
+import java.util.Date;
+import java.util.Set;
+
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NotificationTemplateRepositoryMock extends AbstractRepositoryMock<NotificationTemplateRepository> {
@@ -76,14 +75,52 @@ public class NotificationTemplateRepositoryMock extends AbstractRepositoryMock<N
         when(notificationTemplateUpdated.getType()).thenReturn(NotificationTemplateType.PORTAL);
         when(notificationTemplateUpdated.isEnabled()).thenReturn(true);
 
-        final Set<NotificationTemplate> notificationTemplates = newSet(newNotificationTemplate, notif1, mock(NotificationTemplate.class), mock(NotificationTemplate.class));
-        final Set<NotificationTemplate> notificationTemplatesAfterDelete = newSet(newNotificationTemplate, notif1, mock(NotificationTemplate.class));
-        final Set<NotificationTemplate> notificationTemplatesAfterAdd = newSet(newNotificationTemplate, notif1, mock(NotificationTemplate.class), mock(NotificationTemplate.class), mock(NotificationTemplate.class));
+        final Set<NotificationTemplate> notificationTemplates = newSet(
+            newNotificationTemplate,
+            notif1,
+            mock(NotificationTemplate.class),
+            mock(NotificationTemplate.class)
+        );
+        final Set<NotificationTemplate> notificationTemplatesAfterDelete = newSet(
+            newNotificationTemplate,
+            notif1,
+            mock(NotificationTemplate.class)
+        );
+        final Set<NotificationTemplate> notificationTemplatesAfterAdd = newSet(
+            newNotificationTemplate,
+            notif1,
+            mock(NotificationTemplate.class),
+            mock(NotificationTemplate.class),
+            mock(NotificationTemplate.class)
+        );
 
-        when(notificationTemplateRepository.findAll()).thenReturn(notificationTemplates, notificationTemplatesAfterAdd, notificationTemplates, notificationTemplatesAfterDelete, notificationTemplates);
-        when(notificationTemplateRepository.findAllByReferenceIdAndReferenceType("DEFAULT", NotificationTemplateReferenceType.ORGANIZATION)).thenReturn(notificationTemplates);
-        when(notificationTemplateRepository.findByTypeAndReferenceIdAndReferenceType(NotificationTemplateType.PORTAL, "DEFAULT", NotificationTemplateReferenceType.ORGANIZATION)).thenReturn(newSet(newNotificationTemplate, notif1, mock(NotificationTemplate.class)));
-        when(notificationTemplateRepository.findByHookAndScopeAndReferenceIdAndReferenceType("MY_HOOK_3", "API", "DEFAULT", NotificationTemplateReferenceType.ORGANIZATION)).thenReturn(newSet(mock(NotificationTemplate.class), mock(NotificationTemplate.class)));
+        when(notificationTemplateRepository.findAll())
+            .thenReturn(
+                notificationTemplates,
+                notificationTemplatesAfterAdd,
+                notificationTemplates,
+                notificationTemplatesAfterDelete,
+                notificationTemplates
+            );
+        when(notificationTemplateRepository.findAllByReferenceIdAndReferenceType("DEFAULT", NotificationTemplateReferenceType.ORGANIZATION))
+            .thenReturn(notificationTemplates);
+        when(
+            notificationTemplateRepository.findByTypeAndReferenceIdAndReferenceType(
+                NotificationTemplateType.PORTAL,
+                "DEFAULT",
+                NotificationTemplateReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(newSet(newNotificationTemplate, notif1, mock(NotificationTemplate.class)));
+        when(
+            notificationTemplateRepository.findByHookAndScopeAndReferenceIdAndReferenceType(
+                "MY_HOOK_3",
+                "API",
+                "DEFAULT",
+                NotificationTemplateReferenceType.ORGANIZATION
+            )
+        )
+            .thenReturn(newSet(mock(NotificationTemplate.class), mock(NotificationTemplate.class)));
 
         when(notificationTemplateRepository.create(any(NotificationTemplate.class))).thenReturn(newNotificationTemplate);
 
@@ -91,6 +128,7 @@ public class NotificationTemplateRepositoryMock extends AbstractRepositoryMock<N
         when(notificationTemplateRepository.findById("unknown")).thenReturn(empty());
         when(notificationTemplateRepository.findById("notif-1")).thenReturn(of(notif1), of(notificationTemplateUpdated));
 
-        when(notificationTemplateRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(notificationTemplateRepository.update(argThat(o -> o == null || o.getId().equals("unknown"))))
+            .thenThrow(new IllegalStateException());
     }
 }

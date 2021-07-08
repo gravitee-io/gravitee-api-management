@@ -15,80 +15,98 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Objects;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Document(collection = "apiheaders")
-public class ApiHeaderMongo extends Auditable{
+public class ApiHeaderMongo extends Auditable {
 
-	@Id
-	private String id;
-	private String environmentId;
-	private String name;
-	private String value;
-	private int order;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
-	public void setId(String id) {
-		this.id = id;
-	}
+    private String environmentId;
+    private String name;
+    private String value;
+    private int order;
 
-	public String getEnvironmentId() {
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getEnvironmentId() {
         return environmentId;
     }
+
     public void setEnvironmentId(String environmentId) {
         this.environmentId = environmentId;
     }
+
     public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
+        return name;
+    }
 
-	public String getValue() {
-		return value;
-	}
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public int getOrder() {
-		return order;
-	}
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof ApiHeaderMongo)) return false;
-		ApiHeaderMongo mongo = (ApiHeaderMongo) o;
-		return Objects.equals(id, mongo.id);
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    public int getOrder() {
+        return order;
+    }
 
-	@Override
-	public String toString() {
-		return "ApiHeaderMongo{" +
-				"id='" + id + '\'' +
-                ", environmentId='" + environmentId + '\'' +
-				", name='" + name + '\'' +
-				", value='" + value + '\'' +
-				", order='" + order + '\'' +
-				'}';
-	}
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ApiHeaderMongo)) return false;
+        ApiHeaderMongo mongo = (ApiHeaderMongo) o;
+        return Objects.equals(id, mongo.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "ApiHeaderMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", value='" +
+            value +
+            '\'' +
+            ", order='" +
+            order +
+            '\'' +
+            '}'
+        );
+    }
 }

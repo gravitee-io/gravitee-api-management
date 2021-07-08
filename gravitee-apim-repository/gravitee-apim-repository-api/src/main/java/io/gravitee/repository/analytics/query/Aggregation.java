@@ -20,7 +20,6 @@ package io.gravitee.repository.analytics.query;
  * @author GraviteeSource Team
  */
 public interface Aggregation {
-
     AggregationType type();
 
     String field();

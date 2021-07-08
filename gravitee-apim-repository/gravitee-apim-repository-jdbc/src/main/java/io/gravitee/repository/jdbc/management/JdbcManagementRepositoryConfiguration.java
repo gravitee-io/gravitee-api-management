@@ -21,7 +21,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan(basePackages = {"io.gravitee.repository.jdbc.management"})
+@ComponentScan(basePackages = { "io.gravitee.repository.jdbc.management" })
 public class JdbcManagementRepositoryConfiguration extends AbstractJdbcRepositoryConfiguration {
 
     @Override

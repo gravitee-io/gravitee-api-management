@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TenantRepository;
@@ -22,17 +24,14 @@ import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  *
@@ -49,7 +48,8 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
 
     @Override
     protected JdbcObjectMapper<Tenant> buildOrm() {
-        return JdbcObjectMapper.builder(Tenant.class, this.tableName, "id")
+        return JdbcObjectMapper
+            .builder(Tenant.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -64,15 +64,19 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
     }
 
     @Override
-    public Optional<Tenant> findByIdAndReference(final String id, String referenceId, TenantReferenceType referenceType) throws TechnicalException {
+    public Optional<Tenant> findByIdAndReference(final String id, String referenceId, TenantReferenceType referenceType)
+        throws TechnicalException {
         try {
-            return jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? "
-                    , getOrm().getRowMapper()
-                    , id, referenceId, referenceType.name()
-            )
-                    .stream()
-                    .findFirst();
+            return jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? ",
+                    getOrm().getRowMapper(),
+                    id,
+                    referenceId,
+                    referenceType.name()
+                )
+                .stream()
+                .findFirst();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find {} tenant by id, referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tenant by id, referenceId and referenceType", ex);
@@ -82,15 +86,17 @@ public class JdbcTenantRepository extends JdbcAbstractCrudRepository<Tenant, Str
     @Override
     public Set<Tenant> findByReference(String referenceId, TenantReferenceType referenceType) throws TechnicalException {
         try {
-            return new HashSet<>(jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? "
-                    , getOrm().getRowMapper()
-                    , referenceId, referenceType.name()
-            ));
+            return new HashSet<>(
+                jdbcTemplate.query(
+                    getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? ",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name()
+                )
+            );
         } catch (final Exception ex) {
             LOGGER.error("Failed to find {} tenants referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tenants by referenceId and referenceType", ex);
         }
     }
-
 }

@@ -97,13 +97,25 @@ public class FlowStep {
 
     @Override
     public String toString() {
-        return "FlowStep{" +
-            "name='" + name + '\'' +
-            ", policy='" + policy + '\'' +
-            ", description='" + description + '\'' +
-            ", configuration='" + configuration + '\'' +
-            ", enabled=" + enabled +
-            ", order=" + order +
-            '}';
+        return (
+            "FlowStep{" +
+            "name='" +
+            name +
+            '\'' +
+            ", policy='" +
+            policy +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", configuration='" +
+            configuration +
+            '\'' +
+            ", enabled=" +
+            enabled +
+            ", order=" +
+            order +
+            '}'
+        );
     }
 }

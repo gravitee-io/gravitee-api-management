@@ -15,24 +15,23 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.mongodb.management.internal.model.QualityRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.quality.QualityRuleMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -94,7 +93,6 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
 
             QualityRuleMongo qualityRuleMongoUpdated = internalQualityRuleRepo.save(qualityRuleMongo);
             return mapper.map(qualityRuleMongoUpdated, QualityRule.class);
-
         } catch (Exception e) {
             final String error = "An error occurred when updating quality rule";
             LOGGER.error(error, e);
@@ -116,8 +114,6 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     @Override
     public Set<QualityRule> findAll() {
         final List<QualityRuleMongo> qualityRules = internalQualityRuleRepo.findAll();
-        return qualityRules.stream()
-                .map(qualityRuleMongo -> mapper.map(qualityRuleMongo, QualityRule.class))
-                .collect(toSet());
+        return qualityRules.stream().map(qualityRuleMongo -> mapper.map(qualityRuleMongo, QualityRule.class)).collect(toSet());
     }
 }

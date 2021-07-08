@@ -21,8 +21,7 @@ package io.gravitee.repository.exceptions;
  */
 public abstract class RepositoryException extends TechnicalException {
 
-    public RepositoryException() {
-    }
+    public RepositoryException() {}
 
     public RepositoryException(Throwable cause) {
         super(cause);

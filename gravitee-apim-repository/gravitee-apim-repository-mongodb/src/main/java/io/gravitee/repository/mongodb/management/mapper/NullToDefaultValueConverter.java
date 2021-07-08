@@ -18,7 +18,7 @@ package io.gravitee.repository.mongodb.management.mapper;
 import com.github.dozermapper.core.DozerConverter;
 import org.springframework.util.StringUtils;
 
-public class NullToDefaultValueConverter extends DozerConverter<String, String>  {
+public class NullToDefaultValueConverter extends DozerConverter<String, String> {
 
     public NullToDefaultValueConverter() {
         super(String.class, String.class);

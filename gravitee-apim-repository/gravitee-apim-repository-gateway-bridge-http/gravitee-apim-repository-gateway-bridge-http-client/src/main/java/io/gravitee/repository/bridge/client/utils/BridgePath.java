@@ -16,9 +16,8 @@
 package io.gravitee.repository.bridge.client.utils;
 
 import io.gravitee.repository.Scope;
-import org.springframework.core.env.Environment;
-
 import java.net.URI;
+import org.springframework.core.env.Environment;
 
 public class BridgePath {
 

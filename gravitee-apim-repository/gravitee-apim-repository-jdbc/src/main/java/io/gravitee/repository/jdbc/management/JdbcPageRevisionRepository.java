@@ -15,23 +15,22 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageRevision;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -48,41 +47,39 @@ public class JdbcPageRevisionRepository extends JdbcAbstractRepository<PageRevis
 
     @Override
     protected JdbcObjectMapper<PageRevision> buildOrm() {
-        return JdbcObjectMapper.builder(PageRevision.class, this.tableName, "page_id")
-                .addColumn("page_id", Types.NVARCHAR, String.class)
-                .addColumn("revision", Types.INTEGER, int.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("content", Types.NVARCHAR, String.class)
-                .addColumn("hash", Types.NVARCHAR, String.class)
-                .addColumn("contributor", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(PageRevision.class, this.tableName, "page_id")
+            .addColumn("page_id", Types.NVARCHAR, String.class)
+            .addColumn("revision", Types.INTEGER, int.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("content", Types.NVARCHAR, String.class)
+            .addColumn("hash", Types.NVARCHAR, String.class)
+            .addColumn("contributor", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     @Override
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
         String rowCountSql = "SELECT count(1) AS row_count FROM " + this.tableName;
-        int total = jdbcTemplate.queryForObject(
-                        rowCountSql,
-                        (rs, rowNum) -> rs.getInt(1));
+        int total = jdbcTemplate.queryForObject(rowCountSql, (rs, rowNum) -> rs.getInt(1));
 
-        String querySql = getOrm().getSelectAllSql() + " ORDER BY page_id, revision " + createPagingClause(pageable.pageSize(), pageable.from());
-        List<PageRevision> revisions = jdbcTemplate.query(
-                querySql,
-                getOrm().getRowMapper()
-        );
+        String querySql =
+            getOrm().getSelectAllSql() + " ORDER BY page_id, revision " + createPagingClause(pageable.pageSize(), pageable.from());
+        List<PageRevision> revisions = jdbcTemplate.query(querySql, getOrm().getRowMapper());
 
         return new Page<>(revisions, pageable.pageNumber(), revisions.size(), total);
     }
 
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
-        LOGGER.debug("JdbcPageRevisionRepository.findById({}, {})",pageId, revision);
+        LOGGER.debug("JdbcPageRevisionRepository.findById({}, {})", pageId, revision);
         try {
-            final List<PageRevision> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where page_id = ? and revision = ?"
-                    , getOrm().getRowMapper()
-                    , pageId
-                    , revision
+            final List<PageRevision> items = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where page_id = ? and revision = ?",
+                getOrm().getRowMapper(),
+                pageId,
+                revision
             );
             return items.stream().findFirst();
         } catch (final Exception ex) {
@@ -107,13 +104,15 @@ public class JdbcPageRevisionRepository extends JdbcAbstractRepository<PageRevis
     public List<PageRevision> findAllByPageId(String pageId) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findAllByPageId({})", pageId);
         try {
-            List<PageRevision> result = jdbcTemplate.query("select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc"
-                    , getOrm().getRowMapper()
-                    , pageId);
+            List<PageRevision> result = jdbcTemplate.query(
+                "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc",
+                getOrm().getRowMapper(),
+                pageId
+            );
             LOGGER.debug("JdbcPageRepository.findLastByPageId({}) = {}", pageId, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find revisions by page id: {}", pageId , ex);
+            LOGGER.error("Failed to find revisions by page id: {}", pageId, ex);
             throw new TechnicalException("Failed to find revisions by page id", ex);
         }
     }
@@ -122,14 +121,16 @@ public class JdbcPageRevisionRepository extends JdbcAbstractRepository<PageRevis
     public Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException {
         LOGGER.debug("JdbcPageRepository.findLastByPageId({})", pageId);
         try {
-            List<PageRevision> rows = jdbcTemplate.query("select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc " + createPagingClause(1,0)
-                    , getOrm().getRowMapper()
-                    , pageId);
+            List<PageRevision> rows = jdbcTemplate.query(
+                "select p.* from " + this.tableName + " p where p.page_id = ? order by revision desc " + createPagingClause(1, 0),
+                getOrm().getRowMapper(),
+                pageId
+            );
             Optional<PageRevision> result = rows.stream().findFirst();
             LOGGER.debug("JdbcPageRepository.findLastByPageId({}) = {}", pageId, result);
             return result;
         } catch (final Exception ex) {
-            LOGGER.error("Failed to find last revision by page id: {}", pageId , ex);
+            LOGGER.error("Failed to find last revision by page id: {}", pageId, ex);
             throw new TechnicalException("Failed to find last revision by page id", ex);
         }
     }

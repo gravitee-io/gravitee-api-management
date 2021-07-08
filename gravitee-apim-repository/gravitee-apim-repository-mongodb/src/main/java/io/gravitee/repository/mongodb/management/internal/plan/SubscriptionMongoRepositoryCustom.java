@@ -27,6 +27,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface SubscriptionMongoRepositoryCustom {
-
     Page<SubscriptionMongo> search(SubscriptionCriteria criteria, Pageable pageable);
 }

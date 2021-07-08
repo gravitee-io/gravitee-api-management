@@ -24,6 +24,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public class Installation {
+
     /**
      * Auto generated id.
      * This id is generated at the first startup time.
@@ -45,8 +46,7 @@ public class Installation {
      */
     private Date updatedAt;
 
-    public Installation() {
-    }
+    public Installation() {}
 
     public Installation(Installation other) {
         this.id = other.id;
@@ -54,7 +54,6 @@ public class Installation {
         this.createdAt = other.createdAt;
         this.updatedAt = other.updatedAt;
     }
-
 
     public String getId() {
         return id;

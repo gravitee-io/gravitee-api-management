@@ -26,6 +26,5 @@ import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
  * @author GraviteeSource Team
  */
 public interface ApiMongoRepositoryCustom {
-
     Page<ApiMongo> search(ApiCriteria criteria, Pageable pageable, ApiFieldExclusionFilter apiFieldExclusionFilter);
 }

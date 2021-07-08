@@ -15,21 +15,20 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryType;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.DictionaryRepository;
+import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryType;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -89,9 +88,16 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         final Set<Dictionary> dictionaries = newSet(newDictionary, dic1, mock(Dictionary.class), dictionaryOtherEnv);
         final Set<Dictionary> dictionariesEnvDefault = newSet(newDictionary, dic1, mock(Dictionary.class));
         final Set<Dictionary> dictionariesAfterDelete = newSet(newDictionary, dic1, dictionaryOtherEnv);
-        final Set<Dictionary> dictionariesAfterAdd = newSet(newDictionary, dic1, mock(Dictionary.class), mock(Dictionary.class), dictionaryOtherEnv);
+        final Set<Dictionary> dictionariesAfterAdd = newSet(
+            newDictionary,
+            dic1,
+            mock(Dictionary.class),
+            mock(Dictionary.class),
+            dictionaryOtherEnv
+        );
 
-        when(dictionaryRepository.findAll()).thenReturn(dictionaries, dictionariesAfterAdd, dictionaries, dictionariesAfterDelete, dictionaries);
+        when(dictionaryRepository.findAll())
+            .thenReturn(dictionaries, dictionariesAfterAdd, dictionaries, dictionariesAfterDelete, dictionaries);
         when(dictionaryRepository.findAllByEnvironments(Collections.singleton("DEFAULT"))).thenReturn(dictionariesEnvDefault);
         when(dictionaryRepository.findAllByEnvironments(Collections.emptySet())).thenReturn(dictionaries);
         when(dictionaryRepository.findAllByEnvironments(newSet("DEFAULT", "OTHER_ENV"))).thenReturn(dictionaries);

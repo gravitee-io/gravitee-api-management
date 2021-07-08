@@ -19,15 +19,14 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
+import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -46,7 +45,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             query.addCriteria(Criteria.where("clientId").is(criteria.getClientId()));
         }
 
-        if (criteria.getApis() != null && ! criteria.getApis().isEmpty()) {
+        if (criteria.getApis() != null && !criteria.getApis().isEmpty()) {
             if (criteria.getApis().size() == 1) {
                 query.addCriteria(Criteria.where("api").is(criteria.getApis().iterator().next()));
             } else {
@@ -54,7 +53,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getPlans() != null && ! criteria.getPlans().isEmpty()) {
+        if (criteria.getPlans() != null && !criteria.getPlans().isEmpty()) {
             if (criteria.getPlans().size() == 1) {
                 query.addCriteria(Criteria.where("plan").is(criteria.getPlans().iterator().next()));
             } else {
@@ -62,7 +61,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getStatuses() != null && ! criteria.getStatuses().isEmpty()) {
+        if (criteria.getStatuses() != null && !criteria.getStatuses().isEmpty()) {
             if (criteria.getStatuses().size() == 1) {
                 query.addCriteria(Criteria.where("status").is(criteria.getStatuses().iterator().next()));
             } else {
@@ -70,7 +69,7 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getApplications() != null && ! criteria.getApplications().isEmpty()) {
+        if (criteria.getApplications() != null && !criteria.getApplications().isEmpty()) {
             if (criteria.getApplications().size() == 1) {
                 query.addCriteria(Criteria.where("application").is(criteria.getApplications().iterator().next()));
             } else {
@@ -92,7 +91,6 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
 
             query.addCriteria(updatedAtCriteria);
         }
-
 
         if (criteria.getEndingAtAfter() > 0 || criteria.getEndingAtBefore() > 0) {
             // Need to mutualize the instantiation of this criteria otherwise mongo drive is throwing an error, when
@@ -120,8 +118,6 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         List<SubscriptionMongo> subscriptions = mongoTemplate.find(query, SubscriptionMongo.class);
         long total = mongoTemplate.count(query, SubscriptionMongo.class);
 
-        return new Page<>(
-                subscriptions, (pageable != null) ? pageable.pageNumber() : 0,
-                subscriptions.size(), total);
+        return new Page<>(subscriptions, (pageable != null) ? pageable.pageNumber() : 0, subscriptions.size(), total);
     }
 }

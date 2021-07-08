@@ -21,12 +21,11 @@ import io.gravitee.repository.management.model.Installation;
 import io.gravitee.repository.mongodb.management.internal.installation.InstallationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.InstallationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -77,7 +76,7 @@ public class MongoInstallationRepository implements InstallationRepository {
         if (installationMongo == null) {
             throw new IllegalStateException(String.format("No installation found with id [%s]", installation.getId()));
         }
-        
+
         logger.debug("Update installation [{}]", installation.getId());
         Installation updatedInstallation = map(internalRepository.save(map(installation)));
         logger.debug("Update installation [{}] - Done", updatedInstallation.getId());

@@ -20,7 +20,6 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum DictionaryType {
-
-	MANUAL,
-	DYNAMIC
+    MANUAL,
+    DYNAMIC,
 }

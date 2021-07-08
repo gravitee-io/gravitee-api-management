@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -27,13 +26,13 @@ import java.util.Map;
  */
 @Document(collection = "installation")
 public class InstallationMongo extends Auditable {
+
     @Id
     private String id;
 
     private Map<String, String> additionalInformation = new HashMap<>();
 
-    public InstallationMongo() {
-    }
+    public InstallationMongo() {}
 
     public String getId() {
         return id;
@@ -50,5 +49,4 @@ public class InstallationMongo extends Auditable {
     public void setAdditionalInformation(Map<String, String> additionalInformation) {
         this.additionalInformation = additionalInformation;
     }
-
 }

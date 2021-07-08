@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Organization;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -39,7 +38,6 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
 
     @Override
     void prepare(OrganizationRepository organizationRepository) throws Exception {
-
         final Organization orgCreate = new Organization();
         orgCreate.setId("DEFAULT-ORG-create");
         orgCreate.setHrids(Arrays.asList("hrid1", "hrid2"));

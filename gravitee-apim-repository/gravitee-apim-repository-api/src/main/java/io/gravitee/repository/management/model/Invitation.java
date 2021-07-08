@@ -112,15 +112,31 @@ public class Invitation {
 
     @Override
     public String toString() {
-        return "Invitation{" +
-                "id='" + id + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", email='" + email + '\'' +
-                ", apiRole='" + apiRole + '\'' +
-                ", applicationRole='" + applicationRole + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "Invitation{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", apiRole='" +
+            apiRole +
+            '\'' +
+            ", applicationRole='" +
+            applicationRole +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

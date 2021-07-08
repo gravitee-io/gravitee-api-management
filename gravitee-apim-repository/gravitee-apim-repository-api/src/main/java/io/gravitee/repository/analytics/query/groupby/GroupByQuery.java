@@ -18,7 +18,6 @@ package io.gravitee.repository.analytics.query.groupby;
 import io.gravitee.repository.analytics.query.AbstractQuery;
 import io.gravitee.repository.analytics.query.Range;
 import io.gravitee.repository.analytics.query.Sort;
-
 import java.util.ArrayList;
 import java.util.List;
 

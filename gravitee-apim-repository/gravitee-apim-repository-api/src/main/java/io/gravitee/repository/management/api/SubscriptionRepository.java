@@ -20,7 +20,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
-
 import java.util.List;
 
 /**
@@ -30,7 +29,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface SubscriptionRepository extends CrudRepository<Subscription, String> {
-
     Page<Subscription> search(SubscriptionCriteria criteria, Pageable pageable) throws TechnicalException;
 
     List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException;

@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Map;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -28,81 +27,82 @@ import java.util.Objects;
 @Document(collection = "audits")
 public class AuditMongo extends Auditable {
 
-	@Id
-	private String id;
-	private String referenceId;
-	private String referenceType;
-	private String user;
-	private String event;
-	private Map<String,String> properties;
-	private String patch;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String referenceId;
+    private String referenceType;
+    private String user;
+    private String event;
+    private Map<String, String> properties;
+    private String patch;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public String getReferenceType() {
-		return referenceType;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public void setReferenceType(String referenceType) {
-		this.referenceType = referenceType;
-	}
+    public String getReferenceType() {
+        return referenceType;
+    }
 
-	public String getUser() {
-		return user;
-	}
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public void setUser(String user) {
-		this.user = user;
-	}
+    public String getUser() {
+        return user;
+    }
 
-	public String getEvent() {
-		return event;
-	}
+    public void setUser(String user) {
+        this.user = user;
+    }
 
-	public void setEvent(String event) {
-		this.event = event;
-	}
+    public String getEvent() {
+        return event;
+    }
 
-	public Map<String,String> getProperties() {
-		return properties;
-	}
+    public void setEvent(String event) {
+        this.event = event;
+    }
 
-	public void setProperties(Map<String,String> properties) {
-		this.properties = properties;
-	}
+    public Map<String, String> getProperties() {
+        return properties;
+    }
 
-	public String getPatch() {
-		return patch;
-	}
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
+    }
 
-	public void setPatch(String patch) {
-		this.patch = patch;
-	}
+    public String getPatch() {
+        return patch;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof AuditMongo)) return false;
-		AuditMongo auditMongo = (AuditMongo) o;
-		return Objects.equals(id, auditMongo.id);
-	}
+    public void setPatch(String patch) {
+        this.patch = patch;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AuditMongo)) return false;
+        AuditMongo auditMongo = (AuditMongo) o;
+        return Objects.equals(id, auditMongo.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

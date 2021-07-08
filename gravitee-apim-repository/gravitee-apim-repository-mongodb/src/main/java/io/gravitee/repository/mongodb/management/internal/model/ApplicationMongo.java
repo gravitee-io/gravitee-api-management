@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 /**
  * Mongo object model for application.
@@ -33,7 +32,7 @@ import java.util.Set;
 @Document(collection = "applications")
 public class ApplicationMongo extends Auditable {
 
-	@Id
+    @Id
     private String id;
 
     @Field("name")
@@ -104,7 +103,6 @@ public class ApplicationMongo extends Auditable {
     public void setGroups(Set<String> groups) {
         this.groups = groups;
     }
-
 
     public String getPicture() {
         return picture;

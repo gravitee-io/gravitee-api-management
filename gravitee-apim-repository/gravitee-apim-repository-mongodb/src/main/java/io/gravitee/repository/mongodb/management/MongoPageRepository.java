@@ -26,15 +26,14 @@ import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageSourceMongo;
 import io.gravitee.repository.mongodb.management.internal.page.PageMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -130,9 +129,7 @@ public class MongoPageRepository implements PageRepository {
 
             PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
             return mapper.map(pageMongoUpdated, Page.class);
-
         } catch (Exception e) {
-
             logger.error("An error occured when updating page", e);
             throw new TechnicalException("An error occured when updating page");
         }
@@ -163,7 +160,8 @@ public class MongoPageRepository implements PageRepository {
     }
 
     @Override
-    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) throws TechnicalException {
+    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
+        throws TechnicalException {
         try {
             return internalPageRepo.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType.name());
         } catch (Exception e) {
@@ -177,7 +175,12 @@ public class MongoPageRepository implements PageRepository {
         try {
             io.gravitee.common.data.domain.Page<PageMongo> page = internalPageRepo.findAll(pageable);
             List<Page> pageItems = mapper.collection2list(page.getContent(), PageMongo.class, Page.class);
-            return new io.gravitee.common.data.domain.Page<Page>(pageItems, page.getPageNumber(), pageItems.size(), page.getTotalElements());
+            return new io.gravitee.common.data.domain.Page<Page>(
+                pageItems,
+                page.getPageNumber(),
+                pageItems.size(),
+                page.getTotalElements()
+            );
         } catch (Exception e) {
             logger.error("An error occurred when searching all pages", e);
             throw new TechnicalException("An error occurred when searching all pages");
@@ -192,14 +195,17 @@ public class MongoPageRepository implements PageRepository {
     }
 
     private List<PageMediaMongo> convert(List<PageMedia> attachedMedia) {
-        return attachedMedia.stream()
-            .map(pageMedia -> {
-                PageMediaMongo pmm = new PageMediaMongo();
-                pmm.setMediaHash(pageMedia.getMediaHash());
-                pmm.setMediaName(pageMedia.getMediaName());
-                pmm.setAttachedAt(pageMedia.getAttachedAt());
-                return pmm;
-            })
+        return attachedMedia
+            .stream()
+            .map(
+                pageMedia -> {
+                    PageMediaMongo pmm = new PageMediaMongo();
+                    pmm.setMediaHash(pageMedia.getMediaHash());
+                    pmm.setMediaName(pageMedia.getMediaName());
+                    pmm.setAttachedAt(pageMedia.getAttachedAt());
+                    return pmm;
+                }
+            )
             .collect(Collectors.toList());
     }
 }

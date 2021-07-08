@@ -24,16 +24,13 @@ import java.util.regex.Pattern;
  */
 public class VersionUtils {
 
-    private final static Pattern VERSION_PATTERN = Pattern.compile("([0-9]+)\\.([0-9]+)\\.([0-9]+)(-SNAPSHOT)?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("([0-9]+)\\.([0-9]+)\\.([0-9]+)(-SNAPSHOT)?");
 
     public static Version parse(String input) {
         Matcher matcher = VERSION_PATTERN.matcher(input);
 
         if (matcher.matches()) {
-            return new Version(
-                    Integer.parseInt(matcher.group(1)),
-                    Integer.parseInt(matcher.group(2)),
-                    Integer.parseInt(matcher.group(3)));
+            return new Version(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)), Integer.parseInt(matcher.group(3)));
         }
 
         return null;

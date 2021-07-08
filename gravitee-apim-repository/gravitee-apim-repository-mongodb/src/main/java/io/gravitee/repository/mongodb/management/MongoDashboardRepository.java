@@ -15,22 +15,21 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
 import io.gravitee.repository.mongodb.management.internal.DashboardMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.DashboardMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -105,7 +104,6 @@ public class MongoDashboardRepository implements DashboardRepository {
 
             DashboardMongo dashboardMongoUpdated = internalDashboardRepo.save(dashboardMongo);
             return mapper.map(dashboardMongoUpdated, Dashboard.class);
-
         } catch (Exception e) {
             final String error = "An error occurred when updating dashboard";
             LOGGER.error(error, e);
@@ -127,8 +125,6 @@ public class MongoDashboardRepository implements DashboardRepository {
     @Override
     public List<Dashboard> findByReferenceType(String referenceType) throws TechnicalException {
         final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeOrderByOrder(referenceType);
-        return dashboards.stream()
-                .map(dashboardMongo -> mapper.map(dashboardMongo, Dashboard.class))
-                .collect(toList());
+        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo, Dashboard.class)).collect(toList());
     }
 }

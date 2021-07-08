@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Group;
-
 import java.util.Set;
 
 /**
@@ -25,16 +24,15 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GroupRepository extends CrudRepository<Group, String> {
-
     /**
      * List all Groups
      * @return all groups
      * @throws TechnicalException if something goes wrong
      */
     Set<Group> findAll() throws TechnicalException;
-    
+
     Set<Group> findAllByEnvironment(String environmentId) throws TechnicalException;
-    
+
     Set<Group> findByIds(Set<String> ids) throws TechnicalException;
 
     Set<Group> findAllByOrganization(String organizationId) throws TechnicalException;

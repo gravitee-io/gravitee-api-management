@@ -33,8 +33,7 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
     @Autowired
     private MongoTemplate mongoTemplate;
 
-    public void setUp() {
-    }
+    public void setUp() {}
 
     public void tearDown() {
         LOG.info("Dropping database...");

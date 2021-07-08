@@ -15,30 +15,29 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.lang.String.format;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.*;
-
-import static java.lang.String.format;
-
 /**
  *
  * @author njt
  */
 @Repository
-public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Installation, String>  implements InstallationRepository {
+public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Installation, String> implements InstallationRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcInstallationRepository.class);
     private final String INSTALLATION_INFORMATIONS;
@@ -50,11 +49,12 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
 
     @Override
     protected JdbcObjectMapper<Installation> buildOrm() {
-        return JdbcObjectMapper.builder(Installation.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Installation.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     @Override
@@ -77,10 +77,14 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
     public Optional<Installation> find() throws TechnicalException {
         LOGGER.debug("JdbcInstallationRepository.find()");
         try {
-            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER,
+                "id"
+            );
             jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id"
-                    , rowMapper
+                getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id",
+                rowMapper
             );
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
@@ -93,11 +97,18 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
     public Optional<Installation> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcInstallationRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER,
+                "id"
+            );
             jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id where i.id = ?"
-                    , rowMapper
-                    , id
+                getOrm().getSelectAllSql() +
+                " i left join " +
+                INSTALLATION_INFORMATIONS +
+                " ii on i.id = ii.installation_id where i.id = ?",
+                rowMapper,
+                id
             );
             return rowMapper.getRows().stream().findFirst();
         } catch (final Exception ex) {
@@ -126,7 +137,8 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(installation, installation.getId()));
             storeInstallationInformations(installation, true);
-            return findById(installation.getId()).orElseThrow(() -> new IllegalStateException(format("No installation found with id [%s]", installation.getId())));
+            return findById(installation.getId())
+                .orElseThrow(() -> new IllegalStateException(format("No installation found with id [%s]", installation.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -145,10 +157,14 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
     public Set<Installation> findAll() throws TechnicalException {
         LOGGER.debug("JdbcInstallationRepository.findAll()");
         try {
-            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+            JdbcHelper.CollatingRowMapper<Installation> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER,
+                "id"
+            );
             jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id"
-                    , rowMapper
+                getOrm().getSelectAllSql() + " i left join " + INSTALLATION_INFORMATIONS + " ii on i.id = ii.installation_id",
+                rowMapper
             );
             return new HashSet<>(rowMapper.getRows());
         } catch (final Exception ex) {
@@ -163,20 +179,22 @@ public class JdbcInstallationRepository extends JdbcAbstractCrudRepository<Insta
         }
         if (installation.getAdditionalInformation() != null) {
             List<Map.Entry<String, String>> list = new ArrayList<>(installation.getAdditionalInformation().entrySet());
-            jdbcTemplate.batchUpdate("insert into " + INSTALLATION_INFORMATIONS + " ( installation_id, information_key, information_value ) values ( ?, ?, ? )"
-                    , new BatchPreparedStatementSetter() {
-                        @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setString(1, installation.getId());
-                            ps.setString(2, list.get(i).getKey());
-                            ps.setString(3, list.get(i).getValue());
-                        }
+            jdbcTemplate.batchUpdate(
+                "insert into " + INSTALLATION_INFORMATIONS + " ( installation_id, information_key, information_value ) values ( ?, ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, installation.getId());
+                        ps.setString(2, list.get(i).getKey());
+                        ps.setString(3, list.get(i).getValue());
+                    }
 
-                        @Override
-                        public int getBatchSize() {
-                            return list.size();
-                        }
-                    });
+                    @Override
+                    public int getBatchSize() {
+                        return list.size();
+                    }
+                }
+            );
         }
     }
 }

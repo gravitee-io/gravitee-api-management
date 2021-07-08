@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.EntrypointRepository;
-import io.gravitee.repository.management.model.Entrypoint;
-import io.gravitee.repository.management.model.EntrypointReferenceType;
-
-import java.util.Set;
-
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.EntrypointRepository;
+import io.gravitee.repository.management.model.Entrypoint;
+import io.gravitee.repository.management.model.EntrypointReferenceType;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -62,7 +61,8 @@ public class EntrypointRepositoryMock extends AbstractRepositoryMock<EntrypointR
         final Set<Entrypoint> entrypointsAfterDelete = newSet(entrypoint, entrypoint2);
         final Set<Entrypoint> entrypointsAfterAdd = newSet(entrypoint, entrypoint2, mock(Entrypoint.class), mock(Entrypoint.class));
 
-        when(entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION)).thenReturn(entrypoints, entrypointsAfterAdd, entrypoints, entrypointsAfterDelete, entrypoints);
+        when(entrypointRepository.findByReference("DEFAULT", EntrypointReferenceType.ORGANIZATION))
+            .thenReturn(entrypoints, entrypointsAfterAdd, entrypoints, entrypointsAfterDelete, entrypoints);
 
         when(entrypointRepository.create(any(Entrypoint.class))).thenReturn(entrypoint);
 

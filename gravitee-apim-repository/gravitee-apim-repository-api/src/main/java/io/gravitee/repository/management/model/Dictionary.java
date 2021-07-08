@@ -25,7 +25,9 @@ import java.util.Map;
 public class Dictionary {
 
     public enum AuditEvent implements Audit.ApiAuditEvent {
-        DICTIONARY_CREATED, DICTIONARY_UPDATED, DICTIONARY_DELETED
+        DICTIONARY_CREATED,
+        DICTIONARY_UPDATED,
+        DICTIONARY_DELETED,
     }
 
     /**
@@ -37,7 +39,7 @@ public class Dictionary {
      * The ID of the environment the dictionary is attached to
      */
     private String environmentId;
-    
+
     /**
      * Dictionary name
      */

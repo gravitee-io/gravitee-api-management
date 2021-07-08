@@ -24,94 +24,106 @@ import java.util.Objects;
  */
 public class PageRevision {
 
-	private String pageId;
-	private int revision;
-	private String name;
-	private String hash;
-	private String content;
-	private String contributor;
-	private Date createdAt;
+    private String pageId;
+    private int revision;
+    private String name;
+    private String hash;
+    private String content;
+    private String contributor;
+    private Date createdAt;
 
-	public String getPageId() {
-		return pageId;
-	}
+    public String getPageId() {
+        return pageId;
+    }
 
-	public void setPageId(String pageId) {
-		this.pageId = pageId;
-	}
+    public void setPageId(String pageId) {
+        this.pageId = pageId;
+    }
 
-	public int getRevision() {
-		return revision;
-	}
+    public int getRevision() {
+        return revision;
+    }
 
-	public void setRevision(int revision) {
-		this.revision = revision;
-	}
+    public void setRevision(int revision) {
+        this.revision = revision;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getHash() {
-		return hash;
-	}
+    public String getHash() {
+        return hash;
+    }
 
-	public void setHash(String hash) {
-		this.hash = hash;
-	}
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public String getContributor() {
-		return contributor;
-	}
+    public String getContributor() {
+        return contributor;
+    }
 
-	public void setContributor(String contributor) {
-		this.contributor = contributor;
-	}
+    public void setContributor(String contributor) {
+        this.contributor = contributor;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		PageRevision page = (PageRevision) o;
-		return Objects.equals(pageId, page.pageId) && Objects.equals(revision, page.revision);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PageRevision page = (PageRevision) o;
+        return Objects.equals(pageId, page.pageId) && Objects.equals(revision, page.revision);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(pageId, revision);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(pageId, revision);
+    }
 
-	@Override
-	public String toString() {
-		return "Page{" +
-				"pageId='" + pageId + '\'' +
-				", revision=" + revision +
-				", name='" + name + '\'' +
-				", content='" + content + '\'' +
-				", hash='" + hash + '\'' +
-				", createdAt=" + createdAt +
-				", contributor=" + contributor +
-				'}';
-	}
-
+    @Override
+    public String toString() {
+        return (
+            "Page{" +
+            "pageId='" +
+            pageId +
+            '\'' +
+            ", revision=" +
+            revision +
+            ", name='" +
+            name +
+            '\'' +
+            ", content='" +
+            content +
+            '\'' +
+            ", hash='" +
+            hash +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", contributor=" +
+            contributor +
+            '}'
+        );
+    }
 }

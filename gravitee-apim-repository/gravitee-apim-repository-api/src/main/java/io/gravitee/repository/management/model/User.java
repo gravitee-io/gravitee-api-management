@@ -23,8 +23,15 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class User {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        USER_CREATED, USER_UPDATED, USER_CONNECTED, PASSWORD_RESET, PASSWORD_CHANGED, USER_CONFIRMED, USER_REJECTED;
+        USER_CREATED,
+        USER_UPDATED,
+        USER_CONNECTED,
+        PASSWORD_RESET,
+        PASSWORD_CHANGED,
+        USER_CONFIRMED,
+        USER_REJECTED,
     }
 
     /**
@@ -101,8 +108,7 @@ public class User {
 
     private Boolean newsletterSubscribed;
 
-    public User() {
-    }
+    public User() {}
 
     public User(User cloned) {
         this.id = cloned.id;
@@ -279,5 +285,4 @@ public class User {
         sb.append('}');
         return sb.toString();
     }
-
 }

@@ -25,7 +25,6 @@ import io.gravitee.repository.healthcheck.query.log.ExtendedLog;
  * @author GraviteeSource Team
  */
 public interface HealthCheckRepository {
-
     <T extends Response> T query(Query<T> query) throws AnalyticsException;
 
     ExtendedLog findById(String logId) throws AnalyticsException;

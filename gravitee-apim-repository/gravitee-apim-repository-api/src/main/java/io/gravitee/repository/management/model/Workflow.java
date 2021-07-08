@@ -23,9 +23,13 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Workflow {
+
     public enum AuditEvent implements Audit.ApiAuditEvent {
-        API_REVIEW_ASKED, API_REVIEW_ACCEPTED, API_REVIEW_REJECTED
+        API_REVIEW_ASKED,
+        API_REVIEW_ACCEPTED,
+        API_REVIEW_REJECTED,
     }
+
     private String id;
     private String referenceType;
     private String referenceId;
@@ -114,15 +118,31 @@ public class Workflow {
 
     @Override
     public String toString() {
-        return "Workflow{" +
-                "id='" + id + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", type='" + type + '\'' +
-                ", state=" + state +
-                ", comment='" + comment + '\'' +
-                ", user='" + user + '\'' +
-                ", createdAt=" + createdAt +
-                '}';
+        return (
+            "Workflow{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", type='" +
+            type +
+            '\'' +
+            ", state=" +
+            state +
+            ", comment='" +
+            comment +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            '}'
+        );
     }
 }

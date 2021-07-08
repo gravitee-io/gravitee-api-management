@@ -15,13 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.page;
 
-import java.util.List;
-
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
-
+import java.util.List;
 import java.util.List;
 
 /**
@@ -30,10 +28,9 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface PageMongoRepositoryCustom {
+    List<PageMongo> search(PageCriteria criteria);
 
-	List<PageMongo> search(PageCriteria criteria);
-	
-	int findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, String referenceType);
+    int findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, String referenceType);
 
-	Page<PageMongo> findAll(Pageable pageable);
+    Page<PageMongo> findAll(Pageable pageable);
 }

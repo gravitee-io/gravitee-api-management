@@ -15,15 +15,14 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.PortalNotificationRepository;
-import io.gravitee.repository.management.model.PortalNotification;
-
-import java.util.Date;
-import java.util.Optional;
-
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.PortalNotificationRepository;
+import io.gravitee.repository.management.model.PortalNotification;
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,12 +46,13 @@ public class PortalNotificationRepositoryMock extends AbstractRepositoryMock<Por
         when(portalNotificationRepository.create(any(PortalNotification.class))).thenReturn(notificationCreated);
 
         //delete
-        when(portalNotificationRepository.findByUser(eq("notif-userId-toDelete"))).thenReturn(
+        when(portalNotificationRepository.findByUser(eq("notif-userId-toDelete")))
+            .thenReturn(
                 singletonList(mock(PortalNotification.class)),
                 emptyList(),
                 singletonList(mock(PortalNotification.class)),
                 emptyList()
-        );
+            );
 
         //findByUserId
         final PortalNotification notificationFindByUsername = new PortalNotification();
@@ -61,9 +61,10 @@ public class PortalNotificationRepositoryMock extends AbstractRepositoryMock<Por
         notificationFindByUsername.setMessage("notif-message-findByUserId");
         notificationFindByUsername.setUser("notif-userId-findByUserId");
         notificationFindByUsername.setCreatedAt(new Date(1439022010883L));
-        when(portalNotificationRepository.findByUser(eq("notif-userId-findByUserId"))).thenReturn(singletonList(notificationFindByUsername));
+        when(portalNotificationRepository.findByUser(eq("notif-userId-findByUserId")))
+            .thenReturn(singletonList(notificationFindByUsername));
         when(portalNotificationRepository.findByUser(eq("unknown"))).thenReturn(emptyList());
-        
+
         final PortalNotification notificationFindById = new PortalNotification();
         notificationFindById.setId("notif-findById");
         notificationFindById.setTitle("notif-title-findById");
@@ -71,6 +72,5 @@ public class PortalNotificationRepositoryMock extends AbstractRepositoryMock<Por
         notificationFindById.setUser("notif-userId-findById");
         notificationFindById.setCreatedAt(new Date(1439022010883L));
         when(portalNotificationRepository.findById(eq("notif-findById"))).thenReturn(Optional.ofNullable(notificationFindById));
-
     }
 }

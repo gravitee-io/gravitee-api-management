@@ -84,12 +84,14 @@ public class Organization {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Organization that = (Organization) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(hrids, that.hrids) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(domainRestrictions, that.domainRestrictions) &&
-                Objects.equals(flowMode, that.flowMode);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(hrids, that.hrids) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(domainRestrictions, that.domainRestrictions) &&
+            Objects.equals(flowMode, that.flowMode)
+        );
     }
 
     @Override
@@ -99,12 +101,22 @@ public class Organization {
 
     @Override
     public String toString() {
-        return "Organization{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", domainRestrictions=" + domainRestrictions +
-                '}';
+        return (
+            "Organization{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hrids=" +
+            hrids +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", domainRestrictions=" +
+            domainRestrictions +
+            '}'
+        );
     }
 }

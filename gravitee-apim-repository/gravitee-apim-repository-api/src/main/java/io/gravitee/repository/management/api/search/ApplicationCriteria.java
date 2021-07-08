@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import io.gravitee.repository.management.model.ApplicationStatus;
+import static java.util.Arrays.asList;
 
+import io.gravitee.repository.management.model.ApplicationStatus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -62,10 +61,12 @@ public class ApplicationCriteria {
         if (this == o) return true;
         if (!(o instanceof ApplicationCriteria)) return false;
         ApplicationCriteria that = (ApplicationCriteria) o;
-        return Objects.equals(ids, that.ids) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(environmentIds, that.environmentIds) &&
-                Objects.equals(status, that.status);
+        return (
+            Objects.equals(ids, that.ids) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(environmentIds, that.environmentIds) &&
+            Objects.equals(status, that.status)
+        );
     }
 
     @Override
@@ -74,6 +75,7 @@ public class ApplicationCriteria {
     }
 
     public static class Builder {
+
         private List<String> ids;
         private String name;
         private List<String> environmentIds;

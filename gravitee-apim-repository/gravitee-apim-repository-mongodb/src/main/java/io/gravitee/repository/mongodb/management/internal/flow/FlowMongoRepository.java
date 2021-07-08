@@ -15,13 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.flow;
 
-
 import io.gravitee.repository.mongodb.management.internal.model.FlowMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -29,7 +27,6 @@ import java.util.List;
  */
 @Repository
 public interface FlowMongoRepository extends MongoRepository<FlowMongo, String> {
-
     @Query(value = "{ 'referenceType': ?0, 'referenceId': {$in: ?1} }", sort = "{referenceId: -1, order: -1}")
     List<FlowMongo> findAll(String referenceType, String... referenceIds);
 

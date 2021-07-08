@@ -20,7 +20,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -31,7 +30,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface UserRepository extends CrudRepository<User, String> {
-
     /**
      * Find a {@link User} by its source and user ID.
      *
@@ -43,16 +41,16 @@ public interface UserRepository extends CrudRepository<User, String> {
     Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException;
 
     /**
-	 * Find a {@link User} by its email.
-	 *
-	 * @param email The email to search
-	 * @param organizationId The organization the user belongs to
-	 * @return
-	 * @throws TechnicalException
-	 */
-	Optional<User> findByEmail(String email, String organizationId) throws TechnicalException;
+     * Find a {@link User} by its email.
+     *
+     * @param email The email to search
+     * @param organizationId The organization the user belongs to
+     * @return
+     * @throws TechnicalException
+     */
+    Optional<User> findByEmail(String email, String organizationId) throws TechnicalException;
 
-	/**
+    /**
      * Find a list of {@link User} by IDs
      *
      * @param ids Identifier of the searched users

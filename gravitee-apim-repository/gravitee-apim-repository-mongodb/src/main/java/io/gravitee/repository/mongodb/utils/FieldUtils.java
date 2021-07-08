@@ -24,16 +24,13 @@ import org.apache.commons.lang3.StringUtils;
 public class FieldUtils {
 
     public static String toCamelCase(String field) {
-
         if (StringUtils.isEmpty(field)) {
             return field;
         }
 
         String result = field;
-        while(result.contains("_")) {
-            result = result.replaceFirst(
-                    "_[a-z]",
-                    String.valueOf(Character.toUpperCase(result.charAt(result.indexOf("_") + 1))));
+        while (result.contains("_")) {
+            result = result.replaceFirst("_[a-z]", String.valueOf(Character.toUpperCase(result.charAt(result.indexOf("_") + 1))));
         }
         return result;
     }

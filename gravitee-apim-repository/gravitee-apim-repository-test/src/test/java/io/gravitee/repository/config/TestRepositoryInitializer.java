@@ -16,7 +16,6 @@
 package io.gravitee.repository.config;
 
 public interface TestRepositoryInitializer {
-
     void setUp();
 
     void tearDown();

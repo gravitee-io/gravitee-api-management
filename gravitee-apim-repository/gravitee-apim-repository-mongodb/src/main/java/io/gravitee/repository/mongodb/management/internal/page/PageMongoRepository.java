@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.page;
 
+import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -26,5 +25,4 @@ import io.gravitee.repository.mongodb.management.internal.model.PageMongo;
  * @author GraviteeSource Team
  */
 @Repository
-public interface PageMongoRepository extends MongoRepository<PageMongo, String>, PageMongoRepositoryCustom {
-}
+public interface PageMongoRepository extends MongoRepository<PageMongo, String>, PageMongoRepositoryCustom {}

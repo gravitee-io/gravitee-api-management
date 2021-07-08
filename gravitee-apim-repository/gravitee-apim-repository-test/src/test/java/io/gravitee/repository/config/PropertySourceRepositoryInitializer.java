@@ -33,7 +33,7 @@ public class PropertySourceRepositoryInitializer implements ApplicationContextIn
 
     private final Logger logger = LoggerFactory.getLogger(PropertySourceRepositoryInitializer.class);
 
-    private final static String REPOSITORY_PROPERTY_SOURCE = "repository.properties";
+    private static final String REPOSITORY_PROPERTY_SOURCE = "repository.properties";
 
     @Override
     public void initialize(ConfigurableApplicationContext configurableApplicationContext) {

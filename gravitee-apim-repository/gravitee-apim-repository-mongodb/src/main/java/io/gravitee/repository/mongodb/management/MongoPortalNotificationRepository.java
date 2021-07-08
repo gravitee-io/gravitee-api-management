@@ -23,14 +23,13 @@ import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationMongo;
 import io.gravitee.repository.mongodb.management.internal.notification.PortalNotificationMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -50,10 +49,7 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     @Override
     public List<PortalNotification> findByUser(String user) throws TechnicalException {
         LOGGER.debug("Find notifications by user: {}", user);
-        return internalRepo.findByUser(user).
-                stream().
-                map(n -> mapper.map(n, PortalNotification.class)).
-                collect(Collectors.toList());
+        return internalRepo.findByUser(user).stream().map(n -> mapper.map(n, PortalNotification.class)).collect(Collectors.toList());
     }
 
     @Override
@@ -62,9 +58,11 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
         PortalNotificationMongo portalNotificationMongo = internalRepo.findById(id).orElse(null);
         return Optional.ofNullable(mapPortalNotification(portalNotificationMongo));
     }
-    private PortalNotification mapPortalNotification(PortalNotificationMongo portalNotificationMongo){
+
+    private PortalNotification mapPortalNotification(PortalNotificationMongo portalNotificationMongo) {
         return (portalNotificationMongo == null) ? null : mapper.map(portalNotificationMongo, PortalNotification.class);
     }
+
     @Override
     public PortalNotification create(PortalNotification item) throws TechnicalException {
         LOGGER.debug("Create notification : {}", item);
@@ -74,7 +72,10 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     @Override
     public void create(List<PortalNotification> notifications) throws TechnicalException {
         LOGGER.debug("Create notifications : {}", notifications);
-        List<PortalNotificationMongo> notificationMongos = notifications.stream().map(n -> mapper.map(n, PortalNotificationMongo.class)).collect(Collectors.toList());
+        List<PortalNotificationMongo> notificationMongos = notifications
+            .stream()
+            .map(n -> mapper.map(n, PortalNotificationMongo.class))
+            .collect(Collectors.toList());
         internalRepo.insert(notificationMongos);
     }
 
@@ -83,7 +84,6 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
         LOGGER.debug("Delete notification : {}", id);
         internalRepo.deleteById(id);
     }
-
 
     @Override
     public void deleteAll(String user) throws TechnicalException {

@@ -1,4 +1,4 @@
-package io.gravitee.repository.management.api; /**
+package io.gravitee.repository.management.api;/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +14,9 @@ package io.gravitee.repository.management.api; /**
  * limitations under the License.
  */
 
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-
 import java.util.List;
 
 /**
@@ -26,7 +24,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface FlowRepository extends CrudRepository<Flow, String> {
-
     List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException;
 
     void deleteByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException;

@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryTest {
 
@@ -112,8 +111,7 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
         cfg.setUpdatedAt(new Date(1439022010883L));
         cfg.setCreatedAt(new Date(1439022010883L));
 
-        Optional<GenericNotificationConfig> optNotificationFound =
-                genericNotificationConfigRepository.findById("notif-to-find");
+        Optional<GenericNotificationConfig> optNotificationFound = genericNotificationConfigRepository.findById("notif-to-find");
 
         assertTrue(optNotificationFound.isPresent());
         GenericNotificationConfig notificationFound = optNotificationFound.get();
@@ -129,18 +127,17 @@ public class GenericNotificationConfigRepositoryTest extends AbstractRepositoryT
 
     @Test
     public void shouldNotFoundById() throws Exception {
-        Optional<GenericNotificationConfig> optNotificationFound =
-                genericNotificationConfigRepository.findById("notifierId-unknown");
+        Optional<GenericNotificationConfig> optNotificationFound = genericNotificationConfigRepository.findById("notifierId-unknown");
         assertFalse(optNotificationFound.isPresent());
-
     }
 
     @Test
     public void shouldFindByHookAndReference() throws Exception {
         List<GenericNotificationConfig> configs = genericNotificationConfigRepository.findByReferenceAndHook(
-                "B",
-                NotificationReferenceType.APPLICATION,
-                "search");
+            "B",
+            NotificationReferenceType.APPLICATION,
+            "search"
+        );
 
         assertEquals("size", 2, configs.size());
         List<String> userIds = configs.stream().map(GenericNotificationConfig::getNotifier).collect(Collectors.toList());

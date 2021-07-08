@@ -20,5 +20,8 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum MetadataReferenceType {
-    DEFAULT, API, APPLICATION, USER
+    DEFAULT,
+    API,
+    APPLICATION,
+    USER,
 }

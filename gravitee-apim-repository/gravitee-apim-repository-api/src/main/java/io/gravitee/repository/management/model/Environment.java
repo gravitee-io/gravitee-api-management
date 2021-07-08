@@ -30,7 +30,7 @@ public class Environment {
     private String description;
     private String organizationId;
     private List<String> domainRestrictions;
-    
+
     public String getId() {
         return id;
     }
@@ -84,12 +84,14 @@ public class Environment {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Environment that = (Environment) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(hrids, that.hrids) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(organizationId, that.organizationId) &&
-                Objects.equals(domainRestrictions, that.domainRestrictions);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(hrids, that.hrids) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(organizationId, that.organizationId) &&
+            Objects.equals(domainRestrictions, that.domainRestrictions)
+        );
     }
 
     @Override
@@ -99,13 +101,25 @@ public class Environment {
 
     @Override
     public String toString() {
-        return "Environment{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", organizationId='" + organizationId + '\'' +
-                ", domainRestrictions=" + domainRestrictions +
-                '}';
+        return (
+            "Environment{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hrids=" +
+            hrids +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", domainRestrictions=" +
+            domainRestrictions +
+            '}'
+        );
     }
 }

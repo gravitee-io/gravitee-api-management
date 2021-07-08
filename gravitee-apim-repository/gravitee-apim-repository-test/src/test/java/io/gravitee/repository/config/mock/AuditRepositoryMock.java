@@ -15,12 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.AuditRepository;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Plan;
-
-import java.util.Date;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -29,6 +23,11 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.management.api.AuditRepository;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Plan;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,39 +58,40 @@ public class AuditRepositoryMock extends AbstractRepositoryMock<AuditRepository>
         final Audit searchable2 = mock(Audit.class);
         when(searchable2.getId()).thenReturn("searchable2");
         //shouldSearchWithPagination
-        when(auditRepository.search(
-                argThat(o -> o != null && o.getReferences() != null && !o.getReferences().isEmpty()
-                ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 2));
+        when(auditRepository.search(argThat(o -> o != null && o.getReferences() != null && !o.getReferences().isEmpty()), any()))
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 2));
         //shouldSearchWithEvent
-        when(auditRepository.search(
-                argThat(o -> o != null && o.getEvents() != null && o.getEvents().get(0).equals(Plan.AuditEvent.PLAN_UPDATED.name())
-                ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 1));
+        when(
+            auditRepository.search(
+                argThat(o -> o != null && o.getEvents() != null && o.getEvents().get(0).equals(Plan.AuditEvent.PLAN_UPDATED.name())),
+                any()
+            )
+        )
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 1));
         //shouldSearchAll
-        when(auditRepository.search(
-                argThat(o -> o != null && (o.getEvents() == null || o.getEvents().isEmpty()) && (o.getReferences() == null || o.getReferences().isEmpty())
-                ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(
-                        asList(searchable2, newAudit, searchable1),
-                        0,
-                        3,
-                        3));
+        when(
+            auditRepository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        (o.getEvents() == null || o.getEvents().isEmpty()) &&
+                        (o.getReferences() == null || o.getReferences().isEmpty())
+                ),
+                any()
+            )
+        )
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(asList(searchable2, newAudit, searchable1), 0, 3, 3));
         //shouldSearchFromTo
-        when(auditRepository.search(
-                argThat(o -> o != null && o.getFrom() > 0 && o.getTo() > 0
-                ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 1));
+        when(auditRepository.search(argThat(o -> o != null && o.getFrom() > 0 && o.getTo() > 0), any()))
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(searchable2), 0, 1, 1));
         //shouldSearchFrom
-        when(auditRepository.search(
-                argThat(o -> o != null && o.getFrom() > 0 && o.getTo() == 0
-                ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 0, 2, 3),
-                        new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 1, 1, 3));
+        when(auditRepository.search(argThat(o -> o != null && o.getFrom() > 0 && o.getTo() == 0), any()))
+            .thenReturn(
+                new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 0, 2, 3),
+                new io.gravitee.common.data.domain.Page<>(asList(mock(Audit.class), mock(Audit.class), mock(Audit.class)), 1, 1, 3)
+            );
         //shouldSearchTo
-        when(auditRepository.search(
-                argThat(o -> o != null && o.getFrom() == 0 && o.getTo() > 0
-                ), any())).
-                thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(mock(Audit.class)), 0, 1, 1));
+        when(auditRepository.search(argThat(o -> o != null && o.getFrom() == 0 && o.getTo() > 0), any()))
+            .thenReturn(new io.gravitee.common.data.domain.Page<>(singletonList(mock(Audit.class)), 0, 1, 1));
     }
 }

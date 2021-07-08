@@ -18,9 +18,8 @@ package io.gravitee.repository.mongodb.management.mapper;
 import com.github.dozermapper.core.util.DozerClassLoader;
 import com.github.dozermapper.core.util.MappingUtils;
 import com.github.dozermapper.core.util.ResourceLoader;
-import org.apache.commons.lang3.ClassUtils;
-
 import java.net.URL;
+import org.apache.commons.lang3.ClassUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

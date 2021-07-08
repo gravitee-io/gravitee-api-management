@@ -20,15 +20,14 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AlertEventMongo;
+import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,9 +62,7 @@ public class AlertEventMongoRepositoryImpl implements AlertEventMongoRepositoryC
         List<AlertEventMongo> events = mongoTemplate.find(query, AlertEventMongo.class);
         long total = mongoTemplate.count(query, AlertEventMongo.class);
 
-        return new Page<>(
-                events, (pageable != null) ? pageable.pageNumber() : 0,
-                events.size(), total);
+        return new Page<>(events, (pageable != null) ? pageable.pageNumber() : 0, events.size(), total);
     }
 
     @Override

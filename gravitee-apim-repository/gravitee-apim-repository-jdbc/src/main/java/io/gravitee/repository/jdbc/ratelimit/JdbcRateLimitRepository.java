@@ -15,9 +15,14 @@
  */
 package io.gravitee.repository.jdbc.ratelimit;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.reactivex.Single;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +36,6 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.util.function.Supplier;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 /**
  *
@@ -54,29 +53,50 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
     private final TransactionTemplate transactionTemplate;
 
     private String buildInsertStatement() {
-        return "insert into " + TABLE_NAME + " (" +
-                escapeReservedWord("key") +
-                " , counter " +
-                " , " + escapeReservedWord("limit") + " " +
-                " , subscription " +
-                " , reset_time " +
-                " ) values (?,  ? ,  ?,  ?,  ?)";
+        return (
+            "insert into " +
+            TABLE_NAME +
+            " (" +
+            escapeReservedWord("key") +
+            " , counter " +
+            " , " +
+            escapeReservedWord("limit") +
+            " " +
+            " , subscription " +
+            " , reset_time " +
+            " ) values (?,  ? ,  ?,  ?,  ?)"
+        );
     }
 
     private String buildUpdateStatement() {
-        return "update " + TABLE_NAME + " set " +
-                " counter = ? " +
-                " , " + escapeReservedWord("limit") + " = ? " +
-                " , reset_time = ? " +
-                " where " + escapeReservedWord("key") + " = ?";
+        return (
+            "update " +
+            TABLE_NAME +
+            " set " +
+            " counter = ? " +
+            " , " +
+            escapeReservedWord("limit") +
+            " = ? " +
+            " , reset_time = ? " +
+            " where " +
+            escapeReservedWord("key") +
+            " = ?"
+        );
     }
 
     private String buildSelectStatement() {
-        return "select " +
-                escapeReservedWord("key") +
-                ", counter, " + escapeReservedWord("limit") + ", subscription, reset_time"
-                + " from " + TABLE_NAME
-                + " where " + escapeReservedWord("key") + " = ?";
+        return (
+            "select " +
+            escapeReservedWord("key") +
+            ", counter, " +
+            escapeReservedWord("limit") +
+            ", subscription, reset_time" +
+            " from " +
+            TABLE_NAME +
+            " where " +
+            escapeReservedWord("key") +
+            " = ?"
+        );
     }
 
     private final String INSERT_SQL;
@@ -84,8 +104,9 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
     private final String SELECT_SQL;
 
     public JdbcRateLimitRepository(
-            @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager,
-            @Value("${ratelimit.jdbc.prefix:}") String tablePrefix) {
+        @Autowired @Qualifier("graviteeTransactionManager") PlatformTransactionManager transactionManager,
+        @Value("${ratelimit.jdbc.prefix:}") String tablePrefix
+    ) {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
 
         this.transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
@@ -100,49 +121,54 @@ public class JdbcRateLimitRepository implements RateLimitRepository<RateLimit> {
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
         LOGGER.debug("JdbcRateLimitRepository.incrementAndGet({}, {}, {})", key, weight, supplier);
 
-        return transactionTemplate.execute(new TransactionCallback<Single<RateLimit>>() {
+        return transactionTemplate.execute(
+            new TransactionCallback<Single<RateLimit>>() {
+                @Override
+                public Single<RateLimit> doInTransaction(TransactionStatus transactionStatus) {
+                    try {
+                        RateLimit rate = jdbcTemplate.query(SELECT_SQL, MAPPER, key);
 
-            @Override
-            public Single<RateLimit> doInTransaction(TransactionStatus transactionStatus) {
-                try {
-                    RateLimit rate = jdbcTemplate.query(SELECT_SQL, MAPPER, key);
+                        if (rate == null || rate.getResetTime() < System.currentTimeMillis()) {
+                            rate = supplier.get();
+                        }
 
-                    if (rate == null || rate.getResetTime() < System.currentTimeMillis()) {
-                        rate = supplier.get();
+                        rate.setCounter(rate.getCounter() + weight);
+
+                        final RateLimit fRate = rate;
+
+                        final int nbUpdatedElements = jdbcTemplate.update(
+                            (Connection cnctn) -> {
+                                PreparedStatement stmt = cnctn.prepareStatement(UPDATE_SQL);
+                                stmt.setLong(1, fRate.getCounter());
+                                stmt.setLong(2, fRate.getLimit());
+                                stmt.setLong(3, fRate.getResetTime());
+                                stmt.setString(4, fRate.getKey());
+                                return stmt;
+                            }
+                        );
+
+                        if (nbUpdatedElements == 0) {
+                            jdbcTemplate.update(
+                                (Connection cnctn) -> {
+                                    PreparedStatement stmt = cnctn.prepareStatement(INSERT_SQL);
+                                    stmt.setString(1, fRate.getKey());
+                                    stmt.setLong(2, fRate.getCounter());
+                                    stmt.setLong(3, fRate.getLimit());
+                                    stmt.setString(4, fRate.getSubscription());
+                                    stmt.setLong(5, fRate.getResetTime());
+                                    return stmt;
+                                }
+                            );
+                        }
+
+                        return Single.just(rate);
+                    } catch (Exception ex) {
+                        transactionStatus.setRollbackOnly();
+                        return Single.error(ex);
                     }
-
-                    rate.setCounter(rate.getCounter() + weight);
-
-                    final RateLimit fRate = rate;
-
-                    final int nbUpdatedElements = jdbcTemplate.update((Connection cnctn) -> {
-                        PreparedStatement stmt = cnctn.prepareStatement(UPDATE_SQL);
-                        stmt.setLong(1, fRate.getCounter());
-                        stmt.setLong(2, fRate.getLimit());
-                        stmt.setLong(3, fRate.getResetTime());
-                        stmt.setString(4, fRate.getKey());
-                        return stmt;
-                    });
-
-                    if (nbUpdatedElements == 0) {
-                        jdbcTemplate.update((Connection cnctn) -> {
-                            PreparedStatement stmt = cnctn.prepareStatement(INSERT_SQL);
-                            stmt.setString(1, fRate.getKey());
-                            stmt.setLong(2, fRate.getCounter());
-                            stmt.setLong(3, fRate.getLimit());
-                            stmt.setString(4, fRate.getSubscription());
-                            stmt.setLong(5, fRate.getResetTime());
-                            return stmt;
-                        });
-                    }
-
-                    return Single.just(rate);
-                } catch (Exception ex) {
-                    transactionStatus.setRollbackOnly();
-                    return Single.error(ex);
                 }
             }
-        });
+        );
     }
 
     private static final ResultSetExtractor<RateLimit> MAPPER = rs -> {

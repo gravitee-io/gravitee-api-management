@@ -60,7 +60,6 @@ class PageableImpl implements Pageable {
 
         if (pageSize != pageable.pageSize) return false;
         return pageNumber == pageable.pageNumber;
-
     }
 
     @Override

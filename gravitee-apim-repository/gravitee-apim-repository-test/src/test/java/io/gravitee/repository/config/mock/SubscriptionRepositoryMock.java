@@ -15,14 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.api.search.SubscriptionCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
-import io.gravitee.repository.management.model.Subscription;
-
-import java.util.Collections;
-import java.util.Date;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.Optional.empty;
@@ -31,6 +23,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.Subscription;
+import java.util.Collections;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -71,27 +70,15 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
         final Subscription sub4 = new Subscription();
         sub4.setId("sub4");
 
-        when(subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
-                        .plans(singleton("plan1"))
-                        .build()))
-                .thenReturn(singletonList(sub1));
-        when(subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
-                        .plans(singleton("unknown-plan"))
-                        .build()))
-                .thenReturn(Collections.emptyList());
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().plans(singleton("plan1")).build()))
+            .thenReturn(singletonList(sub1));
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().plans(singleton("unknown-plan")).build()))
+            .thenReturn(Collections.emptyList());
 
-        when(subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
-                        .applications(singleton("app1"))
-                        .build()))
-                .thenReturn(asList(sub3, sub4, sub1));
-        when(subscriptionRepository.search(
-                new SubscriptionCriteria.Builder()
-                        .applications(singleton("unknown-app"))
-                        .build()))
-                .thenReturn(Collections.emptyList());
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().applications(singleton("app1")).build()))
+            .thenReturn(asList(sub3, sub4, sub1));
+        when(subscriptionRepository.search(new SubscriptionCriteria.Builder().applications(singleton("unknown-app")).build()))
+            .thenReturn(Collections.emptyList());
 
         when(subscriptionRepository.findById("sub1")).thenReturn(of(sub1));
         when(subscriptionRepository.findById("unknown-sub")).thenReturn(empty());
@@ -100,15 +87,19 @@ public class SubscriptionRepositoryMock extends AbstractRepositoryMock<Subscript
 
         when(subscriptionRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
-        when(subscriptionRepository.search(eq(new SubscriptionCriteria.Builder()
-            .from(1469022010883L)
-            .build())))
+        when(subscriptionRepository.search(eq(new SubscriptionCriteria.Builder().from(1469022010883L).build())))
             .thenReturn(asList(sub3, sub1));
 
-        when(subscriptionRepository.search(
-            argThat(subscriptionCriteria -> subscriptionCriteria.getTo() == 1569022010883L ||
-                subscriptionCriteria.getEndingAtAfter() == 1449022010880L ||
-                subscriptionCriteria.getEndingAtBefore() == 1569022010883L)))
+        when(
+            subscriptionRepository.search(
+                argThat(
+                    subscriptionCriteria ->
+                        subscriptionCriteria.getTo() == 1569022010883L ||
+                        subscriptionCriteria.getEndingAtAfter() == 1449022010880L ||
+                        subscriptionCriteria.getEndingAtBefore() == 1569022010883L
+                )
+            )
+        )
             .thenReturn(singletonList(sub1));
 
         when(subscriptionRepository.search(any(), eq(new PageableBuilder().pageNumber(0).pageSize(2).build())))

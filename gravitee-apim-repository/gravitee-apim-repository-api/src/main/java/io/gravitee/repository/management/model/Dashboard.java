@@ -23,8 +23,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Dashboard {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        DASHBOARD_CREATED, DASHBOARD_UPDATED, DASHBOARD_DELETED
+        DASHBOARD_CREATED,
+        DASHBOARD_UPDATED,
+        DASHBOARD_DELETED,
     }
 
     private String id;
@@ -133,17 +136,35 @@ public class Dashboard {
 
     @Override
     public String toString() {
-        return "Dashboard{" +
-                "id='" + id + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", name='" + name + '\'' +
-                ", queryFilter='" + queryFilter + '\'' +
-                ", definition='" + definition + '\'' +
-                ", order=" + order +
-                ", enabled=" + enabled +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "Dashboard{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", queryFilter='" +
+            queryFilter +
+            '\'' +
+            ", definition='" +
+            definition +
+            '\'' +
+            ", order=" +
+            order +
+            ", enabled=" +
+            enabled +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

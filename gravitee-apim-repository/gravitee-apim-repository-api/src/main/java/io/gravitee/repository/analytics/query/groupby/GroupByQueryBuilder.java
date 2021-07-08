@@ -50,7 +50,7 @@ public class GroupByQueryBuilder extends AbstractQueryBuilder<GroupByQueryBuilde
     }
 
     public GroupByQueryBuilder range(int from, int to) {
-        query.groups().add(ValueRangeBuilder.range((double)from, (double)to));
+        query.groups().add(ValueRangeBuilder.range((double) from, (double) to));
         return this;
     }
 

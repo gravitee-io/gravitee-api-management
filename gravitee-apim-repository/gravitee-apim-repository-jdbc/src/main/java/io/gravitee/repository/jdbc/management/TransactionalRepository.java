@@ -22,5 +22,4 @@ import org.springframework.transaction.annotation.Transactional;
  * @author GraviteeSource Team
  */
 @Transactional(value = "graviteeTransactionManager")
-public class TransactionalRepository {
-}
+public class TransactionalRepository {}

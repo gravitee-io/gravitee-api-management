@@ -16,10 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.EntrypointReferenceType;
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -28,74 +27,86 @@ import java.util.Objects;
 @Document(collection = "entrypoints")
 public class EntrypointMongo {
 
-	@Id
-	private String id;
-	private String value;
-	private String tags;
-	private String referenceId;
-	private EntrypointReferenceType referenceType;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String value;
+    private String tags;
+    private String referenceId;
+    private EntrypointReferenceType referenceType;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getValue() {
-		return value;
-	}
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public String getTags() {
-		return tags;
-	}
+    public String getTags() {
+        return tags;
+    }
 
-	public void setTags(String tags) {
-		this.tags = tags;
-	}
+    public void setTags(String tags) {
+        this.tags = tags;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public EntrypointReferenceType getReferenceType() {
-		return referenceType;
-	}
+    public EntrypointReferenceType getReferenceType() {
+        return referenceType;
+    }
 
-	public void setReferenceType(EntrypointReferenceType referenceType) {
-		this.referenceType = referenceType;
-	}
+    public void setReferenceType(EntrypointReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof EntrypointMongo)) return false;
-		EntrypointMongo that = (EntrypointMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EntrypointMongo)) return false;
+        EntrypointMongo that = (EntrypointMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "EntrypointMongo{" +
-				"id='" + id + '\'' +
-				", value='" + value + '\'' +
-				", tags='" + tags + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", referenceType=" + referenceType +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "EntrypointMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", value='" +
+            value +
+            '\'' +
+            ", tags='" +
+            tags +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            '}'
+        );
+    }
 }

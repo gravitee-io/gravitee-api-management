@@ -17,12 +17,11 @@ package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.repository.management.model.TenantReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.TenantMongo;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.util.Lazy;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,10 +29,7 @@ import java.util.Optional;
  */
 @Repository
 public interface TenantMongoRepository extends MongoRepository<TenantMongo, String> {
-
     Optional<TenantMongo> findByIdAndReferenceIdAndReferenceType(String tenantId, String referenceId, TenantReferenceType referenceType);
 
     List<TenantMongo> findByReferenceIdAndReferenceType(String referenceId, TenantReferenceType referenceType);
 }
-
-

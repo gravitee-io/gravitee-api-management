@@ -20,7 +20,6 @@ package io.gravitee.repository.management.api.search;
  * @author GraviteeSource Team
  */
 public interface Pageable {
-
     /**
      * Number of elements you want to retrieve.
      * @return Number of elements you want to retrieve.

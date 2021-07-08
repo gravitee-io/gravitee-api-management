@@ -19,10 +19,9 @@ import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,8 +32,7 @@ public class HttpDictionaryRepository extends AbstractRepository implements Dict
 
     @Override
     public Set<Dictionary> findAll() throws TechnicalException {
-        return blockingGet(get("/dictionaries", BodyCodecs.set(Dictionary.class))
-                .send()).payload();
+        return blockingGet(get("/dictionaries", BodyCodecs.set(Dictionary.class)).send()).payload();
     }
 
     @Override

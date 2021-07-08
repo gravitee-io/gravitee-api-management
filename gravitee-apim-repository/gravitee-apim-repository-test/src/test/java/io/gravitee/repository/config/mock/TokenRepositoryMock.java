@@ -15,13 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.TokenRepository;
-import io.gravitee.repository.management.model.Token;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -29,6 +22,12 @@ import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.TokenRepository;
+import io.gravitee.repository.management.model.Token;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,15 +82,11 @@ public class TokenRepositoryMock extends AbstractRepositoryMock<TokenRepository>
         final List<Token> tokens = asList(token, token2);
         final List<Token> tokensAfterDelete = singletonList(token);
 
-        when(tokenRepository.findAll())
-                .thenReturn(newSet(token, token2, mock(Token.class), mock(Token.class)));
+        when(tokenRepository.findAll()).thenReturn(newSet(token, token2, mock(Token.class), mock(Token.class)));
 
-        when(tokenRepository.findByReference("USER", "123"))
-                .thenReturn(tokens, tokensAfterDelete, tokens);
-        when(tokenRepository.findByReference("USER", "456"))
-                .thenReturn(emptyList(), singletonList(createdToken));
-        when(tokenRepository.findByReference("USER", "token_to_delete"))
-                .thenReturn(singletonList(mock(Token.class)), emptyList());
+        when(tokenRepository.findByReference("USER", "123")).thenReturn(tokens, tokensAfterDelete, tokens);
+        when(tokenRepository.findByReference("USER", "456")).thenReturn(emptyList(), singletonList(createdToken));
+        when(tokenRepository.findByReference("USER", "token_to_delete")).thenReturn(singletonList(mock(Token.class)), emptyList());
 
         when(tokenRepository.create(any(Token.class))).thenReturn(createdToken);
 

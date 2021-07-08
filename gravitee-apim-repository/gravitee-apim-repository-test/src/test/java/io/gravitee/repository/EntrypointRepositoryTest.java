@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.repository.management.model.EntrypointReferenceType;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class EntrypointRepositoryTest extends AbstractRepositoryTest {
 
@@ -84,7 +83,6 @@ public class EntrypointRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved entrypoint.", entrypoint, optionalUpdated.get());
         assertEquals("Invalid saved value.", "New value", optionalUpdated.get().getValue());
         assertEquals("Invalid saved tags.", "New tags", optionalUpdated.get().getTags());
-
     }
 
     @Test

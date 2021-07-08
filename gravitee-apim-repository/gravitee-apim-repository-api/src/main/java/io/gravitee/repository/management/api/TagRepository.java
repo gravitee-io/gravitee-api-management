@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,8 +25,7 @@ import java.util.Set;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TagRepository extends CrudRepository<Tag, String>{
-
+public interface TagRepository extends CrudRepository<Tag, String> {
     Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException;
 
     Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) throws TechnicalException;

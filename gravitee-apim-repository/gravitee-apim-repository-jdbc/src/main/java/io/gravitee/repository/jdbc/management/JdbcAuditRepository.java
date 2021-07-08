@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
+import static java.lang.String.format;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -22,22 +26,17 @@ import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Audit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
 import java.util.Map.Entry;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
-import static java.lang.String.format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.stereotype.Repository;
 
 /**
  *
@@ -48,7 +47,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcAuditRepository.class);
     private final String AUDIT_PROPERTIES;
-    
+
     JdbcAuditRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "audits");
         AUDIT_PROPERTIES = getTableNameFor("audit_properties");
@@ -56,17 +55,18 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     @Override
     protected JdbcObjectMapper<Audit> buildOrm() {
-        return JdbcObjectMapper.builder(Audit.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("reference_id", Types.NVARCHAR, String.class)
-                .addColumn("reference_type", Types.NVARCHAR, Audit.AuditReferenceType.class)
-                .addColumn("user", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("event", Types.NVARCHAR, String.class)
-                .addColumn("patch", Types.NVARCHAR, String.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Audit.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, Audit.AuditReferenceType.class)
+            .addColumn("user", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("event", Types.NVARCHAR, String.class)
+            .addColumn("patch", Types.NVARCHAR, String.class)
+            .build();
     }
-    
+
     private static final JdbcHelper.ChildAdder<Audit> CHILD_ADDER = (Audit parent, ResultSet rs) -> {
         Map<String, String> properties = parent.getProperties();
         if (properties == null) {
@@ -82,10 +82,15 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
     public Optional<Audit> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcAuditRepository.findById({})", id);
         try {
-            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(getOrm().getSelectAllSql() + " a left join " + AUDIT_PROPERTIES + " ap on a.id = ap.audit_id where a.id = ?"
-                    , rowMapper
-                    , id
+            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER,
+                "id"
+            );
+            jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " a left join " + AUDIT_PROPERTIES + " ap on a.id = ap.audit_id where a.id = ?",
+                rowMapper,
+                id
             );
             Optional<Audit> result = rowMapper.getRows().stream().findFirst();
             LOGGER.debug("JdbcAuditRepository.findById({}) = {}", id, result);
@@ -94,7 +99,6 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             LOGGER.error("Failed to find audit by id:", ex);
             throw new TechnicalException("Failed to find audit by id", ex);
         }
-        
     }
 
     @Override
@@ -119,7 +123,8 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         try {
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(audit, audit.getId()));
             storeProperties(audit, true);
-            return findById(audit.getId()).orElseThrow(() -> new IllegalStateException(format("No audit found with id [%s]", audit.getId())));
+            return findById(audit.getId())
+                .orElseThrow(() -> new IllegalStateException(format("No audit found with id [%s]", audit.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -133,46 +138,62 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         jdbcTemplate.update("delete from " + AUDIT_PROPERTIES + " where audit_id = ?", id);
         jdbcTemplate.update(getOrm().getDeleteSql(), id);
     }
-    
+
     private void storeProperties(Audit audit, boolean deleteFirst) {
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + AUDIT_PROPERTIES + " where audit_id = ?", audit.getId());
         }
         if (audit.getProperties() != null && !audit.getProperties().isEmpty()) {
             List<Map.Entry<String, String>> entries = new ArrayList<>(audit.getProperties().entrySet());
-            jdbcTemplate.batchUpdate("insert into " + AUDIT_PROPERTIES + " ( audit_id, " + escapeReservedWord("key") + ", value ) values ( ?, ?, ? )"
-                    , new BatchPreparedStatementSetter() {
-                @Override
-                public void setValues(PreparedStatement ps, int i) throws SQLException {
-                    ps.setString(1, audit.getId());
-                    ps.setString(2, entries.get(i).getKey());
-                    ps.setString(3, entries.get(i).getValue());
-                }
+            jdbcTemplate.batchUpdate(
+                "insert into " + AUDIT_PROPERTIES + " ( audit_id, " + escapeReservedWord("key") + ", value ) values ( ?, ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, audit.getId());
+                        ps.setString(2, entries.get(i).getKey());
+                        ps.setString(3, entries.get(i).getValue());
+                    }
 
-                @Override
-                public int getBatchSize() {
-                    return entries.size();
+                    @Override
+                    public int getBatchSize() {
+                        return entries.size();
+                    }
                 }
-            });
+            );
         }
     }
-    
+
     private String criteriaToString(AuditCriteria filter) {
-        return "{ " + "from: " + filter.getFrom() +
-                ", " + "to: " + filter.getTo() +
-                ", " + "references: " + filter.getReferences() +
-                ", " + "props: " + filter.getProperties() +
-                ", " + "events: " + filter.getEvents() +
-                " }";
+        return (
+            "{ " +
+            "from: " +
+            filter.getFrom() +
+            ", " +
+            "to: " +
+            filter.getTo() +
+            ", " +
+            "references: " +
+            filter.getReferences() +
+            ", " +
+            "props: " +
+            filter.getProperties() +
+            ", " +
+            "events: " +
+            filter.getEvents() +
+            " }"
+        );
     }
-    
+
     @Override
     public Page<Audit> search(AuditCriteria filter, Pageable page) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("JdbcEventRepository.search({}, {})", criteriaToString(filter), page);
         }
         final List<Object> argsList = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder(getOrm().getSelectAllSql() + " a left join " + AUDIT_PROPERTIES + " ap on a.id = ap.audit_id ");
+        final StringBuilder builder = new StringBuilder(
+            getOrm().getSelectAllSql() + " a left join " + AUDIT_PROPERTIES + " ap on a.id = ap.audit_id "
+        );
         boolean started = false;
         if (filter.getFrom() > 0) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
@@ -191,9 +212,9 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         addStringsWhereClause(filter.getEvents(), "event", argsList, builder, started);
 
         builder.append(" order by created_at desc ");
-        
+
         String sql = builder.toString();
-        
+
         LOGGER.debug("argsList = {}", argsList);
         Object[] args = argsList.toArray();
         LOGGER.debug("SQL: {}", sql);
@@ -201,20 +222,21 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         for (int i = 0; i < args.length; ++i) {
             LOGGER.debug("args[{}] = {} {}", i, args[i], args[i].getClass());
         }
-        
+
         List<Audit> audits;
         try {
-            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
-            jdbcTemplate.query(sql
-                    , rowMapper
-                    , args
+            JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(
+                getOrm().getRowMapper(),
+                CHILD_ADDER,
+                "id"
             );
+            jdbcTemplate.query(sql, rowMapper, args);
             audits = rowMapper.getRows();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find audit records:", ex);
             throw new IllegalStateException("Failed to find audit records", ex);
         }
-        
+
         LOGGER.debug("audit records found ({}): {}", audits.size(), audits);
 
         return getResultAsPage(page, audits);

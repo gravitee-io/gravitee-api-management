@@ -19,10 +19,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -57,7 +56,8 @@ public class HttpTenantRepository extends AbstractRepository implements TenantRe
     }
 
     @Override
-    public Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType) throws TechnicalException {
+    public Optional<Tenant> findByIdAndReference(String tenantId, String referenceId, TenantReferenceType referenceType)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 }

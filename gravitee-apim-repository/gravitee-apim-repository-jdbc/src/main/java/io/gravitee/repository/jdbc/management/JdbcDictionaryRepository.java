@@ -19,6 +19,15 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 import static java.lang.String.format;
 
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.jdbc.orm.JdbcColumn;
+import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import io.gravitee.repository.management.api.DictionaryRepository;
+import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryProvider;
+import io.gravitee.repository.management.model.DictionaryTrigger;
+import io.gravitee.repository.management.model.DictionaryType;
+import io.gravitee.repository.management.model.LifecycleState;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -33,7 +42,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,16 +49,6 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.jdbc.orm.JdbcColumn;
-import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
-import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryProvider;
-import io.gravitee.repository.management.model.DictionaryTrigger;
-import io.gravitee.repository.management.model.DictionaryType;
-import io.gravitee.repository.management.model.LifecycleState;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -70,17 +68,18 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
 
     @Override
     protected JdbcObjectMapper<Dictionary> buildOrm() {
-        return JdbcObjectMapper.builder(Dictionary.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("environment_id", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .addColumn("type", Types.NVARCHAR, DictionaryType.class)
-                .addColumn("state", Types.NVARCHAR, LifecycleState.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Dictionary.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, DictionaryType.class)
+            .addColumn("state", Types.NVARCHAR, LifecycleState.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("deployed_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     private static final JdbcHelper.ChildAdder<Dictionary> CHILD_ADDER = (Dictionary parent, ResultSet rs) -> {
@@ -93,7 +92,6 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             properties.put(rs.getString("k"), rs.getString("v"));
         }
     };
-
 
     private class Rm implements RowMapper<Dictionary> {
 
@@ -240,20 +238,22 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         }
         if (dictionary.getProperties() != null && !dictionary.getProperties().isEmpty()) {
             List<Map.Entry<String, String>> entries = new ArrayList<>(dictionary.getProperties().entrySet());
-            jdbcTemplate.batchUpdate("insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v ) values ( ?, ?, ? )"
-                    , new BatchPreparedStatementSetter() {
-                        @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setString(1, dictionary.getId());
-                            ps.setString(2, entries.get(i).getKey());
-                            ps.setString(3, entries.get(i).getValue());
-                        }
+            jdbcTemplate.batchUpdate(
+                "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v ) values ( ?, ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, dictionary.getId());
+                        ps.setString(2, entries.get(i).getKey());
+                        ps.setString(3, entries.get(i).getValue());
+                    }
 
-                        @Override
-                        public int getBatchSize() {
-                            return entries.size();
-                        }
-                    });
+                    @Override
+                    public int getBatchSize() {
+                        return entries.size();
+                    }
+                }
+            );
         }
     }
 
@@ -262,9 +262,10 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         LOGGER.debug("JdbcDictionaryRepository.findById({})", id);
         try {
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query(getOrm().getSelectAllSql() + " d left join " + DICTIONARY_PROPERTY + " dp on d.id = dp.dictionary_id where d.id = ?"
-                    , rowMapper
-                    , id
+            jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " d left join " + DICTIONARY_PROPERTY + " dp on d.id = dp.dictionary_id where d.id = ?",
+                rowMapper,
+                id
             );
             Optional<Dictionary> result = rowMapper.getRows().stream().findFirst();
             LOGGER.debug("JdbcDictionaryRepository.findById({}) = {}", id, result);
@@ -303,8 +304,8 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         try {
             jdbcTemplate.update(buildUpdatePreparedStatementCreator(dictionary));
             storeProperties(dictionary, true);
-            return findById(dictionary.getId()).orElseThrow(() ->
-                    new IllegalStateException(format("No dictionary found with id [%s]", dictionary.getId())));
+            return findById(dictionary.getId())
+                .orElseThrow(() -> new IllegalStateException(format("No dictionary found with id [%s]", dictionary.getId())));
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {
@@ -317,22 +318,20 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
     public Set<Dictionary> findAllByEnvironments(Set<String> environments) throws TechnicalException {
         LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironments({})", environments);
         try {
-
             if (CollectionUtils.isEmpty(environments)) {
                 return findAll();
             }
 
             final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
-                    .append(" d")
-                    .append(" left join ").append(DICTIONARY_PROPERTY).append(" dp on d.id = dp.dictionary_id");
+                .append(" d")
+                .append(" left join ")
+                .append(DICTIONARY_PROPERTY)
+                .append(" dp on d.id = dp.dictionary_id");
 
             getOrm().buildInCondition(true, query, "d.environment_id", environments);
 
             JdbcHelper.CollatingRowMapper<Dictionary> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
-            jdbcTemplate.query(query.toString(),
-                    (PreparedStatement ps) -> getOrm().setArguments(ps, environments, 1),
-                    rowMapper
-            );
+            jdbcTemplate.query(query.toString(), (PreparedStatement ps) -> getOrm().setArguments(ps, environments, 1), rowMapper);
             Set<Dictionary> result = new HashSet<>(rowMapper.getRows());
             LOGGER.debug("JdbcDictionaryRepository.findAllByEnvironments({}) = {}", environments, result);
             return result;

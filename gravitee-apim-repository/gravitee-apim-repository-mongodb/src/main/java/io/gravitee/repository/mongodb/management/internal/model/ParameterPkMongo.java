@@ -30,8 +30,7 @@ public class ParameterPkMongo implements Serializable {
     private String referenceId;
     private String referenceType;
 
-    public ParameterPkMongo() {
-    }
+    public ParameterPkMongo() {}
 
     public ParameterPkMongo(String key, String referenceId, String referenceType) {
         this.key = key;
@@ -68,9 +67,7 @@ public class ParameterPkMongo implements Serializable {
         if (this == o) return true;
         if (!(o instanceof ParameterPkMongo)) return false;
         ParameterPkMongo that = (ParameterPkMongo) o;
-        return Objects.equals(key, that.key) &&
-                Objects.equals(referenceId, that.referenceId) &&
-                referenceType == that.referenceType;
+        return Objects.equals(key, that.key) && Objects.equals(referenceId, that.referenceId) && referenceType == that.referenceType;
     }
 
     @Override
@@ -80,10 +77,8 @@ public class ParameterPkMongo implements Serializable {
 
     @Override
     public String toString() {
-        return "ParameterPkMongo{" +
-                "key='" + key + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType=" + referenceType +
-                '}';
+        return (
+            "ParameterPkMongo{" + "key='" + key + '\'' + ", referenceId='" + referenceId + '\'' + ", referenceType=" + referenceType + '}'
+        );
     }
 }

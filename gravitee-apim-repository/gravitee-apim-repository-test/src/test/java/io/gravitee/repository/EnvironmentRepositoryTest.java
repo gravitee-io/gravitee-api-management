@@ -15,20 +15,18 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Environment;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.Assert.*;
-import static org.mockito.internal.util.collections.Sets.newSet;
-
 import org.junit.Assert;
 import org.junit.Test;
-
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Environment;
 import org.mockito.internal.util.collections.Sets;
 
 public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
@@ -60,7 +58,7 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
         assertEquals(2, domainRestrictions.size());
         assertTrue(domainRestrictions.contains("domain"));
         assertTrue(domainRestrictions.contains("restriction"));
-        
+
         Optional<Environment> optional = environmentRepository.findById("DEFAULT-create");
         Assert.assertTrue("Environment to create not found", optional.isPresent());
     }
@@ -76,7 +74,7 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
 
         final Environment fetchedEnvironment = environmentRepository.update(env);
         assertEquals(env.getName(), fetchedEnvironment.getName());
-        
+
         optional = environmentRepository.findById("DEFAULT-update");
         Assert.assertTrue("Environment to update not found", optional.isPresent());
     }
@@ -95,13 +93,13 @@ public class EnvironmentRepositoryTest extends AbstractRepositoryTest {
         Optional<Environment> optional = environmentRepository.findById("DEFAULT-findById");
         Assert.assertTrue("Environment to find not found", optional.isPresent());
     }
-    
+
     @Test
     public void shouldFindAll() throws Exception {
         Set<Environment> allEnvironments = environmentRepository.findAll();
         Assert.assertTrue("No environment found", !allEnvironments.isEmpty());
     }
-    
+
     @Test
     public void shouldFindByOrganization() throws Exception {
         Set<Environment> orgEnvironments = environmentRepository.findByOrganization("DEFAULT-ORG");

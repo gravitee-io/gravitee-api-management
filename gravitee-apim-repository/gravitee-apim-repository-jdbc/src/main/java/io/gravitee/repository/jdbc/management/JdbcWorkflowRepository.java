@@ -15,20 +15,19 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.model.Workflow;
+import java.sql.Types;
+import java.util.Date;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
-import java.util.Date;
-import java.util.List;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -45,7 +44,8 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
 
     @Override
     protected JdbcObjectMapper<Workflow> buildOrm() {
-        return JdbcObjectMapper.builder(Workflow.class, this.tableName, "id")
+        return JdbcObjectMapper
+            .builder(Workflow.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
@@ -63,11 +63,20 @@ public class JdbcWorkflowRepository extends JdbcAbstractCrudRepository<Workflow,
     }
 
     @Override
-    public List<Workflow> findByReferenceAndType(final String referenceType, final String referenceId, final String type) throws TechnicalException {
+    public List<Workflow> findByReferenceAndType(final String referenceType, final String referenceId, final String type)
+        throws TechnicalException {
         LOGGER.debug("JdbcWorkflowRepository.findByReferenceAndType({}, {}, {})", referenceType, referenceId, type);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ? and "
-                    + escapeReservedWord("type") + " = ? order by created_at desc", getOrm().getRowMapper(), referenceType, referenceId, type);
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                " where reference_type = ? and reference_id = ? and " +
+                escapeReservedWord("type") +
+                " = ? order by created_at desc",
+                getOrm().getRowMapper(),
+                referenceType,
+                referenceId,
+                type
+            );
         } catch (final Exception ex) {
             final String message = "Failed to find workflows by reference";
             LOGGER.error(message, ex);

@@ -16,6 +16,9 @@
 package io.gravitee.repository.redis.common;
 
 import io.lettuce.core.internal.HostAndPort;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
@@ -28,10 +31,6 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration.LettucePoolingClientConfigurationBuilder;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,7 +62,9 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
             List<HostAndPort> sentinelNodes = getSentinelNodes();
             String redisMaster = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "master", String.class);
             if (StringUtils.isBlank(redisMaster)) {
-                throw new IllegalStateException("Incorrect Sentinel configuration : parameter '" + SENTINEL_PARAMETER_PREFIX + "master' is mandatory !");
+                throw new IllegalStateException(
+                    "Incorrect Sentinel configuration : parameter '" + SENTINEL_PARAMETER_PREFIX + "master' is mandatory !"
+                );
             }
 
             RedisSentinelConfiguration sentinelConfiguration = new RedisSentinelConfiguration();
@@ -71,7 +72,9 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
             // Parsing and registering nodes
             sentinelNodes.forEach(hostAndPort -> sentinelConfiguration.sentinel(hostAndPort.getHostText(), hostAndPort.getPort()));
             // Sentinel Password
-            sentinelConfiguration.setSentinelPassword(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "password", String.class));
+            sentinelConfiguration.setSentinelPassword(
+                readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "password", String.class)
+            );
             // Redis Password
             sentinelConfiguration.setPassword(readPropertyValue(propertyPrefix + "password", String.class));
 
@@ -117,7 +120,11 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
 
     private List<HostAndPort> getSentinelNodes() {
         final List<HostAndPort> nodes = new ArrayList<>();
-        for (int idx = 0; StringUtils.isNotBlank(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class)); idx++) {
+        for (
+            int idx = 0;
+            StringUtils.isNotBlank(readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class));
+            idx++
+        ) {
             String host = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].host", String.class);
             int port = readPropertyValue(propertyPrefix + SENTINEL_PARAMETER_PREFIX + "nodes[" + idx + "].port", int.class);
             nodes.add(HostAndPort.of(host, port));
@@ -145,5 +152,4 @@ public class RedisConnectionFactory implements FactoryBean<org.springframework.d
         builder.poolConfig(poolConfig);
         return builder.build();
     }
-
 }

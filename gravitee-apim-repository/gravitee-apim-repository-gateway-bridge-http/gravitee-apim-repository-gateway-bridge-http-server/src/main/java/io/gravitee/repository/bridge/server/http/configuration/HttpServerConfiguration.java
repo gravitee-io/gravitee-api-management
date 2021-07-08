@@ -74,7 +74,7 @@ public class HttpServerConfiguration {
 
     @Value("${services.bridge.http.maxChunkSize:8192}")
     private int maxChunkSize;
-    
+
     public boolean isEnabled() {
         return enabled;
     }
@@ -100,11 +100,11 @@ public class HttpServerConfiguration {
     }
 
     public String getAuthenticationType() {
-      return authenticationType;
+        return authenticationType;
     }
 
     public void setAuthenticationType(String authenticationType) {
-      this.authenticationType = authenticationType;
+        this.authenticationType = authenticationType;
     }
 
     public boolean isSecured() {

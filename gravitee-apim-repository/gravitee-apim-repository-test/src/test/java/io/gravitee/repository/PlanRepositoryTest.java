@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Plan;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.*;
-
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Plan;
+import java.util.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -89,10 +88,14 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         assertNull(planOAuth2.get().getClosedAt());
         assertEquals(emptyList(), planOAuth2.get().getCharacteristics());
         assertEquals("7c546c6b-2f2f-4487-946c-6b2f2f648784", planOAuth2.get().getExcludedGroups().get(0));
-        assertEquals("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
-                planOAuth2.get().getSecurityDefinition());
-        assertEquals("{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
-                planOAuth2.get().getDefinition());
+        assertEquals(
+            "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}",
+            planOAuth2.get().getSecurityDefinition()
+        );
+        assertEquals(
+            "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}",
+            planOAuth2.get().getDefinition()
+        );
         assertEquals("#context.attributes['jwt'].claims['iss'] == 'toto'", planOAuth2.get().getSelectionRule());
     }
 
@@ -167,7 +170,9 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setPublishedAt(parse("13/02/2016"));
         plan.setClosedAt(parse("14/02/2016"));
         plan.setSecurity(Plan.PlanSecurityType.OAUTH2);
-        plan.setSecurityDefinition("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+        plan.setSecurityDefinition(
+            "{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}"
+        );
         plan.setCommentRequired(true);
 
         planRepository.create(plan);

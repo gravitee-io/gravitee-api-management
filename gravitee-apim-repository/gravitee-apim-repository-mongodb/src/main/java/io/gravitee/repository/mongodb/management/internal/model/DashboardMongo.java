@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -27,104 +26,121 @@ import java.util.Objects;
 @Document(collection = "dashboards")
 public class DashboardMongo extends Auditable {
 
-	@Id
-	private String id;
-	private String referenceType;
-	private String referenceId;
-	private String name;
-	private String queryFilter;
-	private String definition;
-	private int order;
-	private boolean enabled;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String referenceType;
+    private String referenceId;
+    private String name;
+    private String queryFilter;
+    private String definition;
+    private int order;
+    private boolean enabled;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getReferenceType() {
-		return referenceType;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setReferenceType(String referenceType) {
-		this.referenceType = referenceType;
-	}
+    public String getReferenceType() {
+        return referenceType;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getQueryFilter() {
-		return queryFilter;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setQueryFilter(String queryFilter) {
-		this.queryFilter = queryFilter;
-	}
+    public String getQueryFilter() {
+        return queryFilter;
+    }
 
-	public String getDefinition() {
-		return definition;
-	}
+    public void setQueryFilter(String queryFilter) {
+        this.queryFilter = queryFilter;
+    }
 
-	public void setDefinition(String definition) {
-		this.definition = definition;
-	}
+    public String getDefinition() {
+        return definition;
+    }
 
-	public int getOrder() {
-		return order;
-	}
+    public void setDefinition(String definition) {
+        this.definition = definition;
+    }
 
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    public int getOrder() {
+        return order;
+    }
 
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		DashboardMongo that = (DashboardMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DashboardMongo that = (DashboardMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public String toString() {
-		return "DashboardMongo{" +
-				"id='" + id + '\'' +
-				", referenceType='" + referenceType + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", name='" + name + '\'' +
-				", queryFilter='" + queryFilter + '\'' +
-				", definition='" + definition + '\'' +
-				", order=" + order +
-				", enabled=" + enabled +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "DashboardMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", queryFilter='" +
+            queryFilter +
+            '\'' +
+            ", definition='" +
+            definition +
+            '\'' +
+            ", order=" +
+            order +
+            ", enabled=" +
+            enabled +
+            '}'
+        );
+    }
 }

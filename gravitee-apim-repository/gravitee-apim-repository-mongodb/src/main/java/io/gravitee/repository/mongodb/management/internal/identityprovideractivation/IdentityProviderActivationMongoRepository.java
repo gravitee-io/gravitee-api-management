@@ -17,18 +17,18 @@ package io.gravitee.repository.mongodb.management.internal.identityprovideractiv
 
 import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderActivationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderActivationPkMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface IdentityProviderActivationMongoRepository extends MongoRepository<IdentityProviderActivationMongo, IdentityProviderActivationPkMongo> {
+public interface IdentityProviderActivationMongoRepository
+    extends MongoRepository<IdentityProviderActivationMongo, IdentityProviderActivationPkMongo> {
     @Query("{ '_id.identityProviderId': ?0 }")
     List<IdentityProviderActivationMongo> findAllByIdentityProviderId(String identityProviderId);
 
@@ -41,6 +41,3 @@ public interface IdentityProviderActivationMongoRepository extends MongoReposito
     @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1 }", delete = true)
     void deleteByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }
-
-
-

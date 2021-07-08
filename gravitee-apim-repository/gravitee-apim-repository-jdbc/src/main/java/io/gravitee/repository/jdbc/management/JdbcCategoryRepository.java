@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.CategoryRepository;
 import io.gravitee.repository.management.model.Category;
+import java.sql.Types;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
-import java.util.*;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
 /**
  *
@@ -44,30 +43,32 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
 
     @Override
     protected JdbcObjectMapper<Category> buildOrm() {
-        return JdbcObjectMapper.builder(Category.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("environment_id", Types.NVARCHAR, String.class)
-                .addColumn("key", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .addColumn("hidden", Types.BIT, boolean.class)
-                .addColumn("order", Types.INTEGER, int.class)
-                .addColumn("highlight_api", Types.NVARCHAR, String.class)
-                .addColumn("picture", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .addColumn("background", Types.NVARCHAR, String.class)
-                .addColumn("page", Types.NVARCHAR, String.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Category.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("key", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("hidden", Types.BIT, boolean.class)
+            .addColumn("order", Types.INTEGER, int.class)
+            .addColumn("highlight_api", Types.NVARCHAR, String.class)
+            .addColumn("picture", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("background", Types.NVARCHAR, String.class)
+            .addColumn("page", Types.NVARCHAR, String.class)
+            .build();
     }
 
     @Override
     public Set<Category> findAllByEnvironment(String environmentId) throws TechnicalException {
         LOGGER.debug("JdbcCategoryRepository.findAllByEnvironment({})", environmentId);
         try {
-            List<Category> categories = jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?"
-                    , getOrm().getRowMapper()
-                    , environmentId
+            List<Category> categories = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where environment_id = ?",
+                getOrm().getRowMapper(),
+                environmentId
             );
             return new HashSet<>(categories);
         } catch (final Exception ex) {
@@ -80,10 +81,7 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
     public Optional<Category> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcCategoryRepository.findById({})", id);
         try {
-            List<Category> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?"
-                    , getOrm().getRowMapper()
-                    , id
-            );
+            List<Category> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where id = ?", getOrm().getRowMapper(), id);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find categories items by id : {} ", id, ex);
@@ -110,42 +108,50 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
             throw new IllegalStateException("Unable to update null item");
         }
         try {
-            int rows = jdbcTemplate.update("update " + this.tableName + " set "
-                                        + " id = ?"
-                                        + " , environment_id = ?"
-                                        + " , " + escapeReservedWord("key") + " = ?"
-                                        + " , name = ?"
-                                        + " , description = ?"
-                                        + " , hidden = ?"
-                                        + " , " + escapeReservedWord("order") + " = ?"
-                                        + " , highlight_api = ?"
-                                        + " , picture = ?"
-                                        + " , background = ?"
-                                        + " , page = ?"
-                                        + " , created_at = ? "
-                                        + " , updated_at = ? "
-                                        + " where "
-                                        + " id = ? "
-                                        + " and environment_id = ? "
-
-                                , item.getId()
-                                , item.getEnvironmentId()
-                                , item.getKey()
-                                , item.getName()
-                                , item.getDescription()
-                                , item.isHidden()
-                                , item.getOrder()
-                                , item.getHighlightApi()
-                                , item.getPicture()
-                                , item.getBackground()
-                                , item.getPage()
-                                , item.getCreatedAt()
-                                , item.getUpdatedAt()
-                                , item.getId()
-                                , item.getEnvironmentId()
-                        );
+            int rows = jdbcTemplate.update(
+                "update " +
+                this.tableName +
+                " set " +
+                " id = ?" +
+                " , environment_id = ?" +
+                " , " +
+                escapeReservedWord("key") +
+                " = ?" +
+                " , name = ?" +
+                " , description = ?" +
+                " , hidden = ?" +
+                " , " +
+                escapeReservedWord("order") +
+                " = ?" +
+                " , highlight_api = ?" +
+                " , picture = ?" +
+                " , background = ?" +
+                " , page = ?" +
+                " , created_at = ? " +
+                " , updated_at = ? " +
+                " where " +
+                " id = ? " +
+                " and environment_id = ? ",
+                item.getId(),
+                item.getEnvironmentId(),
+                item.getKey(),
+                item.getName(),
+                item.getDescription(),
+                item.isHidden(),
+                item.getOrder(),
+                item.getHighlightApi(),
+                item.getPicture(),
+                item.getBackground(),
+                item.getPage(),
+                item.getCreatedAt(),
+                item.getUpdatedAt(),
+                item.getId(),
+                item.getEnvironmentId()
+            );
             if (rows == 0) {
-                throw new IllegalStateException("Unable to update categories " + item.getId() + " for the environment " + item.getEnvironmentId());
+                throw new IllegalStateException(
+                    "Unable to update categories " + item.getId() + " for the environment " + item.getEnvironmentId()
+                );
             } else {
                 return findById(item.getId()).orElse(null);
             }
@@ -166,7 +172,6 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
             LOGGER.error("Failed to delete categories item:", ex);
             throw new TechnicalException("Failed to delete categories item", ex);
         }
-        
     }
 
     @Override
@@ -180,14 +185,20 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
             throw new TechnicalException("Failed to find all categories items", ex);
         }
     }
-    
+
     @Override
     public Optional<Category> findByKey(String key, String environment) throws TechnicalException {
         LOGGER.debug("JdbcCategoryRepository.findByKey({},{})", key, environment);
         try {
-            final Optional<Category> category = jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and environment_id = ?", getOrm().getRowMapper(), key, environment)
-                    .stream().findFirst();
+            final Optional<Category> category = jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and environment_id = ?",
+                    getOrm().getRowMapper(),
+                    key,
+                    environment
+                )
+                .stream()
+                .findFirst();
             return category;
         } catch (final Exception ex) {
             final String error = "Failed to find category by key " + key;
@@ -200,10 +211,7 @@ public class JdbcCategoryRepository extends JdbcAbstractRepository<Category> imp
     public Set<Category> findByPage(String page) throws TechnicalException {
         LOGGER.debug("JdbcCategoryRepository.findByPage()");
         try {
-            List<Category> categories = jdbcTemplate.query(getOrm().getSelectAllSql() + " where page = ?"
-                    , getOrm().getRowMapper()
-                    , page
-            );
+            List<Category> categories = jdbcTemplate.query(getOrm().getSelectAllSql() + " where page = ?", getOrm().getRowMapper(), page);
             return new HashSet<>(categories);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find categories by page:", ex);

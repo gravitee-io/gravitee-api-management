@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,7 +57,10 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         assertEquals("OIDC-3", clientRegistrationProvider.getName());
         assertEquals("OIDC Client registration provider", clientRegistrationProvider.getDescription());
         assertEquals("http://localhost:8092/oidc/.well-known/openid-configuration", clientRegistrationProvider.getDiscoveryEndpoint());
-        assertEquals(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS, clientRegistrationProvider.getInitialAccessTokenType());
+        assertEquals(
+            ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS,
+            clientRegistrationProvider.getInitialAccessTokenType()
+        );
         assertEquals("my-client-id", clientRegistrationProvider.getClientId());
         assertEquals("my-client-secret", clientRegistrationProvider.getClientSecret());
         assertEquals(3, clientRegistrationProvider.getScopes().size());
@@ -92,15 +94,49 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         Assert.assertTrue("Client registration provider saved not found", optional.isPresent());
 
         final ClientRegistrationProvider clientRegistrationProviderSaved = optional.get();
-        Assert.assertEquals("Invalid saved client registration provider name.", clientRegistrationProvider.getName(), clientRegistrationProviderSaved.getName());
-        Assert.assertEquals("Invalid client registration provider description.", clientRegistrationProvider.getDescription(), clientRegistrationProviderSaved.getDescription());
-        Assert.assertTrue("Invalid client registration provider createdAt.", compareDate(clientRegistrationProvider.getCreatedAt(), clientRegistrationProviderSaved.getCreatedAt()));
-        Assert.assertTrue("Invalid client registration provider updatedAt.", compareDate(clientRegistrationProvider.getUpdatedAt(), clientRegistrationProviderSaved.getUpdatedAt()));
-        Assert.assertEquals("Invalid client registration provider discovery endpoint.", clientRegistrationProvider.getDiscoveryEndpoint(), clientRegistrationProviderSaved.getDiscoveryEndpoint());
-        Assert.assertEquals("Invalid client registration provider initial access token type.", clientRegistrationProvider.getInitialAccessTokenType(), clientRegistrationProviderSaved.getInitialAccessTokenType());
-        Assert.assertEquals("Invalid client registration provider client id.", clientRegistrationProvider.getClientId(), clientRegistrationProviderSaved.getClientId());
-        Assert.assertEquals("Invalid client registration provider client secret.", clientRegistrationProvider.getClientSecret(), clientRegistrationProviderSaved.getClientSecret());
-        Assert.assertEquals("Invalid client registration provider scopes.", clientRegistrationProvider.getScopes().size(), clientRegistrationProviderSaved.getScopes().size());
+        Assert.assertEquals(
+            "Invalid saved client registration provider name.",
+            clientRegistrationProvider.getName(),
+            clientRegistrationProviderSaved.getName()
+        );
+        Assert.assertEquals(
+            "Invalid client registration provider description.",
+            clientRegistrationProvider.getDescription(),
+            clientRegistrationProviderSaved.getDescription()
+        );
+        Assert.assertTrue(
+            "Invalid client registration provider createdAt.",
+            compareDate(clientRegistrationProvider.getCreatedAt(), clientRegistrationProviderSaved.getCreatedAt())
+        );
+        Assert.assertTrue(
+            "Invalid client registration provider updatedAt.",
+            compareDate(clientRegistrationProvider.getUpdatedAt(), clientRegistrationProviderSaved.getUpdatedAt())
+        );
+        Assert.assertEquals(
+            "Invalid client registration provider discovery endpoint.",
+            clientRegistrationProvider.getDiscoveryEndpoint(),
+            clientRegistrationProviderSaved.getDiscoveryEndpoint()
+        );
+        Assert.assertEquals(
+            "Invalid client registration provider initial access token type.",
+            clientRegistrationProvider.getInitialAccessTokenType(),
+            clientRegistrationProviderSaved.getInitialAccessTokenType()
+        );
+        Assert.assertEquals(
+            "Invalid client registration provider client id.",
+            clientRegistrationProvider.getClientId(),
+            clientRegistrationProviderSaved.getClientId()
+        );
+        Assert.assertEquals(
+            "Invalid client registration provider client secret.",
+            clientRegistrationProvider.getClientSecret(),
+            clientRegistrationProviderSaved.getClientSecret()
+        );
+        Assert.assertEquals(
+            "Invalid client registration provider scopes.",
+            clientRegistrationProvider.getScopes().size(),
+            clientRegistrationProviderSaved.getScopes().size()
+        );
     }
 
     @Test
@@ -126,10 +162,24 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractRepository
         Assert.assertTrue("Client registration provider to update not found", optionalUpdated.isPresent());
 
         final ClientRegistrationProvider identityProviderUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved client registration provider name.", identityProvider.getName(), identityProviderUpdated.getName());
-        Assert.assertEquals("Invalid client registration provider description.", identityProvider.getDescription(), identityProviderUpdated.getDescription());
-        Assert.assertTrue("Invalid client registration provider createdAt.", compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt()));
-        Assert.assertTrue("Invalid client registration provider updatedAt.", compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt()));
+        Assert.assertEquals(
+            "Invalid saved client registration provider name.",
+            identityProvider.getName(),
+            identityProviderUpdated.getName()
+        );
+        Assert.assertEquals(
+            "Invalid client registration provider description.",
+            identityProvider.getDescription(),
+            identityProviderUpdated.getDescription()
+        );
+        Assert.assertTrue(
+            "Invalid client registration provider createdAt.",
+            compareDate(identityProvider.getCreatedAt(), identityProviderUpdated.getCreatedAt())
+        );
+        Assert.assertTrue(
+            "Invalid client registration provider updatedAt.",
+            compareDate(identityProvider.getUpdatedAt(), identityProviderUpdated.getUpdatedAt())
+        );
     }
 
     @Test

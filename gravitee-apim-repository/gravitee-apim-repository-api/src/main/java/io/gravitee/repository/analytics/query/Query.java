@@ -22,6 +22,5 @@ import io.gravitee.repository.analytics.query.response.Response;
  * @author GraviteeSource Team
  */
 public interface Query<T extends Response> {
-
     Class<T> responseType();
 }

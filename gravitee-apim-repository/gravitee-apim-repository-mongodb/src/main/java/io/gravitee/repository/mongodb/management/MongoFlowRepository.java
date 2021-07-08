@@ -22,14 +22,13 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.mongodb.management.internal.flow.FlowMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.FlowMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -71,7 +70,8 @@ public class MongoFlowRepository implements FlowRepository {
             throw new IllegalStateException("Group must not be null");
         }
 
-        final FlowMongo flowMongo = internalRepository.findById(flow.getId())
+        final FlowMongo flowMongo = internalRepository
+            .findById(flow.getId())
             .orElseThrow(() -> new IllegalStateException(String.format("No flow found with id [%s]", flow.getId())));
 
         logger.debug("Update flow [{}]", flow.getName());

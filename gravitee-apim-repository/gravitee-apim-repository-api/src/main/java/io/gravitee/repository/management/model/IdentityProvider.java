@@ -22,7 +22,11 @@ import java.util.Objects;
 public class IdentityProvider {
 
     public enum AuditEvent implements Audit.AuditEvent {
-        IDENTITY_PROVIDER_CREATED, IDENTITY_PROVIDER_UPDATED, IDENTITY_PROVIDER_DELETED, IDENTITY_PROVIDER_ACTIVATED, IDENTITY_PROVIDER_DEACTIVATED
+        IDENTITY_PROVIDER_CREATED,
+        IDENTITY_PROVIDER_UPDATED,
+        IDENTITY_PROVIDER_DELETED,
+        IDENTITY_PROVIDER_ACTIVATED,
+        IDENTITY_PROVIDER_DEACTIVATED,
     }
 
     /**
@@ -206,13 +210,11 @@ public class IdentityProvider {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IdentityProvider that = (IdentityProvider) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(organizationId, that.organizationId);
+        return Objects.equals(id, that.id) && Objects.equals(organizationId, that.organizationId);
     }
 
     @Override
     public int hashCode() {
-
         return Objects.hash(id, organizationId);
     }
 }
