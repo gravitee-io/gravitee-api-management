@@ -35,6 +35,7 @@
     <properties>
         <gravitee-bom.version>1.1</gravitee-bom.version>
         <gravitee-node.version>1.15.1</gravitee-node.version>
+        <gravitee-api-management.version>3.10.0-SNAPSHOT</gravitee-api-management.version>
         <gravitee-common.version>1.20.1</gravitee-common.version>
         <gravitee-definition.version>1.28.0</gravitee-definition.version>
         <gravitee-plugin.version>1.18.0-SNAPSHOT</gravitee-plugin.version>
@@ -117,7 +118,7 @@
             <dependency>
                 <groupId>io.gravitee.apim.repository</groupId>
                 <artifactId>gravitee-apim-repository-api</artifactId>
-                <version>${project.version}</version>
+                <version>${gravitee-api-management.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.gravitee.common</groupId>
