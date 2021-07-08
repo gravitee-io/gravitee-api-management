@@ -16,11 +16,10 @@
 package io.gravitee.repository.jdbc.management;
 
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-
-import java.util.Objects;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -46,10 +45,12 @@ public abstract class JdbcAbstractRepository<T> extends TransactionalRepository 
     protected RowMapper<T> getRowMapper() {
         return this.orm.getRowMapper();
     }
+
     protected final String getTableNameFor(String tableName) {
         return this.prefix + tableName;
     }
+
     protected final JdbcObjectMapper<T> getOrm() {
         return orm;
-    };
+    }
 }

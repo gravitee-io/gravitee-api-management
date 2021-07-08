@@ -18,10 +18,9 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.model.ApiHeader;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -29,6 +28,7 @@ import java.util.Set;
  */
 @Component
 public class HttpApiHeaderRepository extends AbstractRepository implements ApiHeaderRepository {
+
     @Override
     public Set<ApiHeader> findAll() throws TechnicalException {
         throw new IllegalStateException();

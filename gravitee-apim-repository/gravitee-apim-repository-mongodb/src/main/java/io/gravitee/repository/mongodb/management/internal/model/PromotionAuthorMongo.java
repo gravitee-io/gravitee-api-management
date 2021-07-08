@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import java.util.Objects;
 
 public class PromotionAuthorMongo {
+
     private String userId;
     private String displayName;
     private String email;
@@ -78,7 +79,14 @@ public class PromotionAuthorMongo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionAuthorMongo that = (PromotionAuthorMongo) o;
-        return Objects.equals(userId, that.userId) && Objects.equals(displayName, that.displayName) && Objects.equals(email, that.email) && Objects.equals(picture, that.picture) && Objects.equals(source, that.source) && Objects.equals(sourceId, that.sourceId);
+        return (
+            Objects.equals(userId, that.userId) &&
+            Objects.equals(displayName, that.displayName) &&
+            Objects.equals(email, that.email) &&
+            Objects.equals(picture, that.picture) &&
+            Objects.equals(source, that.source) &&
+            Objects.equals(sourceId, that.sourceId)
+        );
     }
 
     @Override
@@ -86,4 +94,3 @@ public class PromotionAuthorMongo {
         return Objects.hash(userId, displayName, email, picture, source, sourceId);
     }
 }
-

@@ -25,7 +25,7 @@ import io.gravitee.repository.hazelcast.spring.PluginConfiguration;
  */
 public class HazelcastRepository implements Repository {
 
-    private final static String TYPE = "hazelcast";
+    private static final String TYPE = "hazelcast";
 
     @Override
     public String type() {
@@ -34,8 +34,9 @@ public class HazelcastRepository implements Repository {
 
     @Override
     public Scope[] scopes() {
-        return new Scope [] { Scope.RATE_LIMIT };
+        return new Scope[] { Scope.RATE_LIMIT };
     }
+
     @Override
     public Class<?> configuration(Scope scope) {
         if (scope == Scope.RATE_LIMIT) {

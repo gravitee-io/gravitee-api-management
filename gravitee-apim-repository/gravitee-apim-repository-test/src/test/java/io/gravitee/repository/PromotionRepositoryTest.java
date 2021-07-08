@@ -25,7 +25,6 @@ import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.*;
 import java.util.Date;
 import java.util.List;
-
 import org.junit.Test;
 
 public class PromotionRepositoryTest extends AbstractRepositoryTest {
@@ -47,7 +46,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
 
         final Promotion promotion = new Promotion();
         promotion.setId("promotion#new");
-        promotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
+        promotion.setApiDefinition(
+            "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
+        );
         promotion.setStatus(PromotionStatus.CREATED);
         promotion.setSourceEnvCockpitId("env#cockpit-1");
         promotion.setSourceEnvName("Demo");
@@ -82,7 +83,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         final Promotion expectedPromotion = new Promotion();
         expectedPromotion.setId("promotion#1");
         expectedPromotion.setApiId("api#1");
-        expectedPromotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
+        expectedPromotion.setApiDefinition(
+            "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
+        );
         expectedPromotion.setStatus(PromotionStatus.CREATED);
         expectedPromotion.setSourceEnvCockpitId("env#cockpit-1");
         expectedPromotion.setSourceEnvName("Demo");
@@ -99,7 +102,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldUpdate() throws Exception {
         Promotion storedPromotion = promotionRepository.findById("promotion#1").get();
-        storedPromotion.setApiDefinition("{\"id\" : \"anAPIID\",\"name\" : \"Product Updated\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
+        storedPromotion.setApiDefinition(
+            "{\"id\" : \"anAPIID\",\"name\" : \"Product Updated\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
+        );
 
         Promotion updatedPromotion = promotionRepository.update(storedPromotion);
         assertEquals(storedPromotion, updatedPromotion);
@@ -107,7 +112,6 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
         Promotion dbPromotion = promotionRepository.findById("promotion#1").get();
         assertEquals(storedPromotion, dbPromotion);
     }
-
 
     @Test
     public void shouldDelete() throws Exception {
@@ -124,7 +128,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchWithoutCriteria() throws Exception {
-        final List<Promotion> promotions = promotionRepository.search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        final List<Promotion> promotions = promotionRepository
+            .search(null, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 4, promotions.size());
         assertEquals("promotion#1", promotions.get(0).getId());
@@ -136,9 +142,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchWithEmptyCriteria() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().build();
-        final List<Promotion> promotions = promotionRepository.search(criteria,
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        final List<Promotion> promotions = promotionRepository
+            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 4, promotions.size());
         assertEquals("promotion#1", promotions.get(0).getId());
@@ -150,9 +156,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchWithCriteriaTargetEnvIds() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().targetEnvCockpitIds("env#cockpit-1").build();
-        final List<Promotion> promotions = promotionRepository.search(criteria,
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        final List<Promotion> promotions = promotionRepository
+            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 1, promotions.size());
         assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
@@ -161,9 +167,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchWithCriteriaStatus() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
-        final List<Promotion> promotions = promotionRepository.search(criteria,
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        final List<Promotion> promotions = promotionRepository
+            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 2, promotions.size());
         assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());
@@ -173,9 +179,13 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchWithCriteriaStatusSortByCreatedAtDesc() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
-        final List<Promotion> promotions = promotionRepository.search(criteria,
+        final List<Promotion> promotions = promotionRepository
+            .search(
+                criteria,
                 new SortableBuilder().field("created_at").order(Order.DESC).build(),
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+            )
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 2, promotions.size());
         assertEquals("promotion#to_be_validated_env_2", promotions.get(0).getId());
@@ -185,9 +195,13 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchWithCriteriaStatusPaginated() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
-        final List<Promotion> promotions = promotionRepository.search(criteria,
+        final List<Promotion> promotions = promotionRepository
+            .search(
+                criteria,
                 new SortableBuilder().field("created_at").order(Order.DESC).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()).getContent();
+                new PageableBuilder().pageNumber(0).pageSize(1).build()
+            )
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 1, promotions.size());
         assertEquals("promotion#to_be_validated_env_2", promotions.get(0).getId());
@@ -196,9 +210,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchWithCriteriaApiId() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().apiId("api#1").build();
-        final List<Promotion> promotions = promotionRepository.search(criteria,
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        final List<Promotion> promotions = promotionRepository
+            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 3, promotions.size());
         assertEquals("promotion#1", promotions.get(0).getId());
@@ -209,9 +223,9 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldSearchWithCriteriaTargetApiId() throws Exception {
         final PromotionCriteria criteria = new PromotionCriteria.Builder().targetApiExists(true).build();
-        final List<Promotion> promotions = promotionRepository.search(criteria,
-                null,
-                new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()).getContent();
+        final List<Promotion> promotions = promotionRepository
+            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
         assertNotNull(promotions);
         assertEquals("Invalid promotions numbers in search", 2, promotions.size());
         assertEquals("promotion#to_be_validated_env_1", promotions.get(0).getId());

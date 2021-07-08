@@ -25,7 +25,6 @@ import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.management.internal.promotion.PromotionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -48,12 +47,14 @@ public class MongoPromotionRepository implements PromotionRepository {
     public Optional<Promotion> findById(String id) throws TechnicalException {
         logger.debug("Find promotion by ID [{}]", id);
 
-        return internalRepository.findById(id).map(
-            promotionMongo -> {
-                logger.debug("Find promotion by ID [{}] - Done", id);
-                return map(promotionMongo);
-            }
-        );
+        return internalRepository
+            .findById(id)
+            .map(
+                promotionMongo -> {
+                    logger.debug("Find promotion by ID [{}] - Done", id);
+                    return map(promotionMongo);
+                }
+            );
     }
 
     @Override
@@ -70,11 +71,14 @@ public class MongoPromotionRepository implements PromotionRepository {
             throw new IllegalStateException("Promotion must not be null");
         }
 
-        return internalRepository.findById(promotion.getId())
-            .map((existingPromotion) -> {
-                logger.debug("Update promotion [{}]", promotion.getId());
-                return internalRepository.save(map(promotion));
-            })
+        return internalRepository
+            .findById(promotion.getId())
+            .map(
+                existingPromotion -> {
+                    logger.debug("Update promotion [{}]", promotion.getId());
+                    return internalRepository.save(map(promotion));
+                }
+            )
             .map(this::map)
             .orElseThrow(() -> new IllegalStateException(String.format("No promotion found with id [%s]", promotion.getId())));
     }

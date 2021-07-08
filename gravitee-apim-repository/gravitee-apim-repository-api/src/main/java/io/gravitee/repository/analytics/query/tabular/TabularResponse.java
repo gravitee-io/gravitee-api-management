@@ -15,9 +15,8 @@
  */
 package io.gravitee.repository.analytics.query.tabular;
 
-import io.gravitee.repository.log.model.Log;
 import io.gravitee.repository.analytics.query.response.Response;
-
+import io.gravitee.repository.log.model.Log;
 import java.util.List;
 
 /**

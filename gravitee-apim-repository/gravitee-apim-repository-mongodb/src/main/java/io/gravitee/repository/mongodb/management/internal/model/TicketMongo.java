@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Date;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -27,96 +26,109 @@ import java.util.Date;
 @Document(collection = "tickets")
 public class TicketMongo {
 
-	@Id
-	private String id;
-	private String fromUser;
-	private String api;
-	private String application;
-	private String subject;
-	private String content;
-	private Date createdAt;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String fromUser;
+    private String api;
+    private String application;
+    private String subject;
+    private String content;
+    private Date createdAt;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getFromUser() {
-		return fromUser;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setFromUser(String fromUser) {
-		this.fromUser = fromUser;
-	}
+    public String getFromUser() {
+        return fromUser;
+    }
 
-	public String getApi() {
-		return api;
-	}
+    public void setFromUser(String fromUser) {
+        this.fromUser = fromUser;
+    }
 
-	public void setApi(String api) {
-		this.api = api;
-	}
+    public String getApi() {
+        return api;
+    }
 
-	public String getApplication() {
-		return application;
-	}
+    public void setApi(String api) {
+        this.api = api;
+    }
 
-	public void setApplication(String application) {
-		this.application = application;
-	}
+    public String getApplication() {
+        return application;
+    }
 
-	public String getSubject() {
-		return subject;
-	}
+    public void setApplication(String application) {
+        this.application = application;
+    }
 
-	public void setSubject(String subject) {
-		this.subject = subject;
-	}
+    public String getSubject() {
+        return subject;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-		TicketMongo that = (TicketMongo) o;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		return id.equals(that.id);
-	}
+        TicketMongo that = (TicketMongo) o;
 
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
+        return id.equals(that.id);
+    }
 
-	@Override
-	public String toString() {
-		return "TicketMongo{" +
-				"id='" + id + '\'' +
-				", fromUser='" + fromUser + '\'' +
-				", api='" + api + '\'' +
-				", application=" + application +
-				", subject=" + subject +
-				", content=" + content +
-				", createdAt=" + createdAt +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "TicketMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", fromUser='" +
+            fromUser +
+            '\'' +
+            ", api='" +
+            api +
+            '\'' +
+            ", application=" +
+            application +
+            ", subject=" +
+            subject +
+            ", content=" +
+            content +
+            ", createdAt=" +
+            createdAt +
+            '}'
+        );
+    }
 }

@@ -16,10 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal;
 
 import io.gravitee.repository.mongodb.management.internal.model.DashboardMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -29,5 +28,3 @@ import java.util.List;
 public interface DashboardMongoRepository extends MongoRepository<DashboardMongo, String> {
     List<DashboardMongo> findByReferenceTypeOrderByOrder(String referenceType);
 }
-
-

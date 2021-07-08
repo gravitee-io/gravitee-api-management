@@ -27,11 +27,10 @@ import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,8 +41,8 @@ public class EventsHandler extends AbstractHandler {
     @Autowired
     private EventRepository eventRepository;
 
-    private final static int DEFAULT_PAGE_SIZE = 10;
-    private final static int DEFAULT_PAGE_NUMBER = 1;
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int DEFAULT_PAGE_NUMBER = 1;
 
     public void search(RoutingContext ctx) {
         final JsonObject searchPayload = ctx.getBodyAsJson();
@@ -52,33 +51,44 @@ public class EventsHandler extends AbstractHandler {
         final String sPageNumber = ctx.request().getParam("page");
 
         if (sPageNumber != null) {
-            ctx.vertx().executeBlocking(promise -> {
-                final String sPageSize = ctx.request().getParam("size");
-                int pageSize, pageNumber;
+            ctx
+                .vertx()
+                .executeBlocking(
+                    promise -> {
+                        final String sPageSize = ctx.request().getParam("size");
+                        int pageSize, pageNumber;
 
-                try {
-                    pageSize = Integer.parseInt(sPageSize);
-                } catch (NumberFormatException nfe) {
-                    pageSize = DEFAULT_PAGE_SIZE;
-                }
+                        try {
+                            pageSize = Integer.parseInt(sPageSize);
+                        } catch (NumberFormatException nfe) {
+                            pageSize = DEFAULT_PAGE_SIZE;
+                        }
 
-                try {
-                    pageNumber = Integer.parseInt(sPageNumber);
-                } catch (NumberFormatException nfe) {
-                    pageNumber = DEFAULT_PAGE_NUMBER;
-                }
+                        try {
+                            pageNumber = Integer.parseInt(sPageNumber);
+                        } catch (NumberFormatException nfe) {
+                            pageNumber = DEFAULT_PAGE_NUMBER;
+                        }
 
-                try {
-                    promise.complete(eventRepository.search(eventCriteria,
-                            new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build()));
-                } catch (Exception ex) {
-                    LOGGER.error("Unable to search for events", ex);
-                    promise.fail(ex);
-                }
-            }, (Handler<AsyncResult<Page<Event>>>) event -> handleResponse(ctx, event));
+                        try {
+                            promise.complete(
+                                eventRepository.search(
+                                    eventCriteria,
+                                    new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build()
+                                )
+                            );
+                        } catch (Exception ex) {
+                            LOGGER.error("Unable to search for events", ex);
+                            promise.fail(ex);
+                        }
+                    },
+                    (Handler<AsyncResult<Page<Event>>>) event -> handleResponse(ctx, event)
+                );
         } else {
-            ctx.vertx().executeBlocking(
-                    (Handler<Promise<List<Event>>>) promise ->  {
+            ctx
+                .vertx()
+                .executeBlocking(
+                    (Handler<Promise<List<Event>>>) promise -> {
                         try {
                             promise.complete(eventRepository.search(eventCriteria));
                         } catch (Exception ex) {
@@ -86,32 +96,43 @@ public class EventsHandler extends AbstractHandler {
                             promise.fail(ex);
                         }
                     },
-                    event -> handleResponse(ctx, event));
+                    event -> handleResponse(ctx, event)
+                );
         }
     }
 
     public void create(RoutingContext ctx) {
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                promise.complete(eventRepository.create(event));
-            } catch (Exception ex) {
-                LOGGER.error("Unable to create an event", ex);
-                promise.fail(ex);
-            }
-        }, (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event));
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                        promise.complete(eventRepository.create(event));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to create an event", ex);
+                        promise.fail(ex);
+                    }
+                },
+                (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
+            );
     }
 
     public void update(RoutingContext ctx) {
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                Event event = ctx.getBodyAsJson().mapTo(Event.class);
-                promise.complete(eventRepository.update(event));
-            } catch (Exception ex) {
-                LOGGER.error("Unable to update an event", ex);
-                promise.fail(ex);
-            }
-        }, (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event));
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        Event event = ctx.getBodyAsJson().mapTo(Event.class);
+                        promise.complete(eventRepository.update(event));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to update an event", ex);
+                        promise.fail(ex);
+                    }
+                },
+                (Handler<AsyncResult<Event>>) event -> handleResponse(ctx, event)
+            );
     }
 
     private EventCriteria readCriteria(JsonObject payload) {
@@ -129,9 +150,7 @@ public class EventsHandler extends AbstractHandler {
 
         JsonArray typesArr = payload.getJsonArray("types");
         if (typesArr != null) {
-            Set<EventType> types = typesArr.stream()
-                    .map(obj -> EventType.valueOf((String) obj))
-                    .collect(Collectors.toSet());
+            Set<EventType> types = typesArr.stream().map(obj -> EventType.valueOf((String) obj)).collect(Collectors.toSet());
 
             builder.types(types.toArray(new EventType[types.size()]));
         }

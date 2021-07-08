@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.api.search.ApiKeyCriteria.Builder;
-import io.gravitee.repository.management.model.ApiKey;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria.Builder;
+import io.gravitee.repository.management.model.ApiKey;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
@@ -61,7 +60,11 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         Assert.assertTrue("Key expiration doesn't match", compareDate(apiKey.getExpireAt(), keyFound.getExpireAt()));
         Assert.assertEquals("Key paused status doesn't match", apiKey.isPaused(), keyFound.isPaused());
         Assert.assertEquals("Key revoked status doesn't match", apiKey.isRevoked(), keyFound.isRevoked());
-        Assert.assertEquals("Days to expiration on last notification don't match", apiKey.getDaysToExpirationOnLastNotification(), keyFound.getDaysToExpirationOnLastNotification());
+        Assert.assertEquals(
+            "Days to expiration on last notification don't match",
+            apiKey.getDaysToExpirationOnLastNotification(),
+            keyFound.getDaysToExpirationOnLastNotification()
+        );
     }
 
     @Test
@@ -77,7 +80,11 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         Assert.assertNotNull("No subscription relative to the key", keyFound.getSubscription());
         Assert.assertTrue("Key paused status doesn't match", keyFound.isPaused());
         Assert.assertTrue("Key revoked status doesn't match", keyFound.isRevoked());
-        Assert.assertEquals("Days to expiration on last notification don't match", Integer.valueOf(30), keyFound.getDaysToExpirationOnLastNotification());
+        Assert.assertEquals(
+            "Days to expiration on last notification don't match",
+            Integer.valueOf(30),
+            keyFound.getDaysToExpirationOnLastNotification()
+        );
     }
 
     @Test
@@ -121,29 +128,21 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByCriteriaWithoutTimeRange() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-                new Builder().
-                        includeRevoked(false).
-                        plans(singleton("plan1")).
-                        build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(false).plans(singleton("plan1")).build());
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
         assertEquals("found 2 apikeys", 2, apiKeys.size());
-        assertTrue(Arrays.asList("findByCriteria1","findByCriteria2").contains(apiKeys.get(0).getKey()));
-        assertTrue(Arrays.asList("findByCriteria1","findByCriteria2").contains(apiKeys.get(1).getKey()));
+        assertTrue(Arrays.asList("findByCriteria1", "findByCriteria2").contains(apiKeys.get(0).getKey()));
+        assertTrue(Arrays.asList("findByCriteria1", "findByCriteria2").contains(apiKeys.get(1).getKey()));
         assertNotEquals(apiKeys.get(0).getKey(), apiKeys.get(1).getKey());
     }
 
     @Test
     public void shouldFindByCriteriaWithTimeRange() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-                new Builder().
-                        includeRevoked(false).
-                        from(1486771200000L).
-                        to(1486771400000L).
-                        plans(singleton("plan1")).
-                        build());
+            new Builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).plans(singleton("plan1")).build()
+        );
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
@@ -153,11 +152,7 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByCriteriaWithoutTimeRangeAndRevoked() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-                new Builder().
-                        includeRevoked(true).
-                        plans(singleton("plan1")).
-                        build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(true).plans(singleton("plan1")).build());
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
@@ -168,40 +163,32 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
         assertEquals("findByCriteria1", apiKeys.get(2).getKey());
     }
 
-  @Test
-  public void shouldFindByCriteriaWithExpireAtBetweenDates() throws Exception {
-    List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-        new Builder()
-            .expireAfter(1439022010000L)
-            .expireBefore(1439022020000L)
-            .build());
+    @Test
+    public void shouldFindByCriteriaWithExpireAtBetweenDates() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
+            new Builder().expireAfter(1439022010000L).expireBefore(1439022020000L).build()
+        );
 
-    assertEquals("found 2 apikeys", 2, apiKeys.size());
-    assertEquals("d449098d-8c31-4275-ad59-8dd707865a34", apiKeys.get(0).getKey());
-    assertEquals("d449098d-8c31-4275-ad59-8dd707865a35", apiKeys.get(1).getKey());
-  }
+        assertEquals("found 2 apikeys", 2, apiKeys.size());
+        assertEquals("d449098d-8c31-4275-ad59-8dd707865a34", apiKeys.get(0).getKey());
+        assertEquals("d449098d-8c31-4275-ad59-8dd707865a35", apiKeys.get(1).getKey());
+    }
 
-  @Test
-  public void shouldFindByCriteriaWithExpireAtAfterDates() throws Exception {
-    List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-        new Builder()
-            .expireAfter(30019401755L)
-            .build());
+    @Test
+    public void shouldFindByCriteriaWithExpireAtAfterDates() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().expireAfter(30019401755L).build());
 
-    assertEquals("found 2 apikeys", 2, apiKeys.size());
-    assertEquals("d449098d-8c31-4275-ad59-8dd707865a34", apiKeys.get(0).getKey());
-    assertEquals("d449098d-8c31-4275-ad59-8dd707865a35", apiKeys.get(1).getKey());
-  }
+        assertEquals("found 2 apikeys", 2, apiKeys.size());
+        assertEquals("d449098d-8c31-4275-ad59-8dd707865a34", apiKeys.get(0).getKey());
+        assertEquals("d449098d-8c31-4275-ad59-8dd707865a35", apiKeys.get(1).getKey());
+    }
 
-  @Test
-  public void shouldFindByCriteriaWithExpireAtBeforeDates() throws Exception {
-    List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-        new Builder()
-            .expireBefore(30019401755L)
-            .build());
+    @Test
+    public void shouldFindByCriteriaWithExpireAtBeforeDates() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().expireBefore(30019401755L).build());
 
-    assertEquals("found 2 apikeys", 2, apiKeys.size());
-    assertEquals("findByCriteria2", apiKeys.get(0).getKey());
-    assertEquals("findByCriteria1", apiKeys.get(1).getKey());
-  }
+        assertEquals("found 2 apikeys", 2, apiKeys.size());
+        assertEquals("findByCriteria2", apiKeys.get(0).getKey());
+        assertEquals("findByCriteria1", apiKeys.get(1).getKey());
+    }
 }

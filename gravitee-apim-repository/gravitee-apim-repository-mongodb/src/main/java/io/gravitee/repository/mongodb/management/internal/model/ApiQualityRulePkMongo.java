@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-
 import java.io.Serializable;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -29,8 +28,7 @@ public class ApiQualityRulePkMongo implements Serializable {
     private String api;
     private String qualityRule;
 
-    public ApiQualityRulePkMongo() {
-    }
+    public ApiQualityRulePkMongo() {}
 
     public ApiQualityRulePkMongo(String api, String qualityRule) {
         this.api = api;
@@ -58,8 +56,7 @@ public class ApiQualityRulePkMongo implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiQualityRulePkMongo that = (ApiQualityRulePkMongo) o;
-        return Objects.equals(api, that.api) &&
-                Objects.equals(qualityRule, that.qualityRule);
+        return Objects.equals(api, that.api) && Objects.equals(qualityRule, that.qualityRule);
     }
 
     @Override
@@ -69,9 +66,6 @@ public class ApiQualityRulePkMongo implements Serializable {
 
     @Override
     public String toString() {
-        return "ApiQualityRulePkMongo{" +
-                "api='" + api + '\'' +
-                ", qualityRule='" + qualityRule + '\'' +
-                '}';
+        return "ApiQualityRulePkMongo{" + "api='" + api + '\'' + ", qualityRule='" + qualityRule + '\'' + '}';
     }
 }

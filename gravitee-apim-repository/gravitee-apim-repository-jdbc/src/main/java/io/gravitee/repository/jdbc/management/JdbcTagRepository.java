@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.util.stream.Collectors.toSet;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TagRepository;
@@ -22,17 +24,14 @@ import io.gravitee.repository.management.model.AlertTrigger;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.TenantReferenceType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.stream.Collectors.toSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  *
@@ -52,13 +51,14 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
 
     @Override
     protected JdbcObjectMapper<Tag> buildOrm() {
-        return JdbcObjectMapper.builder(Tag.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .addColumn("reference_id", Types.NVARCHAR, String.class)
-                .addColumn("reference_type", Types.NVARCHAR, TagReferenceType.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Tag.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, TagReferenceType.class)
+            .build();
     }
 
     @Override
@@ -74,15 +74,19 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     }
 
     @Override
-    public Optional<Tag> findByIdAndReference(final String id, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+    public Optional<Tag> findByIdAndReference(final String id, String referenceId, TagReferenceType referenceType)
+        throws TechnicalException {
         try {
-            Optional<Tag> tag = jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? "
-                    , getOrm().getRowMapper()
-                    , id, referenceId, referenceType.name()
-            )
-                    .stream()
-                    .findFirst();
+            Optional<Tag> tag = jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " t where id = ? and reference_id = ? and reference_type = ? ",
+                    getOrm().getRowMapper(),
+                    id,
+                    referenceId,
+                    referenceType.name()
+                )
+                .stream()
+                .findFirst();
             tag.ifPresent(this::addGroups);
             return tag;
         } catch (final Exception ex) {
@@ -94,14 +98,16 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
     @Override
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         try {
-            return jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? "
-                    , getOrm().getRowMapper()
-                    , referenceId, referenceType.name()
-            )
-                    .stream()
-                    .peek(this::addGroups)
-                    .collect(toSet());
+            return jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? ",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name()
+                )
+                .stream()
+                .peek(this::addGroups)
+                .collect(toSet());
         } catch (final Exception ex) {
             LOGGER.error("Failed to find {} tags referenceId and referenceType:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find " + getOrm().getTableName() + " tags by referenceId and referenceType", ex);
@@ -135,8 +141,10 @@ public class JdbcTagRepository extends JdbcAbstractCrudRepository<Tag, String> i
         }
         List<String> filteredGroups = getOrm().filterStrings(tag.getRestrictedGroups());
         if (!filteredGroups.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into " + TAG_GROUPS + " (tag_id, group_id) values ( ?, ? )"
-                    , getOrm().getBatchStringSetter(tag.getId(), filteredGroups));
+            jdbcTemplate.batchUpdate(
+                "insert into " + TAG_GROUPS + " (tag_id, group_id) values ( ?, ? )",
+                getOrm().getBatchStringSetter(tag.getId(), filteredGroups)
+            );
         }
     }
 

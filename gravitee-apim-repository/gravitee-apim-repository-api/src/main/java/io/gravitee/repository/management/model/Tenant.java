@@ -22,9 +22,13 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Tenant {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        TENANT_CREATED, TENANT_UPDATED, TENANT_DELETED
+        TENANT_CREATED,
+        TENANT_UPDATED,
+        TENANT_DELETED,
     }
+
     private String id;
 
     private String name;
@@ -80,11 +84,13 @@ public class Tenant {
         if (this == o) return true;
         if (!(o instanceof Tenant)) return false;
         Tenant view = (Tenant) o;
-        return Objects.equals(id, view.id) &&
-                Objects.equals(name, view.name) &&
-                Objects.equals(description, view.description) &&
-                Objects.equals(referenceId, view.referenceId) &&
-                Objects.equals(referenceType, view.referenceType);
+        return (
+            Objects.equals(id, view.id) &&
+            Objects.equals(name, view.name) &&
+            Objects.equals(description, view.description) &&
+            Objects.equals(referenceId, view.referenceId) &&
+            Objects.equals(referenceType, view.referenceType)
+        );
     }
 
     @Override
@@ -94,12 +100,24 @@ public class Tenant {
 
     @Override
     public String toString() {
-        return "Tenant{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                '}';
+        return (
+            "Tenant{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            '}'
+        );
     }
 }

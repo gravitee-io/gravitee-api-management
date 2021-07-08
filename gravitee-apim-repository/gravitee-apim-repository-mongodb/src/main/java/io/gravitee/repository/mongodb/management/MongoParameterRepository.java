@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.ParameterMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterPkMongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -45,22 +44,27 @@ public class MongoParameterRepository implements ParameterRepository {
     private ParameterMongoRepository internalParameterRepo;
 
     @Override
-    public Optional<Parameter> findById(String parameterKey, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+    public Optional<Parameter> findById(String parameterKey, String referenceId, ParameterReferenceType referenceType)
+        throws TechnicalException {
         LOGGER.debug("Find parameter by key [{}]", parameterKey);
-        final ParameterMongo parameter = internalParameterRepo.findById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name())).orElse(null);
+        final ParameterMongo parameter = internalParameterRepo
+            .findById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name()))
+            .orElse(null);
         LOGGER.debug("Find parameter by key [{}] - Done", parameterKey);
         return Optional.ofNullable(map(parameter));
     }
 
     @Override
-    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType)
+        throws TechnicalException {
         LOGGER.debug("Find parameters by keys [{}]", keys);
-        List<ParameterPkMongo> pkList = keys.stream().map(k -> new ParameterPkMongo(k, referenceId, referenceType.name())).collect(Collectors.toList());
+        List<ParameterPkMongo> pkList = keys
+            .stream()
+            .map(k -> new ParameterPkMongo(k, referenceId, referenceType.name()))
+            .collect(Collectors.toList());
         Iterable<ParameterMongo> all = internalParameterRepo.findAllById(pkList);
         LOGGER.debug("Find parameters by keys [{}] - Done", keys);
-        return StreamSupport.stream(all.spliterator(), false)
-                .map(parameter -> map(parameter))
-                .collect(Collectors.toList());
+        return StreamSupport.stream(all.spliterator(), false).map(parameter -> map(parameter)).collect(Collectors.toList());
     }
 
     @Override
@@ -78,7 +82,9 @@ public class MongoParameterRepository implements ParameterRepository {
         if (parameter == null || parameter.getKey() == null) {
             throw new IllegalStateException("Parameter to update must have a key");
         }
-        final ParameterMongo parameterMongo = internalParameterRepo.findById(new ParameterPkMongo(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType().name())).orElse(null);
+        final ParameterMongo parameterMongo = internalParameterRepo
+            .findById(new ParameterPkMongo(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType().name()))
+            .orElse(null);
         if (parameterMongo == null) {
             throw new IllegalStateException(String.format("No parameter found with name [%s]", parameter.getKey()));
         }
@@ -108,9 +114,7 @@ public class MongoParameterRepository implements ParameterRepository {
         Iterable<ParameterMongo> all = internalParameterRepo.findAll(referenceId, referenceType.name());
 
         LOGGER.debug("Find parameters by keys and env - Done");
-        return StreamSupport.stream(all.spliterator(), false)
-                .map(parameter -> map(parameter))
-                .collect(Collectors.toList());
+        return StreamSupport.stream(all.spliterator(), false).map(parameter -> map(parameter)).collect(Collectors.toList());
     }
 
     private Parameter map(final ParameterMongo parameterMongo) {

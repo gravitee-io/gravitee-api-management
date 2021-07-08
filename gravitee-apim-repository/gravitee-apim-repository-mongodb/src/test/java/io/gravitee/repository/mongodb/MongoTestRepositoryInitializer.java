@@ -44,9 +44,7 @@ public class MongoTestRepositoryInitializer implements TestRepositoryInitializer
     }
 
     @Override
-    public void setUp() {
-
-    }
+    public void setUp() {}
 
     @Override
     public void tearDown() {

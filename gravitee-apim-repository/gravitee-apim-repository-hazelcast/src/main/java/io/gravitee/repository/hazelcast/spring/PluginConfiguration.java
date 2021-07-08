@@ -30,15 +30,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class PluginConfiguration {
 
-	private final Logger logger = LoggerFactory.getLogger(PluginConfiguration.class);
+    private final Logger logger = LoggerFactory.getLogger(PluginConfiguration.class);
 
-	@Bean
-	public RateLimitRepository rateLimitRepository() {
-		return new HazelcastRateLimitRepository();
-	}
+    @Bean
+    public RateLimitRepository rateLimitRepository() {
+        return new HazelcastRateLimitRepository();
+    }
 
-	@Bean
-	public HazelcastRateLimitConfiguration hazelcastRateLimitConfiguration() {
-		return new HazelcastRateLimitConfiguration();
-	}
+    @Bean
+    public HazelcastRateLimitConfiguration hazelcastRateLimitConfiguration() {
+        return new HazelcastRateLimitConfiguration();
+    }
 }

@@ -16,11 +16,10 @@
 package io.gravitee.repository.jdbc.testcontainers;
 
 import io.gravitee.repository.jdbc.AbstractJdbcTestRepositoryConfiguration;
+import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.testcontainers.containers.MSSQLServerContainer;
-
-import javax.inject.Inject;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

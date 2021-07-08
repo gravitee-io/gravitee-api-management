@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.management.api.search;
 
-import io.gravitee.repository.management.model.PromotionStatus;
-
-import java.util.List;
-
 import static java.util.Arrays.asList;
+
+import io.gravitee.repository.management.model.PromotionStatus;
+import java.util.List;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

@@ -15,14 +15,13 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Organization;
+import java.util.*;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 public class OrganizationRepositoryTest extends AbstractRepositoryTest {
 
@@ -111,14 +110,14 @@ public class OrganizationRepositoryTest extends AbstractRepositoryTest {
     public void shouldCount() throws Exception {
         final long count = organizationRepository.count();
         // Should count 4 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update, DEFAULT-ORG-findById and DEFAULT)
-        Assert.assertEquals("Organization count should be 4",4L, count);
+        Assert.assertEquals("Organization count should be 4", 4L, count);
     }
 
     @Test
     public void shouldFindAll() throws Exception {
         final Collection<Organization> organizations = organizationRepository.findAll();
         // Should count 4 organizations (DEFAULT-ORG-create, DEFAULT-ORG-update, DEFAULT-ORG-findById and DEFAULT)
-        Assert.assertEquals("Organization count should be 4",4L, organizations.size());
+        Assert.assertEquals("Organization count should be 4", 4L, organizations.size());
     }
 
     @Test

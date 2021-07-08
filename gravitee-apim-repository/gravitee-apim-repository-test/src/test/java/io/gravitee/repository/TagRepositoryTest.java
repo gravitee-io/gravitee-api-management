@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Tag;
-import io.gravitee.repository.management.model.TagReferenceType;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.Optional;
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TagRepositoryTest extends AbstractRepositoryTest {
 
@@ -123,7 +122,7 @@ public class TagRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByIdAndReference() throws Exception {
-        final Optional<Tag> tag = tagRepository.findByIdAndReference("other","OTHER", TagReferenceType.ORGANIZATION);
+        final Optional<Tag> tag = tagRepository.findByIdAndReference("other", "OTHER", TagReferenceType.ORGANIZATION);
 
         assertTrue(tag.isPresent());
         assertEquals("Other", tag.get().getName());

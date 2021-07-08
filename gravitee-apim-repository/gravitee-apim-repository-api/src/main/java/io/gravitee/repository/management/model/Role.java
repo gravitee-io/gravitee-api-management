@@ -23,9 +23,13 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Role {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        ROLE_CREATED, ROLE_UPDATED, ROLE_DELETED
+        ROLE_CREATED,
+        ROLE_UPDATED,
+        ROLE_DELETED,
     }
+
     private String id;
     private String name;
     private String referenceId;
@@ -38,7 +42,7 @@ public class Role {
     private Date createdAt;
     private Date updatedAt;
 
-    public Role(){}
+    public Role() {}
 
     public Role(Role cloned) {
         this.id = cloned.id;
@@ -81,6 +85,7 @@ public class Role {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -88,6 +93,7 @@ public class Role {
     public RoleScope getScope() {
         return scope;
     }
+
     public void setScope(RoleScope scope) {
         this.scope = scope;
     }
@@ -95,6 +101,7 @@ public class Role {
     public String getDescription() {
         return description;
     }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -102,6 +109,7 @@ public class Role {
     public boolean isDefaultRole() {
         return defaultRole;
     }
+
     public void setDefaultRole(boolean defaultRole) {
         this.defaultRole = defaultRole;
     }
@@ -109,6 +117,7 @@ public class Role {
     public int[] getPermissions() {
         return permissions;
     }
+
     public void setPermissions(int[] permissions) {
         this.permissions = permissions;
     }
@@ -116,6 +125,7 @@ public class Role {
     public Date getCreatedAt() {
         return createdAt;
     }
+
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
@@ -123,6 +133,7 @@ public class Role {
     public Date getUpdatedAt() {
         return updatedAt;
     }
+
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
@@ -150,14 +161,30 @@ public class Role {
 
     @Override
     public String toString() {
-        return "Role{" +
-                "id='" + id + '\'' +
-                ",name='" + name + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", scope='" + scope + '\'' +
-                ", defaultRole='" + defaultRole + '\'' +
-                ", system='" + system + '\'' +
-                '}';
+        return (
+            "Role{" +
+            "id='" +
+            id +
+            '\'' +
+            ",name='" +
+            name +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", scope='" +
+            scope +
+            '\'' +
+            ", defaultRole='" +
+            defaultRole +
+            '\'' +
+            ", system='" +
+            system +
+            '\'' +
+            '}'
+        );
     }
 }

@@ -23,8 +23,7 @@ public class FlowConsumer {
 
     private String consumerId;
 
-    public FlowConsumer() {
-    }
+    public FlowConsumer() {}
 
     public FlowConsumer(FlowConsumerType consumerType, String consumerId) {
         this.consumerType = consumerType;
@@ -52,8 +51,7 @@ public class FlowConsumer {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FlowConsumer flowConsumer = (FlowConsumer) o;
-        return Objects.equals(consumerType, flowConsumer.consumerType) &&
-            Objects.equals(consumerId, flowConsumer.consumerId);
+        return Objects.equals(consumerType, flowConsumer.consumerType) && Objects.equals(consumerId, flowConsumer.consumerId);
     }
 
     @Override

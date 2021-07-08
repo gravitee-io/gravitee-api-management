@@ -40,6 +40,6 @@ public class AvailabilityQuery extends AbstractQuery<AvailabilityResponse> {
 
     public enum Field {
         ENDPOINT,
-        GATEWAY
+        GATEWAY,
     }
 }

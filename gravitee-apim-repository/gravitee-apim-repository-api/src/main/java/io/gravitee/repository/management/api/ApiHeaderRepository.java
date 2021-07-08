@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ApiHeader;
-
 import java.util.Set;
 
 /**
@@ -25,8 +24,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiHeaderRepository extends CrudRepository<ApiHeader, String> {
-
     Set<ApiHeader> findAll() throws TechnicalException;
-    
+
     Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException;
 }

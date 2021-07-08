@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.management.api;
 
-import java.util.Optional;
-import java.util.Set;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -29,7 +28,6 @@ import io.gravitee.repository.management.model.RoleScope;
  * @author GraviteeSource Team
  */
 public interface RoleRepository {
-
     Optional<Role> findById(String roleId) throws TechnicalException;
 
     Role create(Role role) throws TechnicalException;
@@ -47,7 +45,12 @@ public interface RoleRepository {
      * @return an Optional of Role
      * @throws TechnicalException if something wrong happen
      */
-    Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
+    Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(
+        RoleScope scope,
+        String name,
+        String referenceId,
+        RoleReferenceType referenceType
+    ) throws TechnicalException;
 
     /**
      * find all roles by scope id for a given reference
@@ -57,13 +60,14 @@ public interface RoleRepository {
      * @return list of roles
      * @throws TechnicalException if something wrong happen
      */
-    Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType) throws TechnicalException;
-    
+    Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
+        throws TechnicalException;
+
     /**
      * @return get all roles
      * @throws TechnicalException if something wrong happen
      */
     Set<Role> findAll() throws TechnicalException;
-    
+
     Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException;
 }

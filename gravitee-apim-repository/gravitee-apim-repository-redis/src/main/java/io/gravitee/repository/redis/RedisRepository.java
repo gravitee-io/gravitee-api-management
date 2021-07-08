@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.redis;
 
-
 import io.gravitee.repository.Repository;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration;
@@ -33,8 +32,7 @@ public class RedisRepository implements Repository {
             Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
             try {
                 Class.forName(LettuceConnection.class.getName(), true, getClass().getClassLoader());
-            } catch (ClassNotFoundException e) {
-            }
+            } catch (ClassNotFoundException e) {}
         } finally {
             Thread.currentThread().setContextClassLoader(tccl);
         }
@@ -47,9 +45,7 @@ public class RedisRepository implements Repository {
 
     @Override
     public Scope[] scopes() {
-        return new Scope [] {
-                Scope.RATE_LIMIT
-        };
+        return new Scope[] { Scope.RATE_LIMIT };
     }
 
     @Override

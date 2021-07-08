@@ -15,11 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.promotion;
 
-
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface PromotionMongoRepository extends MongoRepository<PromotionMongo, String>, PromotionMongoRepositoryCustom {
-}
+public interface PromotionMongoRepository extends MongoRepository<PromotionMongo, String>, PromotionMongoRepositoryCustom {}

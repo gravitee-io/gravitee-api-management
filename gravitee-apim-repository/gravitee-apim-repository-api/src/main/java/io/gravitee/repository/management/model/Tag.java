@@ -23,8 +23,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Tag {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        TAG_CREATED, TAG_UPDATED, TAG_DELETED
+        TAG_CREATED,
+        TAG_UPDATED,
+        TAG_DELETED,
     }
 
     private String id;
@@ -87,11 +90,13 @@ public class Tag {
         if (this == o) return true;
         if (!(o instanceof Tag)) return false;
         Tag tag = (Tag) o;
-        return Objects.equals(id, tag.id) &&
-                Objects.equals(name, tag.name) &&
-                Objects.equals(description, tag.description) &&
-                Objects.equals(referenceId, tag.referenceId) &&
-                Objects.equals(referenceType, tag.referenceType);
+        return (
+            Objects.equals(id, tag.id) &&
+            Objects.equals(name, tag.name) &&
+            Objects.equals(description, tag.description) &&
+            Objects.equals(referenceId, tag.referenceId) &&
+            Objects.equals(referenceType, tag.referenceType)
+        );
     }
 
     @Override
@@ -101,13 +106,26 @@ public class Tag {
 
     @Override
     public String toString() {
-        return "Tag{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", restrictedGroups=" + restrictedGroups +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                '}';
+        return (
+            "Tag{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", restrictedGroups=" +
+            restrictedGroups +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            '}'
+        );
     }
 }

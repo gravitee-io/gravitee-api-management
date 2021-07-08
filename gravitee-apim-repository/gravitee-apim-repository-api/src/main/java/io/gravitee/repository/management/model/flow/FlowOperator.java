@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.model.flow;
 
 public enum FlowOperator {
-
-    STARTS_WITH, EQUALS
-
+    STARTS_WITH,
+    EQUALS,
 }

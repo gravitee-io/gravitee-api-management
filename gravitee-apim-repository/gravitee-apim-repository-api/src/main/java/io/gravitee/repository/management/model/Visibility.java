@@ -20,7 +20,6 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum Visibility {
-
     /**
      * The entity is visible to everyone.
      */
@@ -29,5 +28,5 @@ public enum Visibility {
     /**
      * The entity is visible only from its members.
      */
-    PRIVATE
+    PRIVATE,
 }

@@ -21,15 +21,14 @@ import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
 import io.gravitee.repository.mongodb.management.internal.organization.OrganizationMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -93,9 +92,7 @@ public class MongoOrganizationRepository implements OrganizationRepository {
 
             OrganizationMongo organizationMongoUpdated = internalOrganizationRepo.save(organizationMongo);
             return mapper.map(organizationMongoUpdated, Organization.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occurred when updating organization", e);
             throw new TechnicalException("An error occurred when updating organization");
         }
@@ -124,10 +121,11 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public List<Organization> findAll() throws TechnicalException {
         try {
-            return internalOrganizationRepo.findAll()
-                    .stream()
-                    .map(organization -> mapper.map(organization, Organization.class))
-                    .collect(Collectors.toList());
+            return internalOrganizationRepo
+                .findAll()
+                .stream()
+                .map(organization -> mapper.map(organization, Organization.class))
+                .collect(Collectors.toList());
         } catch (Exception e) {
             LOGGER.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");
@@ -137,8 +135,9 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     @Override
     public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
         final Set<OrganizationMongo> organizations = internalOrganizationRepo.findByHrids(hrids);
-        return organizations.stream()
-                .map(organizationMongo -> mapper.map(organizationMongo, Organization.class))
-                .collect(Collectors.toSet());
+        return organizations
+            .stream()
+            .map(organizationMongo -> mapper.map(organizationMongo, Organization.class))
+            .collect(Collectors.toSet());
     }
 }

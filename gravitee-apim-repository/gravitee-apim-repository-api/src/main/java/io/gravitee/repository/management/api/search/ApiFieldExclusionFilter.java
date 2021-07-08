@@ -44,17 +44,16 @@ public class ApiFieldExclusionFilter {
         if (this == o) return true;
         if (!(o instanceof ApiFieldExclusionFilter)) return false;
         ApiFieldExclusionFilter that = (ApiFieldExclusionFilter) o;
-        return definition == that.definition &&
-                picture == that.picture;
+        return definition == that.definition && picture == that.picture;
     }
 
     @Override
     public int hashCode() {
-
         return Objects.hash(definition, picture);
     }
 
     public static class Builder {
+
         private boolean definition;
         private boolean picture;
 

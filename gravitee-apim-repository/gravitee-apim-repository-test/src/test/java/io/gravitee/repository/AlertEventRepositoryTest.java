@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.AlertEvent;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.Optional;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class AlertEventRepositoryTest extends AbstractRepositoryTest {
 
@@ -84,17 +83,15 @@ public class AlertEventRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbAlertsBeforeDeletion = (int) alertEventRepository.search(
-                new AlertEventCriteria.Builder().build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-        ).getTotalElements();
+        int nbAlertsBeforeDeletion = (int) alertEventRepository
+            .search(new AlertEventCriteria.Builder().build(), new PageableBuilder().pageNumber(0).pageSize(10).build())
+            .getTotalElements();
 
         alertEventRepository.delete("an-alert-to-update");
 
-        int nbAlertsAfterDeletion = (int) alertEventRepository.search(
-                new AlertEventCriteria.Builder().build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
-        ).getTotalElements();
+        int nbAlertsAfterDeletion = (int) alertEventRepository
+            .search(new AlertEventCriteria.Builder().build(), new PageableBuilder().pageNumber(0).pageSize(10).build())
+            .getTotalElements();
 
         assertEquals(nbAlertsBeforeDeletion - 1, nbAlertsAfterDeletion);
     }
@@ -102,8 +99,8 @@ public class AlertEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void shouldFindByAlert() throws Exception {
         final Page<AlertEvent> pageEvents = alertEventRepository.search(
-                new AlertEventCriteria.Builder().alert("alert-parent-id2").build(),
-                new PageableBuilder().pageNumber(0).pageSize(10).build()
+            new AlertEventCriteria.Builder().alert("alert-parent-id2").build(),
+            new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
 
         assertNotNull(pageEvents);
@@ -126,17 +123,21 @@ public class AlertEventRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDeleteAll() throws Exception {
-        long before = alertEventRepository.search(
+        long before = alertEventRepository
+            .search(
                 new AlertEventCriteria.Builder().alert("alert-id-to-delete").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
-        ).getTotalElements();
+            )
+            .getTotalElements();
 
         alertEventRepository.deleteAll("alert-id-to-delete");
 
-        long after = alertEventRepository.search(
+        long after = alertEventRepository
+            .search(
                 new AlertEventCriteria.Builder().alert("alert-id-to-delete").build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
-        ).getTotalElements();
+            )
+            .getTotalElements();
 
         assertEquals("2 before", 2, before);
         assertEquals("0 after", 0, after);

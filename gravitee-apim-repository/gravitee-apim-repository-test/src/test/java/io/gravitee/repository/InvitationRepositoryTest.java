@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Invitation;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class InvitationRepositoryTest extends AbstractRepositoryTest {
 
@@ -41,9 +40,10 @@ public class InvitationRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(invitations);
         assertEquals(3, invitations.size());
-        final Optional<Invitation> optionalInvitation = invitations.stream()
-                .filter(invitation -> "e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce".equals(invitation.getId()))
-                .findAny();
+        final Optional<Invitation> optionalInvitation = invitations
+            .stream()
+            .filter(invitation -> "e6d5e6d0-17e9-4606-83c3-cfef8b91d5ce".equals(invitation.getId()))
+            .findAny();
         assertTrue(optionalInvitation.isPresent());
         assertEquals("APPLICATION", optionalInvitation.get().getReferenceType());
         assertEquals("application-id", optionalInvitation.get().getReferenceId());

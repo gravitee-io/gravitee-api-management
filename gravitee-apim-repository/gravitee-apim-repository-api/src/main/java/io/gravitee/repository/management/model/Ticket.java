@@ -54,15 +54,12 @@ public class Ticket {
      */
     private String content;
 
-
     /**
      * Ticket creation date
      */
     private Date createdAt;
 
-
-    public Ticket() {
-    }
+    public Ticket() {}
 
     public Ticket(Ticket cloned) {
         this.id = cloned.id;
@@ -156,5 +153,4 @@ public class Ticket {
         sb.append('}');
         return sb.toString();
     }
-
 }

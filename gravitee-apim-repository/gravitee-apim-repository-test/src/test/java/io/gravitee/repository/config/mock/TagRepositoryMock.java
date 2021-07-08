@@ -15,13 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.TagRepository;
-import io.gravitee.repository.management.model.Tag;
-import io.gravitee.repository.management.model.TagReferenceType;
-
-import java.util.Optional;
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -29,6 +22,12 @@ import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.TagRepository;
+import io.gravitee.repository.management.model.Tag;
+import io.gravitee.repository.management.model.TagReferenceType;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -68,7 +67,8 @@ public class TagRepositoryMock extends AbstractRepositoryMock<TagRepository> {
         final Set<Tag> tagsAfterDelete = newSet(tag, tag2);
         final Set<Tag> tagsAfterAdd = newSet(tag, tag2, mock(Tag.class), mock(Tag.class));
 
-        when(tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION)).thenReturn(tags, tagsAfterAdd, tags, tagsAfterDelete, tags);
+        when(tagRepository.findByReference("DEFAULT", TagReferenceType.ORGANIZATION))
+            .thenReturn(tags, tagsAfterAdd, tags, tagsAfterDelete, tags);
 
         when(tagRepository.create(any(Tag.class))).thenReturn(tag);
 
@@ -84,7 +84,6 @@ public class TagRepositoryMock extends AbstractRepositoryMock<TagRepository> {
         when(tag3.getReferenceId()).thenReturn("OTHER");
         when(tag3.getReferenceType()).thenReturn(TagReferenceType.ORGANIZATION);
 
-        when(tagRepository.findByIdAndReference("other", "OTHER", TagReferenceType.ORGANIZATION))
-                .thenReturn(Optional.of(tag3));
+        when(tagRepository.findByIdAndReference("other", "OTHER", TagReferenceType.ORGANIZATION)).thenReturn(Optional.of(tag3));
     }
 }

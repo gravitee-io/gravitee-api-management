@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api.search.builder;
 
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Sortable;
-
 import java.util.Objects;
 
 /**
@@ -44,14 +43,12 @@ class SortableImpl implements Sortable {
         return order;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SortableImpl sortable = (SortableImpl) o;
-        return field.equals(sortable.field) &&
-                order == sortable.order;
+        return field.equals(sortable.field) && order == sortable.order;
     }
 
     @Override

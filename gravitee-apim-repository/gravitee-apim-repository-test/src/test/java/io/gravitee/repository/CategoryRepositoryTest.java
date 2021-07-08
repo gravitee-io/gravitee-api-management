@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Category;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -97,7 +96,7 @@ public class CategoryRepositoryTest extends AbstractRepositoryTest {
         final Category categorySaved = optional.get();
         Assert.assertEquals("Invalid saved category id.", category.getId(), categorySaved.getId());
         Assert.assertEquals("Invalid saved category key.", category.getKey(), categorySaved.getKey());
-        Assert.assertEquals("Invalid saved environment id.",  category.getEnvironmentId(), categorySaved.getEnvironmentId());
+        Assert.assertEquals("Invalid saved environment id.", category.getEnvironmentId(), categorySaved.getEnvironmentId());
         Assert.assertEquals("Invalid saved category name.", category.getName(), categorySaved.getName());
         Assert.assertEquals("Invalid category description.", category.getDescription(), categorySaved.getDescription());
         Assert.assertTrue("Invalid category createdAt.", compareDate(category.getCreatedAt(), categorySaved.getCreatedAt()));

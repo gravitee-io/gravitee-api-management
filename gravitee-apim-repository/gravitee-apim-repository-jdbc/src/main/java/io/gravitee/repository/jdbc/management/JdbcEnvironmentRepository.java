@@ -19,15 +19,14 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
+import java.sql.PreparedStatement;
+import java.sql.Types;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
-
-import java.sql.PreparedStatement;
-import java.sql.Types;
-import java.util.*;
 
 /**
  *
@@ -48,13 +47,14 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
     @Override
     protected JdbcObjectMapper<Environment> buildOrm() {
-        return JdbcObjectMapper.builder(Environment.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("cockpit_id", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .addColumn("organization_id", Types.NVARCHAR, String.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Environment.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("cockpit_id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("organization_id", Types.NVARCHAR, String.class)
+            .build();
     }
 
     @Override
@@ -76,7 +76,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     @Override
     public Set<Environment> findAll() throws TechnicalException {
         Set<Environment> findAll = super.findAll();
-        for(Environment env: findAll) {
+        for (Environment env : findAll) {
             this.addDomainRestrictions(env);
             this.addHrids(env);
         }
@@ -107,12 +107,20 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     }
 
     private void addDomainRestrictions(Environment parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?", String.class, parent.getId());
+        List<String> domainRestrictions = jdbcTemplate.queryForList(
+            "select domain_restriction from " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " where environment_id = ?",
+            String.class,
+            parent.getId()
+        );
         parent.setDomainRestrictions(domainRestrictions);
     }
 
     private void addHrids(Environment environment) {
-        List<String> hrids = jdbcTemplate.queryForList("select hrid from " + ENVIRONMENT_HRIDS + " where environment_id = ? order by pos", String.class, environment.getId());
+        List<String> hrids = jdbcTemplate.queryForList(
+            "select hrid from " + ENVIRONMENT_HRIDS + " where environment_id = ? order by pos",
+            String.class,
+            environment.getId()
+        );
         environment.setHrids(hrids);
     }
 
@@ -122,8 +130,10 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         }
         List<String> filteredDomainRestrictions = getOrm().filterStrings(environment.getDomainRestrictions());
         if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " (environment_id, domain_restriction) values ( ?, ? )"
-                    , getOrm().getBatchStringSetter(environment.getId(), filteredDomainRestrictions));
+            jdbcTemplate.batchUpdate(
+                "insert into " + ENVIRONMENT_DOMAIN_RESTRICTIONS + " (environment_id, domain_restriction) values ( ?, ? )",
+                getOrm().getBatchStringSetter(environment.getId(), filteredDomainRestrictions)
+            );
         }
     }
 
@@ -136,7 +146,7 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
             final List<Object[]> params = new ArrayList<>(hrids.size());
 
             for (int i = 0; i < hrids.size(); i++) {
-                params.add(new Object[]{environment.getId(), hrids.get(i), i});
+                params.add(new Object[] { environment.getId(), hrids.get(i), i });
             }
 
             jdbcTemplate.batchUpdate("insert into " + ENVIRONMENT_HRIDS + " (environment_id, hrid, pos) values ( ?, ?, ? )", params);
@@ -147,11 +157,12 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcEnvironmentRepository.findByOrganization({})", organizationId);
         try {
-            List<Environment> environments = jdbcTemplate.query(getOrm().getSelectAllSql() + " where organization_id = ?"
-                    , getOrm().getRowMapper()
-                    , organizationId
+            List<Environment> environments = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where organization_id = ?",
+                getOrm().getRowMapper(),
+                organizationId
             );
-            for(Environment env: environments) {
+            for (Environment env : environments) {
                 this.addDomainRestrictions(env);
                 this.addHrids(env);
             }
@@ -171,21 +182,24 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
         }
 
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
-                .append(" env")
-                .append(" join ").append(ENVIRONMENT_HRIDS).append(" eh on env.id = eh.environment_id");
+            .append(" env")
+            .append(" join ")
+            .append(ENVIRONMENT_HRIDS)
+            .append(" eh on env.id = eh.environment_id");
 
         final boolean first = getOrm().buildInCondition(true, query, "env.organization_id", organizations);
         getOrm().buildInCondition(first, query, "eh.hrid", hrids);
 
         try {
-            List<Environment> environments = jdbcTemplate.query(query.toString(),
-                    (PreparedStatement ps) -> {
-                        int idx = getOrm().setArguments(ps, organizations, 1);
-                        getOrm().setArguments(ps, hrids, idx);
-                    },
-                    getOrm().getRowMapper()
+            List<Environment> environments = jdbcTemplate.query(
+                query.toString(),
+                (PreparedStatement ps) -> {
+                    int idx = getOrm().setArguments(ps, organizations, 1);
+                    getOrm().setArguments(ps, hrids, idx);
+                },
+                getOrm().getRowMapper()
             );
-            for(Environment env: environments) {
+            for (Environment env : environments) {
                 this.addDomainRestrictions(env);
                 this.addHrids(env);
             }
@@ -198,21 +212,22 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
 
     @Override
     public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
-
         LOGGER.debug("JdbcEnvironmentRepository.findByCockpit({})", cockpitId);
         try {
             List<Environment> environments = jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where cockpit_id = ?"
-                    , getOrm().getRowMapper()
-                    , cockpitId
+                getOrm().getSelectAllSql() + " where cockpit_id = ?",
+                getOrm().getRowMapper(),
+                cockpitId
             );
 
             final Optional<Environment> environment = environments.stream().findFirst();
 
-            environment.ifPresent(env -> {
-                this.addDomainRestrictions(env);
-                this.addHrids(env);
-            });
+            environment.ifPresent(
+                env -> {
+                    this.addDomainRestrictions(env);
+                    this.addHrids(env);
+                }
+            );
 
             return environment;
         } catch (final Exception ex) {

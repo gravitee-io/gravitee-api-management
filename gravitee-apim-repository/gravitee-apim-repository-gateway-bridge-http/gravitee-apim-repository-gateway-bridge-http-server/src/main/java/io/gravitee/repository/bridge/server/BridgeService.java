@@ -37,18 +37,18 @@ import org.springframework.beans.factory.annotation.Value;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class BridgeService  extends AbstractService {
+public class BridgeService extends AbstractService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BridgeService.class);
 
     @Value("${services.bridge.enabled:true}")
     private boolean enabled;
 
-    private final static String PATH = "/_bridge";
+    private static final String PATH = "/_bridge";
 
-    private final static String AUTHENTICATION_TYPE_NONE = "none";
-    private final static String AUTHENTICATION_TYPE_BASIC = "basic";
-    private final static String AUTHENTICATION_BASIC_REALM = "gravitee.io";
+    private static final String AUTHENTICATION_TYPE_NONE = "none";
+    private static final String AUTHENTICATION_TYPE_BASIC = "basic";
+    private static final String AUTHENTICATION_BASIC_REALM = "gravitee.io";
 
     @Autowired
     @Qualifier("vertxBridgeHttpServer")
@@ -79,22 +79,23 @@ public class BridgeService  extends AbstractService {
             mainRouter.mountSubRouter(PATH, bridgeRouter);
 
             AuthenticationHandler authHandler = null;
-            switch ( httpServerConfiguration.getAuthenticationType().toLowerCase() ) {
+            switch (httpServerConfiguration.getAuthenticationType().toLowerCase()) {
                 case AUTHENTICATION_TYPE_NONE:
                     break;
                 case AUTHENTICATION_TYPE_BASIC:
                     authHandler = BasicAuthHandler.create(authProvider, AUTHENTICATION_BASIC_REALM);
                     break;
                 default:
-                    throw new IllegalArgumentException("Unsupported Authentication type " + httpServerConfiguration.getAuthenticationType() + " for HTTP bridge service");
+                    throw new IllegalArgumentException(
+                        "Unsupported Authentication type " + httpServerConfiguration.getAuthenticationType() + " for HTTP bridge service"
+                    );
             }
 
             // Set security handler is defined
-            if ( authHandler != null ) {
+            if (authHandler != null) {
                 mainRouter.route().handler(authHandler);
                 bridgeRouter.route().handler(authHandler);
             }
-
 
             // Set default handler
             mainRouter.route().handler(ctx -> ctx.fail(HttpStatusCode.NOT_FOUND_404));
@@ -102,8 +103,9 @@ public class BridgeService  extends AbstractService {
             bridgeRouter.route().handler(new VersionHandler());
 
             // Add request handler
-            httpServer.requestHandler(mainRouter).listen(event ->
-                    LOGGER.info("HTTP server for bridge listening on port {}", event.result().actualPort()));
+            httpServer
+                .requestHandler(mainRouter)
+                .listen(event -> LOGGER.info("HTTP server for bridge listening on port {}", event.result().actualPort()));
 
             bridgeRouter.route().handler(BodyHandler.create());
 

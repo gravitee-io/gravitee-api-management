@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Invitation;
-
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +24,7 @@ import java.util.Set;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface InvitationRepository extends CrudRepository<Invitation, String>{
+public interface InvitationRepository extends CrudRepository<Invitation, String> {
     Set<Invitation> findAll() throws TechnicalException;
     List<Invitation> findByReference(String referenceType, String referenceId) throws TechnicalException;
 }

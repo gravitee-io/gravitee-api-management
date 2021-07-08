@@ -30,7 +30,7 @@ import org.springframework.core.env.Environment;
  */
 public class BasicAuthProvider implements AuthProvider {
 
-    private final static String USERS_PREFIX_KEY = "services.bridge.http.authentication.users.";
+    private static final String USERS_PREFIX_KEY = "services.bridge.http.authentication.users.";
 
     @Autowired
     private Environment environment;
@@ -44,9 +44,8 @@ public class BasicAuthProvider implements AuthProvider {
             String presentedPassword = authInfo.getString("password");
 
             if (password.equals(presentedPassword)) {
-                resultHandler.handle(
-                        Future.succeededFuture(new io.gravitee.repository.bridge.server.http.auth.User()));
-                return ;
+                resultHandler.handle(Future.succeededFuture(new io.gravitee.repository.bridge.server.http.auth.User()));
+                return;
             }
         }
 

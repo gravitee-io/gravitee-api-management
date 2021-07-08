@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Dictionary;
-
 import java.util.Set;
 
 /**
@@ -25,7 +24,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface DictionaryRepository extends CrudRepository<Dictionary, String> {
-
     /**
      * List all dictionaries
      * @return all dictionaries

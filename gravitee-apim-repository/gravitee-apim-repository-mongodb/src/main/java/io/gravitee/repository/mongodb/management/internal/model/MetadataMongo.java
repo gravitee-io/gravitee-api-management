@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -27,67 +26,62 @@ import java.util.Objects;
 @Document(collection = "metadata")
 public class MetadataMongo extends Auditable {
 
-	@Id
-	private MetadataPkMongo id;
+    @Id
+    private MetadataPkMongo id;
 
-	private String name;
+    private String name;
 
-	private String format;
+    private String format;
 
-	private String value;
+    private String value;
 
-	public MetadataPkMongo getId() {
-		return id;
-	}
+    public MetadataPkMongo getId() {
+        return id;
+    }
 
-	public void setId(MetadataPkMongo id) {
-		this.id = id;
-	}
+    public void setId(MetadataPkMongo id) {
+        this.id = id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getFormat() {
-		return format;
-	}
+    public String getFormat() {
+        return format;
+    }
 
-	public void setFormat(String format) {
-		this.format = format;
-	}
+    public void setFormat(String format) {
+        this.format = format;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof MetadataMongo)) return false;
-		MetadataMongo that = (MetadataMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MetadataMongo)) return false;
+        MetadataMongo that = (MetadataMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "MetadataMongo{" +
-				"id=" + id +
-				", name='" + name + '\'' +
-				", format='" + format + '\'' +
-				", value='" + value + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "MetadataMongo{" + "id=" + id + ", name='" + name + '\'' + ", format='" + format + '\'' + ", value='" + value + '\'' + '}';
+    }
 }

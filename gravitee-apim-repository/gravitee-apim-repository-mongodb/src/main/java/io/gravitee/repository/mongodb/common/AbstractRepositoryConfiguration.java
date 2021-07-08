@@ -18,6 +18,13 @@ package io.gravitee.repository.mongodb.common;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeDozerMapper;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.gravitee.repository.mongodb.management.transaction.NoTransactionManager;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
@@ -30,14 +37,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
-import java.net.URI;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,7 +55,7 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfi
     @Override
     protected String getDatabaseName() {
         String uri = environment.getProperty("management.mongodb.uri");
-        if (uri != null && ! uri.isEmpty()) {
+        if (uri != null && !uri.isEmpty()) {
             return URI.create(uri).getPath().substring(1);
         }
 
@@ -69,20 +68,17 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfi
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
-
         String basePackage = getMappingBasePackage();
         Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
 
         if (StringUtils.hasText(basePackage)) {
-            ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(
-                    false);
+            ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
             componentProvider.addIncludeFilter(new AnnotationTypeFilter(Document.class));
             componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
             String prefix = environment.getProperty("management.mongodb.prefix", "");
 
             for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
-                Class<?> entity = ClassUtils.forName(candidate.getBeanClassName(),
-                        this.getClass().getClassLoader());
+                Class<?> entity = ClassUtils.forName(candidate.getBeanClassName(), this.getClass().getClassLoader());
                 initialEntitySet.add(entity);
 
                 Document documentAnnotation = entity.getAnnotation(Document.class);
@@ -98,9 +94,8 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfi
         return new NoTransactionManager();
     }
 
-    public static void configureCollectionName(Annotation annotation, String prefix){
+    public static void configureCollectionName(Annotation annotation, String prefix) {
         if (StringUtils.hasText(prefix)) {
-
             Object handler = Proxy.getInvocationHandler(annotation);
             Field f;
             try {
@@ -120,8 +115,8 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfi
             String documentCollection = memberValues.get("collection").toString();
             String newValue;
             if (StringUtils.hasText(documentValue)) {
-               newValue = prefix + documentValue;
-               memberValues.put("value", newValue);
+                newValue = prefix + documentValue;
+                memberValues.put("value", newValue);
             } else if (StringUtils.hasText(documentCollection)) {
                 newValue = prefix + documentCollection;
                 memberValues.put("collection", newValue);

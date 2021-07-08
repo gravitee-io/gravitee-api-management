@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.ThemeRepository;
-import io.gravitee.repository.management.model.Theme;
-
-import java.util.Date;
-import java.util.Set;
-
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.ThemeRepository;
+import io.gravitee.repository.management.model.Theme;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -39,60 +38,64 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
     @Override
     void prepare(ThemeRepository themeRepository) throws Exception {
         final Theme theme = mockTheme(
-                "dark",
-                "ENVIRONMENT",
-                "DEFAULT",
-                "Theme dark",
-                true,
-                "{\"def\": \"value\"}",
-                new Date(1000000000000L),
-                new Date(1111111111111L),
-                "logo",
-                "backgroundImage",
-                "optionalLogo",
-                "favicon");
+            "dark",
+            "ENVIRONMENT",
+            "DEFAULT",
+            "Theme dark",
+            true,
+            "{\"def\": \"value\"}",
+            new Date(1000000000000L),
+            new Date(1111111111111L),
+            "logo",
+            "backgroundImage",
+            "optionalLogo",
+            "favicon"
+        );
 
         final Theme theme2 = mockTheme(
-                "light",
-                "ENVIRONMENT",
-                "DEFAULT",
-                "Light",
-                true,
-                "{\"def\": \"value\"}",
-                new Date(1000000000000L),
-                new Date(1111111111111L),
-                "logo",
-                "backgroundImage",
-                "optionalLogo",
-                "favicon");
+            "light",
+            "ENVIRONMENT",
+            "DEFAULT",
+            "Light",
+            true,
+            "{\"def\": \"value\"}",
+            new Date(1000000000000L),
+            new Date(1111111111111L),
+            "logo",
+            "backgroundImage",
+            "optionalLogo",
+            "favicon"
+        );
 
         final Theme theme2Updated = mockTheme(
-                "light",
-                "PLATFORM",
-                "TEST",
-                "Awesome",
-                true,
-                "{\"def\": \"test\"}",
-                new Date(1010101010101L),
-                new Date(1030141710801L),
-                "updateLogo",
-                "updateBackground",
-                null,
-                "updateFavicon");
+            "light",
+            "PLATFORM",
+            "TEST",
+            "Awesome",
+            true,
+            "{\"def\": \"test\"}",
+            new Date(1010101010101L),
+            new Date(1030141710801L),
+            "updateLogo",
+            "updateBackground",
+            null,
+            "updateFavicon"
+        );
 
         final Theme theme3 = mockTheme(
-                "simple",
-                "ENVIRONMENT",
-                "TEST",
-                "Theme simple",
-                false,
-                "{\"def\": \"value\"}",
-                new Date(1000002222222L),
-                new Date(1111111111111L),
-                "logo",
-                "backgroundImage",
-                "optionalLogo",
-                "favicon");
+            "simple",
+            "ENVIRONMENT",
+            "TEST",
+            "Theme simple",
+            false,
+            "{\"def\": \"value\"}",
+            new Date(1000002222222L),
+            new Date(1111111111111L),
+            "logo",
+            "backgroundImage",
+            "optionalLogo",
+            "favicon"
+        );
 
         final Set<Theme> themes = newSet(theme, theme2, theme3);
         final Set<Theme> themesAfterDelete = newSet(theme, theme2);
@@ -108,19 +111,19 @@ public class ThemeRepositoryMock extends AbstractRepositoryMock<ThemeRepository>
         when(themeRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }
 
-
-    private Theme mockTheme(final String id,
-                            final String referenceType,
-                            final String referenceId,
-                            final String name,
-                            final boolean isEnabled,
-                            final String definition,
-                            final Date createdAt,
-                            final Date updatedAt,
-                            final String logo,
-                            final String backgroundImage,
-                            final String optionalLogo,
-                            final String favicon
+    private Theme mockTheme(
+        final String id,
+        final String referenceType,
+        final String referenceId,
+        final String name,
+        final boolean isEnabled,
+        final String definition,
+        final Date createdAt,
+        final Date updatedAt,
+        final String logo,
+        final String backgroundImage,
+        final String optionalLogo,
+        final String favicon
     ) {
         final Theme theme = mock(Theme.class);
         when(theme.getId()).thenReturn(id);

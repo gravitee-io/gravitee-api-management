@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.TagMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.TagMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -103,9 +102,7 @@ public class MongoTagRepository implements TagRepository {
 
             TagMongo tagMongoUpdated = internalTagRepo.save(tagMongo);
             return mapper.map(tagMongoUpdated, Tag.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating tag", e);
             throw new TechnicalException("An error occured when updating tag");
         }
@@ -124,8 +121,6 @@ public class MongoTagRepository implements TagRepository {
     @Override
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         final List<TagMongo> tags = internalTagRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return tags.stream()
-                .map(tagMongo -> mapper.map(tagMongo, Tag.class))
-                .collect(Collectors.toSet());
+        return tags.stream().map(tagMongo -> mapper.map(tagMongo, Tag.class)).collect(Collectors.toSet());
     }
 }

@@ -26,12 +26,11 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.Plan;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
-
-import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.model.Plan;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -94,7 +93,8 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(planOAuth2.getClosedAt()).thenReturn(parse("14/02/2016"));
         when(planOAuth2.getStatus()).thenReturn(Plan.Status.STAGING);
         when(planOAuth2.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
-        when(planOAuth2.getSecurityDefinition()).thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+        when(planOAuth2.getSecurityDefinition())
+            .thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
         when(planOAuth2.isCommentRequired()).thenReturn(true);
 
         final Plan createdPlanOAuth2 = mock(Plan.class);
@@ -110,8 +110,12 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(createdPlanOAuth2.getOrder()).thenReturn(0);
         when(createdPlanOAuth2.getExcludedGroups()).thenReturn(singletonList("7c546c6b-2f2f-4487-946c-6b2f2f648784"));
         when(createdPlanOAuth2.getSecurity()).thenReturn(Plan.PlanSecurityType.OAUTH2);
-        when(createdPlanOAuth2.getSecurityDefinition()).thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
-        when(createdPlanOAuth2.getDefinition()).thenReturn("{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}");
+        when(createdPlanOAuth2.getSecurityDefinition())
+            .thenReturn("{\"extractPayload\":false,\"checkRequiredScopes\":false,\"requiredScopes\":[],\"oauthResource\":\"OAuth\"}");
+        when(createdPlanOAuth2.getDefinition())
+            .thenReturn(
+                "{  \"/\" : [ {    \"methods\" : [ \"GET\", \"POST\", \"PUT\", \"DELETE\", \"HEAD\", \"PATCH\", \"OPTIONS\", \"TRACE\", \"CONNECT\" ],    \"resource-filtering\" : {\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  } ]}"
+            );
         when(createdPlanOAuth2.isCommentRequired()).thenReturn(true);
         when(createdPlanOAuth2.getSelectionRule()).thenReturn("#context.attributes['jwt'].claims['iss'] == 'toto'");
 
@@ -137,8 +141,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
 
         when(planRepository.findById("stores")).thenReturn(Optional.empty());
 
-        when(planRepository.findByApi("api1")).thenReturn(
-                new HashSet<>(asList(plan, plan2)));
+        when(planRepository.findByApi("api1")).thenReturn(new HashSet<>(asList(plan, plan2)));
 
         when(planRepository.findById("unknown")).thenReturn(empty());
 

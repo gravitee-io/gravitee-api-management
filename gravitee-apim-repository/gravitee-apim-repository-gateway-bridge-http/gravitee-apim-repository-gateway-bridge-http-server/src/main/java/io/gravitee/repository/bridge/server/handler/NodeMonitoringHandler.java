@@ -20,9 +20,8 @@ import io.gravitee.node.api.NodeMonitoringRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,57 +33,77 @@ public class NodeMonitoringHandler extends AbstractHandler {
     private NodeMonitoringRepository nodeMonitoringRepository;
 
     public void create(RoutingContext ctx) {
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
-                nodeMonitoringRepository.create(monitoring)
-                        .subscribe(
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
+                        nodeMonitoringRepository
+                            .create(monitoring)
+                            .subscribe(
                                 promise::complete,
                                 throwable -> {
                                     LOGGER.error("Unable to create a node monitoring", throwable);
                                     promise.fail(throwable);
-                                });
-            } catch (Exception ex) {
-                LOGGER.error("Unable to create a node monitoring", ex);
-                promise.fail(ex);
-            }
-        }, (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event));
+                                }
+                            );
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to create a node monitoring", ex);
+                        promise.fail(ex);
+                    }
+                },
+                (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
+            );
     }
 
     public void update(RoutingContext ctx) {
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
-                nodeMonitoringRepository.update(monitoring)
-                        .subscribe(
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        Monitoring monitoring = ctx.getBodyAsJson().mapTo(Monitoring.class);
+                        nodeMonitoringRepository
+                            .update(monitoring)
+                            .subscribe(
                                 promise::complete,
                                 throwable -> {
                                     LOGGER.error("Unable to update a node monitoring", throwable);
                                     promise.fail(throwable);
-                                });
-            } catch (Exception ex) {
-                LOGGER.error("Unable to update a node monitoring", ex);
-                promise.fail(ex);
-            }
-        }, (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event));
+                                }
+                            );
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to update a node monitoring", ex);
+                        promise.fail(ex);
+                    }
+                },
+                (Handler<AsyncResult<Monitoring>>) event -> handleResponse(ctx, event)
+            );
     }
 
     public void findByNodeIdAndType(RoutingContext ctx) {
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                nodeMonitoringRepository.findByNodeIdAndType(
-                        ctx.request().getParam("nodeId"),
-                        ctx.request().getParam("type"))
-                        .subscribe(
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        nodeMonitoringRepository
+                            .findByNodeIdAndType(ctx.request().getParam("nodeId"), ctx.request().getParam("type"))
+                            .subscribe(
                                 monitoring -> promise.complete(Optional.of(monitoring)),
                                 throwable -> {
                                     LOGGER.error("Unable to find a node monitoring by type and ID", throwable);
                                     promise.fail(throwable);
-                                }, () -> promise.complete(Optional.empty()));
-            } catch (Exception ex) {
-                LOGGER.error("Unable to find a node monitoring by type and ID", ex);
-                promise.fail(ex);
-            }
-        }, (Handler<AsyncResult<Optional<Monitoring>>>) event -> handleResponse(ctx, event));
+                                },
+                                () -> promise.complete(Optional.empty())
+                            );
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to find a node monitoring by type and ID", ex);
+                        promise.fail(ex);
+                    }
+                },
+                (Handler<AsyncResult<Optional<Monitoring>>>) event -> handleResponse(ctx, event)
+            );
     }
 }

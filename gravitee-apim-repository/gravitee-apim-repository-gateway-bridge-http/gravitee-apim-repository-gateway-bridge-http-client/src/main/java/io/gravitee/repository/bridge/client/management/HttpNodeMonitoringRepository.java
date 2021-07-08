@@ -37,55 +37,68 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
 
     @Override
     public Maybe<Monitoring> findByNodeIdAndType(String nodeId, String type) {
-        final Promise<HttpResponse<Monitoring>> promise = get("/node/monitoring?nodeId=" + nodeId + "&type=" + type, BodyCodec.json(Monitoring.class))
-                .send();
+        final Promise<HttpResponse<Monitoring>> promise = get(
+            "/node/monitoring?nodeId=" + nodeId + "&type=" + type,
+            BodyCodec.json(Monitoring.class)
+        )
+            .send();
 
         MaybeSubject<Monitoring> maybe = MaybeSubject.create();
-        promise.future().onComplete(event -> {
-            if (event.succeeded()) {
-                if (event.result().statusCode() == HttpStatusCode.OK_200) {
-                    maybe.onSuccess(event.result().payload());
-                } else {
-                    maybe.onComplete();
+        promise
+            .future()
+            .onComplete(
+                event -> {
+                    if (event.succeeded()) {
+                        if (event.result().statusCode() == HttpStatusCode.OK_200) {
+                            maybe.onSuccess(event.result().payload());
+                        } else {
+                            maybe.onComplete();
+                        }
+                    } else {
+                        maybe.onError(event.cause());
+                    }
                 }
-            } else {
-                maybe.onError(event.cause());
-            }
-        });
+            );
 
         return maybe;
     }
 
     @Override
     public Single<Monitoring> create(Monitoring monitoring) {
-        final Promise<HttpResponse<Monitoring>> promise = post("/node/monitoring", BodyCodec.json(Monitoring.class))
-                .send(monitoring);
+        final Promise<HttpResponse<Monitoring>> promise = post("/node/monitoring", BodyCodec.json(Monitoring.class)).send(monitoring);
 
         SingleSubject<Monitoring> single = SingleSubject.create();
-        promise.future().onComplete(event -> {
-            if (event.succeeded()) {
-                single.onSuccess(event.result().payload());
-            } else {
-                single.onError(event.cause());
-            }
-        });
+        promise
+            .future()
+            .onComplete(
+                event -> {
+                    if (event.succeeded()) {
+                        single.onSuccess(event.result().payload());
+                    } else {
+                        single.onError(event.cause());
+                    }
+                }
+            );
 
         return single;
     }
 
     @Override
     public Single<Monitoring> update(Monitoring monitoring) {
-        final Promise<HttpResponse<Monitoring>> promise = put("/node/monitoring", BodyCodec.json(Monitoring.class))
-                .send(monitoring);
+        final Promise<HttpResponse<Monitoring>> promise = put("/node/monitoring", BodyCodec.json(Monitoring.class)).send(monitoring);
 
         SingleSubject<Monitoring> single = SingleSubject.create();
-        promise.future().onComplete(event -> {
-            if (event.succeeded()) {
-                single.onSuccess(event.result().payload());
-            } else {
-                single.onError(event.cause());
-            }
-        });
+        promise
+            .future()
+            .onComplete(
+                event -> {
+                    if (event.succeeded()) {
+                        single.onSuccess(event.result().payload());
+                    } else {
+                        single.onError(event.cause());
+                    }
+                }
+            );
 
         return single;
     }

@@ -20,7 +20,6 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
-
 import java.util.List;
 
 /**
@@ -30,7 +29,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface ApiRepository extends CrudRepository<Api, String> {
-
     Page<Api> search(ApiCriteria apiCriteria, Pageable pageable);
 
     List<Api> search(ApiCriteria apiCriteria);

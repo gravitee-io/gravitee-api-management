@@ -22,6 +22,7 @@ import java.util.Date;
  * @author GraviteeSource Team
  */
 public class PageMediaMongo {
+
     private String mediaHash;
     private String mediaName;
     private Date attachedAt;

@@ -15,14 +15,13 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.Theme;
-import org.junit.Test;
-
-import java.util.*;
-
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.Theme;
+import java.util.*;
+import org.junit.Test;
 
 public class ThemeRepositoryTest extends AbstractRepositoryTest {
 

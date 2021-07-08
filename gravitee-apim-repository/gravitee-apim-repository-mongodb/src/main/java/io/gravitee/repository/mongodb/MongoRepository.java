@@ -33,11 +33,9 @@ public class MongoRepository implements Repository {
 
     @Override
     public Scope[] scopes() {
-        return new Scope [] {
-                Scope.MANAGEMENT,
-                Scope.RATE_LIMIT
-        };
+        return new Scope[] { Scope.MANAGEMENT, Scope.RATE_LIMIT };
     }
+
     @Override
     public Class<?> configuration(Scope scope) {
         switch (scope) {
@@ -45,7 +43,6 @@ public class MongoRepository implements Repository {
                 return ManagementRepositoryConfiguration.class;
             case RATE_LIMIT:
                 return RateLimitRepositoryConfiguration.class;
-
         }
 
         return null;

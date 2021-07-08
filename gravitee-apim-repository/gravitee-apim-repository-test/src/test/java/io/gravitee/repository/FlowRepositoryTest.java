@@ -15,16 +15,14 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.flow.*;
-import org.junit.Test;
-
 import java.util.*;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -155,12 +153,10 @@ public class FlowRepositoryTest extends AbstractRepositoryTest {
         assertEquals(flow.getPre().size(), 1);
         assertEquals(flow.getPost().size(), 1);
         assertEquals(flow.getOrder(), 5);
-
     }
 
     @Test
     public void shouldDelete() throws TechnicalException {
-
         assertTrue(flowRepository.findById("tag-deleted").isPresent());
 
         flowRepository.delete("tag-deleted");
@@ -170,12 +166,10 @@ public class FlowRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDeleteByReference() throws TechnicalException {
-
         assertEquals(flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size(), 2);
 
         flowRepository.deleteByReference(FlowReferenceType.ORGANIZATION, "orga-deleted");
 
         assertEquals(flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size(), 0);
     }
-
 }

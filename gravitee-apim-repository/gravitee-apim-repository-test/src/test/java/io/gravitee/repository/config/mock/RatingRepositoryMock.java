@@ -49,9 +49,11 @@ public class RatingRepositoryMock extends AbstractRepositoryMock<RatingRepositor
 
         when(ratingRepository.findById("rating-id")).thenReturn(of(rating));
         when(ratingRepository.findById("new-rating")).thenReturn(empty(), of(newRating));
-        when(ratingRepository.findByReferenceIdAndReferenceTypePageable(eq("api"), eq(RatingReferenceType.API), any(Pageable.class))).thenReturn(
+        when(ratingRepository.findByReferenceIdAndReferenceTypePageable(eq("api"), eq(RatingReferenceType.API), any(Pageable.class)))
+            .thenReturn(
                 new io.gravitee.common.data.domain.Page<>(asList(rating4, rating), 0, 2, 3),
-                new io.gravitee.common.data.domain.Page<>(asList(rating2), 1, 1, 3));
+                new io.gravitee.common.data.domain.Page<>(asList(rating2), 1, 1, 3)
+            );
 
         final Rating updatedRating = mockRating("rating-id", "api", RatingReferenceType.API, "user10", "title10", "comment10", "3");
         when(ratingRepository.update(any(Rating.class))).thenReturn(updatedRating);
@@ -59,12 +61,19 @@ public class RatingRepositoryMock extends AbstractRepositoryMock<RatingRepositor
         when(ratingRepository.findById("rating3-id")).thenReturn(of(rating3), empty());
 
         when(ratingRepository.findByReferenceIdAndReferenceTypeAndUser("api", RatingReferenceType.API, "user")).thenReturn(of(rating));
-        when(ratingRepository.findByReferenceIdAndReferenceType("api", RatingReferenceType.API)).thenReturn(asList(rating, rating2, rating4));
-
+        when(ratingRepository.findByReferenceIdAndReferenceType("api", RatingReferenceType.API))
+            .thenReturn(asList(rating, rating2, rating4));
     }
 
-    private Rating mockRating(final String id, final String referenceId, final RatingReferenceType referenceType, final String user, final String title,
-                              final String comment, final String rate) {
+    private Rating mockRating(
+        final String id,
+        final String referenceId,
+        final RatingReferenceType referenceType,
+        final String user,
+        final String title,
+        final String comment,
+        final String rate
+    ) {
         final Rating rating = mock(Rating.class);
         when(rating.getId()).thenReturn(id);
         when(rating.getReferenceId()).thenReturn(referenceId);

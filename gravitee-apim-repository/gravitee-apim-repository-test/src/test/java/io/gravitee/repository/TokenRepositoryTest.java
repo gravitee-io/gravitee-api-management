@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Token;
 import io.gravitee.repository.management.model.Token;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TokenRepositoryTest extends AbstractRepositoryTest {
 

@@ -18,6 +18,7 @@ package io.gravitee.repository.management.model;
 import java.util.Objects;
 
 public class PromotionAuthor {
+
     private String userId;
     private String displayName;
     private String email;
@@ -73,14 +74,19 @@ public class PromotionAuthor {
         this.sourceId = sourceId;
     }
 
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionAuthor that = (PromotionAuthor) o;
-        return Objects.equals(userId, that.userId) && Objects.equals(displayName, that.displayName) && Objects.equals(email, that.email) && Objects.equals(picture, that.picture) && Objects.equals(source, that.source) && Objects.equals(sourceId, that.sourceId);
+        return (
+            Objects.equals(userId, that.userId) &&
+            Objects.equals(displayName, that.displayName) &&
+            Objects.equals(email, that.email) &&
+            Objects.equals(picture, that.picture) &&
+            Objects.equals(source, that.source) &&
+            Objects.equals(sourceId, that.sourceId)
+        );
     }
 
     @Override
@@ -90,14 +96,27 @@ public class PromotionAuthor {
 
     @Override
     public String toString() {
-        return "PromotionAuthor{" +
-            "userId='" + userId + '\'' +
-            ", displayName='" + displayName + '\'' +
-            ", email='" + email + '\'' +
-            ", picture='" + picture + '\'' +
-            ", source='" + source + '\'' +
-            ", sourceId='" + sourceId + '\'' +
-            '}';
+        return (
+            "PromotionAuthor{" +
+            "userId='" +
+            userId +
+            '\'' +
+            ", displayName='" +
+            displayName +
+            '\'' +
+            ", email='" +
+            email +
+            '\'' +
+            ", picture='" +
+            picture +
+            '\'' +
+            ", source='" +
+            source +
+            '\'' +
+            ", sourceId='" +
+            sourceId +
+            '\'' +
+            '}'
+        );
     }
 }
-

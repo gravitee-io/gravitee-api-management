@@ -31,7 +31,7 @@ public class VersionHandler implements Handler<RoutingContext> {
 
     private static final VersionUtils.Version NODE_VERSION = VersionUtils.parse(Version.RUNTIME_VERSION.MAJOR_VERSION);
 
-    private final static String USER_AGENT_PREFIX = "gio-client-bridge/";
+    private static final String USER_AGENT_PREFIX = "gio-client-bridge/";
 
     @Override
     public void handle(RoutingContext ctx) {

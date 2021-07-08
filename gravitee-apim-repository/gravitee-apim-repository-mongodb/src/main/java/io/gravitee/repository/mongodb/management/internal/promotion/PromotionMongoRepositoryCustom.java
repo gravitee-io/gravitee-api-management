@@ -15,7 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management.internal.promotion;
 
-
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.PromotionCriteria;

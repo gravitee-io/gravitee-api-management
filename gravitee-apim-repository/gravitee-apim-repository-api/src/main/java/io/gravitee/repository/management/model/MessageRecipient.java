@@ -21,5 +21,6 @@ package io.gravitee.repository.management.model;
  */
 
 public enum MessageRecipient {
-    MANAGEMENT_APIS, GATEWAYS
+    MANAGEMENT_APIS,
+    GATEWAYS,
 }

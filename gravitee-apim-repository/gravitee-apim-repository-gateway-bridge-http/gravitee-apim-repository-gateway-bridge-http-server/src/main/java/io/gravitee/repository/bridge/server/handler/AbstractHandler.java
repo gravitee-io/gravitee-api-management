@@ -25,12 +25,11 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,7 +79,7 @@ public abstract class AbstractHandler {
                 response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
                 response.end(result.cause().getMessage());
             }
-        }  catch (Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("Unexpected error from the bridge", result.cause());
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             response.end(result.cause().getMessage());

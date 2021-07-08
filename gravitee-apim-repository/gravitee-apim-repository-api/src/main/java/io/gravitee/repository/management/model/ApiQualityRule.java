@@ -23,8 +23,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class ApiQualityRule {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        API_QUALITY_RULE_CREATED, API_QUALITY_RULE_UPDATED, API_QUALITY_RULE_DELETED
+        API_QUALITY_RULE_CREATED,
+        API_QUALITY_RULE_UPDATED,
+        API_QUALITY_RULE_DELETED,
     }
 
     private String api;
@@ -78,8 +81,7 @@ public class ApiQualityRule {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiQualityRule that = (ApiQualityRule) o;
-        return Objects.equals(api, that.api) &&
-                Objects.equals(qualityRule, that.qualityRule);
+        return Objects.equals(api, that.api) && Objects.equals(qualityRule, that.qualityRule);
     }
 
     @Override
@@ -89,12 +91,21 @@ public class ApiQualityRule {
 
     @Override
     public String toString() {
-        return "ApiQualityRule{" +
-                "api='" + api + '\'' +
-                ", qualityRule='" + qualityRule + '\'' +
-                ", checked=" + checked +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "ApiQualityRule{" +
+            "api='" +
+            api +
+            '\'' +
+            ", qualityRule='" +
+            qualityRule +
+            '\'' +
+            ", checked=" +
+            checked +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

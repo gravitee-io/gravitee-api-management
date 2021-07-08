@@ -20,5 +20,5 @@ public enum PromotionStatus {
     TO_BE_VALIDATED,
     ACCEPTED,
     REJECTED,
-    ERROR
+    ERROR,
 }

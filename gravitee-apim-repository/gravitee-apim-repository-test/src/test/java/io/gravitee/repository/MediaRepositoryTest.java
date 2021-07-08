@@ -15,13 +15,11 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.model.Media;
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-
-import javax.xml.bind.DatatypeConverter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,8 +29,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
+import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
 /**
  * @author Guillaume GILLON
  */
@@ -73,7 +73,6 @@ public class MediaRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldCreateForAPI() throws Exception {
-
         String fileName = "stars.png";
         byte[] fileBytes = getFileBytes(fileName);
         long size = fileBytes.length;
@@ -94,11 +93,10 @@ public class MediaRepositoryTest extends AbstractRepositoryTest {
         // test search ignoring type
         optionalAfter = mediaRepository.findByHashAndApi(hashString, "apiId");
         assertTrue("Image saved not found", optionalAfter.isPresent());
-
     }
 
     @Test
-    public void shouldFindMediaWithoutContent() throws Exception{
+    public void shouldFindMediaWithoutContent() throws Exception {
         String fileName = "stars.png";
         byte[] fileBytes = getFileBytes(fileName);
         long size = fileBytes.length;
@@ -159,8 +157,8 @@ public class MediaRepositoryTest extends AbstractRepositoryTest {
         assertFalse("Invalid asset found", image.isPresent());
     }
 
-
-    private Media createMedia(String fileName, byte[] fileBytes, long size, String hashString, String id, String api) throws TechnicalException {
+    private Media createMedia(String fileName, byte[] fileBytes, long size, String hashString, String id, String api)
+        throws TechnicalException {
         Media imageData = new Media();
         imageData.setId(id);
         imageData.setType("image");

@@ -15,6 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
+import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
+import static io.gravitee.repository.management.model.Visibility.PUBLIC;
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.junit.Assert.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -25,19 +35,8 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import org.junit.Test;
-
 import java.util.*;
-
-import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
-import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
-import static io.gravitee.repository.management.model.Visibility.PUBLIC;
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static io.gravitee.repository.utils.DateUtils.parse;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -206,10 +205,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("api-to-delete", "api-to-update")));
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update")));
     }
 
     @Test
@@ -218,10 +214,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("api-to-delete", "api-to-update", "big-name")));
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "big-name")));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -271,10 +264,13 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api")));
+        assertTrue(
+            apis
+                .stream()
+                .map(Api::getId)
+                .collect(toList())
+                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
+        );
     }
 
     @Test
@@ -283,22 +279,22 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("grouped-api", "api-to-findById")));
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("grouped-api", "api-to-findById")));
     }
-    
+
     @Test
     public void shouldFindByVersion() {
         List<Api> apis = apiRepository.search(new ApiCriteria.Builder().version("1").build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api")));
+        assertTrue(
+            apis
+                .stream()
+                .map(Api::getId)
+                .collect(toList())
+                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
+        );
     }
 
     @Test
@@ -316,10 +312,7 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("api-to-findById", "grouped-api")));
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-findById", "grouped-api")));
     }
 
     @Test
@@ -333,8 +326,10 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByNameAndVersionWithoutDefinition() {
-        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().build());
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().name("api-to-findById name").version("1").build(),
+            new ApiFieldExclusionFilter.Builder().excludeDefinition().build()
+        );
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(1, apis.size());
@@ -344,8 +339,10 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void searchByPageable() {
-        Page<Api> apiPage = apiRepository.search(new ApiCriteria.Builder().version("1").build(),
-                new PageableBuilder().pageNumber(0).pageSize(2).build());
+        Page<Api> apiPage = apiRepository.search(
+            new ApiCriteria.Builder().version("1").build(),
+            new PageableBuilder().pageNumber(0).pageSize(2).build()
+        );
 
         assertEquals(4, apiPage.getTotalElements());
         assertEquals(2, apiPage.getPageElements());
@@ -353,8 +350,8 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
         assertEquals("api-to-delete", apiIterator.next().getId());
         assertEquals("api-to-findById", apiIterator.next().getId());
 
-        apiPage = apiRepository.search(new ApiCriteria.Builder().version("1").build(),
-                new PageableBuilder().pageNumber(1).pageSize(2).build());
+        apiPage =
+            apiRepository.search(new ApiCriteria.Builder().version("1").build(), new PageableBuilder().pageNumber(1).pageSize(2).build());
 
         assertEquals(4, apiPage.getTotalElements());
         assertEquals(2, apiPage.getPageElements());
@@ -365,15 +362,11 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByLifecycleStates() {
-        final List<Api> apis =
-                apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build());
+        final List<Api> apis = apiRepository.search(new ApiCriteria.Builder().lifecycleStates(singletonList(PUBLISHED)).build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("api-to-update", "grouped-api")));
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api")));
         assertEquals(PUBLISHED, apis.get(0).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(1).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(2).getApiLifecycleState());
@@ -381,17 +374,11 @@ public class ApiRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByContextPath() {
-        final List<Api> apis =
-                apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build());
+        final List<Api> apis = apiRepository.search(new ApiCriteria.Builder().contextPath("/product").build());
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().
-                map(Api::getId).
-                collect(toList()).
-                containsAll(asList("api-to-delete", "api-to-update", "grouped-api")));
-        assertEquals(3, apis.stream().
-                filter(api -> api.getDefinition().contains("\"context_path\" : \"/product\"")).
-                count());
+        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "grouped-api")));
+        assertEquals(3, apis.stream().filter(api -> api.getDefinition().contains("\"context_path\" : \"/product\"")).count());
     }
 }

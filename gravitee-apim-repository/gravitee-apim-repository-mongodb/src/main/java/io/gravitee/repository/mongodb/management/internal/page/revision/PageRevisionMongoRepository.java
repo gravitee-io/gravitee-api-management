@@ -17,22 +17,21 @@ package io.gravitee.repository.mongodb.management.internal.page.revision;
 
 import io.gravitee.repository.mongodb.management.internal.model.PageRevisionMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PageRevisionPkMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface PageRevisionMongoRepository extends MongoRepository<PageRevisionMongo, PageRevisionPkMongo>, PageRevisionMongoRepositoryCustom {
+public interface PageRevisionMongoRepository
+    extends MongoRepository<PageRevisionMongo, PageRevisionPkMongo>, PageRevisionMongoRepositoryCustom {
     @Query(value = "{ '_id.pageId' : ?0 }", delete = true)
     void deleteByPageId(String pageId);
 
     @Query(value = "{ '_id.pageId' : ?0 }")
     List<PageRevisionMongo> findAllByPageId(String pageId);
-
 }

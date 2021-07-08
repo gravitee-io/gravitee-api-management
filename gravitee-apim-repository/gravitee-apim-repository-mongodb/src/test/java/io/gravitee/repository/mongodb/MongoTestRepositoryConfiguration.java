@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
+import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -25,8 +26,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
-
-import javax.inject.Inject;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

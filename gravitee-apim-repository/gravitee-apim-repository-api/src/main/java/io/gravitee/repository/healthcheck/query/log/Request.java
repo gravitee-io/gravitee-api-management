@@ -17,7 +17,6 @@ package io.gravitee.repository.healthcheck.query.log;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
-
 import java.util.List;
 import java.util.Map;
 

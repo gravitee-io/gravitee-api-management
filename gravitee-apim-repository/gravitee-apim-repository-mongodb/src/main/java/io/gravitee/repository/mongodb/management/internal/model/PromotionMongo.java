@@ -124,19 +124,31 @@ public class PromotionMongo extends Auditable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PromotionMongo that = (PromotionMongo) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(apiDefinition, that.apiDefinition)
-                && Objects.equals(apiId, that.apiId)
-                && Objects.equals(status, that.status)
-                && Objects.equals(targetEnvName, that.targetEnvName)
-                && Objects.equals(targetEnvCockpitId, that.targetEnvCockpitId)
-                && Objects.equals(sourceEnvName, that.sourceEnvName)
-                && Objects.equals(sourceEnvCockpitId, that.sourceEnvCockpitId)
-                && Objects.equals(targetApiId, that.targetApiId);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(apiDefinition, that.apiDefinition) &&
+            Objects.equals(apiId, that.apiId) &&
+            Objects.equals(status, that.status) &&
+            Objects.equals(targetEnvName, that.targetEnvName) &&
+            Objects.equals(targetEnvCockpitId, that.targetEnvCockpitId) &&
+            Objects.equals(sourceEnvName, that.sourceEnvName) &&
+            Objects.equals(sourceEnvCockpitId, that.sourceEnvCockpitId) &&
+            Objects.equals(targetApiId, that.targetApiId)
+        );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, apiDefinition, apiId, status, targetEnvName, targetEnvCockpitId, sourceEnvName, sourceEnvCockpitId, targetApiId);
+        return Objects.hash(
+            id,
+            apiDefinition,
+            apiId,
+            status,
+            targetEnvName,
+            targetEnvCockpitId,
+            sourceEnvName,
+            sourceEnvCockpitId,
+            targetApiId
+        );
     }
 }

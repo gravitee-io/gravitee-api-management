@@ -19,7 +19,6 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-
 import java.util.List;
 
 /**
@@ -30,7 +29,6 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface EventRepository extends CrudRepository<Event, String> {
-
     /**
      * Search for {@link Event} with {@link Pageable} feature.
      *

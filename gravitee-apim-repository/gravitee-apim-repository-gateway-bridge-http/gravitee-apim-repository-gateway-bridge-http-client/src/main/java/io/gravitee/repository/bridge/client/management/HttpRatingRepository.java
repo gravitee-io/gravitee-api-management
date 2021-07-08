@@ -21,10 +21,9 @@ import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,21 +53,19 @@ public class HttpRatingRepository extends AbstractRepository implements RatingRe
     }
 
     @Override
-    public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType,
-            Pageable pageable) throws TechnicalException {
+    public Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable pageable)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType)
-            throws TechnicalException {
+    public List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId,
-            RatingReferenceType referenceType, String user) throws TechnicalException {
+    public Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
-
 }

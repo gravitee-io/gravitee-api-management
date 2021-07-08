@@ -21,15 +21,14 @@ import io.gravitee.repository.management.model.ApiHeader;
 import io.gravitee.repository.mongodb.management.internal.api.ApiHeaderMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiHeaderMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -86,7 +85,6 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
             ApiHeaderMongo apiHeaderMongoUpdated = internalApiHeaderRepo.save(mapper.map(apiHeader, ApiHeaderMongo.class));
             return mapper.map(apiHeaderMongoUpdated, ApiHeader.class);
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating apiHeader", e);
             throw new TechnicalException("An error occured when updating apiHeader");
         }
@@ -105,16 +103,12 @@ public class MongoApiHeaderRepository implements ApiHeaderRepository {
     @Override
     public Set<ApiHeader> findAll() throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findAll();
-        return apiHeaders.stream()
-                .map(apiHeaderMongo -> mapper.map(apiHeaderMongo, ApiHeader.class))
-                .collect(Collectors.toSet());
+        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo, ApiHeader.class)).collect(Collectors.toSet());
     }
 
     @Override
     public Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException {
         final List<ApiHeaderMongo> apiHeaders = internalApiHeaderRepo.findByEnvironmentId(environmentId);
-        return apiHeaders.stream()
-                .map(apiHeaderMongo -> mapper.map(apiHeaderMongo, ApiHeader.class))
-                .collect(Collectors.toSet());
+        return apiHeaders.stream().map(apiHeaderMongo -> mapper.map(apiHeaderMongo, ApiHeader.class)).collect(Collectors.toSet());
     }
 }

@@ -23,8 +23,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class QualityRule {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        QUALITY_RULE_CREATED, QUALITY_RULE_UPDATED, QUALITY_RULE_DELETED
+        QUALITY_RULE_CREATED,
+        QUALITY_RULE_UPDATED,
+        QUALITY_RULE_DELETED,
     }
 
     private String id;
@@ -97,13 +100,24 @@ public class QualityRule {
 
     @Override
     public String toString() {
-        return "QualityRule{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", weight=" + weight +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "QualityRule{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", weight=" +
+            weight +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

@@ -25,13 +25,12 @@ import io.gravitee.repository.management.model.Ticket;
 import io.gravitee.repository.mongodb.management.internal.model.TicketMongo;
 import io.gravitee.repository.mongodb.management.internal.ticket.TicketMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -64,7 +63,6 @@ public class MongoTicketRepository implements TicketRepository {
 
     @Override
     public Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
-
         LOGGER.debug("Search tickets");
 
         Page<TicketMongo> tickets = internalTicketRepo.search(criteria, sortable, pageable);

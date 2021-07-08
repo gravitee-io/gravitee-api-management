@@ -24,11 +24,10 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.SubscriptionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,7 +47,12 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
         Page<SubscriptionMongo> subscriptionsMongo = internalSubscriptionRepository.search(criteria, pageable);
 
         List<Subscription> content = mapper.collection2list(subscriptionsMongo.getContent(), SubscriptionMongo.class, Subscription.class);
-        return new Page<>(content, subscriptionsMongo.getPageNumber(), (int) subscriptionsMongo.getPageElements(), subscriptionsMongo.getTotalElements());
+        return new Page<>(
+            content,
+            subscriptionsMongo.getPageNumber(),
+            (int) subscriptionsMongo.getPageElements(),
+            subscriptionsMongo.getTotalElements()
+        );
     }
 
     @Override
@@ -93,11 +97,11 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
         internalSubscriptionRepository.deleteById(plan);
     }
 
-    private SubscriptionMongo map(Subscription subscription){
+    private SubscriptionMongo map(Subscription subscription) {
         return (subscription == null) ? null : mapper.map(subscription, SubscriptionMongo.class);
     }
 
-    private Subscription map(SubscriptionMongo subscriptionMongo){
+    private Subscription map(SubscriptionMongo subscriptionMongo) {
         return (subscriptionMongo == null) ? null : mapper.map(subscriptionMongo, Subscription.class);
     }
 }

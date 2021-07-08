@@ -16,14 +16,14 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GroupEventRule {
+
     private GroupEvent event;
 
-    public GroupEventRule() {
-    }
+    public GroupEventRule() {}
 
     public GroupEventRule(GroupEvent event) {
         this.event = event;

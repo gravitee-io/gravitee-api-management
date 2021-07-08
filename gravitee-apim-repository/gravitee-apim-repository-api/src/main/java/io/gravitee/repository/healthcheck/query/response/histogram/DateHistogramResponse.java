@@ -15,9 +15,8 @@
  */
 package io.gravitee.repository.healthcheck.query.response.histogram;
 
-import io.gravitee.repository.healthcheck.query.Response;
 import io.gravitee.repository.analytics.query.response.histogram.Bucket;
-
+import io.gravitee.repository.healthcheck.query.Response;
 import java.util.ArrayList;
 import java.util.List;
 

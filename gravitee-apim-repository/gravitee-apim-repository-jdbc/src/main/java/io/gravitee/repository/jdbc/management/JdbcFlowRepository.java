@@ -1,4 +1,4 @@
-package io.gravitee.repository.jdbc.management; /**
+package io.gravitee.repository.jdbc.management;/**
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,25 +14,24 @@ package io.gravitee.repository.jdbc.management; /**
  * limitations under the License.
  */
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -52,19 +51,22 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         FLOW_METHODS = getTableNameFor("flow_methods");
         FLOW_STEPS = getTableNameFor("flow_steps");
         FLOW_CONSUMERS = getTableNameFor("flow_consumers");
-        this.stepsOrm = JdbcObjectMapper.builder(FlowStep.class, FLOW_STEPS)
-            .addColumn("policy", Types.NVARCHAR, String.class)
-            .addColumn("description", Types.NVARCHAR, String.class)
-            .addColumn("enabled", Types.BOOLEAN, boolean.class)
-            .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("configuration", Types.NVARCHAR, String.class)
-            .addColumn("order", Types.INTEGER, int.class)
-            .build();
+        this.stepsOrm =
+            JdbcObjectMapper
+                .builder(FlowStep.class, FLOW_STEPS)
+                .addColumn("policy", Types.NVARCHAR, String.class)
+                .addColumn("description", Types.NVARCHAR, String.class)
+                .addColumn("enabled", Types.BOOLEAN, boolean.class)
+                .addColumn("name", Types.NVARCHAR, String.class)
+                .addColumn("configuration", Types.NVARCHAR, String.class)
+                .addColumn("order", Types.INTEGER, int.class)
+                .build();
     }
 
     @Override
     protected JdbcObjectMapper<Flow> buildOrm() {
-        return JdbcObjectMapper.builder(Flow.class, this.tableName, "id")
+        return JdbcObjectMapper
+            .builder(Flow.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("condition", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -88,15 +90,14 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         return flow;
     }
 
-
     private List<FlowStep> getPhaseSteps(String flowId, FlowStepPhase phase) {
-        return jdbcTemplate.query(this.stepsOrm.getSelectAllSql() + " where flow_id = ? and phase = ? order by " + escapeReservedWord("order") + " asc"
-            , this.stepsOrm.getRowMapper()
-            , flowId
-            , phase.name()
+        return jdbcTemplate.query(
+            this.stepsOrm.getSelectAllSql() + " where flow_id = ? and phase = ? order by " + escapeReservedWord("order") + " asc",
+            this.stepsOrm.getRowMapper(),
+            flowId,
+            phase.name()
         );
     }
-
 
     private void addSteps(Flow flow) {
         List<FlowStep> preSteps = getPhaseSteps(flow.getId(), FlowStepPhase.PRE);
@@ -106,7 +107,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     private Set<HttpMethod> getMethods(final String flowId) {
-        return jdbcTemplate.queryForList("select method from " + FLOW_METHODS + " where flow_id = ?", String.class, flowId)
+        return jdbcTemplate
+            .queryForList("select method from " + FLOW_METHODS + " where flow_id = ?", String.class, flowId)
             .stream()
             .map(method -> HttpMethod.valueOf(method))
             .collect(Collectors.toSet());
@@ -118,14 +120,15 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     private List<FlowConsumer> getConsumers(final String flowId) {
-        return jdbcTemplate.query("select consumer_type, consumer_id from " + FLOW_CONSUMERS + " where flow_id = ?"
-            , (resultSet, i) -> {
+        return jdbcTemplate.query(
+            "select consumer_type, consumer_id from " + FLOW_CONSUMERS + " where flow_id = ?",
+            (resultSet, i) -> {
                 FlowConsumer flowConsumer = new FlowConsumer();
                 flowConsumer.setConsumerType(FlowConsumerType.valueOf(resultSet.getString(1)));
                 flowConsumer.setConsumerId(resultSet.getString(2));
                 return flowConsumer;
-            }
-            , flowId
+            },
+            flowId
         );
     }
 
@@ -156,8 +159,9 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         }
         if (flow.getConsumers() != null && !flow.getConsumers().isEmpty()) {
             List<FlowConsumer> consumers = flow.getConsumers();
-            jdbcTemplate.batchUpdate("insert into " + FLOW_CONSUMERS + " ( flow_id, consumer_id, consumer_type ) values ( ?, ?, ? )"
-                , new BatchPreparedStatementSetter() {
+            jdbcTemplate.batchUpdate(
+                "insert into " + FLOW_CONSUMERS + " ( flow_id, consumer_id, consumer_type ) values ( ?, ?, ? )",
+                new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         ps.setString(1, flow.getId());
@@ -169,7 +173,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     public int getBatchSize() {
                         return flow.getConsumers().size();
                     }
-                });
+                }
+            );
         }
     }
 
@@ -187,8 +192,9 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
         }
         if (flow.getMethods() != null && !flow.getMethods().isEmpty()) {
             Iterator<HttpMethod> methods = flow.getMethods().iterator();
-            jdbcTemplate.batchUpdate("insert into " + FLOW_METHODS + " ( flow_id, method ) values ( ?, ? )"
-                , new BatchPreparedStatementSetter() {
+            jdbcTemplate.batchUpdate(
+                "insert into " + FLOW_METHODS + " ( flow_id, method ) values ( ?, ? )",
+                new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         HttpMethod next = methods.next();
@@ -200,7 +206,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     public int getBatchSize() {
                         return flow.getMethods().size();
                     }
-                });
+                }
+            );
         }
     }
 
@@ -214,9 +221,13 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
 
     private void storePhaseSteps(Flow flow, List<FlowStep> steps, FlowStepPhase phase) {
         if (steps != null && !steps.isEmpty()) {
-
-            jdbcTemplate.batchUpdate("insert into " + FLOW_STEPS + " ( flow_id, name, policy, description, configuration, enabled, " + escapeReservedWord("order") + ", phase ) values ( ?, ?, ?, ?, ? , ?, ?, ?)"
-                , new BatchPreparedStatementSetter() {
+            jdbcTemplate.batchUpdate(
+                "insert into " +
+                FLOW_STEPS +
+                " ( flow_id, name, policy, description, configuration, enabled, " +
+                escapeReservedWord("order") +
+                ", phase ) values ( ?, ?, ?, ?, ? , ?, ?, ?)",
+                new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         FlowStep flowStep = steps.get(i);
@@ -234,7 +245,8 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                     public int getBatchSize() {
                         return steps.size();
                     }
-                });
+                }
+            );
         }
     }
 
@@ -253,18 +265,21 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     public List<Flow> findByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcFlowRepository.findByReference({}, {))", referenceType, referenceId);
         try {
-
-            return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ? order by " + escapeReservedWord("order") + " asc"
-                , getOrm().getRowMapper()
-                , referenceId, referenceType.name()
-            )
+            return jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() +
+                    " t where reference_id = ? and reference_type = ? order by " +
+                    escapeReservedWord("order") +
+                    " asc",
+                    getOrm().getRowMapper(),
+                    referenceId,
+                    referenceType.name()
+                )
                 .stream()
                 .peek(this::addMethods)
                 .peek(this::addSteps)
                 .peek(this::addConsumers)
                 .collect(Collectors.toList());
-
         } catch (final Exception ex) {
             LOGGER.error("Failed to find flows by reference:", ex);
             throw new TechnicalException("Failed to find flows by reference", ex);
@@ -275,11 +290,11 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     public void deleteByReference(FlowReferenceType referenceType, String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcFlowRepository.deleteByReference({}, {))", referenceType, referenceId);
         try {
-
             List<Flow> flows = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ?"
-                , getOrm().getRowMapper()
-                , referenceId, referenceType.name()
+                getOrm().getSelectAllSql() + " t where reference_id = ? and reference_type = ?",
+                getOrm().getRowMapper(),
+                referenceId,
+                referenceType.name()
             );
 
             if (flows.size() > 0) {
@@ -303,6 +318,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
     }
 
     private enum FlowStepPhase {
-        PRE, POST
+        PRE,
+        POST,
     }
 }

@@ -22,8 +22,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Entrypoint {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        ENTRYPOINT_CREATED, ENTRYPOINT_UPDATED, ENTRYPOINT_DELETED
+        ENTRYPOINT_CREATED,
+        ENTRYPOINT_UPDATED,
+        ENTRYPOINT_DELETED,
     }
 
     private String id;
@@ -87,12 +90,23 @@ public class Entrypoint {
 
     @Override
     public String toString() {
-        return "Entrypoint{" +
-                "id='" + id + '\'' +
-                ", value='" + value + '\'' +
-                ", tags='" + tags + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType=" + referenceType +
-                '}';
+        return (
+            "Entrypoint{" +
+            "id='" +
+            id +
+            '\'' +
+            ", value='" +
+            value +
+            '\'' +
+            ", tags='" +
+            tags +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            '}'
+        );
     }
 }

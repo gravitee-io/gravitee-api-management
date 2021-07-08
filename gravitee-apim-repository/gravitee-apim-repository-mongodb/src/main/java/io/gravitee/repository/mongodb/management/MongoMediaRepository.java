@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static com.mongodb.client.model.Filters.*;
+
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.gridfs.GridFSBucket;
 import com.mongodb.client.gridfs.GridFSBuckets;
@@ -23,13 +25,6 @@ import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import io.gravitee.repository.media.api.MediaRepository;
 import io.gravitee.repository.media.model.Media;
-import org.bson.BsonString;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.MongoDbFactory;
-import org.springframework.stereotype.Component;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,8 +33,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-
-import static com.mongodb.client.model.Filters.*;
+import org.bson.BsonString;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume GILLON
@@ -62,16 +61,10 @@ public class MongoMediaRepository implements MediaRepository {
             doc.append("api", media.getApi());
         }
 
-        GridFSUploadOptions options = new GridFSUploadOptions()
-            .metadata(doc);
+        GridFSUploadOptions options = new GridFSUploadOptions().metadata(doc);
 
         getGridFs()
-            .uploadFromStream(
-                new BsonString(media.getId()),
-                media.getFileName(),
-                new ByteArrayInputStream(media.getData()),
-                options
-            );
+            .uploadFromStream(new BsonString(media.getId()), media.getFileName(), new ByteArrayInputStream(media.getData()), options);
 
         return media;
     }
@@ -116,7 +109,6 @@ public class MongoMediaRepository implements MediaRepository {
         return this.findFirst(this.getQueryFindMedia(hash, api, mediaType), withContent);
     }
 
-
     @Override
     public List<Media> findAllByApi(String api) {
         if (api != null) {
@@ -129,12 +121,14 @@ public class MongoMediaRepository implements MediaRepository {
     private List<Media> findAll(Bson query) {
         GridFSFindIterable files = getGridFs().find(query);
         ArrayList<Media> all = new ArrayList<>();
-        files.forEach((Consumer<GridFSFile>) file -> {
-            Media convert = convert(file, true);
-            if (convert != null) {
-                all.add(convert);
+        files.forEach(
+            (Consumer<GridFSFile>) file -> {
+                Media convert = convert(file, true);
+                if (convert != null) {
+                    all.add(convert);
+                }
             }
-        });
+        );
         return all;
     }
 
@@ -163,7 +157,6 @@ public class MongoMediaRepository implements MediaRepository {
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 byte[] result = null;
                 try {
-
                     int next = inputStream.read();
 
                     while (next > -1) {
@@ -173,7 +166,6 @@ public class MongoMediaRepository implements MediaRepository {
                     bos.flush();
                     result = bos.toByteArray();
                     bos.close();
-
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -195,6 +187,7 @@ public class MongoMediaRepository implements MediaRepository {
         Bson addQuery = api == null ? not(exists("metadata.api")) : eq("metadata.api", api);
         return and(in("metadata.hash", hashList), addQuery);
     }
+
     private GridFSBucket getGridFs() {
         MongoDatabase db = mongoFactory.getDb();
         String bucketName = "media";
@@ -210,5 +203,4 @@ public class MongoMediaRepository implements MediaRepository {
             files.forEach((Consumer<GridFSFile>) gridFSFile -> gridFs.delete(gridFSFile.getId()));
         }
     }
-
 }

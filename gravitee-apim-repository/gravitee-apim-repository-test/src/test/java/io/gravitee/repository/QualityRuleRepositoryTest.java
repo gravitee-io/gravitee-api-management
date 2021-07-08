@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.QualityRule;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class QualityRuleRepositoryTest extends AbstractRepositoryTest {
 
@@ -43,7 +42,11 @@ public class QualityRuleRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(qualityRules);
         assertEquals(3, qualityRules.size());
-        final QualityRule qualityRuleProduct = qualityRules.stream().filter(qualityRule -> "quality-rule3".equals(qualityRule.getId())).findAny().get();
+        final QualityRule qualityRuleProduct = qualityRules
+            .stream()
+            .filter(qualityRule -> "quality-rule3".equals(qualityRule.getId()))
+            .findAny()
+            .get();
         assertEquals("Api-key plan", qualityRuleProduct.getName());
         assertEquals("A plan api-key is published", qualityRuleProduct.getDescription());
         assertEquals(3, qualityRuleProduct.getWeight());

@@ -15,12 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -29,60 +28,75 @@ import java.util.Objects;
 @Document(collection = "portalnotificationconfigs")
 public class PortalNotificationConfigMongo {
 
-	@Id
-	private PortalNotificationConfigPkMongo id;
-	private List<String> hooks;
-	private Date createdAt;
-	private Date updatedAt;
+    @Id
+    private PortalNotificationConfigPkMongo id;
 
-	public PortalNotificationConfigPkMongo getId() {
-		return id;
-	}
-	public void setId(PortalNotificationConfigPkMongo id) {
-		this.id = id;
-	}
+    private List<String> hooks;
+    private Date createdAt;
+    private Date updatedAt;
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public PortalNotificationConfigPkMongo getId() {
+        return id;
+    }
 
-	public List<String> getHooks() {
-		return hooks;
-	}
-	public void setHooks(List<String> hooks) {
-		this.hooks = hooks;
-	}
+    public void setId(PortalNotificationConfigPkMongo id) {
+        this.id = id;
+    }
 
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof PortalNotificationConfigMongo)) return false;
-		PortalNotificationConfigMongo portalNotificationConfigMongo = (PortalNotificationConfigMongo) o;
-		return Objects.equals(id, portalNotificationConfigMongo.id);
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    public List<String> getHooks() {
+        return hooks;
+    }
 
-	@Override
-	public String toString() {
-		return "PortalNotificationConfigMongo{" +
-				"id='" + id + '\'' +
-				", hooks='" + hooks + '\'' +
-				", createdAt='" + createdAt + '\'' +
-				", updatedAt='" + updatedAt + '\'' +
-				'}';
-	}
+    public void setHooks(List<String> hooks) {
+        this.hooks = hooks;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PortalNotificationConfigMongo)) return false;
+        PortalNotificationConfigMongo portalNotificationConfigMongo = (PortalNotificationConfigMongo) o;
+        return Objects.equals(id, portalNotificationConfigMongo.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "PortalNotificationConfigMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hooks='" +
+            hooks +
+            '\'' +
+            ", createdAt='" +
+            createdAt +
+            '\'' +
+            ", updatedAt='" +
+            updatedAt +
+            '\'' +
+            '}'
+        );
+    }
 }

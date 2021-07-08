@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Workflow;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class WorkflowRepositoryTest extends AbstractRepositoryTest {
 
@@ -41,9 +40,10 @@ public class WorkflowRepositoryTest extends AbstractRepositoryTest {
 
         assertNotNull(workflows);
         assertEquals(4, workflows.size());
-        final Optional<Workflow> optionalWorkflow = workflows.stream()
-                .filter(workflow -> "old-workflow".equals(workflow.getId()))
-                .findAny();
+        final Optional<Workflow> optionalWorkflow = workflows
+            .stream()
+            .filter(workflow -> "old-workflow".equals(workflow.getId()))
+            .findAny();
         assertTrue(optionalWorkflow.isPresent());
         assertEquals("API", optionalWorkflow.get().getReferenceType());
         assertEquals("api-id", optionalWorkflow.get().getReferenceId());

@@ -15,24 +15,22 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Group;
-import org.junit.Test;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Group;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.junit.Test;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GroupRepositoryTest extends AbstractRepositoryTest {
-
 
     @Override
     protected String getTestCasesPath() {
@@ -150,7 +148,7 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertFalse("not empty", groups.isEmpty());
         assertEquals(2, groups.size());
     }
-    
+
     @Test
     public void shouldDelete() throws TechnicalException {
         groupRepository.delete("group-api-to-delete");
@@ -167,11 +165,9 @@ public class GroupRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(groups);
         assertFalse(groups.isEmpty());
         assertEquals(2, groups.size());
-        assertTrue(groups.
-                stream().
-                map(Group::getId).
-                collect(Collectors.toList()).
-                containsAll(asList("group-application-1", "group-api-to-delete")));
+        assertTrue(
+            groups.stream().map(Group::getId).collect(Collectors.toList()).containsAll(asList("group-application-1", "group-api-to-delete"))
+        );
     }
 
     @Test

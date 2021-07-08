@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.config;
 
+import static org.mockito.Mockito.mock;
+
 import io.gravitee.repository.config.mock.*;
 import org.springframework.context.annotation.Bean;
-
-import static org.mockito.Mockito.mock;
 
 public class MockTestRepositoryConfiguration {
 

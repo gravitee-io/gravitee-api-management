@@ -17,11 +17,10 @@ package io.gravitee.repository.mongodb.management.internal.user;
 
 import io.gravitee.repository.mongodb.management.internal.model.CustomUserFieldMongo;
 import io.gravitee.repository.mongodb.management.internal.model.CustomUserFieldPkMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -29,7 +28,6 @@ import java.util.List;
  */
 @Repository
 public interface CustomUserFieldsMongoRepository extends MongoRepository<CustomUserFieldMongo, CustomUserFieldPkMongo> {
-
     @Query(value = "{ '_id.referenceId': ?0, '_id.referenceType': ?1  }")
-    List<CustomUserFieldMongo> findByReference(String refId,String refType);
+    List<CustomUserFieldMongo> findByReference(String refId, String refType);
 }

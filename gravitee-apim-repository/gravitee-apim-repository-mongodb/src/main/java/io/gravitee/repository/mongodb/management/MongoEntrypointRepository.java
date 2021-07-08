@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.EntrypointReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.EntrypointMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -58,10 +57,13 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     }
 
     @Override
-    public Optional<Entrypoint> findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType) throws TechnicalException {
+    public Optional<Entrypoint> findByIdAndReference(String entrypointId, String referenceId, EntrypointReferenceType referenceType)
+        throws TechnicalException {
         LOGGER.debug("Find entry point by ID and reference [{}, {}, {}]", entrypointId, referenceId, referenceType);
 
-        final EntrypointMongo entrypoint = internalEntryPointRepo.findByIdAndReferenceIdAndReferenceType(entrypointId, referenceId, referenceType).orElse(null);
+        final EntrypointMongo entrypoint = internalEntryPointRepo
+            .findByIdAndReferenceIdAndReferenceType(entrypointId, referenceId, referenceType)
+            .orElse(null);
 
         LOGGER.debug("Find entry point by ID and reference [{}, {}, {}] - Done", entrypointId, referenceId, referenceType);
         return Optional.ofNullable(mapper.map(entrypoint, Entrypoint.class));
@@ -102,9 +104,7 @@ public class MongoEntrypointRepository implements EntrypointRepository {
 
             EntrypointMongo entrypointMongoUpdated = internalEntryPointRepo.save(entrypointMongo);
             return mapper.map(entrypointMongoUpdated, Entrypoint.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occurred when updating entry point", e);
             throw new TechnicalException("An error occurred when updating entry point");
         }
@@ -123,8 +123,10 @@ public class MongoEntrypointRepository implements EntrypointRepository {
     @Override
     public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) {
         final List<EntrypointMongo> entrypoints = internalEntryPointRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
-        return entrypoints.stream()
-                .map(entrypointMongo -> {
+        return entrypoints
+            .stream()
+            .map(
+                entrypointMongo -> {
                     final Entrypoint entrypoint = new Entrypoint();
                     entrypoint.setId(entrypointMongo.getId());
                     entrypointMongo.setReferenceId(entrypoint.getReferenceId());
@@ -132,7 +134,8 @@ public class MongoEntrypointRepository implements EntrypointRepository {
                     entrypoint.setValue(entrypointMongo.getValue());
                     entrypoint.setTags(entrypointMongo.getTags());
                     return entrypoint;
-                })
-                .collect(Collectors.toSet());
+                }
+            )
+            .collect(Collectors.toSet());
     }
 }

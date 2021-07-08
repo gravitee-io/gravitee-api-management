@@ -25,8 +25,15 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class Api {
+
     public enum AuditEvent implements Audit.ApiAuditEvent {
-        API_CREATED, API_UPDATED, API_DELETED, API_ROLLBACKED, API_LOGGING_ENABLED, API_LOGGING_DISABLED, API_LOGGING_UPDATED
+        API_CREATED,
+        API_UPDATED,
+        API_DELETED,
+        API_ROLLBACKED,
+        API_LOGGING_ENABLED,
+        API_LOGGING_DISABLED,
+        API_LOGGING_UPDATED,
     }
 
     /**
@@ -111,7 +118,7 @@ public class Api {
 
     private String background;
 
-    public Api(){}
+    public Api() {}
 
     public Api(Api cloned) {
         this.id = cloned.id;
@@ -292,19 +299,39 @@ public class Api {
     }
 
     public String toString() {
-        return "Api{" +
-            "id='" + id + '\'' +
-            ", environmentId='" + environmentId + '\'' +
-            ", name='" + name + '\'' +
-            ", description='" + description + '\'' +
-            ", version='" + version + '\'' +
-            ", definition='" + definition + '\'' +
-            ", createdAt=" + createdAt +
-            ", updatedAt=" + updatedAt +
-            ", visibility=" + visibility +
-            ", lifecycleState=" + lifecycleState +
-            ", apiLifecycleState=" + apiLifecycleState +
-                ", disableMembershipNotifications=" + disableMembershipNotifications +
-            '}';
+        return (
+            "Api{" +
+            "id='" +
+            id +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", version='" +
+            version +
+            '\'' +
+            ", definition='" +
+            definition +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            ", visibility=" +
+            visibility +
+            ", lifecycleState=" +
+            lifecycleState +
+            ", apiLifecycleState=" +
+            apiLifecycleState +
+            ", disableMembershipNotifications=" +
+            disableMembershipNotifications +
+            '}'
+        );
     }
 }

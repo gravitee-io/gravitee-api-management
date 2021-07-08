@@ -20,7 +20,6 @@ package io.gravitee.repository.management.api.search;
  * @author GraviteeSource Team
  */
 public interface Sortable {
-
     /**
      * Field you want to sort on.
      * @return Field you want to sort on.

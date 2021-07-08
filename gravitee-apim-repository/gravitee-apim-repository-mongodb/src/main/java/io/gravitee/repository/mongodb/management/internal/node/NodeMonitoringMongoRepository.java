@@ -25,6 +25,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface NodeMonitoringMongoRepository extends MongoRepository<MonitoringMongo, String>, NodeMonitoringMongoRepositoryCustom {
-
     MonitoringMongo findByNodeIdAndType(String nodeId, String type);
 }

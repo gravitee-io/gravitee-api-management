@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Map;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,32 +26,32 @@ import java.util.Map;
 @Document(collection = "identity_providers")
 public class IdentityProviderMongo extends Auditable {
 
-	@Id
-	private String id;
+    @Id
+    private String id;
 
     private String organizationId;
-    
-	private String name;
 
-	private String description;
+    private String name;
 
-	private boolean enabled;
+    private String description;
 
-	private String type;
+    private boolean enabled;
 
-	private Map<String, Object> configuration;
+    private String type;
 
-	private Map<String, String []> groupMappings;
+    private Map<String, Object> configuration;
 
-	private Map<String, String []> roleMappings;
+    private Map<String, String[]> groupMappings;
 
-	private Map<String, String> userProfileMapping;
+    private Map<String, String[]> roleMappings;
 
-	private Boolean emailRequired;
+    private Map<String, String> userProfileMapping;
 
-	private Boolean syncMappings;
+    private Boolean emailRequired;
 
-	public String getId() {
+    private Boolean syncMappings;
+
+    public String getId() {
         return id;
     }
 
@@ -69,97 +68,97 @@ public class IdentityProviderMongo extends Auditable {
     }
 
     public String getName() {
-		return name;
-	}
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	public Map<String, String[]> getGroupMappings() {
-		return groupMappings;
-	}
+    public Map<String, String[]> getGroupMappings() {
+        return groupMappings;
+    }
 
-	public void setGroupMappings(Map<String, String[]> groupMappings) {
-		this.groupMappings = groupMappings;
-	}
+    public void setGroupMappings(Map<String, String[]> groupMappings) {
+        this.groupMappings = groupMappings;
+    }
 
-	public Map<String, String[]> getRoleMappings() {
-		return roleMappings;
-	}
+    public Map<String, String[]> getRoleMappings() {
+        return roleMappings;
+    }
 
-	public void setRoleMappings(Map<String, String[]> roleMappings) {
-		this.roleMappings = roleMappings;
-	}
+    public void setRoleMappings(Map<String, String[]> roleMappings) {
+        this.roleMappings = roleMappings;
+    }
 
-	public Map<String, Object> getConfiguration() {
-		return configuration;
-	}
+    public Map<String, Object> getConfiguration() {
+        return configuration;
+    }
 
-	public void setConfiguration(Map<String, Object> configuration) {
-		this.configuration = configuration;
-	}
+    public void setConfiguration(Map<String, Object> configuration) {
+        this.configuration = configuration;
+    }
 
-	public Map<String, String> getUserProfileMapping() {
-		return userProfileMapping;
-	}
+    public Map<String, String> getUserProfileMapping() {
+        return userProfileMapping;
+    }
 
-	public void setUserProfileMapping(Map<String, String> userProfileMapping) {
-		this.userProfileMapping = userProfileMapping;
-	}
+    public void setUserProfileMapping(Map<String, String> userProfileMapping) {
+        this.userProfileMapping = userProfileMapping;
+    }
 
-	public Boolean getEmailRequired() {
-		return emailRequired;
-	}
+    public Boolean getEmailRequired() {
+        return emailRequired;
+    }
 
-	public void setEmailRequired(Boolean emailRequired) {
-		this.emailRequired = emailRequired;
-	}
+    public void setEmailRequired(Boolean emailRequired) {
+        this.emailRequired = emailRequired;
+    }
 
-	public Boolean getSyncMappings() {
-		return syncMappings;
-	}
+    public Boolean getSyncMappings() {
+        return syncMappings;
+    }
 
-	public void setSyncMappings(Boolean syncMappings) {
-		this.syncMappings = syncMappings;
-	}
+    public void setSyncMappings(Boolean syncMappings) {
+        this.syncMappings = syncMappings;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-		IdentityProviderMongo that = (IdentityProviderMongo) o;
+        IdentityProviderMongo that = (IdentityProviderMongo) o;
 
-		return id.equals(that.id);
-	}
+        return id.equals(that.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

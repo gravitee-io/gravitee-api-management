@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -28,38 +27,38 @@ import java.util.Objects;
 @Document(collection = "environments")
 public class EnvironmentMongo {
 
-	@Id
-	private String id;
+    @Id
+    private String id;
 
-	private String cockpitId;
+    private String cockpitId;
 
-	private List<String> hrids;
+    private List<String> hrids;
 
-	private String name;
+    private String name;
 
-	private String description;
+    private String description;
 
-	private String organizationId;
+    private String organizationId;
 
-	private List<String> domainRestrictions;
+    private List<String> domainRestrictions;
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getDescription() {
+    public String getDescription() {
         return description;
     }
 
@@ -82,46 +81,60 @@ public class EnvironmentMongo {
     public void setDomainRestrictions(List<String> domainRestrictions) {
         this.domainRestrictions = domainRestrictions;
     }
-    
-	public List<String> getHrids() {
-		return hrids;
-	}
 
-	public void setHrids(List<String> hrids) {
-		this.hrids = hrids;
-	}
+    public List<String> getHrids() {
+        return hrids;
+    }
 
-	public String getCockpitId() {
-		return cockpitId;
-	}
+    public void setHrids(List<String> hrids) {
+        this.hrids = hrids;
+    }
 
-	public void setCockpitId(String cockpitId) {
-		this.cockpitId = cockpitId;
-	}
+    public String getCockpitId() {
+        return cockpitId;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof EnvironmentMongo)) return false;
-		EnvironmentMongo envMongo = (EnvironmentMongo) o;
-		return Objects.equals(id, envMongo.id);
-	}
+    public void setCockpitId(String cockpitId) {
+        this.cockpitId = cockpitId;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EnvironmentMongo)) return false;
+        EnvironmentMongo envMongo = (EnvironmentMongo) o;
+        return Objects.equals(id, envMongo.id);
+    }
 
-	@Override
-	public String toString() {
-		return "EnvironmentMongo{" +
-			"id='" + id + '\'' +
-			", cockpitId='" + cockpitId + '\'' +
-			", hrids=" + hrids +
-			", name='" + name + '\'' +
-			", description='" + description + '\'' +
-			", organizationId='" + organizationId + '\'' +
-			", domainRestrictions=" + domainRestrictions +
-			'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "EnvironmentMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", cockpitId='" +
+            cockpitId +
+            '\'' +
+            ", hrids=" +
+            hrids +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", organizationId='" +
+            organizationId +
+            '\'' +
+            ", domainRestrictions=" +
+            domainRestrictions +
+            '}'
+        );
+    }
 }

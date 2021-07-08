@@ -20,10 +20,10 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public class AlertEventRule {
+
     private AlertEventType event;
 
-    public AlertEventRule() {
-    }
+    public AlertEventRule() {}
 
     public AlertEventRule(AlertEventType event) {
         this.event = event;

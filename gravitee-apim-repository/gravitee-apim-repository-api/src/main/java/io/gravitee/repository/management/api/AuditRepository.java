@@ -25,8 +25,7 @@ import io.gravitee.repository.management.model.Audit;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface AuditRepository extends CrudRepository<Audit, String>{
-
+public interface AuditRepository extends CrudRepository<Audit, String> {
     Page<Audit> search(AuditCriteria filter, Pageable pageable);
 
     default Audit update(Audit item) throws TechnicalException {

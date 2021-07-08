@@ -138,8 +138,7 @@ public class Event implements Serializable {
         USER("user"),
         DEPLOYMENT_LABEL("deployment_label"),
         DEPLOYMENT_NUMBER("deployment_number"),
-        ORGANIZATION_ID("organization_id")
-        ;
+        ORGANIZATION_ID("organization_id");
 
         private String value;
 

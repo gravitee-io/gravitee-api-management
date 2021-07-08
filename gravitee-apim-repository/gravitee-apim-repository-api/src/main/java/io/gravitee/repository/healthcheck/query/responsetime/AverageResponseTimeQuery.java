@@ -21,7 +21,7 @@ import io.gravitee.repository.healthcheck.query.AbstractQuery;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AverageResponseTimeQuery extends AbstractQuery<AverageResponseTimeResponse>  {
+public class AverageResponseTimeQuery extends AbstractQuery<AverageResponseTimeResponse> {
 
     private Field field = Field.ENDPOINT;
 
@@ -32,6 +32,7 @@ public class AverageResponseTimeQuery extends AbstractQuery<AverageResponseTimeR
     public void field(Field field) {
         this.field = field;
     }
+
     @Override
     public Class<AverageResponseTimeResponse> responseType() {
         return AverageResponseTimeResponse.class;
@@ -39,6 +40,6 @@ public class AverageResponseTimeQuery extends AbstractQuery<AverageResponseTimeR
 
     public enum Field {
         ENDPOINT,
-        GATEWAY
+        GATEWAY,
     }
 }

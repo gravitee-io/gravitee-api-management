@@ -15,15 +15,14 @@
  */
 package io.gravitee.repository.jdbc.embedded;
 
+import static ru.yandex.qatools.embed.postgresql.distribution.Version.Main.V10;
+
 import io.gravitee.repository.jdbc.AbstractJdbcTestRepositoryConfiguration;
+import java.io.IOException;
+import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import ru.yandex.qatools.embed.postgresql.EmbeddedPostgres;
-
-import javax.inject.Inject;
-import java.io.IOException;
-
-import static ru.yandex.qatools.embed.postgresql.distribution.Version.Main.V10;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.CustomUserField;
 import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +26,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface CustomUserFieldsRepository {
-
     CustomUserField create(CustomUserField field) throws TechnicalException;
 
     CustomUserField update(CustomUserField field) throws TechnicalException;

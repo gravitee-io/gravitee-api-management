@@ -15,14 +15,13 @@
  */
 package io.gravitee.repository.management.api.search;
 
+import static java.util.Arrays.asList;
+
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-
 import java.util.List;
 import java.util.Objects;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -111,26 +110,42 @@ public class ApiCriteria {
         if (this == o) return true;
         if (!(o instanceof ApiCriteria)) return false;
         ApiCriteria that = (ApiCriteria) o;
-        return Objects.equals(ids, that.ids) &&
-                Objects.equals(groups, that.groups) &&
-                Objects.equals(category, that.category) &&
-                Objects.equals(label, that.label) &&
-                Objects.equals(state, that.state) &&
-                Objects.equals(visibility, that.visibility) &&
-                Objects.equals(version, that.version) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(lifecycleStates, that.lifecycleStates) &&
-                Objects.equals(environmentId, that.environmentId) &&
-                Objects.equals(contextPath, that.contextPath) &&
-                Objects.equals(environments, that.environments);
+        return (
+            Objects.equals(ids, that.ids) &&
+            Objects.equals(groups, that.groups) &&
+            Objects.equals(category, that.category) &&
+            Objects.equals(label, that.label) &&
+            Objects.equals(state, that.state) &&
+            Objects.equals(visibility, that.visibility) &&
+            Objects.equals(version, that.version) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(lifecycleStates, that.lifecycleStates) &&
+            Objects.equals(environmentId, that.environmentId) &&
+            Objects.equals(contextPath, that.contextPath) &&
+            Objects.equals(environments, that.environments)
+        );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ids, groups, category, label, state, visibility, version, name, lifecycleStates, environmentId, contextPath, environments);
+        return Objects.hash(
+            ids,
+            groups,
+            category,
+            label,
+            state,
+            visibility,
+            version,
+            name,
+            lifecycleStates,
+            environmentId,
+            contextPath,
+            environments
+        );
     }
 
     public static class Builder {
+
         private List<String> ids;
         private List<String> groups;
         private String category;

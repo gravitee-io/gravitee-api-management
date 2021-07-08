@@ -20,10 +20,11 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GenericNotificationConfig {
+
     private String id;
     private String name;
     private String notifier;
@@ -129,16 +130,34 @@ public class GenericNotificationConfig {
     }
 
     public String toString() {
-        return "GenericNotificationConfig{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", notifier='" + notifier + '\'' +
-                ", config=" + config + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", hooks='" + hooks + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "GenericNotificationConfig{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", notifier='" +
+            notifier +
+            '\'' +
+            ", config=" +
+            config +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", hooks='" +
+            hooks +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

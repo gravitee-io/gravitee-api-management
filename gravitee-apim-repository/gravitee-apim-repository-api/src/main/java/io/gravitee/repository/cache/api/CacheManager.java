@@ -22,6 +22,5 @@ import io.gravitee.repository.cache.model.Cache;
  * @author GraviteeSource Team
  */
 public interface CacheManager {
-
     Cache getCache(String name);
 }

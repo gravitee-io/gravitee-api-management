@@ -15,25 +15,23 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Installation;
 import io.gravitee.repository.utils.DateUtils;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class InstallationRepositoryTest extends AbstractRepositoryTest {
-
 
     @Override
     protected String getTestCasesPath() {

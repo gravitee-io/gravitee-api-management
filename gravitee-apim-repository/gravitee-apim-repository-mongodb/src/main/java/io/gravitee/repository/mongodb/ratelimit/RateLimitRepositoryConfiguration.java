@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.ratelimit;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -27,8 +28,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories;
 
-import java.net.URI;
-
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -37,38 +36,38 @@ import java.net.URI;
 @EnableReactiveMongoRepositories
 public class RateLimitRepositoryConfiguration {
 
-	@Autowired
-	private Environment environment;
+    @Autowired
+    private Environment environment;
 
-	@Autowired
-	@Qualifier("rateLimitMongo")
-	private MongoFactory mongoFactory;
+    @Autowired
+    @Qualifier("rateLimitMongo")
+    private MongoFactory mongoFactory;
 
-	protected String getDatabaseName() {
-		String uri = environment.getProperty("ratelimit.mongodb.uri");
-		if (uri != null && ! uri.isEmpty()) {
-			return URI.create(uri).getPath().substring(1);
-		}
+    protected String getDatabaseName() {
+        String uri = environment.getProperty("ratelimit.mongodb.uri");
+        if (uri != null && !uri.isEmpty()) {
+            return URI.create(uri).getPath().substring(1);
+        }
 
-		return environment.getProperty("ratelimit.mongodb.dbname", "gravitee");
-	}
+        return environment.getProperty("ratelimit.mongodb.dbname", "gravitee");
+    }
 
-	@Bean(name = "rateLimitMongo")
-	public static MongoFactory mongoFactory() {
-		return new MongoFactory(Scope.RATE_LIMIT.getName());
-	}
+    @Bean(name = "rateLimitMongo")
+    public static MongoFactory mongoFactory() {
+        return new MongoFactory(Scope.RATE_LIMIT.getName());
+    }
 
-	@Bean(name = "rateLimitMongoTemplate")
-	public ReactiveMongoOperations mongoOperations() {
-		try {
-			return new ReactiveMongoTemplate(mongoFactory.getReactiveClient(), getDatabaseName());
-		} catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
-	}
+    @Bean(name = "rateLimitMongoTemplate")
+    public ReactiveMongoOperations mongoOperations() {
+        try {
+            return new ReactiveMongoTemplate(mongoFactory.getReactiveClient(), getDatabaseName());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
-	@Bean
-	public RateLimitRepository rateLimitRepository() {
-		return new MongoRateLimitRepository();
-	}
+    @Bean
+    public RateLimitRepository rateLimitRepository() {
+        return new MongoRateLimitRepository();
+    }
 }

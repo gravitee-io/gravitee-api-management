@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataFormat;
 import io.gravitee.repository.management.model.MetadataReferenceType;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class MetadataRepositoryTest extends AbstractRepositoryTest {
 
@@ -111,9 +110,13 @@ public class MetadataRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        int nbMetadataListBeforeDeletion = metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId").size();
+        int nbMetadataListBeforeDeletion = metadataRepository
+            .findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")
+            .size();
         metadataRepository.delete("mail", "applicationId", MetadataReferenceType.APPLICATION);
-        int nbMetadataListAfterDeletion = metadataRepository.findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId").size();
+        int nbMetadataListAfterDeletion = metadataRepository
+            .findByReferenceTypeAndReferenceId(MetadataReferenceType.APPLICATION, "applicationId")
+            .size();
 
         Assert.assertEquals(nbMetadataListBeforeDeletion - 1, nbMetadataListAfterDeletion);
     }

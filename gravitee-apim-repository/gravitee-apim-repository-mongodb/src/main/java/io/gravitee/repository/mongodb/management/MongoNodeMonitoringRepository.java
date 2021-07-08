@@ -25,10 +25,9 @@ import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -64,8 +63,7 @@ public class MongoNodeMonitoringRepository implements NodeMonitoringRepository {
         MonitoringMongo monitoringMongo = internalNodeMonitoringRepository.findById(monitoring.getId()).orElse(null);
 
         if (monitoringMongo == null) {
-            return Single.error(new IllegalStateException(
-                    String.format("No node monitoring found with id [%s]", monitoring.getId())));
+            return Single.error(new IllegalStateException(String.format("No node monitoring found with id [%s]", monitoring.getId())));
         }
 
         monitoringMongo = map(monitoring);
@@ -76,17 +74,15 @@ public class MongoNodeMonitoringRepository implements NodeMonitoringRepository {
     @Override
     public Flowable<Monitoring> findByTypeAndTimeFrame(String type, long from, long to) {
         return Flowable.fromIterable(
-                internalNodeMonitoringRepository.findByTypeAndTimeFrame(type, from, to)
-                        .stream()
-                        .map(this::map)
-                        .collect(Collectors.toList()));
+            internalNodeMonitoringRepository.findByTypeAndTimeFrame(type, from, to).stream().map(this::map).collect(Collectors.toList())
+        );
     }
 
     private MonitoringMongo map(Monitoring item) {
         return (item == null) ? null : mapper.map(item, MonitoringMongo.class);
     }
 
-    private Monitoring map(MonitoringMongo item){
+    private Monitoring map(MonitoringMongo item) {
         return (item == null) ? null : mapper.map(item, Monitoring.class);
     }
 }

@@ -20,10 +20,9 @@ import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.Role;
 import io.gravitee.repository.management.model.RoleReferenceType;
 import io.gravitee.repository.management.model.RoleScope;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -58,21 +57,23 @@ public class HttpRoleRepository extends AbstractRepository implements RoleReposi
     }
 
     @Override
-    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId,
-            RoleReferenceType referenceType) throws TechnicalException {
+    public Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType)
-            throws TechnicalException {
+    public Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope scope, String name, String referenceId,
-            RoleReferenceType referenceType) throws TechnicalException {
+    public Optional<Role> findByScopeAndNameAndReferenceIdAndReferenceType(
+        RoleScope scope,
+        String name,
+        String referenceId,
+        RoleReferenceType referenceType
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
-
 }

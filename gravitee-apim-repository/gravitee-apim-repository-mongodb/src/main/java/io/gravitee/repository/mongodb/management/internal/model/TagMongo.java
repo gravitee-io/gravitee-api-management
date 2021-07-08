@@ -16,11 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.TagReferenceType;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -29,94 +28,110 @@ import java.util.Objects;
 @Document(collection = "tags")
 public class TagMongo {
 
-	@Id
-	private String id;
-	private String name;
-	private String description;
-	private List<String> restrictedGroups;
-	private String referenceId;
-	private TagReferenceType referenceType;
-	private List<String> flowIds;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String name;
+    private String description;
+    private List<String> restrictedGroups;
+    private String referenceId;
+    private TagReferenceType referenceType;
+    private List<String> flowIds;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public List<String> getRestrictedGroups() {
-		return restrictedGroups;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public void setRestrictedGroups(List<String> restrictedGroups) {
-		this.restrictedGroups = restrictedGroups;
-	}
+    public List<String> getRestrictedGroups() {
+        return restrictedGroups;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public void setRestrictedGroups(List<String> restrictedGroups) {
+        this.restrictedGroups = restrictedGroups;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public TagReferenceType getReferenceType() {
-		return referenceType;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public void setReferenceType(TagReferenceType referenceType) {
-		this.referenceType = referenceType;
-	}
+    public TagReferenceType getReferenceType() {
+        return referenceType;
+    }
 
-	public List<String> getFlowIds() {
-		return flowIds;
-	}
+    public void setReferenceType(TagReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public void setFlowIds(List<String> flowIds) {
-		this.flowIds = flowIds;
-	}
+    public List<String> getFlowIds() {
+        return flowIds;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof TagMongo)) return false;
-		TagMongo tagMongo = (TagMongo) o;
-		return Objects.equals(id, tagMongo.id);
-	}
+    public void setFlowIds(List<String> flowIds) {
+        this.flowIds = flowIds;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TagMongo)) return false;
+        TagMongo tagMongo = (TagMongo) o;
+        return Objects.equals(id, tagMongo.id);
+    }
 
-	@Override
-	public String toString() {
-		return "TagMongo{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", restrictedGroups=" + restrictedGroups +
-				", referenceId='" + referenceId + '\'' +
-				", referenceType='" + referenceType + '\'' +
-				", flowsIds='" + flowIds + '\'' +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "TagMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", restrictedGroups=" +
+            restrictedGroups +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", flowsIds='" +
+            flowIds +
+            '\'' +
+            '}'
+        );
+    }
 }

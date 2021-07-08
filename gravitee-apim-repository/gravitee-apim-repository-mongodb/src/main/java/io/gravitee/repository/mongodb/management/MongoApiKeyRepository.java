@@ -23,13 +23,12 @@ import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,65 +37,61 @@ import java.util.stream.Collectors;
 @Component
 public class MongoApiKeyRepository implements ApiKeyRepository {
 
-	@Autowired
-	private GraviteeMapper mapper;
+    @Autowired
+    private GraviteeMapper mapper;
 
-	@Autowired
-	private ApiKeyMongoRepository internalApiKeyRepo;
+    @Autowired
+    private ApiKeyMongoRepository internalApiKeyRepo;
 
-	@Override
-	public ApiKey create(ApiKey apiKey) throws TechnicalException {
-		ApiKeyMongo apiKeyMongo = mapper.map(apiKey, ApiKeyMongo.class);
-		apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
+    @Override
+    public ApiKey create(ApiKey apiKey) throws TechnicalException {
+        ApiKeyMongo apiKeyMongo = mapper.map(apiKey, ApiKeyMongo.class);
+        apiKeyMongo = internalApiKeyRepo.insert(apiKeyMongo);
 
-		return mapper.map(apiKeyMongo, ApiKey.class);
-	}
+        return mapper.map(apiKeyMongo, ApiKey.class);
+    }
 
-	@Override
-	public ApiKey update(ApiKey apiKey) throws TechnicalException {
-		if (apiKey == null || apiKey.getKey() == null) {
-			throw new IllegalStateException("ApiKey to update must have an key");
-		}
+    @Override
+    public ApiKey update(ApiKey apiKey) throws TechnicalException {
+        if (apiKey == null || apiKey.getKey() == null) {
+            throw new IllegalStateException("ApiKey to update must have an key");
+        }
 
-		ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findById(apiKey.getKey()).orElse(null);
+        ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findById(apiKey.getKey()).orElse(null);
 
-		if (apiKeyMongo == null) {
-			throw new IllegalStateException(String.format("No apiKey found with key [%s]", apiKey.getKey()));
-		}
+        if (apiKeyMongo == null) {
+            throw new IllegalStateException(String.format("No apiKey found with key [%s]", apiKey.getKey()));
+        }
 
-		apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey, ApiKeyMongo.class));
-		return mapper.map(apiKeyMongo, ApiKey.class);
-	}
+        apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey, ApiKeyMongo.class));
+        return mapper.map(apiKeyMongo, ApiKey.class);
+    }
 
-	@Override
-	public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
-		return internalApiKeyRepo.findBySubscription(subscription)
-				.stream()
-				.map(apiKey -> mapper.map(apiKey, ApiKey.class))
-				.collect(Collectors.toSet());
-	}
+    @Override
+    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+        return internalApiKeyRepo
+            .findBySubscription(subscription)
+            .stream()
+            .map(apiKey -> mapper.map(apiKey, ApiKey.class))
+            .collect(Collectors.toSet());
+    }
 
-	@Override
-	public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
-		return internalApiKeyRepo.findByPlan(plan)
-				.stream()
-				.map(apiKey -> mapper.map(apiKey, ApiKey.class))
-				.collect(Collectors.toSet());
-	}
+    @Override
+    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+        return internalApiKeyRepo.findByPlan(plan).stream().map(apiKey -> mapper.map(apiKey, ApiKey.class)).collect(Collectors.toSet());
+    }
 
-	@Override
-	public List<ApiKey> findByCriteria(ApiKeyCriteria filter) {
-		Page<ApiKeyMongo> apiKeysMongo = internalApiKeyRepo.search(filter);
+    @Override
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter) {
+        Page<ApiKeyMongo> apiKeysMongo = internalApiKeyRepo.search(filter);
 
-		return mapper.collection2list(apiKeysMongo.getContent(), ApiKeyMongo.class, ApiKey.class);
-	}
+        return mapper.collection2list(apiKeysMongo.getContent(), ApiKeyMongo.class, ApiKey.class);
+    }
 
-	@Override
-	public Optional<ApiKey> findById(String key) throws TechnicalException {
-		ApiKeyMongo apiKey = internalApiKeyRepo.findById(key).orElse(null);
+    @Override
+    public Optional<ApiKey> findById(String key) throws TechnicalException {
+        ApiKeyMongo apiKey = internalApiKeyRepo.findById(key).orElse(null);
 
-		return (apiKey != null) ?
-				Optional.of(mapper.map(apiKey, ApiKey.class)):
-				Optional.empty();
-	}
+        return (apiKey != null) ? Optional.of(mapper.map(apiKey, ApiKey.class)) : Optional.empty();
+    }
 }

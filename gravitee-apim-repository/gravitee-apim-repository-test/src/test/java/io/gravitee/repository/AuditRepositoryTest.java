@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -23,15 +27,10 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Plan;
-import org.junit.Test;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class AuditRepositoryTest extends AbstractRepositoryTest {
 
@@ -42,7 +41,6 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindById() throws TechnicalException {
-
         Optional<Audit> auditOptional = auditRepository.findById("new");
 
         assertTrue(auditOptional.isPresent());
@@ -59,9 +57,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchWithPagination() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().
-                references(Audit.AuditReferenceType.API, singletonList("2")).
-                build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().references(Audit.AuditReferenceType.API, singletonList("2")).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(1).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -75,9 +71,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchWithEvent() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().
-                events(singletonList(Plan.AuditEvent.PLAN_UPDATED.name())).
-                build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().events(singletonList(Plan.AuditEvent.PLAN_UPDATED.name())).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -91,8 +85,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchAll() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().
-                build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -108,9 +101,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchFromTo() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().
-                from(1900000000000L).to(2999999999999L).
-                build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1900000000000L).to(2999999999999L).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -124,9 +115,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchFrom() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().
-                from(1000000000000L).
-                build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().from(1000000000000L).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
 
@@ -145,9 +134,7 @@ public class AuditRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchTo() throws TechnicalException {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().
-                to(1000000000000L).
-                build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().to(1000000000000L).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);

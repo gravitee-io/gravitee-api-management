@@ -15,23 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management.internal.audit;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
+import java.util.Date;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 
-import java.util.Date;
-import java.util.List;
-
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
@@ -43,18 +42,16 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
     public Page<AuditMongo> search(AuditCriteria filter, Pageable pageable) {
         final Query query = new Query();
         if (filter.getReferences() != null && !filter.getReferences().isEmpty()) {
-            filter.getReferences().forEach(
-                    (referenceType, referenceIds) -> query.addCriteria(
-                            where("referenceType").is(referenceType).
-                            andOperator(
-                            where("referenceId").in(referenceIds))));
+            filter
+                .getReferences()
+                .forEach(
+                    (referenceType, referenceIds) ->
+                        query.addCriteria(where("referenceType").is(referenceType).andOperator(where("referenceId").in(referenceIds)))
+                );
         }
 
         if (filter.getFrom() != 0 && filter.getTo() != 0) {
-            query.addCriteria(
-                    where("createdAt")
-                            .gte(new Date(filter.getFrom()))
-                            .lte(new Date(filter.getTo())));
+            query.addCriteria(where("createdAt").gte(new Date(filter.getFrom())).lte(new Date(filter.getTo())));
         } else {
             if (filter.getFrom() != 0) {
                 query.addCriteria(where("createdAt").gte(new Date(filter.getFrom())));
@@ -68,8 +65,7 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
             query.addCriteria(where("event").in(filter.getEvents()));
         }
 
-        query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize(),
-                new Sort(Sort.Direction.DESC, "createdAt")));
+        query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize(), new Sort(Sort.Direction.DESC, "createdAt")));
 
         List<AuditMongo> audits = mongoTemplate.find(query, AuditMongo.class);
         long total = mongoTemplate.count(query, AuditMongo.class);

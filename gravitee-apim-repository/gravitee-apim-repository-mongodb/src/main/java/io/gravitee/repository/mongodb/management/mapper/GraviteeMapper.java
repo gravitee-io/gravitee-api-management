@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.mapper;
 
 import com.github.dozermapper.core.Mapper;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -26,8 +25,7 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface GraviteeMapper extends Mapper {
+    <T, F> Set<T> collection2set(Collection<F> elements, Class<F> formClass, Class<T> toClass);
 
-	 <T,F> Set<T> collection2set(Collection<F> elements, Class<F> formClass, Class<T> toClass);
-	 
-	 <T,F> List<T> collection2list(Collection<F> elements, Class<F> formClass, Class<T> toClass);
+    <T, F> List<T> collection2list(Collection<F> elements, Class<F> formClass, Class<T> toClass);
 }

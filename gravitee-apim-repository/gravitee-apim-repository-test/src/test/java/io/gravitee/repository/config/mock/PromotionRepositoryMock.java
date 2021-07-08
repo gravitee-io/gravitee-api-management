@@ -58,84 +58,123 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
 
         Promotion promotionToBeValidatedEnv2 = getAPromotion("promotion#to_be_validated_env_2");
 
-        Page<Promotion> searchAllResult = new Page<>(asList(promotion, promotionToDelete, promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 4);
+        Page<Promotion> searchAllResult = new Page<>(
+            asList(promotion, promotionToDelete, promotionToBeValidatedEnv1, promotionToBeValidatedEnv2),
+            0,
+            0,
+            4
+        );
 
         // shouldSearchWithoutCriteria
         when(repository.search(nullable(PromotionCriteria.class), nullable(Sortable.class), any())).thenReturn(searchAllResult);
 
         // shouldSearchWithEmptyCriteria
-        when(repository.search(
+        when(
+            repository.search(
                 argThat(o -> o != null && o.getTargetEnvCockpitIds() == null && o.getStatus() == null),
                 nullable(Sortable.class),
-                any())
-        ).thenReturn(searchAllResult);
+                any()
+            )
+        )
+            .thenReturn(searchAllResult);
 
         // shouldSearchWithCriteriaTargetEnvIds
-        when(repository.search(
-                argThat(o -> o != null
-                        && o.getTargetEnvCockpitIds() != null && o.getTargetEnvCockpitIds().contains("env#cockpit-1")
-                        && o.getStatus() == null),
+        when(
+            repository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getTargetEnvCockpitIds() != null &&
+                        o.getTargetEnvCockpitIds().contains("env#cockpit-1") &&
+                        o.getStatus() == null
+                ),
                 nullable(Sortable.class),
-                any())
-        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv1), 0 , 0, 1));
+                any()
+            )
+        )
+            .thenReturn(new Page<>(asList(promotionToBeValidatedEnv1), 0, 0, 1));
 
         // shouldSearchWithCriteriaStatus
-        when(repository.search(
-                argThat(o -> o != null
-                        && o.getTargetEnvCockpitIds() == null
-                        && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
+        when(
+            repository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getTargetEnvCockpitIds() == null &&
+                        o.getStatus() != null &&
+                        o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)
+                ),
                 nullable(Sortable.class),
-                any())
-        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 2));
+                any()
+            )
+        )
+            .thenReturn(new Page<>(asList(promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0, 0, 2));
 
         // shouldSearchWithCriteriaStatusSortByCreatedAtDesc
-        when(repository.search(
-                argThat(o -> o != null
-                        && o.getTargetEnvCockpitIds() == null
-                        && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
-                argThat(sortable -> sortable != null
-                        && sortable.field().equals("created_at")
-                        && sortable.order().equals(Order.DESC)
+        when(
+            repository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getTargetEnvCockpitIds() == null &&
+                        o.getStatus() != null &&
+                        o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)
                 ),
-                argThat(pageable -> pageable != null
-                    && pageable.pageSize() == (Integer.MAX_VALUE)
-                ))
-        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv2, promotionToBeValidatedEnv1), 0 , 0, 2));
+                argThat(sortable -> sortable != null && sortable.field().equals("created_at") && sortable.order().equals(Order.DESC)),
+                argThat(pageable -> pageable != null && pageable.pageSize() == (Integer.MAX_VALUE))
+            )
+        )
+            .thenReturn(new Page<>(asList(promotionToBeValidatedEnv2, promotionToBeValidatedEnv1), 0, 0, 2));
 
         // shouldSearchWithCriteriaStatusPaginated
-        when(repository.search(
-                argThat(o -> o != null
-                        && o.getTargetEnvCockpitIds() == null
-                        && o.getStatus() != null && o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)),
-                argThat(sortable -> sortable != null
-                        && sortable.field().equals("created_at")
-                        && sortable.order().equals(Order.DESC)
+        when(
+            repository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getTargetEnvCockpitIds() == null &&
+                        o.getStatus() != null &&
+                        o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)
                 ),
-                argThat(pageable -> pageable != null
-                    && pageable.pageSize() == 1
-                ))
-        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv2), 0 , 0, 1));
+                argThat(sortable -> sortable != null && sortable.field().equals("created_at") && sortable.order().equals(Order.DESC)),
+                argThat(pageable -> pageable != null && pageable.pageSize() == 1)
+            )
+        )
+            .thenReturn(new Page<>(asList(promotionToBeValidatedEnv2), 0, 0, 1));
 
         // shouldSearchWithCriteriaApiId
-        when(repository.search(
-                argThat(o -> o != null
-                        && o.getTargetEnvCockpitIds() == null
-                        && o.getStatus() == null
-                        && o.getApiId() != null && o.getApiId().equals("api#1")),
+        when(
+            repository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getTargetEnvCockpitIds() == null &&
+                        o.getStatus() == null &&
+                        o.getApiId() != null &&
+                        o.getApiId().equals("api#1")
+                ),
                 nullable(Sortable.class),
-                any())
-        ).thenReturn(new Page<>(asList(promotion, promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 3));
+                any()
+            )
+        )
+            .thenReturn(new Page<>(asList(promotion, promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0, 0, 3));
 
         // shouldSearchWithCriteriaTargetApiId
-        when(repository.search(
-                argThat(o -> o != null
-                        && o.getTargetEnvCockpitIds() == null
-                        && o.getStatus() == null
-                        && o.getTargetApiExists() != null && o.getTargetApiExists().equals(true)),
+        when(
+            repository.search(
+                argThat(
+                    o ->
+                        o != null &&
+                        o.getTargetEnvCockpitIds() == null &&
+                        o.getStatus() == null &&
+                        o.getTargetApiExists() != null &&
+                        o.getTargetApiExists().equals(true)
+                ),
                 nullable(Sortable.class),
-                any())
-        ).thenReturn(new Page<>(asList(promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0 , 0, 2));
-
+                any()
+            )
+        )
+            .thenReturn(new Page<>(asList(promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0, 0, 2));
     }
 
     private Promotion getAPromotion(String id) {
@@ -149,7 +188,9 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
 
         final Promotion promotion = new Promotion();
         promotion.setId(id);
-        promotion.setApiDefinition("{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}");
+        promotion.setApiDefinition(
+            "{\"id\" : \"api#1\",\"name\" : \"Product\",\"version\" : \"1\",\"proxy\" : {  \"context_path\" : \"/product\",  \"endpoint\" : \"http://toto.com\",  \"endpoints\" : [ {    \"target\" : \"http://toto.com\",    \"weight\" : 1,    \"name\" : \"endpointName\"  } ],  \"strip_context_path\" : false,  \"http\" : {    \"configuration\" : {      \"connectTimeout\" : 5000,      \"idleTimeout\" : 60000,      \"keepAlive\" : true,      \"dumpRequest\" : false    }  }},\"paths\" : {  \"/\" : [ {    \"methods\" : [ ],    \"api-key\" : {}  } ]},\"tags\" : [ ]\n}"
+        );
         promotion.setStatus(PromotionStatus.CREATED);
         promotion.setSourceEnvCockpitId("env#cockpit-1");
         promotion.setSourceEnvName("Demo");
@@ -161,5 +202,4 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
 
         return promotion;
     }
-
 }

@@ -20,6 +20,7 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public class PageSource {
+
     private String type;
     private String configuration;
 
@@ -40,9 +41,6 @@ public class PageSource {
     }
 
     public String toString() {
-        return "PageSource{" +
-                "type='" + type + '\'' +
-                ", configuration='" + configuration + '\'' +
-                '}';
+        return "PageSource{" + "type='" + type + '\'' + ", configuration='" + configuration + '\'' + '}';
     }
 }

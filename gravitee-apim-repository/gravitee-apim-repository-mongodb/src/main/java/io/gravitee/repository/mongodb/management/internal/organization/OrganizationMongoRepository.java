@@ -15,13 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.organization;
 
+import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
-
-import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -29,10 +27,6 @@ import java.util.Set;
  */
 @Repository
 public interface OrganizationMongoRepository extends MongoRepository<OrganizationMongo, String> {
-
     @Query("{ hrids: {$in: ?0} }")
     Set<OrganizationMongo> findByHrids(Set<String> hrids);
-
 }
-
-

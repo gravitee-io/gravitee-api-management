@@ -28,7 +28,7 @@ public class LogsQuery extends AbstractQuery<LogsResponse> {
     private int page = 0;
 
     private Boolean transition;
-    
+
     private long from;
 
     private long to;
@@ -77,5 +77,4 @@ public class LogsQuery extends AbstractQuery<LogsResponse> {
     void to(long to) {
         this.to = to;
     }
-    
 }

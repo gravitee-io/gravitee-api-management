@@ -23,8 +23,10 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class RatingAnswer {
+
     public enum RatingAnswerEvent implements Audit.ApiAuditEvent {
-        RATING_ANSWER_CREATED, RATING_ANSWER_DELETED
+        RATING_ANSWER_CREATED,
+        RATING_ANSWER_DELETED,
     }
 
     private String id;
@@ -97,13 +99,25 @@ public class RatingAnswer {
 
     @Override
     public String toString() {
-        return "RatingAnswer{" +
-                "id='" + id + '\'' +
-                ", rating='" + rating + '\'' +
-                ", user='" + user + '\'' +
-                ", comment='" + comment + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "RatingAnswer{" +
+            "id='" +
+            id +
+            '\'' +
+            ", rating='" +
+            rating +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", comment='" +
+            comment +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

@@ -23,14 +23,13 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.MetadataMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataPkMongo;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -45,10 +44,12 @@ public class MongoMetadataRepository implements MetadataRepository {
     private MetadataMongoRepository internalMetadataRepository;
 
     @Override
-    public Optional<Metadata> findById(final String key, final String referenceId,
-                                       final MetadataReferenceType referenceType) throws TechnicalException {
+    public Optional<Metadata> findById(final String key, final String referenceId, final MetadataReferenceType referenceType)
+        throws TechnicalException {
         LOGGER.debug("Find metadata by key '{}' ref type '{}' ref id '{}'", key, referenceType, referenceId);
-        final MetadataMongo metadata = internalMetadataRepository.findById(new MetadataPkMongo(key, referenceId, referenceType.name())).orElse(null);
+        final MetadataMongo metadata = internalMetadataRepository
+            .findById(new MetadataPkMongo(key, referenceId, referenceType.name()))
+            .orElse(null);
         LOGGER.debug("Find metadata by key '{}' ref type '{}' ref id '{}' done", key, referenceType, referenceId);
         return Optional.ofNullable(map(metadata));
     }
@@ -56,7 +57,7 @@ public class MongoMetadataRepository implements MetadataRepository {
     @Override
     public Metadata create(Metadata metadata) throws TechnicalException {
         LOGGER.debug("Create metadata [{}]", metadata.getName());
-        Metadata res  = map(internalMetadataRepository.insert(map(metadata)));
+        Metadata res = map(internalMetadataRepository.insert(map(metadata)));
         LOGGER.debug("Create metadata [{}] - Done", metadata.getName());
         return res;
     }
@@ -67,8 +68,11 @@ public class MongoMetadataRepository implements MetadataRepository {
             throw new IllegalStateException("Metadata to update must have a name");
         }
 
-        final MetadataPkMongo metadataId =
-                new MetadataPkMongo(metadata.getKey(), metadata.getReferenceId(), metadata.getReferenceType().name());
+        final MetadataPkMongo metadataId = new MetadataPkMongo(
+            metadata.getKey(),
+            metadata.getReferenceId(),
+            metadata.getReferenceType().name()
+        );
         MetadataMongo metadataMongo = internalMetadataRepository.findById(metadataId).orElse(null);
 
         if (metadataMongo == null) {
@@ -81,7 +85,6 @@ public class MongoMetadataRepository implements MetadataRepository {
             metadataMongo.setFormat(metadata.getFormat().name());
 
             return map(internalMetadataRepository.save(metadataMongo));
-
         } catch (Exception e) {
             LOGGER.error("An error occurred while updating metadata", e);
             throw new TechnicalException("An error occurred while updating metadata");
@@ -110,7 +113,8 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
-    public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         LOGGER.debug("Find metadata by ref type '{}'", referenceType);
 
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceId(referenceType, referenceId);

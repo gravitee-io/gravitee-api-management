@@ -20,10 +20,8 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface AuditMongoRepository extends MongoRepository<AuditMongo, String>, AuditMongoRepositoryCustom {
-
-}
+public interface AuditMongoRepository extends MongoRepository<AuditMongo, String>, AuditMongoRepositoryCustom {}

@@ -19,14 +19,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
+import java.sql.PreparedStatement;
+import java.sql.Types;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import java.sql.PreparedStatement;
-import java.sql.Types;
-import java.util.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -46,13 +45,14 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
     @Override
     protected JdbcObjectMapper<Organization> buildOrm() {
-        return JdbcObjectMapper.builder(Organization.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("cockpit_id", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .addColumn("flow_mode", Types.NVARCHAR, String.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Organization.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("cockpit_id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("flow_mode", Types.NVARCHAR, String.class)
+            .build();
     }
 
     @Override
@@ -109,17 +109,20 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         LOGGER.debug("JdbcOrganizationRepository.findByHrids({})", hrids);
 
         final StringBuilder query = new StringBuilder(getOrm().getSelectAllSql())
-                .append(" org")
-                .append(" join ").append(ORGANIZATION_HRIDS).append(" oh on org.id = oh.organization_id");
+            .append(" org")
+            .append(" join ")
+            .append(ORGANIZATION_HRIDS)
+            .append(" oh on org.id = oh.organization_id");
 
         getOrm().buildInCondition(true, query, "oh.hrid", hrids);
 
         try {
-            List<Organization> organizations = jdbcTemplate.query(query.toString(),
-                    (PreparedStatement ps) -> getOrm().setArguments(ps, hrids, 1),
-                    getOrm().getRowMapper()
+            List<Organization> organizations = jdbcTemplate.query(
+                query.toString(),
+                (PreparedStatement ps) -> getOrm().setArguments(ps, hrids, 1),
+                getOrm().getRowMapper()
             );
-            for(Organization org: organizations) {
+            for (Organization org : organizations) {
                 this.addDomainRestrictions(org);
                 this.addHrids(org);
             }
@@ -137,10 +140,12 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
             // Note: we should find a proper way to store domain restrictions and hrids to avoid such (N*2)+1 queries.
             // For now we assume that the number of organizations remains low and this function is not widely used.
-            organizations.forEach(organization -> {
-                addDomainRestrictions(organization);
-                addHrids(organization);
-            });
+            organizations.forEach(
+                organization -> {
+                    addDomainRestrictions(organization);
+                    addHrids(organization);
+                }
+            );
 
             return organizations;
         } catch (Exception e) {
@@ -149,14 +154,21 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         }
     }
 
-
     private void addDomainRestrictions(Organization parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?", String.class, parent.getId());
+        List<String> domainRestrictions = jdbcTemplate.queryForList(
+            "select domain_restriction from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?",
+            String.class,
+            parent.getId()
+        );
         parent.setDomainRestrictions(domainRestrictions);
     }
 
     private void addHrids(Organization parent) {
-        List<String> hrids = jdbcTemplate.queryForList("select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos", String.class, parent.getId());
+        List<String> hrids = jdbcTemplate.queryForList(
+            "select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos",
+            String.class,
+            parent.getId()
+        );
         parent.setHrids(hrids);
     }
 
@@ -166,8 +178,10 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         }
         List<String> filteredDomainRestrictions = getOrm().filterStrings(organization.getDomainRestrictions());
         if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into " + ORGANIZATION_DOMAIN_RESTRICTIONS + " (organization_id, domain_restriction) values ( ?, ? )"
-                    , getOrm().getBatchStringSetter(organization.getId(), filteredDomainRestrictions));
+            jdbcTemplate.batchUpdate(
+                "insert into " + ORGANIZATION_DOMAIN_RESTRICTIONS + " (organization_id, domain_restriction) values ( ?, ? )",
+                getOrm().getBatchStringSetter(organization.getId(), filteredDomainRestrictions)
+            );
         }
     }
 
@@ -180,7 +194,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
             final List<Object[]> params = new ArrayList<>(hrids.size());
 
             for (int i = 0; i < hrids.size(); i++) {
-                params.add(new Object[]{organization.getId(), hrids.get(i), i});
+                params.add(new Object[] { organization.getId(), hrids.get(i), i });
             }
 
             jdbcTemplate.batchUpdate("insert into " + ORGANIZATION_HRIDS + " (organization_id, hrid, pos) values ( ?, ?, ? )", params);

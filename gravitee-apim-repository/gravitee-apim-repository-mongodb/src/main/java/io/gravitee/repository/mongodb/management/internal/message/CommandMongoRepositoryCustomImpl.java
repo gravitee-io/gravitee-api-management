@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.mongodb.management.internal.message;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Query;
-
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-
-import static org.springframework.data.mongodb.core.query.Criteria.where;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -39,7 +38,7 @@ public class CommandMongoRepositoryCustomImpl implements CommandMongoRepositoryC
     public List<CommandMongo> search(CommandCriteria criteria) {
         Query query = new Query();
 
-        if (criteria.getTo() != null && !criteria.getTo().isEmpty()){
+        if (criteria.getTo() != null && !criteria.getTo().isEmpty()) {
             query.addCriteria(where("to").is(criteria.getTo()));
         }
 
@@ -59,10 +58,10 @@ public class CommandMongoRepositoryCustomImpl implements CommandMongoRepositoryC
             query.addCriteria(where("from").ne(criteria.getNotFrom()));
         }
 
-        if (criteria.getEnvironmentId() != null && !criteria.getEnvironmentId().isEmpty()){
+        if (criteria.getEnvironmentId() != null && !criteria.getEnvironmentId().isEmpty()) {
             query.addCriteria(where("environmentId").is(criteria.getEnvironmentId()));
         }
-        
+
         return mongoTemplate.find(query, CommandMongo.class);
     }
 }

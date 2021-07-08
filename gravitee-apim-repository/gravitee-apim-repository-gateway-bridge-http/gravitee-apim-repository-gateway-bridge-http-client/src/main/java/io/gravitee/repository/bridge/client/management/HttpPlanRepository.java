@@ -19,10 +19,9 @@ import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,8 +32,7 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
 
     @Override
     public Optional<Plan> findById(String planId) throws TechnicalException {
-        return blockingGet(get("/plans/" + planId, BodyCodecs.optional(Plan.class))
-                .send()).payload();
+        return blockingGet(get("/plans/" + planId, BodyCodecs.optional(Plan.class)).send()).payload();
     }
 
     @Override
@@ -54,7 +52,6 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
 
     @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
-        return blockingGet(get("/apis/" + apiId + "/plans", BodyCodecs.set(Plan.class))
-                .send()).payload();
+        return blockingGet(get("/apis/" + apiId + "/plans", BodyCodecs.set(Plan.class)).send()).payload();
     }
 }

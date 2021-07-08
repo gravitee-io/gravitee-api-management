@@ -15,6 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.promotion;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.util.CollectionUtils.isEmpty;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -22,18 +26,13 @@ import io.gravitee.repository.management.api.search.PromotionCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.List;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
-
-import java.util.List;
-
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.springframework.data.mongodb.core.query.Criteria.where;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -50,7 +49,6 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
 
     @Override
     public Page<PromotionMongo> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) {
-
         Query query = new Query();
 
         if (criteria != null) {
@@ -73,8 +71,10 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
 
         if (sortable != null && isNotEmpty(sortable.field())) {
             query.with(
-                    Sort.by(sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
-                            FieldUtils.toCamelCase(sortable.field()))
+                Sort.by(
+                    sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
+                    FieldUtils.toCamelCase(sortable.field())
+                )
             );
         }
 
@@ -87,9 +87,6 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
 
         List<PromotionMongo> promotions = mongoTemplate.find(query, PromotionMongo.class);
 
-        return new Page<>(
-                promotions, pageable != null ? pageable.pageNumber() : 0,
-                promotions.size(), total
-        );
+        return new Page<>(promotions, pageable != null ? pageable.pageNumber() : 0, promotions.size(), total);
     }
 }

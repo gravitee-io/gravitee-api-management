@@ -65,6 +65,7 @@ public class ApiKeyCriteria {
     }
 
     public static class Builder {
+
         private Collection<String> plans;
 
         private long from, to;

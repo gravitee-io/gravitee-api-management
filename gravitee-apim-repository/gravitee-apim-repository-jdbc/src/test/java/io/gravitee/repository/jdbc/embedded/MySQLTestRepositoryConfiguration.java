@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.jdbc.embedded;
 
-import com.wix.mysql.EmbeddedMysql;
-import com.wix.mysql.config.MysqldConfig;
-import io.gravitee.repository.jdbc.AbstractJdbcTestRepositoryConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-
-import javax.inject.Inject;
-
 import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
 import static com.wix.mysql.distribution.Version.v5_7_latest;
 import static java.lang.String.format;
+
+import com.wix.mysql.EmbeddedMysql;
+import com.wix.mysql.config.MysqldConfig;
+import io.gravitee.repository.jdbc.AbstractJdbcTestRepositoryConfiguration;
+import javax.inject.Inject;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -40,8 +39,12 @@ public class MySQLTestRepositoryConfiguration extends AbstractJdbcTestRepository
     @Override
     protected String getJdbcUrl() {
         final MysqldConfig config = embeddedMysql.getConfig();
-        return format("jdbc:mysql://localhost:%s/gravitee?useSSL=false&user=%s&password=%s", config.getPort(),
-                config.getUsername(), config.getPassword());
+        return format(
+            "jdbc:mysql://localhost:%s/gravitee?useSSL=false&user=%s&password=%s",
+            config.getPort(),
+            config.getUsername(),
+            config.getPassword()
+        );
     }
 
     @Bean(destroyMethod = "stop")

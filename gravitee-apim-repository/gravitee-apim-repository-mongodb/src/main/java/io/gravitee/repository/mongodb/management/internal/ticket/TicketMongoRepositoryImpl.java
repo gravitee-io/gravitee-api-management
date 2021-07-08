@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.ticket;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Pageable;
@@ -22,6 +24,8 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.TicketMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
+import java.util.List;
+import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -30,11 +34,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Locale;
-
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -65,8 +64,10 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
 
             if (sortable != null && StringUtils.isNotEmpty(sortable.field())) {
                 query.with(
-                        Sort.by(sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
-                                FieldUtils.toCamelCase(sortable.field()))
+                    Sort.by(
+                        sortable.order().equals(Order.ASC) ? Sort.Direction.ASC : Sort.Direction.DESC,
+                        FieldUtils.toCamelCase(sortable.field())
+                    )
                 );
             }
         }
@@ -81,10 +82,6 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
         List<TicketMongo> tickets = mongoTemplate.find(query, TicketMongo.class);
         long total = mongoTemplate.count(query, TicketMongo.class);
 
-        return new Page<>(
-                tickets, (pageable != null) ? pageable.pageNumber() : 0,
-                tickets.size(), total);
+        return new Page<>(tickets, (pageable != null) ? pageable.pageNumber() : 0, tickets.size(), total);
     }
 }
-
-

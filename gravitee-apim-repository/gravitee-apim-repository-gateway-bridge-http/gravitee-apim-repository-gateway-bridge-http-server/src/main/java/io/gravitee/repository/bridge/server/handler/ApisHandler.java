@@ -22,10 +22,9 @@ import io.gravitee.repository.management.model.Api;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Collection;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,26 +47,36 @@ public class ApisHandler extends AbstractHandler {
             builder.excludePicture();
         }
 
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                promise.complete(apiRepository.search(null, builder.build()));
-            } catch (Exception te) {
-                LOGGER.error("Unable to search for APIs", te);
-                promise.fail(te);
-            }
-        }, (Handler<AsyncResult<Collection<Api>>>) result -> handleResponse(ctx, result));
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        promise.complete(apiRepository.search(null, builder.build()));
+                    } catch (Exception te) {
+                        LOGGER.error("Unable to search for APIs", te);
+                        promise.fail(te);
+                    }
+                },
+                (Handler<AsyncResult<Collection<Api>>>) result -> handleResponse(ctx, result)
+            );
     }
 
     public void findById(RoutingContext ctx) {
         final String sApi = ctx.request().getParam("apiId");
 
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                promise.complete(apiRepository.findById(sApi));
-            } catch (TechnicalException te) {
-                LOGGER.error("Unable to find an API", te);
-                promise.fail(te);
-            }
-        }, (Handler<AsyncResult<Optional<Api>>>) result -> handleResponse(ctx, result));
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        promise.complete(apiRepository.findById(sApi));
+                    } catch (TechnicalException te) {
+                        LOGGER.error("Unable to find an API", te);
+                        promise.fail(te);
+                    }
+                },
+                (Handler<AsyncResult<Optional<Api>>>) result -> handleResponse(ctx, result)
+            );
     }
 }

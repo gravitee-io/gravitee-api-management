@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.model.Installation;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.InstallationRepository;
+import io.gravitee.repository.management.model.Installation;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -77,10 +76,13 @@ public class InstallationRepositoryMock extends AbstractRepositoryMock<Installat
         when(installationRepositoryRepository.findById("installation-1")).thenReturn(of(installation_found));
         when(installationRepositoryRepository.findById("unknown")).thenReturn(empty());
         when(installationRepositoryRepository.findById("installation-to-delete")).thenReturn(empty());
-        when(installationRepositoryRepository.update(argThat(o -> o != null && o.getId().equals("unknown")))).thenThrow(new TechnicalException());
+        when(installationRepositoryRepository.update(argThat(o -> o != null && o.getId().equals("unknown"))))
+            .thenThrow(new TechnicalException());
 
-        when(installationRepositoryRepository.update(argThat(o -> o != null && o.getId().equals("installation-1")))).thenReturn(installation_updated);
+        when(installationRepositoryRepository.update(argThat(o -> o != null && o.getId().equals("installation-1"))))
+            .thenReturn(installation_updated);
 
-        when(installationRepositoryRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(installationRepositoryRepository.update(argThat(o -> o == null || o.getId().equals("unknown"))))
+            .thenThrow(new IllegalStateException());
     }
 }

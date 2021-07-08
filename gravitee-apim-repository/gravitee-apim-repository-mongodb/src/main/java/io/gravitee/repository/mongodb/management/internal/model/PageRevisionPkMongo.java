@@ -24,52 +24,47 @@ import java.util.Objects;
  */
 public class PageRevisionPkMongo implements Serializable {
 
-	private String pageId;
-	private int revision;
+    private String pageId;
+    private int revision;
 
-	public PageRevisionPkMongo(String pageId, int revision) {
-		this.pageId = pageId;
-		this.revision = revision;
-	}
+    public PageRevisionPkMongo(String pageId, int revision) {
+        this.pageId = pageId;
+        this.revision = revision;
+    }
 
-	public PageRevisionPkMongo() {
-	}
+    public PageRevisionPkMongo() {}
 
-	public String getPageId() {
-		return pageId;
-	}
+    public String getPageId() {
+        return pageId;
+    }
 
-	public void setPageId(String pageId) {
-		this.pageId = pageId;
-	}
+    public void setPageId(String pageId) {
+        this.pageId = pageId;
+    }
 
-	public int getRevision() {
-		return revision;
-	}
+    public int getRevision() {
+        return revision;
+    }
 
-	public void setRevision(int revision) {
-		this.revision = revision;
-	}
+    public void setRevision(int revision) {
+        this.revision = revision;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof PageRevisionPkMongo)) return false;
-		PageRevisionPkMongo that = (PageRevisionPkMongo) o;
-		return Objects.equals(pageId, that.pageId) &&
-				Objects.equals(revision, that.revision);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PageRevisionPkMongo)) return false;
+        PageRevisionPkMongo that = (PageRevisionPkMongo) o;
+        return Objects.equals(pageId, that.pageId) && Objects.equals(revision, that.revision);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(pageId, revision);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(pageId, revision);
+    }
 
-	@Override
-	public String toString() {
-		return "PageRevisionPkMongo{" +
-				"pageId='" + pageId + '\'' +
-				", revision=" + revision +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "PageRevisionPkMongo{" + "pageId='" + pageId + '\'' + ", revision=" + revision + '}';
+    }
 }

@@ -15,23 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management.internal.group;
 
+import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import io.gravitee.repository.mongodb.management.internal.model.GroupMongo;
-
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
 public interface GroupMongoRepository extends MongoRepository<GroupMongo, String> {
-
     @Query("{ _id: {$in: ?0} }")
     Collection<GroupMongo> findByIds(Set<String> ids);
 

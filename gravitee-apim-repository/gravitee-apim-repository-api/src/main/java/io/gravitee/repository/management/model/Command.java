@@ -25,6 +25,7 @@ import java.util.Objects;
  */
 
 public class Command {
+
     private String id;
     private String environmentId;
     private String from;
@@ -130,15 +131,31 @@ public class Command {
     }
 
     public String toString() {
-        return "Message{" +
-                "id='" + id + '\'' +
-                ", environmentId='" + environmentId + '\'' +
-                ", from='" + from + '\'' +
-                ", to='" + to + '\'' +
-                ", tags='" + tags + '\'' +
-                ", content='" + content + '\'' +
-                ", acknowledgments=" + acknowledgments +
-                ", expiredAt=" + expiredAt +
-                '}';
+        return (
+            "Message{" +
+            "id='" +
+            id +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
+            '\'' +
+            ", from='" +
+            from +
+            '\'' +
+            ", to='" +
+            to +
+            '\'' +
+            ", tags='" +
+            tags +
+            '\'' +
+            ", content='" +
+            content +
+            '\'' +
+            ", acknowledgments=" +
+            acknowledgments +
+            ", expiredAt=" +
+            expiredAt +
+            '}'
+        );
     }
 }

@@ -22,6 +22,5 @@ import io.gravitee.repository.monitoring.model.MonitoringResponse;
  * @author GraviteeSource Team
  */
 public interface MonitoringRepository {
-
-   MonitoringResponse query(String gatewayId);
+    MonitoringResponse query(String gatewayId);
 }

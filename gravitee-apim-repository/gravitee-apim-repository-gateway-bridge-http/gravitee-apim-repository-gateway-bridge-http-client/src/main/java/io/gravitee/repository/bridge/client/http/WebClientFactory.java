@@ -32,17 +32,16 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.ext.web.codec.BodyCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -92,13 +91,10 @@ public class WebClientFactory implements FactoryBean<WebClient> {
             client.addInterceptor(new BasicAuthorizationInterceptor(username, password));
         }
 
-        circuitBreaker = CircuitBreaker.create(
-                "cb-repository-bridge-client",
-                vertx,
-                new CircuitBreakerOptions()
-                        .setMaxRetries(Integer.MAX_VALUE)
-                        .setTimeout(2000))
-        .retryPolicy(retryCount -> retryDuration);
+        circuitBreaker =
+            CircuitBreaker
+                .create("cb-repository-bridge-client", vertx, new CircuitBreakerOptions().setMaxRetries(Integer.MAX_VALUE).setTimeout(2000))
+                .retryPolicy(retryCount -> retryDuration);
 
         CompletableFuture<WebClientInternal> completableConnection = validateConnection(client).toCompletionStage().toCompletableFuture();
         if (completableConnection.isCompletedExceptionally()) {
@@ -111,54 +107,60 @@ public class WebClientFactory implements FactoryBean<WebClient> {
     private Future<WebClientInternal> validateConnection(WebClientInternal client) {
         logger.info("Validate Bridge Server connection ...");
         return circuitBreaker.execute(
-                future -> client.get(BridgePath.get(environment)).as(BodyCodec.string()).send(response -> {
-                    if (response.succeeded()) {
-                        HttpResponse<String> httpResponse = response.result();
+            future ->
+                client
+                    .get(BridgePath.get(environment))
+                    .as(BodyCodec.string())
+                    .send(
+                        response -> {
+                            if (response.succeeded()) {
+                                HttpResponse<String> httpResponse = response.result();
 
-                        if (httpResponse.statusCode() == HttpStatusCode.OK_200) {
-                            JsonObject jsonObject = new JsonObject(httpResponse.body());
-                            JsonObject version = jsonObject.getJsonObject("version");
-                            if (version == null || !version.containsKey("MAJOR_VERSION")) {
-                                String msg = "Invalid format response from Bridge Server. Retry.";
+                                if (httpResponse.statusCode() == HttpStatusCode.OK_200) {
+                                    JsonObject jsonObject = new JsonObject(httpResponse.body());
+                                    JsonObject version = jsonObject.getJsonObject("version");
+                                    if (version == null || !version.containsKey("MAJOR_VERSION")) {
+                                        String msg = "Invalid format response from Bridge Server. Retry.";
+                                        logger.error(msg);
+                                        future.fail(msg);
+                                    } else {
+                                        logger.info("Bridge connection successful.");
+                                        future.complete(client);
+                                    }
+                                } else {
+                                    String msg = String.format("Invalid Bridge Server response. Retry in %s ms.", retryDuration);
+                                    logger.error(msg);
+                                    future.fail(msg);
+                                }
+                            } else {
+                                String msg = String.format("Unable to connect to the Bridge Server. Retry in %s ms.", retryDuration);
                                 logger.error(msg);
                                 future.fail(msg);
-                            } else {
-                                logger.info("Bridge connection successful.");
-                                future.complete(client);
                             }
-                        } else {
-                            String msg = String.format("Invalid Bridge Server response. Retry in %s ms.", retryDuration);
-                            logger.error(msg);
-                            future.fail(msg);
                         }
-                    } else {
-                        String msg = String.format("Unable to connect to the Bridge Server. Retry in %s ms.", retryDuration);
-                        logger.error(msg);
-                        future.fail(msg);
-                    }
-                }));
+                    )
+        );
     }
 
     private WebClientOptions getWebClientOptions() {
         WebClientOptions options = new WebClientOptions()
-                .setUserAgent("gio-client-bridge/" + Version.RUNTIME_VERSION.MAJOR_VERSION)
-                .setTryUseCompression(true);
+            .setUserAgent("gio-client-bridge/" + Version.RUNTIME_VERSION.MAJOR_VERSION)
+            .setTryUseCompression(true);
 
         // Add support for proxy
         options.setProxyOptions(getProxyOptions());
 
         options
-                .setKeepAlive(readPropertyValue(propertyPrefix + "keepAlive", Boolean.class, true))
-                .setIdleTimeout(readPropertyValue(propertyPrefix + "idleTimeout", Integer.class, 30000))
-                .setConnectTimeout(readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 10000));
+            .setKeepAlive(readPropertyValue(propertyPrefix + "keepAlive", Boolean.class, true))
+            .setIdleTimeout(readPropertyValue(propertyPrefix + "idleTimeout", Integer.class, 30000))
+            .setConnectTimeout(readPropertyValue(propertyPrefix + "connectTimeout", Integer.class, 10000));
 
         String url = readPropertyValue(propertyPrefix + "url");
         final URI uri = URI.create(url);
 
         options
-                .setDefaultHost(uri.getHost())
-                .setDefaultPort(uri.getPort() != -1 ? uri.getPort() :
-                        (HTTPS_SCHEME.equals(uri.getScheme()) ? 443 : 80));
+            .setDefaultHost(uri.getHost())
+            .setDefaultPort(uri.getPort() != -1 ? uri.getPort() : (HTTPS_SCHEME.equals(uri.getScheme()) ? 443 : 80));
 
         if (HTTPS_SCHEME.equals(uri.getScheme())) {
             options.setSsl(true);
@@ -170,21 +172,21 @@ public class WebClientFactory implements FactoryBean<WebClient> {
             if (keyStoreType != null) {
                 if (keyStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_JKS)) {
                     options.setKeyStoreOptions(
-                            new JksOptions()
-                                    .setPath(readPropertyValue(propertyPrefix + "ssl.keystore.path"))
-                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.keystore.password"))
+                        new JksOptions()
+                            .setPath(readPropertyValue(propertyPrefix + "ssl.keystore.path"))
+                            .setPassword(readPropertyValue(propertyPrefix + "ssl.keystore.password"))
                     );
                 } else if (keyStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PKCS12)) {
                     options.setPfxKeyCertOptions(
-                            new PfxOptions()
-                                    .setPath(readPropertyValue(propertyPrefix + "ssl.keystore.path"))
-                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.keystore.password"))
+                        new PfxOptions()
+                            .setPath(readPropertyValue(propertyPrefix + "ssl.keystore.path"))
+                            .setPassword(readPropertyValue(propertyPrefix + "ssl.keystore.password"))
                     );
                 } else if (keyStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PEM)) {
                     options.setPemKeyCertOptions(
-                            new PemKeyCertOptions()
-                                    .setCertPaths(getArrayValues(propertyPrefix + "ssl.keystore.certs"))
-                                    .setKeyPaths(getArrayValues(propertyPrefix + "ssl.keystore.keys"))
+                        new PemKeyCertOptions()
+                            .setCertPaths(getArrayValues(propertyPrefix + "ssl.keystore.certs"))
+                            .setKeyPaths(getArrayValues(propertyPrefix + "ssl.keystore.keys"))
                     );
                 }
             }
@@ -194,20 +196,19 @@ public class WebClientFactory implements FactoryBean<WebClient> {
             if (trustStoreType != null) {
                 if (trustStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_JKS)) {
                     options.setTrustStoreOptions(
-                            new JksOptions()
-                                    .setPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
-                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.truststore.password"))
+                        new JksOptions()
+                            .setPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
+                            .setPassword(readPropertyValue(propertyPrefix + "ssl.truststore.password"))
                     );
                 } else if (trustStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PKCS12)) {
                     options.setPfxTrustOptions(
-                            new PfxOptions()
-                                    .setPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
-                                    .setPassword(readPropertyValue(propertyPrefix + "ssl.truststore.password"))
+                        new PfxOptions()
+                            .setPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
+                            .setPassword(readPropertyValue(propertyPrefix + "ssl.truststore.password"))
                     );
                 } else if (trustStoreType.equalsIgnoreCase(KEYSTORE_FORMAT_PEM)) {
                     options.setPemTrustOptions(
-                            new PemTrustOptions()
-                                    .addCertPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
+                        new PemTrustOptions().addCertPath(readPropertyValue(propertyPrefix + "ssl.truststore.path"))
                     );
                 }
             }
@@ -222,7 +223,9 @@ public class WebClientFactory implements FactoryBean<WebClient> {
 
             proxyOptions.setHost(readPropertyValue(propertyPrefix + "proxy.host"));
             proxyOptions.setPort(readPropertyValue(propertyPrefix + "proxy.port", Integer.class));
-            proxyOptions.setType(ProxyType.valueOf(readPropertyValue(propertyPrefix + "proxy.type", String.class, ProxyType.HTTP.toString())));
+            proxyOptions.setType(
+                ProxyType.valueOf(readPropertyValue(propertyPrefix + "proxy.type", String.class, ProxyType.HTTP.toString()))
+            );
             proxyOptions.setUsername(readPropertyValue(propertyPrefix + "proxy.username"));
             proxyOptions.setPassword(readPropertyValue(propertyPrefix + "proxy.password"));
 
@@ -269,6 +272,7 @@ public class WebClientFactory implements FactoryBean<WebClient> {
     }
 
     private static class ReadTimeoutInterceptor implements Handler<HttpContext<?>> {
+
         private final long timeout;
 
         ReadTimeoutInterceptor(long timeout) {
@@ -283,8 +287,9 @@ public class WebClientFactory implements FactoryBean<WebClient> {
     }
 
     private static class BasicAuthorizationInterceptor implements Handler<HttpContext<?>> {
+
         private final String authorizationSchemeValue;
-        private final static String AUTHORIZATION_SCHEME = "Basic ";
+        private static final String AUTHORIZATION_SCHEME = "Basic ";
 
         BasicAuthorizationInterceptor(String username, String password) {
             authorizationSchemeValue = AUTHORIZATION_SCHEME + Base64.getEncoder().encodeToString((username + ':' + password).getBytes());

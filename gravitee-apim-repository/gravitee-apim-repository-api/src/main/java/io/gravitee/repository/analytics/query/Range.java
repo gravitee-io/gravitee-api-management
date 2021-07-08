@@ -20,7 +20,6 @@ package io.gravitee.repository.analytics.query;
  * @author GraviteeSource Team
  */
 public interface Range<T> {
-
     T from();
 
     T to();

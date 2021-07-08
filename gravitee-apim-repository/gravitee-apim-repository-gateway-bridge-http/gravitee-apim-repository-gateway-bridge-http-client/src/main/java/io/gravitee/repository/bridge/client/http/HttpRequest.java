@@ -84,9 +84,7 @@ public class HttpRequest<T> {
     public Promise<io.gravitee.repository.bridge.client.http.HttpResponse<T>> send(Object payload) {
         Promise<io.gravitee.repository.bridge.client.http.HttpResponse<T>> promise = Promise.promise();
 
-        io.vertx.ext.web.client.HttpRequest<T> request = client
-                .request(method, url)
-                .as(codec);
+        io.vertx.ext.web.client.HttpRequest<T> request = client.request(method, url).as(codec);
 
         this.parameters.forEach(paramEntry -> request.addQueryParam(paramEntry.getKey(), paramEntry.getValue()));
 
@@ -96,11 +94,24 @@ public class HttpRequest<T> {
             if (event.succeeded()) {
                 HttpResponse<T> response = event.result();
                 if (response.statusCode() < HttpStatusCode.INTERNAL_SERVER_ERROR_500) {
-                    promise.complete(new io.gravitee.repository.bridge.client.http.HttpResponse<>(
-                            response.statusCode(), response.headers(), response.body()));
+                    promise.complete(
+                        new io.gravitee.repository.bridge.client.http.HttpResponse<>(
+                            response.statusCode(),
+                            response.headers(),
+                            response.body()
+                        )
+                    );
                 } else {
-                    promise.fail(new TechnicalException("Unexpected response from the bridge server while calling " +
-                            "url[" +  url + "] status [" + response.statusCode()+ "]"));
+                    promise.fail(
+                        new TechnicalException(
+                            "Unexpected response from the bridge server while calling " +
+                            "url[" +
+                            url +
+                            "] status [" +
+                            response.statusCode() +
+                            "]"
+                        )
+                    );
                 }
             } else {
                 promise.fail(new TechnicalException("An error occurs while invoking the bridge server", event.cause()));

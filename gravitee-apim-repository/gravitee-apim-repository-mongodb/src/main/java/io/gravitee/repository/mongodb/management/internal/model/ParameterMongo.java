@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -64,9 +63,6 @@ public class ParameterMongo {
 
     @Override
     public String toString() {
-        return "ParameterMongo{" +
-                "id='" + id + '\'' +
-                ", value='" + value + '\'' +
-                '}';
+        return "ParameterMongo{" + "id='" + id + '\'' + ", value='" + value + '\'' + '}';
     }
 }

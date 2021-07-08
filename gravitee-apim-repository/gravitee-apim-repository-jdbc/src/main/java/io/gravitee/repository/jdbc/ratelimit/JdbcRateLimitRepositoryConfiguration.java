@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Configuration;
  * @author njt
  */
 @Configuration
-@ComponentScan(basePackages = {"io.gravitee.repository.jdbc.ratelimit"})
+@ComponentScan(basePackages = { "io.gravitee.repository.jdbc.ratelimit" })
 public class JdbcRateLimitRepositoryConfiguration extends AbstractJdbcRepositoryConfiguration {
 
     @Override

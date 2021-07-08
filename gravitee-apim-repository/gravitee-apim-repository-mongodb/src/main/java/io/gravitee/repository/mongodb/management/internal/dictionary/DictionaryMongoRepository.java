@@ -15,14 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.dictionary;
 
+import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
 import java.util.List;
 import java.util.Set;
-
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,10 +28,6 @@ import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
  */
 @Repository
 public interface DictionaryMongoRepository extends MongoRepository<DictionaryMongo, String> {
-
     @Query("{ environmentId: {$in: ?0} }")
     List<DictionaryMongo> findByEnvironments(Set<String> environments);
 }
-
-
-

@@ -15,14 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.AlertTriggerRepository;
-import io.gravitee.repository.management.model.AlertEventRule;
-import io.gravitee.repository.management.model.AlertEventType;
-import io.gravitee.repository.management.model.AlertTrigger;
-
-import java.util.Date;
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
@@ -31,6 +23,13 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.model.AlertEventRule;
+import io.gravitee.repository.management.model.AlertEventType;
+import io.gravitee.repository.management.model.AlertTrigger;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -125,6 +124,7 @@ public class AlertTriggerRepositoryMock extends AbstractRepositoryMock<AlertTrig
         when(alertRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
 
         when(alertRepository.findByReference("API", "api-id")).thenReturn(singletonList(alert));
-        when(alertRepository.findByReferenceAndReferenceIds("API", asList("api-id", "application-id"))).thenReturn(asList(alert2, alertQuota100));
+        when(alertRepository.findByReferenceAndReferenceIds("API", asList("api-id", "application-id")))
+            .thenReturn(asList(alert2, alertQuota100));
     }
 }

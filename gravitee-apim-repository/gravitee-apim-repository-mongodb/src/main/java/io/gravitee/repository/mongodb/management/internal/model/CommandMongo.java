@@ -15,13 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.List;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "commands")
 public class CommandMongo extends Auditable {
+
     private String id;
     private String environmentId;
     private String from;

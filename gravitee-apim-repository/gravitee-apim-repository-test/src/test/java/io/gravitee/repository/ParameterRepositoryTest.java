@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class ParameterRepositoryTest extends AbstractRepositoryTest {
 
@@ -55,7 +54,6 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid saved parameter value.", parameter.getValue(), parameterSaved.getValue());
         assertEquals("Invalid saved parameter referenceId.", parameter.getReferenceId(), parameterSaved.getReferenceId());
         assertEquals("Invalid saved parameter referenceType.", parameter.getReferenceType(), parameterSaved.getReferenceType());
-
     }
 
     @Test
@@ -79,9 +77,15 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldDelete() throws Exception {
-        assertTrue("Parameter to delete does not exist", parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent());
+        assertTrue(
+            "Parameter to delete does not exist",
+            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent()
+        );
         parameterRepository.delete("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE);
-        assertFalse("Parameter not deleted", parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent());
+        assertFalse(
+            "Parameter not deleted",
+            parameterRepository.findById("management.oAuth.clientId", REFERENCE_ID, REFERENCE_TYPE).isPresent()
+        );
     }
 
     @Test(expected = IllegalStateException.class)
@@ -102,7 +106,11 @@ public class ParameterRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindAll() throws Exception {
-        List<Parameter> parameters = parameterRepository.findByKeys(Arrays.asList("management.oAuth.clientId", "management.oAuth.clientSecret", "unknown"), REFERENCE_ID, REFERENCE_TYPE);
+        List<Parameter> parameters = parameterRepository.findByKeys(
+            Arrays.asList("management.oAuth.clientId", "management.oAuth.clientSecret", "unknown"),
+            REFERENCE_ID,
+            REFERENCE_TYPE
+        );
         assertNotNull(parameters);
         assertFalse(parameters.isEmpty());
         assertEquals(2, parameters.size());

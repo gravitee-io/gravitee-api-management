@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Tag;
 import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TenantRepositoryTest extends AbstractRepositoryTest {
 
@@ -117,7 +116,7 @@ public class TenantRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByIdAndReference() throws Exception {
-        final Optional<Tenant> tenant = tenantRepository.findByIdAndReference("other-us","OTHER", TenantReferenceType.ORGANIZATION);
+        final Optional<Tenant> tenant = tenantRepository.findByIdAndReference("other-us", "OTHER", TenantReferenceType.ORGANIZATION);
 
         assertTrue(tenant.isPresent());
         assertEquals("US", tenant.get().getName());

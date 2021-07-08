@@ -16,7 +16,7 @@
 package io.gravitee.repository.management.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public enum RoleScope {
@@ -25,6 +25,5 @@ public enum RoleScope {
     GROUP,
     ENVIRONMENT,
     ORGANIZATION,
-    PLATFORM;
-
+    PLATFORM,
 }

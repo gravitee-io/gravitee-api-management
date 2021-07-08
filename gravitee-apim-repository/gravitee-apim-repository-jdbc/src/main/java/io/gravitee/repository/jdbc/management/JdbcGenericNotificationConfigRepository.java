@@ -20,12 +20,6 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -34,13 +28,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.stereotype.Repository;
 
 /**
  *
  * @author njt
  */
 @Repository
-public class JdbcGenericNotificationConfigRepository extends JdbcAbstractCrudRepository<GenericNotificationConfig, String> implements GenericNotificationConfigRepository {
+public class JdbcGenericNotificationConfigRepository
+    extends JdbcAbstractCrudRepository<GenericNotificationConfig, String>
+    implements GenericNotificationConfigRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcGenericNotificationConfigRepository.class);
     private final String GENERIC_NOTIFICATION_CONFIG_HOOKS;
@@ -52,17 +53,18 @@ public class JdbcGenericNotificationConfigRepository extends JdbcAbstractCrudRep
 
     @Override
     protected JdbcObjectMapper<GenericNotificationConfig> buildOrm() {
-        return JdbcObjectMapper.builder(GenericNotificationConfig.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("notifier", Types.NVARCHAR, String.class)
-                .addColumn("config", Types.NVARCHAR, String.class)
-                .addColumn("reference_id", Types.NVARCHAR, String.class)
-                .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
-                .addColumn("use_system_proxy", Types.BOOLEAN, boolean.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(GenericNotificationConfig.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("notifier", Types.NVARCHAR, String.class)
+            .addColumn("config", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
+            .addColumn("use_system_proxy", Types.BOOLEAN, boolean.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     @Override
@@ -95,11 +97,7 @@ public class JdbcGenericNotificationConfigRepository extends JdbcAbstractCrudRep
     public void deleteByConfig(String config) throws TechnicalException {
         LOGGER.debug("JdbcGenericNotificationConfigRepository.deleteByConfig({})", config);
         try {
-            jdbcTemplate.update(
-                    "delete from " + this.tableName + " where config = ?"
-                    , config
-            );
-
+            jdbcTemplate.update("delete from " + this.tableName + " where config = ?", config);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete JdbcGenericNotificationConfigRepository", ex);
             throw new TechnicalException("Failed to delete JdbcGenericNotificationConfigRepository", ex);
@@ -107,25 +105,24 @@ public class JdbcGenericNotificationConfigRepository extends JdbcAbstractCrudRep
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         return this.findByReference(referenceType, referenceId)
-                .stream()
-                .filter(genericNotificationConfig ->
-                        genericNotificationConfig.getHooks().contains(hook))
-                .collect(Collectors.toList());
+            .stream()
+            .filter(genericNotificationConfig -> genericNotificationConfig.getHooks().contains(hook))
+            .collect(Collectors.toList());
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         LOGGER.debug("JdbcGenericNotificationConfigRepository.findByUser({}, {})", referenceType, referenceId);
         try {
             List<GenericNotificationConfig> items = jdbcTemplate.query(
-                    getOrm().getSelectAllSql() +
-                            " where reference_type = ?" +
-                            " and reference_id = ?"
-                    , getRowMapper()
-                    , referenceType.name()
-                    , referenceId
+                getOrm().getSelectAllSql() + " where reference_type = ?" + " and reference_id = ?",
+                getRowMapper(),
+                referenceType.name(),
+                referenceId
             );
             items.forEach(this::addHooks);
             return items;
@@ -146,35 +143,35 @@ public class JdbcGenericNotificationConfigRepository extends JdbcAbstractCrudRep
     private void addHooks(GenericNotificationConfig parent) {
         List<String> hooks = new ArrayList<>();
         jdbcTemplate.query(
-                "select hook" +
-                        " from " + GENERIC_NOTIFICATION_CONFIG_HOOKS +
-                        " where id = ?"
-                , rs -> { hooks.add(rs.getString(1)); },
-                parent.getId());
+            "select hook" + " from " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " where id = ?",
+            rs -> {
+                hooks.add(rs.getString(1));
+            },
+            parent.getId()
+        );
         parent.setHooks(hooks);
     }
 
     private void storeHooks(GenericNotificationConfig parent, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update(
-                    "delete from " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " where id = ?"
-                    , parent.getId()
-            );
+            jdbcTemplate.update("delete from " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " where id = ?", parent.getId());
         }
         if (parent.getHooks() != null && !parent.getHooks().isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " ( id, hook ) values ( ?, ? )"
-                    , new BatchPreparedStatementSetter() {
-                        @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            ps.setString(1, parent.getId());
-                            ps.setString(2, parent.getHooks().get(i));
-                        }
+            jdbcTemplate.batchUpdate(
+                "insert into " + GENERIC_NOTIFICATION_CONFIG_HOOKS + " ( id, hook ) values ( ?, ? )",
+                new BatchPreparedStatementSetter() {
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, parent.getId());
+                        ps.setString(2, parent.getHooks().get(i));
+                    }
 
-                        @Override
-                        public int getBatchSize() {
-                            return parent.getHooks().size();
-                        }
-                    });
+                    @Override
+                    public int getBatchSize() {
+                        return parent.getHooks().size();
+                    }
+                }
+            );
         }
     }
 }

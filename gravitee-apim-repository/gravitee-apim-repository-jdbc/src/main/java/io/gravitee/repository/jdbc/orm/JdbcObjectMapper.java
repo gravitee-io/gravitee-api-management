@@ -15,11 +15,12 @@
  */
 package io.gravitee.repository.jdbc.orm;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.PreparedStatementCreator;
-import org.springframework.jdbc.core.RowMapper;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
+import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
+import static java.lang.Byte.parseByte;
+import static java.util.Collections.emptyList;
+import static org.springframework.util.StringUtils.isEmpty;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -32,13 +33,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
-import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
-import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
-import static java.lang.Byte.parseByte;
-import static java.util.Collections.emptyList;
-import static org.springframework.util.StringUtils.isEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
 
 /**
  *
@@ -83,7 +82,6 @@ public class JdbcObjectMapper<T> {
         public int getBatchSize() {
             return values.size();
         }
-
     }
 
     private class Psc implements PreparedStatementCreator {
@@ -113,6 +111,7 @@ public class JdbcObjectMapper<T> {
     }
 
     private class Rm implements RowMapper<T> {
+
         @Override
         public T mapRow(ResultSet rs, int i) {
             try {
@@ -163,7 +162,13 @@ public class JdbcObjectMapper<T> {
         return new JdbcObjectMapper.Builder<>(clazz, tableName, idColumn);
     }
 
-    private JdbcObjectMapper(final Class<T> clazz, final String idColumn, final List<JdbcColumn> columns, final String updateSql, final String tableName) {
+    private JdbcObjectMapper(
+        final Class<T> clazz,
+        final String idColumn,
+        final List<JdbcColumn> columns,
+        final String updateSql,
+        final String tableName
+    ) {
         try {
             this.constructor = clazz.getConstructor();
         } catch (final Exception e) {
@@ -300,7 +305,7 @@ public class JdbcObjectMapper<T> {
         } else if (column.javaType == byte.class) {
             return parseByte(value.toString());
         } else if (column.javaType == Long.class) {
-            return ((Integer)value).longValue();
+            return ((Integer) value).longValue();
         } else if (column.javaType == InputStream.class) {
             byte[] data = (byte[]) value;
             return new ByteArrayInputStream(data);
@@ -353,7 +358,7 @@ public class JdbcObjectMapper<T> {
                     stmt.setBlob(idx, (InputStream) value);
                 } else if (value instanceof byte[] && column.jdbcType == Types.BLOB) {
                     stmt.setBytes(idx, (byte[]) value);
-                }else {
+                } else {
                     stmt.setObject(idx, value);
                 }
                 if (value != null) {

@@ -16,7 +16,6 @@
 package io.gravitee.repository.analytics.query.groupby;
 
 import io.gravitee.repository.analytics.query.response.Response;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +46,7 @@ public class GroupByResponse implements Response {
     }
 
     public static class Bucket {
+
         private final String name;
         private final long value;
 
