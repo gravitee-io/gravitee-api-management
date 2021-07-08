@@ -115,6 +115,16 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldFindByApis() throws Exception {
+        final List<Plan> plans = planRepository.findByApis(Arrays.asList("api1", "4e0db366-f772-4489-8db3-66f772b48989"));
+
+        assertNotNull(plans);
+        assertEquals(3, plans.size());
+        assertEquals(2, plans.stream().filter(plan -> plan.getApi().equals("api1")).count());
+        assertEquals(1, plans.stream().filter(plan -> plan.getApi().equals("4e0db366-f772-4489-8db3-66f772b48989")).count());
+    }
+
+    @Test
     public void shouldCreate() throws Exception {
         String planName = "new-plan";
 
@@ -125,7 +135,7 @@ public class PlanRepositoryTest extends AbstractRepositoryTest {
         plan.setValidation(Plan.PlanValidationType.AUTO);
         plan.setType(Plan.PlanType.API);
         plan.setStatus(Plan.Status.STAGING);
-        plan.setApi("my-api");
+        plan.setApi("api1");
         plan.setGeneralConditions("general_conditions");
         plan.setCreatedAt(parse("11/02/2016"));
         plan.setUpdatedAt(parse("12/02/2016"));

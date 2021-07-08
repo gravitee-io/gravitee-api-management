@@ -232,6 +232,27 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
     }
 
     @Override
+    public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.findByApis({})", apiIds);
+        try {
+            List<Plan> plans = jdbcTemplate.query(
+                "select * from plans where api in (" + ORM.buildInClause(apiIds) + ")",
+                (PreparedStatement ps) -> ORM.setArguments(ps, apiIds, 1),
+                ORM.getRowMapper()
+            );
+            for (Plan plan : plans) {
+                addCharacteristics(plan);
+                addExcludedGroups(plan);
+                addTags(plan);
+            }
+            return plans;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find plans by api:", ex);
+            throw new TechnicalException("Failed to find plans by api", ex);
+        }
+    }
+
+    @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {

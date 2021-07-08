@@ -67,5 +67,41 @@
     },
     "createdAt": 1464739200000,
     "updatedAt": 1464739200000
+  },
+  {
+    "id": "event7",
+    "environmentId": "DEFAULT",
+    "type": "STOP_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-1"
+    },
+    "createdAt": 1455667200000,
+    "updatedAt": 1455667200000
+  },
+  {
+    "id": "event8",
+    "environmentId": "DEFAULT",
+    "type": "START_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-1"
+    },
+    "createdAt": 1455753600000,
+    "updatedAt": 1455753600000
+  },
+  {
+    "id": "event9",
+    "environmentId": "OTHER",
+    "type": "PUBLISH_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-2"
+    },
+    "createdAt": 1455840000000,
+    "updatedAt": 1455840000000
   }
 ]
