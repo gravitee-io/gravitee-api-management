@@ -180,6 +180,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setTags(newPlan.getTags());
             plan.setSelectionRule(newPlan.getSelectionRule());
             plan.setGeneralConditions(newPlan.getGeneralConditions());
+            plan.setOrder(newPlan.getOrder());
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
