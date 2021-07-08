@@ -16,7 +16,6 @@
 package io.gravitee.repository.healthcheck.query.log;
 
 import io.gravitee.repository.healthcheck.query.Response;
-
 import java.util.List;
 
 /**

@@ -15,29 +15,30 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static java.lang.String.format;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
+import java.sql.Types;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
-import java.util.*;
-
-import static java.lang.String.format;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcClientRegistrationProviderRepository extends JdbcAbstractCrudRepository<ClientRegistrationProvider, String> implements ClientRegistrationProviderRepository {
+public class JdbcClientRegistrationProviderRepository
+    extends JdbcAbstractCrudRepository<ClientRegistrationProvider, String>
+    implements ClientRegistrationProviderRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcClientRegistrationProviderRepository.class);
-    
+
     private final String CLIENT_REGISTRATION_PROVIDER_SCOPES;
 
     JdbcClientRegistrationProviderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
@@ -47,22 +48,23 @@ public class JdbcClientRegistrationProviderRepository extends JdbcAbstractCrudRe
 
     @Override
     protected JdbcObjectMapper<ClientRegistrationProvider> buildOrm() {
-        return JdbcObjectMapper.builder(ClientRegistrationProvider.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .addColumn("discovery_endpoint", Types.NVARCHAR, String.class)
-                .addColumn("initial_access_token_type", Types.NVARCHAR, ClientRegistrationProvider.InitialAccessTokenType.class)
-                .addColumn("client_id", Types.NVARCHAR, String.class)
-                .addColumn("client_secret", Types.NVARCHAR, String.class)
-                .addColumn("initial_access_token", Types.NVARCHAR, String.class)
-                .addColumn("renew_client_secret_support", Types.BOOLEAN, boolean.class)
-                .addColumn("renew_client_secret_endpoint", Types.NVARCHAR, String.class)
-                .addColumn("renew_client_secret_method", Types.NVARCHAR, String.class)
-                .addColumn("software_id", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(ClientRegistrationProvider.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("discovery_endpoint", Types.NVARCHAR, String.class)
+            .addColumn("initial_access_token_type", Types.NVARCHAR, ClientRegistrationProvider.InitialAccessTokenType.class)
+            .addColumn("client_id", Types.NVARCHAR, String.class)
+            .addColumn("client_secret", Types.NVARCHAR, String.class)
+            .addColumn("initial_access_token", Types.NVARCHAR, String.class)
+            .addColumn("renew_client_secret_support", Types.BOOLEAN, boolean.class)
+            .addColumn("renew_client_secret_endpoint", Types.NVARCHAR, String.class)
+            .addColumn("renew_client_secret_method", Types.NVARCHAR, String.class)
+            .addColumn("software_id", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     @Override
@@ -76,17 +78,26 @@ public class JdbcClientRegistrationProviderRepository extends JdbcAbstractCrudRe
     }
 
     private List<String> getScopes(String id) {
-        return jdbcTemplate.queryForList("select scope from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?", String.class, id);
+        return jdbcTemplate.queryForList(
+            "select scope from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?",
+            String.class,
+            id
+        );
     }
 
     private void storeScopes(ClientRegistrationProvider clientRegistrationProvider, boolean deleteFirst) {
         if (deleteFirst) {
-            jdbcTemplate.update("delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?", clientRegistrationProvider.getId());
+            jdbcTemplate.update(
+                "delete from " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " where client_registration_provider_id = ?",
+                clientRegistrationProvider.getId()
+            );
         }
         List<String> filteredScopes = getOrm().filterStrings(clientRegistrationProvider.getScopes());
-        if (! filteredScopes.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " ( client_registration_provider_id, scope ) values ( ?, ? )"
-                    , getOrm().getBatchStringSetter(clientRegistrationProvider.getId(), filteredScopes));
+        if (!filteredScopes.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                "insert into " + CLIENT_REGISTRATION_PROVIDER_SCOPES + " ( client_registration_provider_id, scope ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(clientRegistrationProvider.getId(), filteredScopes)
+            );
         }
     }
 
@@ -129,9 +140,17 @@ public class JdbcClientRegistrationProviderRepository extends JdbcAbstractCrudRe
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(clientRegistrationProvider, clientRegistrationProvider.getId()));
+            jdbcTemplate.update(
+                getOrm().buildUpdatePreparedStatementCreator(clientRegistrationProvider, clientRegistrationProvider.getId())
+            );
             storeScopes(clientRegistrationProvider, true);
-            return findById(clientRegistrationProvider.getId()).orElseThrow(() -> new IllegalStateException(format("No client registration provider found with id [%s]", clientRegistrationProvider.getId())));
+            return findById(clientRegistrationProvider.getId())
+                .orElseThrow(
+                    () ->
+                        new IllegalStateException(
+                            format("No client registration provider found with id [%s]", clientRegistrationProvider.getId())
+                        )
+                );
         } catch (final IllegalStateException ex) {
             throw ex;
         } catch (final Exception ex) {

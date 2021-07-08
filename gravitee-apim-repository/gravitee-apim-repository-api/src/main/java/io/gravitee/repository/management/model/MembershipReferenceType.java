@@ -20,11 +20,10 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum MembershipReferenceType {
-
     APPLICATION,
     API,
     GROUP,
     ENVIRONMENT,
     ORGANIZATION,
-    PLATFORM
+    PLATFORM,
 }

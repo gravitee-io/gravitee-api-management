@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.model.ApiHeader;
-import org.junit.Test;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.model.ApiHeader;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+import org.junit.Test;
+
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiHeaderTest extends AbstractRepositoryTest {
@@ -48,7 +47,7 @@ public class ApiHeaderTest extends AbstractRepositoryTest {
         Set<ApiHeader> all = apiHeaderRepository.findAllByEnvironment("DEFAULT");
         assertEquals(2, all.size());
     }
-    
+
     @Test
     public void shouldDelete() throws Exception {
         Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById("1");

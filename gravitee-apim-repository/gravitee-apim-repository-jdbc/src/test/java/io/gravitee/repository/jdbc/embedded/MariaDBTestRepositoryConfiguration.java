@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.jdbc.embedded;
 
+import static java.lang.String.format;
+
 import ch.vorburger.exec.ManagedProcessException;
 import ch.vorburger.mariadb4j.DB;
 import ch.vorburger.mariadb4j.DBConfiguration;
 import io.gravitee.repository.jdbc.AbstractJdbcTestRepositoryConfiguration;
+import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
-
-import javax.inject.Inject;
-
-import static java.lang.String.format;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

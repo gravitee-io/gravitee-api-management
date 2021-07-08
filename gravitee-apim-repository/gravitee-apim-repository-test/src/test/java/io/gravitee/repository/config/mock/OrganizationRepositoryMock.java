@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Organization;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Optional;
-
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Organization;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -38,7 +37,6 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
 
     @Override
     void prepare(OrganizationRepository organizationRepository) throws Exception {
-
         final Organization orgCreate = new Organization();
         orgCreate.setId("DEFAULT-ORG-create");
         orgCreate.setHrids(Arrays.asList("hrid1", "hrid2"));
@@ -49,7 +47,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         final Organization org2Update = new Organization();
         org2Update.setId("DEFAULT-ORG-update");
         org2Update.setName("Default org for update");
-        
+
         final Organization orgUpdated = new Organization();
         orgUpdated.setId("DEFAULT-ORG-update");
         orgUpdated.setName("New name");
@@ -60,7 +58,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         final Organization orgDelete = new Organization();
         orgDelete.setId("DEFAULT-ORG-delete");
         orgDelete.setName("Default org for delete");
-        
+
         final Organization orgFindById = new Organization();
         orgFindById.setId("DEFAULT-ORG-findById");
         orgFindById.setName("Default org for findById");

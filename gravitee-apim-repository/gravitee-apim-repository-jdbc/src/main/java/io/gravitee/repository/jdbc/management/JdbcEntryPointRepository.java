@@ -15,20 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import java.sql.Types;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
+import java.sql.Types;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -45,26 +43,28 @@ public class JdbcEntryPointRepository extends JdbcAbstractCrudRepository<Entrypo
 
     @Override
     protected JdbcObjectMapper<Entrypoint> buildOrm() {
-        return JdbcObjectMapper.builder(Entrypoint.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("environment_id", Types.NVARCHAR, String.class)
-                .addColumn("value", Types.NVARCHAR, String.class)
-                .addColumn("tags", Types.NVARCHAR, String.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Entrypoint.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("value", Types.NVARCHAR, String.class)
+            .addColumn("tags", Types.NVARCHAR, String.class)
+            .build();
     }
 
     @Override
     protected String getId(Entrypoint item) {
         return item.getId();
     }
-    
+
     @Override
     public Set<Entrypoint> findAllByEnvironment(String environment_id) throws TechnicalException {
         LOGGER.debug("JdbcEntryPointRepository.findAllByEnvironment({})", environment_id);
         try {
-            List<Entrypoint> entrypoints = jdbcTemplate.query(getOrm().getSelectAllSql() + " where environment_id = ?"
-                    , getOrm().getRowMapper()
-                    , environment_id
+            List<Entrypoint> entrypoints = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where environment_id = ?",
+                getOrm().getRowMapper(),
+                environment_id
             );
             return new HashSet<>(entrypoints);
         } catch (final Exception ex) {

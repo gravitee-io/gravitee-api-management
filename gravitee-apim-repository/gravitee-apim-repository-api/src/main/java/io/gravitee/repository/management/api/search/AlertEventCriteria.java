@@ -56,6 +56,7 @@ public class AlertEventCriteria {
     }
 
     public static class Builder {
+
         private String alert;
 
         private long from;

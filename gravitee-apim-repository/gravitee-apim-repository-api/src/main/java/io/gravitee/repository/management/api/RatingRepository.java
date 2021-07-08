@@ -15,32 +15,32 @@
  */
 package io.gravitee.repository.management.api;
 
-import java.util.List;
-import java.util.Optional;
-
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface RatingRepository {
-
     Rating create(Rating rating) throws TechnicalException;
 
     Optional<Rating> findById(String id) throws TechnicalException;
 
-    Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable pageable) throws TechnicalException;
-    
+    Page<Rating> findByReferenceIdAndReferenceTypePageable(String referenceId, RatingReferenceType referenceType, Pageable pageable)
+        throws TechnicalException;
+
     List<Rating> findByReferenceIdAndReferenceType(String referenceId, RatingReferenceType referenceType) throws TechnicalException;
 
     Rating update(Rating rating) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
 
-    Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user) throws TechnicalException;
+    Optional<Rating> findByReferenceIdAndReferenceTypeAndUser(String referenceId, RatingReferenceType referenceType, String user)
+        throws TechnicalException;
 }

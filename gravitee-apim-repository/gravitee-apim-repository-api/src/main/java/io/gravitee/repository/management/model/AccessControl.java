@@ -22,8 +22,7 @@ public class AccessControl {
     private String referenceId;
     private String referenceType;
 
-    public AccessControl() {
-    }
+    public AccessControl() {}
 
     public AccessControl(String referenceId, String referenceType) {
         this.referenceId = referenceId;
@@ -51,8 +50,7 @@ public class AccessControl {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AccessControl accessControl = (AccessControl) o;
-        return Objects.equals(referenceId, accessControl.referenceId) &&
-            Objects.equals(referenceType, accessControl.referenceType);
+        return Objects.equals(referenceId, accessControl.referenceId) && Objects.equals(referenceType, accessControl.referenceType);
     }
 
     @Override
@@ -62,10 +60,6 @@ public class AccessControl {
 
     @Override
     public String toString() {
-        return "AccessControl{" +
-            "referenceId='" + referenceId + '\'' +
-            ", referenceType='" + referenceType + '\'' +
-            '}';
+        return "AccessControl{" + "referenceId='" + referenceId + '\'' + ", referenceType='" + referenceType + '\'' + '}';
     }
-
 }

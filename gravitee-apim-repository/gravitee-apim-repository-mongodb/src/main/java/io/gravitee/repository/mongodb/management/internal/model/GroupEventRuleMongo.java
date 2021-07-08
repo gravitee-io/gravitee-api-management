@@ -16,10 +16,11 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GroupEventRuleMongo {
+
     private String event;
 
     public String getEvent() {
@@ -32,8 +33,6 @@ public class GroupEventRuleMongo {
 
     @Override
     public String toString() {
-        return "GroupEventRule{" +
-                ", event='" + event + '\'' +
-                "}";
+        return "GroupEventRule{" + ", event='" + event + '\'' + "}";
     }
 }

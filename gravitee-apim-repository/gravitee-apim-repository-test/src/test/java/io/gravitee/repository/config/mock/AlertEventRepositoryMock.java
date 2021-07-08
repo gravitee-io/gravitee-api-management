@@ -15,17 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.AlertEventRepository;
-import io.gravitee.repository.management.api.AlertTriggerRepository;
-import io.gravitee.repository.management.api.search.AlertEventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.AlertEvent;
-import io.gravitee.repository.management.model.AlertTrigger;
-import io.gravitee.repository.management.model.Event;
-
-import java.util.Date;
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -36,6 +25,16 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.AlertEventRepository;
+import io.gravitee.repository.management.api.AlertTriggerRepository;
+import io.gravitee.repository.management.api.search.AlertEventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.AlertEvent;
+import io.gravitee.repository.management.model.AlertTrigger;
+import io.gravitee.repository.management.model.Event;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -85,9 +84,9 @@ public class AlertEventRepositoryMock extends AbstractRepositoryMock<AlertEventR
         alertLatest.setCreatedAt(date);
         alertLatest.setUpdatedAt(date);
 
-//        final Set<AlertEvent> events = newSet(alertEvent, alertLatest, alert2Updated);
-//        final Set<AlertTrigger> alertsAfterDelete = newSet(alertEvent, alertQuota);
-//        final Set<AlertTrigger> alertsAfterAdd = newSet(alertEvent, alertEvent2, mock(AlertTrigger.class), mock(AlertTrigger.class));
+        //        final Set<AlertEvent> events = newSet(alertEvent, alertLatest, alert2Updated);
+        //        final Set<AlertTrigger> alertsAfterDelete = newSet(alertEvent, alertQuota);
+        //        final Set<AlertTrigger> alertsAfterAdd = newSet(alertEvent, alertEvent2, mock(AlertTrigger.class), mock(AlertTrigger.class));
 
         final io.gravitee.common.data.domain.Page<AlertEvent> pageAlertEvent = mock(io.gravitee.common.data.domain.Page.class);
         when(pageAlertEvent.getTotalElements()).thenReturn(3L);
@@ -106,19 +105,16 @@ public class AlertEventRepositoryMock extends AbstractRepositoryMock<AlertEventR
         when(pageAlertEventEmpty.getContent()).thenReturn(emptyList());
 
         // shouldDelete
-        when(alertEventRepository.search(
-                argThat(o -> o != null &&o.getAlert() == null),
-                any(Pageable.class))).thenReturn(pageAlertEvent, pageAlertEvent2, pageAlertEvent3);
+        when(alertEventRepository.search(argThat(o -> o != null && o.getAlert() == null), any(Pageable.class)))
+            .thenReturn(pageAlertEvent, pageAlertEvent2, pageAlertEvent3);
 
         //shouldFindByAlert
-        when(alertEventRepository.search(
-                argThat(o -> o != null && "alert-parent-id2".equals(o.getAlert())),
-                any(Pageable.class))).thenReturn(pageAlertEvent3);
+        when(alertEventRepository.search(argThat(o -> o != null && "alert-parent-id2".equals(o.getAlert())), any(Pageable.class)))
+            .thenReturn(pageAlertEvent3);
 
         //shouldDeleteAll
-        when(alertEventRepository.search(
-                argThat(o -> o != null && "alert-id-to-delete".equals(o.getAlert())),
-                any(Pageable.class))).thenReturn(pageAlertEvent2,pageAlertEventEmpty);
+        when(alertEventRepository.search(argThat(o -> o != null && "alert-id-to-delete".equals(o.getAlert())), any(Pageable.class)))
+            .thenReturn(pageAlertEvent2, pageAlertEventEmpty);
 
         when(alertEventRepository.create(any(AlertEvent.class))).thenReturn(alertEvent);
 

@@ -22,13 +22,6 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
@@ -37,6 +30,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,15 +55,16 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
 
     @Override
     protected JdbcObjectMapper<Monitoring> buildOrm() {
-        return JdbcObjectMapper.builder(Monitoring.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("node_id", Types.NVARCHAR, String.class)
-                .addColumn("type", Types.NVARCHAR, String.class)
-                .addColumn("payload", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("evaluated_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Monitoring.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("node_id", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, String.class)
+            .addColumn("payload", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("evaluated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     @Override
@@ -72,10 +72,10 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
         LOGGER.debug("JdbcNodeMonitoringRepository.findByNodeIdAndType({}, {})", nodeId, type);
         try {
             List<Monitoring> monitoringEvents = jdbcTemplate.query(
-                    getOrm().getSelectAllSql() + " where node_id = ? and type = ?"
-                    , getOrm().getRowMapper()
-                    , nodeId
-                    , type
+                getOrm().getSelectAllSql() + " where node_id = ? and type = ?",
+                getOrm().getRowMapper(),
+                nodeId,
+                type
             );
 
             return monitoringEvents.stream().findFirst().map(Maybe::just).orElseGet(Maybe::empty);
@@ -84,7 +84,6 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
             return Maybe.error(new TechnicalException("Failed to find node monitoring by node_id and type", ex));
         }
     }
-
 
     @Override
     public Single<Monitoring> create(Monitoring monitoring) {
@@ -102,10 +101,7 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
     public Optional<Monitoring> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcNodeMonitoringRepository<{}>.findById({})", getOrm().getTableName(), id);
         try {
-            List<Monitoring> items = jdbcTemplate.query(getOrm().getSelectByIdSql()
-                    , getRowMapper()
-                    , id
-            );
+            List<Monitoring> items = jdbcTemplate.query(getOrm().getSelectByIdSql(), getRowMapper(), id);
             return items.stream().findFirst();
         } catch (final Exception ex) {
             LOGGER.error("Failed to find {} items by id:", getOrm().getTableName(), ex);
@@ -120,10 +116,11 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(monitoring, monitoring.getId()));
 
             return findById(monitoring.getId())
-                    .map(Single::just)
-                    .orElseGet(() -> Single.error(new IllegalStateException(
-                        String.format("No node monitoring found with id [%s]", monitoring.getId()))));
-
+                .map(Single::just)
+                .orElseGet(
+                    () ->
+                        Single.error(new IllegalStateException(String.format("No node monitoring found with id [%s]", monitoring.getId())))
+                );
         } catch (final Exception ex) {
             LOGGER.error("Failed to update node monitoring:", ex);
             return Single.error(new TechnicalException("Failed to update node monitoring", ex));
@@ -147,18 +144,23 @@ public class JdbcNodeMonitoringRepository extends JdbcAbstractRepository<Monitor
             args.add(new Date(to));
         }
 
-        return Flowable.fromIterable(jdbcTemplate.query((Connection cnctn) -> {
-            PreparedStatement stmt = cnctn.prepareStatement(builder.toString());
-            int idx = 1;
-            for (final Object arg : args) {
-                if (arg instanceof Date) {
-                    final Date date = (Date) arg;
-                    stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
-                } else {
-                    stmt.setObject(idx++, arg);
-                }
-            }
-            return stmt;
-        }, getRowMapper()));
+        return Flowable.fromIterable(
+            jdbcTemplate.query(
+                (Connection cnctn) -> {
+                    PreparedStatement stmt = cnctn.prepareStatement(builder.toString());
+                    int idx = 1;
+                    for (final Object arg : args) {
+                        if (arg instanceof Date) {
+                            final Date date = (Date) arg;
+                            stmt.setTimestamp(idx++, new Timestamp(date.getTime()));
+                        } else {
+                            stmt.setObject(idx++, arg);
+                        }
+                    }
+                    return stmt;
+                },
+                getRowMapper()
+            )
+        );
     }
 }

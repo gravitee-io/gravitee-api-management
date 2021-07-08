@@ -15,19 +15,18 @@
  */
 package io.gravitee.repository;
 
-import io.gravitee.repository.config.AbstractRepositoryTest;
-import io.gravitee.repository.management.api.search.ApiKeyCriteria.Builder;
-import io.gravitee.repository.management.model.ApiKey;
-import org.junit.Assert;
-import org.junit.Test;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
+
+import io.gravitee.repository.config.AbstractRepositoryTest;
+import io.gravitee.repository.management.api.search.ApiKeyCriteria.Builder;
+import io.gravitee.repository.management.model.ApiKey;
+import java.util.*;
+import java.util.stream.Collectors;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
@@ -118,29 +117,21 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByCriteriaWithoutTimeRange() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-                new Builder().
-                        includeRevoked(false).
-                        plans(singleton("plan1")).
-                        build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(false).plans(singleton("plan1")).build());
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
         assertEquals("found 2 apikeys", 2, apiKeys.size());
-        assertTrue(Arrays.asList("findByCriteria1","findByCriteria2").contains(apiKeys.get(0).getKey()));
-        assertTrue(Arrays.asList("findByCriteria1","findByCriteria2").contains(apiKeys.get(1).getKey()));
+        assertTrue(Arrays.asList("findByCriteria1", "findByCriteria2").contains(apiKeys.get(0).getKey()));
+        assertTrue(Arrays.asList("findByCriteria1", "findByCriteria2").contains(apiKeys.get(1).getKey()));
         assertNotEquals(apiKeys.get(0).getKey(), apiKeys.get(1).getKey());
     }
 
     @Test
     public void shouldFindByCriteriaWithTimeRange() throws Exception {
         List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-                new Builder().
-                        includeRevoked(false).
-                        from(1486771200000L).
-                        to(1486771400000L).
-                        plans(singleton("plan1")).
-                        build());
+            new Builder().includeRevoked(false).from(1486771200000L).to(1486771400000L).plans(singleton("plan1")).build()
+        );
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());
@@ -150,11 +141,7 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByCriteriaWithoutTimeRangeAndRevoked() throws Exception {
-        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(
-                new Builder().
-                        includeRevoked(true).
-                        plans(singleton("plan1")).
-                        build());
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(new Builder().includeRevoked(true).plans(singleton("plan1")).build());
 
         assertNotNull("found api key", apiKeys);
         assertFalse("found api key", apiKeys.isEmpty());

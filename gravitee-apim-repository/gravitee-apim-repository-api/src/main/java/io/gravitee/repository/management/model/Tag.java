@@ -23,8 +23,11 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Tag {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        TAG_CREATED, TAG_UPDATED, TAG_DELETED
+        TAG_CREATED,
+        TAG_UPDATED,
+        TAG_DELETED,
     }
 
     private String id;
@@ -69,10 +72,12 @@ public class Tag {
         if (this == o) return true;
         if (!(o instanceof Tag)) return false;
         Tag tag = (Tag) o;
-        return Objects.equals(id, tag.id) &&
-                Objects.equals(name, tag.name) &&
-                Objects.equals(description, tag.description) &&
-                Objects.equals(restrictedGroups, tag.restrictedGroups);
+        return (
+            Objects.equals(id, tag.id) &&
+            Objects.equals(name, tag.name) &&
+            Objects.equals(description, tag.description) &&
+            Objects.equals(restrictedGroups, tag.restrictedGroups)
+        );
     }
 
     @Override
@@ -82,11 +87,20 @@ public class Tag {
 
     @Override
     public String toString() {
-        return "Tag{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", restrictedGroups=" + restrictedGroups +
-                '}';
+        return (
+            "Tag{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", restrictedGroups=" +
+            restrictedGroups +
+            '}'
+        );
     }
 }

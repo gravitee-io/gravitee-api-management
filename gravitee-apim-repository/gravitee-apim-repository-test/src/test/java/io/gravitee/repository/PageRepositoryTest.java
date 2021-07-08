@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
-import org.junit.Test;
-
 import java.util.*;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -39,10 +38,11 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         return "/data/page-tests/";
     }
 
-
     @Test
     public void shouldFindAll() throws Exception {
-        final io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(new PageableBuilder().pageNumber(0).pageSize(100).build());
+        final io.gravitee.common.data.domain.Page<Page> pages = pageRepository.findAll(
+            new PageableBuilder().pageNumber(0).pageSize(100).build()
+        );
 
         assertNotNull(pages);
         assertEquals(11, pages.getTotalElements());
@@ -118,19 +118,25 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
         assertTrue("homepage", page.isHomepage());
         assertEquals("excluded access controls", true, page.isExcludedAccessControls());
-        assertEquals("access controls", new HashSet<>(asList(
-            new AccessControl("grp1", "GROUP"),
-            new AccessControl("grp2", "GROUP"),
-            new AccessControl("role1", "ROLE")
-        )), page.getAccessControls());
+        assertEquals(
+            "access controls",
+            new HashSet<>(
+                asList(new AccessControl("grp1", "GROUP"), new AccessControl("grp2", "GROUP"), new AccessControl("role1", "ROLE"))
+            ),
+            page.getAccessControls()
+        );
 
         final List<PageMedia> attachedMedia = page.getAttachedMedia();
         assertNotNull(attachedMedia);
         assertEquals("attachedMedia", 2, attachedMedia.size());
-        assertEquals("attachedMedia", asList(
-            new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
-            new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L)))
-            , attachedMedia);
+        assertEquals(
+            "attachedMedia",
+            asList(
+                new PageMedia("media_id_1", "media_name_1", new Date(1586771200000L)),
+                new PageMedia("media_id_2", "media_name_2", new Date(1587771200000L))
+            ),
+            attachedMedia
+        );
 
         assertTrue("created at", compareDate(new Date(1486771200000L), page.getCreatedAt()));
         assertTrue("updated at", compareDate(new Date(1486771200000L), page.getUpdatedAt()));
@@ -321,11 +327,11 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
         page.setParentId("parent-123");
         page.setHomepage(true);
         page.setExcludedAccessControls(true);
-        page.setAccessControls(new HashSet<>(asList(
-            new AccessControl("grp1", "GROUP"),
-            new AccessControl("grp2", "GROUP"),
-            new AccessControl("role1", "ROLE")
-        )));
+        page.setAccessControls(
+            new HashSet<>(
+                asList(new AccessControl("grp1", "GROUP"), new AccessControl("grp2", "GROUP"), new AccessControl("role1", "ROLE"))
+            )
+        );
         page.setAttachedMedia(Collections.singletonList(new PageMedia("media_id", "media_name", new Date(1586771200000L))));
         page.setLastContributor("me");
         page.setPublished(true);
@@ -442,7 +448,10 @@ public class PageRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindDefaultMaxApiPageOrderByApiId() throws TechnicalException {
-        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder("unknown api id", PageReferenceType.API);
+        Integer maxApiPageOrderByApiId = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(
+            "unknown api id",
+            PageReferenceType.API
+        );
         assertEquals(Integer.valueOf(0), maxApiPageOrderByApiId);
     }
 

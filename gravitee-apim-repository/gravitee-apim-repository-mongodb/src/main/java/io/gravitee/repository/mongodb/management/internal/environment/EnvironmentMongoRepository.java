@@ -15,13 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.environment;
 
+import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.mongodb.management.internal.model.EnvironmentMongo;
-
-import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -29,9 +27,6 @@ import java.util.Set;
  */
 @Repository
 public interface EnvironmentMongoRepository extends MongoRepository<EnvironmentMongo, String> {
-
     @Query("{ organizationId: ?0} }")
     Set<EnvironmentMongo> findByOrganizationId(String organizationId);
 }
-
-

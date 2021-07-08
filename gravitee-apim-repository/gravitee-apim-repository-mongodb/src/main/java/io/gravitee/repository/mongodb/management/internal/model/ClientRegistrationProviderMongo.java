@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "client_registration_providers")
 public class ClientRegistrationProviderMongo extends Auditable {
@@ -186,7 +185,6 @@ public class ClientRegistrationProviderMongo extends Auditable {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(id);
     }
 }

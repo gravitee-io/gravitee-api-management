@@ -23,14 +23,13 @@ import io.gravitee.repository.mongodb.management.internal.identityprovideractiva
 import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderActivationMongo;
 import io.gravitee.repository.mongodb.management.internal.model.IdentityProviderActivationPkMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,12 +47,16 @@ public class MongoIdentityProviderActivationRepository implements IdentityProvid
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<IdentityProviderActivation> findById(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public Optional<IdentityProviderActivation> findById(
+        String identityProviderId,
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException {
         LOGGER.debug("Find identity provider activations by Id [{}, {}, {}]", identityProviderId, referenceId, referenceType);
 
-        IdentityProviderActivationMongo identityProviderActivation = internalIdentityProviderActivationRepository.findById(
-                new IdentityProviderActivationPkMongo(identityProviderId, referenceId, referenceType.name())
-        ).orElse(null);
+        IdentityProviderActivationMongo identityProviderActivation = internalIdentityProviderActivationRepository
+            .findById(new IdentityProviderActivationPkMongo(identityProviderId, referenceId, referenceType.name()))
+            .orElse(null);
 
         LOGGER.debug("Find identity provider activation by Id [{}, {}, {}] - Done", identityProviderId, referenceId, referenceType);
 
@@ -64,9 +67,11 @@ public class MongoIdentityProviderActivationRepository implements IdentityProvid
     public Set<IdentityProviderActivation> findAll() throws TechnicalException {
         LOGGER.debug("Find all identity provider activations");
 
-        Set<IdentityProviderActivation> res = internalIdentityProviderActivationRepository.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        Set<IdentityProviderActivation> res = internalIdentityProviderActivationRepository
+            .findAll()
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
 
         LOGGER.debug("Find all identity provider activations - Done");
         return res;
@@ -76,46 +81,72 @@ public class MongoIdentityProviderActivationRepository implements IdentityProvid
     public Set<IdentityProviderActivation> findAllByIdentityProviderId(String identityProviderId) throws TechnicalException {
         LOGGER.debug("Find identity provider activations by Idp Id [{}]", identityProviderId);
 
-        Set<IdentityProviderActivation> result = internalIdentityProviderActivationRepository.findAllByIdentityProviderId(identityProviderId).stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
-        ;
-
+        Set<IdentityProviderActivation> result = internalIdentityProviderActivationRepository
+            .findAllByIdentityProviderId(identityProviderId)
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
         LOGGER.debug("Find identity provider activations by Idp Id [{}] - Done", identityProviderId);
+
         return result;
     }
 
     @Override
-    public Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException {
         LOGGER.debug("Find identity provider activations by ref ID and ref Type [{}, {}]", referenceId, referenceType);
 
-        Set<IdentityProviderActivation> result = internalIdentityProviderActivationRepository.findAllByReferenceIdAndReferenceType(referenceId, referenceType.name()).stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
-        ;
-
+        Set<IdentityProviderActivation> result = internalIdentityProviderActivationRepository
+            .findAllByReferenceIdAndReferenceType(referenceId, referenceType.name())
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toSet());
         LOGGER.debug("Find identity provider activations by ref ID and ref Type [{}, {}] - Done", referenceId, referenceType);
+
         return result;
     }
 
     @Override
     public IdentityProviderActivation create(IdentityProviderActivation identityProviderActivation) throws TechnicalException {
-        LOGGER.debug("Create identity provider activation [{}, {}, {}]", identityProviderActivation.getIdentityProviderId(), identityProviderActivation.getReferenceId(), identityProviderActivation.getReferenceType());
+        LOGGER.debug(
+            "Create identity provider activation [{}, {}, {}]",
+            identityProviderActivation.getIdentityProviderId(),
+            identityProviderActivation.getReferenceId(),
+            identityProviderActivation.getReferenceType()
+        );
 
         IdentityProviderActivationMongo identityProviderActivationMongo = map(identityProviderActivation);
-        IdentityProviderActivationMongo createdIdentityProviderActivationMongo = internalIdentityProviderActivationRepository.insert(identityProviderActivationMongo);
+        IdentityProviderActivationMongo createdIdentityProviderActivationMongo = internalIdentityProviderActivationRepository.insert(
+            identityProviderActivationMongo
+        );
 
-        LOGGER.debug("Create identity provider activation [{}, {}, {}] - Done", identityProviderActivation.getIdentityProviderId(), identityProviderActivation.getReferenceId(), identityProviderActivation.getReferenceType());
+        LOGGER.debug(
+            "Create identity provider activation [{}, {}, {}] - Done",
+            identityProviderActivation.getIdentityProviderId(),
+            identityProviderActivation.getReferenceId(),
+            identityProviderActivation.getReferenceType()
+        );
 
         return map(createdIdentityProviderActivationMongo);
     }
 
     @Override
-    public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException {
         try {
-            internalIdentityProviderActivationRepository.deleteById(new IdentityProviderActivationPkMongo(identityProviderId, referenceId, referenceType.name()));
+            internalIdentityProviderActivationRepository.deleteById(
+                new IdentityProviderActivationPkMongo(identityProviderId, referenceId, referenceType.name())
+            );
         } catch (Exception e) {
-            LOGGER.error("An error occurs when deleting identity provider activation [{}, {}, {}]", identityProviderId, referenceId, referenceType.name(), e);
+            LOGGER.error(
+                "An error occurs when deleting identity provider activation [{}, {}, {}]",
+                identityProviderId,
+                referenceId,
+                referenceType.name(),
+                e
+            );
             throw new TechnicalException("An error occurs when deleting identity provider activation");
         }
     }
@@ -131,7 +162,8 @@ public class MongoIdentityProviderActivationRepository implements IdentityProvid
     }
 
     @Override
-    public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException {
         try {
             internalIdentityProviderActivationRepository.deleteByReferenceIdAndReferenceType(referenceId, referenceType.name());
         } catch (Exception e) {
@@ -165,7 +197,9 @@ public class MongoIdentityProviderActivationRepository implements IdentityProvid
         IdentityProviderActivation identityProviderActivation = new IdentityProviderActivation();
         identityProviderActivation.setIdentityProviderId(identityProviderActivationMongo.getId().getIdentityProviderId());
         identityProviderActivation.setReferenceId(identityProviderActivationMongo.getId().getReferenceId());
-        identityProviderActivation.setReferenceType(IdentityProviderActivationReferenceType.valueOf(identityProviderActivationMongo.getId().getReferenceType()));
+        identityProviderActivation.setReferenceType(
+            IdentityProviderActivationReferenceType.valueOf(identityProviderActivationMongo.getId().getReferenceType())
+        );
         identityProviderActivation.setCreatedAt(identityProviderActivationMongo.getCreatedAt());
 
         return identityProviderActivation;

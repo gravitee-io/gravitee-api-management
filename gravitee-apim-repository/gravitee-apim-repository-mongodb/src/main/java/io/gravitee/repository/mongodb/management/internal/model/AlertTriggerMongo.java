@@ -15,12 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -29,158 +28,174 @@ import java.util.Objects;
 @Document(collection = "alert_triggers")
 public class AlertTriggerMongo {
 
-	@Id
-	private String id;
-	private String name;
-	private String type;
-	private String description;
-	private String referenceType;
-	private String referenceId;
-	private String definition;
-	private String severity;
-	private boolean enabled;
-	private String parentId;
-	private Date createdAt;
-	private Date updatedAt;
-	private boolean template;
-	private List<AlertEventRuleMongo> eventRules;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String name;
+    private String type;
+    private String description;
+    private String referenceType;
+    private String referenceId;
+    private String definition;
+    private String severity;
+    private boolean enabled;
+    private String parentId;
+    private Date createdAt;
+    private Date updatedAt;
+    private boolean template;
+    private List<AlertEventRuleMongo> eventRules;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public String getReferenceType() {
-		return referenceType;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public void setReferenceType(String referenceType) {
-		this.referenceType = referenceType;
-	}
+    public String getReferenceType() {
+        return referenceType;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public void setReferenceType(String referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public String getDefinition() {
-		return definition;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public void setDefinition(String definition) {
-		this.definition = definition;
-	}
+    public String getDefinition() {
+        return definition;
+    }
 
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public void setDefinition(String definition) {
+        this.definition = definition;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	public Date getCreatedAt() {
-		return createdAt;
-	}
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-	public Date getUpdatedAt() {
-		return updatedAt;
-	}
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
 
-	public void setUpdatedAt(Date updatedAt) {
-		this.updatedAt = updatedAt;
-	}
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
 
-	public String getSeverity() {
-		return severity;
-	}
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
-	public void setSeverity(String severity) {
-		this.severity = severity;
-	}
+    public String getSeverity() {
+        return severity;
+    }
 
-	public String getParentId() {
-		return parentId;
-	}
+    public void setSeverity(String severity) {
+        this.severity = severity;
+    }
 
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
-	}
+    public String getParentId() {
+        return parentId;
+    }
 
-	public boolean isTemplate() {
-		return template;
-	}
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 
-	public void setTemplate(boolean template) {
-		this.template = template;
-	}
+    public boolean isTemplate() {
+        return template;
+    }
 
-	public List<AlertEventRuleMongo> getEventRules() {
-		return eventRules;
-	}
+    public void setTemplate(boolean template) {
+        this.template = template;
+    }
 
-	public void setEventRules(List<AlertEventRuleMongo> eventRules) {
-		this.eventRules = eventRules;
-	}
+    public List<AlertEventRuleMongo> getEventRules() {
+        return eventRules;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof AlertTriggerMongo)) return false;
-		AlertTriggerMongo that = (AlertTriggerMongo) o;
-		return Objects.equals(id, that.id);
-	}
+    public void setEventRules(List<AlertEventRuleMongo> eventRules) {
+        this.eventRules = eventRules;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof AlertTriggerMongo)) return false;
+        AlertTriggerMongo that = (AlertTriggerMongo) o;
+        return Objects.equals(id, that.id);
+    }
 
-	@Override
-	public String toString() {
-		return "AlertMongo{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", referenceType='" + referenceType + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", enabled=" + enabled +
-				", createdAt=" + createdAt +
-				", updatedAt=" + updatedAt +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "AlertMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", enabled=" +
+            enabled +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
+    }
 }

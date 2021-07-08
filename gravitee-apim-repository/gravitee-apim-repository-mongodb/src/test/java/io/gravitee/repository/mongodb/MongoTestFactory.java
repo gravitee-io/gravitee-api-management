@@ -21,13 +21,11 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
-
 import java.io.IOException;
 
 public class MongoTestFactory extends MongodForTestsFactory {
 
-    public static MongoTestFactory with(final IFeatureAwareVersion version)
-            throws IOException {
+    public static MongoTestFactory with(final IFeatureAwareVersion version) throws IOException {
         return new MongoTestFactory(version);
     }
 
@@ -42,9 +40,8 @@ public class MongoTestFactory extends MongodForTestsFactory {
     @Override
     protected IMongodConfig newMongodConfig(IFeatureAwareVersion version) throws IOException {
         return new MongodConfigBuilder()
-                .version(version)
-                .cmdOptions(new MongoCmdOptionsBuilder().useStorageEngine("ephemeralForTest").build())
-                .build();
-
+            .version(version)
+            .cmdOptions(new MongoCmdOptionsBuilder().useStorageEngine("ephemeralForTest").build())
+            .build();
     }
 }

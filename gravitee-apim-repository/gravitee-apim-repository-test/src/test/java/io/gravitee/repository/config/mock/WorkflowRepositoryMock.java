@@ -15,12 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.WorkflowRepository;
-import io.gravitee.repository.management.model.Workflow;
-
-import java.util.Date;
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.any;
@@ -28,6 +22,11 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.WorkflowRepository;
+import io.gravitee.repository.management.model.Workflow;
+import java.util.Date;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

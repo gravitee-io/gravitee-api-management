@@ -15,15 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.GroupRepository;
-import io.gravitee.repository.management.model.Group;
-import io.gravitee.repository.management.model.GroupEvent;
-import io.gravitee.repository.management.model.GroupEventRule;
-
-import java.util.Date;
-import java.util.HashSet;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
 import static java.util.Optional.empty;
@@ -32,6 +23,14 @@ import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.model.Group;
+import io.gravitee.repository.management.model.GroupEvent;
+import io.gravitee.repository.management.model.GroupEventRule;
+import java.util.Date;
+import java.util.HashSet;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -99,10 +98,9 @@ public class GroupRepositoryMock extends AbstractRepositoryMock<GroupRepository>
 
         when(groupRepository.update(argThat(o -> o != null && o.getId().equals("group-application-1")))).thenReturn(group_updated);
 
-        when(groupRepository.findByIds(new HashSet<>(asList("group-application-1", "group-api-to-delete", "unknown")))).
-                thenReturn(new HashSet<>(asList(group_application_1, group_api_to_delete)));
-        when(groupRepository.findByIds(emptySet())).
-                thenReturn(emptySet());
+        when(groupRepository.findByIds(new HashSet<>(asList("group-application-1", "group-api-to-delete", "unknown"))))
+            .thenReturn(new HashSet<>(asList(group_application_1, group_api_to_delete)));
+        when(groupRepository.findByIds(emptySet())).thenReturn(emptySet());
 
         when(groupRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
     }

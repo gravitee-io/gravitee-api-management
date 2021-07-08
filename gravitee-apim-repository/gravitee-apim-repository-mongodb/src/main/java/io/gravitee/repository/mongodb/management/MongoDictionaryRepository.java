@@ -25,12 +25,11 @@ import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryProviderMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,7 +40,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
     private final Logger LOGGER = LoggerFactory.getLogger(MongoDictionaryRepository.class);
 
-    private final static String DOT_REPLACEMENT = "\\$#\\$";
+    private static final String DOT_REPLACEMENT = "\\$#\\$";
 
     @Autowired
     private DictionaryMongoRepository internalDictionaryRepo;
@@ -57,7 +56,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(page, Dictionary.class);
 
         // Convert properties
-        if (res != null && res.getProperties() != null && ! res.getProperties().isEmpty()) {
+        if (res != null && res.getProperties() != null && !res.getProperties().isEmpty()) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
             res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
             res.setProperties(properties);
@@ -85,7 +84,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(createdDictionaryMongo, Dictionary.class);
 
         // Convert properties
-        if (res != null && res.getProperties() != null && ! res.getProperties().isEmpty()) {
+        if (res != null && res.getProperties() != null && !res.getProperties().isEmpty()) {
             final Map<String, String> properties = new HashMap<>(res.getProperties().size());
             res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
             res.setProperties(properties);
@@ -142,7 +141,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             final Dictionary res = mapper.map(dictionaryMongoUpdated, Dictionary.class);
 
             // Convert properties
-            if (res != null && res.getProperties() != null && ! res.getProperties().isEmpty()) {
+            if (res != null && res.getProperties() != null && !res.getProperties().isEmpty()) {
                 final Map<String, String> properties = new HashMap<>(res.getProperties().size());
                 res.getProperties().forEach((key, value) -> properties.put(key.replaceAll(DOT_REPLACEMENT, "."), value));
                 res.setProperties(properties);

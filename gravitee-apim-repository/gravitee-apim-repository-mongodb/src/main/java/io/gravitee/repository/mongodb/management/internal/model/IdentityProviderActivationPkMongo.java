@@ -28,8 +28,7 @@ public class IdentityProviderActivationPkMongo implements Serializable {
     private String referenceId;
     private String referenceType;
 
-    public IdentityProviderActivationPkMongo() {
-    }
+    public IdentityProviderActivationPkMongo() {}
 
     public IdentityProviderActivationPkMongo(String identityProviderId, String referenceId, String referenceType) {
         this.identityProviderId = identityProviderId;
@@ -66,9 +65,11 @@ public class IdentityProviderActivationPkMongo implements Serializable {
         if (this == o) return true;
         if (!(o instanceof IdentityProviderActivationPkMongo)) return false;
         IdentityProviderActivationPkMongo that = (IdentityProviderActivationPkMongo) o;
-        return Objects.equals(identityProviderId, that.identityProviderId) &&
-                Objects.equals(referenceId, that.referenceId) &&
-                referenceType == that.referenceType;
+        return (
+            Objects.equals(identityProviderId, that.identityProviderId) &&
+            Objects.equals(referenceId, that.referenceId) &&
+            referenceType == that.referenceType
+        );
     }
 
     @Override
@@ -78,10 +79,17 @@ public class IdentityProviderActivationPkMongo implements Serializable {
 
     @Override
     public String toString() {
-        return "IdentityProviderActivationPkMongo{" +
-                "identityProviderId='" + identityProviderId + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType=" + referenceType +
-                '}';
+        return (
+            "IdentityProviderActivationPkMongo{" +
+            "identityProviderId='" +
+            identityProviderId +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType=" +
+            referenceType +
+            '}'
+        );
     }
 }

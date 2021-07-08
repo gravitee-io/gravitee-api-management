@@ -40,30 +40,30 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @Profile("!test")
 public class ManagementRepositoryConfiguration extends AbstractRepositoryConfiguration {
 
-	@Autowired
-	@Qualifier("managementMongo")
-	private MongoFactory mongoFactory;
+    @Autowired
+    @Qualifier("managementMongo")
+    private MongoFactory mongoFactory;
 
-	@Bean(name = "managementMongo")
-	public MongoFactory mongoFactory() {
-		return new MongoFactory(Scope.MANAGEMENT.getName());
-	}
+    @Bean(name = "managementMongo")
+    public MongoFactory mongoFactory() {
+        return new MongoFactory(Scope.MANAGEMENT.getName());
+    }
 
-	@Override
-	public MongoClient mongoClient() {
-		try {
-			return (MongoClient) mongoFactory.getObject();
-		} catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
-	}
+    @Override
+    public MongoClient mongoClient() {
+        try {
+            return (MongoClient) mongoFactory.getObject();
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
-	@Bean(name = "managementMongoTemplate")
-	public MongoOperations mongoOperations(Mongo mongo) {
-		try {
-			return new MongoTemplate((MongoClient) mongo, getDatabaseName());
-		} catch (Exception e) {
-			throw new IllegalStateException(e);
-		}
-	}
+    @Bean(name = "managementMongoTemplate")
+    public MongoOperations mongoOperations(Mongo mongo) {
+        try {
+            return new MongoTemplate((MongoClient) mongo, getDatabaseName());
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

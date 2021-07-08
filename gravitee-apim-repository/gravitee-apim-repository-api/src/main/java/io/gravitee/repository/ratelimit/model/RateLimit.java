@@ -100,11 +100,6 @@ public class RateLimit implements Serializable {
 
     @Override
     public String toString() {
-        return "RateLimit{" +
-                "key='" + key + '\'' +
-                ", counter=" + counter +
-                ", resetTime=" + resetTime +
-                ", limit=" + limit +
-                '}';
+        return "RateLimit{" + "key='" + key + '\'' + ", counter=" + counter + ", resetTime=" + resetTime + ", limit=" + limit + '}';
     }
 }

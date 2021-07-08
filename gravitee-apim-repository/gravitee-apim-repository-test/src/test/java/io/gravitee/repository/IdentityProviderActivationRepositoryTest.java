@@ -15,20 +15,19 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
 import io.gravitee.repository.utils.DateUtils;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -56,14 +55,34 @@ public class IdentityProviderActivationRepositoryTest extends AbstractRepository
 
         Assert.assertEquals(nbIdentityProviderActivationsBeforeCreation + 1, nbIdentityProviderActivationsAfterCreation);
 
-        Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByIdentityProviderId("new-idp-act");
-        Assert.assertTrue("Identity provider activation saved not found", identityProviderActivations != null && !identityProviderActivations.isEmpty());
+        Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByIdentityProviderId(
+            "new-idp-act"
+        );
+        Assert.assertTrue(
+            "Identity provider activation saved not found",
+            identityProviderActivations != null && !identityProviderActivations.isEmpty()
+        );
 
         final IdentityProviderActivation identityProviderActivationSaved = identityProviderActivations.iterator().next();
-        Assert.assertEquals("Invalid saved identity provider id.", identityProviderActivationSaved.getIdentityProviderId(), identityProviderActivation.getIdentityProviderId());
-        Assert.assertEquals("Invalid saved reference id.", identityProviderActivationSaved.getReferenceId(), identityProviderActivation.getReferenceId());
-        Assert.assertEquals("Invalid saved reference type.", identityProviderActivationSaved.getReferenceType(), identityProviderActivation.getReferenceType());
-        Assert.assertTrue("Invalid saved created date.", DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt()));
+        Assert.assertEquals(
+            "Invalid saved identity provider id.",
+            identityProviderActivationSaved.getIdentityProviderId(),
+            identityProviderActivation.getIdentityProviderId()
+        );
+        Assert.assertEquals(
+            "Invalid saved reference id.",
+            identityProviderActivationSaved.getReferenceId(),
+            identityProviderActivation.getReferenceId()
+        );
+        Assert.assertEquals(
+            "Invalid saved reference type.",
+            identityProviderActivationSaved.getReferenceType(),
+            identityProviderActivation.getReferenceType()
+        );
+        Assert.assertTrue(
+            "Invalid saved created date.",
+            DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt())
+        );
     }
 
     @Test
@@ -87,7 +106,10 @@ public class IdentityProviderActivationRepositoryTest extends AbstractRepository
     @Test
     public void shouldDeleteByReferenceIdAndReferenceType() throws Exception {
         int nbIdentityProviderActivationsBeforeDeletion = identityProviderActivationRepository.findAll().size();
-        identityProviderActivationRepository.deleteByReferenceIdAndReferenceType("DEFAULT", IdentityProviderActivationReferenceType.ENVIRONMENT);
+        identityProviderActivationRepository.deleteByReferenceIdAndReferenceType(
+            "DEFAULT",
+            IdentityProviderActivationReferenceType.ENVIRONMENT
+        );
         int nbIdentityProviderActivationsAfterDeletion = identityProviderActivationRepository.findAll().size();
 
         Assert.assertEquals(nbIdentityProviderActivationsBeforeDeletion - 3, nbIdentityProviderActivationsAfterDeletion);
@@ -103,7 +125,9 @@ public class IdentityProviderActivationRepositoryTest extends AbstractRepository
 
     @Test
     public void shouldFindAllByIdentityProviderId() throws Exception {
-        final Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByIdentityProviderId("oidc");
+        final Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByIdentityProviderId(
+            "oidc"
+        );
 
         assertNotNull(identityProviderActivations);
         assertEquals(2, identityProviderActivations.size());
@@ -111,20 +135,34 @@ public class IdentityProviderActivationRepositoryTest extends AbstractRepository
 
     @Test
     public void shouldFindAllByReferenceIdAndReferenceType() throws Exception {
-        final Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByReferenceIdAndReferenceType("DEFAULT", IdentityProviderActivationReferenceType.ORGANIZATION);
+        final Set<IdentityProviderActivation> identityProviderActivations = identityProviderActivationRepository.findAllByReferenceIdAndReferenceType(
+            "DEFAULT",
+            IdentityProviderActivationReferenceType.ORGANIZATION
+        );
         assertNotNull(identityProviderActivations);
         assertEquals(1, identityProviderActivations.size());
     }
 
     @Test
     public void shouldFindById() throws Exception {
-        final Optional<IdentityProviderActivation> optIdentityProviderActivation = identityProviderActivationRepository.findById("github", "DEFAULT", IdentityProviderActivationReferenceType.ENVIRONMENT);
+        final Optional<IdentityProviderActivation> optIdentityProviderActivation = identityProviderActivationRepository.findById(
+            "github",
+            "DEFAULT",
+            IdentityProviderActivationReferenceType.ENVIRONMENT
+        );
 
         assertTrue(optIdentityProviderActivation.isPresent());
         IdentityProviderActivation identityProviderActivation = optIdentityProviderActivation.get();
         Assert.assertEquals("Invalid identity provider id.", "github", identityProviderActivation.getIdentityProviderId());
         Assert.assertEquals("Invalid reference id.", "DEFAULT", identityProviderActivation.getReferenceId());
-        Assert.assertEquals("Invalid reference type.", IdentityProviderActivationReferenceType.ENVIRONMENT, identityProviderActivation.getReferenceType());
-        Assert.assertTrue("Invalid created date.", DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt()));
+        Assert.assertEquals(
+            "Invalid reference type.",
+            IdentityProviderActivationReferenceType.ENVIRONMENT,
+            identityProviderActivation.getReferenceType()
+        );
+        Assert.assertTrue(
+            "Invalid created date.",
+            DateUtils.compareDate(new Date(1000000000000L), identityProviderActivation.getCreatedAt())
+        );
     }
 }

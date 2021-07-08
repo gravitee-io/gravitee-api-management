@@ -22,44 +22,43 @@ import java.util.concurrent.TimeUnit;
  * @author GraviteeSource Team
  */
 public interface KeyValueRepository {
+    /**
+     * Get object from store
+     *
+     * @param key
+     * @return
+     */
+    Object get(String key);
 
-	/**
-	 * Get object from store 
-	 * 
-	 * @param key
-	 * @return
-	 */
-	Object get(String key);
-	
-	/**
-	 * Put a value in store, return previous value if any
-	 * 
-	 * @param key
-	 * @param value
-	 * @return
-	 */
-	Object put(String key, Object value);
-	
-	/**
-	 * Put a value in store, return previous value if any
-	 * ttl  time to live of the object in second.
-	 * 
-	 * @param key
-	 * @param value
-	 * @param ttl
-	 * @return
-	 */
-	Object put(String key, Object value, long ttl);
-	
-	/**
-	 * Put a value in store, return previous value if any
-	 * ttl  time to live of the object in ttlUnit.
-	 *  
-	 * @param key
-	 * @param value
-	 * @param ttl
-	 * @param ttlUnit
-	 * @return
-	 */
-	Object put(String key, Object value, long ttl, TimeUnit ttlUnit);
+    /**
+     * Put a value in store, return previous value if any
+     *
+     * @param key
+     * @param value
+     * @return
+     */
+    Object put(String key, Object value);
+
+    /**
+     * Put a value in store, return previous value if any
+     * ttl  time to live of the object in second.
+     *
+     * @param key
+     * @param value
+     * @param ttl
+     * @return
+     */
+    Object put(String key, Object value, long ttl);
+
+    /**
+     * Put a value in store, return previous value if any
+     * ttl  time to live of the object in ttlUnit.
+     *
+     * @param key
+     * @param value
+     * @param ttl
+     * @param ttlUnit
+     * @return
+     */
+    Object put(String key, Object value, long ttl, TimeUnit ttlUnit);
 }

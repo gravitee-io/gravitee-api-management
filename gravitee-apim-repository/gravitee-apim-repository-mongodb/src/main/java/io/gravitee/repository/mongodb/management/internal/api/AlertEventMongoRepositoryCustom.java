@@ -25,7 +25,6 @@ import io.gravitee.repository.mongodb.management.internal.model.AlertEventMongo;
  * @author GraviteeSource Team
  */
 public interface AlertEventMongoRepositoryCustom {
-
     Page<AlertEventMongo> search(AlertEventCriteria criteria, Pageable pageable);
 
     void deleteAll(String alertId);

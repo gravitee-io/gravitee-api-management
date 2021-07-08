@@ -15,20 +15,19 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.DictionaryRepository;
-import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryType;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.DictionaryRepository;
+import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryType;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,9 +79,10 @@ public class DictionaryRepositoryMock extends AbstractRepositoryMock<DictionaryR
         final Set<Dictionary> dictionariesAfterDelete = newSet(newDictionary, dic1);
         final Set<Dictionary> dictionariesAfterAdd = newSet(newDictionary, dic1, mock(Dictionary.class), mock(Dictionary.class));
 
-        when(dictionaryRepository.findAll()).thenReturn(dictionaries, dictionariesAfterAdd, dictionaries, dictionariesAfterDelete, dictionaries);
+        when(dictionaryRepository.findAll())
+            .thenReturn(dictionaries, dictionariesAfterAdd, dictionaries, dictionariesAfterDelete, dictionaries);
         when(dictionaryRepository.findAllByEnvironment("DEFAULT")).thenReturn(dictionaries);
-        
+
         when(dictionaryRepository.create(any(Dictionary.class))).thenReturn(newDictionary);
 
         when(dictionaryRepository.findById("new-dictionary")).thenReturn(of(newDictionary));

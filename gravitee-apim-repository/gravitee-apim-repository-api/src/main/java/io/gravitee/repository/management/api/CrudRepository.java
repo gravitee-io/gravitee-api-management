@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-
 import java.util.Optional;
 
 /**
@@ -24,7 +23,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 interface CrudRepository<T, ID> {
-
     Optional<T> findById(ID id) throws TechnicalException;
 
     T create(T item) throws TechnicalException;

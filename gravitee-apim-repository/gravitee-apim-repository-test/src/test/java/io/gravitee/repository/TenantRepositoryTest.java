@@ -15,15 +15,14 @@
  */
 package io.gravitee.repository;
 
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.Tenant;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.Optional;
 import java.util.Set;
-
-import static org.junit.Assert.*;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TenantRepositoryTest extends AbstractRepositoryTest {
 

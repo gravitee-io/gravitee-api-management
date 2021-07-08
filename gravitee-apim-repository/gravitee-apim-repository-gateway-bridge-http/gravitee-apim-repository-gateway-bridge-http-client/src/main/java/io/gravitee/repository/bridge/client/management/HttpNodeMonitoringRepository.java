@@ -37,55 +37,62 @@ public class HttpNodeMonitoringRepository extends AbstractRepository implements 
 
     @Override
     public Maybe<Monitoring> findByNodeIdAndType(String nodeId, String type) {
-        final Future<HttpResponse<Monitoring>> future = get("/node/monitoring?nodeId=" + nodeId + "&type=" + type, BodyCodec.json(Monitoring.class))
-                .send();
+        final Future<HttpResponse<Monitoring>> future = get(
+            "/node/monitoring?nodeId=" + nodeId + "&type=" + type,
+            BodyCodec.json(Monitoring.class)
+        )
+            .send();
 
         MaybeSubject<Monitoring> maybe = MaybeSubject.create();
-        future.onComplete(promise -> {
-            if (promise.succeeded()) {
-                if (promise.result().statusCode() == HttpStatusCode.OK_200) {
-                    maybe.onSuccess(promise.result().payload());
+        future.onComplete(
+            promise -> {
+                if (promise.succeeded()) {
+                    if (promise.result().statusCode() == HttpStatusCode.OK_200) {
+                        maybe.onSuccess(promise.result().payload());
+                    } else {
+                        maybe.onComplete();
+                    }
                 } else {
-                    maybe.onComplete();
+                    maybe.onError(promise.cause());
                 }
-            } else {
-                maybe.onError(promise.cause());
             }
-        });
+        );
 
         return maybe;
     }
 
     @Override
     public Single<Monitoring> create(Monitoring monitoring) {
-        final Future<HttpResponse<Monitoring>> future = post("/node/monitoring", BodyCodec.json(Monitoring.class))
-                .send(monitoring);
+        final Future<HttpResponse<Monitoring>> future = post("/node/monitoring", BodyCodec.json(Monitoring.class)).send(monitoring);
 
         SingleSubject<Monitoring> single = SingleSubject.create();
-        future.onComplete(promise -> {
-            if (promise.succeeded()) {
-                single.onSuccess(promise.result().payload());
-            } else {
-                single.onError(promise.cause());
+        future.onComplete(
+            promise -> {
+                if (promise.succeeded()) {
+                    single.onSuccess(promise.result().payload());
+                } else {
+                    single.onError(promise.cause());
+                }
             }
-        });
+        );
 
         return single;
     }
 
     @Override
     public Single<Monitoring> update(Monitoring monitoring) {
-        final Future<HttpResponse<Monitoring>> future = put("/node/monitoring", BodyCodec.json(Monitoring.class))
-                .send(monitoring);
+        final Future<HttpResponse<Monitoring>> future = put("/node/monitoring", BodyCodec.json(Monitoring.class)).send(monitoring);
 
         SingleSubject<Monitoring> single = SingleSubject.create();
-        future.onComplete(promise -> {
-            if (promise.succeeded()) {
-                single.onSuccess(promise.result().payload());
-            } else {
-                single.onError(promise.cause());
+        future.onComplete(
+            promise -> {
+                if (promise.succeeded()) {
+                    single.onSuccess(promise.result().payload());
+                } else {
+                    single.onError(promise.cause());
+                }
             }
-        });
+        );
 
         return single;
     }

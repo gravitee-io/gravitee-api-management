@@ -20,6 +20,5 @@ package io.gravitee.repository.healthcheck.query;
  * @author GraviteeSource Team
  */
 public interface Query<T extends Response> {
-
     Class<T> responseType();
 }

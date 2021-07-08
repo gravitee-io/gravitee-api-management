@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.PageRevision;
-import org.junit.Test;
-
 import java.util.*;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -59,7 +58,9 @@ public class PageRevisionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindAll_MaxInteger() throws TechnicalException {
-        Page<PageRevision> revisions = pageRevisionRepository.findAll(new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build());
+        Page<PageRevision> revisions = pageRevisionRepository.findAll(
+            new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build()
+        );
         assertNotNull(revisions);
         assertNotNull(revisions.getContent());
         assertEquals(revisions.getPageNumber(), 0);
@@ -80,7 +81,7 @@ public class PageRevisionRepositoryTest extends AbstractRepositoryTest {
             assertEquals(revisions.getPageElements(), 3);
             assertEquals(revisions.getTotalElements(), 6);
             assertEquals(revisions.getContent().size(), 3);
-            revisions.getContent().stream().forEach(rev -> accumulator.add(rev.getPageId()+"-"+rev.getRevision()));
+            revisions.getContent().stream().forEach(rev -> accumulator.add(rev.getPageId() + "-" + rev.getRevision()));
         } while (++pageNumber < 2);
     }
 

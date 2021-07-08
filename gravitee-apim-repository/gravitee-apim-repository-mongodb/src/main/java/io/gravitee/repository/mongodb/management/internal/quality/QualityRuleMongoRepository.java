@@ -24,6 +24,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface QualityRuleMongoRepository extends MongoRepository<QualityRuleMongo, String> {
-
-}
+public interface QualityRuleMongoRepository extends MongoRepository<QualityRuleMongo, String> {}

@@ -25,7 +25,9 @@ import java.util.List;
 public class Group {
 
     public enum AuditEvent implements Audit.AuditEvent {
-        GROUP_CREATED, GROUP_UPDATED, GROUP_DELETED
+        GROUP_CREATED,
+        GROUP_UPDATED,
+        GROUP_DELETED,
     }
 
     private String id;

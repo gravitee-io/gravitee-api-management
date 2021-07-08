@@ -17,5 +17,5 @@ package io.gravitee.repository.management.api.search;
 
 public enum Order {
     ASC,
-    DESC
+    DESC,
 }

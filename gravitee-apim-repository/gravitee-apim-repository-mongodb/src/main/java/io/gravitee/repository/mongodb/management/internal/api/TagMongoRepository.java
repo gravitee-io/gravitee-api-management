@@ -24,8 +24,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface TagMongoRepository extends MongoRepository<TagMongo, String> {
-
-}
-
-
+public interface TagMongoRepository extends MongoRepository<TagMongo, String> {}

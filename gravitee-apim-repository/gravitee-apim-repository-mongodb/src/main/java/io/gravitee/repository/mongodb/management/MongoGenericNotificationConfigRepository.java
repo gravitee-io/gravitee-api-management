@@ -21,14 +21,13 @@ import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.GenericNotificationConfigMongo;
 import io.gravitee.repository.mongodb.management.internal.notification.GenericNotificationConfigMongoRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -46,7 +45,12 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
     public GenericNotificationConfig create(GenericNotificationConfig pnc) throws TechnicalException {
         LOGGER.debug("Create GenericNotificationConfig [{}, {}, {}]", pnc.getNotifier(), pnc.getReferenceType(), pnc.getReferenceId());
         GenericNotificationConfig cfg = map(internalRepo.insert(map(pnc)));
-        LOGGER.debug("Create GenericNotificationConfig [{}, {}, {}] - Done", cfg.getNotifier(), cfg.getReferenceType(), cfg.getReferenceId());
+        LOGGER.debug(
+            "Create GenericNotificationConfig [{}, {}, {}] - Done",
+            cfg.getNotifier(),
+            cfg.getReferenceType(),
+            cfg.getReferenceId()
+        );
         return cfg;
     }
 
@@ -54,7 +58,12 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
     public GenericNotificationConfig update(GenericNotificationConfig pnc) throws TechnicalException {
         LOGGER.debug("Update GenericNotificationConfig [{}, {}, {}]", pnc.getNotifier(), pnc.getReferenceType(), pnc.getReferenceId());
         GenericNotificationConfig cfg = map(internalRepo.save(map(pnc)));
-        LOGGER.debug("Update GenericNotificationConfig [{}, {}, {}] - Done", cfg.getNotifier(), cfg.getReferenceType(), cfg.getReferenceId());
+        LOGGER.debug(
+            "Update GenericNotificationConfig [{}, {}, {}] - Done",
+            cfg.getNotifier(),
+            cfg.getReferenceType(),
+            cfg.getReferenceId()
+        );
         return cfg;
     }
 
@@ -73,25 +82,24 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
             return Optional.empty();
         }
         return Optional.of(map(one));
-
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         LOGGER.debug("Find GenericNotificationConfig [{}, {}, {}]", hook, referenceType, referenceId);
-        return internalRepo.findByReferenceAndHook(hook, referenceType.name(), referenceId).
-                stream().
-                map(this::map).
-                collect(Collectors.toList());
+        return internalRepo
+            .findByReferenceAndHook(hook, referenceType.name(), referenceId)
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toList());
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         LOGGER.debug("Find GenericNotificationConfig [{}, {}]", referenceType, referenceId);
-        return internalRepo.findByReference(referenceType.name(), referenceId).
-                stream().
-                map(this::map).
-                collect(Collectors.toList());
+        return internalRepo.findByReference(referenceType.name(), referenceId).stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override

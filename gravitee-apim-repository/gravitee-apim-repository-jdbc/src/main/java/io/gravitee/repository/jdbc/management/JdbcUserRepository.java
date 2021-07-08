@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -23,17 +25,14 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  */
@@ -50,7 +49,8 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     @Override
     protected JdbcObjectMapper<User> buildOrm() {
-        return JdbcObjectMapper.builder(User.class, this.tableName, "id")
+        return JdbcObjectMapper
+            .builder(User.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -79,10 +79,12 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findBySource({}, {})", source, sourceId);
         try {
-            List<User> users = jdbcTemplate.query(getOrm().getSelectAllSql() + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?"
-                    , getOrm().getRowMapper()
-                    , source, sourceId
-                    , organizationId
+            List<User> users = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " u where u.source = ? and UPPER(u.source_id) = UPPER(?) and organization_id = ?",
+                getOrm().getRowMapper(),
+                source,
+                sourceId,
+                organizationId
             );
             return users.stream().findFirst();
         } catch (final Exception ex) {
@@ -95,10 +97,11 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
         LOGGER.debug("JdbcUserRepository.findByEmail({})", email);
         try {
-            List<User> users = jdbcTemplate.query(getOrm().getSelectAllSql() + " u where UPPER(u.email) = UPPER(?) and organization_id = ?"
-                    , getOrm().getRowMapper()
-                    , email
-                    , organizationId
+            List<User> users = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " u where UPPER(u.email) = UPPER(?) and organization_id = ?",
+                getOrm().getRowMapper(),
+                email,
+                organizationId
             );
             return users.stream().findFirst();
         } catch (final Exception ex) {
@@ -110,20 +113,25 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
     @Override
     public Set<User> findByIds(final List<String> ids) throws TechnicalException {
         final String[] lastId = new String[1];
-        List<String> uniqueIds = ids.stream().filter(id -> {
-            if (id.equals(lastId[0])) {
-                return false;
-            } else {
-                lastId[0] = id;
-                return true;
-            }
-        }).collect(Collectors.toList());
+        List<String> uniqueIds = ids
+            .stream()
+            .filter(
+                id -> {
+                    if (id.equals(lastId[0])) {
+                        return false;
+                    } else {
+                        lastId[0] = id;
+                        return true;
+                    }
+                }
+            )
+            .collect(Collectors.toList());
         LOGGER.debug("JdbcUserRepository.findByIds({})", uniqueIds);
         try {
-            final List<User> users = jdbcTemplate.query(getOrm().getSelectAllSql() + " u where u.id in ( "
-                            + getOrm().buildInClause(uniqueIds) + " )"
-                    , (PreparedStatement ps) -> getOrm().setArguments(ps, uniqueIds, 1)
-                    , getOrm().getRowMapper()
+            final List<User> users = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " u where u.id in ( " + getOrm().buildInClause(uniqueIds) + " )",
+                (PreparedStatement ps) -> getOrm().setArguments(ps, uniqueIds, 1),
+                getOrm().getRowMapper()
             );
             return new HashSet<>(users);
         } catch (final Exception ex) {
@@ -161,8 +169,10 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
                 query.append(" order by lastname, firstname ");
 
-                result = jdbcTemplate.query(query.toString()
-                        , (PreparedStatement ps) -> {
+                result =
+                    jdbcTemplate.query(
+                        query.toString(),
+                        (PreparedStatement ps) -> {
                             int idx = 1;
                             if (criteria.getStatuses() != null && criteria.getStatuses().length > 0) {
                                 List<UserStatus> statuses = Arrays.asList(criteria.getStatuses());
@@ -171,13 +181,11 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
                             if (criteria.getOrganizationId() != null) {
                                 idx = getOrm().setArguments(ps, Arrays.asList(criteria.getOrganizationId()), idx);
                             }
-                        }
-                        , getOrm().getRowMapper()
-                );
+                        },
+                        getOrm().getRowMapper()
+                    );
             }
-            return getResultAsPage(
-                    pageable,
-                    result);
+            return getResultAsPage(pageable, result);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find all {} items:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to find all " + getOrm().getTableName() + " items", ex);

@@ -19,16 +19,15 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Repository;
-
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -48,11 +47,12 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
     @Override
     protected JdbcObjectMapper<Organization> buildOrm() {
-        return JdbcObjectMapper.builder(Organization.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("name", Types.NVARCHAR, String.class)
-                .addColumn("description", Types.NVARCHAR, String.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(Organization.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .build();
     }
 
     @Override
@@ -111,10 +111,12 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
 
             // Note: we should find a proper way to store domain restrictions and hrids to avoid such (N*2)+1 queries.
             // For now we assume that the number of organizations remains low and this function is not widely used.
-            organizations.forEach(organization -> {
-                addDomainRestrictions(organization);
-                addHrids(organization);
-            });
+            organizations.forEach(
+                organization -> {
+                    addDomainRestrictions(organization);
+                    addHrids(organization);
+                }
+            );
 
             return organizations;
         } catch (Exception e) {
@@ -123,14 +125,21 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         }
     }
 
-
     private void addDomainRestrictions(Organization parent) {
-        List<String> domainRestrictions = jdbcTemplate.queryForList("select domain_restriction from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?", String.class, parent.getId());
+        List<String> domainRestrictions = jdbcTemplate.queryForList(
+            "select domain_restriction from " + ORGANIZATION_DOMAIN_RESTRICTIONS + " where organization_id = ?",
+            String.class,
+            parent.getId()
+        );
         parent.setDomainRestrictions(domainRestrictions);
     }
 
     private void addHrids(Organization parent) {
-        List<String> hrids = jdbcTemplate.queryForList("select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos", String.class, parent.getId());
+        List<String> hrids = jdbcTemplate.queryForList(
+            "select hrid from " + ORGANIZATION_HRIDS + " where organization_id = ? order by pos",
+            String.class,
+            parent.getId()
+        );
         parent.setHrids(hrids);
     }
 
@@ -140,8 +149,10 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         }
         List<String> filteredDomainRestrictions = getOrm().filterStrings(organization.getDomainRestrictions());
         if (!filteredDomainRestrictions.isEmpty()) {
-            jdbcTemplate.batchUpdate("insert into " + ORGANIZATION_DOMAIN_RESTRICTIONS + " (organization_id, domain_restriction) values ( ?, ? )"
-                    , getOrm().getBatchStringSetter(organization.getId(), filteredDomainRestrictions));
+            jdbcTemplate.batchUpdate(
+                "insert into " + ORGANIZATION_DOMAIN_RESTRICTIONS + " (organization_id, domain_restriction) values ( ?, ? )",
+                getOrm().getBatchStringSetter(organization.getId(), filteredDomainRestrictions)
+            );
         }
     }
 
@@ -154,7 +165,7 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
             final List<Object[]> params = new ArrayList<>(hrids.size());
 
             for (int i = 0; i < hrids.size(); i++) {
-                params.add(new Object[]{organization.getId(), hrids.get(i), i});
+                params.add(new Object[] { organization.getId(), hrids.get(i), i });
             }
 
             jdbcTemplate.batchUpdate("insert into " + ORGANIZATION_HRIDS + " (organization_id, hrid, pos) values ( ?, ?, ? )", params);

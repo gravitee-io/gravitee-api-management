@@ -24,7 +24,7 @@ import java.util.Objects;
  */
 public class Theme {
 
-    public Theme() { }
+    public Theme() {}
 
     public Theme(Theme cloned) {
         this.id = cloned.getId();
@@ -41,8 +41,11 @@ public class Theme {
         this.favicon = cloned.getFavicon();
     }
 
-    public enum AuditEvent  implements Audit.AuditEvent {
-        THEME_DELETED, THEME_CREATED, THEME_UPDATED, THEME_RESET
+    public enum AuditEvent implements Audit.AuditEvent {
+        THEME_DELETED,
+        THEME_CREATED,
+        THEME_UPDATED,
+        THEME_RESET,
     }
 
     private String id;
@@ -180,16 +183,33 @@ public class Theme {
 
     @Override
     public String toString() {
-        return "Theme{" +
-                "id='" + id + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", name='" + name + '\'' +
-                ", createdAt='"+ createdAt + '\'' +
-                ", updatedAt='" + updatedAt + '\'' +
-                ", enabled='"+ enabled + '\'' +
-                ", definition='" + definition + '\'' +
-                '}';
+        return (
+            "Theme{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", createdAt='" +
+            createdAt +
+            '\'' +
+            ", updatedAt='" +
+            updatedAt +
+            '\'' +
+            ", enabled='" +
+            enabled +
+            '\'' +
+            ", definition='" +
+            definition +
+            '\'' +
+            '}'
+        );
     }
-
 }

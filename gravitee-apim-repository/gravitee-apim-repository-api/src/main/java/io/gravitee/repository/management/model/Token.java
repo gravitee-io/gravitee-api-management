@@ -23,8 +23,10 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class Token {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        TOKEN_CREATED, TOKEN_DELETED
+        TOKEN_CREATED,
+        TOKEN_DELETED,
     }
 
     private String id;
@@ -105,14 +107,16 @@ public class Token {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Token token1 = (Token) o;
-        return Objects.equals(id, token1.id) &&
-                Objects.equals(token, token1.token) &&
-                Objects.equals(referenceType, token1.referenceType) &&
-                Objects.equals(referenceId, token1.referenceId) &&
-                Objects.equals(name, token1.name) &&
-                Objects.equals(expiresAt, token1.expiresAt) &&
-                Objects.equals(createdAt, token1.createdAt) &&
-                Objects.equals(lastUseAt, token1.lastUseAt);
+        return (
+            Objects.equals(id, token1.id) &&
+            Objects.equals(token, token1.token) &&
+            Objects.equals(referenceType, token1.referenceType) &&
+            Objects.equals(referenceId, token1.referenceId) &&
+            Objects.equals(name, token1.name) &&
+            Objects.equals(expiresAt, token1.expiresAt) &&
+            Objects.equals(createdAt, token1.createdAt) &&
+            Objects.equals(lastUseAt, token1.lastUseAt)
+        );
     }
 
     @Override
@@ -122,15 +126,30 @@ public class Token {
 
     @Override
     public String toString() {
-        return "Token{" +
-                "id='" + id + '\'' +
-                ", token='" + token + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", name='" + name + '\'' +
-                ", expiresAt=" + expiresAt +
-                ", createdAt=" + createdAt +
-                ", lastUseAt=" + lastUseAt +
-                '}';
+        return (
+            "Token{" +
+            "id='" +
+            id +
+            '\'' +
+            ", token='" +
+            token +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", expiresAt=" +
+            expiresAt +
+            ", createdAt=" +
+            createdAt +
+            ", lastUseAt=" +
+            lastUseAt +
+            '}'
+        );
     }
 }

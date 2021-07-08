@@ -15,21 +15,12 @@
  */
 package io.gravitee.repository.mongodb.common;
 
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
 import com.mongodb.*;
 import com.mongodb.connection.*;
 import com.mongodb.reactivestreams.client.MongoClients;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.PojoCodecProvider;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.util.Assert;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.util.ArrayList;
@@ -38,9 +29,17 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
-import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import org.apache.commons.lang3.StringUtils;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.util.Assert;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -61,7 +60,7 @@ public class MongoFactory implements FactoryBean<Mongo> {
     public MongoFactory(String propertyPrefix) {
         this.propertyPrefix = propertyPrefix + ".mongodb.";
     }
-    
+
     private MongoClientOptions.Builder builder() {
         MongoClientOptions.Builder builder = MongoClientOptions.builder();
 
@@ -89,42 +88,30 @@ public class MongoFactory implements FactoryBean<Mongo> {
         String keystore = readPropertyValue(propertyPrefix + "keystore", String.class);
         String keystorePassword = readPropertyValue(propertyPrefix + "keystorePassword", String.class);
         String keyPassword = readPropertyValue(propertyPrefix + "keyPassword", String.class);
-        Integer threadsAllowedToBlockForConnectionMultiplier = readPropertyValue(propertyPrefix + "threadsAllowedToBlockForConnectionMultiplier", Integer.class);
+        Integer threadsAllowedToBlockForConnectionMultiplier = readPropertyValue(
+            propertyPrefix + "threadsAllowedToBlockForConnectionMultiplier",
+            Integer.class
+        );
         Boolean cursorFinalizerEnabled = readPropertyValue(propertyPrefix + "cursorFinalizerEnabled", Boolean.class);
 
         String readPreference = readPropertyValue(propertyPrefix + "readPreference", String.class);
         String readPreferenceTags = readPropertyValue(propertyPrefix + "readPreferenceTags", String.class);
 
-        if (connectionsPerHost != null)
-            builder.connectionsPerHost(connectionsPerHost);
-        if (maxWaitTime != null)
-            builder.maxWaitTime(maxWaitTime);
-        if (connectTimeout != null)
-            builder.connectTimeout(connectTimeout);
-        if (socketTimeout != null)
-            builder.socketTimeout(socketTimeout);
-        if (socketKeepAlive != null)
-            builder.socketKeepAlive(socketKeepAlive);
-        if (maxConnectionLifeTime != null)
-            builder.maxConnectionLifeTime(maxConnectionLifeTime);
-        if (maxConnectionIdleTime != null)
-            builder.maxConnectionIdleTime(maxConnectionIdleTime);
-        if (minHeartbeatFrequency != null)
-            builder.minHeartbeatFrequency(minHeartbeatFrequency);
-        if (description != null)
-            builder.description(description);
-        if (heartbeatConnectTimeout != null)
-            builder.heartbeatConnectTimeout(heartbeatConnectTimeout);
-        if (heartbeatFrequency != null)
-            builder.heartbeatFrequency(heartbeatFrequency);
-        if (heartbeatSocketTimeout != null)
-            builder.heartbeatSocketTimeout(heartbeatSocketTimeout);
-        if (localThreshold != null)
-            builder.localThreshold(localThreshold);
-        if (minConnectionsPerHost != null)
-            builder.minConnectionsPerHost(minConnectionsPerHost);
-        if (sslEnabled != null)
-            builder.sslEnabled(sslEnabled);
+        if (connectionsPerHost != null) builder.connectionsPerHost(connectionsPerHost);
+        if (maxWaitTime != null) builder.maxWaitTime(maxWaitTime);
+        if (connectTimeout != null) builder.connectTimeout(connectTimeout);
+        if (socketTimeout != null) builder.socketTimeout(socketTimeout);
+        if (socketKeepAlive != null) builder.socketKeepAlive(socketKeepAlive);
+        if (maxConnectionLifeTime != null) builder.maxConnectionLifeTime(maxConnectionLifeTime);
+        if (maxConnectionIdleTime != null) builder.maxConnectionIdleTime(maxConnectionIdleTime);
+        if (minHeartbeatFrequency != null) builder.minHeartbeatFrequency(minHeartbeatFrequency);
+        if (description != null) builder.description(description);
+        if (heartbeatConnectTimeout != null) builder.heartbeatConnectTimeout(heartbeatConnectTimeout);
+        if (heartbeatFrequency != null) builder.heartbeatFrequency(heartbeatFrequency);
+        if (heartbeatSocketTimeout != null) builder.heartbeatSocketTimeout(heartbeatSocketTimeout);
+        if (localThreshold != null) builder.localThreshold(localThreshold);
+        if (minConnectionsPerHost != null) builder.minConnectionsPerHost(minConnectionsPerHost);
+        if (sslEnabled != null) builder.sslEnabled(sslEnabled);
         if (keystore != null) {
             try {
                 SSLContext ctx = SSLContext.getInstance("TLS");
@@ -139,32 +126,36 @@ public class MongoFactory implements FactoryBean<Mongo> {
                 throw new IllegalStateException("Error creating the keystore for mongodb", e);
             }
         }
-        if (threadsAllowedToBlockForConnectionMultiplier != null)
-            builder.threadsAllowedToBlockForConnectionMultiplier(threadsAllowedToBlockForConnectionMultiplier);
-        if (cursorFinalizerEnabled != null)
-            builder.cursorFinalizerEnabled(cursorFinalizerEnabled);
-        if (serverSelectionTimeout != null)
-            builder.serverSelectionTimeout(serverSelectionTimeout);
+        if (threadsAllowedToBlockForConnectionMultiplier != null) builder.threadsAllowedToBlockForConnectionMultiplier(
+            threadsAllowedToBlockForConnectionMultiplier
+        );
+        if (cursorFinalizerEnabled != null) builder.cursorFinalizerEnabled(cursorFinalizerEnabled);
+        if (serverSelectionTimeout != null) builder.serverSelectionTimeout(serverSelectionTimeout);
 
-        if (readPreference != null)  {
+        if (readPreference != null) {
             TagSet tagSet = null;
             ReadPreference readPrefObj = null;
 
-            if(readPreferenceTags != null) {
+            if (readPreferenceTags != null) {
                 tagSet = buildTagSet(readPreferenceTags);
             }
 
             switch (readPreference) {
                 case "nearest":
-                    readPrefObj = tagSet != null ? ReadPreference.nearest(tagSet) : ReadPreference.nearest(); break;
+                    readPrefObj = tagSet != null ? ReadPreference.nearest(tagSet) : ReadPreference.nearest();
+                    break;
                 case "primary":
-                    readPrefObj = ReadPreference.primary(); break;
+                    readPrefObj = ReadPreference.primary();
+                    break;
                 case "primaryPreferred":
-                    readPrefObj = ReadPreference.primaryPreferred(); break;
+                    readPrefObj = ReadPreference.primaryPreferred();
+                    break;
                 case "secondary":
-                    readPrefObj = tagSet != null ? ReadPreference.secondary(tagSet) : ReadPreference.secondary(); break;
+                    readPrefObj = tagSet != null ? ReadPreference.secondary(tagSet) : ReadPreference.secondary();
+                    break;
                 case "secondaryPreferred":
-                    readPrefObj = tagSet != null ? ReadPreference.secondaryPreferred(tagSet) : ReadPreference.secondaryPreferred(); break;
+                    readPrefObj = tagSet != null ? ReadPreference.secondaryPreferred(tagSet) : ReadPreference.secondaryPreferred();
+                    break;
             }
 
             builder.readPreference(readPrefObj);
@@ -194,8 +185,7 @@ public class MongoFactory implements FactoryBean<Mongo> {
             if (uri != null && !uri.isEmpty()) {
                 // The builder can be configured with default options, which may be overridden by options specified in
                 // the URI string.
-                mongo = new MongoClient(
-                        new MongoClientURI(uri, builder));
+                mongo = new MongoClient(new MongoClientURI(uri, builder));
             } else {
                 String username = readPropertyValue(propertyPrefix + "username");
                 String password = readPropertyValue(propertyPrefix + "password");
@@ -205,7 +195,6 @@ public class MongoFactory implements FactoryBean<Mongo> {
                     String authSource = readPropertyValue(propertyPrefix + "authSource", String.class, "gravitee");
                     credential = MongoCredential.createCredential(username, authSource, password.toCharArray());
                 }
-
 
                 List<ServerAddress> seeds;
                 int serversCount = getServersCount();
@@ -237,12 +226,14 @@ public class MongoFactory implements FactoryBean<Mongo> {
         // Trying to get the MongoClientURI if uri property is defined
         String uri = readPropertyValue(propertyPrefix + "uri");
 
-        if (uri != null && ! uri.isEmpty()) {
+        if (uri != null && !uri.isEmpty()) {
             MongoClientOptions.Builder builder = builder();
 
             // codec configuration for pojo mapping
-            CodecRegistry pojoCodecRegistry = fromRegistries(MongoClients.getDefaultCodecRegistry(),
-                    fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+            CodecRegistry pojoCodecRegistry = fromRegistries(
+                MongoClients.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build())
+            );
             builder.codecRegistry(pojoCodecRegistry);
 
             return MongoClients.create(new ConnectionString(uri));
@@ -273,26 +264,16 @@ public class MongoFactory implements FactoryBean<Mongo> {
             String keystorePassword = readPropertyValue(propertyPrefix + "keystorePassword", String.class);
             String keyPassword = readPropertyValue(propertyPrefix + "keyPassword", String.class);
 
-            if (maxWaitTime != null)
-                connectionPoolBuilder.maxWaitTime(maxWaitTime, TimeUnit.MILLISECONDS);
-            if (connectTimeout != null)
-                socketBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
-            if (socketTimeout != null)
-                socketBuilder.readTimeout(socketTimeout, TimeUnit.MILLISECONDS);
-            if (socketKeepAlive != null)
-                socketBuilder.keepAlive(socketKeepAlive);
-            if (maxConnectionLifeTime != null)
-                connectionPoolBuilder.maxConnectionLifeTime(maxConnectionLifeTime, TimeUnit.MILLISECONDS);
-            if (maxConnectionIdleTime != null)
-                connectionPoolBuilder.maxConnectionIdleTime(maxConnectionIdleTime, TimeUnit.MILLISECONDS);
-            if (minHeartbeatFrequency != null)
-                serverBuilder.minHeartbeatFrequency(minHeartbeatFrequency, TimeUnit.MILLISECONDS);
-            if (description != null)
-                clusterBuilder.description(description);
-            if (heartbeatFrequency != null)
-                serverBuilder.heartbeatFrequency(heartbeatFrequency, TimeUnit.MILLISECONDS);
-            if (sslEnabled != null)
-                sslBuilder.enabled(sslEnabled);
+            if (maxWaitTime != null) connectionPoolBuilder.maxWaitTime(maxWaitTime, TimeUnit.MILLISECONDS);
+            if (connectTimeout != null) socketBuilder.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS);
+            if (socketTimeout != null) socketBuilder.readTimeout(socketTimeout, TimeUnit.MILLISECONDS);
+            if (socketKeepAlive != null) socketBuilder.keepAlive(socketKeepAlive);
+            if (maxConnectionLifeTime != null) connectionPoolBuilder.maxConnectionLifeTime(maxConnectionLifeTime, TimeUnit.MILLISECONDS);
+            if (maxConnectionIdleTime != null) connectionPoolBuilder.maxConnectionIdleTime(maxConnectionIdleTime, TimeUnit.MILLISECONDS);
+            if (minHeartbeatFrequency != null) serverBuilder.minHeartbeatFrequency(minHeartbeatFrequency, TimeUnit.MILLISECONDS);
+            if (description != null) clusterBuilder.description(description);
+            if (heartbeatFrequency != null) serverBuilder.heartbeatFrequency(heartbeatFrequency, TimeUnit.MILLISECONDS);
+            if (sslEnabled != null) sslBuilder.enabled(sslEnabled);
             if (keystore != null) {
                 try {
                     SSLContext ctx = SSLContext.getInstance("TLS");
@@ -307,8 +288,7 @@ public class MongoFactory implements FactoryBean<Mongo> {
                     throw new IllegalStateException("Error creating the keystore for mongodb", e);
                 }
             }
-            if (serverSelectionTimeout != null)
-                clusterBuilder.serverSelectionTimeout(serverSelectionTimeout, TimeUnit.MILLISECONDS);
+            if (serverSelectionTimeout != null) clusterBuilder.serverSelectionTimeout(serverSelectionTimeout, TimeUnit.MILLISECONDS);
 
             // credentials option
             String username = readPropertyValue(propertyPrefix + "username");
@@ -341,12 +321,12 @@ public class MongoFactory implements FactoryBean<Mongo> {
             ServerSettings serverSettings = serverBuilder.build();
             SslSettings sslSettings = sslBuilder.build();
             MongoClientSettings settings = builder
-                    .applyToClusterSettings(builder1 -> builder1.applySettings(clusterSettings))
-                    .applyToSocketSettings(builder1 -> builder1.applySettings(socketSettings))
-                    .applyToConnectionPoolSettings(builder1 -> builder1.applySettings(connectionPoolSettings))
-                    .applyToServerSettings(builder1 -> builder1.applySettings(serverSettings))
-                    .applyToSslSettings(builder1 -> builder1.applySettings(sslSettings))
-                    .build();
+                .applyToClusterSettings(builder1 -> builder1.applySettings(clusterSettings))
+                .applyToSocketSettings(builder1 -> builder1.applySettings(socketSettings))
+                .applyToConnectionPoolSettings(builder1 -> builder1.applySettings(connectionPoolSettings))
+                .applyToServerSettings(builder1 -> builder1.applySettings(serverSettings))
+                .applyToSslSettings(builder1 -> builder1.applySettings(sslSettings))
+                .build();
 
             return MongoClients.create(settings);
         }
@@ -373,15 +353,20 @@ public class MongoFactory implements FactoryBean<Mongo> {
         return new ServerAddress(host, port);
     }
 
-    private TagSet buildTagSet(String readPreferenceTags)  {
-        List<Tag> tags = Pattern.compile(",").splitAsStream(readPreferenceTags)
-                .map((String::trim))
-                .map((tag) -> {
+    private TagSet buildTagSet(String readPreferenceTags) {
+        List<Tag> tags = Pattern
+            .compile(",")
+            .splitAsStream(readPreferenceTags)
+            .map((String::trim))
+            .map(
+                tag -> {
                     String[] tagString = tag.split(":");
                     return new Tag(tagString[0].trim(), tagString[1].trim());
-                }).collect(Collectors.toList());
+                }
+            )
+            .collect(Collectors.toList());
 
-        if(tags.size() >  1) {
+        if (tags.size() > 1) {
             return new TagSet(tags);
         } else {
             return new TagSet(tags.get(0));

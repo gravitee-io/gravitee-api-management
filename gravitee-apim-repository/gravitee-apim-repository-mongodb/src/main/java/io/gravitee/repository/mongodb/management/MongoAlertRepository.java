@@ -24,15 +24,14 @@ import io.gravitee.repository.mongodb.management.internal.api.AlertMongoReposito
 import io.gravitee.repository.mongodb.management.internal.model.AlertEventRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.AlertTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -99,19 +98,20 @@ public class MongoAlertRepository implements AlertTriggerRepository {
             alertTriggerMongo.setUpdatedAt(trigger.getUpdatedAt());
 
             if (trigger.getEventRules() != null && !trigger.getEventRules().isEmpty()) {
-                alertTriggerMongo.setEventRules(trigger.getEventRules()
+                alertTriggerMongo.setEventRules(
+                    trigger
+                        .getEventRules()
                         .stream()
                         .map(alertEventRule -> new AlertEventRuleMongo(alertEventRule.getEvent().name()))
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList())
+                );
             } else {
                 alertTriggerMongo.setEventRules(null);
             }
 
             AlertTriggerMongo alertTriggerMongoUpdated = internalAlertRepo.save(alertTriggerMongo);
             return mapper.map(alertTriggerMongoUpdated, AlertTrigger.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occurs when updating alert trigger", e);
             throw new TechnicalException("An error occurs when updating alert trigger");
         }
@@ -130,9 +130,7 @@ public class MongoAlertRepository implements AlertTriggerRepository {
     @Override
     public Set<AlertTrigger> findAll() {
         final List<AlertTriggerMongo> alerts = internalAlertRepo.findAll();
-        return alerts.stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return alerts.stream().map(this::map).collect(Collectors.toSet());
     }
 
     @Override
@@ -163,10 +161,13 @@ public class MongoAlertRepository implements AlertTriggerRepository {
         trigger.setTemplate(alertTriggerMongo.isTemplate());
 
         if (alertTriggerMongo.getEventRules() != null && !alertTriggerMongo.getEventRules().isEmpty()) {
-            trigger.setEventRules(alertTriggerMongo.getEventRules()
+            trigger.setEventRules(
+                alertTriggerMongo
+                    .getEventRules()
                     .stream()
                     .map(alertEventRuleMongo -> new AlertEventRule(AlertEventType.valueOf(alertEventRuleMongo.getEvent().toUpperCase())))
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList())
+            );
         }
 
         trigger.setCreatedAt(alertTriggerMongo.getCreatedAt());

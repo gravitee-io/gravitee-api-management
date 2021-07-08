@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.mongodb.utils;
 
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import java.util.Arrays;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -32,13 +31,15 @@ public class FieldUtilsTest {
 
     @Parameterized.Parameters
     public static Iterable<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"", ""},
-                {"alreadyCamelCase", "alreadyCamelCase"},
-                {null, null},
-                {"created_at", "createdAt"},
-                {"subject", "subject"},
-        });
+        return Arrays.asList(
+            new Object[][] {
+                { "", "" },
+                { "alreadyCamelCase", "alreadyCamelCase" },
+                { null, null },
+                { "created_at", "createdAt" },
+                { "subject", "subject" },
+            }
+        );
     }
 
     @Parameterized.Parameter(0)
@@ -53,5 +54,4 @@ public class FieldUtilsTest {
 
         assertEquals(expected, result);
     }
-
 }

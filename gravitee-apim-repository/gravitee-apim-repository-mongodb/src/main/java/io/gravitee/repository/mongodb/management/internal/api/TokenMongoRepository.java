@@ -16,11 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.api;
 
 import io.gravitee.repository.mongodb.management.internal.model.TokenMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -31,5 +30,3 @@ public interface TokenMongoRepository extends MongoRepository<TokenMongo, String
     Optional<TokenMongo> findByToken(String token);
     List<TokenMongo> findByReferenceTypeAndReferenceId(String referenceType, String referenceId);
 }
-
-

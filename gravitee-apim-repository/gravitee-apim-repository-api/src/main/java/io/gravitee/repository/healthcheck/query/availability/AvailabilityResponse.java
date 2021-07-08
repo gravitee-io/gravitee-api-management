@@ -17,7 +17,6 @@ package io.gravitee.repository.healthcheck.query.availability;
 
 import io.gravitee.repository.healthcheck.query.FieldBucket;
 import io.gravitee.repository.healthcheck.query.Response;
-
 import java.util.List;
 
 /**

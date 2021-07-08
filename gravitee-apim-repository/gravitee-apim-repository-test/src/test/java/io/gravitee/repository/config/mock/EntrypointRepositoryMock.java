@@ -15,15 +15,14 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.EntrypointRepository;
-import io.gravitee.repository.management.model.Entrypoint;
-
-import java.util.Set;
-
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.EntrypointRepository;
+import io.gravitee.repository.management.model.Entrypoint;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)

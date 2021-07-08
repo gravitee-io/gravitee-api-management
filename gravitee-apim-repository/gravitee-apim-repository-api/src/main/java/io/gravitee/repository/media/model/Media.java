@@ -36,7 +36,7 @@ public class Media {
 
     private String api;
 
-    public Media(){}
+    public Media() {}
 
     public Media(String type, String subType, String fileName, long size) {
         this.type = type;

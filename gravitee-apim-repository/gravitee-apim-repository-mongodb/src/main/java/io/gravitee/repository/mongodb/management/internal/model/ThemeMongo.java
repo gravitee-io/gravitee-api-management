@@ -15,11 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -135,7 +134,6 @@ public class ThemeMongo {
         this.loader = loader;
     }
 
-
     public String getBackgroundImage() {
         return backgroundImage;
     }
@@ -175,15 +173,33 @@ public class ThemeMongo {
 
     @Override
     public String toString() {
-        return "Theme{" +
-                "id='" + id + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", name='" + name + '\'' +
-                ", createdAt='"+ createdAt + '\'' +
-                ", updatedAt='" + updatedAt + '\'' +
-                ", enabled='"+ enabled + '\'' +
-                ", definition='" + definition + '\'' +
-                '}';
+        return (
+            "Theme{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", createdAt='" +
+            createdAt +
+            '\'' +
+            ", updatedAt='" +
+            updatedAt +
+            '\'' +
+            ", enabled='" +
+            enabled +
+            '\'' +
+            ", definition='" +
+            definition +
+            '\'' +
+            '}'
+        );
     }
 }

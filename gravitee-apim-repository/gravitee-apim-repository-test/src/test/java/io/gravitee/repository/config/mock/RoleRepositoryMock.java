@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.RoleRepository;
-import io.gravitee.repository.management.model.Role;
-import io.gravitee.repository.management.model.RoleReferenceType;
-import io.gravitee.repository.management.model.RoleScope;
-
-import java.util.Optional;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.RoleRepository;
+import io.gravitee.repository.management.model.Role;
+import io.gravitee.repository.management.model.RoleReferenceType;
+import io.gravitee.repository.management.model.RoleScope;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -49,7 +48,7 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
         when(toCreate.getReferenceId()).thenReturn(REFERENCE_ID);
         when(toCreate.getReferenceType()).thenReturn(REFERENCE_TYPE);
         when(toCreate.getScope()).thenReturn(RoleScope.API);
-        when(toCreate.getPermissions()).thenReturn(new int[]{3});
+        when(toCreate.getPermissions()).thenReturn(new int[] { 3 });
 
         final Role toDelete = mock(Role.class);
         when(toDelete.getId()).thenReturn("ORGANIZATION_to_delete");
@@ -57,7 +56,7 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
         when(toDelete.getReferenceId()).thenReturn(REFERENCE_ID);
         when(toDelete.getReferenceType()).thenReturn(REFERENCE_TYPE);
         when(toDelete.getScope()).thenReturn(RoleScope.ORGANIZATION);
-        when(toDelete.getPermissions()).thenReturn(new int[]{1, 2, 3});
+        when(toDelete.getPermissions()).thenReturn(new int[] { 1, 2, 3 });
 
         final Role toUpdate = mock(Role.class);
         when(toUpdate.getId()).thenReturn("ENVIRONMENT_to_update");
@@ -67,7 +66,7 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
         when(toUpdate.getDescription()).thenReturn("new description");
         when(toUpdate.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(toUpdate.isDefaultRole()).thenReturn(true);
-        when(toUpdate.getPermissions()).thenReturn(new int[]{4, 5});
+        when(toUpdate.getPermissions()).thenReturn(new int[] { 4, 5 });
 
         final Role findByScope1 = mock(Role.class);
         when(findByScope1.getId()).thenReturn("API_find_by_scope_1");
@@ -78,7 +77,7 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
         when(findByScope1.getScope()).thenReturn(RoleScope.API);
         when(findByScope1.isDefaultRole()).thenReturn(true);
         when(findByScope1.isSystem()).thenReturn(true);
-        when(findByScope1.getPermissions()).thenReturn(new int[]{1});
+        when(findByScope1.getPermissions()).thenReturn(new int[] { 1 });
 
         final Role findByScope2 = mock(Role.class);
         when(findByScope2.getId()).thenReturn("API_find_by_scope_2");
@@ -87,7 +86,7 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
         when(findByScope2.getReferenceType()).thenReturn(REFERENCE_TYPE);
         when(findByScope2.getScope()).thenReturn(RoleScope.API);
         when(findByScope2.isDefaultRole()).thenReturn(false);
-        when(findByScope2.getPermissions()).thenReturn(new int[]{1});
+        when(findByScope2.getPermissions()).thenReturn(new int[] { 1 });
 
         when(roleRepository.findById("API_find_by_scope_1")).thenReturn(of(findByScope1));
         when(roleRepository.findById("ENVIRONMENT_to_update")).thenReturn(of(toUpdate));
@@ -96,10 +95,15 @@ public class RoleRepositoryMock extends AbstractRepositoryMock<RoleRepository> {
         when(roleRepository.findById("API_find_by_scope_2")).thenReturn(of(findByScope2));
         when(roleRepository.create(any(Role.class))).thenReturn(toCreate);
         when(roleRepository.findAll()).thenReturn(newSet(toDelete, toUpdate, findByScope1, findByScope2));
-        when(roleRepository.findAllByReferenceIdAndReferenceType(REFERENCE_ID, REFERENCE_TYPE)).thenReturn(newSet(toCreate, toDelete, toUpdate));
+        when(roleRepository.findAllByReferenceIdAndReferenceType(REFERENCE_ID, REFERENCE_TYPE))
+            .thenReturn(newSet(toCreate, toDelete, toUpdate));
 
-        when(roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.API, "find by scope 1", REFERENCE_ID, REFERENCE_TYPE)).thenReturn(Optional.of(findByScope1));
-        when(roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.API, REFERENCE_ID, REFERENCE_TYPE)).thenReturn(newSet(findByScope1));
+        when(
+            roleRepository.findByScopeAndNameAndReferenceIdAndReferenceType(RoleScope.API, "find by scope 1", REFERENCE_ID, REFERENCE_TYPE)
+        )
+            .thenReturn(Optional.of(findByScope1));
+        when(roleRepository.findByScopeAndReferenceIdAndReferenceType(RoleScope.API, REFERENCE_ID, REFERENCE_TYPE))
+            .thenReturn(newSet(findByScope1));
 
         when(roleRepository.update(any())).thenReturn(toUpdate);
 

@@ -16,11 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.notification;
 
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationMongo;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -28,13 +27,9 @@ import java.util.Set;
  */
 @Repository
 public interface PortalNotificationMongoRepository extends MongoRepository<PortalNotificationMongo, String> {
-
     @Query("{ user: ?0 }")
     Set<PortalNotificationMongo> findByUser(String username);
 
     @Query(value = "{ user: ?0 }", delete = true)
     void deleteAll(String user);
 }
-
-
-

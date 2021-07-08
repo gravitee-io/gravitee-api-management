@@ -25,11 +25,10 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.mongodb.management.internal.api.ApiMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,72 +39,72 @@ import java.util.Optional;
 @Component
 public class MongoApiRepository implements ApiRepository {
 
-	@Autowired
-	private ApiMongoRepository internalApiRepo;
+    @Autowired
+    private ApiMongoRepository internalApiRepo;
 
-	@Autowired
-	private GraviteeMapper mapper;
-	
-	@Override
-	public Optional<Api> findById(String apiId) throws TechnicalException {
-		ApiMongo apiMongo =  internalApiRepo.findById(apiId).orElse(null);
-		return Optional.ofNullable(mapApi(apiMongo));
-	}
-	
-	@Override
-	public Api create(Api api) throws TechnicalException {
-		ApiMongo apiMongo = mapApi(api);
-		ApiMongo apiMongoCreated = internalApiRepo.insert(apiMongo);
-		return mapApi(apiMongoCreated);
-	}
+    @Autowired
+    private GraviteeMapper mapper;
 
-	@Override
-	public Api update(Api api) throws TechnicalException {
-		if (api == null || api.getId() == null) {
-			throw new IllegalStateException("Api to update must have an id");
-		}
+    @Override
+    public Optional<Api> findById(String apiId) throws TechnicalException {
+        ApiMongo apiMongo = internalApiRepo.findById(apiId).orElse(null);
+        return Optional.ofNullable(mapApi(apiMongo));
+    }
 
-		final ApiMongo apiMongo = internalApiRepo.findById(api.getId()).orElse(null);
-		if (apiMongo == null) {
-			throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
-		}
+    @Override
+    public Api create(Api api) throws TechnicalException {
+        ApiMongo apiMongo = mapApi(api);
+        ApiMongo apiMongoCreated = internalApiRepo.insert(apiMongo);
+        return mapApi(apiMongoCreated);
+    }
 
-		final ApiMongo apiMongoUpdated = internalApiRepo.save(mapApi(api));
-		return mapApi(apiMongoUpdated);
-	}
+    @Override
+    public Api update(Api api) throws TechnicalException {
+        if (api == null || api.getId() == null) {
+            throw new IllegalStateException("Api to update must have an id");
+        }
 
-	@Override
-	public void delete(String apiId) throws TechnicalException {
-		internalApiRepo.deleteById(apiId);
-	}
+        final ApiMongo apiMongo = internalApiRepo.findById(api.getId()).orElse(null);
+        if (apiMongo == null) {
+            throw new IllegalStateException(String.format("No api found with id [%s]", api.getId()));
+        }
 
-	@Override
-	public Page<Api> search(final ApiCriteria apiCriteria, final Pageable pageable) {
-		final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, pageable, null);
-		final List<Api> content = mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
-		return new Page<>(content, apisMongo.getPageNumber(), (int) apisMongo.getPageElements(), apisMongo.getTotalElements());
-	}
+        final ApiMongo apiMongoUpdated = internalApiRepo.save(mapApi(api));
+        return mapApi(apiMongoUpdated);
+    }
 
-	@Override
-	public List<Api> search(ApiCriteria apiCriteria) {
-		return findByCriteria(apiCriteria, null);
-	}
+    @Override
+    public void delete(String apiId) throws TechnicalException {
+        internalApiRepo.deleteById(apiId);
+    }
 
-	@Override
-	public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-		return findByCriteria(apiCriteria, apiFieldExclusionFilter);
-	}
+    @Override
+    public Page<Api> search(final ApiCriteria apiCriteria, final Pageable pageable) {
+        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, pageable, null);
+        final List<Api> content = mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
+        return new Page<>(content, apisMongo.getPageNumber(), (int) apisMongo.getPageElements(), apisMongo.getTotalElements());
+    }
 
-	private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
-		final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, apiFieldExclusionFilter);
-		return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
-	}
+    @Override
+    public List<Api> search(ApiCriteria apiCriteria) {
+        return findByCriteria(apiCriteria, null);
+    }
 
-	private ApiMongo mapApi(Api api){
-		return (api == null) ? null : mapper.map(api, ApiMongo.class);
-	}
+    @Override
+    public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        return findByCriteria(apiCriteria, apiFieldExclusionFilter);
+    }
 
-	private Api mapApi(ApiMongo apiMongo){
-		return (apiMongo == null) ? null : mapper.map(apiMongo, Api.class);
-	}
+    private List<Api> findByCriteria(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
+        final Page<ApiMongo> apisMongo = internalApiRepo.search(apiCriteria, null, apiFieldExclusionFilter);
+        return mapper.collection2list(apisMongo.getContent(), ApiMongo.class, Api.class);
+    }
+
+    private ApiMongo mapApi(Api api) {
+        return (api == null) ? null : mapper.map(api, ApiMongo.class);
+    }
+
+    private Api mapApi(ApiMongo apiMongo) {
+        return (apiMongo == null) ? null : mapper.map(apiMongo, Api.class);
+    }
 }

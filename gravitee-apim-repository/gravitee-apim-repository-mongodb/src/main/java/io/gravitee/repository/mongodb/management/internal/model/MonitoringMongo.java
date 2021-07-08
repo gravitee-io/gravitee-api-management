@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Date;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,6 +28,7 @@ public class MonitoringMongo {
 
     @Id
     private String id;
+
     private String nodeId;
     private String type;
     private String payload;

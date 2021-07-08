@@ -24,11 +24,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,14 +44,19 @@ public class ApiKeysHandler extends AbstractHandler {
         // Parse criteria
         final ApiKeyCriteria apiKeyCriteria = readCriteria(searchPayload);
 
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
-            } catch (TechnicalException te) {
-                LOGGER.error("Unable to search for API Keys", te);
-                promise.fail(te);
-            }
-        }, (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result));
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        promise.complete(apiKeyRepository.findByCriteria(apiKeyCriteria));
+                    } catch (TechnicalException te) {
+                        LOGGER.error("Unable to search for API Keys", te);
+                        promise.fail(te);
+                    }
+                },
+                (Handler<AsyncResult<List<ApiKey>>>) result -> handleResponse(ctx, result)
+            );
     }
 
     private ApiKeyCriteria readCriteria(JsonObject payload) {

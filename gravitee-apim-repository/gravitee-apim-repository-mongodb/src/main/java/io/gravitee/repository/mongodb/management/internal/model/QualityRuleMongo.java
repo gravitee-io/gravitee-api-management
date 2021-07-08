@@ -15,12 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -29,74 +28,85 @@ import java.util.Objects;
 @Document(collection = "qualityrules")
 public class QualityRuleMongo extends Auditable {
 
-	@Id
-	private String id;
-	private String name;
-	private String description;
-	private int weight;
-	private boolean enabled;
+    @Id
+    private String id;
 
-	public String getId() {
-		return id;
-	}
+    private String name;
+    private String description;
+    private int weight;
+    private boolean enabled;
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public int getWeight() {
-		return weight;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public void setWeight(int weight) {
-		this.weight = weight;
-	}
+    public int getWeight() {
+        return weight;
+    }
 
-	public boolean isEnabled() {
-		return enabled;
-	}
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
+    public boolean isEnabled() {
+        return enabled;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof QualityRuleMongo)) return false;
-		QualityRuleMongo tagMongo = (QualityRuleMongo) o;
-		return Objects.equals(id, tagMongo.id);
-	}
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof QualityRuleMongo)) return false;
+        QualityRuleMongo tagMongo = (QualityRuleMongo) o;
+        return Objects.equals(id, tagMongo.id);
+    }
 
-	@Override
-	public String toString() {
-		return "QualityRuleMongo{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", weight=" + weight +
-				", enabled=" + enabled +
-				'}';
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return (
+            "QualityRuleMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", weight=" +
+            weight +
+            ", enabled=" +
+            enabled +
+            '}'
+        );
+    }
 }

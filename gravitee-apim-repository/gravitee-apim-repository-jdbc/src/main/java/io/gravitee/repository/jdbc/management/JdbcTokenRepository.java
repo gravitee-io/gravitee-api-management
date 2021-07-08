@@ -19,14 +19,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.TokenRepository;
 import io.gravitee.repository.management.model.Token;
+import java.sql.Types;
+import java.util.Date;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -43,7 +42,8 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
 
     @Override
     protected JdbcObjectMapper<Token> buildOrm() {
-        return JdbcObjectMapper.builder(Token.class, this.tableName, "id")
+        return JdbcObjectMapper
+            .builder(Token.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("token", Types.NVARCHAR, String.class)
@@ -64,8 +64,12 @@ public class JdbcTokenRepository extends JdbcAbstractCrudRepository<Token, Strin
     public List<Token> findByReference(final String referenceType, final String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcTokenRepository.findByReference({}, {})", referenceType, referenceId);
         try {
-            return jdbcTemplate.query(getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?"
-                    , getOrm().getRowMapper(), referenceType, referenceId);
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
+                getOrm().getRowMapper(),
+                referenceType,
+                referenceId
+            );
         } catch (final Exception ex) {
             final String message = "Failed to find tokens by reference";
             LOGGER.error(message, ex);

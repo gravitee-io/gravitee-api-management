@@ -45,7 +45,7 @@ public class Organization {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public String getDescription() {
         return description;
     }
@@ -69,17 +69,19 @@ public class Organization {
     public void setHrids(List<String> hrids) {
         this.hrids = hrids;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Organization that = (Organization) o;
-        return Objects.equals(id, that.id) &&
-                Objects.equals(hrids, that.hrids) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(description, that.description) &&
-                Objects.equals(domainRestrictions, that.domainRestrictions);
+        return (
+            Objects.equals(id, that.id) &&
+            Objects.equals(hrids, that.hrids) &&
+            Objects.equals(name, that.name) &&
+            Objects.equals(description, that.description) &&
+            Objects.equals(domainRestrictions, that.domainRestrictions)
+        );
     }
 
     @Override
@@ -89,12 +91,22 @@ public class Organization {
 
     @Override
     public String toString() {
-        return "Organization{" +
-                "id='" + id + '\'' +
-                ", hrids=" + hrids +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", domainRestrictions=" + domainRestrictions +
-                '}';
+        return (
+            "Organization{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hrids=" +
+            hrids +
+            ", name='" +
+            name +
+            '\'' +
+            ", description='" +
+            description +
+            '\'' +
+            ", domainRestrictions=" +
+            domainRestrictions +
+            '}'
+        );
     }
 }

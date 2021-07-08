@@ -17,19 +17,18 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
-import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationConfigMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationConfigPkMongo;
 import io.gravitee.repository.mongodb.management.internal.notification.PortalNotificationConfigMongoRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -67,7 +66,8 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     @Override
-    public Optional<PortalNotificationConfig> findById(String userId, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public Optional<PortalNotificationConfig> findById(String userId, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         LOGGER.debug("Find PortalNotificationConfig [{}, {}, {}]", userId, referenceType, referenceId);
         PortalNotificationConfigPkMongo pk = new PortalNotificationConfigPkMongo();
         pk.setReferenceType(referenceType);
@@ -78,16 +78,17 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
             return Optional.empty();
         }
         return Optional.of(map(one));
-
     }
 
     @Override
-    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
+        throws TechnicalException {
         LOGGER.debug("Find PortalNotificationConfigs [{}, {}, {}]", hook, referenceType, referenceId);
-        return internalRepo.findByReferenceAndHook(hook, referenceType.name(), referenceId).
-                stream().
-                map(this::map).
-                collect(Collectors.toList());
+        return internalRepo
+            .findByReferenceAndHook(hook, referenceType.name(), referenceId)
+            .stream()
+            .map(this::map)
+            .collect(Collectors.toList());
     }
 
     @Override

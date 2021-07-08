@@ -15,12 +15,20 @@
  */
 package io.gravitee.repository.config;
 
+import static java.lang.Class.forName;
+import static java.util.Arrays.asList;
+import static org.springframework.util.StringUtils.capitalize;
+
 import io.gravitee.node.api.Monitoring;
 import io.gravitee.node.api.NodeMonitoringRepository;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.*;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.media.api.MediaRepository;
+import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -36,22 +44,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
 
-import javax.inject.Inject;
-import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.lang.Class.forName;
-import static java.util.Arrays.asList;
-import static org.springframework.util.StringUtils.capitalize;
-
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(
-        loader = AnnotationConfigContextLoader.class,
-        initializers = {PropertySourceRepositoryInitializer.class})
+@ContextConfiguration(loader = AnnotationConfigContextLoader.class, initializers = { PropertySourceRepositoryInitializer.class })
 @ActiveProfiles("test")
 public abstract class AbstractRepositoryTest {
 
@@ -63,96 +60,142 @@ public abstract class AbstractRepositoryTest {
 
     @Inject
     protected ApplicationRepository applicationRepository;
+
     @Inject
     protected ApiRepository apiRepository;
+
     @Inject
     protected UserRepository userRepository;
+
     @Inject
     protected ApiKeyRepository apiKeyRepository;
+
     @Inject
     protected EventRepository eventRepository;
+
     @Inject
     protected CategoryRepository categoryRepository;
+
     @Inject
     protected GroupRepository groupRepository;
-	@Inject
+
+    @Inject
     protected MembershipRepository membershipRepository;
+
     @Inject
     protected PlanRepository planRepository;
+
     @Inject
     protected TagRepository tagRepository;
+
     @Inject
     protected PageRepository pageRepository;
+
     @Inject
     protected PageRevisionRepository pageRevisionRepository;
+
     @Inject
     protected SubscriptionRepository subscriptionRepository;
+
     @Inject
     protected TenantRepository tenantRepository;
+
     @Inject
     protected MetadataRepository metadataRepository;
+
     @Inject
     protected RoleRepository roleRepository;
+
     @Inject
     protected AuditRepository auditRepository;
+
     @Inject
     protected RatingRepository ratingRepository;
+
     @Inject
     protected RatingAnswerRepository ratingAnswerRepository;
+
     @Inject
     protected PortalNotificationRepository portalNotificationRepository;
+
     @Inject
     protected PortalNotificationConfigRepository portalNotificationConfigRepository;
+
     @Inject
     protected GenericNotificationConfigRepository genericNotificationConfigRepository;
+
     @Inject
     protected ParameterRepository parameterRepository;
+
     @Inject
     protected DictionaryRepository dictionaryRepository;
+
     @Inject
     protected ApiHeaderRepository apiHeaderRepository;
+
     @Inject
     protected CommandRepository commandRepository;
+
     @Inject
     protected MediaRepository mediaRepository;
+
     @Inject
     protected IdentityProviderRepository identityProviderRepository;
+
     @Inject
     protected AlertTriggerRepository alertRepository;
+
     @Inject
     protected EntrypointRepository entrypointRepository;
+
     @Inject
     protected InvitationRepository invitationRepository;
+
     @Inject
     protected ClientRegistrationProviderRepository clientRegistrationProviderRepository;
+
     @Inject
     protected WorkflowRepository workflowRepository;
+
     @Inject
     protected QualityRuleRepository qualityRuleRepository;
+
     @Inject
     protected ApiQualityRuleRepository apiQualityRuleRepository;
+
     @Inject
     protected DashboardRepository dashboardRepository;
+
     @Inject
     protected AlertEventRepository alertEventRepository;
+
     @Inject
     protected EnvironmentRepository environmentRepository;
+
     @Inject
     protected OrganizationRepository organizationRepository;
+
     @Inject
     protected ThemeRepository themeRepository;
+
     @Inject
     protected TokenRepository tokenRepository;
+
     @Inject
     protected CustomUserFieldsRepository customUserFieldsRepository;
+
     @Inject
     protected IdentityProviderActivationRepository identityProviderActivationRepository;
+
     @Inject
     protected NotificationTemplateRepository notificationTemplateRepository;
+
     @Inject
     protected TicketRepository ticketRepository;
+
     @Inject
     protected InstallationRepository installationRepository;
+
     @Inject
     protected NodeMonitoringRepository nodeMonitoringRepository;
 
@@ -167,9 +210,12 @@ public abstract class AbstractRepositoryTest {
         final File file = new File(AbstractRepositoryTest.class.getResource(getTestCasesPath()).toURI());
 
         final File[] collectionsDumps = file.listFiles(
-                pathname -> pathname.isFile()
-                        && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString())));
-        for (final File collectionsDump : asList(collectionsDumps).stream().sorted((o1, o2) -> o2.getName().compareTo(o1.getName())).collect(Collectors.toList())) {
+            pathname -> pathname.isFile() && JSON_EXTENSION.equalsIgnoreCase(FilenameUtils.getExtension(pathname.toString()))
+        );
+        for (final File collectionsDump : asList(collectionsDumps)
+            .stream()
+            .sorted((o1, o2) -> o2.getName().compareTo(o1.getName()))
+            .collect(Collectors.toList())) {
             final Class c = getClassFromFileName(FilenameUtils.getBaseName(collectionsDump.getName()));
             for (final Object object : mapToModel(collectionsDump, c)) {
                 createModel(object);
@@ -185,141 +231,96 @@ public abstract class AbstractRepositoryTest {
     private void createModel(Object object) throws TechnicalException {
         if (object instanceof Application) {
             applicationRepository.create((Application) object);
-        }
-        else if (object instanceof Api) {
+        } else if (object instanceof Api) {
             apiRepository.create((Api) object);
-        }
-        else if (object instanceof User) {
+        } else if (object instanceof User) {
             userRepository.create((User) object);
-        }
-        else if (object instanceof Event) {
+        } else if (object instanceof Event) {
             eventRepository.create((Event) object);
-        }
-        else if (object instanceof ApiKey) {
+        } else if (object instanceof ApiKey) {
             final ApiKey apiKey = (ApiKey) object;
             apiKeyRepository.create(apiKey);
-        }
-        else if (object instanceof Category) {
+        } else if (object instanceof Category) {
             categoryRepository.create((Category) object);
-        }
-        else if (object instanceof Group) {
+        } else if (object instanceof Group) {
             groupRepository.create((Group) object);
-        }
-        else if (object instanceof Membership) {
+        } else if (object instanceof Membership) {
             membershipRepository.create((Membership) object);
-        }
-        else if (object instanceof Plan) {
+        } else if (object instanceof Plan) {
             planRepository.create((Plan) object);
-        }
-        else if (object instanceof Tag) {
+        } else if (object instanceof Tag) {
             tagRepository.create((Tag) object);
-        }
-        else if (object instanceof Page) {
+        } else if (object instanceof Page) {
             pageRepository.create((Page) object);
-        }
-        else if (object instanceof Subscription) {
+        } else if (object instanceof Subscription) {
             subscriptionRepository.create((Subscription) object);
-        }
-        else if (object instanceof Tenant) {
+        } else if (object instanceof Tenant) {
             tenantRepository.create((Tenant) object);
-        }
-        else if (object instanceof Metadata) {
+        } else if (object instanceof Metadata) {
             metadataRepository.create((Metadata) object);
-        }
-        else if (object instanceof Role) {
+        } else if (object instanceof Role) {
             roleRepository.create((Role) object);
-        }
-        else if (object instanceof Audit) {
+        } else if (object instanceof Audit) {
             auditRepository.create((Audit) object);
-        }
-        else if (object instanceof Rating) {
+        } else if (object instanceof Rating) {
             ratingRepository.create((Rating) object);
-        }
-        else if (object instanceof RatingAnswer) {
+        } else if (object instanceof RatingAnswer) {
             ratingAnswerRepository.create((RatingAnswer) object);
-        }
-        else if (object instanceof PortalNotification) {
+        } else if (object instanceof PortalNotification) {
             portalNotificationRepository.create((PortalNotification) object);
-        }
-        else if (object instanceof PortalNotificationConfig) {
+        } else if (object instanceof PortalNotificationConfig) {
             portalNotificationConfigRepository.create((PortalNotificationConfig) object);
-        }
-        else if (object instanceof GenericNotificationConfig) {
+        } else if (object instanceof GenericNotificationConfig) {
             genericNotificationConfigRepository.create((GenericNotificationConfig) object);
-        }
-        else if (object instanceof Parameter) {
+        } else if (object instanceof Parameter) {
             parameterRepository.create((Parameter) object);
-        }
-        else if (object instanceof Dictionary) {
+        } else if (object instanceof Dictionary) {
             dictionaryRepository.create((Dictionary) object);
-        }
-        else if (object instanceof ApiHeader) {
+        } else if (object instanceof ApiHeader) {
             apiHeaderRepository.create((ApiHeader) object);
-        }
-        else if (object instanceof Command) {
+        } else if (object instanceof Command) {
             commandRepository.create((Command) object);
-        }
-        else if (object instanceof IdentityProvider) {
+        } else if (object instanceof IdentityProvider) {
             identityProviderRepository.create((IdentityProvider) object);
-        }
-        else if (object instanceof AlertTrigger) {
+        } else if (object instanceof AlertTrigger) {
             alertRepository.create((AlertTrigger) object);
-        }
-        else if (object instanceof Entrypoint) {
+        } else if (object instanceof Entrypoint) {
             entrypointRepository.create((Entrypoint) object);
-        }
-        else if (object instanceof Invitation) {
+        } else if (object instanceof Invitation) {
             invitationRepository.create((Invitation) object);
-        }
-        else if (object instanceof ClientRegistrationProvider) {
+        } else if (object instanceof ClientRegistrationProvider) {
             clientRegistrationProviderRepository.create((ClientRegistrationProvider) object);
-        }
-        else if (object instanceof Workflow) {
+        } else if (object instanceof Workflow) {
             workflowRepository.create((Workflow) object);
-        }
-        else if (object instanceof QualityRule) {
+        } else if (object instanceof QualityRule) {
             qualityRuleRepository.create((QualityRule) object);
-        }
-        else if (object instanceof ApiQualityRule) {
+        } else if (object instanceof ApiQualityRule) {
             apiQualityRuleRepository.create((ApiQualityRule) object);
-        }
-        else if (object instanceof Dashboard) {
+        } else if (object instanceof Dashboard) {
             dashboardRepository.create((Dashboard) object);
-        }
-        else if (object instanceof AlertEvent) {
+        } else if (object instanceof AlertEvent) {
             alertEventRepository.create((AlertEvent) object);
-        }
-        else if (object instanceof Environment) {
+        } else if (object instanceof Environment) {
             environmentRepository.create((Environment) object);
-        }
-        else if (object instanceof Organization) {
+        } else if (object instanceof Organization) {
             organizationRepository.create((Organization) object);
-        }
-        else if (object instanceof Theme) {
+        } else if (object instanceof Theme) {
             themeRepository.create((Theme) object);
-        }
-        else if (object instanceof IdentityProviderActivation) {
+        } else if (object instanceof IdentityProviderActivation) {
             identityProviderActivationRepository.create((IdentityProviderActivation) object);
-        }
-        else if( object instanceof Token) {
+        } else if (object instanceof Token) {
             tokenRepository.create((Token) object);
-        }
-        else if( object instanceof PageRevision) {
+        } else if (object instanceof PageRevision) {
             pageRevisionRepository.create((PageRevision) object);
-        }
-        else if( object instanceof CustomUserField) {
+        } else if (object instanceof CustomUserField) {
             customUserFieldsRepository.create((CustomUserField) object);
-        }
-        else if( object instanceof NotificationTemplate) {
+        } else if (object instanceof NotificationTemplate) {
             notificationTemplateRepository.create((NotificationTemplate) object);
-        }
-        else if( object instanceof Ticket) {
+        } else if (object instanceof Ticket) {
             ticketRepository.create((Ticket) object);
-        }
-        else if( object instanceof Installation) {
+        } else if (object instanceof Installation) {
             installationRepository.create((Installation) object);
-        }
-        else if( object instanceof Monitoring) {
+        } else if (object instanceof Monitoring) {
             nodeMonitoringRepository.create((Monitoring) object);
         }
     }
@@ -339,10 +340,9 @@ public abstract class AbstractRepositoryTest {
 
     @Configuration
     @ComponentScan(
-            value = "io.gravitee.repository",
-            includeFilters = @Filter(pattern = ".*Test.*", type = FilterType.REGEX),
-            useDefaultFilters = false
+        value = "io.gravitee.repository",
+        includeFilters = @Filter(pattern = ".*Test.*", type = FilterType.REGEX),
+        useDefaultFilters = false
     )
-    static class ContextConfiguration {
-    }
+    static class ContextConfiguration {}
 }

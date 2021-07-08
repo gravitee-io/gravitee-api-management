@@ -26,7 +26,9 @@ import java.util.Objects;
 public class AlertTrigger {
 
     public enum AuditEvent implements Audit.AuditEvent {
-        ALERT_TRIGGER_CREATED, ALERT_TRIGGER_UPDATED, ALERT_TRIGGER_DELETED
+        ALERT_TRIGGER_CREATED,
+        ALERT_TRIGGER_UPDATED,
+        ALERT_TRIGGER_DELETED,
     }
 
     private String id;

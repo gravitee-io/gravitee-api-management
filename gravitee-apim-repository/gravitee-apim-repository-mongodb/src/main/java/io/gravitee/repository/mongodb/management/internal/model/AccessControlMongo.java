@@ -24,8 +24,7 @@ public class AccessControlMongo {
     private String referenceId;
     private String referenceType;
 
-    public AccessControlMongo() {
-    }
+    public AccessControlMongo() {}
 
     public AccessControlMongo(String referenceId, String referenceType) {
         this.referenceId = referenceId;
@@ -47,5 +46,4 @@ public class AccessControlMongo {
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
     }
-
 }

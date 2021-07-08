@@ -21,6 +21,5 @@ package io.gravitee.repository.analytics.query;
  */
 @FunctionalInterface
 public interface QueryBuilder {
-
     Query<?> build();
 }

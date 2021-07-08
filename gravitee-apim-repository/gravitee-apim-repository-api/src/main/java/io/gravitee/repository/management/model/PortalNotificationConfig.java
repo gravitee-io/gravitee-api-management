@@ -20,10 +20,11 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com) 
+ * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class PortalNotificationConfig {
+
     private String user;
     private List<String> hooks;
     private NotificationReferenceType referenceType;
@@ -84,9 +85,11 @@ public class PortalNotificationConfig {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PortalNotificationConfig portalNotificationConfig = (PortalNotificationConfig) o;
-        return Objects.equals(referenceType, portalNotificationConfig.referenceType)
-                && Objects.equals(referenceId, portalNotificationConfig.referenceId)
-                && Objects.equals(user, portalNotificationConfig.user);
+        return (
+            Objects.equals(referenceType, portalNotificationConfig.referenceType) &&
+            Objects.equals(referenceId, portalNotificationConfig.referenceId) &&
+            Objects.equals(user, portalNotificationConfig.user)
+        );
     }
 
     @Override
@@ -95,13 +98,25 @@ public class PortalNotificationConfig {
     }
 
     public String toString() {
-        return "PortalNotificationConfig{" +
-                "user='" + user + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", hooks='" + hooks + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "PortalNotificationConfig{" +
+            "user='" +
+            user +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", hooks='" +
+            hooks +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

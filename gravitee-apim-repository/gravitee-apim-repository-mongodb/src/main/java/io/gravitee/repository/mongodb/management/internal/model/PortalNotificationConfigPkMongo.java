@@ -16,7 +16,6 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.NotificationReferenceType;
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -26,55 +25,65 @@ import java.util.Objects;
  */
 public class PortalNotificationConfigPkMongo implements Serializable {
 
-	private NotificationReferenceType referenceType;
-	private String referenceId;
-	private String user;
+    private NotificationReferenceType referenceType;
+    private String referenceId;
+    private String user;
 
-	public NotificationReferenceType getReferenceType() {
-		return referenceType;
-	}
+    public NotificationReferenceType getReferenceType() {
+        return referenceType;
+    }
 
-	public void setReferenceType(NotificationReferenceType referenceType) {
-		this.referenceType = referenceType;
-	}
+    public void setReferenceType(NotificationReferenceType referenceType) {
+        this.referenceType = referenceType;
+    }
 
-	public String getReferenceId() {
-		return referenceId;
-	}
+    public String getReferenceId() {
+        return referenceId;
+    }
 
-	public void setReferenceId(String referenceId) {
-		this.referenceId = referenceId;
-	}
+    public void setReferenceId(String referenceId) {
+        this.referenceId = referenceId;
+    }
 
-	public String getUser() {
-		return user;
-	}
+    public String getUser() {
+        return user;
+    }
 
-	public void setUser(String user) {
-		this.user = user;
-	}
+    public void setUser(String user) {
+        this.user = user;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof PortalNotificationConfigPkMongo)) return false;
-		PortalNotificationConfigPkMongo portalNotificationConfigPkMongo = (PortalNotificationConfigPkMongo) o;
-		return Objects.equals(referenceType, portalNotificationConfigPkMongo.referenceType)
-				&& Objects.equals(referenceId, portalNotificationConfigPkMongo.referenceId)
-				&& Objects.equals(user, portalNotificationConfigPkMongo.user);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PortalNotificationConfigPkMongo)) return false;
+        PortalNotificationConfigPkMongo portalNotificationConfigPkMongo = (PortalNotificationConfigPkMongo) o;
+        return (
+            Objects.equals(referenceType, portalNotificationConfigPkMongo.referenceType) &&
+            Objects.equals(referenceId, portalNotificationConfigPkMongo.referenceId) &&
+            Objects.equals(user, portalNotificationConfigPkMongo.user)
+        );
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(referenceType, referenceId, user);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(referenceType, referenceId, user);
+    }
 
-	@Override
-	public String toString() {
-		return "PortalNotificationConfigPkMongo{" +
-				"referenceType='" + referenceType + '\'' +
-				", referenceId='" + referenceId + '\'' +
-				", user='" + user + '\'' +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return (
+            "PortalNotificationConfigPkMongo{" +
+            "referenceType='" +
+            referenceType +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            '}'
+        );
+    }
 }

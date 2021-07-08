@@ -16,20 +16,24 @@
 package io.gravitee.repository.mongodb.management.internal.notification;
 
 import io.gravitee.repository.mongodb.management.internal.model.NotificationTemplateMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com) 
+ * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
 public interface NotificationTemplateMongoRepository extends MongoRepository<NotificationTemplateMongo, String> {
     @Query("{ 'hook': ?0, 'scope': ?1, 'referenceId': ?2, 'referenceType': ?3 }")
-    List<NotificationTemplateMongo> findByHookAndScopeAndReferenceIdAndReferenceType(String hook, String scope, String referenceId, String referenceType);
+    List<NotificationTemplateMongo> findByHookAndScopeAndReferenceIdAndReferenceType(
+        String hook,
+        String scope,
+        String referenceId,
+        String referenceType
+    );
 
     @Query("{ 'referenceId': ?0, 'referenceType': ?1 }")
     List<NotificationTemplateMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);

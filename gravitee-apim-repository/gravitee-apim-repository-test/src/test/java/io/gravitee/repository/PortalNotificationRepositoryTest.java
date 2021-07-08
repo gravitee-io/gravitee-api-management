@@ -15,16 +15,15 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.model.PortalNotification;
-import org.junit.Test;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 public class PortalNotificationRepositoryTest extends AbstractRepositoryTest {
 
@@ -84,7 +83,7 @@ public class PortalNotificationRepositoryTest extends AbstractRepositoryTest {
 
         assertTrue(notifications.isEmpty());
     }
-    
+
     @Test
     public void shouldFindById() throws Exception {
         Optional<PortalNotification> notification = portalNotificationRepository.findById("notif-findById");

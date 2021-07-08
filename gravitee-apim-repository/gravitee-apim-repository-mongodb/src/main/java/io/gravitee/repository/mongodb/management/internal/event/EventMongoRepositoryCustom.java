@@ -26,6 +26,5 @@ import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
  * @author GraviteeSource Team
  */
 public interface EventMongoRepositoryCustom {
-
     Page<EventMongo> search(EventCriteria filter, Pageable pageable);
 }

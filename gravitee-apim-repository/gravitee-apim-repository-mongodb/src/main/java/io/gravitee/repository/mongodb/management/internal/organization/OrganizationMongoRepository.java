@@ -15,18 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.organization;
 
+import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
-import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Repository
-public interface OrganizationMongoRepository extends MongoRepository<OrganizationMongo, String> {
-
-}
-
-
+public interface OrganizationMongoRepository extends MongoRepository<OrganizationMongo, String> {}

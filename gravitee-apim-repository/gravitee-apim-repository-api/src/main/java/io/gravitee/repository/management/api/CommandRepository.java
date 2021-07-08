@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
-
 import java.util.List;
 
 /**
@@ -26,5 +25,4 @@ import java.util.List;
  */
 public interface CommandRepository extends CrudRepository<Command, String> {
     List<Command> search(CommandCriteria criteria);
-
 }

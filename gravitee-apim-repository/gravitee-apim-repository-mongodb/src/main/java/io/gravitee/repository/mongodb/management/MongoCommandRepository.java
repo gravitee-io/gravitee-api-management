@@ -22,13 +22,12 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.mongodb.management.internal.message.CommandMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -81,12 +80,9 @@ public class MongoCommandRepository implements CommandRepository {
         }
 
         try {
-
             CommandMongo commandMongoUpdated = internalMessageRepo.save(mapper.map(command, CommandMongo.class));
             return mapper.map(commandMongoUpdated, Command.class);
-
         } catch (Exception e) {
-
             logger.error("An error occurred when updating command", e);
             throw new TechnicalException("An error occurred when updating command");
         }

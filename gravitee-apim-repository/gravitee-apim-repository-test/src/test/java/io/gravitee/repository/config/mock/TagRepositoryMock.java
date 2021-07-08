@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.TagRepository;
-import io.gravitee.repository.management.model.Tag;
-
-import java.util.Set;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.of;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.TagRepository;
+import io.gravitee.repository.management.model.Tag;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

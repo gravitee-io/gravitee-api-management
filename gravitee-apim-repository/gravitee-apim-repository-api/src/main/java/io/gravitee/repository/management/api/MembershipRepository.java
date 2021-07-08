@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.*;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -27,7 +26,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface MembershipRepository {
-
     Membership create(Membership membership) throws TechnicalException;
     Membership update(Membership membership) throws TechnicalException;
     void delete(String membershipId) throws TechnicalException;
@@ -48,7 +46,6 @@ public interface MembershipRepository {
      */
     Optional<Membership> findById(String membershipId) throws TechnicalException;
 
-
     /**
      * find membership by ids.
      * @param membershipIds the membership ids
@@ -66,7 +63,8 @@ public interface MembershipRepository {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException;
+    Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId)
+        throws TechnicalException;
 
     /**
      * find all memberships for a specific reference
@@ -77,7 +75,8 @@ public interface MembershipRepository {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) throws TechnicalException;
+    Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId)
+        throws TechnicalException;
 
     /**
      * find all memberships for a member and a referenceType
@@ -88,7 +87,11 @@ public interface MembershipRepository {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceType(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException;
     /**
      * find all memberships for a member and a referenceType and SourceId
      * @param memberId the member
@@ -98,7 +101,12 @@ public interface MembershipRepository {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String sourceId) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndSource(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String sourceId
+    ) throws TechnicalException;
 
     /**
      * find all memberships for a list of member and a referenceType
@@ -109,7 +117,11 @@ public interface MembershipRepository {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(List<String> memberIds, MembershipMemberType memberType, MembershipReferenceType referenceType) throws TechnicalException;
+    Set<Membership> findByMemberIdsAndMemberTypeAndReferenceType(
+        List<String> memberIds,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType
+    ) throws TechnicalException;
 
     /**
      * find all memberships for a role
@@ -129,7 +141,12 @@ public interface MembershipRepository {
      * @return the list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String roleId) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String roleId
+    ) throws TechnicalException;
 
     /**
      * find all memberships for a member, a referenceType, a referenceId and a role
@@ -142,7 +159,13 @@ public interface MembershipRepository {
      * @return a list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId, String roleId) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceIdAndRoleId(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String roleId
+    ) throws TechnicalException;
 
     /**
      * find all memberships for a member, a referenceType and a referenceId
@@ -154,7 +177,12 @@ public interface MembershipRepository {
      * @return a list of memberships, or an empty set
      * @throws TechnicalException if something goes wrong, should never happen.
      */
-    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(String memberId, MembershipMemberType memberType, MembershipReferenceType referenceType, String referenceId) throws TechnicalException;
+    Set<Membership> findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+        String memberId,
+        MembershipMemberType memberType,
+        MembershipReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException;
 
     /**
      * find all memberships for a member

@@ -15,21 +15,20 @@
  */
 package io.gravitee.repository;
 
+import static io.gravitee.repository.utils.DateUtils.compareDate;
+import static io.gravitee.repository.utils.DateUtils.parse;
+import static java.util.Collections.emptyList;
+import static org.junit.Assert.*;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
-import org.junit.Test;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static io.gravitee.repository.utils.DateUtils.parse;
-import static java.util.Collections.emptyList;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -58,7 +57,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(applications);
         assertEquals("Fail to resolve application in findAllByEnvironment", 5, applications.size());
     }
-    
+
     @Test
     public void findAllArchivedTest() throws Exception {
         Set<Application> applications = applicationRepository.findAll(ApplicationStatus.ARCHIVED);
@@ -236,7 +235,10 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByGroupsAndStatus() throws Exception {
-        Set<Application> apps = applicationRepository.findByGroups(Collections.singletonList("application-group"), ApplicationStatus.ARCHIVED);
+        Set<Application> apps = applicationRepository.findByGroups(
+            Collections.singletonList("application-group"),
+            ApplicationStatus.ARCHIVED
+        );
 
         assertNotNull(apps);
         assertEquals(1, apps.size());
@@ -258,11 +260,13 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
         assertEquals(2, apps.size());
-        assertTrue(apps.
-                stream().
-                map(Application::getId).
-                collect(Collectors.toList()).
-                containsAll(Arrays.asList("application-sample", "updated-app")));
+        assertTrue(
+            apps
+                .stream()
+                .map(Application::getId)
+                .collect(Collectors.toList())
+                .containsAll(Arrays.asList("application-sample", "updated-app"))
+        );
     }
 
     @Test(expected = IllegalStateException.class)
@@ -281,24 +285,21 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldFindByName() throws Exception {
-        final Page<Application> appsPage = applicationRepository.search(new ApplicationCriteria.Builder()
-                        .name("SeArched-app")
-                        .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
-                        .status(ApplicationStatus.ACTIVE)
-                        .environmentId("DEV")
-                        .build(),
-                null);
+        final Page<Application> appsPage = applicationRepository.search(
+            new ApplicationCriteria.Builder()
+                .name("SeArched-app")
+                .ids("searched-app1", "app-with-long-client-id", "app-with-long-name")
+                .status(ApplicationStatus.ACTIVE)
+                .environmentId("DEV")
+                .build(),
+            null
+        );
 
         final List<Application> apps = appsPage.getContent();
 
         assertNotNull(apps);
         assertFalse(apps.isEmpty());
         assertEquals(1, apps.size());
-        assertTrue(apps.
-                stream().
-                map(Application::getId).
-                collect(Collectors.toList()).
-                contains("searched-app1"));
-
+        assertTrue(apps.stream().map(Application::getId).collect(Collectors.toList()).contains("searched-app1"));
     }
 }

@@ -17,7 +17,6 @@ package io.gravitee.repository.media.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.media.model.Media;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +25,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface MediaRepository {
-
     Optional<Media> findByHash(String hash);
 
     Optional<Media> findByHash(String hash, boolean withContent);

@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -27,19 +26,28 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface IdentityProviderActivationRepository {
-    Optional<IdentityProviderActivation> findById(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException;
+    Optional<IdentityProviderActivation> findById(
+        String identityProviderId,
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException;
 
     Set<IdentityProviderActivation> findAll() throws TechnicalException;
 
     Set<IdentityProviderActivation> findAllByIdentityProviderId(String identityProviderId) throws TechnicalException;
 
-    Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException;
+    Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException;
 
     IdentityProviderActivation create(IdentityProviderActivation identityProviderActivation) throws TechnicalException;
 
-    void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException;
+    void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException;
 
     void deleteByIdentityProviderId(String identityProviderId) throws TechnicalException;
 
-    void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException;
+    void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException;
 }

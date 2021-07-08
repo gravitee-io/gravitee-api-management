@@ -25,7 +25,6 @@ import io.gravitee.repository.log.model.ExtendedLog;
  * @author GraviteeSource Team
  */
 public interface LogRepository {
-
     TabularResponse query(TabularQuery query) throws AnalyticsException;
 
     ExtendedLog findById(String logId, Long timestamp) throws AnalyticsException;

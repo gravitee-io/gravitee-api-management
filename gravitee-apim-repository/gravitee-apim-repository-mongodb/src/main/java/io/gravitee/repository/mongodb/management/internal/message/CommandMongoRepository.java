@@ -24,6 +24,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface CommandMongoRepository extends MongoRepository<CommandMongo, String>, CommandMongoRepositoryCustom {
-
-}
+public interface CommandMongoRepository extends MongoRepository<CommandMongo, String>, CommandMongoRepositoryCustom {}

@@ -15,13 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -30,29 +29,30 @@ import java.util.Set;
 @Document(collection = "pages")
 public class PageMongo extends Auditable {
 
-	@Id
-	private String id;
-	private String referenceId;
-    private String referenceType;
-	private String name;
-	private String type;
-	private String title;
-	private String content;
-	private String lastContributor;
-	private int order;
-	private boolean published;
-	private String visibility;
-	private PageSourceMongo source;
-	private Map<String, String> configuration;
-	private boolean homepage;
-	private boolean excludedAccessControls;
-	private Set<AccessControlMongo> accessControls;
-	private List<PageMediaMongo> attachedMedia;
-    private String parentId;
-	private Map<String, String> metadata;
-	private Boolean useAutoFetch;  // use Boolean to avoid default value of primitive type
+    @Id
+    private String id;
 
-	public String getId() {
+    private String referenceId;
+    private String referenceType;
+    private String name;
+    private String type;
+    private String title;
+    private String content;
+    private String lastContributor;
+    private int order;
+    private boolean published;
+    private String visibility;
+    private PageSourceMongo source;
+    private Map<String, String> configuration;
+    private boolean homepage;
+    private boolean excludedAccessControls;
+    private Set<AccessControlMongo> accessControls;
+    private List<PageMediaMongo> attachedMedia;
+    private String parentId;
+    private Map<String, String> metadata;
+    private Boolean useAutoFetch; // use Boolean to avoid default value of primitive type
+
+    public String getId() {
         return id;
     }
 
@@ -77,173 +77,209 @@ public class PageMongo extends Auditable {
     }
 
     public String getName() {
-		return name;
-	}
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getTitle() {
-		return title;
-	}
+    public String getTitle() {
+        return title;
+    }
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public String getLastContributor() {
-		return lastContributor;
-	}
+    public String getLastContributor() {
+        return lastContributor;
+    }
 
-	public void setLastContributor(String lastContributor) {
-		this.lastContributor = lastContributor;
-	}
+    public void setLastContributor(String lastContributor) {
+        this.lastContributor = lastContributor;
+    }
 
-	public int getOrder() {
-		return order;
-	}
+    public int getOrder() {
+        return order;
+    }
 
-	public void setOrder(int order) {
-		this.order = order;
-	}
+    public void setOrder(int order) {
+        this.order = order;
+    }
 
-	public boolean isPublished() {
-		return published;
-	}
+    public boolean isPublished() {
+        return published;
+    }
 
-	public void setPublished(boolean published) {
-		this.published = published;
-	}
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
 
-	public PageSourceMongo getSource() {
-		return source;
-	}
+    public PageSourceMongo getSource() {
+        return source;
+    }
 
-	public void setSource(PageSourceMongo source) {
-		this.source = source;
-	}
+    public void setSource(PageSourceMongo source) {
+        this.source = source;
+    }
 
-	public Map<String, String> getConfiguration() {
-		return configuration;
-	}
+    public Map<String, String> getConfiguration() {
+        return configuration;
+    }
 
-	public void setConfiguration(Map<String, String> configuration) {
-		this.configuration = configuration;
-	}
+    public void setConfiguration(Map<String, String> configuration) {
+        this.configuration = configuration;
+    }
 
-	public boolean isHomepage() {
-		return homepage;
-	}
+    public boolean isHomepage() {
+        return homepage;
+    }
 
-	public void setHomepage(boolean homepage) {
-		this.homepage = homepage;
-	}
+    public void setHomepage(boolean homepage) {
+        this.homepage = homepage;
+    }
 
-	public boolean isExcludedAccessControls() {
-		return excludedAccessControls;
-	}
+    public boolean isExcludedAccessControls() {
+        return excludedAccessControls;
+    }
 
-	public void setExcludedAccessControls(boolean excludedAccessControls) {
-		this.excludedAccessControls = excludedAccessControls;
-	}
+    public void setExcludedAccessControls(boolean excludedAccessControls) {
+        this.excludedAccessControls = excludedAccessControls;
+    }
 
-	public Set<AccessControlMongo> getAccessControls() {
-		return accessControls;
-	}
+    public Set<AccessControlMongo> getAccessControls() {
+        return accessControls;
+    }
 
-	public void setAccessControls(Set<AccessControlMongo> accessControls) {
-		this.accessControls = accessControls;
-	}
+    public void setAccessControls(Set<AccessControlMongo> accessControls) {
+        this.accessControls = accessControls;
+    }
 
-	public String getParentId() { return parentId; }
+    public String getParentId() {
+        return parentId;
+    }
 
-    public void setParentId(String parentId) { this.parentId = parentId; }
+    public void setParentId(String parentId) {
+        this.parentId = parentId;
+    }
 
-	public Map<String, String> getMetadata() {
-		return metadata;
-	}
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
 
-	public void setMetadata(Map<String, String> metadata) {
-		this.metadata = metadata;
-	}
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
 
-	public Boolean getUseAutoFetch() {
-		return useAutoFetch;
-	}
+    public Boolean getUseAutoFetch() {
+        return useAutoFetch;
+    }
 
-	public void setUseAutoFetch(Boolean useAutoFetch) {
-		this.useAutoFetch = useAutoFetch;
-	}
+    public void setUseAutoFetch(Boolean useAutoFetch) {
+        this.useAutoFetch = useAutoFetch;
+    }
 
-	public List<PageMediaMongo> getAttachedMedia() {
-		return attachedMedia;
-	}
+    public List<PageMediaMongo> getAttachedMedia() {
+        return attachedMedia;
+    }
 
-	public void setAttachedMedia(List<PageMediaMongo> attachedMedia) {
-		this.attachedMedia = attachedMedia;
-	}
+    public void setAttachedMedia(List<PageMediaMongo> attachedMedia) {
+        this.attachedMedia = attachedMedia;
+    }
 
-	public String getVisibility() {
-		return visibility;
-	}
+    public String getVisibility() {
+        return visibility;
+    }
 
-	public void setVisibility(String visibility) {
-		this.visibility = visibility;
-	}
+    public void setVisibility(String visibility) {
+        this.visibility = visibility;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof PageMongo)) return false;
-		PageMongo pageMongo = (PageMongo) o;
-		return Objects.equals(id, pageMongo.id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PageMongo)) return false;
+        PageMongo pageMongo = (PageMongo) o;
+        return Objects.equals(id, pageMongo.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "PageMongo{" +
-				"id='" + id + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-				", name='" + name + '\'' +
-				", type='" + type + '\'' +
-				", title='" + title + '\'' +
-				", content='" + content + '\'' +
-				", lastContributor='" + lastContributor + '\'' +
-				", order=" + order +
-				", published=" + published +
-				", visibility=" + visibility +
-				", source=" + source +
-				", configuration=" + configuration +
-				", homepage=" + homepage +
-				", excludedAccessControls=" + excludedAccessControls +
-				", accessControls=" + accessControls +
-				", attachedMedia=" + attachedMedia +
-				", parentId='" + parentId + '\'' +
-				", metadata=" + metadata +
-				", useAutoFetch=" + useAutoFetch +
-				"} " + super.toString();
-	}
+    @Override
+    public String toString() {
+        return (
+            "PageMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", type='" +
+            type +
+            '\'' +
+            ", title='" +
+            title +
+            '\'' +
+            ", content='" +
+            content +
+            '\'' +
+            ", lastContributor='" +
+            lastContributor +
+            '\'' +
+            ", order=" +
+            order +
+            ", published=" +
+            published +
+            ", visibility=" +
+            visibility +
+            ", source=" +
+            source +
+            ", configuration=" +
+            configuration +
+            ", homepage=" +
+            homepage +
+            ", excludedAccessControls=" +
+            excludedAccessControls +
+            ", accessControls=" +
+            accessControls +
+            ", attachedMedia=" +
+            attachedMedia +
+            ", parentId='" +
+            parentId +
+            '\'' +
+            ", metadata=" +
+            metadata +
+            ", useAutoFetch=" +
+            useAutoFetch +
+            "} " +
+            super.toString()
+        );
+    }
 }

@@ -23,19 +23,23 @@ import java.util.Objects;
  * @author GraviteeSource Team
  */
 public class ApiHeader {
+
     public enum AuditEvent implements Audit.AuditEvent {
-        API_HEADER_CREATED, API_HEADER_UPDATED, API_HEADER_DELETED
+        API_HEADER_CREATED,
+        API_HEADER_UPDATED,
+        API_HEADER_DELETED,
     }
+
     /**
      * The api ID.
      */
     private String id;
-    
+
     /**
      * The ID of the environment the api is attached to
      */
     private String environmentId;
-    
+
     /**
      * The api name.
      */
@@ -61,7 +65,7 @@ public class ApiHeader {
      */
     private Date updatedAt;
 
-    public ApiHeader(){}
+    public ApiHeader() {}
 
     public ApiHeader(ApiHeader cloned) {
         this.id = cloned.id;
@@ -143,14 +147,28 @@ public class ApiHeader {
     }
 
     public String toString() {
-        return "ApiHeader{" +
-                "id='" + id + '\'' +
-                ", environmentId='" + environmentId + '\'' +
-                ", name='" + name + '\'' +
-                ", value='" + value + '\'' +
-                ", order='" + order + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return (
+            "ApiHeader{" +
+            "id='" +
+            id +
+            '\'' +
+            ", environmentId='" +
+            environmentId +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", value='" +
+            value +
+            '\'' +
+            ", order='" +
+            order +
+            '\'' +
+            ", createdAt=" +
+            createdAt +
+            ", updatedAt=" +
+            updatedAt +
+            '}'
+        );
     }
 }

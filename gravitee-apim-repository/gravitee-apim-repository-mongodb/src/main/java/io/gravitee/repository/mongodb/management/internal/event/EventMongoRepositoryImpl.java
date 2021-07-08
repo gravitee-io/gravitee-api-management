@@ -15,21 +15,19 @@
  */
 package io.gravitee.repository.mongodb.management.internal.event;
 
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-
-import io.gravitee.common.data.domain.Page;
-import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -51,13 +49,17 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
 
         if (filter.getProperties() != null && !filter.getProperties().isEmpty()) {
             // set criteria query
-            filter.getProperties().forEach((k, v) -> {
-                if (v instanceof Collection) {
-                    query.addCriteria(Criteria.where("properties." + k).in((Collection) v));
-                } else {
-                    query.addCriteria(Criteria.where("properties." + k).is(v));
-                }
-            });
+            filter
+                .getProperties()
+                .forEach(
+                    (k, v) -> {
+                        if (v instanceof Collection) {
+                            query.addCriteria(Criteria.where("properties." + k).in((Collection) v));
+                        } else {
+                            query.addCriteria(Criteria.where("properties." + k).is(v));
+                        }
+                    }
+                );
         }
 
         // set range query
@@ -69,7 +71,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         if (filter.getEnvironmentId() != null) {
             query.addCriteria(Criteria.where("environmentId").is(filter.getEnvironmentId()));
         }
-        
+
         // set sort by updated at
         query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
 
@@ -81,8 +83,6 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
         long total = mongoTemplate.count(query, EventMongo.class);
 
-        return new Page<>(
-                events, (pageable != null) ? pageable.pageNumber() : 0,
-                events.size(), total);
+        return new Page<>(events, (pageable != null) ? pageable.pageNumber() : 0, events.size(), total);
     }
 }

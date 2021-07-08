@@ -15,25 +15,25 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.PageRevisionRepository;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.PageRevision;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import io.gravitee.common.data.domain.Page;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.api.PageRevisionRepository;
+import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.PageRevision;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,24 +47,37 @@ public class PageRevisionRepositoryMock extends AbstractRepositoryMock<PageRevis
 
     @Override
     void prepare(PageRevisionRepository pageRepository) throws Exception {
-        List<PageRevision> findAllPages = IntStream.range(0, 6).mapToObj((i) -> {
-            PageRevision pagerevision = mock(PageRevision.class);
-            when(pagerevision.getPageId()).thenReturn("pageid");
-            when(pagerevision.getRevision()).thenReturn(i);
-            return pagerevision;
-        }).collect(Collectors.toList());
+        List<PageRevision> findAllPages = IntStream
+            .range(0, 6)
+            .mapToObj(
+                i -> {
+                    PageRevision pagerevision = mock(PageRevision.class);
+                    when(pagerevision.getPageId()).thenReturn("pageid");
+                    when(pagerevision.getRevision()).thenReturn(i);
+                    return pagerevision;
+                }
+            )
+            .collect(Collectors.toList());
 
-        when(pageRepository.findAll(any())).thenAnswer(
-                new Answer< Page >(){
+        when(pageRepository.findAll(any()))
+            .thenAnswer(
+                new Answer<Page>() {
                     @Override
-                    public Page answer(InvocationOnMock invocation){
+                    public Page answer(InvocationOnMock invocation) {
                         Pageable pageable = invocation.getArgument(0);
                         if (pageable.pageSize() != 3) {
-                            return new io.gravitee.common.data.domain.Page<>(findAllPages,  pageable.pageNumber(), 6, 6);
+                            return new io.gravitee.common.data.domain.Page<>(findAllPages, pageable.pageNumber(), 6, 6);
                         } else {
-                            return new io.gravitee.common.data.domain.Page<>(findAllPages.subList(pageable.from(), (pageable.pageNumber() + 1) * pageable.pageSize()), pageable.pageNumber(), pageable.pageSize(), 6);
+                            return new io.gravitee.common.data.domain.Page<>(
+                                findAllPages.subList(pageable.from(), (pageable.pageNumber() + 1) * pageable.pageSize()),
+                                pageable.pageNumber(),
+                                pageable.pageSize(),
+                                6
+                            );
                         }
-                    }});
+                    }
+                }
+            );
 
         PageRevision findApiPage = mock(PageRevision.class);
         when(findApiPage.getPageId()).thenReturn("FindApiPage");

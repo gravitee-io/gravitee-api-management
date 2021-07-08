@@ -21,9 +21,8 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -35,13 +34,18 @@ public class DictionariesHandler extends AbstractHandler {
     private DictionaryRepository dictionaryRepository;
 
     public void findAll(RoutingContext ctx) {
-        ctx.vertx().executeBlocking(promise -> {
-            try {
-                promise.complete(dictionaryRepository.findAll());
-            } catch (TechnicalException te) {
-                LOGGER.error("Unable to get dictionaries", te);
-                promise.fail(te);
-            }
-        }, (Handler<AsyncResult<Set<Dictionary>>>) result -> handleResponse(ctx, result));
+        ctx
+            .vertx()
+            .executeBlocking(
+                promise -> {
+                    try {
+                        promise.complete(dictionaryRepository.findAll());
+                    } catch (TechnicalException te) {
+                        LOGGER.error("Unable to get dictionaries", te);
+                        promise.fail(te);
+                    }
+                },
+                (Handler<AsyncResult<Set<Dictionary>>>) result -> handleResponse(ctx, result)
+            );
     }
 }

@@ -20,14 +20,13 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.config.AbstractMongoRepositoryTest;
+import java.io.IOException;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
 
 /**
  * @author Guillaume GILLON (guillaume.gillon@outlook.com)
@@ -41,9 +40,9 @@ public class MongoTestConfig extends AbstractMongoRepositoryTest {
     public void shouldReadPreferenceSecondary() throws Exception {
         ReadPreference readRef = factory.getObject().getReadPreference();
 
-        Assert.assertEquals("secondary",readRef.getName());
+        Assert.assertEquals("secondary", readRef.getName());
     }
- /*
+    /*
     @Test
     public void souldFirstReadPreferenceTagsDcIndia() throws Exception {
         BsonArray value = (BsonArray)factory.getObject().getReadPreference().toDocument().get("tags");

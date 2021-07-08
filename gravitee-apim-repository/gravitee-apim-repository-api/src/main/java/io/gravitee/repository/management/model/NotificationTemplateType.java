@@ -20,6 +20,6 @@ package io.gravitee.repository.management.model;
  * @author GraviteeSource Team
  */
 public enum NotificationTemplateType {
-	EMAIL,
-	PORTAL
+    EMAIL,
+    PORTAL,
 }

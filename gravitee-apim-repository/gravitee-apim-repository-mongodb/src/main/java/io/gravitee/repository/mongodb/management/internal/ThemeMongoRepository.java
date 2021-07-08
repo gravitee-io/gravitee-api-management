@@ -16,10 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal;
 
 import io.gravitee.repository.mongodb.management.internal.model.ThemeMongo;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -29,5 +28,3 @@ import java.util.Set;
 public interface ThemeMongoRepository extends MongoRepository<ThemeMongo, String> {
     Set<ThemeMongo> findByReferenceIdAndReferenceType(String referenceId, String referenceType);
 }
-
-

@@ -15,15 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.IdentityProviderRepository;
-import io.gravitee.repository.management.model.IdentityProvider;
-import io.gravitee.repository.management.model.IdentityProviderType;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,6 +22,14 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+
+import io.gravitee.repository.management.api.IdentityProviderRepository;
+import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.model.IdentityProviderType;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -45,7 +44,7 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
     @Override
     void prepare(IdentityProviderRepository identityProviderRepository) throws Exception {
         final Map<String, String[]> groupMappings = new HashMap<>();
-        groupMappings.put("{#jsonPath('$.email_verified')}", new String[]{ "group1, group2" });
+        groupMappings.put("{#jsonPath('$.email_verified')}", new String[] { "group1, group2" });
 
         final IdentityProvider newIdentityProvider = mock(IdentityProvider.class);
         when(newIdentityProvider.getName()).thenReturn("My idp 1");
@@ -86,9 +85,15 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
 
         final Set<IdentityProvider> identityProviders = newSet(newIdentityProvider, identityProvider1, mock(IdentityProvider.class));
         final Set<IdentityProvider> identityProvidersAfterDelete = newSet(newIdentityProvider, identityProvider1);
-        final Set<IdentityProvider> identityProvidersAfterAdd = newSet(newIdentityProvider, identityProvider1, mock(IdentityProvider.class), mock(IdentityProvider.class));
+        final Set<IdentityProvider> identityProvidersAfterAdd = newSet(
+            newIdentityProvider,
+            identityProvider1,
+            mock(IdentityProvider.class),
+            mock(IdentityProvider.class)
+        );
         final Set<IdentityProvider> identityProvidersByEnv = newSet(newIdentityProvider, identityProvider1, identityProviderUpdated);
-        when(identityProviderRepository.findAll()).thenReturn(identityProviders, identityProvidersAfterAdd, identityProviders, identityProvidersAfterDelete, identityProviders);
+        when(identityProviderRepository.findAll())
+            .thenReturn(identityProviders, identityProvidersAfterAdd, identityProviders, identityProvidersAfterDelete, identityProviders);
         when(identityProviderRepository.findAllByOrganizationId("DEFAULT")).thenReturn(identityProvidersByEnv);
 
         when(identityProviderRepository.create(any(IdentityProvider.class))).thenReturn(newIdentityProvider);
@@ -98,7 +103,8 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         when(identityProviderRepository.findById("idp-1")).thenReturn(of(identityProvider1), of(identityProviderUpdated));
         when(identityProviderRepository.findById("idp-3")).thenReturn(of(identityProvider3));
 
-        when(identityProviderRepository.update(argThat(o -> o == null || o.getId().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(identityProviderRepository.update(argThat(o -> o == null || o.getId().equals("unknown"))))
+            .thenThrow(new IllegalStateException());
     }
 
     private IdentityProvider createMock() {
@@ -115,11 +121,11 @@ public class IdentityProviderRepositoryMock extends AbstractRepositoryMock<Ident
         String condition = "{#jsonPath('$.email_verified')}";
 
         Map<String, String[]> groupMappings = new HashMap<>();
-        groupMappings.put(condition, new String[]{"group1", "group2"});
+        groupMappings.put(condition, new String[] { "group1", "group2" });
         identityProvider3.setGroupMappings(groupMappings);
 
         Map<String, String[]> roleMappings = new HashMap<>();
-        roleMappings.put(condition, new String[]{"role1", "role2"});
+        roleMappings.put(condition, new String[] { "role1", "role2" });
         identityProvider3.setRoleMappings(roleMappings);
 
         Map<String, String> userProfileMapping = new HashMap<>();

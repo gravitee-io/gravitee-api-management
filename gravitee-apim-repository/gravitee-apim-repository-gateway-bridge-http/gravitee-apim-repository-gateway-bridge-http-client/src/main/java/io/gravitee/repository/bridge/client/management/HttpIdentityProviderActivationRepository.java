@@ -19,10 +19,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
 import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -32,7 +31,11 @@ import java.util.Set;
 public class HttpIdentityProviderActivationRepository extends AbstractRepository implements IdentityProviderActivationRepository {
 
     @Override
-    public Optional<IdentityProviderActivation> findById(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public Optional<IdentityProviderActivation> findById(
+        String identityProviderId,
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -47,7 +50,10 @@ public class HttpIdentityProviderActivationRepository extends AbstractRepository
     }
 
     @Override
-    public Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public Set<IdentityProviderActivation> findAllByReferenceIdAndReferenceType(
+        String referenceId,
+        IdentityProviderActivationReferenceType referenceType
+    ) throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -57,7 +63,8 @@ public class HttpIdentityProviderActivationRepository extends AbstractRepository
     }
 
     @Override
-    public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public void delete(String identityProviderId, String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 
@@ -67,7 +74,8 @@ public class HttpIdentityProviderActivationRepository extends AbstractRepository
     }
 
     @Override
-    public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType) throws TechnicalException {
+    public void deleteByReferenceIdAndReferenceType(String referenceId, IdentityProviderActivationReferenceType referenceType)
+        throws TechnicalException {
         throw new IllegalStateException();
     }
 }

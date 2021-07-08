@@ -21,7 +21,6 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
-
 import java.util.Optional;
 
 /**
@@ -29,7 +28,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface TicketRepository {
-
     Ticket create(Ticket item) throws TechnicalException;
 
     Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;

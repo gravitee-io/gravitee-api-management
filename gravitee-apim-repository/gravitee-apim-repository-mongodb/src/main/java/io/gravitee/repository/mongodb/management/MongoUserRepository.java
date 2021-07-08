@@ -24,15 +24,14 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -63,16 +62,16 @@ public class MongoUserRepository implements UserRepository {
     }
 
     @Override
-	public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
-		logger.debug("Find user by email [{}]", email);
+    public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
+        logger.debug("Find user by email [{}]", email);
 
-		UserMongo user = internalUserRepo.findByEmail(email, organizationId);
-		User res = mapper.map(user, User.class);
+        UserMongo user = internalUserRepo.findByEmail(email, organizationId);
+        User res = mapper.map(user, User.class);
 
-		return Optional.ofNullable(res);
-	}
+        return Optional.ofNullable(res);
+    }
 
-	@Override
+    @Override
     public Set<User> findByIds(List<String> ids) throws TechnicalException {
         logger.debug("Find user by identifiers user [{}]", ids);
 
@@ -146,11 +145,11 @@ public class MongoUserRepository implements UserRepository {
         }
         userMongo.setLastConnectionAt(user.getLastConnectionAt());
         userMongo.setLoginCount(user.getLoginCount());
-		userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
-		userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
-		UserMongo userUpdated = internalUserRepo.save(userMongo);
-		return mapper.map(userUpdated, User.class);
-	}
+        userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
+        userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
+        UserMongo userUpdated = internalUserRepo.save(userMongo);
+        return mapper.map(userUpdated, User.class);
+    }
 
     @Override
     public void delete(String id) throws TechnicalException {

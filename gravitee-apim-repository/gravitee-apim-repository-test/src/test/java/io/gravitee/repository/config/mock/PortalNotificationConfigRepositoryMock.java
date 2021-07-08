@@ -15,17 +15,16 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
-import io.gravitee.repository.management.model.NotificationReferenceType;
-import io.gravitee.repository.management.model.PortalNotificationConfig;
-
-import java.util.Arrays;
-import java.util.Date;
-
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.mockito.Mockito.*;
+
+import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
+import io.gravitee.repository.management.model.NotificationReferenceType;
+import io.gravitee.repository.management.model.PortalNotificationConfig;
+import java.util.Arrays;
+import java.util.Date;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -60,10 +59,9 @@ public class PortalNotificationConfigRepositoryMock extends AbstractRepositoryMo
         when(portalNotificationConfigRepository.update(any())).thenReturn(updatedCfg);
 
         //delete
-        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete")).
-                thenReturn(of(mock(PortalNotificationConfig.class)), empty());
-        when(portalNotificationConfigRepository.findById("useridToDelete", NotificationReferenceType.API, "config")).
-                thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-delete"))
+            .thenReturn(of(mock(PortalNotificationConfig.class)), empty());
+        when(portalNotificationConfigRepository.findById("useridToDelete", NotificationReferenceType.API, "config")).thenReturn(empty());
 
         //findById
         final PortalNotificationConfig foundCfg = new PortalNotificationConfig();
@@ -73,35 +71,31 @@ public class PortalNotificationConfigRepositoryMock extends AbstractRepositoryMo
         foundCfg.setHooks(Arrays.asList("A", "B"));
         foundCfg.setUpdatedAt(new Date(1439022010883L));
         foundCfg.setCreatedAt(new Date(1439022010883L));
-        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-find")).
-                thenReturn(of(foundCfg));
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-find"))
+            .thenReturn(of(foundCfg));
 
         //notFoundById
-        when(portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find")).
-                thenReturn(empty());
-        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find")).
-                thenReturn(empty());
-        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find")).
-                thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("userid-unknown", NotificationReferenceType.API, "config-to-find"))
+            .thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.APPLICATION, "config-to-find"))
+            .thenReturn(empty());
+        when(portalNotificationConfigRepository.findById("userid", NotificationReferenceType.API, "config-to-not-find"))
+            .thenReturn(empty());
 
         //findByReferenceAndHook
         PortalNotificationConfig n1 = mock(PortalNotificationConfig.class);
         when(n1.getUser()).thenReturn("userA");
         PortalNotificationConfig n2 = mock(PortalNotificationConfig.class);
         when(n2.getUser()).thenReturn("userB");
-        when(portalNotificationConfigRepository.findByReferenceAndHook(
-                "B",
-                NotificationReferenceType.APPLICATION,
-                "search")).thenReturn(Arrays.asList(n1, n2));
-        when(portalNotificationConfigRepository.findByReferenceAndHook(
-                "D",
-                NotificationReferenceType.APPLICATION,
-                "search")).thenReturn(emptyList());
+        when(portalNotificationConfigRepository.findByReferenceAndHook("B", NotificationReferenceType.APPLICATION, "search"))
+            .thenReturn(Arrays.asList(n1, n2));
+        when(portalNotificationConfigRepository.findByReferenceAndHook("D", NotificationReferenceType.APPLICATION, "search"))
+            .thenReturn(emptyList());
 
         // shouldDeleteReference
         when(portalNotificationConfigRepository.findById("apiToDelete-1", NotificationReferenceType.API, "apiToDelete"))
-                .thenReturn(of(mock(PortalNotificationConfig.class)), empty());
+            .thenReturn(of(mock(PortalNotificationConfig.class)), empty());
         when(portalNotificationConfigRepository.findById("apiToDelete-2", NotificationReferenceType.API, "apiToDelete"))
-                .thenReturn(of(mock(PortalNotificationConfig.class)), empty());
+            .thenReturn(of(mock(PortalNotificationConfig.class)), empty());
     }
 }

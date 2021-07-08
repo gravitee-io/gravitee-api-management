@@ -17,7 +17,6 @@ package io.gravitee.repository.healthcheck.query;
 
 import io.gravitee.repository.analytics.query.Aggregation;
 import io.gravitee.repository.healthcheck.query.response.histogram.DateHistogramResponse;
-
 import java.util.ArrayList;
 import java.util.List;
 

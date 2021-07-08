@@ -17,6 +17,7 @@ package io.gravitee.repository.redis.ratelimit;
 
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.redis.common.AbstractRepositoryConfiguration;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +26,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
-
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,7 +47,7 @@ public class RateLimitRepositoryConfiguration extends AbstractRepositoryConfigur
         DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
         redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/ratelimit.lua")));
         redisScript.setResultType(List.class);
-        return  redisScript;
+        return redisScript;
     }
 
     @Override

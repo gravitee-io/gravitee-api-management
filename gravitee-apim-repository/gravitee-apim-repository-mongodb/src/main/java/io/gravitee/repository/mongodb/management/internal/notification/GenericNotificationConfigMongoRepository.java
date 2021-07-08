@@ -16,11 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.notification;
 
 import io.gravitee.repository.mongodb.management.internal.model.GenericNotificationConfigMongo;
+import java.util.Set;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -28,7 +27,6 @@ import java.util.Set;
  */
 @Repository
 public interface GenericNotificationConfigMongoRepository extends MongoRepository<GenericNotificationConfigMongo, String> {
-
     @Query("{ 'hooks': ?0, 'referenceType': ?1, 'referenceId': ?2 }")
     Set<GenericNotificationConfigMongo> findByReferenceAndHook(String hook, String referenceType, String referenceId);
 
@@ -38,6 +36,3 @@ public interface GenericNotificationConfigMongoRepository extends MongoRepositor
     @Query(value = "{ 'config': ?0 }", delete = true)
     void deleteByConfig(String config);
 }
-
-
-

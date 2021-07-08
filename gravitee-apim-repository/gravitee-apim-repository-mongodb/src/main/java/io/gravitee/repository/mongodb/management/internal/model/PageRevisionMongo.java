@@ -15,10 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.Objects;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import java.util.Objects;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -27,75 +26,88 @@ import java.util.Objects;
 @Document(collection = "page_revisions")
 public class PageRevisionMongo extends Auditable {
 
-	@Id
-	private PageRevisionPkMongo id;
-	private String name;
-	private String content;
-	private String hash;
-	private String contributor;
+    @Id
+    private PageRevisionPkMongo id;
 
-	public PageRevisionPkMongo getId() {
-		return id;
-	}
+    private String name;
+    private String content;
+    private String hash;
+    private String contributor;
 
-	public void setId(PageRevisionPkMongo id) {
-		this.id = id;
-	}
+    public PageRevisionPkMongo getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public void setId(PageRevisionPkMongo id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getContent() {
-		return content;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setContent(String content) {
-		this.content = content;
-	}
+    public String getContent() {
+        return content;
+    }
 
-	public String getHash() {
-		return hash;
-	}
+    public void setContent(String content) {
+        this.content = content;
+    }
 
-	public void setHash(String hash) {
-		this.hash = hash;
-	}
+    public String getHash() {
+        return hash;
+    }
 
-	public String getContributor() {
-		return contributor;
-	}
+    public void setHash(String hash) {
+        this.hash = hash;
+    }
 
-	public void setContributor(String contributor) {
-		this.contributor = contributor;
-	}
+    public String getContributor() {
+        return contributor;
+    }
 
+    public void setContributor(String contributor) {
+        this.contributor = contributor;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof PageRevisionMongo)) return false;
-		PageRevisionMongo pageMongo = (PageRevisionMongo) o;
-		return Objects.equals(id, pageMongo.id);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PageRevisionMongo)) return false;
+        PageRevisionMongo pageMongo = (PageRevisionMongo) o;
+        return Objects.equals(id, pageMongo.id);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(id);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 
-	@Override
-	public String toString() {
-		return "PageMongo{" +
-				"id='" + id + '\'' +
-				", name='" + name + '\'' +
-				", content='" + content + '\'' +
-				", hash='" + hash + '\'' +
-				", contributor='" + contributor + '\'' +
-				"} " + super.toString();
-	}
+    @Override
+    public String toString() {
+        return (
+            "PageMongo{" +
+            "id='" +
+            id +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", content='" +
+            content +
+            '\'' +
+            ", hash='" +
+            hash +
+            '\'' +
+            ", contributor='" +
+            contributor +
+            '\'' +
+            "} " +
+            super.toString()
+        );
+    }
 }

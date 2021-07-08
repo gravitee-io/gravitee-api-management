@@ -23,13 +23,12 @@ import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.reactivex.*;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
+import javax.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,30 +55,44 @@ public class HazelcastRateLimitRepository implements RateLimitRepository<RateLim
 
         Lock lock = hazelcastInstance.getLock("lock-rl-" + key);
 
-        return Completable.create(emitter -> {
-            lock.lock();
-            emitter.onComplete();
-        })
-                .subscribeOn(Schedulers.computation())
-                .andThen(
-                        Single.defer(() ->
-                                Maybe.fromFuture(counters.getAsync(key))
-                                        .switchIfEmpty((SingleSource<RateLimit>) observer -> observer.onSuccess(supplier.get()))
-                                        .flatMap((Function<RateLimit, SingleSource<RateLimit>>) rateLimit -> {
-                                            if (rateLimit.getResetTime() < now) {
-                                                rateLimit = supplier.get();
-                                            }
+        return Completable
+            .create(
+                emitter -> {
+                    lock.lock();
+                    emitter.onComplete();
+                }
+            )
+            .subscribeOn(Schedulers.computation())
+            .andThen(
+                Single.defer(
+                    () ->
+                        Maybe
+                            .fromFuture(counters.getAsync(key))
+                            .switchIfEmpty((SingleSource<RateLimit>) observer -> observer.onSuccess(supplier.get()))
+                            .flatMap(
+                                (Function<RateLimit, SingleSource<RateLimit>>) rateLimit -> {
+                                    if (rateLimit.getResetTime() < now) {
+                                        rateLimit = supplier.get();
+                                    }
 
-                                            rateLimit.setCounter(rateLimit.getCounter() + weight);
+                                    rateLimit.setCounter(rateLimit.getCounter() + weight);
 
-                                            final RateLimit finalRateLimit = rateLimit;
+                                    final RateLimit finalRateLimit = rateLimit;
 
-                                            return Completable.fromFuture(
-                                                    counters.setAsync(
-                                                            rateLimit.getKey(), rateLimit, now - rateLimit.getResetTime(), TimeUnit.MILLISECONDS))
-                                                    .andThen(Single.defer(() -> Single.just(finalRateLimit)))
-                                                    .doFinally(lock::unlock);
-                                        })
-                        ));
+                                    return Completable
+                                        .fromFuture(
+                                            counters.setAsync(
+                                                rateLimit.getKey(),
+                                                rateLimit,
+                                                now - rateLimit.getResetTime(),
+                                                TimeUnit.MILLISECONDS
+                                            )
+                                        )
+                                        .andThen(Single.defer(() -> Single.just(finalRateLimit)))
+                                        .doFinally(lock::unlock);
+                                }
+                            )
+                )
+            );
     }
 }

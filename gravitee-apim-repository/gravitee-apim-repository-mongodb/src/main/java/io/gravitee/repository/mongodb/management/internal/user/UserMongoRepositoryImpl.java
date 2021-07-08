@@ -15,20 +15,19 @@
  */
 package io.gravitee.repository.mongodb.management.internal.user;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-
-import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -65,10 +64,6 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
         List<UserMongo> users = mongoTemplate.find(query, UserMongo.class);
         long total = mongoTemplate.count(query, UserMongo.class);
 
-        return new Page<>(
-                users, (pageable != null) ? pageable.pageNumber() : 0,
-                users.size(), total);
+        return new Page<>(users, (pageable != null) ? pageable.pageNumber() : 0, users.size(), total);
     }
 }
-
-

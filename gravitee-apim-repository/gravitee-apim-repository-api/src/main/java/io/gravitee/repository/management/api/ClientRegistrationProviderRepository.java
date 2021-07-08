@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.repository.management.model.IdentityProvider;
-
 import java.util.Set;
 
 /**
@@ -26,7 +25,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ClientRegistrationProviderRepository extends CrudRepository<ClientRegistrationProvider, String> {
-
     /**
      * List all client registration providers
      * @return all client registration providers

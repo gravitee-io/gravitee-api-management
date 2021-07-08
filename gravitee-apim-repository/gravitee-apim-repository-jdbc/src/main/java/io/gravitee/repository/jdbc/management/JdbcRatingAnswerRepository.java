@@ -19,14 +19,13 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
+import java.sql.Types;
+import java.util.Date;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
-
-import java.sql.Types;
-import java.util.Date;
-import java.util.List;
 
 /**
  *
@@ -43,14 +42,15 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
 
     @Override
     protected JdbcObjectMapper<RatingAnswer> buildOrm() {
-        return JdbcObjectMapper.builder(RatingAnswer.class, this.tableName, "id")
-                .addColumn("id", Types.NVARCHAR, String.class)
-                .addColumn("rating", Types.NVARCHAR, String.class)
-                .addColumn("user", Types.NVARCHAR, String.class)
-                .addColumn("comment", Types.NVARCHAR, String.class)
-                .addColumn("created_at", Types.TIMESTAMP, Date.class)
-                .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-                .build();
+        return JdbcObjectMapper
+            .builder(RatingAnswer.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("rating", Types.NVARCHAR, String.class)
+            .addColumn("user", Types.NVARCHAR, String.class)
+            .addColumn("comment", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
     }
 
     @Override
@@ -74,10 +74,7 @@ public class JdbcRatingAnswerRepository extends JdbcAbstractCrudRepository<Ratin
     public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
         LOGGER.debug("JdbcRatingAnswerRepository.findByRating({})", rating);
         try {
-            return jdbcTemplate.query("select ra.* from " + this.tableName + " ra where rating = ?"
-                    , getOrm().getRowMapper()
-                    , rating
-            );
+            return jdbcTemplate.query("select ra.* from " + this.tableName + " ra where rating = ?", getOrm().getRowMapper(), rating);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find rating answers by rating:", ex);
             throw new TechnicalException("Failed to find rating answers by rating", ex);

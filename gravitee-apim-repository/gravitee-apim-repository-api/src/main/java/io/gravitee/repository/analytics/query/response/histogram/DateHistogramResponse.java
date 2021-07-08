@@ -16,7 +16,6 @@
 package io.gravitee.repository.analytics.query.response.histogram;
 
 import io.gravitee.repository.analytics.query.response.Response;
-
 import java.util.ArrayList;
 import java.util.List;
 

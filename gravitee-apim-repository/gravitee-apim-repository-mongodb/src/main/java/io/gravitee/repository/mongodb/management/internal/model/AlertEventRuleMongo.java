@@ -20,10 +20,10 @@ package io.gravitee.repository.mongodb.management.internal.model;
  * @author GraviteeSource Team
  */
 public class AlertEventRuleMongo {
+
     private String event;
 
-    public AlertEventRuleMongo() {
-    }
+    public AlertEventRuleMongo() {}
 
     public AlertEventRuleMongo(String event) {
         this.event = event;
@@ -39,8 +39,6 @@ public class AlertEventRuleMongo {
 
     @Override
     public String toString() {
-        return "AlertEventRuleMongo{" +
-                ", event='" + event + '\'' +
-                "}";
+        return "AlertEventRuleMongo{" + ", event='" + event + '\'' + "}";
     }
 }

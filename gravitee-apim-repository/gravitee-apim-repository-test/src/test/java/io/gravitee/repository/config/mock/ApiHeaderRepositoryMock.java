@@ -15,18 +15,6 @@
  */
 package io.gravitee.repository.config.mock;
 
-import io.gravitee.repository.management.api.ApiHeaderRepository;
-import io.gravitee.repository.management.api.AuditRepository;
-import io.gravitee.repository.management.api.search.AuditCriteria;
-import io.gravitee.repository.management.model.ApiHeader;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Plan;
-import org.mockito.ArgumentMatcher;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
@@ -36,6 +24,17 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import io.gravitee.repository.management.api.ApiHeaderRepository;
+import io.gravitee.repository.management.api.AuditRepository;
+import io.gravitee.repository.management.api.search.AuditCriteria;
+import io.gravitee.repository.management.model.ApiHeader;
+import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Plan;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import org.mockito.ArgumentMatcher;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,16 +49,15 @@ public class ApiHeaderRepositoryMock extends AbstractRepositoryMock<ApiHeaderRep
     @Override
     void prepare(ApiHeaderRepository apiHeaderRepository) throws Exception {
         //shouldDelete
-        when(apiHeaderRepository.findById("1"))
-                .thenReturn(of(mock(ApiHeader.class)), empty());
+        when(apiHeaderRepository.findById("1")).thenReturn(of(mock(ApiHeader.class)), empty());
 
         //shouldFindAll
         when(apiHeaderRepository.findAll())
-                .thenReturn(new HashSet<>(Arrays.asList(mock(ApiHeader.class), mock(ApiHeader.class), mock(ApiHeader.class))));
-        
-      //shouldFindAllByEnvironment
+            .thenReturn(new HashSet<>(Arrays.asList(mock(ApiHeader.class), mock(ApiHeader.class), mock(ApiHeader.class))));
+
+        //shouldFindAllByEnvironment
         when(apiHeaderRepository.findAllByEnvironment(any()))
-                .thenReturn(new HashSet<>(Arrays.asList(mock(ApiHeader.class), mock(ApiHeader.class))));
+            .thenReturn(new HashSet<>(Arrays.asList(mock(ApiHeader.class), mock(ApiHeader.class))));
 
         //shouldUpdate
         ApiHeader up = new ApiHeader();

@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.api.search;
 
 import io.gravitee.repository.management.model.EventType;
-
 import java.util.*;
 
 /**
@@ -30,7 +29,7 @@ public class EventCriteria {
     private Map<String, Object> properties;
 
     private long from, to;
-    
+
     private String environmentId;
 
     EventCriteria(EventCriteria.Builder builder) {
@@ -106,6 +105,7 @@ public class EventCriteria {
     }
 
     public static class Builder {
+
         private Map<String, Object> properties = new HashMap<>();
 
         private Collection<EventType> types = new ArrayList<>();
@@ -113,7 +113,7 @@ public class EventCriteria {
         private long from;
 
         private long to;
-        
+
         private String environmentId;
 
         public Builder from(long from) {
@@ -126,8 +126,8 @@ public class EventCriteria {
             return this;
         }
 
-        public Builder types(EventType ... types) {
-            for(int i = 0 ; i < types.length ; i++) {
+        public Builder types(EventType... types) {
+            for (int i = 0; i < types.length; i++) {
                 this.types.add(types[i]);
             }
 
@@ -142,9 +142,10 @@ public class EventCriteria {
 
         public Builder environmentId(String environmentId) {
             this.environmentId = environmentId;
-            
+
             return this;
         }
+
         public EventCriteria build() {
             return new EventCriteria(this);
         }

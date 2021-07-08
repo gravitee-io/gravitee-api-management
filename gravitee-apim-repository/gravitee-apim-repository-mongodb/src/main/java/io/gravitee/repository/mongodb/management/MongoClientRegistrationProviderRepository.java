@@ -21,14 +21,13 @@ import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.repository.mongodb.management.internal.application.ClientRegistrationProviderMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ClientRegistrationProviderMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -60,7 +59,9 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         LOGGER.debug("Create client registration provider [{}]", clientRegistrationProvider.getName());
 
         ClientRegistrationProviderMongo identityProviderMongo = map(clientRegistrationProvider);
-        ClientRegistrationProviderMongo createdIdentityProviderMongo = internalClientRegistrationProviderRepository.insert(identityProviderMongo);
+        ClientRegistrationProviderMongo createdIdentityProviderMongo = internalClientRegistrationProviderRepository.insert(
+            identityProviderMongo
+        );
 
         LOGGER.debug("Create client registration provider [{}] - Done", clientRegistrationProvider.getName());
 
@@ -73,9 +74,13 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             throw new IllegalStateException("Client registration provider must not be null");
         }
 
-        ClientRegistrationProviderMongo clientRegistrationProviderMongo = internalClientRegistrationProviderRepository.findById(clientRegistrationProvider.getId()).orElse(null);
+        ClientRegistrationProviderMongo clientRegistrationProviderMongo = internalClientRegistrationProviderRepository
+            .findById(clientRegistrationProvider.getId())
+            .orElse(null);
         if (clientRegistrationProviderMongo == null) {
-            throw new IllegalStateException(String.format("No client registration provider found with id [%s]", clientRegistrationProvider.getId()));
+            throw new IllegalStateException(
+                String.format("No client registration provider found with id [%s]", clientRegistrationProvider.getId())
+            );
         }
 
         try {
@@ -93,9 +98,10 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             clientRegistrationProviderMongo.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
             clientRegistrationProviderMongo.setSoftwareId(clientRegistrationProvider.getSoftwareId());
 
-            ClientRegistrationProviderMongo clientRegistrationProviderMongoUpdated = internalClientRegistrationProviderRepository.save(clientRegistrationProviderMongo);
+            ClientRegistrationProviderMongo clientRegistrationProviderMongoUpdated = internalClientRegistrationProviderRepository.save(
+                clientRegistrationProviderMongo
+            );
             return map(clientRegistrationProviderMongoUpdated);
-
         } catch (Exception e) {
             LOGGER.error("An error occurs when updating client registration provider", e);
             throw new TechnicalException("An error occurs when updating client registration provider");
@@ -117,7 +123,11 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         LOGGER.debug("Find all client registration providers");
 
         List<ClientRegistrationProviderMongo> clientRegistrationProviders = internalClientRegistrationProviderRepository.findAll();
-        Set<ClientRegistrationProvider> res = mapper.collection2set(clientRegistrationProviders, ClientRegistrationProviderMongo.class, ClientRegistrationProvider.class);
+        Set<ClientRegistrationProvider> res = mapper.collection2set(
+            clientRegistrationProviders,
+            ClientRegistrationProviderMongo.class,
+            ClientRegistrationProvider.class
+        );
 
         LOGGER.debug("Find all client registration providers - Done");
         return res;

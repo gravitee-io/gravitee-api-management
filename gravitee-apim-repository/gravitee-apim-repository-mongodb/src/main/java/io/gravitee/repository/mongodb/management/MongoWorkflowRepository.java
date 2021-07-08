@@ -15,23 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import io.gravitee.repository.management.model.Workflow;
 import io.gravitee.repository.mongodb.management.internal.api.WorkflowMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.WorkflowMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -39,7 +38,7 @@ import static java.util.stream.Collectors.toList;
  */
 @Component
 public class MongoWorkflowRepository implements WorkflowRepository {
-    
+
     private final Logger LOGGER = LoggerFactory.getLogger(MongoWorkflowRepository.class);
 
     @Autowired
@@ -95,9 +94,7 @@ public class MongoWorkflowRepository implements WorkflowRepository {
 
             WorkflowMongo workflowMongoUpdated = internalWorkflowRepo.save(workflowMongo);
             return mapper.map(workflowMongoUpdated, Workflow.class);
-
         } catch (Exception e) {
-
             LOGGER.error("An error occured when updating workflow", e);
             throw new TechnicalException("An error occured when updating workflow");
         }
@@ -116,16 +113,18 @@ public class MongoWorkflowRepository implements WorkflowRepository {
     @Override
     public Set<Workflow> findAll() {
         final List<WorkflowMongo> workflows = internalWorkflowRepo.findAll();
-        return workflows.stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return workflows.stream().map(this::map).collect(Collectors.toSet());
     }
 
     @Override
     public List<Workflow> findByReferenceAndType(String referenceType, String referenceId, String type) {
         LOGGER.debug("Find workflow by reference and type '{}' / '{}' / '{}'", referenceType, referenceId, type);
 
-        final List<WorkflowMongo> workflows = internalWorkflowRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(referenceType, referenceId, type);
+        final List<WorkflowMongo> workflows = internalWorkflowRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByCreatedAtDesc(
+            referenceType,
+            referenceId,
+            type
+        );
 
         LOGGER.debug("Find workflow by reference and type '{}' / '{}' / '{}' done", referenceType, referenceId, type);
         return workflows.stream().map(this::map).collect(toList());

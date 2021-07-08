@@ -26,21 +26,45 @@ import java.util.Objects;
 public class Audit {
 
     public enum AuditReferenceType {
-        API, APPLICATION, ENVIRONMENT, ORGANIZATION
+        API,
+        APPLICATION,
+        ENVIRONMENT,
+        ORGANIZATION,
     }
 
     public interface AuditEvent {
         String name();
     }
 
-    public interface ApiAuditEvent extends AuditEvent {
-
-    }
+    public interface ApiAuditEvent extends AuditEvent {}
 
     public enum AuditProperties {
-        PLAN, PAGE, API_KEY, METADATA, GROUP, USER, ROLE, API, APPLICATION, TAG, TENANT, CATEGORY, PARAMETER, DICTIONARY,
-        API_HEADER, IDENTITY_PROVIDER, ENTRYPOINT, REQUEST_ID, CLIENT_REGISTRATION_PROVIDER, QUALITY_RULE, API_QUALITY_RULE,
-        DASHBOARD, THEME, TOKEN, USER_FIELD, NOTIFICATION_TEMPLATE
+        PLAN,
+        PAGE,
+        API_KEY,
+        METADATA,
+        GROUP,
+        USER,
+        ROLE,
+        API,
+        APPLICATION,
+        TAG,
+        TENANT,
+        CATEGORY,
+        PARAMETER,
+        DICTIONARY,
+        API_HEADER,
+        IDENTITY_PROVIDER,
+        ENTRYPOINT,
+        REQUEST_ID,
+        CLIENT_REGISTRATION_PROVIDER,
+        QUALITY_RULE,
+        API_QUALITY_RULE,
+        DASHBOARD,
+        THEME,
+        TOKEN,
+        USER_FIELD,
+        NOTIFICATION_TEMPLATE,
     }
 
     private String id;
@@ -131,15 +155,33 @@ public class Audit {
 
     @Override
     public String toString() {
-        return "Audit{" +
-                "id='" + id + '\'' +
-                ", referenceId='" + referenceId + '\'' +
-                ", referenceType='" + referenceType + '\'' +
-                ", event='" + event + '\'' +
-                ", properties='" + properties + '\'' +
-                ", user='" + user + '\'' +
-                ", createdAt='" + createdAt + '\'' +
-                ", patch='" + patch + '\'' +
-                '}';
+        return (
+            "Audit{" +
+            "id='" +
+            id +
+            '\'' +
+            ", referenceId='" +
+            referenceId +
+            '\'' +
+            ", referenceType='" +
+            referenceType +
+            '\'' +
+            ", event='" +
+            event +
+            '\'' +
+            ", properties='" +
+            properties +
+            '\'' +
+            ", user='" +
+            user +
+            '\'' +
+            ", createdAt='" +
+            createdAt +
+            '\'' +
+            ", patch='" +
+            patch +
+            '\'' +
+            '}'
+        );
     }
 }

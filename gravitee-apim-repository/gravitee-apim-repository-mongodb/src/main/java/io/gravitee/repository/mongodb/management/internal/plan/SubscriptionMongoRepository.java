@@ -24,6 +24,4 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface SubscriptionMongoRepository extends MongoRepository<SubscriptionMongo, String>, SubscriptionMongoRepositoryCustom {
-
-}
+public interface SubscriptionMongoRepository extends MongoRepository<SubscriptionMongo, String>, SubscriptionMongoRepositoryCustom {}
