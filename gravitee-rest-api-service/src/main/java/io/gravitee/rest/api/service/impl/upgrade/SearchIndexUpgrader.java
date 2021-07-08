@@ -31,6 +31,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
@@ -59,32 +60,40 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     public boolean upgrade() {
         // Index APIs
         Set<ApiEntity> apis = apiService.findAll();
-        apis.forEach(
-            apiEntity -> {
-                // API
-                searchEngineService.index(apiEntity, true);
 
-                // Pages
-                List<PageEntity> apiPages = pageService.search(
-                    new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
-                    true
-                );
-                apiPages.forEach(
-                    page -> {
-                        try {
-                            if (
-                                !PageType.FOLDER.name().equals(page.getType()) &&
-                                !PageType.ROOT.name().equals(page.getType()) &&
-                                !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
-                                !PageType.LINK.name().equals(page.getType())
-                            ) {
-                                pageService.transformSwagger(page, apiEntity.getId());
-                                searchEngineService.index(page, true);
-                            }
-                        } catch (Exception ignored) {}
-                    }
-                );
-            }
+        ForkJoinPool customThreadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
+
+        customThreadPool.submit(
+            () ->
+                apis
+                    .parallelStream()
+                    .forEach(
+                        apiEntity -> {
+                            // API
+                            searchEngineService.index(apiEntity, true);
+
+                            // Pages
+                            List<PageEntity> apiPages = pageService.search(
+                                new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
+                                true
+                            );
+                            apiPages.forEach(
+                                page -> {
+                                    try {
+                                        if (
+                                            !PageType.FOLDER.name().equals(page.getType()) &&
+                                            !PageType.ROOT.name().equals(page.getType()) &&
+                                            !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
+                                            !PageType.LINK.name().equals(page.getType())
+                                        ) {
+                                            pageService.transformSwagger(page, apiEntity.getId());
+                                            searchEngineService.index(page, true);
+                                        }
+                                    } catch (Exception ignored) {}
+                                }
+                            );
+                        }
+                    )
         );
 
         // Index users
@@ -92,7 +101,12 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
             new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
             new PageableImpl(1, Integer.MAX_VALUE)
         );
-        users.getContent().forEach(userEntity -> searchEngineService.index(userEntity, true));
+
+        customThreadPool.submit(
+            () -> users.getContent().parallelStream().forEach(userEntity -> searchEngineService.index(userEntity, true))
+        );
+
+        customThreadPool.shutdown();
 
         return true;
     }

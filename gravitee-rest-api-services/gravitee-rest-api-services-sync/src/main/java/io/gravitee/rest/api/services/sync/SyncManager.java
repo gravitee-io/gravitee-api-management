@@ -41,6 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
@@ -60,13 +61,7 @@ public class SyncManager {
     private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
 
     @Autowired
-    private ApiRepository apiRepository;
-
-    @Autowired
     private DictionaryManager dictionaryManager;
-
-    @Autowired
-    private DictionaryRepository dictionaryRepository;
 
     @Autowired
     private EventRepository eventRepository;
@@ -113,78 +108,30 @@ public class SyncManager {
     }
 
     private void synchronizeApis(long nextLastRefreshAt) {
-        Map<String, Event> apiEvents;
+        final EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
+            .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
-        // Initial synchronization
-        if (lastRefreshAt == -1) {
-            // Extract all registered APIs
-            List<io.gravitee.repository.management.model.Api> apis = apiRepository.search(
-                null,
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            );
-
-            // Get last event by API
-            apiEvents =
-                apis
-                    .stream()
-                    .map(api -> getLastApiEvent(api.getId()))
-                    .filter(Objects::nonNull)
-                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()), event -> event));
-        } else {
-            // Get latest API events
-            List<Event> events = getLatestApiEvents(nextLastRefreshAt);
-
-            // Extract only the latest event by API
-            apiEvents =
-                events
-                    .stream()
-                    .collect(
-                        toMap(
-                            event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
-                            event -> event,
-                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
-                        )
-                    );
-        }
+        Map<String, Event> apiEvents = eventRepository
+            .searchLatest(criteriaBuilder.build(), Event.EventProperties.API_ID, null, null)
+            .stream()
+            .collect(toMap(event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()), event -> event));
 
         // Then, compute events
         computeApiEvents(apiEvents);
     }
 
     private void synchronizeDictionaries(long nextLastRefreshAt) throws Exception {
-        Map<String, Event> dictionaryEvents;
+        final EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
+            .types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
+            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
 
-        // Initial synchronization
-        if (lastRefreshAt == -1) {
-            List<Dictionary> dictionaries = dictionaryRepository
-                .findAll()
-                .stream()
-                .filter(dictionary -> dictionary.getType() == DictionaryType.DYNAMIC)
-                .collect(Collectors.toList());
-
-            // Get last event by dictionary
-            dictionaryEvents =
-                dictionaries
-                    .stream()
-                    .map(api -> getLastDictionaryEvent(api.getId()))
-                    .filter(Objects::nonNull)
-                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
-        } else {
-            // Get latest dictionary events
-            List<Event> events = getLatestDictionaryEvents(nextLastRefreshAt);
-
-            // Extract only the latest event by API
-            dictionaryEvents =
-                events
-                    .stream()
-                    .collect(
-                        toMap(
-                            event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
-                            event -> event,
-                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
-                        )
-                    );
-        }
+        Map<String, Event> dictionaryEvents = eventRepository
+            .searchLatest(criteriaBuilder.build(), Event.EventProperties.DICTIONARY_ID, null, null)
+            .stream()
+            .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
 
         computeDictionaryEvents(dictionaryEvents);
     }
@@ -207,93 +154,52 @@ public class SyncManager {
     }
 
     private void computeApiEvents(Map<String, Event> apiEvents) {
-        apiEvents.forEach(
-            (apiId, apiEvent) -> {
-                switch (apiEvent.getType()) {
-                    case UNPUBLISH_API:
-                    case STOP_API:
-                        apiManager.undeploy(apiId);
-                        break;
-                    case START_API:
-                    case PUBLISH_API:
-                        try {
-                            // Read API definition from event
-                            io.gravitee.repository.management.model.Api payloadApi = objectMapper.readValue(
-                                apiEvent.getPayload(),
-                                io.gravitee.repository.management.model.Api.class
-                            );
+        final int parallelism = Runtime.getRuntime().availableProcessors() * 2;
 
-                            // API to deploy
-                            ApiEntity apiToDeploy = convert(payloadApi);
+        if (apiEvents.size() > parallelism) {
+            ForkJoinPool customThreadPool = new ForkJoinPool(parallelism);
+            customThreadPool.submit(() -> apiEvents.entrySet().parallelStream().forEach(e -> processApiEvent(e.getKey(), e.getValue())));
+            customThreadPool.shutdown();
+        } else {
+            apiEvents.forEach(this::processApiEvent);
+        }
+    }
 
-                            if (apiToDeploy != null) {
-                                // Get deployed API
-                                ApiEntity deployedApi = apiManager.get(apiToDeploy.getId());
+    private void processApiEvent(String apiId, Event apiEvent) {
+        switch (apiEvent.getType()) {
+            case UNPUBLISH_API:
+            case STOP_API:
+                apiManager.undeploy(apiId);
+                break;
+            case START_API:
+            case PUBLISH_API:
+                try {
+                    // Read API definition from event
+                    Api payloadApi = objectMapper.readValue(apiEvent.getPayload(), Api.class);
 
-                                // API is not yet deployed, so let's do it !
-                                if (deployedApi == null) {
-                                    apiManager.deploy(apiToDeploy);
-                                } else {
-                                    if (deployedApi.getDeployedAt().before(apiToDeploy.getDeployedAt())) {
-                                        apiManager.update(apiToDeploy);
-                                    }
-                                }
+                    // API to deploy
+                    ApiEntity apiToDeploy = convert(payloadApi);
+
+                    if (apiToDeploy != null) {
+                        // Get deployed API
+                        ApiEntity deployedApi = apiManager.get(apiToDeploy.getId());
+
+                        // API is not yet deployed, so let's do it !
+                        if (deployedApi == null) {
+                            apiManager.deploy(apiToDeploy);
+                        } else {
+                            if (deployedApi.getDeployedAt().before(apiToDeploy.getDeployedAt())) {
+                                apiManager.update(apiToDeploy);
                             }
-                        } catch (Exception e) {
-                            logger.error("Error while determining deployed APIs store into events payload", e);
                         }
-                        break;
-                    default:
-                        break;
+                    }
+                } catch (Exception e) {
+                    logger.error("Error while determining deployed APIs store into events payload", e);
                 }
-            }
-        );
-    }
-
-    private Event getLastDictionaryEvent(final String dictionary) {
-        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
-        .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary);
-
-        List<Event> events = eventRepository
-            .search(
-                eventCriteriaBuilder.types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
-            .getContent();
-
-        return (!events.isEmpty()) ? events.get(0) : null;
-    }
-
-    private List<Event> getLatestDictionaryEvents(long nextLastRefreshAt) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder()
-            .types(EventType.START_DICTIONARY, EventType.STOP_DICTIONARY)
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
-
-        return eventRepository.search(builder.build());
-    }
-
-    private List<Event> getLatestApiEvents(long nextLastRefreshAt) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder()
-            .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
-
-        return eventRepository.search(builder.build());
-    }
-
-    private Event getLastApiEvent(final String api) {
-        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
-        .property(Event.EventProperties.API_ID.getValue(), api);
-
-        List<Event> events = eventRepository
-            .search(
-                eventCriteriaBuilder.types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
-            .getContent();
-
-        return (!events.isEmpty()) ? events.get(0) : null;
+                break;
+            default:
+                break;
+        }
     }
 
     private ApiEntity convert(Api api) {
