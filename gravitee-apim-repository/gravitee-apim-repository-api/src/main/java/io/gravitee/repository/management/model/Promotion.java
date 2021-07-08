@@ -20,6 +20,10 @@ import java.util.Objects;
 
 public class Promotion {
 
+    public enum AuditEvent implements Audit.ApiAuditEvent {
+        PROMOTION_CREATED,
+    }
+
     private String id;
     private String apiDefinition;
     private String apiId;
