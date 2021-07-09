@@ -156,8 +156,11 @@ public class AuthenticationSuccessListenerTest {
         when(roleEntity1.getName()).thenReturn("ROLE1");
         RoleEntity roleEntity2 = mock(RoleEntity.class);
         when(roleEntity2.getName()).thenReturn("ROLE2");
+        RoleEntity defaultRole = mock(RoleEntity.class);
+        when(defaultRole.getName()).thenReturn("DEFAULT_ROLE");
         when(roleServiceMock.findByScopeAndName(RoleScope.ENVIRONMENT, "ROLE1")).thenReturn(Optional.of(roleEntity1));
         when(roleServiceMock.findByScopeAndName(RoleScope.ORGANIZATION, "ROLE2")).thenReturn(Optional.of(roleEntity2));
+        when(roleServiceMock.findDefaultRoleByScopes(any())).thenReturn(Arrays.asList(defaultRole));
         when(userServiceMock.create(any(NewExternalUserEntity.class), eq(false))).thenReturn(userEntity);
 
         listener.onApplicationEvent(eventMock);
@@ -186,8 +189,11 @@ public class AuthenticationSuccessListenerTest {
         when(roleEntity1.getName()).thenReturn("ROLE");
         RoleEntity roleEntity2 = mock(RoleEntity.class);
         when(roleEntity2.getName()).thenReturn("ROLE2");
+        RoleEntity defaultRole = mock(RoleEntity.class);
+        when(defaultRole.getName()).thenReturn("DEFAULT_ROLE");
         when(roleServiceMock.findByScopeAndName(RoleScope.ENVIRONMENT, "ROLE")).thenReturn(Optional.of(roleEntity1));
         when(roleServiceMock.findByScopeAndName(RoleScope.ORGANIZATION, "ROLE2")).thenReturn(Optional.of(roleEntity2));
+        when(roleServiceMock.findDefaultRoleByScopes(any())).thenReturn(Arrays.asList(defaultRole));
         when(userServiceMock.create(any(NewExternalUserEntity.class), eq(false))).thenReturn(userEntity);
 
         listener.onApplicationEvent(eventMock);
@@ -218,6 +224,9 @@ public class AuthenticationSuccessListenerTest {
         when(userServiceMock.findBySource(userDetailsMock.getSource(), userDetailsMock.getSourceId(), false))
             .thenThrow(UserNotFoundException.class);
         when(userServiceMock.create(any(NewExternalUserEntity.class), eq(false))).thenReturn(userEntity);
+        RoleEntity defaultRole = mock(RoleEntity.class);
+        when(defaultRole.getName()).thenReturn("DEFAULT_ROLE");
+        when(roleServiceMock.findDefaultRoleByScopes(any())).thenReturn(Arrays.asList(defaultRole));
         listener.onApplicationEvent(eventMock);
 
         verify(userServiceMock, times(1)).findBySource(USERSOURCE, userDetailsMock.getSourceId(), false);

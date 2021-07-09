@@ -23,12 +23,16 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.MembershipAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URLConnection;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
@@ -94,8 +98,8 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
             details.setUsername(createdUser.getId());
 
             if (!addDefaultRole) {
-                addRole(RoleScope.ENVIRONMENT, createdUser.getId(), event.getAuthentication().getAuthorities());
-                addRole(RoleScope.ORGANIZATION, createdUser.getId(), event.getAuthentication().getAuthorities());
+                addRoles(RoleScope.ENVIRONMENT, createdUser.getId(), event.getAuthentication().getAuthorities());
+                addRoles(RoleScope.ORGANIZATION, createdUser.getId(), event.getAuthentication().getAuthorities());
             }
         }
 
@@ -150,74 +154,76 @@ public class AuthenticationSuccessListener implements ApplicationListener<Authen
      * 3 - ROLE
      * @param roleScope the scope we're looking for
      * @param authorities the authorities to parse
-     * @return the role
+     * @return the roles
      */
-    private String getRoleFromAuthorities(RoleScope roleScope, Collection<? extends GrantedAuthority> authorities) {
-        String globalRole = null;
-        String specificRole = null;
-        for (GrantedAuthority grantedAuthority : authorities) {
-            String authority = grantedAuthority.getAuthority();
-            if (SystemRole.ADMIN.name().equals(authority)) {
-                return authority;
-            }
-            if (authority.contains(":")) {
-                String[] scopeAndName = authority.split(":");
-                if (roleScope.name().equals(scopeAndName[0])) {
-                    specificRole = scopeAndName[1];
+    private Set<String> getRolesFromAuthorities(RoleScope roleScope, Collection<? extends GrantedAuthority> authorities) {
+        return authorities
+            .stream()
+            .map(
+                (Function<GrantedAuthority, String>) grantedAuthority -> {
+                    String authority = grantedAuthority.getAuthority();
+                    if (authority.contains(":")) {
+                        String[] scopeAndName = authority.split(":");
+                        if (roleScope.name().equals(scopeAndName[0])) {
+                            return scopeAndName[1];
+                        }
+                    }
+                    return authority;
                 }
-            } else {
-                globalRole = authority;
-            }
-        }
-        return specificRole != null ? specificRole : globalRole;
+            )
+            .collect(Collectors.toSet());
     }
 
     /**
-     * add a role to a user.
+     * add a roles to a user.
      * If no role found (not provided or no exist), the default role is set.
      * if no role set, throw an IllegalArgumentException
      * @param roleScope
      * @param userId
      * @param authorities
      */
-    private void addRole(RoleScope roleScope, String userId, Collection<? extends GrantedAuthority> authorities) {
-        String roleName;
-        String role = getRoleFromAuthorities(roleScope, authorities);
-        if (role != null && !SystemRole.ADMIN.name().equals(role)) {
-            Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(roleScope, role);
-            if (optionalRole.isPresent()) {
-                roleName = optionalRole.get().getName();
+    private void addRoles(RoleScope roleScope, String userId, Collection<? extends GrantedAuthority> authorities) {
+        Set<String> rolesFromAuthorities = getRolesFromAuthorities(roleScope, authorities);
+        if (!rolesFromAuthorities.isEmpty()) {
+            MembershipService.MembershipReference membershipRef;
+            if (roleScope == RoleScope.ENVIRONMENT) {
+                membershipRef =
+                    new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
             } else {
-                Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(roleScope).stream().findFirst();
-                if (first.isPresent()) {
-                    roleName = first.get().getName();
-                } else {
-                    throw new IllegalArgumentException("No default role exist for scope " + roleScope.name());
-                }
+                membershipRef =
+                    new MembershipService.MembershipReference(
+                        MembershipReferenceType.ORGANIZATION,
+                        GraviteeContext.getCurrentOrganization()
+                    );
             }
-        } else if (!SystemRole.ADMIN.name().equals(role)) {
-            Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(roleScope).stream().findFirst();
-            if (first.isPresent()) {
-                roleName = first.get().getName();
-            } else {
-                throw new IllegalArgumentException("No default role exist for scope " + roleScope.name());
-            }
-        } else {
-            roleName = role;
-        }
 
-        MembershipService.MembershipReference membershipRef;
-        if (roleScope == RoleScope.ENVIRONMENT) {
-            membershipRef =
-                new MembershipService.MembershipReference(MembershipReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment());
-        } else {
-            membershipRef =
-                new MembershipService.MembershipReference(MembershipReferenceType.ORGANIZATION, GraviteeContext.getCurrentOrganization());
+            rolesFromAuthorities.forEach(
+                role -> {
+                    String roleName;
+                    if (SystemRole.ADMIN.name().equals(role)) {
+                        roleName = role;
+                    } else {
+                        Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(roleScope, role);
+                        if (optionalRole.isPresent()) {
+                            roleName = optionalRole.get().getName();
+                        } else {
+                            Optional<RoleEntity> first = roleService.findDefaultRoleByScopes(roleScope).stream().findFirst();
+                            if (first.isPresent()) {
+                                roleName = first.get().getName();
+                            } else {
+                                throw new IllegalArgumentException("No default role exist for scope " + roleScope.name());
+                            }
+                        }
+                    }
+                    try {
+                        membershipService.addRoleToMemberOnReference(
+                            membershipRef,
+                            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
+                            new MembershipService.MembershipRole(roleScope, roleName)
+                        );
+                    } catch (MembershipAlreadyExistsException e) {}
+                }
+            );
         }
-        membershipService.addRoleToMemberOnReference(
-            membershipRef,
-            new MembershipService.MembershipMember(userId, null, MembershipMemberType.USER),
-            new MembershipService.MembershipRole(roleScope, roleName)
-        );
     }
 }
