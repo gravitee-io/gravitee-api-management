@@ -15,16 +15,13 @@
  */
 package io.gravitee.rest.api.service.promotion;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
+import static java.util.Collections.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -33,12 +30,11 @@ import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.promotion.PromotionEntity;
-import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
-import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
-import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
+import io.gravitee.rest.api.model.promotion.*;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
@@ -50,6 +46,7 @@ import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
+import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -94,10 +91,21 @@ public class PromotionServiceTest {
     @Mock
     private PermissionService permissionService;
 
+    @Mock
+    private AuditService auditService;
+
     @Before
     public void setUp() {
         promotionService =
-            new PromotionServiceImpl(apiService, cockpitService, promotionRepository, environmentService, userService, permissionService);
+            new PromotionServiceImpl(
+                apiService,
+                cockpitService,
+                promotionRepository,
+                environmentService,
+                userService,
+                permissionService,
+                auditService
+            );
     }
 
     @Test(expected = BridgeOperationException.class)
@@ -239,7 +247,7 @@ public class PromotionServiceTest {
     }
 
     @Test
-    public void shouldProcessRejecttedPromotion() throws Exception {
+    public void shouldProcessRejectedPromotion() throws Exception {
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
@@ -296,6 +304,36 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(0)).update(any());
     }
 
+    @Test
+    public void shouldPromote() throws TechnicalException {
+        when(userService.findById(any())).thenReturn(getAUserEntity());
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setCockpitId("env#cockpit-1");
+        environmentEntity.setName("Env 1");
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+
+        when(promotionRepository.create(any())).thenReturn(getAPromotion());
+        when(cockpitService.requestPromotion(any())).thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
+
+        when(promotionRepository.update(any())).thenReturn(mock(Promotion.class));
+
+        final PromotionEntity promotionEntity = promotionService.promote("api#1", getAPromotionRequestEntity(), "user#1");
+
+        assertThat(promotionEntity).isNotNull();
+        verify(auditService).createApiAuditLog(eq("api#1"), any(), eq(PROMOTION_CREATED), any(), isNull(), any());
+    }
+
+    private UserEntity getAUserEntity() {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user#1");
+        userEntity.setEmail("user@gv.io");
+        userEntity.setPicture("http://image.png");
+        userEntity.setSource("cockpit");
+        userEntity.setSource("id");
+
+        return userEntity;
+    }
+
     private PromotionEntity getAPromotionEntity() {
         PromotionEntityAuthor promotionEntityAuthor = new PromotionEntityAuthor();
         promotionEntityAuthor.setUserId("user#1");
@@ -310,6 +348,7 @@ public class PromotionServiceTest {
         promotionEntity.setTargetEnvCockpitId("targetEnvId");
         promotionEntity.setTargetEnvName("targetEnv Name");
         promotionEntity.setApiDefinition("definition");
+        promotionEntity.setApiId("api#1");
         promotionEntity.setStatus(PromotionEntityStatus.TO_BE_VALIDATED);
         promotionEntity.setAuthor(promotionEntityAuthor);
 
@@ -327,6 +366,7 @@ public class PromotionServiceTest {
         Promotion promotion = new Promotion();
         promotion.setCreatedAt(new Date());
         promotion.setStatus(PromotionStatus.TO_BE_VALIDATED);
+        promotion.setApiId("api#1");
         promotion.setApiDefinition("apiDefinition");
         promotion.setSourceEnvCockpitId("sourceEnvId");
         promotion.setSourceEnvName("sourceEnv Name");
@@ -335,5 +375,13 @@ public class PromotionServiceTest {
         promotion.setAuthor(promotionAuthor);
 
         return promotion;
+    }
+
+    private PromotionRequestEntity getAPromotionRequestEntity() {
+        PromotionRequestEntity promotionRequestEntity = new PromotionRequestEntity();
+        promotionRequestEntity.setTargetEnvCockpitId("targetEnvironmentId");
+        promotionRequestEntity.setTargetEnvName("targetEnv Name");
+
+        return promotionRequestEntity;
     }
 }

@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl.promotion;
 
+import static io.gravitee.repository.management.model.Promotion.AuditEvent.PROMOTION_CREATED;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.common.data.domain.Page;
@@ -27,6 +29,7 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
@@ -38,6 +41,7 @@ import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.promotion.*;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
@@ -54,6 +58,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.promotion.PromotionService;
+import java.util.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -79,6 +84,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     private final EnvironmentService environmentService;
     private final UserService userService;
     private final PermissionService permissionService;
+    private final AuditService auditService;
 
     public PromotionServiceImpl(
         ApiService apiService,
@@ -86,7 +92,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         PromotionRepository promotionRepository,
         EnvironmentService environmentService,
         UserService userService,
-        PermissionService permissionService
+        PermissionService permissionService,
+        AuditService auditService
     ) {
         this.apiService = apiService;
         this.cockpitService = cockpitService;
@@ -94,6 +101,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         this.environmentService = environmentService;
         this.userService = userService;
         this.permissionService = permissionService;
+        this.auditService = auditService;
     }
 
     @Override
@@ -134,6 +142,15 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         Promotion createdPromotion = null;
         try {
             createdPromotion = promotionRepository.create(promotionToSave);
+
+            auditService.createApiAuditLog(
+                createdPromotion.getApiId(),
+                emptyMap(),
+                PROMOTION_CREATED,
+                createdPromotion.getCreatedAt(),
+                null,
+                createdPromotion
+            );
         } catch (TechnicalException exception) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to create a promotion request for API %s", apiId),
