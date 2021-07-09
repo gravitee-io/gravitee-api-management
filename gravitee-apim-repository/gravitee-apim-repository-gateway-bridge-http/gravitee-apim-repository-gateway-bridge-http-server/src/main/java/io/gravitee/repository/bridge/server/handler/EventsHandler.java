@@ -160,6 +160,13 @@ public class EventsHandler extends AbstractHandler {
             propertiesObj.getMap().forEach(builder::property);
         }
 
+        JsonArray environmentsArr = payload.getJsonArray("environments");
+        if (environmentsArr != null) {
+            final List<String> environments = environmentsArr.stream().map(obj -> (String) obj).collect(Collectors.toList());
+
+            builder.environments(environments);
+        }
+
         return builder.build();
     }
 }

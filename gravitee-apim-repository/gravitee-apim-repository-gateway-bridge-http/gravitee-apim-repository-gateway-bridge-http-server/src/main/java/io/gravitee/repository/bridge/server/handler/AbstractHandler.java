@@ -28,6 +28,9 @@ import io.vertx.ext.web.RoutingContext;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,5 +87,9 @@ public abstract class AbstractHandler {
             response.setStatusCode(HttpStatusCode.INTERNAL_SERVER_ERROR_500);
             response.end(result.cause().getMessage());
         }
+    }
+
+    protected Set<String> readListParam(String strList) {
+        return Stream.of(strList.split(",")).collect(Collectors.toSet());
     }
 }
