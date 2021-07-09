@@ -19,6 +19,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.hasText;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -34,7 +35,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -372,13 +372,13 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             if (!isEmpty(applicationCriteria.getIds())) {
                 sbQuery.append("and a.id in (").append(getOrm().buildInClause(applicationCriteria.getIds())).append(") ");
             }
-            if (!StringUtils.isEmpty(applicationCriteria.getName())) {
+            if (hasText(applicationCriteria.getName())) {
                 sbQuery.append("and lower(a.name) like ? ");
             }
-            if (!StringUtils.isEmpty(applicationCriteria.getStatus())) {
+            if (applicationCriteria.getStatus() != null) {
                 sbQuery.append("and a.status = ? ");
             }
-            if (!StringUtils.isEmpty(applicationCriteria.getEnvironmentIds())) {
+            if (!isEmpty(applicationCriteria.getEnvironmentIds())) {
                 sbQuery
                     .append("and a.environment_id in (")
                     .append(getOrm().buildInClause(applicationCriteria.getEnvironmentIds()))
@@ -395,10 +395,10 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
                     if (!isEmpty(applicationCriteria.getIds())) {
                         lastIndex = getOrm().setArguments(ps, applicationCriteria.getIds(), lastIndex);
                     }
-                    if (!StringUtils.isEmpty(applicationCriteria.getName())) {
+                    if (hasText(applicationCriteria.getName())) {
                         ps.setString(lastIndex++, "%" + applicationCriteria.getName().toLowerCase() + "%");
                     }
-                    if (!StringUtils.isEmpty(applicationCriteria.getStatus())) {
+                    if (applicationCriteria.getStatus() != null) {
                         ps.setString(lastIndex++, applicationCriteria.getStatus().name());
                     }
                     if (!isEmpty(applicationCriteria.getEnvironmentIds())) {

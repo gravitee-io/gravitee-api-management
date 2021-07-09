@@ -19,6 +19,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.hasText;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -108,7 +109,7 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             argsList.add(new Date(criteria.getTo()));
             started = true;
         }
-        if (!StringUtils.isEmpty(criteria.getClientId())) {
+        if (hasText(criteria.getClientId())) {
             builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
             builder.append("client_id = ?");
             argsList.add(criteria.getClientId());

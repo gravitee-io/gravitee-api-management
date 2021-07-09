@@ -67,7 +67,7 @@
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
         <javax.inject.version>1</javax.inject.version>
         <reactor-adapter.version>3.2.2.RELEASE</reactor-adapter.version>
-        <snakeyaml.version>1.23</snakeyaml.version>
+        <snakeyaml.version>1.26</snakeyaml.version>
         <testcontainers.version>1.15.3</testcontainers.version>
         <!-- Plugins version -->
         <maven-assembly-plugin.version>2.6</maven-assembly-plugin.version>

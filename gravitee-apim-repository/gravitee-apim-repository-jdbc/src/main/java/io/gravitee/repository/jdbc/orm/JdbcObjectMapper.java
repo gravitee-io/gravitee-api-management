@@ -20,6 +20,7 @@ import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 import static java.lang.Byte.parseByte;
 import static java.util.Collections.emptyList;
+import static org.springframework.util.StringUtils.hasText;
 import static org.springframework.util.StringUtils.isEmpty;
 
 import java.io.BufferedInputStream;
@@ -294,10 +295,10 @@ public class JdbcObjectMapper<T> {
         LOGGER.trace("Converted {}.{} from {} to {}", getDBName(item.getClass().getSimpleName()), getDBName(column.name), value, value);
         if (column.javaType.isEnum() && (value instanceof String)) {
             final String stringValue = (String) value;
-            if (isEmpty(stringValue)) {
-                return null;
-            } else {
+            if (hasText(stringValue)) {
                 return Enum.valueOf(column.javaType, stringValue);
+            } else {
+                return null;
             }
         } else if ((column.javaType == Date.class) && (value instanceof Timestamp)) {
             final Timestamp timestampValue = (Timestamp) value;

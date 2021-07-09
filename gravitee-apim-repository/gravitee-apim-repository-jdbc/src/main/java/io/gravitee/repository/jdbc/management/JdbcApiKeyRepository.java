@@ -113,7 +113,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
                 args.add(new Date(akc.getExpireBefore()));
             }
             query.append(" order by updated_at desc ");
-            return jdbcTemplate.query(query.toString(), args.toArray(), getOrm().getRowMapper());
+            return jdbcTemplate.query(query.toString(), getOrm().getRowMapper(), args.toArray());
         } catch (final Exception ex) {
             LOGGER.error("Failed to find api keys by criteria:", ex);
             throw new TechnicalException("Failed to find api keys by criteria", ex);

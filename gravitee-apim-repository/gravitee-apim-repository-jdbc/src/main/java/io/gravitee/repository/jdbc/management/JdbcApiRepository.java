@@ -17,7 +17,7 @@ package io.gravitee.repository.jdbc.management;
 
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
-import static org.springframework.util.StringUtils.isEmpty;
+import static org.springframework.util.StringUtils.hasText;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
@@ -259,7 +259,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!isEmpty(apiCriteria.getGroups())) {
                 sbQuery.append("join " + API_GROUPS + " ag on a.id = ag.api_id ");
             }
-            if (!isEmpty(apiCriteria.getLabel())) {
+            if (hasText(apiCriteria.getLabel())) {
                 sbQuery.append("join " + API_LABELS + " al on a.id = al.api_id ");
             }
 
@@ -270,22 +270,22 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             if (!isEmpty(apiCriteria.getIds())) {
                 sbQuery.append("and a.id in (").append(getOrm().buildInClause(apiCriteria.getIds())).append(") ");
             }
-            if (!isEmpty(apiCriteria.getLabel())) {
+            if (hasText(apiCriteria.getLabel())) {
                 sbQuery.append("and al.label = ? ");
             }
-            if (!isEmpty(apiCriteria.getName())) {
+            if (hasText(apiCriteria.getName())) {
                 sbQuery.append("and a.name = ? ");
             }
-            if (!isEmpty(apiCriteria.getState())) {
+            if (apiCriteria.getState() != null) {
                 sbQuery.append("and a.lifecycle_state = ? ");
             }
-            if (!isEmpty(apiCriteria.getVersion())) {
+            if (hasText(apiCriteria.getVersion())) {
                 sbQuery.append("and a.version = ? ");
             }
-            if (!isEmpty(apiCriteria.getCategory())) {
+            if (hasText(apiCriteria.getCategory())) {
                 sbQuery.append("and ac.category = ? ");
             }
-            if (!isEmpty(apiCriteria.getVisibility())) {
+            if (apiCriteria.getVisibility() != null) {
                 sbQuery.append("and a.visibility = ? ");
             }
             if (!StringUtils.isEmpty(apiCriteria.getLifecycleStates())) {
@@ -294,7 +294,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                     .append(getOrm().buildInClause(apiCriteria.getLifecycleStates()))
                     .append(") ");
             }
-            if (!isEmpty(apiCriteria.getEnvironmentId())) {
+            if (hasText(apiCriteria.getEnvironmentId())) {
                 sbQuery.append("and a.environment_id = ? ");
             }
             if (!isEmpty(apiCriteria.getEnvironments())) {
@@ -314,28 +314,28 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                     if (!isEmpty(apiCriteria.getIds())) {
                         lastIndex = getOrm().setArguments(ps, apiCriteria.getIds(), lastIndex);
                     }
-                    if (!isEmpty(apiCriteria.getLabel())) {
+                    if (hasText(apiCriteria.getLabel())) {
                         ps.setString(lastIndex++, apiCriteria.getLabel());
                     }
-                    if (!isEmpty(apiCriteria.getName())) {
+                    if (hasText(apiCriteria.getName())) {
                         ps.setString(lastIndex++, apiCriteria.getName());
                     }
-                    if (!isEmpty(apiCriteria.getState())) {
+                    if (apiCriteria.getState() != null) {
                         ps.setString(lastIndex++, apiCriteria.getState().name());
                     }
-                    if (!isEmpty(apiCriteria.getVersion())) {
+                    if (hasText(apiCriteria.getVersion())) {
                         ps.setString(lastIndex++, apiCriteria.getVersion());
                     }
-                    if (!isEmpty(apiCriteria.getCategory())) {
+                    if (hasText(apiCriteria.getCategory())) {
                         ps.setString(lastIndex++, apiCriteria.getCategory());
                     }
-                    if (!isEmpty(apiCriteria.getVisibility())) {
+                    if (apiCriteria.getVisibility() != null) {
                         ps.setString(lastIndex++, apiCriteria.getVisibility().name());
                     }
                     if (!isEmpty(apiCriteria.getLifecycleStates())) {
                         getOrm().setArguments(ps, apiCriteria.getLifecycleStates(), lastIndex++);
                     }
-                    if (!isEmpty(apiCriteria.getEnvironmentId())) {
+                    if (hasText(apiCriteria.getEnvironmentId())) {
                         ps.setString(lastIndex++, apiCriteria.getEnvironmentId());
                     }
                     if (!isEmpty(apiCriteria.getEnvironments())) {

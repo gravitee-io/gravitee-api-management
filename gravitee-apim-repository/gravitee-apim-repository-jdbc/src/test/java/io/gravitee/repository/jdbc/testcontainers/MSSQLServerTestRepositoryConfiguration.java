@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.testcontainers.containers.MSSQLServerContainer;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -39,7 +40,7 @@ public class MSSQLServerTestRepositoryConfiguration extends AbstractJdbcTestRepo
 
     @Bean(destroyMethod = "stop")
     public MSSQLServerContainer embeddedMSSQLServer() {
-        final MSSQLServerContainer mssqlserver = new MSSQLServerContainer();
+        final MSSQLServerContainer mssqlserver = new MSSQLServerContainer(DockerImageName.parse("2017-CU12"));
         mssqlserver.start();
         return mssqlserver;
     }
