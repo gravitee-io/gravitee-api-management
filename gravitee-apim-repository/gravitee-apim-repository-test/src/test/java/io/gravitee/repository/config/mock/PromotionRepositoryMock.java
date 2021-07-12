@@ -71,7 +71,7 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
         // shouldSearchWithEmptyCriteria
         when(
             repository.search(
-                argThat(o -> o != null && o.getTargetEnvCockpitIds() == null && o.getStatus() == null),
+                argThat(o -> o != null && o.getTargetEnvCockpitIds() == null && o.getStatuses() == null),
                 nullable(Sortable.class),
                 any()
             )
@@ -86,7 +86,7 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
                         o != null &&
                         o.getTargetEnvCockpitIds() != null &&
                         o.getTargetEnvCockpitIds().contains("env#cockpit-1") &&
-                        o.getStatus() == null
+                        o.getStatuses() == null
                 ),
                 nullable(Sortable.class),
                 any()
@@ -94,21 +94,32 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
         )
             .thenReturn(new Page<>(asList(promotionToBeValidatedEnv1), 0, 0, 1));
 
-        // shouldSearchWithCriteriaStatus
+        // shouldSearchWithCriteriaStatuses
         when(
             repository.search(
                 argThat(
                     o ->
                         o != null &&
                         o.getTargetEnvCockpitIds() == null &&
-                        o.getStatus() != null &&
-                        o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)
+                        o.getStatuses() != null &&
+                        o.getStatuses().size() == 1 &&
+                        o.getStatuses().get(0).equals(PromotionStatus.TO_BE_VALIDATED)
                 ),
                 nullable(Sortable.class),
                 any()
             )
         )
             .thenReturn(new Page<>(asList(promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0, 0, 2));
+
+        // shouldSearchWithCriteriaStatusesMultipleValues
+        when(
+            repository.search(
+                argThat(o -> o != null && o.getTargetEnvCockpitIds() == null && o.getStatuses() != null && o.getStatuses().size() == 2),
+                nullable(Sortable.class),
+                any()
+            )
+        )
+            .thenReturn(new Page<>(asList(promotion, promotionToDelete, promotionToBeValidatedEnv1, promotionToBeValidatedEnv2), 0, 0, 2));
 
         // shouldSearchWithCriteriaStatusSortByCreatedAtDesc
         when(
@@ -117,8 +128,9 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
                     o ->
                         o != null &&
                         o.getTargetEnvCockpitIds() == null &&
-                        o.getStatus() != null &&
-                        o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)
+                        o.getStatuses() != null &&
+                        o.getStatuses().size() == 1 &&
+                        o.getStatuses().get(0).equals(PromotionStatus.TO_BE_VALIDATED)
                 ),
                 argThat(sortable -> sortable != null && sortable.field().equals("created_at") && sortable.order().equals(Order.DESC)),
                 argThat(pageable -> pageable != null && pageable.pageSize() == (Integer.MAX_VALUE))
@@ -133,8 +145,9 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
                     o ->
                         o != null &&
                         o.getTargetEnvCockpitIds() == null &&
-                        o.getStatus() != null &&
-                        o.getStatus().equals(PromotionStatus.TO_BE_VALIDATED)
+                        o.getStatuses() != null &&
+                        o.getStatuses().size() == 1 &&
+                        o.getStatuses().get(0).equals(PromotionStatus.TO_BE_VALIDATED)
                 ),
                 argThat(sortable -> sortable != null && sortable.field().equals("created_at") && sortable.order().equals(Order.DESC)),
                 argThat(pageable -> pageable != null && pageable.pageSize() == 1)
@@ -149,7 +162,7 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
                     o ->
                         o != null &&
                         o.getTargetEnvCockpitIds() == null &&
-                        o.getStatus() == null &&
+                        o.getStatuses() == null &&
                         o.getApiId() != null &&
                         o.getApiId().equals("api#1")
                 ),
@@ -166,7 +179,7 @@ public class PromotionRepositoryMock extends AbstractRepositoryMock<PromotionRep
                     o ->
                         o != null &&
                         o.getTargetEnvCockpitIds() == null &&
-                        o.getStatus() == null &&
+                        o.getStatuses() == null &&
                         o.getTargetApiExists() != null &&
                         o.getTargetApiExists().equals(true)
                 ),

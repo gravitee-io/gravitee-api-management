@@ -27,6 +27,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.utils.FieldUtils;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -56,8 +57,9 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
                 query.addCriteria(where("targetEnvCockpitId").in(criteria.getTargetEnvCockpitIds()));
             }
 
-            if (criteria.getStatus() != null) {
-                query.addCriteria(where("status").is(criteria.getStatus()));
+            if (criteria.getStatuses() != null) {
+                List<String> statusNames = criteria.getStatuses().stream().map(Enum::name).collect(Collectors.toList());
+                query.addCriteria(where("status").in(statusNames));
             }
 
             if (criteria.getTargetApiExists() != null) {

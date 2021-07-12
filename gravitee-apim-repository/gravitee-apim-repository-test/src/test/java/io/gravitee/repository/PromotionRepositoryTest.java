@@ -165,8 +165,8 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void shouldSearchWithCriteriaStatus() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
+    public void shouldSearchWithCriteriaStatuses() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().statuses(List.of(PromotionStatus.TO_BE_VALIDATED)).build();
         final List<Promotion> promotions = promotionRepository
             .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
             .getContent();
@@ -177,8 +177,24 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void shouldSearchWithCriteriaStatusesMultipleValues() throws Exception {
+        final PromotionCriteria criteria = new PromotionCriteria.Builder()
+            .statuses(List.of(PromotionStatus.TO_BE_VALIDATED, PromotionStatus.CREATED))
+            .build();
+        final List<Promotion> promotions = promotionRepository
+            .search(criteria, null, new PageableBuilder().pageNumber(0).pageSize(Integer.MAX_VALUE).build())
+            .getContent();
+        assertNotNull(promotions);
+        assertEquals("Invalid promotions numbers in search", 4, promotions.size());
+        assertEquals("promotion#1", promotions.get(0).getId());
+        assertEquals("promotion#to-delete", promotions.get(1).getId());
+        assertEquals("promotion#to_be_validated_env_1", promotions.get(2).getId());
+        assertEquals("promotion#to_be_validated_env_2", promotions.get(3).getId());
+    }
+
+    @Test
     public void shouldSearchWithCriteriaStatusSortByCreatedAtDesc() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().statuses(List.of(PromotionStatus.TO_BE_VALIDATED)).build();
         final List<Promotion> promotions = promotionRepository
             .search(
                 criteria,
@@ -194,7 +210,7 @@ public class PromotionRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void shouldSearchWithCriteriaStatusPaginated() throws Exception {
-        final PromotionCriteria criteria = new PromotionCriteria.Builder().status(PromotionStatus.TO_BE_VALIDATED).build();
+        final PromotionCriteria criteria = new PromotionCriteria.Builder().statuses(List.of(PromotionStatus.TO_BE_VALIDATED)).build();
         final List<Promotion> promotions = promotionRepository
             .search(
                 criteria,

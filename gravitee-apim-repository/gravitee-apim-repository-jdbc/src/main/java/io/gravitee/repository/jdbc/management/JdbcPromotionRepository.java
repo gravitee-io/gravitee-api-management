@@ -32,6 +32,7 @@ import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,8 +97,8 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                         .append(" ) ");
                 }
 
-                if (criteria.getStatus() != null) {
-                    query.append(" and status = ?");
+                if (!isEmpty(criteria.getStatuses())) {
+                    query.append(" and status in ( ").append(getOrm().buildInClause(criteria.getStatuses())).append(" ) ");
                 }
 
                 if (criteria.getTargetApiExists() != null) {
@@ -124,8 +125,9 @@ public class JdbcPromotionRepository extends JdbcAbstractCrudRepository<Promotio
                                 idx = getOrm().setArguments(ps, criteria.getTargetEnvCockpitIds(), idx);
                             }
 
-                            if (criteria.getStatus() != null) {
-                                ps.setString(idx++, criteria.getStatus().name());
+                            if (!isEmpty(criteria.getStatuses())) {
+                                List<String> statusesNames = criteria.getStatuses().stream().map(Enum::name).collect(Collectors.toList());
+                                idx = getOrm().setArguments(ps, statusesNames, idx);
                             }
 
                             if (!isEmpty(criteria.getApiId())) {

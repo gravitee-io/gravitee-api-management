@@ -27,13 +27,13 @@ import java.util.List;
 public class PromotionCriteria {
 
     private List<String> targetEnvCockpitIds;
-    private PromotionStatus status;
+    private List<PromotionStatus> statuses;
     private Boolean targetApiExists;
     private String apiId;
 
     PromotionCriteria(Builder builder) {
         this.targetEnvCockpitIds = builder.targetEnvCockpitIds;
-        this.status = builder.status;
+        this.statuses = builder.statuses;
         this.targetApiExists = builder.targetApiExists;
         this.apiId = builder.apiId;
     }
@@ -46,12 +46,12 @@ public class PromotionCriteria {
         this.targetEnvCockpitIds = targetEnvCockpitIds;
     }
 
-    public PromotionStatus getStatus() {
-        return status;
+    public List<PromotionStatus> getStatuses() {
+        return statuses;
     }
 
-    public void setStatus(PromotionStatus status) {
-        this.status = status;
+    public void setStatuses(List<PromotionStatus> statuses) {
+        this.statuses = statuses;
     }
 
     public Boolean getTargetApiExists() {
@@ -73,7 +73,7 @@ public class PromotionCriteria {
     public static class Builder {
 
         private List<String> targetEnvCockpitIds;
-        private PromotionStatus status;
+        private List<PromotionStatus> statuses;
         private Boolean targetApiExists;
         private String apiId;
 
@@ -82,8 +82,8 @@ public class PromotionCriteria {
             return this;
         }
 
-        public Builder status(PromotionStatus status) {
-            this.status = status;
+        public Builder statuses(List<PromotionStatus> statuses) {
+            this.statuses = statuses;
             return this;
         }
 
