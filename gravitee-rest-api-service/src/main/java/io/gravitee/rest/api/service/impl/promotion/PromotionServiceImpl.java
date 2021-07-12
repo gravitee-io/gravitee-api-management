@@ -29,7 +29,6 @@ import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
-import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.management.model.PromotionAuthor;
 import io.gravitee.repository.management.model.PromotionStatus;
@@ -58,7 +57,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import java.util.*;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -240,7 +239,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             existing.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
 
             final PromotionQuery promotionQuery = new PromotionQuery();
-            promotionQuery.setStatus(PromotionEntityStatus.ACCEPTED);
+            promotionQuery.setStatuses(Collections.singletonList(PromotionEntityStatus.ACCEPTED));
             promotionQuery.setTargetEnvCockpitIds(singletonList(existing.getTargetEnvCockpitId()));
             promotionQuery.setTargetApiExists(true);
             promotionQuery.setApiId(existing.getApiId());
@@ -384,8 +383,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         if (!CollectionUtils.isEmpty(query.getTargetEnvCockpitIds())) {
             builder.targetEnvCockpitIds(query.getTargetEnvCockpitIds().toArray(new String[0]));
         }
-        if (query.getStatus() != null) {
-            builder.status(convert(query.getStatus()));
+        if (query.getStatuses() != null) {
+            builder.statuses(query.getStatuses().stream().map(this::convert).collect(Collectors.toList()));
         }
 
         if (query.getTargetApiExists() != null) {

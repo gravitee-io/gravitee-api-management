@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl.promotion;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
-import static io.gravitee.rest.api.model.promotion.PromotionEntityStatus.TO_BE_VALIDATED;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,7 +101,7 @@ public class PromotionTasksServiceImplTest {
         PromotionEntity aPromotionEntity = getAPromotionEntity();
         when(
             promotionService.search(
-                argThat(query -> query != null && query.getStatus() == PromotionEntityStatus.TO_BE_VALIDATED),
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
                 any(),
                 any()
             )
@@ -112,7 +111,13 @@ public class PromotionTasksServiceImplTest {
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
         previousPromotionEntity.setTargetApiId("api#target");
-        when(promotionService.search(argThat(query -> query != null && query.getStatus() == PromotionEntityStatus.ACCEPTED), any(), any()))
+        when(
+            promotionService.search(
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                any(),
+                any()
+            )
+        )
             .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
         when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE, UPDATE)).thenReturn(true);
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
@@ -138,7 +143,7 @@ public class PromotionTasksServiceImplTest {
         PromotionEntity aPromotionEntity = getAPromotionEntity();
         when(
             promotionService.search(
-                argThat(query -> query != null && query.getStatus() == PromotionEntityStatus.TO_BE_VALIDATED),
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
                 any(),
                 any()
             )
@@ -146,7 +151,13 @@ public class PromotionTasksServiceImplTest {
             .thenReturn(new Page<>(singletonList(aPromotionEntity), 0, 0, 0));
         when(environmentService.findByOrganization(any())).thenReturn(singletonList(getAnEnvironmentEntity()));
 
-        when(promotionService.search(argThat(query -> query != null && query.getStatus() == PromotionEntityStatus.ACCEPTED), any(), any()))
+        when(
+            promotionService.search(
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                any(),
+                any()
+            )
+        )
             .thenReturn(new Page<>(emptyList(), 0, 0, 0));
         when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE, UPDATE)).thenReturn(true);
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());
@@ -170,7 +181,7 @@ public class PromotionTasksServiceImplTest {
         PromotionEntity aPromotionEntity = getAPromotionEntity();
         when(
             promotionService.search(
-                argThat(query -> query != null && query.getStatus() == PromotionEntityStatus.TO_BE_VALIDATED),
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.TO_BE_VALIDATED),
                 any(),
                 any()
             )
@@ -180,7 +191,13 @@ public class PromotionTasksServiceImplTest {
 
         PromotionEntity previousPromotionEntity = getAPromotionEntity();
         previousPromotionEntity.setTargetApiId("api#target");
-        when(promotionService.search(argThat(query -> query != null && query.getStatus() == PromotionEntityStatus.ACCEPTED), any(), any()))
+        when(
+            promotionService.search(
+                argThat(query -> query != null && query.getStatuses().get(0) == PromotionEntityStatus.ACCEPTED),
+                any(),
+                any()
+            )
+        )
             .thenReturn(new Page<>(singletonList(previousPromotionEntity), 0, 0, 0));
         when(permissionService.hasPermission(RolePermission.ENVIRONMENT_API, "env#1", CREATE, UPDATE)).thenReturn(true);
         when(objectMapper.readValue(aPromotionEntity.getApiDefinition(), ApiEntity.class)).thenReturn(getAnApiEntity());

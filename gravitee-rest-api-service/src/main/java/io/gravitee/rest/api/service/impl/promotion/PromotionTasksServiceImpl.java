@@ -19,7 +19,6 @@ import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -87,13 +86,13 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         List<String> envCockpitIds = environments.stream().map(EnvironmentEntity::getCockpitId).filter(Objects::nonNull).collect(toList());
 
         final PromotionQuery promotionQuery = new PromotionQuery();
-        promotionQuery.setStatus(PromotionEntityStatus.TO_BE_VALIDATED);
+        promotionQuery.setStatuses(Collections.singletonList(PromotionEntityStatus.TO_BE_VALIDATED));
         promotionQuery.setTargetEnvCockpitIds(envCockpitIds);
 
         final Page<PromotionEntity> promotionsPage = promotionService.search(promotionQuery, new SortableImpl("created_at", false), null);
 
         final PromotionQuery previousPromotionsQuery = new PromotionQuery();
-        previousPromotionsQuery.setStatus(PromotionEntityStatus.ACCEPTED);
+        previousPromotionsQuery.setStatuses(Collections.singletonList(PromotionEntityStatus.ACCEPTED));
         previousPromotionsQuery.setTargetEnvCockpitIds(envCockpitIds);
         previousPromotionsQuery.setTargetApiExists(true);
 

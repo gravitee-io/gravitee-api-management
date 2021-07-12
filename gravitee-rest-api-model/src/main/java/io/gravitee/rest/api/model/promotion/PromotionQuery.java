@@ -24,7 +24,7 @@ import java.util.List;
 public class PromotionQuery {
 
     private List<String> targetEnvCockpitIds;
-    private PromotionEntityStatus status;
+    private List<PromotionEntityStatus> statuses;
     private Boolean targetApiExists;
     private String apiId;
 
@@ -36,12 +36,12 @@ public class PromotionQuery {
         this.targetEnvCockpitIds = targetEnvCockpitIds;
     }
 
-    public PromotionEntityStatus getStatus() {
-        return status;
+    public List<PromotionEntityStatus> getStatuses() {
+        return statuses;
     }
 
-    public void setStatus(PromotionEntityStatus status) {
-        this.status = status;
+    public void setStatuses(List<PromotionEntityStatus> statuses) {
+        this.statuses = statuses;
     }
 
     public void setTargetApiExists(Boolean targetApiExists) {
