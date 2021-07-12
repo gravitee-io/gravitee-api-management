@@ -89,7 +89,7 @@ public class MongoRatingRepository implements RatingRepository {
         final org.springframework.data.domain.Page<RatingMongo> ratingPageMongo = internalRatingRepository.findByReferenceIdAndReferenceType(
             referenceId,
             referenceType.name(),
-            new PageRequest(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.DESC, "createdAt")
+            PageRequest.of(pageable.pageNumber(), pageable.pageSize(), Sort.Direction.DESC, "createdAt")
         );
         final List<Rating> ratings = ratingPageMongo.getContent().stream().map(this::map).collect(toList());
         final Page<Rating> ratingPage = new Page<>(

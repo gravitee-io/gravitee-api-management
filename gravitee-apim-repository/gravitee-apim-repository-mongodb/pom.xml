@@ -31,9 +31,12 @@
 	<name>Gravitee.io APIM - Repository - MongoDB</name>
 
 	<properties>
-        <mongo.version>3.12.0</mongo.version>
-        <mongodb-driver-reactivestreams.version>1.13.0</mongodb-driver-reactivestreams.version>
-        <spring.data.mongodb.version>2.1.5.RELEASE</spring.data.mongodb.version>
+        <!--
+            According to https://docs.spring.io/spring-data/mongodb/docs/current/reference/html/#compatibility.matrix
+            spring data 3.2.x is compatible with mongo driver 4.1.x
+        -->
+        <mongo.version>4.1.2</mongo.version>
+        <spring.data.mongodb.version>3.2.3</spring.data.mongodb.version>
     </properties>
 
     <dependencies>
@@ -88,14 +91,14 @@
 
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
+            <artifactId>mongodb-driver-sync</artifactId>
             <version>${mongo.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-reactivestreams</artifactId>
-            <version>${mongodb-driver-reactivestreams.version}</version>
+            <version>${mongo.version}</version>
         </dependency>
 
         <dependency>

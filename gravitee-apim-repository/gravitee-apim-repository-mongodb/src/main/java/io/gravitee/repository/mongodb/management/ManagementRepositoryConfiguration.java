@@ -15,8 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import com.mongodb.Mongo;
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import io.gravitee.repository.Scope;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
@@ -52,16 +51,16 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Override
     public MongoClient mongoClient() {
         try {
-            return (MongoClient) mongoFactory.getObject();
+            return mongoFactory.getObject();
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
     }
 
     @Bean(name = "managementMongoTemplate")
-    public MongoOperations mongoOperations(Mongo mongo) {
+    public MongoOperations mongoOperations(MongoClient mongo) {
         try {
-            return new MongoTemplate((MongoClient) mongo, getDatabaseName());
+            return new MongoTemplate(mongo, getDatabaseName());
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

@@ -72,15 +72,16 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         }
 
         // set sort by updated at
-        query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
+        query.with(Sort.by(Sort.Direction.DESC, "updatedAt"));
+
+        long total = mongoTemplate.count(query, EventMongo.class);
 
         // set pageable
         if (pageable != null) {
-            query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize()));
+            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
 
         List<EventMongo> events = mongoTemplate.find(query, EventMongo.class);
-        long total = mongoTemplate.count(query, EventMongo.class);
 
         return new Page<>(events, (pageable != null) ? pageable.pageNumber() : 0, events.size(), total);
     }

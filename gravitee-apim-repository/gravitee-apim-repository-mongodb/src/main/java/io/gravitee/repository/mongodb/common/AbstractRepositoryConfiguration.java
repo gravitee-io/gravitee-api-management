@@ -22,6 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +33,7 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.annotation.Persistent;
-import org.springframework.data.mongodb.config.AbstractMongoConfiguration;
+import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.transaction.support.AbstractPlatformTransactionManager;
 import org.springframework.util.ClassUtils;
@@ -42,15 +43,10 @@ import org.springframework.util.StringUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfiguration {
+public abstract class AbstractRepositoryConfiguration extends AbstractMongoClientConfiguration {
 
     @Autowired
     private Environment environment;
-
-    @Override
-    protected String getMappingBasePackage() {
-        return getClass().getPackage().getName();
-    }
 
     @Override
     protected String getDatabaseName() {
@@ -68,24 +64,25 @@ public abstract class AbstractRepositoryConfiguration extends AbstractMongoConfi
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
-        String basePackage = getMappingBasePackage();
+        Collection<String> basePackages = getMappingBasePackages();
         Set<Class<?>> initialEntitySet = new HashSet<Class<?>>();
 
-        if (StringUtils.hasText(basePackage)) {
-            ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
-            componentProvider.addIncludeFilter(new AnnotationTypeFilter(Document.class));
-            componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
-            String prefix = environment.getProperty("management.mongodb.prefix", "");
+        for (String basePackage : basePackages) {
+            if (StringUtils.hasText(basePackage)) {
+                ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
+                componentProvider.addIncludeFilter(new AnnotationTypeFilter(Document.class));
+                componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+                String prefix = environment.getProperty("management.mongodb.prefix", "");
 
-            for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
-                Class<?> entity = ClassUtils.forName(candidate.getBeanClassName(), this.getClass().getClassLoader());
-                initialEntitySet.add(entity);
+                for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
+                    Class<?> entity = ClassUtils.forName(candidate.getBeanClassName(), this.getClass().getClassLoader());
+                    initialEntitySet.add(entity);
 
-                Document documentAnnotation = entity.getAnnotation(Document.class);
-                configureCollectionName(documentAnnotation, prefix);
+                    Document documentAnnotation = entity.getAnnotation(Document.class);
+                    configureCollectionName(documentAnnotation, prefix);
+                }
             }
         }
-
         return initialEntitySet;
     }
 

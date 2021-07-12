@@ -57,15 +57,15 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
             }
         }
 
-        query.with(new Sort(ASC, "name"));
+        query.with(Sort.by(ASC, "name"));
+
+        long total = mongoTemplate.count(query, ApplicationMongo.class);
 
         if (pageable != null) {
-            query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize()));
+            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
 
         List<ApplicationMongo> apps = mongoTemplate.find(query, ApplicationMongo.class);
-
-        long total = mongoTemplate.count(query, ApplicationMongo.class);
 
         return new Page<>(apps, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
     }

@@ -100,10 +100,12 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             }
         }
 
-        query.with(new Sort(ASC, "name"));
+        query.with(Sort.by(ASC, "name"));
+
+        long total = mongoTemplate.count(query, ApiMongo.class);
 
         if (pageable != null) {
-            query.with(new PageRequest(pageable.pageNumber(), pageable.pageSize()));
+            query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
 
         List<ApiMongo> apis = mongoTemplate.find(query, ApiMongo.class);
@@ -127,8 +129,6 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     )
                     .collect(Collectors.toList());
         }
-
-        long total = mongoTemplate.count(query, ApiMongo.class);
 
         return new Page<>(apis, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
     }

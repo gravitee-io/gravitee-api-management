@@ -67,7 +67,7 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             query.addCriteria(expireAtCriteria);
         }
 
-        query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
+        query.with(Sort.by(Sort.Direction.DESC, "updatedAt"));
 
         List<ApiKeyMongo> events = mongoTemplate.find(query, ApiKeyMongo.class);
         long total = mongoTemplate.count(query, ApiKeyMongo.class);

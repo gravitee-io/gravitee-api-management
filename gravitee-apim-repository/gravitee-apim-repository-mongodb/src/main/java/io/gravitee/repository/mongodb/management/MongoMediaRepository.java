@@ -37,6 +37,7 @@ import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.stereotype.Component;
 
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Component;
 public class MongoMediaRepository implements MediaRepository {
 
     @Autowired
-    private MongoDbFactory mongoFactory;
+    private MongoDatabaseFactory mongoFactory;
 
     @Override
     public Media create(Media media) {
@@ -189,7 +190,7 @@ public class MongoMediaRepository implements MediaRepository {
     }
 
     private GridFSBucket getGridFs() {
-        MongoDatabase db = mongoFactory.getDb();
+        MongoDatabase db = mongoFactory.getMongoDatabase();
         String bucketName = "media";
         return GridFSBuckets.create(db, bucketName);
     }

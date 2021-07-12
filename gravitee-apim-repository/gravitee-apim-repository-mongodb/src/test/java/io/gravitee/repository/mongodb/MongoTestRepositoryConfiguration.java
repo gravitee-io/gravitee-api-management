@@ -15,8 +15,8 @@
  */
 package io.gravitee.repository.mongodb;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import javax.inject.Inject;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +40,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
 
     @Bean(destroyMethod = "stop")
     public MongoDBContainer mongoDBContainer() {
-        MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:4.0.10"));
+        MongoDBContainer mongoDb = new MongoDBContainer(DockerImageName.parse("mongo:4.4.6"));
         mongoDb.start();
         return mongoDb;
     }
@@ -53,7 +53,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     @Override
     @Bean
     public MongoClient mongoClient() {
-        return new MongoClient(new MongoClientURI(mongoDBContainer.getReplicaSetUrl()));
+        return MongoClients.create(mongoDBContainer.getReplicaSetUrl());
     }
 
     @Bean(name = "managementMongoTemplate")

@@ -15,12 +15,13 @@
  */
 package io.gravitee.repository.mongodb;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -28,6 +29,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Component
 public class MongoTestRepositoryInitializer implements TestRepositoryInitializer {
 
     private static final Logger LOG = LoggerFactory.getLogger(MongoTestRepositoryInitializer.class);

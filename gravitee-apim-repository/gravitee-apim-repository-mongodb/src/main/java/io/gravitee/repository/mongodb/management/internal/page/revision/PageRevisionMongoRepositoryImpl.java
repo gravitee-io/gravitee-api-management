@@ -39,7 +39,7 @@ public class PageRevisionMongoRepositoryImpl implements PageRevisionMongoReposit
     public Optional<PageRevisionMongo> findLastByPageId(String pageId) {
         Query query = new Query();
         query.limit(1);
-        query.with(new Sort(Sort.Direction.DESC, "_id.revision"));
+        query.with(Sort.by(Sort.Direction.DESC, "_id.revision"));
         query.addCriteria(where("_id.pageId").is(pageId));
 
         PageRevisionMongo revision = mongoTemplate.findOne(query, PageRevisionMongo.class);
