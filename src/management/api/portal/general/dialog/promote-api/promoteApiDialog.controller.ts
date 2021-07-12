@@ -14,38 +14,59 @@
  * limitations under the License.
  */
 import { PromotionService } from '../../../../../../services/promotion.service';
-import { PromotionTarget } from '../../../../../../entities/promotion';
 import { IOnInit } from 'angular';
 import '@gravitee/ui-components/wc/gv-select';
 import * as angular from 'angular';
 import NotificationService from '../../../../../../services/notification.service';
 
+interface PromotionTargetVM {
+  id: string;
+  name: string;
+  promotionInProgress: boolean;
+}
+
 export class PromoteApiDialogController implements IOnInit {
-  public promotionTargets: PromotionTarget[] = [];
-  public envOptions: Array<{ label: string; value: string }>;
+  public promotionTargets: PromotionTargetVM[];
+  public selectedPromotionTarget?: PromotionTargetVM;
   public isLoading = false;
-  public selectedPromotionTarget?: PromotionTarget;
+  public hasPromotionInProgress = false;
 
   constructor(
     private readonly promotionService: PromotionService,
     private readonly NotificationService: NotificationService,
     private readonly $mdDialog: angular.material.IDialogService,
-    private readonly api: any,
+    private readonly api: {
+      id: string;
+      name: string;
+    },
   ) {
     'ngInject';
   }
 
   $onInit(): void {
     this.isLoading = true;
-    // should we do this in the popup or in the parent page (which means cockpit requests for nothing maybe)
-    this.promotionService
-      .listPromotionTargets()
-      .then((environments) => {
-        this.promotionTargets = environments;
-        this.envOptions = environments.map((environment) => ({ label: environment.name, value: environment.id }));
 
-        if (environments.length === 1) {
-          this.selectedPromotionTarget = environments[0];
+    Promise.all([
+      this.promotionService.listPromotionTargets(),
+      this.promotionService.listPromotion({
+        apiId: this.api.id,
+        statuses: ['CREATED', 'TO_BE_VALIDATED'],
+      }),
+    ])
+      .then(([targetEnvs, promotions]) => {
+        this.promotionTargets = targetEnvs
+          .map((promotionTarget) => ({
+            name: promotionTarget.name,
+            id: promotionTarget.id,
+            promotionInProgress: promotions.some((promotion) => promotion.targetEnvCockpitId === promotionTarget.id),
+          }))
+          .sort((target1, target2) => target1.name.localeCompare(target2.name));
+
+        this.hasPromotionInProgress = this.promotionTargets.some((target) => target.promotionInProgress);
+
+        const selectableTarget = this.promotionTargets.filter((target) => !target.promotionInProgress);
+        if (selectableTarget.length === 1) {
+          this.selectedPromotionTarget = selectableTarget[0];
         }
       })
       .finally(() => {
