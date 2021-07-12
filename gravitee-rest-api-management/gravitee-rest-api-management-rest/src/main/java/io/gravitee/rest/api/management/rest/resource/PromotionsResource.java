@@ -15,10 +15,25 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.swagger.annotations.Api;
+import static java.util.stream.Collectors.toList;
+
+import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.promotion.PromotionEntity;
+import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
+import io.gravitee.rest.api.model.promotion.PromotionQuery;
+import io.gravitee.rest.api.service.promotion.PromotionService;
+import io.swagger.annotations.*;
+import java.util.List;
+import javax.inject.Inject;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 
 /**
  * Defines the REST resources to manage Promotions.
@@ -32,8 +47,41 @@ public class PromotionsResource extends AbstractResource {
     @Context
     private ResourceContext resourceContext;
 
+    @Inject
+    private PromotionService promotionService;
+
     @Path("{promotion}")
     public PromotionResource getPolicyResource() {
         return resourceContext.getResource(PromotionResource.class);
+    }
+
+    @POST
+    @Path("_search")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(value = "Search for Promotion")
+    @ApiResponses(
+        {
+            @ApiResponse(
+                code = 200,
+                message = "List promotions matching request parameters",
+                response = PromotionEntity.class,
+                responseContainer = "List"
+            ),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    public Response searchPromotions(
+        @ApiParam(name = "statuses", required = true) @NotNull @QueryParam("statuses") List<String> statuses,
+        @ApiParam(name = "apiId", required = true) @NotNull @QueryParam("apiId") String apiId
+    ) {
+        PromotionQuery promotionQuery = new PromotionQuery();
+        promotionQuery.setStatuses(statuses.stream().map(PromotionEntityStatus::valueOf).collect(toList()));
+        promotionQuery.setApiId(apiId);
+
+        List<PromotionEntity> promotions = promotionService
+            .search(promotionQuery, new SortableImpl("created_at", false), null)
+            .getContent();
+
+        return Response.ok().entity(promotions).build();
     }
 }
