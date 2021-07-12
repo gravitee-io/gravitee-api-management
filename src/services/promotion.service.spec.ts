@@ -102,4 +102,27 @@ describe('PromotionService', () => {
       $httpBackend.flush();
     });
   });
+
+  describe('listPromotion', () => {
+    it('call the endpoint', (done) => {
+      const promotion1 = fakePromotion();
+      const promotion2 = fakePromotion();
+
+      $httpBackend
+        .expectPOST(
+          'https://url.test:3000/management/organizations/DEFAULT/promotions/_search?apiId=api1&statuses=CREATED&statuses=TO_BE_VALIDATED',
+        )
+        .respond([promotion1, promotion2]);
+
+      promotionService
+        .listPromotion({ apiId: 'api1', statuses: ['CREATED', 'TO_BE_VALIDATED'] })
+        .then((result) => {
+          expect(result).toEqual([promotion1, promotion2]);
+          done();
+        })
+        .catch(done.fail);
+
+      $httpBackend.flush();
+    });
+  });
 });

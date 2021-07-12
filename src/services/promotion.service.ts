@@ -16,6 +16,7 @@
 import { IHttpService, IPromise, IQService } from 'angular';
 import { Promotion, PromotionRequest, PromotionTarget } from '../entities/promotion';
 import { Constants } from '../entities/Constants';
+import { PromotionSearchParams } from '../entities/promotion/promotionSearchParams';
 
 export class PromotionService {
   constructor(private $http: IHttpService, private Constants: Constants, private $q: IQService) {
@@ -26,7 +27,7 @@ export class PromotionService {
     return this.$http.get<PromotionTarget[]>(`${this.Constants.env.baseURL}/promotion-targets`).then((response) => response.data);
   }
 
-  promote(apiId: string, promotionTarget: PromotionTarget): IPromise<Promotion> {
+  promote(apiId: string, promotionTarget: { id: string; name: string }): IPromise<Promotion> {
     const promotionRequest: PromotionRequest = {
       targetEnvCockpitId: promotionTarget.id,
       targetEnvName: promotionTarget.name,
@@ -39,6 +40,14 @@ export class PromotionService {
   processPromotion(promotionId: string, isAccepted: boolean) {
     return this.$http
       .post<Promotion>(`${this.Constants.org.baseURL}/promotions/${promotionId}/_process`, isAccepted)
+      .then((response) => response.data);
+  }
+
+  listPromotion(searchParams: PromotionSearchParams) {
+    return this.$http
+      .post<Array<Promotion>>(`${this.Constants.org.baseURL}/promotions/_search`, null, {
+        params: searchParams,
+      })
       .then((response) => response.data);
   }
 }
