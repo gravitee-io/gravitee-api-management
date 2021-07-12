@@ -13,18 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type PromotionStatus = 'REQUESTED' | 'TO_BE_VALIDATED' | 'ACCEPTED' | 'REJECTED' | 'ERROR';
+export type PromotionStatus = 'CREATED' | 'TO_BE_VALIDATED' | 'ACCEPTED' | 'REJECTED' | 'ERROR';
 
 export interface Promotion {
   id: string;
+  apiDefinition: string;
+  status: PromotionStatus;
+  apiId: string;
+  targetApiId?: string;
 
-  targetEnvironmentId: string;
-  targetInstallationId: string;
-  sourceEnvironmentId: string;
-  sourceInstallationId: string;
+  targetEnvCockpitId: string;
+  targetEnvName: string;
+  sourceEnvCockpitId: string;
+  sourceEnvName: string;
+
+  author: PromotionAuthor;
 
   createdAt: Date;
   updatedAt: Date;
-  apiDefinition: string;
-  status: PromotionStatus;
+}
+
+export interface PromotionAuthor {
+  userId: string;
+  displayName: string;
+  email?: string;
+  picture?: string;
+  source: string;
+  sourceId: string;
 }

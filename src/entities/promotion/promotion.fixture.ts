@@ -18,16 +18,26 @@ import { Promotion } from './promotion';
 export function fakePromotion(attributes?: Partial<Promotion>): Promotion {
   const defaultValue: Promotion = {
     id: 'promotion#1',
+    apiDefinition: '',
+    status: 'ACCEPTED',
+    apiId: 'api#1',
 
-    targetEnvironmentId: 'env#2',
-    targetInstallationId: 'inst#2',
-    sourceEnvironmentId: 'env#1',
-    sourceInstallationId: 'inst#1',
+    targetEnvCockpitId: 'env#2',
+    targetEnvName: 'inst#2',
+    sourceEnvCockpitId: 'env#1',
+    sourceEnvName: 'inst#1',
+
+    author: {
+      userId: 'user#1',
+      displayName: 'Gaetan Maisse',
+      email: 'gm@gv.io',
+      picture: '',
+      source: 'github',
+      sourceId: 'gm',
+    },
 
     createdAt: new Date(),
     updatedAt: new Date(),
-    apiDefinition: '',
-    status: 'ACCEPTED',
   };
   return {
     ...defaultValue,
