@@ -324,7 +324,7 @@ public class PromotionServiceTest {
     }
 
     @Test(expected = PromotionAlreadyInProgressException.class)
-    public void shouldNotPromoteIfThereIsAlreadyAnInProgressPromotion() throws TechnicalException {
+    public void shouldNotPromoteIfThereIsAlreadyAnInProgressPromotionForTheSameEnv() throws TechnicalException {
         when(userService.findById(any())).thenReturn(getAUserEntity());
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
         environmentEntity.setCockpitId("env#cockpit-1");
@@ -336,7 +336,12 @@ public class PromotionServiceTest {
         promotion.setApiId("api#1");
         promotion.setStatus(PromotionStatus.TO_BE_VALIDATED);
         promotion.setTargetEnvCockpitId(targetEnvCockpitId);
-        Page<Promotion> promotionPage = new Page<>(singletonList(promotion), 0, 1, 1);
+
+        Promotion promotion2 = getAPromotion();
+        promotion2.setApiId("api#1");
+        promotion2.setStatus(PromotionStatus.TO_BE_VALIDATED);
+        promotion2.setTargetEnvCockpitId("env#another-env");
+        Page<Promotion> promotionPage = new Page<>(List.of(promotion, promotion2), 0, 2, 2);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         PromotionRequestEntity promotionRequestEntity = getAPromotionRequestEntity();

@@ -137,7 +137,11 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         promotionQuery.setStatuses(List.of(PromotionEntityStatus.CREATED, PromotionEntityStatus.TO_BE_VALIDATED));
         promotionQuery.setApiId(apiId);
 
-        List<PromotionEntity> inProgressPromotions = search(promotionQuery, null, null).getContent();
+        List<PromotionEntity> inProgressPromotions = search(promotionQuery, null, null)
+            .getContent()
+            .stream()
+            .filter(promotionEntity -> promotionEntity.getTargetEnvCockpitId().equals(promotionRequest.getTargetEnvCockpitId()))
+            .collect(Collectors.toList());
         if (!inProgressPromotions.isEmpty()) {
             throw new PromotionAlreadyInProgressException(inProgressPromotions.get(0).getId());
         }
