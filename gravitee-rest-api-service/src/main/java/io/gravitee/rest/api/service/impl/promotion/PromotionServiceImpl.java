@@ -21,7 +21,6 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -40,11 +39,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.promotion.*;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.PermissionService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
@@ -76,6 +71,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     private final Logger LOGGER = LoggerFactory.getLogger(PromotionServiceImpl.class);
 
     private final ApiService apiService;
+    private final ApiDuplicatorService apiDuplicatorService;
     private final CockpitService cockpitService;
     private final PromotionRepository promotionRepository;
     private final EnvironmentService environmentService;
@@ -85,6 +81,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
     public PromotionServiceImpl(
         ApiService apiService,
+        ApiDuplicatorService apiDuplicatorService,
         CockpitService cockpitService,
         PromotionRepository promotionRepository,
         EnvironmentService environmentService,
@@ -93,6 +90,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         AuditService auditService
     ) {
         this.apiService = apiService;
+        this.apiDuplicatorService = apiDuplicatorService;
         this.cockpitService = cockpitService;
         this.promotionRepository = promotionRepository;
         this.environmentService = environmentService;
@@ -120,7 +118,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public PromotionEntity promote(String apiId, PromotionRequestEntity promotionRequest, String userId) {
         // TODO: do we have to use filteredFields like for duplicate (i think no need members and groups)
         // FIXME: can we get the version from target environment
-        String apiDefinition = apiService.exportAsJson(
+        String apiDefinition = apiDuplicatorService.exportAsJson(
             apiId,
             ApiSerializer.Version.DEFAULT.getVersion(),
             "id",
@@ -266,11 +264,11 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 // FIXME: All the methods should take then env id as input instead of relying on GraviteeContext.getCurrentEnv
                 GraviteeContext.setCurrentEnvironment(environment.getId());
                 if (shouldCreate) {
-                    promoted = apiService.createWithImportedDefinition(null, existing.getApiDefinition(), user);
+                    promoted = apiDuplicatorService.createWithImportedDefinition(null, existing.getApiDefinition(), user);
                 } else {
                     PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
                     final ApiEntity existingApi = apiService.findById(lastAcceptedPromotion.getTargetApiId());
-                    promoted = apiService.updateWithImportedDefinition(existingApi, existing.getApiDefinition(), user);
+                    promoted = apiDuplicatorService.updateWithImportedDefinition(existingApi, existing.getApiDefinition(), user);
                 }
                 existing.setTargetApiId(promoted.getId());
             }

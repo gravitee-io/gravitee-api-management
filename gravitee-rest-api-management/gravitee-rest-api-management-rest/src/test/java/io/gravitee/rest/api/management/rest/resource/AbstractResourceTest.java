@@ -215,6 +215,9 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected PromotionService promotionService;
 
+    @Autowired
+    protected ApiDuplicatorService apiDuplicatorService;
+
     @Configuration
     @PropertySource("classpath:/io/gravitee/rest/api/management/rest/resource/jwt.properties")
     static class ContextConfiguration {
@@ -472,6 +475,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
         @Bean
         public PromotionService promotionService() {
             return mock(PromotionService.class);
+        }
+
+        @Bean
+        public ApiDuplicatorService apiDuplicatorService() {
+            return mock(ApiDuplicatorService.class);
         }
     }
 }

@@ -133,7 +133,7 @@ import org.springframework.util.CollectionUtils;
  * @author GraviteeSource Team
  */
 @Component
-public class ApiServiceImpl extends AbstractService implements ApiService {
+public class ApiServiceImpl extends AbstractService implements ApiService, ApiDuplicatorService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
 

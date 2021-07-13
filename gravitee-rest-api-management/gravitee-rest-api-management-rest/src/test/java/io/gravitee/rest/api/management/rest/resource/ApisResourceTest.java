@@ -123,7 +123,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity createdApi = new ApiEntity();
         createdApi.setGraviteeDefinitionVersion("1.0.0");
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
+        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any(), any());
 
         final Response response = envTarget().path("import").request().post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -139,7 +139,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity createdApi = new ApiEntity();
         createdApi.setGraviteeDefinitionVersion("2.0.0");
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
+        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any(), any());
 
         final Response response = envTarget()
             .path("import")
@@ -159,7 +159,7 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity createdApi = new ApiEntity();
         createdApi.setGraviteeDefinitionVersion("1.0.0");
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiService).createWithImportedDefinition(any(), any(), any());
+        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any(), any());
 
         final Response response = envTarget()
             .path("import")

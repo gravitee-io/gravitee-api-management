@@ -92,6 +92,9 @@ public class ApisResource extends AbstractResource {
     @Inject
     private FlowService flowService;
 
+    @Inject
+    protected ApiDuplicatorService apiDuplicatorService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "List APIs", notes = "List all the APIs accessible to the current user.")
@@ -234,7 +237,7 @@ public class ApisResource extends AbstractResource {
         @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
-        ApiEntity imported = apiService.createWithImportedDefinition(null, apiDefinition, getAuthenticatedUser());
+        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(null, apiDefinition, getAuthenticatedUser());
 
         if (
             DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&

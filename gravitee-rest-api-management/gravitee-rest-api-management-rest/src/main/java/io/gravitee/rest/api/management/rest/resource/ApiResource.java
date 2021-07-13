@@ -92,6 +92,9 @@ public class ApiResource extends AbstractResource {
     @Inject
     private PromotionService promotionService;
 
+    @Inject
+    protected ApiDuplicatorService apiDuplicatorService;
+
     @PathParam("api")
     @ApiParam(name = "api", required = true, value = "The ID of the API")
     private String api;
@@ -383,7 +386,7 @@ public class ApiResource extends AbstractResource {
     public Response updateApiWithDefinition(@ApiParam(name = "definition", required = true) String apiDefinition) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
-        ApiEntity updatedApi = apiService.createWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
+        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -408,7 +411,7 @@ public class ApiResource extends AbstractResource {
     public Response updateWithDefinitionPUT(@ApiParam(name = "definition", required = true) String apiDefinition) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
-        ApiEntity updatedApi = apiService.updateWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -491,7 +494,7 @@ public class ApiResource extends AbstractResource {
         @QueryParam("exclude") @DefaultValue("") String exclude
     ) {
         final ApiEntity apiEntity = apiService.findById(api);
-        final String apiDefinition = apiService.exportAsJson(api, version, exclude.split(","));
+        final String apiDefinition = apiDuplicatorService.exportAsJson(api, version, exclude.split(","));
         return Response
             .ok(apiDefinition)
             .header(HttpHeaders.CONTENT_DISPOSITION, format("attachment;filename=%s", getExportFilename(apiEntity)))
@@ -648,7 +651,7 @@ public class ApiResource extends AbstractResource {
     )
     public Response duplicateAPI(@ApiParam(name = "api", required = true) @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity(); // call this method to check READ permission on source API.
-        return Response.ok(apiService.duplicate(apiEntity, duplicateApiEntity)).build();
+        return Response.ok(apiDuplicatorService.duplicate(apiEntity, duplicateApiEntity)).build();
     }
 
     @POST
