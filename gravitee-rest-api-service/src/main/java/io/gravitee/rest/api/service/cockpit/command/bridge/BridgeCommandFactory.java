@@ -22,6 +22,7 @@ import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
+import java.util.List;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -56,6 +57,7 @@ public class BridgeCommandFactory {
         createPromoteApiCommand.setPayload(payload);
 
         BridgeTarget target = new BridgeTarget();
+        target.setScopes(Collections.singletonList(BRIDGE_SCOPE_APIM));
         target.setEnvironmentId(targetEnvironmentId);
         createPromoteApiCommand.setTarget(target);
 
@@ -71,6 +73,7 @@ public class BridgeCommandFactory {
         processPromotionCommand.setPayload(payload);
 
         BridgeTarget target = new BridgeTarget();
+        target.setScopes(Collections.singletonList(BRIDGE_SCOPE_APIM));
         target.setEnvironmentId(sourceEnvCockpitId);
         processPromotionCommand.setTarget(target);
 
