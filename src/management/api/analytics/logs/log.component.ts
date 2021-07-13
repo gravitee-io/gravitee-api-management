@@ -3,6 +3,7 @@ import NotificationService from '../../../../services/notification.service';
 import { toPairs } from 'lodash';
 import AnalyticsService from '../../../../services/analytics.service';
 import ApiService from '../../../../services/api.service';
+import '@gravitee/ui-components/wc/gv-code';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -113,6 +114,24 @@ class LogComponentController {
     }
   }
 
+  codeMirrorOptions(log) {
+    if (log) {
+      const codeMirrorOptions = {
+        lineNumbers: true,
+        lineWrapping: true,
+        matchBrackets: true,
+        mode: this.getMimeType(log),
+      };
+      return codeMirrorOptions;
+    }
+
+    // codeMirrorOptions for error block
+    return {
+      lineNumbers: true,
+      mode: 'text/x-java',
+    };
+  }
+
   goToLog(logId) {
     this.$state.transitionTo(
       this.$state.current,
@@ -142,11 +161,25 @@ class LogComponentController {
   }
 
   getMimeType(log): string | null {
-    let contentTypes: string[] | null | undefined = log.headers != null ? log.headers['Content-Type'] : null;
-    if (Array.isArray(contentTypes)) {
-      return contentTypes[0].split(';', 1)[0];
+    if (log.headers) {
+      let contentType;
+      if (log.headers['content-type']) {
+        contentType = log.headers['content-type'][0];
+      } else if (log.headers['Content-Type']) {
+        contentType = log.headers['Content-Type'][0];
+      }
+      if (contentType) {
+        const splitElement = contentType.split(';', 1)[0];
+        // hack to manage some "application/xxx" content-type.
+        if (splitElement.includes('json') || splitElement.includes('javascript')) {
+          return 'javascript';
+        }
+        if (splitElement.includes('xml')) {
+          return 'xml';
+        }
+        return splitElement;
+      }
     }
-
     return null;
   }
 
@@ -191,9 +224,8 @@ class LogComponentController {
     }));
   }
 
-  onCopyBodySuccess(evt) {
+  onCopyBodySuccess() {
     this.NotificationService.show('Body has been copied to clipboard');
-    evt.clearSelection();
   }
 }
 

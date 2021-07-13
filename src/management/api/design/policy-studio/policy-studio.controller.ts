@@ -155,9 +155,9 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('selected-flows-id', JSON.stringify(selectedFlows));
     this.studio.setAttribute('resource-types', JSON.stringify(this.resolvedResources.data));
     this.studio.setAttribute('policies', JSON.stringify(this.resolvedPolicies.data));
-    this.studio.setAttribute('flowSchema', JSON.stringify(this.resolvedFlowSchema.data));
-    this.studio.setAttribute('configurationSchema', JSON.stringify(this.resolvedConfigurationSchema.data));
-    this.studio.setAttribute('configurationInformation', configurationInformation);
+    this.studio.setAttribute('flow-schema', JSON.stringify(this.resolvedFlowSchema.data));
+    this.studio.setAttribute('configuration-schema', JSON.stringify(this.resolvedConfigurationSchema.data));
+    this.studio.setAttribute('configuration-information', configurationInformation);
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
     if (!this.UserService.isUserHasPermissions(['api-plan-u'])) {
       this.studio.setAttribute('readonly-plans', 'true');
