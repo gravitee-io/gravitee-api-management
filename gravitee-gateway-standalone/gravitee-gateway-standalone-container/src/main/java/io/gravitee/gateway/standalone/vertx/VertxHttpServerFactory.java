@@ -127,6 +127,10 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
             }
         }
 
+        if (httpServerConfiguration.isProxyProtocol()) {
+            options.setUseProxyProtocol(true).setProxyProtocolTimeout(httpServerConfiguration.getProxyProtocolTimeout());
+        }
+
         options.setHandle100ContinueAutomatically(true);
 
         // Customizable configuration

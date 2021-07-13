@@ -101,6 +101,12 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.websocket.perFrameWebSocketCompressionSupported:true}")
     private boolean perFrameWebSocketCompressionSupported;
 
+    @Value("${http.haproxy.proxyProtocol:false}")
+    private boolean proxyProtocol;
+
+    @Value("${http.haproxy.proxyProtocolTimeout:10000}")
+    private long proxyProtocolTimeout;
+
     public int getPort() {
         return port;
     }
@@ -291,6 +297,22 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setSni(boolean sni) {
         this.sni = sni;
+    }
+
+    public boolean isProxyProtocol() {
+        return proxyProtocol;
+    }
+
+    public void setProxyProtocol(boolean proxyProtocol) {
+        this.proxyProtocol = proxyProtocol;
+    }
+
+    public long getProxyProtocolTimeout() {
+        return proxyProtocolTimeout;
+    }
+
+    public void setProxyProtocolTimeout(long proxyProtocolTimeout) {
+        this.proxyProtocolTimeout = proxyProtocolTimeout;
     }
 
     @Override
