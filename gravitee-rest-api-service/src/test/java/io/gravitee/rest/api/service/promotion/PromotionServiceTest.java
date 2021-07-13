@@ -41,10 +41,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.cockpit.services.CockpitService;
-import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.util.Arrays;
@@ -312,6 +309,9 @@ public class PromotionServiceTest {
         environmentEntity.setName("Env 1");
         when(environmentService.findById(any())).thenReturn(environmentEntity);
 
+        Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 0, 0);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
         when(promotionRepository.create(any())).thenReturn(getAPromotion());
         when(cockpitService.requestPromotion(any())).thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
 
@@ -321,6 +321,27 @@ public class PromotionServiceTest {
 
         assertThat(promotionEntity).isNotNull();
         verify(auditService).createApiAuditLog(eq("api#1"), any(), eq(PROMOTION_CREATED), any(), isNull(), any());
+    }
+
+    @Test(expected = PromotionAlreadyInProgressException.class)
+    public void shouldNotPromoteIfThereIsAlreadyAnInProgressPromotion() throws TechnicalException {
+        when(userService.findById(any())).thenReturn(getAUserEntity());
+        EnvironmentEntity environmentEntity = new EnvironmentEntity();
+        environmentEntity.setCockpitId("env#cockpit-1");
+        environmentEntity.setName("Env 1");
+        when(environmentService.findById(any())).thenReturn(environmentEntity);
+
+        String targetEnvCockpitId = "env#cockpit-target";
+        Promotion promotion = getAPromotion();
+        promotion.setApiId("api#1");
+        promotion.setStatus(PromotionStatus.TO_BE_VALIDATED);
+        promotion.setTargetEnvCockpitId(targetEnvCockpitId);
+        Page<Promotion> promotionPage = new Page<>(singletonList(promotion), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
+        PromotionRequestEntity promotionRequestEntity = getAPromotionRequestEntity();
+        promotionRequestEntity.setTargetEnvCockpitId(targetEnvCockpitId);
+        promotionService.promote("api#1", promotionRequestEntity, "user#1");
     }
 
     private UserEntity getAUserEntity() {

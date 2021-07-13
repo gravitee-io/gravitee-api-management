@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -50,10 +51,7 @@ import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.cockpit.services.CockpitService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
-import io.gravitee.rest.api.service.exceptions.BridgeOperationException;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.PromotionNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.promotion.PromotionService;
@@ -135,7 +133,15 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         EnvironmentEntity currentEnvironmentEntity = environmentService.findById(GraviteeContext.getCurrentEnvironment());
         UserEntity author = userService.findById(userId);
 
-        // FIXME, does promotion already exist
+        PromotionQuery promotionQuery = new PromotionQuery();
+        promotionQuery.setStatuses(List.of(PromotionEntityStatus.CREATED, PromotionEntityStatus.TO_BE_VALIDATED));
+        promotionQuery.setApiId(apiId);
+
+        List<PromotionEntity> inProgressPromotions = search(promotionQuery, null, null).getContent();
+        if (!inProgressPromotions.isEmpty()) {
+            throw new PromotionAlreadyInProgressException(inProgressPromotions.get(0).getId());
+        }
+
         Promotion promotionToSave = convert(apiId, apiDefinition, currentEnvironmentEntity, promotionRequest, author);
         promotionToSave.setId(RandomString.generate());
         Promotion createdPromotion = null;
