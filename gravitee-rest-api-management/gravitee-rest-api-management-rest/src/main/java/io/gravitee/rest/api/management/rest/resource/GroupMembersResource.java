@@ -80,7 +80,7 @@ public class GroupMembersResource extends AbstractResource {
     @ApiOperation(value = "List group members")
     @ApiResponses(
         {
-            @ApiResponse(code = 200, message = "List of group's members", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of group's members", response = GroupMemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
@@ -100,7 +100,7 @@ public class GroupMembersResource extends AbstractResource {
     @ApiOperation(value = "List group members with pagination")
     @ApiResponses(
         {
-            @ApiResponse(code = 200, message = "List of group's members", response = MemberEntity.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "List of group's members", response = GroupMemberEntity.class, responseContainer = "List"),
             @ApiResponse(code = 500, message = "Internal server error"),
         }
     )
