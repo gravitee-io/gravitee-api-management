@@ -29,6 +29,8 @@ import java.io.IOException;
  */
 public class VirtualHostDeserializer extends StdScalarDeserializer<VirtualHost> {
 
+    private static final String URI_PATH_SEPARATOR = "/";
+
     public VirtualHostDeserializer(Class<VirtualHost> vc) {
         super(vc);
     }
@@ -49,7 +51,7 @@ public class VirtualHostDeserializer extends StdScalarDeserializer<VirtualHost> 
         if (pathNode != null) {
             vhost.setPath(formatContextPath(pathNode.asText()));
         } else {
-            vhost.setPath("/");
+            vhost.setPath(URI_PATH_SEPARATOR);
         }
 
         vhost.setOverrideEntrypoint(node.path("override_entrypoint").asBoolean(false));
@@ -58,15 +60,18 @@ public class VirtualHostDeserializer extends StdScalarDeserializer<VirtualHost> 
     }
 
     private String formatContextPath(String contextPath) {
-        String [] parts = contextPath.split("/");
-        StringBuilder finalPath = new StringBuilder("/");
+        String[] parts = contextPath.split(URI_PATH_SEPARATOR);
+        StringBuilder finalPath = new StringBuilder();
 
-        for(String part : parts) {
-            if (! part.isEmpty()) {
-                finalPath.append(part).append('/');
+        if (parts.length > 0) {
+            for (String part : parts) {
+                if (!part.isEmpty()) {
+                    finalPath.append(URI_PATH_SEPARATOR).append(part);
+                }
             }
+            return finalPath.toString();
         }
 
-        return finalPath.deleteCharAt(finalPath.length() - 1).toString();
+        return URI_PATH_SEPARATOR;
     }
 }
