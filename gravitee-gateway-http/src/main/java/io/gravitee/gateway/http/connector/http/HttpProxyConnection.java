@@ -17,7 +17,6 @@ package io.gravitee.gateway.http.connector.http;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpHeadersValues;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.handler.Handler;
@@ -26,8 +25,9 @@ import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyRequest;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
 import io.gravitee.gateway.api.stream.WriteStream;
-import io.gravitee.gateway.core.proxy.EmptyProxyResponse;
 import io.gravitee.gateway.http.connector.AbstractHttpProxyConnection;
+import io.gravitee.gateway.http.connector.ClientConnectionResponse;
+import io.gravitee.gateway.http.connector.ClientTimeoutResponse;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.http.HttpClient;
@@ -131,13 +131,12 @@ public class HttpProxyConnection<T extends HttpProxyResponse> extends AbstractHt
                     ) {
                         handleConnectTimeout(event);
                     } else {
-                        ProxyResponse clientResponse = new EmptyProxyResponse(
-                            ((event instanceof ConnectTimeoutException) || (event instanceof TimeoutException))
-                                ? HttpStatusCode.GATEWAY_TIMEOUT_504
-                                : HttpStatusCode.BAD_GATEWAY_502
-                        );
+                        final ProxyResponse clientResponse = (
+                                (event instanceof ConnectTimeoutException) || (event instanceof TimeoutException)
+                            )
+                            ? new ClientTimeoutResponse()
+                            : new ClientConnectionResponse();
 
-                        clientResponse.headers().set(HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
                         sendToClient(clientResponse);
                         tracker.handle(null);
                     }
