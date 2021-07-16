@@ -82,7 +82,7 @@ public class GraviteeCorsConfigurationTest {
         graviteeCorsConfiguration.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS, buildParameter("exposed1")));
         graviteeCorsConfiguration.onEvent(new SimpleEvent<>(Key.CONSOLE_HTTP_CORS_MAX_AGE, buildParameter("12")));
 
-        assertEquals(Arrays.asList("origin1", "origin2"), graviteeCorsConfiguration.getAllowedOrigins());
+        assertEquals(Arrays.asList("origin1", "origin2"), graviteeCorsConfiguration.getAllowedOriginPatterns());
         assertEquals(Arrays.asList("header1", "header2"), graviteeCorsConfiguration.getAllowedHeaders());
         assertEquals(Arrays.asList("method1", "method2"), graviteeCorsConfiguration.getAllowedMethods());
         assertEquals(singletonList("exposed1"), graviteeCorsConfiguration.getExposedHeaders());

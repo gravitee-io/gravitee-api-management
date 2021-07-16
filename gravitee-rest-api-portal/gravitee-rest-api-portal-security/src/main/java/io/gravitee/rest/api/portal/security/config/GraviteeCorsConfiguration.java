@@ -63,7 +63,7 @@ public class GraviteeCorsConfiguration extends CorsConfiguration implements Even
         if (environmentId.equals(event.content().getReferenceId())) {
             switch (event.type()) {
                 case PORTAL_HTTP_CORS_ALLOW_ORIGIN:
-                    this.setAllowedOrigins(semicolonStringToList(event.content().getValue()));
+                    this.setAllowedOriginPatterns(semicolonStringToList(event.content().getValue()));
                     break;
                 case PORTAL_HTTP_CORS_ALLOW_HEADERS:
                     this.setAllowedHeaders(semicolonStringToList(event.content().getValue()));
