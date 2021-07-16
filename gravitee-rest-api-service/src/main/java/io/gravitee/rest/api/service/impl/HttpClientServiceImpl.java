@@ -134,17 +134,21 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             .setMethod(io.vertx.core.http.HttpMethod.valueOf(method.name()))
             .setHost(requestUri.getHost())
             .setPort(port)
-            .setURI(requestUri.toString())
+            .setURI(requestUri.getPath())
             .setTimeout(httpClientTimeout);
 
         //headers
-        options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-        options.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.getBytes().length));
-        headers.forEach(options::putHeader);
-        options.putHeader("X-Gravitee-Request-Id", RandomString.generate());
+        if (headers != null) {
+            headers.forEach(options::putHeader);
+        }
 
-        if (!options.getHeaders().contains(HttpHeaders.CONTENT_TYPE)) {
-            options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+        options.putHeader("X-Gravitee-Request-Id", RandomString.generate().trim());
+
+        if (body != null) {
+            if (!options.getHeaders().contains(HttpHeaders.CONTENT_TYPE)) {
+                options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            }
+            options.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.getBytes().length));
         }
 
         Future<HttpClientRequest> requestFuture = httpClient.request(options);
@@ -220,7 +224,11 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                                 }
                             );
 
-                        request.end(body);
+                        if (body != null) {
+                            request.end(body);
+                        } else {
+                            request.end();
+                        }
                     }
                 }
             );
