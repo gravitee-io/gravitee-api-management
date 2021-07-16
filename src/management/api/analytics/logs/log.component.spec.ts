@@ -38,7 +38,7 @@ describe('LogComponent', () => {
   describe('getMimeType', () => {
     it('returns the first data in Content Type header', () => {
       const mimeType = logComponent.getMimeType({ headers: { 'Content-Type': ['application/json', 'text/html'] } });
-      expect(mimeType).toEqual('application/json');
+      expect(mimeType).toEqual('javascript');
     });
 
     it('returns null if there is no Content Type header', () => {

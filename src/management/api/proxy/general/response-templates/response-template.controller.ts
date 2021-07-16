@@ -95,6 +95,8 @@ class ApiResponseTemplateController {
       'GATEWAY_MISSING_SECURITY_PROVIDER',
       'GATEWAY_POLICY_INTERNAL_ERROR',
       'GATEWAY_PLAN_UNRESOLVABLE',
+      'GATEWAY_CLIENT_CONNECTION_ERROR',
+      'GATEWAY_CLIENT_CONNECTION_TIMEOUT',
     ];
 
     // In case of a new response template, initialize with default media type
