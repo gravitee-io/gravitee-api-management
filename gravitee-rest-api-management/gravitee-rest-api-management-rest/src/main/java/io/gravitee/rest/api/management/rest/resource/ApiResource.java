@@ -409,7 +409,7 @@ public class ApiResource extends AbstractResource {
     public Response updateWithDefinitionPUT(@ApiParam(name = "definition", required = true) String apiDefinition) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
-        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), apiDefinition, getAuthenticatedUser());
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))

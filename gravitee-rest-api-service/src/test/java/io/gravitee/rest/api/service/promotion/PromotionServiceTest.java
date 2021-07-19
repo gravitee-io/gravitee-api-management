@@ -231,6 +231,10 @@ public class PromotionServiceTest {
         when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
         when(apiService.exists(any())).thenReturn(true);
 
+        ApiEntity existingApi = new ApiEntity();
+        existingApi.setId("api#existing");
+        when(apiService.findById(any())).thenReturn(existingApi);
+
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
         when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
 
@@ -238,7 +242,7 @@ public class PromotionServiceTest {
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID));
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -259,7 +263,7 @@ public class PromotionServiceTest {
         promotionService.processPromotion(PROMOTION_ID, false, USER_ID);
 
         verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), eq(USER_ID));
-        verify(apiDuplicatorService, never()).updateWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), eq(USER_ID));
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -291,12 +295,16 @@ public class PromotionServiceTest {
         when(apiService.exists(any())).thenReturn(true);
         when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
 
+        ApiEntity existingApi = new ApiEntity();
+        existingApi.setId("api#existing");
+        when(apiService.findById(any())).thenReturn(existingApi);
+
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
         when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID));
         verify(promotionRepository, times(0)).update(any());
     }
 

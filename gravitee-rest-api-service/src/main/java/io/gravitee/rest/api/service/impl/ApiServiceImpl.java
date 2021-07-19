@@ -2062,13 +2062,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService, ApiDu
     }
 
     @Override
-    public ApiEntity updateWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
+    public ApiEntity updateWithImportedDefinition(String apiId, String apiDefinitionOrURL, String userId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
             UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode);
-            ApiEntity updatedApiEntity = update(apiEntity.getId(), importedApi);
+            ApiEntity updatedApiEntity = update(apiId, importedApi);
             updateApiReferences(updatedApiEntity, jsonNode);
             return updatedApiEntity;
         } catch (JsonProcessingException e) {

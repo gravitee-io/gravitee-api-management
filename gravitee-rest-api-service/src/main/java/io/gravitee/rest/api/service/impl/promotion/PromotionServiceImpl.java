@@ -268,7 +268,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 } else {
                     PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
                     final ApiEntity existingApi = apiService.findById(lastAcceptedPromotion.getTargetApiId());
-                    promoted = apiDuplicatorService.updateWithImportedDefinition(existingApi, existing.getApiDefinition(), user);
+                    promoted = apiDuplicatorService.updateWithImportedDefinition(existingApi.getId(), existing.getApiDefinition(), user);
                 }
                 existing.setTargetApiId(promoted.getId());
             }
