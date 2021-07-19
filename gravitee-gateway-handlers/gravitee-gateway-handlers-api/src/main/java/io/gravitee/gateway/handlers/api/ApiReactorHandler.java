@@ -161,7 +161,11 @@ public class ApiReactorHandler extends AbstractReactorHandler {
                     .request()
                     .metrics()
                     .setApiResponseTimeMs(System.currentTimeMillis() - context.request().metrics().getApiResponseTimeMs());
-                handler.handle(context);
+                if (proxyResponse instanceof ProcessorFailure) {
+                    handleError(context, (ProcessorFailure) proxyResponse);
+                } else {
+                    handler.handle(context);
+                }
             } else {
                 handleClientResponse(context, proxyResponse);
             }

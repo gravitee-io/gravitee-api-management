@@ -307,6 +307,12 @@ public class HeartbeatService extends AbstractService implements MessageListener
 
         Set<String> environmentsIds = environments.stream().map(Environment::getId).collect(Collectors.toSet());
 
+        // The first time APIM starts, if the Gateway is launched before the environments collection is created by the Rest API, then environmentsIds will be empty.
+        // We must put at least "DEFAULT" environment.
+        if (environmentsIds.isEmpty()) {
+            environmentsIds.add("DEFAULT");
+            environmentsHrids = environmentsHrids.isEmpty() ? Collections.singleton("DEFAULT") : environmentsHrids;
+        }
         event.setEnvironments(environmentsIds);
 
         properties.put(EVENT_ENVIRONMENTS_HRIDS_PROPERTY, String.join(", ", environmentsHrids));
