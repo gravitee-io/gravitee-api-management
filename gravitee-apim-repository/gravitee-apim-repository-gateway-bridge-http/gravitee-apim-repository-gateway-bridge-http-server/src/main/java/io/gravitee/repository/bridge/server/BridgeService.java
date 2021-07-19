@@ -152,6 +152,16 @@ public class BridgeService extends AbstractService {
             bridgeRouter.post("/node/monitoring").handler(nodeMonitoringHandler::create);
             bridgeRouter.put("/node/monitoring").handler(nodeMonitoringHandler::update);
             bridgeRouter.get("/node/monitoring").handler(nodeMonitoringHandler::findByNodeIdAndType);
+
+            // Environments handler
+            EnvironmentsHandler environmentsHandler = new EnvironmentsHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(environmentsHandler);
+            bridgeRouter.get("/environments").handler(environmentsHandler::findByOrganizationsAndHrids);
+
+            // Organizations handler
+            OrganizationsHandler organizationsHandler = new OrganizationsHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(organizationsHandler);
+            bridgeRouter.get("/organizations").handler(organizationsHandler::find);
         }
     }
 
