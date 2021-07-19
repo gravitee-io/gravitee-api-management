@@ -373,62 +373,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return createFromUpdateApiEntity(apiEntity, userId, null);
     }
 
-    private ApiEntity createFromUpdateApiEntity(
-        final UpdateApiEntity apiEntity,
-        final String userId,
-        final ImportSwaggerDescriptorEntity swaggerDescriptor
-    ) {
-        final ApiEntity createdApi = this.createWithApiDefinition(apiEntity, userId, null);
-        createSystemFolder(createdApi.getId());
-        createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
-        return createdApi;
-    }
-
-    private void createOrUpdateDocumentation(
-        final ImportSwaggerDescriptorEntity swaggerDescriptor,
-        final ApiEntity api,
-        boolean isForCreation
-    ) {
-        if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder().api(api.getId()).type(PageType.SWAGGER).build());
-
-            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
-                final NewPageEntity page = new NewPageEntity();
-                page.setName("Swagger");
-                page.setType(SWAGGER);
-                page.setOrder(1);
-                if (INLINE.equals(swaggerDescriptor.getType())) {
-                    page.setContent(swaggerDescriptor.getPayload());
-                } else {
-                    final PageSourceEntity source = new PageSourceEntity();
-                    page.setSource(source);
-                    source.setType("http-fetcher");
-                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
-                }
-                pageService.createPage(api.getId(), page);
-            } else if (apiDocs.size() == 1) {
-                PageEntity pageToUpdate = apiDocs.get(0);
-                final UpdatePageEntity page = new UpdatePageEntity();
-                page.setName(pageToUpdate.getName());
-                page.setOrder(pageToUpdate.getOrder());
-                page.setHomepage(pageToUpdate.isHomepage());
-                page.setPublished(pageToUpdate.isPublished());
-                page.setParentId(pageToUpdate.getParentId());
-                page.setConfiguration(pageToUpdate.getConfiguration());
-                if (INLINE.equals(swaggerDescriptor.getType())) {
-                    page.setContent(swaggerDescriptor.getPayload());
-                } else {
-                    final PageSourceEntity source = new PageSourceEntity();
-                    page.setSource(source);
-                    source.setType("http-fetcher");
-                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
-                }
-                pageService.update(pageToUpdate.getId(), page);
-            }
-        }
-    }
-
-    private ApiEntity createWithApiDefinition(UpdateApiEntity api, String userId, JsonNode apiDefinition) throws ApiAlreadyExistsException {
+    @Override
+    public ApiEntity createWithApiDefinition(UpdateApiEntity api, String userId, JsonNode apiDefinition) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
 
@@ -550,6 +496,61 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
+        }
+    }
+
+    private ApiEntity createFromUpdateApiEntity(
+        final UpdateApiEntity apiEntity,
+        final String userId,
+        final ImportSwaggerDescriptorEntity swaggerDescriptor
+    ) {
+        final ApiEntity createdApi = this.createWithApiDefinition(apiEntity, userId, null);
+        createSystemFolder(createdApi.getId());
+        createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
+        return createdApi;
+    }
+
+    private void createOrUpdateDocumentation(
+        final ImportSwaggerDescriptorEntity swaggerDescriptor,
+        final ApiEntity api,
+        boolean isForCreation
+    ) {
+        if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
+            List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder().api(api.getId()).type(PageType.SWAGGER).build());
+
+            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
+                final NewPageEntity page = new NewPageEntity();
+                page.setName("Swagger");
+                page.setType(SWAGGER);
+                page.setOrder(1);
+                if (INLINE.equals(swaggerDescriptor.getType())) {
+                    page.setContent(swaggerDescriptor.getPayload());
+                } else {
+                    final PageSourceEntity source = new PageSourceEntity();
+                    page.setSource(source);
+                    source.setType("http-fetcher");
+                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
+                }
+                pageService.createPage(api.getId(), page);
+            } else if (apiDocs.size() == 1) {
+                PageEntity pageToUpdate = apiDocs.get(0);
+                final UpdatePageEntity page = new UpdatePageEntity();
+                page.setName(pageToUpdate.getName());
+                page.setOrder(pageToUpdate.getOrder());
+                page.setHomepage(pageToUpdate.isHomepage());
+                page.setPublished(pageToUpdate.isPublished());
+                page.setParentId(pageToUpdate.getParentId());
+                page.setConfiguration(pageToUpdate.getConfiguration());
+                if (INLINE.equals(swaggerDescriptor.getType())) {
+                    page.setContent(swaggerDescriptor.getPayload());
+                } else {
+                    final PageSourceEntity source = new PageSourceEntity();
+                    page.setSource(source);
+                    source.setType("http-fetcher");
+                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
+                }
+                pageService.update(pageToUpdate.getId(), page);
+            }
         }
     }
 

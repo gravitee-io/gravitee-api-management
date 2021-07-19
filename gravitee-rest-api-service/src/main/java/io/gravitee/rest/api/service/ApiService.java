@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
@@ -22,6 +23,7 @@ import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.List;
@@ -56,6 +58,7 @@ public interface ApiService {
 
     ApiEntity create(NewApiEntity api, String userId);
     ApiEntity createFromSwagger(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
+    ApiEntity createWithApiDefinition(UpdateApiEntity api, String userId, JsonNode apiDefinition);
 
     ApiEntity update(String apiId, UpdateApiEntity api);
     ApiEntity update(String apiId, UpdateApiEntity api, boolean checkPlans);
