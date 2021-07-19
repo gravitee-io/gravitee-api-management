@@ -206,7 +206,7 @@ public class PromotionServiceTest {
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(apiDuplicatorService.createWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.createWithImportedDefinition(any(), any())).thenReturn(new ApiEntity());
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
         when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
@@ -215,7 +215,7 @@ public class PromotionServiceTest {
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
 
-        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), eq(USER_ID));
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -258,7 +258,7 @@ public class PromotionServiceTest {
 
         promotionService.processPromotion(PROMOTION_ID, false, USER_ID);
 
-        verify(apiDuplicatorService, never()).createWithImportedDefinition(isNull(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), eq(USER_ID));
         verify(apiDuplicatorService, never()).updateWithImportedDefinition(isNull(), any(), eq(USER_ID));
         verify(promotionRepository, times(1)).update(any());
     }

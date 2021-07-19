@@ -2017,7 +2017,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService, ApiDu
     }
 
     @Override
-    public ApiEntity createWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
+    public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole definition

@@ -384,9 +384,7 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApiWithDefinition(@ApiParam(name = "definition", required = true) String apiDefinition) {
-        final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
-
-        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(apiEntity, apiDefinition, getAuthenticatedUser());
+        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(apiDefinition, getAuthenticatedUser());
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
