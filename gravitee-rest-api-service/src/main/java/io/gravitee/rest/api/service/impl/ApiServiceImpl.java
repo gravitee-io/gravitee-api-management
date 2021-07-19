@@ -378,7 +378,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final String userId,
         final ImportSwaggerDescriptorEntity swaggerDescriptor
     ) {
-        final ApiEntity createdApi = create0(apiEntity, userId);
+        final ApiEntity createdApi = this.createWithApiDefinition(apiEntity, userId, null);
+        createSystemFolder(createdApi.getId());
         createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
         return createdApi;
     }
@@ -427,16 +428,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private ApiEntity create0(UpdateApiEntity api, String userId) throws ApiAlreadyExistsException {
-        return this.create0(api, userId, true, null);
-    }
-
-    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder) throws ApiAlreadyExistsException {
-        return this.create0(api, userId, createSystemFolder, null);
-    }
-
-    private ApiEntity create0(UpdateApiEntity api, String userId, boolean createSystemFolder, JsonNode apiDefinition)
-        throws ApiAlreadyExistsException {
+    private ApiEntity createWithApiDefinition(UpdateApiEntity api, String userId, JsonNode apiDefinition) throws ApiAlreadyExistsException {
         try {
             LOGGER.debug("Create {} for user {}", api, userId);
 
@@ -478,111 +470,83 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             Api repoApi = convert(id, api, apiDefinition != null ? apiDefinition.toString() : null);
 
-            if (repoApi != null) {
-                repoApi.setId(id);
-                repoApi.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
-                // Set date fields
-                repoApi.setCreatedAt(new Date());
-                repoApi.setUpdatedAt(repoApi.getCreatedAt());
-                // Be sure that lifecycle is set to STOPPED by default and visibility is private
-                repoApi.setLifecycleState(LifecycleState.STOPPED);
+            repoApi.setId(id);
+            repoApi.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+            // Set date fields
+            repoApi.setCreatedAt(new Date());
+            repoApi.setUpdatedAt(repoApi.getCreatedAt());
+            // Be sure that lifecycle is set to STOPPED by default and visibility is private
+            repoApi.setLifecycleState(LifecycleState.STOPPED);
 
-                if (api.getVisibility() == null) {
-                    repoApi.setVisibility(Visibility.PRIVATE);
-                } else {
-                    repoApi.setVisibility(Visibility.valueOf(api.getVisibility().toString()));
-                }
+            repoApi.setVisibility(api.getVisibility() == null ? Visibility.PRIVATE : Visibility.valueOf(api.getVisibility().toString()));
 
-                // Add Default groups
-                Set<String> defaultGroups = groupService
-                    .findByEvent(GroupEvent.API_CREATE)
-                    .stream()
-                    .map(GroupEntity::getId)
-                    .collect(toSet());
-                if (!defaultGroups.isEmpty() && repoApi.getGroups() == null) {
-                    repoApi.setGroups(defaultGroups);
-                } else if (!defaultGroups.isEmpty()) {
-                    repoApi.getGroups().addAll(defaultGroups);
-                }
-
-                // if po is a group, add it as a member of the API
-                if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwner.getType())) {
-                    if (repoApi.getGroups() == null) {
-                        repoApi.setGroups(new HashSet<>());
-                    }
-                    repoApi.getGroups().add(primaryOwner.getId());
-                }
-
-                repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-                if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
-                    workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
-                }
-
-                Api createdApi = apiRepository.create(repoApi);
-
-                if (createSystemFolder) {
-                    createSystemFolder(createdApi.getId());
-                }
-
-                // Audit
-                auditService.createApiAuditLog(
-                    createdApi.getId(),
-                    Collections.emptyMap(),
-                    API_CREATED,
-                    createdApi.getCreatedAt(),
-                    null,
-                    createdApi
-                );
-
-                // Add the primary owner of the newly created API
-                if (primaryOwner != null) {
-                    membershipService.addRoleToMemberOnReference(
-                        new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
-                        new MembershipService.MembershipMember(
-                            primaryOwner.getId(),
-                            null,
-                            MembershipMemberType.valueOf(primaryOwner.getType())
-                        ),
-                        new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-                    );
-
-                    // create the default mail notification
-                    final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
-
-                    GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
-                    notificationConfigEntity.setName("Default Mail Notifications");
-                    notificationConfigEntity.setReferenceType(HookScope.API.name());
-                    notificationConfigEntity.setReferenceId(createdApi.getId());
-                    notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
-                    notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
-                    notificationConfigEntity.setConfig(emailMetadataValue);
-                    genericNotificationConfigService.create(notificationConfigEntity);
-
-                    // create the default mail support metadata
-                    NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
-                    newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
-                    newApiMetadataEntity.setName(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
-                    newApiMetadataEntity.setDefaultValue(emailMetadataValue);
-                    newApiMetadataEntity.setValue(emailMetadataValue);
-                    newApiMetadataEntity.setApiId(createdApi.getId());
-                    apiMetadataService.create(newApiMetadataEntity);
-
-                    //TODO add membership log
-                    ApiEntity apiEntity = convert(createdApi, primaryOwner, null);
-                    ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
-
-                    searchEngineService.index(apiWithMetadata, false);
-                    return apiEntity;
-                } else {
-                    LOGGER.error("Unable to create API {} because primary owner role has not been found.", createdApi.getName());
-                    throw new TechnicalManagementException(
-                        "Unable to create API " + createdApi.getName() + " because primary owner role has not been found"
-                    );
-                }
+            // Add Default groups
+            Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).stream().map(GroupEntity::getId).collect(toSet());
+            if (!defaultGroups.isEmpty() && repoApi.getGroups() == null) {
+                repoApi.setGroups(defaultGroups);
             } else {
-                LOGGER.error("Unable to create API {} because of previous error.", api.getName());
-                throw new TechnicalManagementException("Unable to create API " + api.getName());
+                repoApi.getGroups().addAll(defaultGroups);
             }
+
+            // if po is a group, add it as a member of the API
+            if (ApiPrimaryOwnerMode.GROUP.name().equals(primaryOwner.getType())) {
+                if (repoApi.getGroups() == null) {
+                    repoApi.setGroups(new HashSet<>());
+                }
+                repoApi.getGroups().add(primaryOwner.getId());
+            }
+
+            repoApi.setApiLifecycleState(ApiLifecycleState.CREATED);
+            if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
+                workflowService.create(WorkflowReferenceType.API, id, REVIEW, userId, DRAFT, "");
+            }
+
+            Api createdApi = apiRepository.create(repoApi);
+
+            // Audit
+            auditService.createApiAuditLog(
+                createdApi.getId(),
+                Collections.emptyMap(),
+                API_CREATED,
+                createdApi.getCreatedAt(),
+                null,
+                createdApi
+            );
+
+            // Add the primary owner of the newly created API
+            membershipService.addRoleToMemberOnReference(
+                new MembershipService.MembershipReference(MembershipReferenceType.API, createdApi.getId()),
+                new MembershipService.MembershipMember(primaryOwner.getId(), null, MembershipMemberType.valueOf(primaryOwner.getType())),
+                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+            );
+
+            // create the default mail notification
+            final String emailMetadataValue = "${(api.primaryOwner.email)!''}";
+
+            GenericNotificationConfigEntity notificationConfigEntity = new GenericNotificationConfigEntity();
+            notificationConfigEntity.setName("Default Mail Notifications");
+            notificationConfigEntity.setReferenceType(HookScope.API.name());
+            notificationConfigEntity.setReferenceId(createdApi.getId());
+            notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
+            notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
+            notificationConfigEntity.setConfig(emailMetadataValue);
+            genericNotificationConfigService.create(notificationConfigEntity);
+
+            // create the default mail support metadata
+            NewApiMetadataEntity newApiMetadataEntity = new NewApiMetadataEntity();
+            newApiMetadataEntity.setFormat(MetadataFormat.MAIL);
+            newApiMetadataEntity.setName(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY);
+            newApiMetadataEntity.setDefaultValue(emailMetadataValue);
+            newApiMetadataEntity.setValue(emailMetadataValue);
+            newApiMetadataEntity.setApiId(createdApi.getId());
+            apiMetadataService.create(newApiMetadataEntity);
+
+            //TODO add membership log
+            ApiEntity apiEntity = convert(createdApi, primaryOwner, null);
+            ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
+
+            searchEngineService.index(apiWithMetadata, false);
+            return apiEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create {} for user {}", api, userId, ex);
             throw new TechnicalManagementException("An error occurs while trying create " + api + " for user " + userId, ex);
@@ -2058,7 +2022,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
             UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode);
-            ApiEntity createdApiEntity = create0(importedApi, userId, false, jsonNode);
+            ApiEntity createdApiEntity = createWithApiDefinition(importedApi, userId, jsonNode);
             createPageAndMedia(createdApiEntity, jsonNode);
             updateApiReferences(createdApiEntity, jsonNode);
             return createdApiEntity;
@@ -2843,7 +2807,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         } else {
             newApiEntity.setGroups(apiEntity.getGroups());
         }
-        final ApiEntity duplicatedApi = create0(newApiEntity, getAuthenticatedUsername(), false);
+        final ApiEntity duplicatedApi = this.createWithApiDefinition(newApiEntity, getAuthenticatedUsername(), null);
 
         if (!duplicateApiEntity.getFilteredFields().contains("members")) {
             final Set<MembershipEntity> membershipsToDuplicate = membershipService.getMembershipsByReference(
