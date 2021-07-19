@@ -77,6 +77,8 @@ export class ApiMetrics extends Metrics {
       'GATEWAY_MISSING_SECURITY_PROVIDER',
       'GATEWAY_POLICY_INTERNAL_ERROR',
       'GATEWAY_MISSING_SECURED_REQUEST_PLAN',
+      'GATEWAY_CLIENT_CONNECTION_ERROR',
+      'GATEWAY_CLIENT_CONNECTION_TIMEOUT',
     ].forEach((key) => {
       keys.push(new Tuple(key, key));
     });

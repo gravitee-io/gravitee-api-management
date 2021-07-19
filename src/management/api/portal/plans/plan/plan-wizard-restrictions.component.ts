@@ -89,7 +89,7 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
     gotoNextStep() {
       this.parent.restrictionsPolicies = [];
 
-      _(this.policies)
+      this.policies
         .filter((policy) => policy.enabled)
         .map((policy) => {
           const restrictPolicy = {
@@ -100,12 +100,12 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
 
           return restrictPolicy;
         })
-        .each((policy) => this.parent.restrictionsPolicies.push(policy));
+        .forEach((policy) => this.parent.restrictionsPolicies.push(policy));
 
       this.parent.vm.stepData[2].data = this.parent.plan;
       if (!this.parent.hasPoliciesStep()) {
         const pre = this.parent.restrictionsPolicies.map((restriction) => {
-          const { enabled, ...rest } = restriction;
+          const { enabled, methods, ...rest } = restriction;
           const policyId = Object.keys(rest)[0];
           const policy = this.policies.find((policy) => policy.id === policyId);
           const name = policy.title;
