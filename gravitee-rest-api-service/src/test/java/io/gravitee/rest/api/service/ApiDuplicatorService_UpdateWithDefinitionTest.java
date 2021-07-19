@@ -23,26 +23,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
-import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -59,17 +54,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiService_UpdateWithDefinitionTest {
+public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     private static final String API_ID = "id-api";
     private static final String PLAN_ID = "my-plan";
     private static final String SOURCE = "source";
 
     @InjectMocks
-    private ApiServiceImpl apiService = new ApiServiceImpl();
+    protected ApiDuplicatorService apiDuplicatorService = new ApiDuplicatorServiceImpl();
 
     @Mock
-    private ApiRepository apiRepository;
+    private ApiService apiService;
 
     @Spy
     private ObjectMapper objectMapper = new GraviteeMapper();
@@ -135,23 +130,15 @@ public class ApiService_UpdateWithDefinitionTest {
         );
     }
 
-    @Before
-    public void setUp() {
-        when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
-            .thenReturn("toDecode=decoded-value");
-        reset(searchEngineService);
-    }
-
     @Test
-    public void shouldUpdateImportApiWithMembersAndPages() throws IOException, TechnicalException {
+    public void shouldUpdateImportApiWithMembersAndPages() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiRepository.update(any())).thenReturn(api);
+        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
 
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId("API_PRIMARY_OWNER");
@@ -172,14 +159,6 @@ public class ApiService_UpdateWithDefinitionTest {
         owner.setRoles(Collections.singletonList(ownerRoleEntity));
 
         when(membershipService.getMembersByReference(MembershipReferenceType.API, API_ID)).thenReturn(Collections.singleton(po));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                MembershipReferenceType.API,
-                Collections.singletonList(API_ID),
-                "API_PRIMARY_OWNER"
-            )
-        )
-            .thenReturn(Collections.singleton(po));
 
         UserEntity admin = new UserEntity();
         admin.setId(po.getId());
@@ -200,27 +179,25 @@ public class ApiService_UpdateWithDefinitionTest {
         when(membershipService.addRoleToMemberOnReference(any(), any(), any(), any(), any())).thenReturn(memberEntity);
         when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
 
-        apiService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
+        apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
 
         verify(pageService, times(2)).update(any(), any(UpdatePageEntity.class));
         verify(membershipService, never())
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
-        verify(apiRepository, times(1)).update(any());
-        verify(apiRepository, never()).create(any());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, never()).create(any(), any());
     }
 
-    private ApiEntity prepareUpdateImportApiWithMembers(UserEntity admin, UserEntity user) throws TechnicalException {
+    private ApiEntity prepareUpdateImportApiWithMembers(UserEntity admin, UserEntity user) {
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
         api.setId(API_ID);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         apiEntity.setId(API_ID);
         apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiRepository.update(any())).thenReturn(api);
+        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
@@ -242,7 +219,6 @@ public class ApiService_UpdateWithDefinitionTest {
 
         when(membershipService.getMembersByReference(MembershipReferenceType.API, API_ID))
             .thenReturn(new HashSet(Arrays.asList(owner, po)));
-        when(membershipService.getMembersByReferencesAndRole(any(), any(), any())).thenReturn(new HashSet(Arrays.asList(po)));
 
         admin.setId(po.getId());
         admin.setSource(SOURCE);
@@ -258,7 +234,7 @@ public class ApiService_UpdateWithDefinitionTest {
     }
 
     @Test
-    public void shouldUpdateImportApiWithMembers() throws IOException, TechnicalException {
+    public void shouldUpdateImportApiWithMembers() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
@@ -276,30 +252,21 @@ public class ApiService_UpdateWithDefinitionTest {
         po.setRoles(Arrays.asList(poRoleEntity));
 
         when(membershipService.getMembersByReference(MembershipReferenceType.API, API_ID)).thenReturn(new HashSet(Arrays.asList(po)));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                MembershipReferenceType.API,
-                Collections.singletonList(API_ID),
-                "API_PRIMARY_OWNER"
-            )
-        )
-            .thenReturn(new HashSet(Arrays.asList(po)));
         when(userService.findById(admin.getId())).thenReturn(admin);
 
-        apiService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
+        apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never())
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
-        verify(apiRepository, times(1)).update(any());
-        verify(apiRepository, never()).create(any());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, never()).create(any(), any());
     }
 
     @Test
-    public void shouldUpdateImportApiWithMembersAndUserAlreadyExists() throws IOException, TechnicalException {
+    public void shouldUpdateImportApiWithMembersAndUserAlreadyExists() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
@@ -315,7 +282,7 @@ public class ApiService_UpdateWithDefinitionTest {
         when(userService.findById(admin.getId())).thenReturn(admin);
         when(userService.findById(user.getId())).thenReturn(user);
 
-        apiService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
+        apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never())
@@ -330,13 +297,12 @@ public class ApiService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiRepository, times(1)).update(any());
-        verify(apiRepository, never()).create(any());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, never()).create(any(), any());
     }
 
     @Test
-    public void shouldUpdateImportApiWithMembersAndAllMembersAlreadyExists() throws IOException, TechnicalException {
+    public void shouldUpdateImportApiWithMembersAndAllMembersAlreadyExists() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
@@ -351,7 +317,7 @@ public class ApiService_UpdateWithDefinitionTest {
         when(userService.findById(admin.getId())).thenReturn(admin);
         when(userService.findById(user.getId())).thenReturn(user);
 
-        apiService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
+        apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never())
@@ -366,25 +332,22 @@ public class ApiService_UpdateWithDefinitionTest {
                 new MembershipService.MembershipMember(user.getId(), null, MembershipMemberType.USER),
                 new MembershipService.MembershipRole(RoleScope.API, "OWNER")
             );
-        verify(apiRepository, times(1)).update(any());
-        verify(apiRepository, never()).create(any());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, never()).create(any(), any());
     }
 
     @Test
-    public void shouldUpdateImportApiWithPages() throws IOException, TechnicalException {
+    public void shouldUpdateImportApiWithPages() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+pages.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiRepository.update(any())).thenReturn(api);
+        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
 
         MemberEntity po = new MemberEntity();
         po.setId("admin");
@@ -392,66 +355,37 @@ public class ApiService_UpdateWithDefinitionTest {
         po.setReferenceType(MembershipReferenceType.API);
         po.setRoles(Collections.singletonList(poRole));
 
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                MembershipReferenceType.API,
-                Collections.singletonList(API_ID),
-                "API_PRIMARY_OWNER"
-            )
-        )
-            .thenReturn(Collections.singleton(po));
-
-        PageEntity existingPage = mock(PageEntity.class);
-
-        apiService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, null);
+        apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, null);
 
         verify(pageService, times(2)).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
-        verify(apiRepository, times(1)).update(any());
-        verify(apiRepository, never()).create(any());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, never()).create(any(), any());
     }
 
     @Test
-    public void shouldUpdateImportApiWithOnlyDefinition() throws IOException, TechnicalException {
+    public void shouldUpdateImportApiWithOnlyDefinition() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
         Api api = new Api();
         api.setId(API_ID);
         apiEntity.setId(API_ID);
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        when(apiRepository.update(any())).thenReturn(api);
+        when(apiService.update(eq(API_ID), any(), anyBoolean())).thenReturn(apiEntity);
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");
-        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(poRole);
 
-        MemberEntity po = new MemberEntity();
-        po.setId("admin");
-        po.setReferenceId("ref-admin");
-        po.setReferenceType(MembershipReferenceType.API);
-        po.setRoles(Collections.singletonList(poRole));
-        when(
-            membershipService.getMembersByReferencesAndRole(
-                MembershipReferenceType.API,
-                Collections.singletonList(API_ID),
-                "API_PRIMARY_OWNER"
-            )
-        )
-            .thenReturn(Collections.singleton(po));
-
-        apiService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, null);
+        apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, null);
 
         verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class));
         verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
-        verify(apiRepository, times(1)).update(any());
-        verify(apiRepository, never()).create(any());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, never()).create(any(), any());
     }
 
     @Test
-    public void shouldUpdateImportApiWithPlans() throws IOException, TechnicalException {
+    public void shouldUpdateImportApiWithPlans() throws IOException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+plans.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         UserEntity admin = new UserEntity();
@@ -464,11 +398,10 @@ public class ApiService_UpdateWithDefinitionTest {
         plan2.setId("plan-id2");
         when(planService.findById(plan2.getId())).thenReturn(plan2);
 
-        apiService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
+        apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), toBeImport, "import");
 
         verify(planService, times(2)).update(any(UpdatePlanEntity.class));
-        verify(apiRepository, times(1)).update(any());
-        verify(apiRepository, never()).create(any());
-        verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
+        verify(apiService, never()).create(any(), any());
     }
 }

@@ -27,17 +27,23 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
+import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
+import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import java.io.IOException;
 import java.io.Reader;
+import java.net.URL;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.AfterClass;
@@ -61,6 +67,7 @@ public class ApiService_CreateTest {
     private static final String API_ID = "id-api";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
+    private static final String SOURCE = "source";
 
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
@@ -210,10 +217,99 @@ public class ApiService_CreateTest {
         assertNotNull(apiEntity.getPaths());
 
         verify(apiRepository, times(1)).create(any());
-        verify(genericNotificationConfigService, times(1)).create(any());
-        verify(membershipService, times(1)).addRoleToMemberOnReference(any(), any(), any());
         verify(auditService, times(1)).createApiAuditLog(any(), any(), eq(Api.AuditEvent.API_CREATED), any(), eq(null), any());
+    }
+
+    @Test
+    public void shouldCreate_AndSetupGenericNotifConfig() throws TechnicalException {
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getName()).thenReturn(API_NAME);
+        when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(newApi.getName()).thenReturn(API_NAME);
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+        when(newApi.getContextPath()).thenReturn("/context");
+        UserEntity admin = new UserEntity();
+        admin.setId(USER_NAME);
+        when(userService.findById(admin.getId())).thenReturn(admin);
+
+        apiService.create(newApi, USER_NAME);
+
+        verify(genericNotificationConfigService, times(1))
+            .create(argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
+    }
+
+    @Test
+    public void shouldCreate_AndSetupEmailMetadata() throws TechnicalException {
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getName()).thenReturn(API_NAME);
+        when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(newApi.getName()).thenReturn(API_NAME);
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+        when(newApi.getContextPath()).thenReturn("/context");
+        UserEntity admin = new UserEntity();
+        admin.setId(USER_NAME);
+        when(userService.findById(admin.getId())).thenReturn(admin);
+
+        apiService.create(newApi, USER_NAME);
+
+        verify(apiMetadataService, times(1))
+            .create(
+                argThat(
+                    newApiMetadataEntity ->
+                        newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
+                        newApiMetadataEntity.getName().equals(DefaultMetadataUpgrader.METADATA_EMAIL_SUPPORT_KEY)
+                )
+            );
+    }
+
+    @Test
+    public void shouldCreate_AndCallSearchEngineIndexation() throws TechnicalException {
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getName()).thenReturn(API_NAME);
+        when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(newApi.getName()).thenReturn(API_NAME);
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+        when(newApi.getContextPath()).thenReturn("/context");
+        UserEntity admin = new UserEntity();
+        admin.setId(USER_NAME);
+        when(userService.findById(admin.getId())).thenReturn(admin);
+
+        apiService.create(newApi, USER_NAME);
+
         verify(searchEngineService, times(1)).index(any(), eq(false));
-        verify(apiMetadataService, times(1)).create(any());
+    }
+
+    @Test
+    public void shouldCreate_AndAddPrimaryOwner() throws TechnicalException {
+        when(api.getId()).thenReturn(API_ID);
+        when(api.getName()).thenReturn(API_NAME);
+        when(api.getVisibility()).thenReturn(Visibility.PRIVATE);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        when(newApi.getName()).thenReturn(API_NAME);
+        when(newApi.getVersion()).thenReturn("v1");
+        when(newApi.getDescription()).thenReturn("Ma description");
+        when(newApi.getContextPath()).thenReturn("/context");
+        UserEntity admin = new UserEntity();
+        admin.setId(USER_NAME);
+        when(userService.findById(admin.getId())).thenReturn(admin);
+
+        apiService.create(newApi, USER_NAME);
+
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(
+                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
+                new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
+                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
+            );
     }
 }

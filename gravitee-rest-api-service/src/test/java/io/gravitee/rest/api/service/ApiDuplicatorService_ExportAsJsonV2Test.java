@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.io.IOException;
 import org.junit.Test;
@@ -29,15 +30,14 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiService_gRPC_ExportAsJsonV2Test extends ApiService_gRPC_ExportAsJsonTestSetup {
+public class ApiDuplicatorService_ExportAsJsonV2Test extends ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
 
     @Override
-    protected io.gravitee.definition.model.Api buildApiDefinition(Api api) {
-        io.gravitee.definition.model.Api apiDef = super.buildApiDefinition(api);
-        api.setDescription("Gravitee.io 2.0.0");
-        api.setEnvironmentId("DEFAULT");
-        apiDef.setDefinitionVersion(DefinitionVersion.V2);
-        return apiDef;
+    protected ApiEntity prepareApiEntity(ApiEntity apiEntity) {
+        ApiEntity updatedApiEntity = super.prepareApiEntity(apiEntity);
+        updatedApiEntity.setDescription("Gravitee.io 2.0.0");
+        updatedApiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        return updatedApiEntity;
     }
 
     @Test

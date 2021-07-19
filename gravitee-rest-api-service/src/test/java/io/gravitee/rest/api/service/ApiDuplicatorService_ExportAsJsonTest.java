@@ -22,8 +22,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import java.io.IOException;
@@ -31,7 +30,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -42,35 +40,35 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetup {
+public class ApiDuplicatorService_ExportAsJsonTest extends ApiDuplicatorService_ExportAsJsonTestSetup {
 
     @Test
-    public void shouldConvertAsJsonForExport() throws TechnicalException, IOException {
+    public void shouldConvertAsJsonForExport() throws IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.DEFAULT, null);
     }
 
     @Test
-    public void shouldConvertAsJsonForExport_3_7() throws TechnicalException, IOException {
+    public void shouldConvertAsJsonForExport_3_7() throws IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.V_3_7, "3_7");
     }
 
     @Test
-    public void shouldConvertAsJsonForExport_3_0() throws TechnicalException, IOException {
+    public void shouldConvertAsJsonForExport_3_0() throws IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.V_3_0, "3_0");
     }
 
     @Test
-    public void shouldConvertAsJsonForExport_1_15() throws TechnicalException, IOException {
+    public void shouldConvertAsJsonForExport_1_15() throws IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_15, "1_15");
     }
 
     @Test
-    public void shouldConvertAsJsonForExport_1_20() throws TechnicalException, IOException {
+    public void shouldConvertAsJsonForExport_1_20() throws IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_20, "1_20");
     }
 
     @Test
-    public void shouldConvertAsJsonForExport_1_25() throws TechnicalException, IOException {
+    public void shouldConvertAsJsonForExport_1_25() throws IOException {
         shouldConvertAsJsonForExport(ApiSerializer.Version.V_1_25, "1_25");
     }
 
@@ -165,14 +163,14 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
     }
 
     @Test
-    public void shouldConvertAsJsonMultipleGroups_1_15() throws IOException, TechnicalException {
-        Api api = new Api();
-        api.setId(API_ID);
-        api.setDescription("Gravitee.io");
-        api.setEnvironmentId("DEFAULT");
-        api.setGroups(Collections.singleton("my-group"));
-        api.setEnvironmentId("DEFAULT");
-
+    public void shouldConvertAsJsonMultipleGroups_1_15() throws IOException {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(API_ID);
+        apiEntity.setDescription("Gravitee.io");
+        apiEntity.setGroups(Collections.singleton("my-group"));
+        apiEntity.setFlowMode(FlowMode.DEFAULT);
+        apiEntity.setFlows(null);
+        apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
         // set proxy
         Proxy proxy = new Proxy();
         proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/test")));
@@ -203,18 +201,15 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         cors.setAccessControlAllowMethods(Collections.singleton("GET"));
         proxy.setCors(cors);
 
-        try {
-            io.gravitee.definition.model.Api apiDefinition = new io.gravitee.definition.model.Api();
-            apiDefinition.setPaths(Collections.emptyMap());
-            apiDefinition.setProxy(proxy);
-            String definition = objectMapper.writeValueAsString(apiDefinition);
-            api.setDefinition(definition);
-        } catch (Exception e) {
-            // ignore
-        }
+        apiEntity.setPaths(null);
+        apiEntity.setProxy(proxy);
 
-        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
-        String jsonForExport = apiService.exportAsJson(API_ID, ApiSerializer.Version.V_1_15.getVersion(), SystemRole.PRIMARY_OWNER.name());
+        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+        String jsonForExport = apiDuplicatorService.exportAsJson(
+            API_ID,
+            ApiSerializer.Version.V_1_15.getVersion(),
+            SystemRole.PRIMARY_OWNER.name()
+        );
 
         URL url = Resources.getResource(
             "io/gravitee/rest/api/management/service/export-convertAsJsonForExportMultipleEndpointGroups-1_15.json"
@@ -222,7 +217,7 @@ public class ApiService_ExportAsJsonTest extends ApiService_ExportAsJsonTestSetu
         String expectedJson = Resources.toString(url, Charsets.UTF_8);
 
         assertThat(jsonForExport).isNotNull();
-        assertThat(objectMapper.readTree(expectedJson)).isEqualTo(objectMapper.readTree(jsonForExport));
+        assertThat(objectMapper.readTree(jsonForExport)).isEqualTo(objectMapper.readTree(expectedJson));
     }
 
     @Test
