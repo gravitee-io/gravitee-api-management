@@ -63,22 +63,6 @@ public class Api3_7VersionSerializer extends ApiSerializer {
 
         // proxy part
         if (apiEntity.getProxy() != null) {
-            Set<EndpointGroup> groups = apiEntity.getProxy().getGroups();
-            if (groups != null) {
-                groups.forEach(
-                    grp -> {
-                        if (grp.getEndpoints() != null) {
-                            grp.setEndpoints(
-                                grp
-                                    .getEndpoints()
-                                    .stream()
-                                    .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
-                                    .collect(Collectors.toSet())
-                            );
-                        }
-                    }
-                );
-            }
             jsonGenerator.writeObjectField("proxy", apiEntity.getProxy());
         }
 
