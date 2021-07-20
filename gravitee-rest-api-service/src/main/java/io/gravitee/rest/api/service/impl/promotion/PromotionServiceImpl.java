@@ -167,11 +167,10 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
         PromotionEntity promotionEntity = convert(createdPromotion);
         CockpitReply<PromotionEntity> cockpitReply = cockpitService.requestPromotion(promotionEntity);
-        if (cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED) {
-            throw new BridgeOperationException(BridgeOperation.PROMOTE_API);
-        }
 
-        promotionEntity.setStatus(PromotionEntityStatus.TO_BE_VALIDATED);
+        promotionEntity.setStatus(
+            cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED ? PromotionEntityStatus.ERROR : PromotionEntityStatus.TO_BE_VALIDATED
+        );
         try {
             promotionRepository.update(convert(promotionEntity));
         } catch (TechnicalException exception) {
@@ -179,6 +178,10 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 String.format("An error occurs while trying to update promotion %s", promotionEntity.getId()),
                 exception
             );
+        }
+
+        if (cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED) {
+            throw new BridgeOperationException(BridgeOperation.PROMOTE_API);
         }
 
         return promotionEntity;
