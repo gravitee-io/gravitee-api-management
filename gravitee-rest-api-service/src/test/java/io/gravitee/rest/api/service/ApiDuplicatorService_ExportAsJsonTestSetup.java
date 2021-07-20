@@ -33,19 +33,17 @@ import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.parameters.Key;
-import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.jackson.ser.api.*;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 import org.junit.After;
 import org.junit.Before;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
@@ -60,8 +58,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
 
     protected static final String API_ID = "id-api";
 
-    @InjectMocks
-    protected ApiDuplicatorService apiDuplicatorService = new ApiDuplicatorServiceImpl();
+    protected ApiDuplicatorService apiDuplicatorService;
 
     @Mock
     protected ApiService apiService;
@@ -88,13 +85,38 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
     private ApplicationContext applicationContext;
 
     @Mock
-    private ParameterService parameterService;
-
-    @Mock
     private ApiMetadataService apiMetadataService;
 
     @Mock
     private MediaService mediaService;
+
+    @Mock
+    private RoleService roleService;
+
+    @Mock
+    private HttpClientService httpClientService;
+
+    @Mock
+    private ImportConfiguration importConfiguration;
+
+    @Before
+    public void setup() {
+        apiDuplicatorService =
+            new ApiDuplicatorServiceImpl(
+                httpClientService,
+                importConfiguration,
+                mediaService,
+                objectMapper,
+                apiMetadataService,
+                membershipService,
+                roleService,
+                pageService,
+                planService,
+                groupService,
+                userService,
+                apiService
+            );
+    }
 
     @Before
     public void setUp() throws TechnicalException {

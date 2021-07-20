@@ -30,14 +30,14 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
-import io.gravitee.rest.api.service.notification.NotificationTemplateService;
-import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -57,11 +57,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
     private static final String API_ID = "id-api";
-    private static final String PLAN_ID = "my-plan";
     private static final String SOURCE = "source";
 
-    @InjectMocks
-    protected ApiDuplicatorService apiDuplicatorService = new ApiDuplicatorServiceImpl();
+    protected ApiDuplicatorService apiDuplicatorService;
 
     @Mock
     private ApiService apiService;
@@ -91,28 +89,35 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
     private GroupService groupService;
 
     @Mock
-    private AuditService auditService;
-
-    @Mock
-    private SearchEngineService searchEngineService;
-
-    @Mock
-    private ParameterService parameterService;
-
-    @Mock
-    private VirtualHostService virtualHostService;
-
-    @Mock
-    private CategoryService categoryService;
-
-    @Mock
-    private PolicyService policyService;
-
-    @Mock
     private ApiMetadataService apiMetadataService;
 
     @Mock
-    private NotificationTemplateService notificationTemplateService;
+    private HttpClientService httpClientService;
+
+    @Mock
+    private ImportConfiguration importConfiguration;
+
+    @Mock
+    private MediaService mediaService;
+
+    @Before
+    public void setup() {
+        apiDuplicatorService =
+            new ApiDuplicatorServiceImpl(
+                httpClientService,
+                importConfiguration,
+                mediaService,
+                objectMapper,
+                apiMetadataService,
+                membershipService,
+                roleService,
+                pageService,
+                planService,
+                groupService,
+                userService,
+                apiService
+            );
+    }
 
     @AfterClass
     public static void cleanSecurityContextHolder() {

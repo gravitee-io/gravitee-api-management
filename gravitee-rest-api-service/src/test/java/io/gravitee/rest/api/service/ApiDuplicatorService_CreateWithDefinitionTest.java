@@ -28,15 +28,16 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.impl.ApiDuplicatorServiceImpl;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -53,11 +54,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     private static final String API_ID = "id-api";
-    private static final String PLAN_ID = "my-plan";
     private static final String SOURCE = "source";
 
-    @InjectMocks
-    protected ApiDuplicatorService apiDuplicatorService = new ApiDuplicatorServiceImpl();
+    protected ApiDuplicatorService apiDuplicatorService;
 
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
@@ -85,6 +84,34 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
     @Mock
     private ApiMetadataService apiMetadataService;
+
+    @Mock
+    private HttpClientService httpClientService;
+
+    @Mock
+    private ImportConfiguration importConfiguration;
+
+    @Mock
+    private MediaService mediaService;
+
+    @Before
+    public void setup() {
+        apiDuplicatorService =
+            new ApiDuplicatorServiceImpl(
+                httpClientService,
+                importConfiguration,
+                mediaService,
+                objectMapper,
+                apiMetadataService,
+                membershipService,
+                roleService,
+                pageService,
+                planService,
+                groupService,
+                userService,
+                apiService
+            );
+    }
 
     @AfterClass
     public static void cleanSecurityContextHolder() {

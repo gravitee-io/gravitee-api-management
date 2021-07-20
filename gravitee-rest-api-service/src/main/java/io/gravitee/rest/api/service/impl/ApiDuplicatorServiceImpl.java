@@ -61,41 +61,46 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiDuplicatorServiceImpl.class);
 
-    @Autowired
-    private HttpClientService httpClientService;
+    private final HttpClientService httpClientService;
+    private final ImportConfiguration importConfiguration;
+    private final MediaService mediaService;
+    private final ObjectMapper objectMapper;
+    private final ApiMetadataService apiMetadataService;
+    private final MembershipService membershipService;
+    private final RoleService roleService;
+    private final PageService pageService;
+    private final PlanService planService;
+    private final GroupService groupService;
+    private final UserService userService;
+    private final ApiService apiService;
 
-    @Autowired
-    private ImportConfiguration importConfiguration;
-
-    @Autowired
-    private MediaService mediaService;
-
-    @Autowired
-    protected ObjectMapper objectMapper;
-
-    @Autowired
-    protected ApiMetadataService apiMetadataService;
-
-    @Autowired
-    protected MembershipService membershipService;
-
-    @Autowired
-    protected RoleService roleService;
-
-    @Autowired
-    protected PageService pageService;
-
-    @Autowired
-    protected PlanService planService;
-
-    @Autowired
-    protected GroupService groupService;
-
-    @Autowired
-    protected UserService userService;
-
-    @Autowired
-    protected ApiService apiService;
+    public ApiDuplicatorServiceImpl(
+        HttpClientService httpClientService,
+        ImportConfiguration importConfiguration,
+        MediaService mediaService,
+        ObjectMapper objectMapper,
+        ApiMetadataService apiMetadataService,
+        MembershipService membershipService,
+        RoleService roleService,
+        PageService pageService,
+        PlanService planService,
+        GroupService groupService,
+        UserService userService,
+        ApiService apiService
+    ) {
+        this.httpClientService = httpClientService;
+        this.importConfiguration = importConfiguration;
+        this.mediaService = mediaService;
+        this.objectMapper = objectMapper;
+        this.apiMetadataService = apiMetadataService;
+        this.membershipService = membershipService;
+        this.roleService = roleService;
+        this.pageService = pageService;
+        this.planService = planService;
+        this.groupService = groupService;
+        this.userService = userService;
+        this.apiService = apiService;
+    }
 
     @Override
     public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId) {
