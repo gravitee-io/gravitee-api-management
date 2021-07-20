@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.cockpit.services.CockpitService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
 import java.util.Arrays;
@@ -206,7 +207,7 @@ public class PromotionServiceTest {
         Page<Promotion> promotionPage = new Page<>(emptyList(), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(apiDuplicatorService.createWithImportedDefinition(any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.createWithImportedDefinition(any(), any(), any(), any())).thenReturn(new ApiEntity());
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
         when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
@@ -215,7 +216,7 @@ public class PromotionServiceTest {
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
 
-        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), eq(USER_ID));
+        verify(apiDuplicatorService, times(1)).createWithImportedDefinition(any(), eq(USER_ID), any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -228,7 +229,7 @@ public class PromotionServiceTest {
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
-        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any(), any(), any())).thenReturn(new ApiEntity());
         when(apiService.exists(any())).thenReturn(true);
 
         ApiEntity existingApi = new ApiEntity();
@@ -242,7 +243,7 @@ public class PromotionServiceTest {
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID), any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -262,8 +263,8 @@ public class PromotionServiceTest {
 
         promotionService.processPromotion(PROMOTION_ID, false, USER_ID);
 
-        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), eq(USER_ID));
-        verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, never()).createWithImportedDefinition(any(), eq(USER_ID), any(), any());
+        verify(apiDuplicatorService, never()).updateWithImportedDefinition(any(), any(), eq(USER_ID), any(), any());
         verify(promotionRepository, times(1)).update(any());
     }
 
@@ -293,7 +294,7 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(apiService.exists(any())).thenReturn(true);
-        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any())).thenReturn(new ApiEntity());
+        when(apiDuplicatorService.updateWithImportedDefinition(any(), any(), any(), any(), any())).thenReturn(new ApiEntity());
 
         ApiEntity existingApi = new ApiEntity();
         existingApi.setId("api#existing");
@@ -304,7 +305,7 @@ public class PromotionServiceTest {
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
 
-        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID));
+        verify(apiDuplicatorService, times(1)).updateWithImportedDefinition(any(), any(), eq(USER_ID), any(), any());
         verify(promotionRepository, times(0)).update(any());
     }
 

@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -176,7 +177,7 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
             if (!filteredFieldsList.contains("pages")) {
                 List<PageEntity> pages = applicationContext
                     .getBean(PageService.class)
-                    .search(new PageQuery.Builder().api(apiEntity.getId()).build(), true);
+                    .search(new PageQuery.Builder().api(apiEntity.getId()).build(), true, GraviteeContext.getCurrentEnvironment());
 
                 if (this.version().getVersion().startsWith("1.")) {
                     pages =

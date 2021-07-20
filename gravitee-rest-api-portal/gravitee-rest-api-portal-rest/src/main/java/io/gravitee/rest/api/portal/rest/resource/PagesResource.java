@@ -25,6 +25,7 @@ import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -66,7 +67,11 @@ public class PagesResource extends AbstractResource {
     ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Stream<Page> pageStream = pageService
-            .search(new PageQuery.Builder().homepage(homepage).published(true).build(), acceptedLocale)
+            .search(
+                new PageQuery.Builder().homepage(homepage).published(true).build(),
+                acceptedLocale,
+                GraviteeContext.getCurrentEnvironment()
+            )
             .stream()
             .filter(accessControlService::canAccessPageFromPortal)
             .map(pageMapper::convert)

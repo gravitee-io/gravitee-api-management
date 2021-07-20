@@ -42,6 +42,7 @@ import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionRequestEntity;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.swagger.annotations.*;
@@ -384,7 +385,12 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response updateApiWithDefinition(@ApiParam(name = "definition", required = true) String apiDefinition) {
-        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(apiDefinition, getAuthenticatedUser());
+        ApiEntity updatedApi = apiDuplicatorService.createWithImportedDefinition(
+            apiDefinition,
+            getAuthenticatedUser(),
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -409,7 +415,13 @@ public class ApiResource extends AbstractResource {
     public Response updateWithDefinitionPUT(@ApiParam(name = "definition", required = true) String apiDefinition) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity();
 
-        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(apiEntity.getId(), apiDefinition, getAuthenticatedUser());
+        ApiEntity updatedApi = apiDuplicatorService.updateWithImportedDefinition(
+            apiEntity.getId(),
+            apiDefinition,
+            getAuthenticatedUser(),
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
         return Response
             .ok(updatedApi)
             .tag(Long.toString(updatedApi.getUpdatedAt().getTime()))
@@ -649,7 +661,16 @@ public class ApiResource extends AbstractResource {
     )
     public Response duplicateAPI(@ApiParam(name = "api", required = true) @Valid @NotNull final DuplicateApiEntity duplicateApiEntity) {
         final ApiEntity apiEntity = (ApiEntity) getApi().getEntity(); // call this method to check READ permission on source API.
-        return Response.ok(apiDuplicatorService.duplicate(apiEntity, duplicateApiEntity)).build();
+        return Response
+            .ok(
+                apiDuplicatorService.duplicate(
+                    apiEntity,
+                    duplicateApiEntity,
+                    GraviteeContext.getCurrentOrganization(),
+                    GraviteeContext.getCurrentEnvironment()
+                )
+            )
+            .build();
     }
 
     @POST

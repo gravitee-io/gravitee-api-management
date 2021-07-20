@@ -264,11 +264,24 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 // FIXME: All the methods should take then env id as input instead of relying on GraviteeContext.getCurrentEnv
                 GraviteeContext.setCurrentEnvironment(environment.getId());
                 if (shouldCreate) {
-                    promoted = apiDuplicatorService.createWithImportedDefinition(existing.getApiDefinition(), user);
+                    promoted =
+                        apiDuplicatorService.createWithImportedDefinition(
+                            existing.getApiDefinition(),
+                            user,
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment()
+                        );
                 } else {
                     PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
                     final ApiEntity existingApi = apiService.findById(lastAcceptedPromotion.getTargetApiId());
-                    promoted = apiDuplicatorService.updateWithImportedDefinition(existingApi.getId(), existing.getApiDefinition(), user);
+                    promoted =
+                        apiDuplicatorService.updateWithImportedDefinition(
+                            existingApi.getId(),
+                            existing.getApiDefinition(),
+                            user,
+                            GraviteeContext.getCurrentOrganization(),
+                            GraviteeContext.getCurrentEnvironment()
+                        );
                 }
                 existing.setTargetApiId(promoted.getId());
             }

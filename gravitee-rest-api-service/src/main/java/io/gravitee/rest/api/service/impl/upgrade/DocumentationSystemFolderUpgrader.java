@@ -53,7 +53,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
     public boolean upgrade() {
         PageQuery query = new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build();
         // searching for system folders.
-        if (pageService.search(query).isEmpty()) {
+        if (pageService.search(query, GraviteeContext.getCurrentEnvironment()).isEmpty()) {
             logger.info("No system folders found. Add system folders in documentation, for portal and each API.");
 
             // Portal documentation
@@ -64,7 +64,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
 
             // Create link to existing documentation in footer
             List<PageEntity> pagesToLink = pageService
-                .search(new PageQuery.Builder().homepage(false).rootParent(true).build())
+                .search(new PageQuery.Builder().homepage(false).rootParent(true).build(), GraviteeContext.getCurrentEnvironment())
                 .stream()
                 .filter(p -> PageType.SWAGGER.name().equals(p.getType()) || PageType.MARKDOWN.name().equals(p.getType()))
                 .collect(Collectors.toList());
@@ -97,7 +97,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
         newFolder.setParentId(parentId);
         newFolder.setVisibility(Visibility.PUBLIC);
 
-        return pageService.createPage(newFolder);
+        return pageService.createPage(newFolder, GraviteeContext.getCurrentEnvironment());
     }
 
     private void createLink(String parentId, String name, String resourceRef, String resourceType, Boolean isFolder, Boolean inherit) {
@@ -120,7 +120,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
 
         newLink.setConfiguration(configuration);
 
-        pageService.createPage(newLink);
+        pageService.createPage(newLink, GraviteeContext.getCurrentEnvironment());
     }
 
     @Override

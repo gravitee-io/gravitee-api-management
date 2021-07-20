@@ -37,7 +37,6 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -49,7 +48,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -103,15 +101,15 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId) {
+    public ApiEntity createWithImportedDefinition(String apiDefinitionOrURL, String userId, String organizationId, String environmentId) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
-            createPageAndMedia(createdApiEntity, jsonNode);
-            updateApiReferences(createdApiEntity, jsonNode);
+            createPageAndMedia(createdApiEntity, jsonNode, environmentId);
+            updateApiReferences(createdApiEntity, jsonNode, organizationId, environmentId);
             return createdApiEntity;
         } catch (JsonProcessingException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -120,7 +118,12 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity duplicate(final ApiEntity apiEntity, final DuplicateApiEntity duplicateApiEntity) {
+    public ApiEntity duplicate(
+        final ApiEntity apiEntity,
+        final DuplicateApiEntity duplicateApiEntity,
+        String organizationId,
+        String environmentId
+    ) {
         requireNonNull(apiEntity, "Missing ApiEntity");
         final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
@@ -143,10 +146,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 io.gravitee.rest.api.model.MembershipReferenceType.API,
                 apiId
             );
-            RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(
-                GraviteeContext.getCurrentOrganization(),
-                RoleScope.API
-            );
+            RoleEntity primaryOwnerRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.API);
             if (primaryOwnerRole != null) {
                 String primaryOwnerRoleId = primaryOwnerRole.getId();
                 membershipsToDuplicate.forEach(
@@ -167,8 +167,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("pages")) {
-            final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build(), true);
-            pages.forEach(page -> pageService.create(duplicatedApi.getId(), page));
+            final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build(), true, environmentId);
+            pages.forEach(page -> pageService.create(duplicatedApi.getId(), page, environmentId));
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
@@ -197,14 +197,20 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     }
 
     @Override
-    public ApiEntity updateWithImportedDefinition(String apiId, String apiDefinitionOrURL, String userId) {
+    public ApiEntity updateWithImportedDefinition(
+        String apiId,
+        String apiDefinitionOrURL,
+        String userId,
+        String organizationId,
+        String environmentId
+    ) {
         String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
         try {
             // Read the whole definition
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
-            updateApiReferences(updatedApiEntity, jsonNode);
+            updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId);
             return updatedApiEntity;
         } catch (JsonProcessingException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -258,7 +264,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return importedApi;
     }
 
-    private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode) {
+    private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode, String environmentId) {
         final JsonNode apiMedia = jsonNode.path("apiMedia");
         if (apiMedia != null && apiMedia.isArray()) {
             for (JsonNode media : apiMedia) {
@@ -269,7 +275,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         final JsonNode pages = jsonNode.path("pages");
         if (pages != null && pages.isArray()) {
             for (JsonNode page : pages) {
-                PageEntity pageEntity = pageService.createWithDefinition(createdApiEntity.getId(), page.toString());
+                PageEntity pageEntity = pageService.createWithDefinition(createdApiEntity.getId(), page.toString(), environmentId);
                 ((ObjectNode) page).put("id", pageEntity.getId());
             }
         }
@@ -279,20 +285,21 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 .api(createdApiEntity.getId())
                 .name(SystemFolderType.ASIDE.folderName())
                 .type(PageType.SYSTEM_FOLDER)
-                .build()
+                .build(),
+            environmentId
         );
         if (search.isEmpty()) {
-            this.createSystemFolder(createdApiEntity.getId());
+            this.createSystemFolder(createdApiEntity.getId(), environmentId);
         }
     }
 
-    private void createSystemFolder(String apiId) {
+    private void createSystemFolder(String apiId, String environmentId) {
         NewPageEntity asideSystemFolder = new NewPageEntity();
         asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
         asideSystemFolder.setPublished(true);
         asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
         asideSystemFolder.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
-        pageService.createPage(apiId, asideSystemFolder);
+        pageService.createPage(apiId, asideSystemFolder, environmentId);
     }
 
     private UpdateApiEntity convert(final ApiEntity apiEntity) {
@@ -322,7 +329,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return updateApiEntity;
     }
 
-    private void createOrUpdateChildrenPages(String apiId, String parentId, List<PageEntityTreeNode> children) {
+    private void createOrUpdateChildrenPages(String apiId, String parentId, List<PageEntityTreeNode> children, String environmentId) {
         for (final PageEntityTreeNode child : children) {
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
@@ -337,7 +344,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     .type(PageType.valueOf(pageEntityToImport.getType()))
                     .build();
 
-                List<PageEntity> pages = pageService.search(query);
+                List<PageEntity> pages = pageService.search(query, environmentId);
                 if (pages.size() == 1) {
                     createdOrUpdatedPage = pages.get(0);
                 } else if (pages.size() > 1) {
@@ -366,7 +373,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 newPage.setSource(pageEntityToImport.getSource());
                 newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
                 newPage.setAttachedMedia(pageEntityToImport.getAttachedMedia());
-                createdOrUpdatedPage = pageService.createPage(apiId, newPage);
+                createdOrUpdatedPage = pageService.createPage(apiId, newPage, environmentId);
             } else {
                 UpdatePageEntity updatePageEntity = new UpdatePageEntity();
                 updatePageEntity.setConfiguration(pageEntityToImport.getConfiguration());
@@ -386,7 +393,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
 
             if (child.children != null && !child.children.isEmpty()) {
-                this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children);
+                this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children, environmentId);
             }
         }
     }
@@ -404,7 +411,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return apiDefinitionOrURL;
     }
 
-    private void updateApiReferences(ApiEntity createdOrUpdatedApiEntity, JsonNode jsonNode) throws JsonProcessingException {
+    private void updateApiReferences(ApiEntity createdOrUpdatedApiEntity, JsonNode jsonNode, String organizationId, String environmentId)
+        throws JsonProcessingException {
         // Members
         final JsonNode membersToImport = jsonNode.path("members");
         if (membersToImport != null && membersToImport.isArray()) {
@@ -425,7 +433,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 )
                 .collect(toSet());
             // get the current PO
-            RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
+            RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, RoleScope.API);
             if (poRole != null) {
                 String poRoleId = poRole.getId();
                 MemberToImport currentPo = membersAlreadyPresent
@@ -555,7 +563,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
             PageEntityTreeNode documentationTree = new PageEntityTreeNode(new PageEntity());
             documentationTree.appendListToTree(pagesList);
-            createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children);
+            createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children, environmentId);
         }
 
         //Plans

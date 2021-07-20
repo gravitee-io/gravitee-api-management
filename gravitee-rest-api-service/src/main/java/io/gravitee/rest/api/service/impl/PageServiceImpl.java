@@ -45,7 +45,6 @@ import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
@@ -542,23 +541,29 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public List<PageEntity> search(final PageQuery query) {
-        return this.search(query, null, false, true);
+    public List<PageEntity> search(final PageQuery query, String environmentId) {
+        return search(query, false, environmentId);
     }
 
     @Override
-    public List<PageEntity> search(final PageQuery query, boolean withTranslations) {
-        return this.search(query, null, withTranslations, true);
+    public List<PageEntity> search(final PageQuery query, boolean withTranslations, String environmentId) {
+        return this.search(query, null, withTranslations, true, environmentId);
     }
 
     @Override
-    public List<PageEntity> search(final PageQuery query, String acceptedLocale) {
-        return this.search(query, acceptedLocale, false, true);
+    public List<PageEntity> search(final PageQuery query, String acceptedLocale, String environmentId) {
+        return this.search(query, acceptedLocale, false, true, environmentId);
     }
 
-    private List<PageEntity> search(final PageQuery query, String acceptedLocale, boolean withTranslations, boolean withLinks) {
+    private List<PageEntity> search(
+        final PageQuery query,
+        String acceptedLocale,
+        boolean withTranslations,
+        boolean withLinks,
+        String environmentId
+    ) {
         try {
-            Stream<Page> pagesStream = pageRepository.search(queryToCriteria(query)).stream();
+            Stream<Page> pagesStream = pageRepository.search(queryToCriteria(query, environmentId)).stream();
             if (!withTranslations) {
                 pagesStream = pagesStream.filter(page -> !PageType.TRANSLATION.name().equals(page.getType()));
             }
@@ -699,12 +704,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public PageEntity createPage(String apiId, NewPageEntity newPageEntity) {
-        return this.createPage(apiId, newPageEntity, GraviteeContext.getCurrentEnvironment());
-    }
-
-    private PageEntity createPage(String apiId, NewPageEntity newPageEntity, String environmentId) {
-        return createPage(apiId, newPageEntity, environmentId, null);
+    public PageEntity createPage(String apiId, NewPageEntity newPageEntity, String environmentId) {
+        return this.createPage(apiId, newPageEntity, environmentId, null);
     }
 
     private PageEntity createPage(String apiId, NewPageEntity newPageEntity, String environmentId, String pageId) {
@@ -940,15 +941,15 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public PageEntity createPage(NewPageEntity newPageEntity) {
-        return this.createPage(null, newPageEntity);
+    public PageEntity createPage(NewPageEntity newPageEntity, String environmentId) {
+        return createPage(null, newPageEntity, environmentId);
     }
 
     @Override
-    public PageEntity create(final String apiId, final PageEntity pageEntity) {
+    public PageEntity create(final String apiId, final PageEntity pageEntity, String environmentId) {
         final NewPageEntity newPageEntity = convert(pageEntity);
         newPageEntity.setLastContributor(null);
-        return createPage(apiId, newPageEntity);
+        return createPage(apiId, newPageEntity, environmentId);
     }
 
     private void onlyOneHomepage(Page page) throws TechnicalException {
@@ -1477,19 +1478,19 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public List<PageEntity> importFiles(ImportPageEntity pageEntity) {
-        return importFiles(null, pageEntity);
+    public List<PageEntity> importFiles(ImportPageEntity pageEntity, String environmentId) {
+        return importFiles(null, pageEntity, environmentId);
     }
 
     @Override
-    public List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity) {
+    public List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity, String environmentId) {
         Page page = upsertRootPage(apiId, pageEntity);
         pageEntity.setSource(convert(page.getSource(), false));
-        return fetchPages(apiId, pageEntity);
+        return fetchPages(apiId, pageEntity, environmentId);
     }
 
     @Override
-    public long execAutoFetch() {
+    public long execAutoFetch(String environmentId) {
         logger.debug("Auto Fetch pages");
         try {
             List<Page> autoFetchPages = pageRepository.search(new PageCriteria.Builder().withAutoFetch().build());
@@ -1497,7 +1498,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 .stream()
                 .filter(pageListItem -> pageListItem.getSource() != null)
                 .filter(this::isFetchRequired)
-                .map(this::executeAutoFetch)
+                .map(page -> executeAutoFetch(page, environmentId))
                 .flatMap(Collection::stream)
                 .count();
 
@@ -1531,7 +1532,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return fetchRequired;
     }
 
-    private List<PageEntity> executeAutoFetch(Page page) {
+    private List<PageEntity> executeAutoFetch(Page page, String environmentId) {
         try {
             if (page.getType() != null && page.getType().toString().equals("ROOT")) {
                 final ImportPageEntity pageEntity = new ImportPageEntity();
@@ -1543,7 +1544,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 pageEntity.setAccessControls(convertToEntities(page.getAccessControls()));
                 pageEntity.setLastContributor(SYSTEM_CONTRIBUTOR);
                 pageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
-                return fetchPages(page.getReferenceId(), pageEntity);
+                return fetchPages(page.getReferenceId(), pageEntity, environmentId);
             } else {
                 return Arrays.asList(fetch(page, SYSTEM_CONTRIBUTOR));
             }
@@ -1554,10 +1555,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public void fetchAll(PageQuery query, String contributor) {
+    public void fetchAll(PageQuery query, String contributor, String environmentId) {
         try {
             pageRepository
-                .search(queryToCriteria(query))
+                .search(queryToCriteria(query, environmentId))
                 .stream()
                 .filter(pageListItem -> pageListItem.getSource() != null)
                 .forEach(
@@ -1571,7 +1572,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                             pageEntity.setExcludedAccessControls(pageListItem.isExcludedAccessControls());
                             pageEntity.setAccessControls(convertToEntities(pageListItem.getAccessControls()));
                             pageEntity.setLastContributor(contributor);
-                            fetchPages(query.getApi(), pageEntity);
+                            fetchPages(query.getApi(), pageEntity, environmentId);
                         } else {
                             fetch(pageListItem.getId(), contributor);
                         }
@@ -1587,7 +1588,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         final String apiId,
         final ImportPageEntity descriptorPageEntity,
         final FilesFetcher fetcher,
-        final GraviteeDescriptorEntity descriptorEntity
+        final GraviteeDescriptorEntity descriptorEntity,
+        String environmentId
     ) {
         if (
             descriptorEntity.getDocumentation() == null ||
@@ -1622,7 +1624,15 @@ public class PageServiceImpl extends AbstractService implements PageService, App
 
                 try {
                     createdPages.addAll(
-                        upsertPageAndParentFolders(parentPath, newPage, parentsIdByPath, fetcher, apiId, descriptorPage.getSrc())
+                        upsertPageAndParentFolders(
+                            parentPath,
+                            newPage,
+                            parentsIdByPath,
+                            fetcher,
+                            apiId,
+                            descriptorPage.getSrc(),
+                            environmentId
+                        )
                     );
                 } catch (TechnicalException ex) {
                     logger.error("An error occurs while trying to import a gravitee descriptor", ex);
@@ -1633,7 +1643,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return createdPages;
     }
 
-    private List<PageEntity> importDirectory(String apiId, ImportPageEntity pageEntity, FilesFetcher fetcher) {
+    private List<PageEntity> importDirectory(String apiId, ImportPageEntity pageEntity, FilesFetcher fetcher, String environmentId) {
         try {
             String[] files = fetcher.files();
 
@@ -1647,7 +1657,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     ((FilepathAwareFetcherConfiguration) fetcher.getConfiguration()).setFilepath(optDescriptor.get());
                     final Resource resource = fetcher.fetch();
                     final GraviteeDescriptorEntity descriptorEntity = graviteeDescriptorService.read(getResourceContentAsString(resource));
-                    return importDescriptor(apiId, pageEntity, fetcher, descriptorEntity);
+                    return importDescriptor(apiId, pageEntity, fetcher, descriptorEntity, environmentId);
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
                     throw new FetcherException(e.getMessage(), e);
@@ -1668,7 +1678,15 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                     pageFromPath.setOrder(order++);
                     try {
                         createdPages.addAll(
-                            upsertPageAndParentFolders(getParentPathFromFilePath(file), pageFromPath, parentsIdByPath, fetcher, apiId, file)
+                            upsertPageAndParentFolders(
+                                getParentPathFromFilePath(file),
+                                pageFromPath,
+                                parentsIdByPath,
+                                fetcher,
+                                apiId,
+                                file,
+                                environmentId
+                            )
                         );
                     } catch (TechnicalException ex) {
                         logger.error("An error occurs while trying to import a directory", ex);
@@ -1726,7 +1744,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         final Map<String, String> parentsIdByPath,
         final FilesFetcher fetcher,
         final String apiId,
-        final String src
+        final String src,
+        String environmentId
     ) throws TechnicalException {
         ObjectMapper mapper = new ObjectMapper();
         String[] pathElements = parentPath.split("/");
@@ -1758,7 +1777,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         newPage.setName(pathElement);
                         newPage.setType(PageType.FOLDER);
                         newPage.setVisibility(Visibility.PUBLIC);
-                        folder = this.createPage(apiId, newPage);
+                        folder = createPage(apiId, newPage, environmentId);
                     } else {
                         folder = convert(pages.get(0));
                     }
@@ -1786,7 +1805,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             configuration.setFilepath(src);
             newPageEntity.getSource().setConfiguration(mapper.valueToTree(configuration));
             newPageEntity.setVisibility(Visibility.PUBLIC);
-            createdPages.add(this.createPage(apiId, newPageEntity));
+            createdPages.add(createPage(apiId, newPageEntity, environmentId));
         } else {
             Page page = pages.get(0);
             UpdatePageEntity updatePage = convertToUpdateEntity(page);
@@ -1982,8 +2001,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public void deleteAllByApi(String apiId) {
-        final List<PageEntity> pages = search(new PageQuery.Builder().api(apiId).build(), null, false, false);
+    public void deleteAllByApi(String apiId, String environmentId) {
+        final List<PageEntity> pages = search(new PageQuery.Builder().api(apiId).build(), null, false, false, environmentId);
         pages.sort(
             new Comparator<PageEntity>() {
                 @Override
@@ -2013,11 +2032,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public int findMaxPortalPageOrder() {
+    public int findMaxPortalPageOrder(String referenceId) {
         try {
             logger.debug("Find Max Order Portal Page");
             final Integer maxPageOrder = pageRepository.findMaxPageReferenceIdAndReferenceTypeOrder(
-                GraviteeContext.getCurrentEnvironment(),
+                referenceId,
                 PageReferenceType.ENVIRONMENT
             );
             return maxPageOrder == null ? 0 : maxPageOrder;
@@ -2121,7 +2140,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return pageEntity;
     }
 
-    private List<PageEntity> fetchPages(final String apiId, ImportPageEntity pageEntity) {
+    private List<PageEntity> fetchPages(final String apiId, ImportPageEntity pageEntity, String environmentId) {
         try {
             Fetcher _fetcher = this.getFetcher(convert(pageEntity.getSource()));
             if (_fetcher == null) {
@@ -2131,7 +2150,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 throw new UnsupportedOperationException("The plugin does not support to import a directory.");
             }
             FilesFetcher fetcher = (FilesFetcher) _fetcher;
-            return importDirectory(apiId, pageEntity, fetcher);
+            return importDirectory(apiId, pageEntity, fetcher, environmentId);
         } catch (FetcherException ex) {
             logger.error("An error occurs while trying to import a directory", ex);
             throw new TechnicalManagementException("An error occurs while trying import a directory", ex);
@@ -2444,7 +2463,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private PageCriteria queryToCriteria(PageQuery query) {
+    private PageCriteria queryToCriteria(PageQuery query, String environmentId) {
         final PageCriteria.Builder builder = new PageCriteria.Builder();
         if (query != null) {
             builder.homepage(query.getHomepage());
@@ -2452,7 +2471,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 builder.referenceId(query.getApi());
                 builder.referenceType(PageReferenceType.API.name());
             } else {
-                builder.referenceId(GraviteeContext.getCurrentEnvironment());
+                builder.referenceId(environmentId);
                 builder.referenceType(PageReferenceType.ENVIRONMENT.name());
             }
             builder.name(query.getName());
@@ -2488,7 +2507,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         newSysFolder.setPublished(true);
         newSysFolder.setType(PageType.SYSTEM_FOLDER);
         newSysFolder.setVisibility(Visibility.PUBLIC);
-        return this.createPage(apiId, newSysFolder, environmentId);
+        return createPage(apiId, newSysFolder, environmentId);
     }
 
     @Override
@@ -2522,16 +2541,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
-    public PageEntity createWithDefinition(String apiId, String pageDefinition) {
+    public PageEntity createWithDefinition(String apiId, String pageDefinition, String environmentId) {
         try {
             final NewPageEntity newPage = convertToEntity(pageDefinition);
             JsonNode jsonNode = objectMapper.readTree(pageDefinition);
-            return createPage(
-                apiId,
-                newPage,
-                GraviteeContext.getCurrentEnvironment(),
-                (jsonNode.get("id") != null ? jsonNode.get("id").asText() : null)
-            );
+            return createPage(apiId, newPage, environmentId, (jsonNode.get("id") != null ? jsonNode.get("id").asText() : null));
         } catch (JsonProcessingException e) {
             logger.error("An error occurs while trying to JSON deserialize the Page {}", pageDefinition, e);
             throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the Page definition.");

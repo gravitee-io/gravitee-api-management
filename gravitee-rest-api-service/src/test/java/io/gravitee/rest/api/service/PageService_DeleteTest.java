@@ -28,9 +28,9 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PageConfigurationKeys;
 import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageActionException;
 import io.gravitee.rest.api.service.exceptions.PageUsedAsGeneralConditionsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -316,7 +316,7 @@ public class PageService_DeleteTest {
         when(pageRepository.search(new PageCriteria.Builder().referenceType(PageReferenceType.API.name()).referenceId("apiId").build()))
             .thenReturn(Arrays.asList(folder, child, childPage, page));
 
-        pageService.deleteAllByApi("apiId");
+        pageService.deleteAllByApi("apiId", GraviteeContext.getCurrentEnvironment());
 
         verify(pageRepository, times(6)).delete(idCaptor.capture());
         assertEquals(

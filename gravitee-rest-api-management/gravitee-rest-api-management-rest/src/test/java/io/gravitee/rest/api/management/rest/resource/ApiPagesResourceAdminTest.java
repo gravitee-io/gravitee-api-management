@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -180,8 +181,8 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
 
         PageEntity returnedPage = new PageEntity();
         returnedPage.setId("my-beautiful-page");
-        doReturn(returnedPage).when(pageService).createPage(eq(API_NAME), any());
-        doReturn(0).when(pageService).findMaxPortalPageOrder();
+        doReturn(returnedPage).when(pageService).createPage(eq(API_NAME), any(), eq(GraviteeContext.getCurrentEnvironment()));
+        doReturn(0).when(pageService).findMaxPortalPageOrder(eq(GraviteeContext.getCurrentEnvironment()));
 
         final Response response = envTarget().request().post(Entity.json(newPageEntity));
 

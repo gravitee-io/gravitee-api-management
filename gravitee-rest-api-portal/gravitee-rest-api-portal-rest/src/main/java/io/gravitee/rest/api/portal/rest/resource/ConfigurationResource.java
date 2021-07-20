@@ -138,7 +138,7 @@ public class ConfigurationResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> portalLinks = new HashMap<>();
         pageService
-            .search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale)
+            .search(new PageQuery.Builder().type(PageType.SYSTEM_FOLDER).build(), acceptedLocale, GraviteeContext.getCurrentEnvironment())
             .stream()
             .filter(PageEntity::isPublished)
             .forEach(
@@ -157,7 +157,11 @@ public class ConfigurationResource extends AbstractResource {
 
                     // for pages into folders
                     pageService
-                        .search(new PageQuery.Builder().parent(systemFolder.getId()).build(), acceptedLocale)
+                        .search(
+                            new PageQuery.Builder().parent(systemFolder.getId()).build(),
+                            acceptedLocale,
+                            GraviteeContext.getCurrentEnvironment()
+                        )
                         .stream()
                         .filter(PageEntity::isPublished)
                         .filter(p -> p.getType().equals("FOLDER"))
@@ -184,7 +188,7 @@ public class ConfigurationResource extends AbstractResource {
 
     private List<Link> getLinksFromFolder(PageEntity folder, String acceptedLocale) {
         return pageService
-            .search(new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale)
+            .search(new PageQuery.Builder().parent(folder.getId()).build(), acceptedLocale, GraviteeContext.getCurrentEnvironment())
             .stream()
             .filter(
                 p -> {

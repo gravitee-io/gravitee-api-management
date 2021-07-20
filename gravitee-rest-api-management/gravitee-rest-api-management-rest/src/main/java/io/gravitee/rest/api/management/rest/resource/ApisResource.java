@@ -237,7 +237,12 @@ public class ApisResource extends AbstractResource {
         @ApiParam(name = "definition", required = true) @Valid @NotNull String apiDefinition,
         @QueryParam("definitionVersion") @DefaultValue("1.0.0") String definitionVersion
     ) {
-        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(apiDefinition, getAuthenticatedUser());
+        ApiEntity imported = apiDuplicatorService.createWithImportedDefinition(
+            apiDefinition,
+            getAuthenticatedUser(),
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
 
         if (
             DefinitionVersion.valueOfLabel(definitionVersion).equals(DefinitionVersion.V2) &&

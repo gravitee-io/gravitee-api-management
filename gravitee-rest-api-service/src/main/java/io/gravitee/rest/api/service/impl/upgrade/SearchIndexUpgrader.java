@@ -83,7 +83,8 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
                                             // Pages
                                             List<PageEntity> apiPages = pageService.search(
                                                 new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
-                                                true
+                                                true,
+                                                GraviteeContext.getCurrentEnvironment()
                                             );
                                             apiPages.forEach(
                                                 page -> {

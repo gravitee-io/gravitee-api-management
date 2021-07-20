@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.ImportPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.impl.GraviteeDescriptorServiceImpl;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
@@ -127,7 +128,7 @@ public class PageService_ImportDescriptorTest {
         when(graviteeDescriptorService.descriptorName()).thenReturn(".gravitee.json");
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();
 
-        List<PageEntity> pageEntities = pageService.importFiles(pageEntity);
+        List<PageEntity> pageEntities = pageService.importFiles(pageEntity, GraviteeContext.getCurrentEnvironment());
 
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());

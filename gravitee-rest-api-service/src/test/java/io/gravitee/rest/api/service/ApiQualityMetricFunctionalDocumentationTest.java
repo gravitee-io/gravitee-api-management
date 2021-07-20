@@ -18,12 +18,13 @@ package io.gravitee.rest.api.service;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.quality.ApiQualityMetricFunctionalDocumentation;
 import java.util.Collections;
 import org.junit.Test;
@@ -50,7 +51,7 @@ public class ApiQualityMetricFunctionalDocumentationTest {
     @Test
     public void shouldBeValidWithMarkdownPublished() {
         PageEntity item = mock(PageEntity.class);
-        when(mockPageService.search(any())).thenReturn(Collections.singletonList(item));
+        when(mockPageService.search(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Collections.singletonList(item));
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 
@@ -61,7 +62,7 @@ public class ApiQualityMetricFunctionalDocumentationTest {
 
     @Test
     public void shouldNotBeValidWithEmptyList() {
-        when(mockPageService.search(any())).thenReturn(Collections.emptyList());
+        when(mockPageService.search(any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(Collections.emptyList());
         ApiEntity api = mock(ApiEntity.class);
         when(api.getId()).thenReturn(API_ID);
 

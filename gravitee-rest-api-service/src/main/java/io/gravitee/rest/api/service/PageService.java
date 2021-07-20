@@ -35,19 +35,19 @@ public interface PageService {
 
     PageEntity findById(String pageId, String acceptedLocale);
 
-    List<PageEntity> search(PageQuery query);
+    List<PageEntity> search(PageQuery query, String environmentId);
 
-    List<PageEntity> search(PageQuery query, boolean withTranslations);
+    List<PageEntity> search(PageQuery query, boolean withTranslations, String environmentId);
 
-    List<PageEntity> search(PageQuery query, String acceptedLocale);
+    List<PageEntity> search(PageQuery query, String acceptedLocale, String environmentId);
 
     void transformSwagger(PageEntity pageEntity);
 
     void transformSwagger(PageEntity pageEntity, String apiId);
 
-    PageEntity createPage(String apiId, NewPageEntity page);
+    PageEntity createPage(String apiId, NewPageEntity page, String environmentId);
 
-    PageEntity createPage(NewPageEntity page);
+    PageEntity createPage(NewPageEntity page, String environmentId);
 
     PageEntity update(String pageId, UpdatePageEntity updatePageEntity);
 
@@ -55,25 +55,25 @@ public interface PageService {
 
     void delete(String pageId);
 
-    void deleteAllByApi(String apiId);
+    void deleteAllByApi(String apiId, String environmentId);
 
     int findMaxApiPageOrderByApi(String apiId);
 
-    int findMaxPortalPageOrder();
+    int findMaxPortalPageOrder(String referenceId);
 
-    void fetchAll(PageQuery query, String contributor);
+    void fetchAll(PageQuery query, String contributor, String currentEnvironment);
 
-    long execAutoFetch();
+    long execAutoFetch(String environmentId);
 
     PageEntity fetch(String pageId, String contributor);
 
-    List<PageEntity> importFiles(ImportPageEntity pageEntity);
+    List<PageEntity> importFiles(ImportPageEntity pageEntity, String environmentId);
 
-    List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity);
+    List<PageEntity> importFiles(String apiId, ImportPageEntity pageEntity, String environmentId);
 
     void transformWithTemplate(PageEntity pageEntity, String api);
 
-    PageEntity create(String apiId, PageEntity pageEntity);
+    PageEntity create(String apiId, PageEntity pageEntity, String environmentId);
 
     List<String> validateSafeContent(PageEntity pageEntity, String apiId);
 
@@ -81,7 +81,7 @@ public interface PageService {
 
     PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
 
-    PageEntity createWithDefinition(String apiId, String toString);
+    PageEntity createWithDefinition(String apiId, String toString, String environmentId);
 
     /**
      * Check if the page is used as GeneralCondition by an active Plan for the given ApiID

@@ -510,7 +510,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         boolean isForCreation
     ) {
         if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            List<PageEntity> apiDocs = pageService.search(new PageQuery.Builder().api(api.getId()).type(PageType.SWAGGER).build());
+            List<PageEntity> apiDocs = pageService.search(
+                new PageQuery.Builder().api(api.getId()).type(PageType.SWAGGER).build(),
+                GraviteeContext.getCurrentEnvironment()
+            );
 
             if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
                 final NewPageEntity page = new NewPageEntity();
@@ -525,7 +528,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     source.setType("http-fetcher");
                     source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
                 }
-                pageService.createPage(api.getId(), page);
+                pageService.createPage(api.getId(), page, GraviteeContext.getCurrentEnvironment());
             } else if (apiDocs.size() == 1) {
                 PageEntity pageToUpdate = apiDocs.get(0);
                 final UpdatePageEntity page = new UpdatePageEntity();
@@ -655,7 +658,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         asideSystemFolder.setPublished(true);
         asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
         asideSystemFolder.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
-        pageService.createPage(apiId, asideSystemFolder);
+        pageService.createPage(apiId, asideSystemFolder, GraviteeContext.getCurrentEnvironment());
     }
 
     private void checkEndpointsName(UpdateApiEntity api) {
@@ -1734,7 +1737,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 eventService.create(EventType.UNPUBLISH_API, null, properties);
 
                 // Delete pages
-                pageService.deleteAllByApi(apiId);
+                pageService.deleteAllByApi(apiId, GraviteeContext.getCurrentEnvironment());
 
                 // Delete top API
                 topApiService.delete(apiId);

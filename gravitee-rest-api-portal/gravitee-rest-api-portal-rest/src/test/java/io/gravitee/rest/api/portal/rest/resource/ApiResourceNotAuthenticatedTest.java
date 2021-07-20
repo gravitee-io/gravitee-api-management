@@ -19,6 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.Plan;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -104,7 +106,7 @@ public class ApiResourceNotAuthenticatedTest extends AbstractResourceTest {
         when(accessControlService.canAccessApiFromPortal(API)).thenReturn(true);
         when(accessControlService.canAccessApiFromPortal(mockApi)).thenReturn(true);
 
-        doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any());
+        doReturn(Arrays.asList(new PageEntity())).when(pageService).search(any(), eq(GraviteeContext.getCurrentEnvironment()));
 
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("A");

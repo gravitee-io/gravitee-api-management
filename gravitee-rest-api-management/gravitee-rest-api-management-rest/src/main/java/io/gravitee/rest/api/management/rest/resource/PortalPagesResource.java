@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.annotations.*;
@@ -129,7 +130,8 @@ public class PortalPagesResource extends AbstractResource {
                     .name(name)
                     .rootParent(rootParent)
                     .build(),
-                translated ? acceptedLocale : null
+                translated ? acceptedLocale : null,
+                GraviteeContext.getCurrentEnvironment()
             )
             .stream()
             .filter(this::isDisplayable)
@@ -151,10 +153,10 @@ public class PortalPagesResource extends AbstractResource {
         if (newPageEntity.getType().equals(PageType.SYSTEM_FOLDER)) {
             throw new PageSystemFolderActionException("Create");
         }
-        int order = pageService.findMaxPortalPageOrder() + 1;
+        int order = pageService.findMaxPortalPageOrder(GraviteeContext.getCurrentEnvironment()) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());
-        PageEntity newPage = pageService.createPage(newPageEntity);
+        PageEntity newPage = pageService.createPage(newPageEntity, GraviteeContext.getCurrentEnvironment());
         if (newPage != null) {
             return Response.created(this.getLocationHeader(newPage.getId())).entity(newPage).build();
         }
@@ -272,7 +274,7 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public Response fetchAllPortalPages() {
         String contributor = getAuthenticatedUser();
-        pageService.fetchAll(new PageQuery.Builder().build(), contributor);
+        pageService.fetchAll(new PageQuery.Builder().build(), contributor, GraviteeContext.getCurrentEnvironment());
         return Response.noContent().build();
     }
 
@@ -307,7 +309,7 @@ public class PortalPagesResource extends AbstractResource {
         @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity
     ) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.importFiles(importPageEntity);
+        return pageService.importFiles(importPageEntity, GraviteeContext.getCurrentEnvironment());
     }
 
     @PUT
@@ -326,7 +328,7 @@ public class PortalPagesResource extends AbstractResource {
         @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity importPageEntity
     ) {
         importPageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.importFiles(importPageEntity);
+        return pageService.importFiles(importPageEntity, GraviteeContext.getCurrentEnvironment());
     }
 
     private boolean isDisplayable(PageEntity pageEntity) {

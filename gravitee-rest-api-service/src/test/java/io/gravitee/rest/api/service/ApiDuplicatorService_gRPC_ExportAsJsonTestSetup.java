@@ -265,7 +265,7 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
         asciidocPage.setType(PageType.ASCIIDOC.toString());
         asciidocPage.setContent("Read the asciidoc");
         asciidocPage.setVisibility(Visibility.PUBLIC);
-        when(pageService.search(any(), eq(true)))
+        when(pageService.search(any(), eq(true), eq(GraviteeContext.getCurrentEnvironment())))
             .thenReturn(
                 Arrays.asList(folder, markdownPage, swaggerPage, asideFolder, linkPage, translationPage, markdownTemplatePage, asciidocPage)
             );

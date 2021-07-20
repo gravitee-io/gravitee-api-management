@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PageMarkdownTemplateActionException;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
@@ -96,7 +97,8 @@ public class ApiPagesResource extends AbstractResource {
             return pageService
                 .search(
                     new PageQuery.Builder().api(api).homepage(homepage).type(type).parent(parent).name(name).rootParent(rootParent).build(),
-                    translated ? acceptedLocale : null
+                    translated ? acceptedLocale : null,
+                    GraviteeContext.getCurrentEnvironment()
                 )
                 .stream()
                 .filter(page -> isDisplayable(apiEntity, page))
@@ -134,7 +136,7 @@ public class ApiPagesResource extends AbstractResource {
         int order = pageService.findMaxApiPageOrderByApi(api) + 1;
         newPageEntity.setOrder(order);
         newPageEntity.setLastContributor(getAuthenticatedUser());
-        PageEntity newPage = pageService.createPage(api, newPageEntity);
+        PageEntity newPage = pageService.createPage(api, newPageEntity, GraviteeContext.getCurrentEnvironment());
         if (newPage != null) {
             return Response.created(this.getLocationHeader(newPage.getId())).entity(newPage).build();
         }
@@ -158,7 +160,7 @@ public class ApiPagesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public Response fetchAllApiPages() {
         String contributor = getAuthenticatedUser();
-        pageService.fetchAll(new PageQuery.Builder().api(api).build(), contributor);
+        pageService.fetchAll(new PageQuery.Builder().api(api).build(), contributor, GraviteeContext.getCurrentEnvironment());
         return Response.noContent().build();
     }
 
@@ -181,7 +183,7 @@ public class ApiPagesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.CREATE) })
     public List<PageEntity> importApiPageFiles(@ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity pageEntity) {
         pageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.importFiles(api, pageEntity);
+        return pageService.importFiles(api, pageEntity, GraviteeContext.getCurrentEnvironment());
     }
 
     @PUT
@@ -200,7 +202,7 @@ public class ApiPagesResource extends AbstractResource {
         @ApiParam(name = "page", required = true) @Valid @NotNull ImportPageEntity pageEntity
     ) {
         pageEntity.setLastContributor(getAuthenticatedUser());
-        return pageService.importFiles(api, pageEntity);
+        return pageService.importFiles(api, pageEntity, GraviteeContext.getCurrentEnvironment());
     }
 
     private boolean isDisplayable(ApiEntity api, PageEntity page) {

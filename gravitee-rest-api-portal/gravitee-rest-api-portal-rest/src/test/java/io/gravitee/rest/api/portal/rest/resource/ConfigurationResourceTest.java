@@ -16,8 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +35,7 @@ import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.*;
 import javax.validation.Valid;
 import javax.ws.rs.core.Response;
@@ -119,7 +119,7 @@ public class ConfigurationResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(any(PageQuery.class), isNull()))
+        when(pageService.search(any(PageQuery.class), isNull(), eq(GraviteeContext.getCurrentEnvironment())))
             .thenAnswer(
                 (Answer<List<PageEntity>>) invocation -> {
                     PageQuery pq = invocation.getArgument(0);

@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.Link.ResourceTypeEnum;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -101,7 +102,7 @@ public class ApiResourceTest extends AbstractResourceTest {
         pagePublished.setType("SWAGGER");
         pagePublished.setLastModificationDate(Date.from(Instant.now()));
         pagePublished.setContent("some page content");
-        doReturn(Arrays.asList(pagePublished)).when(pageService).search(any());
+        doReturn(Arrays.asList(pagePublished)).when(pageService).search(any(), eq(GraviteeContext.getCurrentEnvironment()));
 
         // mock plans
         PlanEntity plan1 = new PlanEntity();
@@ -257,21 +258,18 @@ public class ApiResourceTest extends AbstractResourceTest {
         markdownTemplate.setName("MARKDOWN_TEMPLATE");
         markdownTemplate.setPublished(true);
 
-        when(pageService.search(any(PageQuery.class), isNull()))
+        when(pageService.search(any(PageQuery.class), isNull(), eq(GraviteeContext.getCurrentEnvironment())))
             .thenAnswer(
-                new Answer<List<PageEntity>>() {
-                    @Override
-                    public List<PageEntity> answer(InvocationOnMock invocation) throws Throwable {
-                        PageQuery pq = invocation.getArgument(0);
-                        if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
-                            return Arrays.asList(sysFolder);
-                        } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                            return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
-                        } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
-                            return Arrays.asList(markdownFolderSysFolder);
-                        }
-                        return null;
+                (Answer<List<PageEntity>>) invocation -> {
+                    PageQuery pq = invocation.getArgument(0);
+                    if (PageType.SYSTEM_FOLDER.equals(pq.getType()) && API.equals(pq.getApi())) {
+                        return Collections.singletonList(sysFolder);
+                    } else if ("SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                        return Arrays.asList(linkSysFolder, swaggerSysFolder, folderSysFolder, markdownTemplate);
+                    } else if ("FOLDER_SYS_FOLDER".equals(pq.getParent()) && API.equals(pq.getApi())) {
+                        return Collections.singletonList(markdownFolderSysFolder);
                     }
+                    return null;
                 }
             );
 

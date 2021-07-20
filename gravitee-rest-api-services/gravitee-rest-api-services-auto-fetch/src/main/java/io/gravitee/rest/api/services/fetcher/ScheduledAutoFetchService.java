@@ -17,6 +17,7 @@ package io.gravitee.rest.api.services.fetcher;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.services.fetcher.spring.AutoFetchConfiguration;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicLong;
@@ -64,7 +65,7 @@ public class ScheduledAutoFetchService extends AbstractService implements Runnab
     @Override
     public void run() {
         LOGGER.debug("Auto Fetch #{} started at {}", counter.incrementAndGet(), Instant.now());
-        pageService.execAutoFetch();
+        pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
         LOGGER.debug("Auto Fetch #{} ended at {}", counter.get(), Instant.now());
     }
 }

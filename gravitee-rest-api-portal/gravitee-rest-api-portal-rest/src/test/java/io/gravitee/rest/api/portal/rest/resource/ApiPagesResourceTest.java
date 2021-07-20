@@ -19,8 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +28,7 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.portal.rest.model.Error;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +59,9 @@ public class ApiPagesResourceTest extends AbstractResourceTest {
 
         PageEntity markdownTemplate = new PageEntity();
         markdownTemplate.setType(PageType.MARKDOWN_TEMPLATE.name());
-        doReturn(Arrays.asList(new PageEntity(), markdownTemplate)).when(pageService).search(any(), isNull());
+        doReturn(Arrays.asList(new PageEntity(), markdownTemplate))
+            .when(pageService)
+            .search(any(), isNull(), eq(GraviteeContext.getCurrentEnvironment()));
 
         when(accessControlService.canAccessPageFromPortal(any(PageEntity.class)))
             .thenAnswer(

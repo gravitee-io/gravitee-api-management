@@ -24,6 +24,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.NewApiEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -123,7 +124,14 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity createdApi = new ApiEntity();
         createdApi.setGraviteeDefinitionVersion("1.0.0");
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any());
+        doReturn(createdApi)
+            .when(apiDuplicatorService)
+            .createWithImportedDefinition(
+                any(),
+                any(),
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment())
+            );
 
         final Response response = envTarget().path("import").request().post(Entity.json(apiDefinition));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -139,7 +147,14 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity createdApi = new ApiEntity();
         createdApi.setGraviteeDefinitionVersion("2.0.0");
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any());
+        doReturn(createdApi)
+            .when(apiDuplicatorService)
+            .createWithImportedDefinition(
+                any(),
+                any(),
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment())
+            );
 
         final Response response = envTarget()
             .path("import")
@@ -159,7 +174,14 @@ public class ApisResourceTest extends AbstractResourceTest {
         ApiEntity createdApi = new ApiEntity();
         createdApi.setGraviteeDefinitionVersion("1.0.0");
         createdApi.setId("my-beautiful-api");
-        doReturn(createdApi).when(apiDuplicatorService).createWithImportedDefinition(any(), any());
+        doReturn(createdApi)
+            .when(apiDuplicatorService)
+            .createWithImportedDefinition(
+                any(),
+                any(),
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq(GraviteeContext.getCurrentEnvironment())
+            );
 
         final Response response = envTarget()
             .path("import")

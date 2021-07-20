@@ -31,6 +31,7 @@ import io.gravitee.rest.api.portal.rest.security.RequirePortalAuth;
 import io.gravitee.rest.api.portal.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -89,7 +90,7 @@ public class ApiResource extends AbstractResource {
 
             if (include.contains(INCLUDE_PAGES)) {
                 List<Page> pages = pageService
-                    .search(new PageQuery.Builder().api(apiId).published(true).build())
+                    .search(new PageQuery.Builder().api(apiId).published(true).build(), GraviteeContext.getCurrentEnvironment())
                     .stream()
                     .filter(page -> accessControlService.canAccessPageFromPortal(page))
                     .map(pageMapper::convert)
@@ -162,7 +163,11 @@ public class ApiResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         Map<String, List<CategorizedLinks>> apiLinks = new HashMap<>();
         pageService
-            .search(new PageQuery.Builder().api(apiId).type(PageType.SYSTEM_FOLDER).build(), acceptedLocale)
+            .search(
+                new PageQuery.Builder().api(apiId).type(PageType.SYSTEM_FOLDER).build(),
+                acceptedLocale,
+                GraviteeContext.getCurrentEnvironment()
+            )
             .stream()
             .filter(PageEntity::isPublished)
             .forEach(
@@ -181,7 +186,11 @@ public class ApiResource extends AbstractResource {
 
                     // for pages into folders
                     pageService
-                        .search(new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(), acceptedLocale)
+                        .search(
+                            new PageQuery.Builder().api(apiId).parent(sysPage.getId()).build(),
+                            acceptedLocale,
+                            GraviteeContext.getCurrentEnvironment()
+                        )
                         .stream()
                         .filter(PageEntity::isPublished)
                         .filter(p -> p.getType().equals("FOLDER"))
@@ -208,7 +217,11 @@ public class ApiResource extends AbstractResource {
 
     private List<Link> getLinksFromFolder(PageEntity folder, String apiId, String acceptedLocale) {
         return pageService
-            .search(new PageQuery.Builder().api(apiId).parent(folder.getId()).build(), acceptedLocale)
+            .search(
+                new PageQuery.Builder().api(apiId).parent(folder.getId()).build(),
+                acceptedLocale,
+                GraviteeContext.getCurrentEnvironment()
+            )
             .stream()
             .filter(accessControlService::canAccessPageFromPortal)
             .filter(p -> !PageType.FOLDER.name().equals(p.getType()) && !PageType.MARKDOWN_TEMPLATE.name().equals(p.getType()))

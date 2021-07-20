@@ -19,8 +19,7 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +28,7 @@ import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.portal.rest.model.Page;
 import io.gravitee.rest.api.portal.rest.model.PageLinks;
 import io.gravitee.rest.api.portal.rest.model.PagesResponse;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,7 +62,9 @@ public class PagesResourceTest extends AbstractResourceTest {
         PageEntity markdownTemplatePage = new PageEntity();
         markdownTemplatePage.setPublished(true);
         markdownTemplatePage.setType(PageType.MARKDOWN_TEMPLATE.name());
-        doReturn(Arrays.asList(publishedPage, markdownTemplatePage)).when(pageService).search(any(), isNull());
+        doReturn(Arrays.asList(publishedPage, markdownTemplatePage))
+            .when(pageService)
+            .search(any(), isNull(), eq(GraviteeContext.getCurrentEnvironment()));
 
         when(accessControlService.canAccessPageFromPortal(any(PageEntity.class)))
             .thenAnswer(
@@ -87,7 +89,7 @@ public class PagesResourceTest extends AbstractResourceTest {
     public void shouldGetNoPageIfNotAuthorizeAndPublishedPageAndNotSystemFolder() {
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
-        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
+        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull(), eq(GraviteeContext.getCurrentEnvironment()));
 
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
@@ -104,7 +106,7 @@ public class PagesResourceTest extends AbstractResourceTest {
         PageEntity publishedPage = new PageEntity();
         publishedPage.setPublished(true);
         publishedPage.setType("SYSTEM_FOLDER");
-        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull());
+        doReturn(singletonList(publishedPage)).when(pageService).search(any(), isNull(), eq(GraviteeContext.getCurrentEnvironment()));
 
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());
@@ -118,7 +120,7 @@ public class PagesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetNoPageIfAuthorizeAndNotPublished() {
-        doReturn(Collections.emptyList()).when(pageService).search(any(), isNull());
+        doReturn(Collections.emptyList()).when(pageService).search(any(), isNull(), eq(GraviteeContext.getCurrentEnvironment()));
 
         Response response = target().request().get();
         assertEquals(OK_200, response.getStatus());

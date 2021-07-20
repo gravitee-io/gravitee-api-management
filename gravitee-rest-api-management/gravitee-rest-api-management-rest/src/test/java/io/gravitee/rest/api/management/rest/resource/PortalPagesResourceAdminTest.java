@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 
@@ -27,6 +28,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -104,8 +106,8 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
 
         PageEntity returnedPage = new PageEntity();
         returnedPage.setId("my-beautiful-page");
-        doReturn(returnedPage).when(pageService).createPage(any());
-        doReturn(0).when(pageService).findMaxPortalPageOrder();
+        doReturn(returnedPage).when(pageService).createPage(any(), eq(GraviteeContext.getCurrentEnvironment()));
+        doReturn(0).when(pageService).findMaxPortalPageOrder(eq(GraviteeContext.getCurrentEnvironment()));
 
         final Response response = envTarget().request().post(Entity.json(newPageEntity));
 
