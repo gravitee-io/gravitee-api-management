@@ -422,8 +422,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Add Default groups
             Set<String> defaultGroups = groupService.findByEvent(GroupEvent.API_CREATE).stream().map(GroupEntity::getId).collect(toSet());
-            if (!defaultGroups.isEmpty() && repoApi.getGroups() == null) {
-                repoApi.setGroups(defaultGroups);
+            if (repoApi.getGroups() == null) {
+                repoApi.setGroups(defaultGroups.isEmpty() ? null : defaultGroups);
             } else {
                 repoApi.getGroups().addAll(defaultGroups);
             }
