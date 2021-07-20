@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.connector.http.ws;
+package io.gravitee.gateway.standalone.vertx.ws.utils;
 
-import io.gravitee.common.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpVersion;
 
 /**
- * @author Eric LELEU (eric.leleu at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class WebSocketUtils {
+public final class WebSocketUtils {
 
-    public static final boolean isWebSocket(String method, String connectionHeader, String upgradeHeader) {
+    public static boolean isWebSocket(String method, String connectionHeader, String upgradeHeader) {
         boolean isUpgrade = false;
         if (connectionHeader != null) {
             String[] connectionParts = connectionHeader.split(",");

@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api.processor.error.templates;
 
-import io.gravitee.gateway.core.processor.ProcessorFailure;
+import io.gravitee.gateway.api.processor.ProcessorFailure;
 import java.util.Map;
 
 /**

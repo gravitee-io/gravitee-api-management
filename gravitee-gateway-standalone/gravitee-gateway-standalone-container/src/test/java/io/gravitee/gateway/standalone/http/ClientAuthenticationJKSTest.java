@@ -19,12 +19,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.connector.http.endpoint.HttpEndpoint;
+import io.gravitee.connector.http.endpoint.jks.JKSKeyStore;
+import io.gravitee.connector.http.endpoint.jks.JKSTrustStore;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
-import io.gravitee.definition.model.ssl.jks.JKSTrustStore;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
@@ -50,6 +52,8 @@ import org.junit.Test;
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/client-authentication-jks-support.json")
 public class ClientAuthenticationJKSTest extends AbstractWiremockGatewayTest {
+
+    ObjectMapper mapper = new GraviteeMapper();
 
     @Override
     protected WireMockRule getWiremockRule() {
@@ -97,7 +101,7 @@ public class ClientAuthenticationJKSTest extends AbstractWiremockGatewayTest {
             for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
                 endpoint.setTarget(exchangePort(endpoint.getTarget(), wireMockRule.httpsPort()));
 
-                HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
+                HttpEndpoint httpEndpoint = mapper.readValue(endpoint.getConfiguration(), HttpEndpoint.class);
                 if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getKeyStore() != null) {
                     JKSKeyStore keyStore = (JKSKeyStore) httpEndpoint.getHttpClientSslOptions().getKeyStore();
                     keyStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/keystore01.jks"));
@@ -106,6 +110,8 @@ public class ClientAuthenticationJKSTest extends AbstractWiremockGatewayTest {
                     JKSTrustStore trustStore = (JKSTrustStore) httpEndpoint.getHttpClientSslOptions().getTrustStore();
                     trustStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/truststore01.jks"));
                 }
+
+                endpoint.setConfiguration(mapper.writeValueAsString(httpEndpoint));
             }
         } catch (Exception ex) {
             ex.printStackTrace();

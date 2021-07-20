@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.core.processor;
 
+import io.gravitee.gateway.api.processor.ProcessorFailure;
 import java.util.Map;
 
 /**

@@ -11,6 +11,7 @@
       }, {
         "name": "endpoint-2",
         "target": "https://localhost:8080/team",
+        "type": "HTTP",
         "ssl": {
           "trustAll": false,
           "keyStore": {

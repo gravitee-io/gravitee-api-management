@@ -17,6 +17,7 @@ package io.gravitee.gateway.standalone;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.gateway.standalone.connector.ConnectorRegister;
 import io.gravitee.gateway.standalone.policy.ApiKeyPolicy;
 import io.gravitee.gateway.standalone.policy.KeylessPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
@@ -32,7 +33,7 @@ import org.junit.BeforeClass;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractGatewayTest implements PolicyRegister, ApiLoaderInterceptor {
+public abstract class AbstractGatewayTest implements PolicyRegister, ConnectorRegister, ApiLoaderInterceptor {
 
     protected Api api;
 

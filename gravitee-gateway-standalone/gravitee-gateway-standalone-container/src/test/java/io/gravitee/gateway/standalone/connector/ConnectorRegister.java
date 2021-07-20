@@ -13,27 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.endpoint;
+package io.gravitee.gateway.standalone.connector;
 
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointType;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.gateway.api.Connector;
-import io.gravitee.gateway.http.connector.http.HttpConnector;
+import io.gravitee.connector.http.HttpConnectorFactory;
+import io.gravitee.plugin.connector.ConnectorPlugin;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpEndpointFactory extends AbstractEndpointFactory {
-
-    @Override
-    public boolean support(Endpoint endpoint) {
-        return EndpointType.HTTP == endpoint.getType();
-    }
-
-    @Override
-    protected Connector create(io.gravitee.definition.model.Endpoint endpoint) {
-        return new HttpConnector<>((HttpEndpoint) endpoint);
+public interface ConnectorRegister {
+    default void registerConnector(ConfigurablePluginManager<ConnectorPlugin> connectorPluginManager) {
+        ConnectorPlugin connectorHttp = ConnectorBuilder.build("connector-http", HttpConnectorFactory.class);
+        connectorPluginManager.register(connectorHttp);
     }
 }

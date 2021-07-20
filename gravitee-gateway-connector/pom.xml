@@ -27,8 +27,8 @@
         <version>3.13.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>gravitee-gateway-core</artifactId>
-    <name>Gravitee.io APIM - Gateway - Core</name>
+    <artifactId>gravitee-gateway-connector</artifactId>
+    <name>Gravitee.io APIM - Gateway - Connector</name>
 
     <dependencies>
         <!-- Gravitee.io dependencies -->
@@ -38,37 +38,13 @@
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.definition</groupId>
-            <artifactId>gravitee-definition-model</artifactId>
+            <groupId>io.gravitee.connector</groupId>
+            <artifactId>gravitee-connector-api</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-env</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-connector</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.el</groupId>
-            <artifactId>gravitee-expression-language</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-circuit-breaker</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-connector</artifactId>
         </dependency>
 
         <!-- Spring dependencies -->
