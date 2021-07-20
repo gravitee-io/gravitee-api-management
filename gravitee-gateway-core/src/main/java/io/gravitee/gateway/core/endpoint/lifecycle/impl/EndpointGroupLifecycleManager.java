@@ -15,28 +15,33 @@
  */
 package io.gravitee.gateway.core.endpoint.lifecycle.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.common.environment.Configuration;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.common.util.ObservableSet;
+import io.gravitee.connector.api.*;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.LoadBalancer;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.gateway.api.proxy.ProxyRequest;
+import io.gravitee.gateway.connector.ConnectorRegistry;
 import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
-import io.gravitee.gateway.core.endpoint.factory.template.EndpointContext;
 import io.gravitee.gateway.core.endpoint.lifecycle.EndpointLifecycleManager;
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.loadbalancer.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -48,14 +53,23 @@ public class EndpointGroupLifecycleManager
 
     private final Logger logger = LoggerFactory.getLogger(EndpointGroupLifecycleManager.class);
 
-    @Autowired
+    @Inject
     private Api api;
 
-    @Autowired
+    @Inject
     private EndpointFactory endpointFactory;
 
-    @Autowired
+    @Inject
+    private ConnectorRegistry connectorRegistry;
+
+    @Inject
+    private Configuration configuration;
+
+    @Inject
     private ReferenceRegister referenceRegister;
+
+    @Inject
+    private ObjectMapper mapper;
 
     private final Map<String, io.gravitee.gateway.api.endpoint.Endpoint> endpointsByName = new LinkedHashMap<>();
     private final ObservableCollection<io.gravitee.gateway.api.endpoint.Endpoint> endpoints = new ObservableCollection<>(new ArrayList<>());
@@ -63,7 +77,7 @@ public class EndpointGroupLifecycleManager
     private final EndpointGroup group;
     private LoadBalancedEndpointGroup lbGroup;
 
-    @Autowired
+    @Inject
     public EndpointGroupLifecycleManager(EndpointGroup group) {
         this.group = group;
     }
@@ -79,25 +93,7 @@ public class EndpointGroupLifecycleManager
         endpoints.addListener(EndpointGroupLifecycleManager.this);
         group.setEndpoints(endpoints);
 
-        endpoints
-            .stream()
-            .filter(filter())
-            .peek(
-                endpoint -> {
-                    if (HttpEndpoint.class.isAssignableFrom(endpoint.getClass())) {
-                        final HttpEndpoint httpEndpoint = ((HttpEndpoint) endpoint);
-                        final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
-                        // inherit or discovered endpoints
-                        if (inherit || httpEndpoint.getHttpClientOptions() == null) {
-                            httpEndpoint.setHttpClientOptions(group.getHttpClientOptions());
-                            httpEndpoint.setHttpClientSslOptions(group.getHttpClientSslOptions());
-                            httpEndpoint.setHttpProxy(group.getHttpProxy());
-                            httpEndpoint.setHeaders(group.getHeaders());
-                        }
-                    }
-                }
-            )
-            .forEach(this::start);
+        endpoints.stream().filter(filter()).forEach(this::start);
 
         LoadBalancer loadBalancerDef = group.getLoadBalancer();
         LoadBalancerStrategy strategy;
@@ -147,12 +143,22 @@ public class EndpointGroupLifecycleManager
                 !model.isBackup()
             );
 
-            EndpointContext context = new EndpointContext();
+            ConnectorContext context = new ConnectorContext();
             if (api.getProperties() != null) {
                 context.setProperties(api.getProperties().getValues());
             }
             try {
-                io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model, context);
+                ConnectorFactory<? extends Connector<? extends Connection, ? extends ProxyRequest>> connectorFactory = connectorRegistry.getConnector(
+                    model.getType()
+                );
+
+                Connector<Connection, ProxyRequest> connector = connectorFactory.create(
+                    model.getTarget(),
+                    getEndpointConfiguration(model),
+                    ConnectorBuilder.create().context(context).mapper(mapper).environmentConfiguration(configuration).build()
+                );
+
+                io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model, connector);
                 if (endpoint != null) {
                     endpoint.connector().start();
 
@@ -241,7 +247,37 @@ public class EndpointGroupLifecycleManager
         this.referenceRegister = referenceRegister;
     }
 
+    public void setConnectorRegistry(ConnectorRegistry connectorRegistry) {
+        this.connectorRegistry = connectorRegistry;
+    }
+
+    public void setMapper(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
+
     public void setApi(Api api) {
         this.api = api;
+    }
+
+    private String getEndpointConfiguration(Endpoint endpoint) {
+        // Manage endpoint inheritance from group
+        final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
+
+        try {
+            ObjectNode endpointNode = (ObjectNode) mapper.readTree(endpoint.getConfiguration());
+            if (inherit) {
+                endpointNode.putPOJO("http", group.getHttpClientOptions());
+                endpointNode.putPOJO("ssl", group.getHttpClientSslOptions());
+                endpointNode.putPOJO("proxy", group.getHttpProxy());
+                endpointNode.putPOJO("headers", group.getHeaders());
+                return endpointNode.toString();
+            }
+        } catch (IOException ioe) {}
+
+        return endpoint.getConfiguration();
+    }
+
+    public void setGraviteeEnvironment(Configuration graviteeEnvironment) {
+        this.configuration = graviteeEnvironment;
     }
 }

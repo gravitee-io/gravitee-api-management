@@ -162,13 +162,27 @@ public class VertxHttpServerRequest implements Request {
     @Override
     public String remoteAddress() {
         SocketAddress address = serverRequest.remoteAddress();
-        return (address != null) ? address.host() : null;
+        if (address == null) {
+            return null;
+        }
+
+        //TODO: To be removed
+        int ipv6Idx = address.host().indexOf("%");
+
+        return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
     }
 
     @Override
     public String localAddress() {
         SocketAddress address = serverRequest.localAddress();
-        return (address != null) ? address.host() : null;
+        if (address == null) {
+            return null;
+        }
+
+        //TODO: To be removed
+        int ipv6Idx = address.host().indexOf("%");
+
+        return (ipv6Idx != -1) ? address.host().substring(0, ipv6Idx) : address.host();
     }
 
     @Override

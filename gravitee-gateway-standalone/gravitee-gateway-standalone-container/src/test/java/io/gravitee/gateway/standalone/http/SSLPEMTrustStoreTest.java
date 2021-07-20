@@ -19,11 +19,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.assertEquals;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.connector.http.endpoint.HttpEndpoint;
+import io.gravitee.connector.http.endpoint.pem.PEMTrustStore;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.wiremock.ResourceUtils;
@@ -46,6 +48,8 @@ import org.junit.Test;
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/ssl-pem-support.json")
 public class SSLPEMTrustStoreTest extends AbstractWiremockGatewayTest {
+
+    ObjectMapper mapper = new GraviteeMapper();
 
     @Override
     protected WireMockRule getWiremockRule() {
@@ -96,11 +100,12 @@ public class SSLPEMTrustStoreTest extends AbstractWiremockGatewayTest {
                 URL newTarget = new URL(target.getProtocol(), target.getHost(), wireMockRule.httpsPort(), target.getFile());
                 endpoint.setTarget(newTarget.toString());
 
-                HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
+                HttpEndpoint httpEndpoint = mapper.readValue(endpoint.getConfiguration(), HttpEndpoint.class);
                 if (httpEndpoint.getHttpClientSslOptions() != null && httpEndpoint.getHttpClientSslOptions().getTrustStore() != null) {
                     PEMTrustStore trustStore = (PEMTrustStore) httpEndpoint.getHttpClientSslOptions().getTrustStore();
                     trustStore.setPath(ResourceUtils.toPath("io/gravitee/gateway/standalone/server-cert.pem"));
                 }
+                endpoint.setConfiguration(mapper.writeValueAsString(httpEndpoint));
             }
         } catch (Exception ex) {
             ex.printStackTrace();

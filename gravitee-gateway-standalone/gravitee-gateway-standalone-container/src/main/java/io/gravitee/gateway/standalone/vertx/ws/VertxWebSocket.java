@@ -74,11 +74,11 @@ class VertxWebSocket implements WebSocket {
     @Override
     public WebSocket write(io.gravitee.gateway.api.ws.WebSocketFrame frame) {
         if (upgraded) {
-            if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY && frame.isFinal()) {
+            if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.BINARY) {
                 websocket.writeFrame(
                     io.vertx.core.http.WebSocketFrame.binaryFrame(Buffer.buffer(frame.data().getBytes()), frame.isFinal())
                 );
-            } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT && frame.isFinal()) {
+            } else if (frame.type() == io.gravitee.gateway.api.ws.WebSocketFrame.Type.TEXT) {
                 websocket.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame.data().toString(), frame.isFinal()));
             } else if (frame.type() == WebSocketFrame.Type.CONTINUATION) {
                 websocket.writeFrame(

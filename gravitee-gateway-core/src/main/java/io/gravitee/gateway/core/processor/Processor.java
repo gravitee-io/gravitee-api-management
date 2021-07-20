@@ -16,6 +16,7 @@
 package io.gravitee.gateway.core.processor;
 
 import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.processor.ProcessorFailure;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

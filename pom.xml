@@ -36,6 +36,7 @@
     <modules>
         <module>gravitee-gateway-buffer</module>
         <module>gravitee-gateway-core</module>
+        <module>gravitee-gateway-connector</module>
         <module>gravitee-gateway-dictionary</module>
         <module>gravitee-gateway-env</module>
         <module>gravitee-gateway-flow</module>
@@ -161,6 +162,12 @@
             </dependency>
 
             <dependency>
+                <groupId>io.gravitee.plugin</groupId>
+                <artifactId>gravitee-plugin-connector</artifactId>
+                <version>${gravitee-plugin-connector.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.alert</groupId>
                 <artifactId>gravitee-alert-api</artifactId>
                 <version>${gravitee-alert-api.version}</version>
@@ -194,6 +201,12 @@
                 <groupId>io.gravitee.resource</groupId>
                 <artifactId>gravitee-resource-cache-provider-api</artifactId>
                 <version>${gravitee-resource-cache-provider-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.connector</groupId>
+                <artifactId>gravitee-connector-api</artifactId>
+                <version>${gravitee-connector-api.version}</version>
             </dependency>
 
             <!-- The following dependencies are necessary to make sure the good version is resolved (else they can still be overridden by dependency management of transitive dependencies) -->
@@ -276,17 +289,19 @@
         <vertx.version>4.1.3</vertx.version>
         <gravitee-bom.version>1.4</gravitee-bom.version>
         <gravitee-api-management.version>3.13.0-SNAPSHOT</gravitee-api-management.version>
-        <gravitee-definition.version>1.29.1</gravitee-definition.version>
-        <gravitee-common.version>1.22.1</gravitee-common.version>
+        <gravitee-definition.version>1.30.0-SNAPSHOT</gravitee-definition.version>
+        <gravitee-common.version>1.23.0-SNAPSHOT</gravitee-common.version>
+        <gravitee-connector-api.version>1.0.0-SNAPSHOT</gravitee-connector-api.version>
         <gravitee-expression-language.version>1.7.1</gravitee-expression-language.version>
         <gravitee-license-node.version>1.2.1</gravitee-license-node.version>
-        <gravitee-node.version>1.17.1</gravitee-node.version>
-        <gravitee-plugin-resource.version>1.16.0</gravitee-plugin-resource.version>
-        <gravitee-plugin-core.version>1.16.0</gravitee-plugin-core.version>
-        <gravitee-plugin-policy.version>1.16.0</gravitee-plugin-policy.version>
-        <gravitee-plugin-alert.version>1.16.0</gravitee-plugin-alert.version>
-        <gravitee-plugin-service-discovery.version>1.16.0</gravitee-plugin-service-discovery.version>
-        <gravitee-gateway-api.version>1.28.1</gravitee-gateway-api.version>
+        <gravitee-node.version>1.18.0-SNAPSHOT</gravitee-node.version>
+        <gravitee-plugin-resource.version>1.20.0-SNAPSHOT</gravitee-plugin-resource.version>
+        <gravitee-plugin-core.version>1.20.0-SNAPSHOT</gravitee-plugin-core.version>
+        <gravitee-plugin-policy.version>1.20.0-SNAPSHOT</gravitee-plugin-policy.version>
+        <gravitee-plugin-alert.version>1.20.0-SNAPSHOT</gravitee-plugin-alert.version>
+        <gravitee-plugin-service-discovery.version>1.20.0-SNAPSHOT</gravitee-plugin-service-discovery.version>
+        <gravitee-plugin-connector.version>1.20.0-SNAPSHOT</gravitee-plugin-connector.version>
+        <gravitee-gateway-api.version>1.29.0-SNAPSHOT</gravitee-gateway-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
         <gravitee-reporter-api.version>1.21.0</gravitee-reporter-api.version>

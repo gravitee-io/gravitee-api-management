@@ -161,6 +161,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.gateway</groupId>
+            <artifactId>gravitee-gateway-connector</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.definition</groupId>
             <artifactId>gravitee-definition-jackson</artifactId>
         </dependency>
@@ -286,6 +292,13 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.connector</groupId>
+            <artifactId>gravitee-connector-http</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>

@@ -18,10 +18,13 @@ package io.gravitee.gateway.services.healthcheck;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.definition.model.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import java.util.*;
@@ -54,14 +57,11 @@ public class EndpointHealthcheckResolverTest {
     @Mock
     private HttpEndpoint mockEndpoint;
 
-    @Mock
-    private EndpointHealthCheckService mockEndpointHealthcheckService;
-
     @InjectMocks
     private EndpointHealthcheckResolver endpointHealthcheckResolver = new EndpointHealthcheckResolver();
 
     @Before
-    public void before() {
+    public void before() throws JsonProcessingException {
         reset();
         when(mockApi.getId()).thenReturn("api-id");
         when(mockApi.getProxy()).thenReturn(mockProxy);
@@ -70,9 +70,24 @@ public class EndpointHealthcheckResolverTest {
 
         when(mockEndpointGroup.getEndpoints()).thenReturn(new HashSet<>(Arrays.asList(mockEndpoint, mock(Endpoint.class))));
 
-        when(mockEndpoint.getType()).thenReturn(EndpointType.HTTP);
-        when(mockEndpoint.isBackup()).thenReturn(false);
-
+        when(mockEndpoint.getType()).thenReturn("http");
+        when(mockEndpoint.getConfiguration())
+            .thenReturn(
+                "{\n" +
+                "  \"name\": \"test\",\n" +
+                "  \"target\": \"http://localhost\",\n" +
+                "  \"http\": {\n" +
+                "    \"connectTimeout\": 5000,\n" +
+                "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAlive\": true,\n" +
+                "    \"readTimeout\": 10000,\n" +
+                "    \"pipelining\": false,\n" +
+                "    \"maxConcurrentConnections\": 100,\n" +
+                "    \"useCompression\": true,\n" +
+                "    \"followRedirects\": false\n" +
+                "  }\n" +
+                "}\n"
+            );
         when(mockGatewayConfiguration.tenant()).thenReturn(Optional.empty());
     }
 
@@ -118,8 +133,27 @@ public class EndpointHealthcheckResolverTest {
         healthCheckService.setEnabled(false);
         services.set(Collections.singleton(healthCheckService));
         when(mockApi.getServices()).thenReturn(services);
-        when(mockEndpointHealthcheckService.isEnabled()).thenReturn(false);
-        when(mockEndpoint.getHealthCheck()).thenReturn(mockEndpointHealthcheckService);
+        when(mockEndpoint.getConfiguration())
+            .thenReturn(
+                "{\n" +
+                "  \"name\": \"test\",\n" +
+                "  \"target\": \"http://localhost\",\n" +
+                "  \"healthcheck\": {\n" +
+                "    \"enabled\": false,\n" +
+                "    \"inherit\": false\n" +
+                "  }, \n" +
+                "  \"http\": {\n" +
+                "    \"connectTimeout\": 5000,\n" +
+                "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAlive\": true,\n" +
+                "    \"readTimeout\": 10000,\n" +
+                "    \"pipelining\": false,\n" +
+                "    \"maxConcurrentConnections\": 100,\n" +
+                "    \"useCompression\": true,\n" +
+                "    \"followRedirects\": false\n" +
+                "  }\n" +
+                "}\n"
+            );
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
@@ -132,8 +166,27 @@ public class EndpointHealthcheckResolverTest {
         Services services = new Services();
         services.set(Collections.emptyList());
         when(mockApi.getServices()).thenReturn(services);
-        when(mockEndpointHealthcheckService.isEnabled()).thenReturn(false);
-        when(mockEndpoint.getHealthCheck()).thenReturn(mockEndpointHealthcheckService);
+        when(mockEndpoint.getConfiguration())
+            .thenReturn(
+                "{\n" +
+                "  \"name\": \"test\",\n" +
+                "  \"target\": \"http://localhost\",\n" +
+                "  \"healthcheck\": {\n" +
+                "    \"enabled\": false,\n" +
+                "    \"inherit\": false\n" +
+                "  }, \n" +
+                "  \"http\": {\n" +
+                "    \"connectTimeout\": 5000,\n" +
+                "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAlive\": true,\n" +
+                "    \"readTimeout\": 10000,\n" +
+                "    \"pipelining\": false,\n" +
+                "    \"maxConcurrentConnections\": 100,\n" +
+                "    \"useCompression\": true,\n" +
+                "    \"followRedirects\": false\n" +
+                "  }\n" +
+                "}\n"
+            );
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
@@ -148,8 +201,28 @@ public class EndpointHealthcheckResolverTest {
         healthCheckService.setEnabled(true);
         services.set(Collections.singleton(healthCheckService));
         when(mockApi.getServices()).thenReturn(services);
-        when(mockEndpointHealthcheckService.isEnabled()).thenReturn(false);
-        when(mockEndpoint.getHealthCheck()).thenReturn(mockEndpointHealthcheckService);
+
+        when(mockEndpoint.getConfiguration())
+            .thenReturn(
+                "{\n" +
+                "  \"name\": \"test\",\n" +
+                "  \"target\": \"http://localhost\",\n" +
+                "  \"healthcheck\": {\n" +
+                "    \"enabled\": false,\n" +
+                "    \"inherit\": false\n" +
+                "  }, \n" +
+                "  \"http\": {\n" +
+                "    \"connectTimeout\": 5000,\n" +
+                "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAlive\": true,\n" +
+                "    \"readTimeout\": 10000,\n" +
+                "    \"pipelining\": false,\n" +
+                "    \"maxConcurrentConnections\": 100,\n" +
+                "    \"useCompression\": true,\n" +
+                "    \"followRedirects\": false\n" +
+                "  }\n" +
+                "}\n"
+            );
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
@@ -187,8 +260,27 @@ public class EndpointHealthcheckResolverTest {
         healthCheckService.setEnabled(true);
         services.set(Collections.singleton(healthCheckService));
         when(mockApi.getServices()).thenReturn(services);
-        when(mockEndpointHealthcheckService.isEnabled()).thenReturn(true);
-        when(mockEndpoint.getHealthCheck()).thenReturn(mockEndpointHealthcheckService);
+        when(mockEndpoint.getConfiguration())
+            .thenReturn(
+                "{\n" +
+                "  \"name\": \"test\",\n" +
+                "  \"target\": \"http://localhost\",\n" +
+                "  \"healthcheck\": {\n" +
+                "    \"enabled\": true,\n" +
+                "    \"inherit\": false\n" +
+                "  }, \n" +
+                "  \"http\": {\n" +
+                "    \"connectTimeout\": 5000,\n" +
+                "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAlive\": true,\n" +
+                "    \"readTimeout\": 10000,\n" +
+                "    \"pipelining\": false,\n" +
+                "    \"maxConcurrentConnections\": 100,\n" +
+                "    \"useCompression\": true,\n" +
+                "    \"followRedirects\": false\n" +
+                "  }\n" +
+                "}\n"
+            );
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
@@ -204,8 +296,28 @@ public class EndpointHealthcheckResolverTest {
         healthCheckService.setEnabled(false);
         services.set(Collections.singleton(healthCheckService));
         when(mockApi.getServices()).thenReturn(services);
-        when(mockEndpointHealthcheckService.isEnabled()).thenReturn(true);
-        when(mockEndpoint.getHealthCheck()).thenReturn(mockEndpointHealthcheckService);
+
+        when(mockEndpoint.getConfiguration())
+            .thenReturn(
+                "{\n" +
+                "  \"name\": \"test\",\n" +
+                "  \"target\": \"http://localhost\",\n" +
+                "  \"healthcheck\": {\n" +
+                "    \"enabled\": true,\n" +
+                "    \"inherit\": false\n" +
+                "  }, \n" +
+                "  \"http\": {\n" +
+                "    \"connectTimeout\": 5000,\n" +
+                "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAlive\": true,\n" +
+                "    \"readTimeout\": 10000,\n" +
+                "    \"pipelining\": false,\n" +
+                "    \"maxConcurrentConnections\": 100,\n" +
+                "    \"useCompression\": true,\n" +
+                "    \"followRedirects\": false\n" +
+                "  }\n" +
+                "}\n"
+            );
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
@@ -219,8 +331,28 @@ public class EndpointHealthcheckResolverTest {
         Services services = new Services();
         services.set(Collections.emptyList());
         when(mockApi.getServices()).thenReturn(services);
-        when(mockEndpointHealthcheckService.isEnabled()).thenReturn(true);
-        when(mockEndpoint.getHealthCheck()).thenReturn(mockEndpointHealthcheckService);
+
+        when(mockEndpoint.getConfiguration())
+            .thenReturn(
+                "{\n" +
+                "  \"name\": \"test\",\n" +
+                "  \"target\": \"http://localhost\",\n" +
+                "  \"healthcheck\": {\n" +
+                "    \"enabled\": true,\n" +
+                "    \"inherit\": false\n" +
+                "  }, \n" +
+                "  \"http\": {\n" +
+                "    \"connectTimeout\": 5000,\n" +
+                "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAlive\": true,\n" +
+                "    \"readTimeout\": 10000,\n" +
+                "    \"pipelining\": false,\n" +
+                "    \"maxConcurrentConnections\": 100,\n" +
+                "    \"useCompression\": true,\n" +
+                "    \"followRedirects\": false\n" +
+                "  }\n" +
+                "}\n"
+            );
 
         List<EndpointRule> resolve = endpointHealthcheckResolver.resolve(mockApi);
 
