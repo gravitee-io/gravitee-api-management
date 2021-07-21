@@ -122,7 +122,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
             apiId,
             ApiSerializer.Version.DEFAULT.getVersion(),
             "id",
-            "pages",
             "plans",
             "members",
             "groups"

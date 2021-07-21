@@ -172,7 +172,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         memberEntity.setRoles(Collections.singletonList(poRoleEntity));
         when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
         when(userService.findById(memberEntity.getId())).thenReturn(admin);
-        when(pageService.createWithDefinition(any(), any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(new PageEntity());
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
@@ -182,7 +181,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-        verify(pageService, times(2)).createWithDefinition(eq(API_ID), anyString(), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1))
+            .duplicatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
     }
@@ -262,7 +262,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
-        when(pageService.createWithDefinition(any(), any(), eq(GraviteeContext.getCurrentEnvironment()))).thenReturn(new PageEntity());
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
@@ -272,7 +271,8 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-        verify(pageService, times(2)).createWithDefinition(eq(API_ID), anyString(), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1))
+            .duplicatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
     }
 
     @Test

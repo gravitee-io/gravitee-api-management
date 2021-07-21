@@ -175,7 +175,6 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         user.setSourceId(owner.getReferenceId());
         when(userService.findById(admin.getId())).thenReturn(admin);
         PageEntity existingPage = mock(PageEntity.class);
-        when(pageService.findById(anyString())).thenReturn(existingPage);
 
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(admin.getId());
@@ -192,7 +191,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(pageService, times(2)).update(any(), any(UpdatePageEntity.class));
+        verify(pageService, times(1))
+            .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, never())
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
         verify(membershipService, times(1))
@@ -273,7 +273,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(pageService, never()).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, never()).duplicatePages(anyList(), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, never())
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_PRIMARY_OWNER");
         verify(membershipService, times(1))
@@ -392,7 +392,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(pageService, times(2)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1))
+            .createOrUpdatePages(argThat(pagesList -> pagesList.size() == 2), eq(GraviteeContext.getCurrentEnvironment()), eq(API_ID));
         verify(membershipService, never()).addRoleToMemberOnReference(any(), any(), any());
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());

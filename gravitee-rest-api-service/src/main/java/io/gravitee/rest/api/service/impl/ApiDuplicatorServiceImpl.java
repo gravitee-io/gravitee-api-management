@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
@@ -109,7 +108,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity createdApiEntity = apiService.createWithApiDefinition(importedApi, userId, jsonNode);
             createPageAndMedia(createdApiEntity, jsonNode, environmentId);
-            updateApiReferences(createdApiEntity, jsonNode, organizationId, environmentId);
+            updateApiReferences(createdApiEntity, jsonNode, organizationId, environmentId, false);
             return createdApiEntity;
         } catch (JsonProcessingException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -168,7 +167,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         if (!duplicateApiEntity.getFilteredFields().contains("pages")) {
             final List<PageEntity> pages = pageService.search(new PageQuery.Builder().api(apiId).build(), true, environmentId);
-            pages.forEach(page -> pageService.create(duplicatedApi.getId(), page, environmentId));
+            pageService.duplicatePages(pages, environmentId, duplicatedApi.getId());
         }
 
         if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
@@ -210,7 +209,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
             UpdateApiEntity importedApi = convertToEntity(apiDefinition, jsonNode);
             ApiEntity updatedApiEntity = apiService.update(apiId, importedApi, false);
-            updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId);
+            updateApiReferences(updatedApiEntity, jsonNode, organizationId, environmentId, true);
             return updatedApiEntity;
         } catch (JsonProcessingException e) {
             LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
@@ -264,7 +263,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return importedApi;
     }
 
-    private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode, String environmentId) {
+    private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode, String environmentId) throws JsonProcessingException {
         final JsonNode apiMedia = jsonNode.path("apiMedia");
         if (apiMedia != null && apiMedia.isArray()) {
             for (JsonNode media : apiMedia) {
@@ -274,10 +273,11 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         final JsonNode pages = jsonNode.path("pages");
         if (pages != null && pages.isArray()) {
-            for (JsonNode page : pages) {
-                PageEntity pageEntity = pageService.createWithDefinition(createdApiEntity.getId(), page.toString(), environmentId);
-                ((ObjectNode) page).put("id", pageEntity.getId());
-            }
+            List<PageEntity> pagesList = objectMapper.readValue(
+                pages.toString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
+            );
+            pageService.duplicatePages(pagesList, environmentId, createdApiEntity.getId());
         }
 
         List<PageEntity> search = pageService.search(
@@ -329,75 +329,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return updateApiEntity;
     }
 
-    private void createOrUpdateChildrenPages(String apiId, String parentId, List<PageEntityTreeNode> children, String environmentId) {
-        for (final PageEntityTreeNode child : children) {
-            PageEntity pageEntityToImport = child.data;
-            pageEntityToImport.setParentId(parentId);
-
-            PageEntity createdOrUpdatedPage = null;
-            if (pageEntityToImport.getId() != null) {
-                createdOrUpdatedPage = pageService.findById(pageEntityToImport.getId());
-            } else {
-                PageQuery query = new PageQuery.Builder()
-                    .api(apiId)
-                    .name(pageEntityToImport.getName())
-                    .type(PageType.valueOf(pageEntityToImport.getType()))
-                    .build();
-
-                List<PageEntity> pages = pageService.search(query, environmentId);
-                if (pages.size() == 1) {
-                    createdOrUpdatedPage = pages.get(0);
-                } else if (pages.size() > 1) {
-                    LOGGER.error(
-                        "Not able to identify the page to update: {}. Too much pages with the same name",
-                        pageEntityToImport.getName()
-                    );
-                    throw new TechnicalManagementException(
-                        "Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much pages with the same name"
-                    );
-                }
-            }
-
-            if (createdOrUpdatedPage == null) {
-                NewPageEntity newPage = new NewPageEntity();
-                newPage.setConfiguration(pageEntityToImport.getConfiguration());
-                newPage.setContent(pageEntityToImport.getContent());
-                newPage.setExcludedAccessControls(pageEntityToImport.isExcludedAccessControls());
-                newPage.setAccessControls(pageEntityToImport.getAccessControls());
-                newPage.setHomepage(pageEntityToImport.isHomepage());
-                newPage.setLastContributor(pageEntityToImport.getLastContributor());
-                newPage.setName(pageEntityToImport.getName());
-                newPage.setOrder(pageEntityToImport.getOrder());
-                newPage.setParentId(pageEntityToImport.getParentId());
-                newPage.setPublished(pageEntityToImport.isPublished());
-                newPage.setSource(pageEntityToImport.getSource());
-                newPage.setType(PageType.valueOf(pageEntityToImport.getType()));
-                newPage.setAttachedMedia(pageEntityToImport.getAttachedMedia());
-                createdOrUpdatedPage = pageService.createPage(apiId, newPage, environmentId);
-            } else {
-                UpdatePageEntity updatePageEntity = new UpdatePageEntity();
-                updatePageEntity.setConfiguration(pageEntityToImport.getConfiguration());
-                updatePageEntity.setContent(pageEntityToImport.getContent());
-                updatePageEntity.setExcludedAccessControls(pageEntityToImport.isExcludedAccessControls());
-                updatePageEntity.setAccessControls(pageEntityToImport.getAccessControls());
-                updatePageEntity.setHomepage(pageEntityToImport.isHomepage());
-                updatePageEntity.setLastContributor(pageEntityToImport.getLastContributor());
-                updatePageEntity.setName(pageEntityToImport.getName());
-                updatePageEntity.setOrder(pageEntityToImport.getOrder());
-                updatePageEntity.setParentId(pageEntityToImport.getParentId());
-                updatePageEntity.setPublished(pageEntityToImport.isPublished());
-                updatePageEntity.setSource(pageEntityToImport.getSource());
-                updatePageEntity.setAttachedMedia(pageEntityToImport.getAttachedMedia());
-
-                createdOrUpdatedPage = pageService.update(createdOrUpdatedPage.getId(), updatePageEntity);
-            }
-
-            if (child.children != null && !child.children.isEmpty()) {
-                this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children, environmentId);
-            }
-        }
-    }
-
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {
         if (apiDefinitionOrURL.toUpperCase().startsWith("HTTP")) {
             UrlSanitizerUtils.checkAllowed(
@@ -411,8 +342,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         return apiDefinitionOrURL;
     }
 
-    private void updateApiReferences(ApiEntity createdOrUpdatedApiEntity, JsonNode jsonNode, String organizationId, String environmentId)
-        throws JsonProcessingException {
+    private void updateApiReferences(
+        ApiEntity createdOrUpdatedApiEntity,
+        JsonNode jsonNode,
+        String organizationId,
+        String environmentId,
+        // FIXME: This whole method should be split in 2 (creation and update) and this flag should be removed
+        boolean isUpdate
+    ) throws JsonProcessingException {
         // Members
         final JsonNode membersToImport = jsonNode.path("members");
         if (membersToImport != null && membersToImport.isArray()) {
@@ -554,16 +491,16 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             }
         }
 
-        //Pages
-        final JsonNode pagesDefinition = jsonNode.path("pages");
-        if (pagesDefinition != null && pagesDefinition.isArray()) {
-            List<PageEntity> pagesList = objectMapper.readValue(
-                pagesDefinition.toString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
-            );
-            PageEntityTreeNode documentationTree = new PageEntityTreeNode(new PageEntity());
-            documentationTree.appendListToTree(pagesList);
-            createOrUpdateChildrenPages(createdOrUpdatedApiEntity.getId(), null, documentationTree.children, environmentId);
+        if (isUpdate) {
+            //Pages
+            final JsonNode pagesDefinition = jsonNode.path("pages");
+            if (pagesDefinition != null && pagesDefinition.isArray()) {
+                List<PageEntity> pagesList = objectMapper.readValue(
+                    pagesDefinition.toString(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
+                );
+                pageService.createOrUpdatePages(pagesList, environmentId, createdOrUpdatedApiEntity.getId());
+            }
         }
 
         //Plans
@@ -697,58 +634,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             int result = source.hashCode();
             result = 31 * result + sourceId.hashCode();
             return result;
-        }
-    }
-
-    private static class PageEntityTreeNode {
-
-        PageEntity data;
-        PageEntityTreeNode parent;
-
-        List<PageEntityTreeNode> children;
-
-        public PageEntityTreeNode(PageEntity data) {
-            this.data = data;
-            this.children = new LinkedList<>();
-        }
-
-        public PageEntityTreeNode addChild(PageEntity child) {
-            PageEntityTreeNode childNode = new PageEntityTreeNode(child);
-            childNode.parent = this;
-            this.children.add(childNode);
-            return childNode;
-        }
-
-        private PageEntityTreeNode findById(String id) {
-            if (id.equals(data.getId())) {
-                return this;
-            }
-            for (PageEntityTreeNode child : children) {
-                PageEntityTreeNode result = child.findById(id);
-                if (result != null) {
-                    return result;
-                }
-            }
-            return null;
-        }
-
-        public void appendListToTree(List<PageEntity> pagesList) {
-            List<PageEntity> orphans = new ArrayList<>();
-            for (PageEntity newPage : pagesList) {
-                if (newPage.getParentId() == null || newPage.getParentId().isEmpty()) {
-                    this.addChild(newPage);
-                } else {
-                    PageEntityTreeNode parentNode = this.findById(newPage.getParentId());
-                    if (parentNode != null) {
-                        parentNode.addChild(newPage);
-                    } else {
-                        orphans.add(newPage);
-                    }
-                }
-            }
-            if (!orphans.isEmpty() && orphans.size() < pagesList.size()) {
-                appendListToTree(orphans);
-            }
         }
     }
 }

@@ -83,6 +83,10 @@ public interface PageService {
 
     PageEntity createWithDefinition(String apiId, String toString, String environmentId);
 
+    void createOrUpdatePages(List<PageEntity> pages, String environmentId, String apiId);
+
+    void duplicatePages(List<PageEntity> pages, String environmentId, String apiId);
+
     /**
      * Check if the page is used as GeneralCondition by an active Plan for the given ApiID
      *

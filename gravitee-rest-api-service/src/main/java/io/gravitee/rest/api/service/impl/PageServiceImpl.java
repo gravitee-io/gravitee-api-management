@@ -2552,10 +2552,95 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
+    @Override
+    public void createOrUpdatePages(List<PageEntity> pages, String environmentId, String apiId) {
+        final PageServiceImpl.PageEntityTreeNode pageEntityTreeNode = new PageServiceImpl.PageEntityTreeNode(new PageEntity());
+        pageEntityTreeNode.appendListToTree(pages);
+        createOrUpdateChildrenPages(apiId, null, pageEntityTreeNode.children, environmentId);
+    }
+
+    @Override
+    public void duplicatePages(List<PageEntity> pages, String environmentId, String apiId) {
+        final PageServiceImpl.PageEntityTreeNode pageEntityTreeNode = new PageServiceImpl.PageEntityTreeNode(new PageEntity());
+        pageEntityTreeNode.appendListToTree(pages);
+        duplicateChildrenPages(apiId, null, pageEntityTreeNode.children, environmentId);
+    }
+
     private NewPageEntity convertToEntity(String pageDefinition) throws JsonProcessingException {
         return objectMapper
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .readValue(pageDefinition, NewPageEntity.class);
+    }
+
+    private void createOrUpdateChildrenPages(
+        String apiId,
+        String parentId,
+        List<PageServiceImpl.PageEntityTreeNode> children,
+        String environmentId
+    ) {
+        for (final PageServiceImpl.PageEntityTreeNode child : children) {
+            PageEntity pageEntityToImport = child.data;
+            pageEntityToImport.setParentId(parentId);
+
+            String newPageEntityId = RandomString.generateForEnvironment(environmentId, pageEntityToImport.getId());
+
+            PageEntity createdOrUpdatedPage = null;
+            if (pageEntityToImport.getId() != null) {
+                try {
+                    createdOrUpdatedPage = findById(newPageEntityId);
+                } catch (PageNotFoundException e) {
+                    // Page not found 🤷 Just create a new one
+                }
+            } else {
+                PageQuery query = new PageQuery.Builder()
+                    .api(apiId)
+                    .name(pageEntityToImport.getName())
+                    .type(PageType.valueOf(pageEntityToImport.getType()))
+                    .build();
+
+                List<PageEntity> foundPages = search(query, environmentId);
+                if (foundPages.size() == 1) {
+                    createdOrUpdatedPage = foundPages.get(0);
+                } else if (foundPages.size() > 1) {
+                    logger.error(
+                        "Not able to identify the page to update: {}. Too much pages with the same name",
+                        pageEntityToImport.getName()
+                    );
+                    throw new TechnicalManagementException(
+                        "Not able to identify the page to update: " + pageEntityToImport.getName() + ". Too much pages with the same name"
+                    );
+                }
+            }
+
+            if (createdOrUpdatedPage == null) {
+                createdOrUpdatedPage = createPage(apiId, NewPageEntity.from(pageEntityToImport), environmentId, newPageEntityId);
+            } else {
+                createdOrUpdatedPage = update(createdOrUpdatedPage.getId(), UpdatePageEntity.from(pageEntityToImport));
+            }
+
+            if (child.children != null && !child.children.isEmpty()) {
+                this.createOrUpdateChildrenPages(apiId, createdOrUpdatedPage.getId(), child.children, environmentId);
+            }
+        }
+    }
+
+    private void duplicateChildrenPages(
+        String apiId,
+        String parentId,
+        List<PageServiceImpl.PageEntityTreeNode> children,
+        String environmentId
+    ) {
+        for (final PageServiceImpl.PageEntityTreeNode child : children) {
+            PageEntity pageEntityToImport = child.data;
+            pageEntityToImport.setParentId(parentId);
+
+            String newId = RandomString.generateForEnvironment(environmentId, pageEntityToImport.getId());
+            createPage(apiId, NewPageEntity.from(pageEntityToImport), environmentId, newId);
+
+            if (child.children != null && !child.children.isEmpty()) {
+                this.duplicateChildrenPages(apiId, newId, child.children, environmentId);
+            }
+        }
     }
 
     private enum PageSituation {
@@ -2567,5 +2652,57 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         IN_SYSTEM_FOLDER,
         IN_FOLDER_IN_SYSTEM_FOLDER,
         TRANSLATION,
+    }
+
+    static class PageEntityTreeNode {
+
+        PageEntity data;
+        PageEntityTreeNode parent;
+
+        List<PageEntityTreeNode> children;
+
+        public PageEntityTreeNode(PageEntity data) {
+            this.data = data;
+            this.children = new LinkedList<>();
+        }
+
+        public PageEntityTreeNode addChild(PageEntity child) {
+            PageEntityTreeNode childNode = new PageEntityTreeNode(child);
+            childNode.parent = this;
+            this.children.add(childNode);
+            return childNode;
+        }
+
+        private PageEntityTreeNode findById(String id) {
+            if (id.equals(data.getId())) {
+                return this;
+            }
+            for (PageEntityTreeNode child : children) {
+                PageEntityTreeNode result = child.findById(id);
+                if (result != null) {
+                    return result;
+                }
+            }
+            return null;
+        }
+
+        public void appendListToTree(List<PageEntity> pagesList) {
+            List<PageEntity> orphans = new ArrayList<>();
+            for (PageEntity newPage : pagesList) {
+                if (newPage.getParentId() == null || newPage.getParentId().isEmpty()) {
+                    this.addChild(newPage);
+                } else {
+                    PageEntityTreeNode parentNode = this.findById(newPage.getParentId());
+                    if (parentNode != null) {
+                        parentNode.addChild(newPage);
+                    } else {
+                        orphans.add(newPage);
+                    }
+                }
+            }
+            if (!orphans.isEmpty() && orphans.size() < pagesList.size()) {
+                appendListToTree(orphans);
+            }
+        }
     }
 }

@@ -196,4 +196,22 @@ public class NewPageEntity {
     public void setAttachedMedia(List<PageMediaEntity> attachedMedia) {
         this.attachedMedia = attachedMedia;
     }
+
+    public static NewPageEntity from(PageEntity pageEntity) {
+        NewPageEntity newPage = new NewPageEntity();
+        newPage.setConfiguration(pageEntity.getConfiguration());
+        newPage.setContent(pageEntity.getContent());
+        newPage.setExcludedAccessControls(pageEntity.isExcludedAccessControls());
+        newPage.setAccessControls(pageEntity.getAccessControls());
+        newPage.setHomepage(pageEntity.isHomepage());
+        newPage.setLastContributor(pageEntity.getLastContributor());
+        newPage.setName(pageEntity.getName());
+        newPage.setOrder(pageEntity.getOrder());
+        newPage.setParentId(pageEntity.getParentId());
+        newPage.setPublished(pageEntity.isPublished());
+        newPage.setSource(pageEntity.getSource());
+        newPage.setType(PageType.valueOf(pageEntity.getType()));
+        newPage.setAttachedMedia(pageEntity.getAttachedMedia());
+        return newPage;
+    }
 }

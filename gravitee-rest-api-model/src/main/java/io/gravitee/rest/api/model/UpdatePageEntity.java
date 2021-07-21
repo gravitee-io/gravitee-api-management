@@ -171,4 +171,22 @@ public class UpdatePageEntity {
     public void setAccessControls(Set<AccessControlEntity> accessControls) {
         this.accessControls = accessControls;
     }
+
+    public static UpdatePageEntity from(PageEntity pageEntity) {
+        UpdatePageEntity updatePageEntity = new UpdatePageEntity();
+        updatePageEntity.setConfiguration(pageEntity.getConfiguration());
+        updatePageEntity.setContent(pageEntity.getContent());
+        updatePageEntity.setExcludedAccessControls(pageEntity.isExcludedAccessControls());
+        updatePageEntity.setAccessControls(pageEntity.getAccessControls());
+        updatePageEntity.setHomepage(pageEntity.isHomepage());
+        updatePageEntity.setLastContributor(pageEntity.getLastContributor());
+        updatePageEntity.setName(pageEntity.getName());
+        updatePageEntity.setOrder(pageEntity.getOrder());
+        updatePageEntity.setParentId(pageEntity.getParentId());
+        updatePageEntity.setPublished(pageEntity.isPublished());
+        updatePageEntity.setSource(pageEntity.getSource());
+        updatePageEntity.setAttachedMedia(pageEntity.getAttachedMedia());
+
+        return updatePageEntity;
+    }
 }

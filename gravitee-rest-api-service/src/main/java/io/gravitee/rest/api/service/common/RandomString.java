@@ -24,7 +24,18 @@ import io.gravitee.common.utils.UUID;
  * @author GraviteeSource Team
  */
 public interface RandomString {
-    public static String generate() {
+    static String generate() {
         return UUID.toString(UUID.random());
+    }
+
+    static String generateForEnvironment(String environmentId, String... fields) {
+        StringBuilder b = new StringBuilder();
+        b.append(environmentId);
+        for (String f : fields) {
+            b.append(f);
+        }
+        String baseStringForUUID = b.toString();
+
+        return UUID.toString(java.util.UUID.nameUUIDFromBytes(baseStringForUUID.getBytes()));
     }
 }
