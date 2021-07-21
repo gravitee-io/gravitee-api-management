@@ -2108,7 +2108,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         PlanEntity plan = planService.findById(planNode.get("id").asText());
                         UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
                         updatePlanEntity.setId(plan.getId());
-                        planService.update(updatePlanEntity);
+                        planService.update(updatePlanEntity, true);
                     } catch (PlanNotFoundException npe) {
                         NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
                         newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
@@ -2132,7 +2132,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     } else if (planEntities.size() == 1) {
                         UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
                         updatePlanEntity.setId(planEntities.iterator().next().getId());
-                        planService.update(updatePlanEntity);
+                        planService.update(updatePlanEntity, true);
                     } else {
                         LOGGER.error(
                             "Not able to identify the plan to update: {}. Too much plan with the same name",

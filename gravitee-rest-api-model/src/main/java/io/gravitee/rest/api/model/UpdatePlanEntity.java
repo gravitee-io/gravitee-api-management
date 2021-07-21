@@ -15,12 +15,11 @@
  */
 package io.gravitee.rest.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import io.gravitee.definition.model.flow.Flow;
+import java.util.*;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -66,6 +65,9 @@ public class UpdatePlanEntity {
 
     @JsonProperty("selection_rule")
     private String selectionRule;
+
+    @JsonIgnore
+    private List<Flow> flows = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -177,6 +179,14 @@ public class UpdatePlanEntity {
 
     public void setGeneralConditions(String generalConditions) {
         this.generalConditions = generalConditions;
+    }
+
+    public List<Flow> getFlows() {
+        return flows;
+    }
+
+    public void setFlows(List<Flow> flows) {
+        this.flows = flows;
     }
 
     @Override

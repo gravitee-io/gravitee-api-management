@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.repository.management.model.Plan.Status.PUBLISHED;
+import static java.util.Arrays.asList;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -137,7 +140,7 @@ public class PlanService_UpdateTest {
     @Test
     public void shouldUpdate_WithNewPublished_GeneralConditionPage() throws TechnicalException {
         final String PAGE_ID = "PAGE_ID_TEST";
-        when(plan.getStatus()).thenReturn(Plan.Status.PUBLISHED);
+        when(plan.getStatus()).thenReturn(PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
         when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.API_KEY);
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
@@ -169,7 +172,7 @@ public class PlanService_UpdateTest {
 
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_PublishPlan() throws TechnicalException {
-        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.PUBLISHED);
+        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED);
     }
 
     @Test(expected = PlanGeneralConditionStatusException.class)
@@ -199,6 +202,65 @@ public class PlanService_UpdateTest {
         doReturn(unpublishedPage).when(pageService).findById(PAGE_ID);
 
         planService.update(updatePlan);
+        verify(apiService, never()).update(any(), any());
+    }
+
+    @Test
+    public void shouldUpdateApi_PlanWithFlow() throws TechnicalException {
+        final String PAGE_ID = "PAGE_ID_TEST";
+        when(plan.getStatus()).thenReturn(PUBLISHED);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(any())).thenReturn(plan);
+        when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
+        final ApiEntity apiV2 = new ApiEntity();
+        apiV2.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        when(apiService.findById(any())).thenReturn(apiV2);
+
+        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+        when(updatePlan.getId()).thenReturn(PLAN_ID);
+        when(updatePlan.getName()).thenReturn("NameUpdated");
+        when(updatePlan.getFlows()).thenReturn(asList(new Flow()));
+
+        planService.update(updatePlan, true);
+
+        verify(apiService)
+            .update(any(), argThat(api -> api.getPlans().get(0).getFlows() != null && api.getPlans().get(0).getFlows().size() == 1));
+    }
+
+    @Test
+    public void shouldUpdateApi_PlanWithoutFlow() throws TechnicalException {
+        final String PAGE_ID = "PAGE_ID_TEST";
+        when(plan.getStatus()).thenReturn(PUBLISHED);
+        when(plan.getType()).thenReturn(Plan.PlanType.API);
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(planRepository.update(any())).thenReturn(plan);
+        when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
+        final ApiEntity apiV2 = new ApiEntity();
+        apiV2.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        when(apiService.findById(any())).thenReturn(apiV2);
+
+        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+        when(updatePlan.getId()).thenReturn(PLAN_ID);
+        when(updatePlan.getName()).thenReturn("NameUpdated");
+        when(updatePlan.getFlows()).thenReturn(asList());
+
+        PageEntity unpublishedPage = new PageEntity();
+        unpublishedPage.setId(PAGE_ID);
+        unpublishedPage.setOrder(1);
+        unpublishedPage.setType("MARKDOWN");
+        unpublishedPage.setPublished(false);
+
+        planService.update(updatePlan, true);
+
+        verify(apiService)
+            .update(any(), argThat(api -> api.getPlans().get(0).getFlows() == null || api.getPlans().get(0).getFlows().isEmpty()));
     }
 
     @Test
