@@ -380,7 +380,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         admin.setId("admin");
         admin.setSource(SOURCE);
         admin.setSourceId(API_ID);
-        when(planService.findById(anyString())).thenThrow(PlanNotFoundException.class);
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
@@ -411,7 +410,6 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
-        when(planService.findById(anyString())).thenThrow(PlanNotFoundException.class);
 
         apiDuplicatorService.createWithImportedDefinition(
             toBeImport,
@@ -422,7 +420,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
 
-        verify(planService, times(2)).create(any(NewPlanEntity.class));
+        verify(planService, times(2)).createOrUpdatePlan(any(PlanEntity.class), any(String.class));
     }
 
     @Test

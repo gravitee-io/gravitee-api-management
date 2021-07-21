@@ -193,4 +193,23 @@ public class UpdatePlanEntity {
     public int hashCode() {
         return id != null ? id.hashCode() : 0;
     }
+
+    public static UpdatePlanEntity from(PlanEntity planEntity) {
+        UpdatePlanEntity updatePlanEntity = new UpdatePlanEntity();
+        updatePlanEntity.setId(planEntity.getId());
+        updatePlanEntity.setName(planEntity.getName());
+        updatePlanEntity.setDescription(planEntity.getDescription());
+        updatePlanEntity.setValidation(planEntity.getValidation());
+        updatePlanEntity.setPaths(planEntity.getPaths());
+        updatePlanEntity.setCharacteristics(planEntity.getCharacteristics());
+        updatePlanEntity.setOrder(planEntity.getOrder());
+        updatePlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
+        updatePlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
+        updatePlanEntity.setCommentRequired(planEntity.isCommentRequired());
+        updatePlanEntity.setCommentMessage(planEntity.getCommentMessage());
+        updatePlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
+        updatePlanEntity.setTags(planEntity.getTags());
+        updatePlanEntity.setSelectionRule(planEntity.getSelectionRule());
+        return updatePlanEntity;
+    }
 }

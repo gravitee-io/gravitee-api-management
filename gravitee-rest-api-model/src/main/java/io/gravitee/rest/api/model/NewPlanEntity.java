@@ -234,4 +234,27 @@ public class NewPlanEntity {
     public int hashCode() {
         return id != null ? id.hashCode() : name.hashCode();
     }
+
+    public static NewPlanEntity from(PlanEntity planEntity) {
+        NewPlanEntity updatePlanEntity = new NewPlanEntity();
+        updatePlanEntity.setId(planEntity.getId());
+        updatePlanEntity.setApi(planEntity.getApi());
+        updatePlanEntity.setName(planEntity.getName());
+        updatePlanEntity.setDescription(planEntity.getDescription());
+        updatePlanEntity.setValidation(planEntity.getValidation());
+        updatePlanEntity.setSecurity(planEntity.getSecurity());
+        updatePlanEntity.setSecurityDefinition(planEntity.getSecurityDefinition());
+        updatePlanEntity.setType(planEntity.getType());
+        updatePlanEntity.setStatus(planEntity.getStatus());
+        updatePlanEntity.setPaths(planEntity.getPaths());
+        updatePlanEntity.setFlows(planEntity.getFlows());
+        updatePlanEntity.setCharacteristics(planEntity.getCharacteristics());
+        updatePlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
+        updatePlanEntity.setCommentRequired(planEntity.isCommentRequired());
+        updatePlanEntity.setCommentMessage(planEntity.getCommentMessage());
+        updatePlanEntity.setGeneralConditions(planEntity.getGeneralConditions());
+        updatePlanEntity.setTags(planEntity.getTags());
+        updatePlanEntity.setSelectionRule(planEntity.getSelectionRule());
+        return updatePlanEntity;
+    }
 }

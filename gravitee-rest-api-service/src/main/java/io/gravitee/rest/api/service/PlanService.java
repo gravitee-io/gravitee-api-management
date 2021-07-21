@@ -51,5 +51,5 @@ public interface PlanService {
 
     PlansConfigurationEntity getConfiguration();
 
-    PlanEntity create(String apiId, PlanEntity planEntity);
+    PlanEntity createOrUpdatePlan(PlanEntity planEntity, final String environmentId);
 }

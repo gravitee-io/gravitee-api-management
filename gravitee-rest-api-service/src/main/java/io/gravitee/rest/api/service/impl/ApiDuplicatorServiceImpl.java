@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -172,7 +173,13 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
             final Set<PlanEntity> plans = planService.findByApi(apiId);
-            plans.forEach(plan -> planService.create(duplicatedApi.getId(), plan));
+            plans.forEach(
+                plan -> {
+                    NewPlanEntity newPlan = NewPlanEntity.from(plan);
+                    newPlan.setApi(duplicatedApi.getId());
+                    planService.create(newPlan);
+                }
+            );
         }
 
         return duplicatedApi;
@@ -506,50 +513,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         //Plans
         final JsonNode plansDefinition = jsonNode.path("plans");
         if (plansDefinition != null && plansDefinition.isArray()) {
-            for (JsonNode planNode : plansDefinition) {
-                if (planNode.has("id")) {
-                    try {
-                        PlanEntity plan = planService.findById(planNode.get("id").asText());
-                        UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
-                        updatePlanEntity.setId(plan.getId());
-                        planService.update(updatePlanEntity);
-                    } catch (PlanNotFoundException npe) {
-                        NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
-                        newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
-                        planService.create(newPlanEntity);
-                    }
-                } else {
-                    PlanQuery query = new PlanQuery.Builder()
-                        .api(createdOrUpdatedApiEntity.getId())
-                        .name(planNode.get("name").asText())
-                        .security(PlanSecurityType.valueOf(planNode.get("security").asText().toUpperCase()))
-                        .build();
-                    List<PlanEntity> planEntities = planService
-                        .search(query)
-                        .stream()
-                        .filter(planEntity -> !PlanStatus.CLOSED.equals(planEntity.getStatus()))
-                        .collect(toList());
-                    if (planEntities.isEmpty()) {
-                        NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
-                        newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
-                        planService.create(newPlanEntity);
-                    } else if (planEntities.size() == 1) {
-                        UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
-                        updatePlanEntity.setId(planEntities.iterator().next().getId());
-                        planService.update(updatePlanEntity);
-                    } else {
-                        LOGGER.error(
-                            "Not able to identify the plan to update: {}. Too much plan with the same name",
-                            planNode.get("name").asText()
-                        );
-                        throw new TechnicalManagementException(
-                            "Not able to identify the plan to update: " +
-                            planNode.get("name").asText() +
-                            ". Too much plan with the same name"
-                        );
-                    }
+            List<PlanEntity> plansList = objectMapper.readValue(
+                plansDefinition.toString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, PlanEntity.class)
+            );
+
+            plansList.forEach(
+                planEntity -> {
+                    planEntity.setApi(createdOrUpdatedApiEntity.getId());
+                    planEntity.setId(RandomString.generateForEnvironment(environmentId, planEntity.getId()));
+                    planService.createOrUpdatePlan(planEntity, environmentId);
                 }
-            }
+            );
         }
         // Metadata
         final JsonNode metadataDefinition = jsonNode.path("metadata");

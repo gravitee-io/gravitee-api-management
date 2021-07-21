@@ -435,10 +435,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         ApiEntity apiEntity = prepareUpdateImportApiWithMembers(admin, user);
         PlanEntity plan1 = new PlanEntity();
         plan1.setId("plan-id");
-        when(planService.findById(plan1.getId())).thenReturn(plan1);
         PlanEntity plan2 = new PlanEntity();
         plan2.setId("plan-id2");
-        when(planService.findById(plan2.getId())).thenReturn(plan2);
 
         apiDuplicatorService.updateWithImportedDefinition(
             apiEntity.getId(),
@@ -448,7 +446,7 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
             GraviteeContext.getCurrentEnvironment()
         );
 
-        verify(planService, times(2)).update(any(UpdatePlanEntity.class));
+        verify(planService, times(2)).createOrUpdatePlan(any(PlanEntity.class), any(String.class));
         verify(apiService, times(1)).update(eq(API_ID), any(), anyBoolean());
         verify(apiService, never()).create(any(), any());
     }
