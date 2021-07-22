@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.UpdatePlanEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.exceptions.PlanGeneralConditionStatusException;
+import io.gravitee.rest.api.service.exceptions.PlanInvalidException;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
 import java.util.Optional;
@@ -172,15 +173,25 @@ public class PlanService_UpdateTest {
 
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_PublishPlan() throws TechnicalException {
-        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED);
+        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, DefinitionVersion.V1);
     }
 
     @Test(expected = PlanGeneralConditionStatusException.class)
     public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_DeprecatedPlan() throws TechnicalException {
-        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED);
+        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, DefinitionVersion.V1);
     }
 
-    private void shouldNotUpdate_withNotPublished_GCUPage(Plan.Status planStatus) throws TechnicalException {
+    @Test(expected = PlanGeneralConditionStatusException.class)
+    public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_PublishPlan_v2() throws TechnicalException {
+        shouldNotUpdate_withNotPublished_GCUPage(PUBLISHED, DefinitionVersion.V2);
+    }
+
+    @Test(expected = PlanGeneralConditionStatusException.class)
+    public void shouldNotUpdate_WithNotPublished_GeneralConditionPage_DeprecatedPlan_v2() throws TechnicalException {
+        shouldNotUpdate_withNotPublished_GCUPage(Plan.Status.DEPRECATED, DefinitionVersion.V2);
+    }
+
+    private void shouldNotUpdate_withNotPublished_GCUPage(Plan.Status planStatus, DefinitionVersion apiVersion) throws TechnicalException {
         final String PAGE_ID = "PAGE_ID_TEST";
         when(plan.getStatus()).thenReturn(planStatus);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
@@ -188,6 +199,10 @@ public class PlanService_UpdateTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
+
+        final ApiEntity apiV2 = new ApiEntity();
+        apiV2.setGraviteeDefinitionVersion(apiVersion.getLabel());
+        when(apiService.findById(any())).thenReturn(apiV2);
 
         UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
         when(updatePlan.getId()).thenReturn(PLAN_ID);
@@ -231,8 +246,33 @@ public class PlanService_UpdateTest {
             .update(any(), argThat(api -> api.getPlans().get(0).getFlows() != null && api.getPlans().get(0).getFlows().size() == 1));
     }
 
-    @Test
+    @Test(expected = PlanInvalidException.class)
     public void shouldUpdateApi_PlanWithoutFlow() throws TechnicalException {
+        final String PAGE_ID = "PAGE_ID_TEST";
+        when(plan.getSecurity()).thenReturn(Plan.PlanSecurityType.KEY_LESS);
+        when(plan.getApi()).thenReturn(API_ID);
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
+        when(parameterService.findAsBoolean(any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn(true);
+        final ApiEntity apiV2 = new ApiEntity();
+        apiV2.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
+        when(apiService.findById(any())).thenReturn(apiV2);
+
+        UpdatePlanEntity updatePlan = mock(UpdatePlanEntity.class);
+        when(updatePlan.getId()).thenReturn(PLAN_ID);
+        when(updatePlan.getName()).thenReturn("NameUpdated");
+        when(updatePlan.getFlows()).thenReturn(null);
+
+        PageEntity unpublishedPage = new PageEntity();
+        unpublishedPage.setId(PAGE_ID);
+        unpublishedPage.setOrder(1);
+        unpublishedPage.setType("MARKDOWN");
+        unpublishedPage.setPublished(false);
+
+        planService.update(updatePlan);
+    }
+
+    @Test
+    public void shouldUpdateApi_PlanWithFlowEmptyList() throws TechnicalException {
         final String PAGE_ID = "PAGE_ID_TEST";
         when(plan.getStatus()).thenReturn(PUBLISHED);
         when(plan.getType()).thenReturn(Plan.PlanType.API);

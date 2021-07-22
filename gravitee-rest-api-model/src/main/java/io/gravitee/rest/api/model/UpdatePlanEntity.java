@@ -66,8 +66,8 @@ public class UpdatePlanEntity {
     @JsonProperty("selection_rule")
     private String selectionRule;
 
-    @JsonIgnore
-    private List<Flow> flows = new ArrayList<>();
+    @JsonProperty(value = "flows")
+    private List<Flow> flows;
 
     public String getName() {
         return name;
