@@ -3305,6 +3305,10 @@ components:
             type: string
         owner:
           $ref: '#/components/schemas/User'
+        created_at:
+          description: create date and time.
+          type: string
+          format: date-time
         updated_at:
           description: Last update date and time.
           type: string
