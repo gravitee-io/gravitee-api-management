@@ -85,7 +85,7 @@ public class PageService_CreateOrUpdatePagesTest {
         when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
         when(pageRepository.update(any(Page.class))).thenAnswer(returnsFirstArg());
 
-        String page1NewId = RandomString.generateForEnvironment(ENVIRONMENT_ID, page1.getId());
+        String page1NewId = RandomString.generateForEnvironment(ENVIRONMENT_ID, API_ID, page1.getId());
         Page page = new Page();
         page.setId(page1NewId);
         page.setName(page1.getName());

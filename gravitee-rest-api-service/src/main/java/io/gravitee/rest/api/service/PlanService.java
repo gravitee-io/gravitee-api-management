@@ -52,4 +52,6 @@ public interface PlanService {
     PlansConfigurationEntity getConfiguration();
 
     PlanEntity createOrUpdatePlan(PlanEntity planEntity, final String environmentId);
+
+    void duplicatePlans(Set<PlanEntity> plans, final String environmentId, final String apiId);
 }

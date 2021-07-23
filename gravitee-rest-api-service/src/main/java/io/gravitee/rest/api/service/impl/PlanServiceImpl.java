@@ -267,6 +267,20 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
     }
 
     @Override
+    public void duplicatePlans(Set<PlanEntity> plans, String environmentId, String apiId) {
+        plans.forEach(
+            plan -> {
+                NewPlanEntity newPlan = NewPlanEntity.from(plan);
+                newPlan.setApi(apiId);
+
+                String newPlanId = RandomString.generateForEnvironment(environmentId, apiId, plan.getId());
+                newPlan.setId(newPlanId);
+                create(newPlan);
+            }
+        );
+    }
+
+    @Override
     public PlanEntity update(UpdatePlanEntity updatePlan) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());

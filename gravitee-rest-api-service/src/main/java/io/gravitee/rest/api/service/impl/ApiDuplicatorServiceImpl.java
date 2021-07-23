@@ -173,13 +173,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         if (!duplicateApiEntity.getFilteredFields().contains("plans")) {
             final Set<PlanEntity> plans = planService.findByApi(apiId);
-            plans.forEach(
-                plan -> {
-                    NewPlanEntity newPlan = NewPlanEntity.from(plan);
-                    newPlan.setApi(duplicatedApi.getId());
-                    planService.create(newPlan);
-                }
-            );
+            planService.duplicatePlans(plans, environmentId, duplicatedApi.getId());
         }
 
         return duplicatedApi;
@@ -521,7 +515,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             plansList.forEach(
                 planEntity -> {
                     planEntity.setApi(createdOrUpdatedApiEntity.getId());
-                    planEntity.setId(RandomString.generateForEnvironment(environmentId, planEntity.getId()));
+                    planEntity.setId(
+                        RandomString.generateForEnvironment(environmentId, createdOrUpdatedApiEntity.getId(), planEntity.getId())
+                    );
                     planService.createOrUpdatePlan(planEntity, environmentId);
                 }
             );

@@ -2582,7 +2582,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            String newPageEntityId = RandomString.generateForEnvironment(environmentId, pageEntityToImport.getId());
+            String newPageEntityId = RandomString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
 
             PageEntity createdOrUpdatedPage = null;
             if (pageEntityToImport.getId() != null) {
@@ -2634,7 +2634,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            String newId = RandomString.generateForEnvironment(environmentId, pageEntityToImport.getId());
+            String newId = RandomString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
             createPage(apiId, NewPageEntity.from(pageEntityToImport), environmentId, newId);
 
             if (child.children != null && !child.children.isEmpty()) {
