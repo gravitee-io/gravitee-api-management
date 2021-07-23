@@ -36,6 +36,9 @@ public class FileReporterConfiguration {
     @Value("${reporters.file.flushInterval:1000}")
     private long flushInterval;
 
+    @Value("${reporters.file.retainDays:0}")
+    private long retainDays;
+
     public String getFilename() {
         return filename;
     }
@@ -46,5 +49,9 @@ public class FileReporterConfiguration {
 
     public long getFlushInterval() {
         return flushInterval;
+    }
+
+    public long getRetainDays() {
+        return retainDays;
     }
 }

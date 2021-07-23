@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +86,8 @@ public class VertxFileWriter<T extends Reportable> {
 
     private final long flushId;
 
+    private final Pattern rolloverFiles;
+
     public VertxFileWriter(Vertx vertx, MetricsType type, Formatter<T> formatter, String filename, FileReporterConfiguration configuration)
         throws IOException {
         this.vertx = vertx;
@@ -102,6 +105,18 @@ public class VertxFileWriter<T extends Reportable> {
         }
 
         this.filename = filename;
+
+        File file = new File(this.filename);
+
+        int datePattern = configuration.getFilename().toLowerCase(Locale.ENGLISH).indexOf(YYYY_MM_DD);
+        if (datePattern >= 0) {
+            rolloverFiles =
+                Pattern.compile(
+                    String.format(file.getName(), this.type.getType()).replaceFirst(YYYY_MM_DD, "([0-9]{4}_[0-9]{2}_[0-9]{2})")
+                );
+        } else {
+            rolloverFiles = null;
+        }
 
         __rollover = new Timer(VertxFileWriter.class.getName(), true);
 
@@ -314,8 +329,31 @@ public class VertxFileWriter<T extends Reportable> {
                 ZonedDateTime now = ZonedDateTime.now(fileDateFormat.getTimeZone().toZoneId());
                 VertxFileWriter.this.setFile(now);
                 VertxFileWriter.this.scheduleNextRollover(now);
+                VertxFileWriter.this.removeOldFiles();
             } catch (Throwable t) {
                 LOGGER.error("Unexpected error while moving to a new reporter file", t);
+            }
+        }
+    }
+
+    private void removeOldFiles() {
+        if (configuration.getRetainDays() > 0) {
+            long now = System.currentTimeMillis();
+            File file = new File(this.filename);
+
+            if (rolloverFiles != null) {
+                File dir = new File(file.getParent());
+                String[] logList = dir.list();
+                for (int i = 0; i < logList.length; i++) {
+                    String fn = logList[i];
+                    if (rolloverFiles.matcher(fn).matches()) {
+                        File f = new File(dir, fn);
+                        long date = f.lastModified();
+                        if (((now - date) / (1000 * 60 * 60 * 24)) > configuration.getRetainDays()) {
+                            f.delete();
+                        }
+                    }
+                }
             }
         }
     }
