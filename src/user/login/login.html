@@ -56,7 +56,7 @@
 
       <div class="form-content">
         <button
-          class="btn btn-block btn-{{provider.type}}"
+          class="btn btn-block btn-{{provider.type | lowercase}}"
           ng-style="{{ $ctrl.getProviderStyle(provider) }}"
           data-ng-repeat="provider in $ctrl.identityProviders"
           ng-click="$ctrl.authenticate(provider.id)"
