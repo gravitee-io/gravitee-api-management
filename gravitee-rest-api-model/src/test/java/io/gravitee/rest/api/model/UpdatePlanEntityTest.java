@@ -47,6 +47,27 @@ public class UpdatePlanEntityTest {
         Assert.assertEquals(result.getSelectionRule(), actual.getSelectionRule());
     }
 
+    @Test
+    public void fromShouldNotSetFieldsWithDefaultValueToNull() {
+        final PlanEntity actual = getAPlanEntity();
+        actual.setPaths(null);
+        final UpdatePlanEntity result = UpdatePlanEntity.from(actual);
+
+        Assert.assertEquals(result.getId(), actual.getId());
+        Assert.assertEquals(result.getName(), actual.getName());
+        Assert.assertEquals(result.getDescription(), actual.getDescription());
+        Assert.assertEquals(result.getValidation(), actual.getValidation());
+        Assert.assertEquals(result.getSecurityDefinition(), actual.getSecurityDefinition());
+        Assert.assertEquals(result.getPaths(), new HashMap<>());
+        Assert.assertEquals(result.getCharacteristics(), actual.getCharacteristics());
+        Assert.assertEquals(result.getExcludedGroups(), actual.getExcludedGroups());
+        Assert.assertEquals(result.isCommentRequired(), actual.isCommentRequired());
+        Assert.assertEquals(result.getCommentMessage(), actual.getCommentMessage());
+        Assert.assertEquals(result.getGeneralConditions(), actual.getGeneralConditions());
+        Assert.assertEquals(result.getTags(), actual.getTags());
+        Assert.assertEquals(result.getSelectionRule(), actual.getSelectionRule());
+    }
+
     private PlanEntity getAPlanEntity() {
         final PlanEntity planEntity = new PlanEntity();
         planEntity.setId("plan-id");

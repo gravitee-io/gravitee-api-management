@@ -200,7 +200,9 @@ public class UpdatePlanEntity {
         updatePlanEntity.setName(planEntity.getName());
         updatePlanEntity.setDescription(planEntity.getDescription());
         updatePlanEntity.setValidation(planEntity.getValidation());
-        updatePlanEntity.setPaths(planEntity.getPaths());
+        if (planEntity.getPaths() != null) {
+            updatePlanEntity.setPaths(planEntity.getPaths());
+        }
         updatePlanEntity.setCharacteristics(planEntity.getCharacteristics());
         updatePlanEntity.setOrder(planEntity.getOrder());
         updatePlanEntity.setExcludedGroups(planEntity.getExcludedGroups());
