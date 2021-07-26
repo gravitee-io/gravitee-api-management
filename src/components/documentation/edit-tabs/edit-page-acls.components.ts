@@ -25,13 +25,15 @@ class EditPageAclsComponentController implements IController {
   page: any;
   groups: any[];
   roles: any[];
+  isApiPage: boolean;
 
   constructor(private readonly RoleService: RoleService, private $scope: IPageScope) {
     'ngInject';
   }
 
   $onInit() {
-    this.RoleService.list('ENVIRONMENT').then((roles) => {
+    const scope = this.isApiPage ? 'API' : 'ENVIRONMENT';
+    this.RoleService.list(scope).then((roles) => {
       this.roles = roles;
     });
 
@@ -65,6 +67,7 @@ export const EditPageAclsComponent: ng.IComponentOptions = {
     page: '<',
     groups: '<',
     roles: '<',
+    isApiPage: '<',
   },
   template: require('./edit-page-acls.html'),
   controller: EditPageAclsComponentController,
