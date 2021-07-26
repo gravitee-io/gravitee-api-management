@@ -11,6 +11,10 @@ target/
 .classpath
 /bin/
 
+# dependencies
+node_modules
+/node
+
 # TODO
 # gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/license/*
 # gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/logs/*
@@ -37,3 +41,6 @@ graviteebot.gpg.pub.key
 # -- Cicd : The [.secrets.json] file contains secrets
 # which should not be commited
 .secrets.json
+
+# Cypress
+gravitee-apim-cypress/cypress/videos/
