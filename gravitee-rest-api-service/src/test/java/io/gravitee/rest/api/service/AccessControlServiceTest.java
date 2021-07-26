@@ -51,6 +51,7 @@ public class AccessControlServiceTest {
     public static final String USERNAME = "johndoe";
     private static final String ROLE_ID = "my-role";
     private static final String GROUP_ID = "my-group";
+    private static final String API_ID = "my-api";
 
     @InjectMocks
     private AccessControlService accessControlService = new AccessControlServiceImpl();
@@ -372,6 +373,31 @@ public class AccessControlServiceTest {
         when(membershipServiceMock.getUserMember(MembershipReferenceType.GROUP, GROUP_ID, USERNAME)).thenReturn(memberEntity);
 
         boolean canAccess = accessControlService.canAccessPageFromConsole(apiEntityMock, pageEntity);
+
+        assertTrue(canAccess);
+    }
+
+    @Test
+    public void shouldAccessApiPageFromPortalWithRole() {
+        final ApiEntity apiEntityMock = new ApiEntity();
+        apiEntityMock.setId(API_ID);
+
+        when(apiService.findById(API_ID)).thenReturn(apiEntityMock);
+
+        final PageEntity pageEntity = mock(PageEntity.class);
+        when(pageEntity.isPublished()).thenReturn(true);
+        when(pageEntity.getVisibility()).thenReturn(Visibility.PRIVATE);
+        Set<AccessControlEntity> accessControls = buildAccessControls(Arrays.asList(ROLE_ID));
+        when(pageEntity.getAccessControls()).thenReturn(accessControls);
+        connectUser();
+
+        Set<RoleEntity> roles = new HashSet<>();
+        RoleEntity roleEntity = new RoleEntity();
+        roleEntity.setId(ROLE_ID);
+        roles.add(roleEntity);
+        when(membershipServiceMock.getRoles(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, USERNAME)).thenReturn(roles);
+
+        boolean canAccess = accessControlService.canAccessPageFromPortal(API_ID, pageEntity);
 
         assertTrue(canAccess);
     }

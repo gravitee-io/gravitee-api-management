@@ -119,8 +119,17 @@ public class AccessControlServiceImpl extends AbstractService implements AccessC
 
     @Override
     public boolean canAccessPageFromPortal(PageEntity pageEntity) {
+        return canAccessPageFromPortal(null, pageEntity);
+    }
+
+    @Override
+    public boolean canAccessPageFromPortal(String apiId, PageEntity pageEntity) {
         if (PageType.SYSTEM_FOLDER.name().equals(pageEntity.getType()) || PageType.MARKDOWN_TEMPLATE.name().equals(pageEntity.getType())) {
             return false;
+        }
+        if (apiId != null) {
+            final ApiEntity apiEntity = apiService.findById(apiId);
+            return canAccessPage(apiEntity, pageEntity);
         }
         return canAccessPage(null, pageEntity);
     }

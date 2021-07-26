@@ -66,7 +66,7 @@ public class ApiPageResource extends AbstractResource {
 
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
 
-            if (accessControlService.canAccessPageFromPortal(pageEntity)) {
+            if (accessControlService.canAccessPageFromPortal(apiId, pageEntity)) {
                 pageService.transformSwagger(pageEntity, apiId);
 
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -102,7 +102,7 @@ public class ApiPageResource extends AbstractResource {
         apiQuery.setIds(Collections.singletonList(apiId));
         if (accessControlService.canAccessApiFromPortal(apiId)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
-            if (accessControlService.canAccessPageFromPortal(pageEntity)) {
+            if (accessControlService.canAccessPageFromPortal(apiId, pageEntity)) {
                 pageService.transformSwagger(pageEntity, apiId);
                 return Response.ok(pageEntity.getContent()).build();
             } else {

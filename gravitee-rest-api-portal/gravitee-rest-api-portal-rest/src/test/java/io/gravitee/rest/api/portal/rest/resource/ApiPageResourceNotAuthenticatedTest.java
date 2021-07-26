@@ -121,7 +121,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Test
     public void shouldHaveMetadataCleared() {
         doReturn(true).when(accessControlService).canAccessApiFromPortal(API);
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(any(PageEntity.class));
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(eq(API), any(PageEntity.class));
 
         Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
         assertEquals(OK_200, anotherResponse.getStatus());

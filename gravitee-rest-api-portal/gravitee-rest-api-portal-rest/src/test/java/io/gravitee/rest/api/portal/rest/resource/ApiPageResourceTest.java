@@ -18,8 +18,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static io.gravitee.common.http.HttpStatusCode.*;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
@@ -70,7 +69,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setVisibility(Visibility.PUBLIC);
         page1.setContent(PAGE_CONTENT);
         doReturn(page1).when(pageService).findById(PAGE, null);
-        doReturn(true).when(accessControlService).canAccessPageFromPortal(page1);
+        doReturn(true).when(accessControlService).canAccessPageFromPortal(API, page1);
 
         doReturn(new Page()).when(pageMapper).convert(any(), any(), any());
         doReturn(new PageLinks()).when(pageMapper).computePageLinks(any(), any());
@@ -140,7 +139,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetApiPage() {
         final Builder request = target(API).path("pages").path(PAGE).request();
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(API), any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
@@ -216,7 +215,7 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     @Test
     public void shouldNotGetApiPageContent() {
         final Builder request = target(API).path("pages").path(PAGE).path("content").request();
-        doReturn(false).when(accessControlService).canAccessPageFromPortal(any());
+        doReturn(false).when(accessControlService).canAccessPageFromPortal(eq(API), any());
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
