@@ -29,7 +29,6 @@ import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.context.ApiTemplateVariableProvider;
 import io.gravitee.gateway.services.healthcheck.context.HealthCheckContext;
 import io.gravitee.gateway.services.healthcheck.context.HealthCheckContextFactory;
-import io.gravitee.gateway.services.healthcheck.context.TemplateVariableProviderFactory;
 import io.gravitee.gateway.services.healthcheck.reporter.StatusReporter;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleCronHandler;
 import io.gravitee.gateway.services.healthcheck.rule.EndpointRuleHandler;
@@ -41,7 +40,6 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
