@@ -97,41 +97,55 @@ http:
 # Management repository is used to store global configuration such as APIs, applications, apikeys, ...
 # This is the default configuration using MongoDB (single server)
 # For more information about MongoDB configuration, please have a look to:
-# - http://api.mongodb.org/java/current/com/mongodb/MongoClientOptions.html
+# - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html
 management:
-  type: mongodb
-  mongodb:
-    dbname: ${ds.mongodb.dbname}
-    host: ${ds.mongodb.host}
-    port: ${ds.mongodb.port}
-#    username:
-#    password:
-#    connectionsPerHost: 0
-#    connectTimeout: 500
-#    maxWaitTime: 120000
-#    socketTimeout: 500
-#    socketKeepAlive: false
-#    maxConnectionLifeTime: 0
-#    maxConnectionIdleTime: 0
-#    serverSelectionTimeout: 0
-#    description: gravitee.io
-#    heartbeatFrequency: 10000
-#    minHeartbeatFrequency: 500
-#    heartbeatConnectTimeout: 1000
-#    heartbeatSocketTimeout: 20000
-#    localThreshold: 15
-#    minConnectionsPerHost: 0
-#    sslEnabled: false
-#    threadsAllowedToBlockForConnectionMultiplier: 5
-#    cursorFinalizerEnabled: true
-# possible values are 1,2,3... (the number of node) or 'majority'
-#    writeConcern: 1
-#    wtimeout: 0
-#    journal: true
+  type: mongodb                  # repository type
+  mongodb:                       # mongodb repository
+#    prefix:                      # collections prefix
+    dbname: ${ds.mongodb.dbname} # mongodb name (default gravitee)
+    host: ${ds.mongodb.host}     # mongodb host (default localhost)
+    port: ${ds.mongodb.port}     # mongodb port (default 27017)
+
+## Client settings
+#    description:                 # mongodb description (default gravitee.io)
+#    username:                    # mongodb username (default null)
+#    password:                    # mongodb password (default null)
+#    authSource:                  # mongodb authentication source (when at least a user or a password is defined, default gravitee)
+#    readPreference:              # possible values are 'nearest', 'primary', 'primaryPreferred', 'secondary', 'secondaryPreferred'
+#    readPreferenceTags:          # list of read preference tags (https://docs.mongodb.com/manual/core/read-preference-tags/#std-label-replica-set-read-preference-tag-sets)
+### Write concern
+#    writeConcern:               # possible values are 1,2,3... (the number of node) or 'majority' (default is 1)
+#    wtimeout:                   # (default is 0)
+#    journal:                    # (default is true)
+
+## Socket settings
+#    connectTimeOut:              # mongodb connection time out (default 1000)
+#    socketTimeout:               # mongodb socket time out (default 1000)
+
+## Cluster settings
+#    serverSelectionTimeout:      # mongodb server selection time out (default 1000)
+#    localThreshold:              # mongodb local threshold (default 15)
+
+## Connection pool settings
+#    maxWaitTime:                 # mongodb max wait time (default 120000)
+#    maxConnectionLifeTime:       # mongodb max connection life time (default 0)
+#    maxConnectionIdleTime:       # mongodb max connection idle time (default 0)
+#    connectionsPerHost:          # mongodb max connections per host (default 100)
+#    minConnectionsPerHost:       # mongodb min connections per host (default 0)
+
+## Server settings
+#    heartbeatFrequency:          # mongodb heartbeat frequency (default 10000)
+#    minHeartbeatFrequency:       # mongodb min heartbeat frequency (default 500)
+
+## SSL settings
+#    sslEnabled:                  # mongodb ssl mode (default false)
+#    keystore:                    # path to KeyStore (when sslEnabled is true, default null)
+#    keystorePassword:            # KeyStore password (when sslEnabled is true, default null)
+#    keyPassword:                 # password for recovering keys in the KeyStore (when sslEnabled is true, default null)
 
 # Management repository: single MongoDB using URI
 # For more information about MongoDB configuration using URI, please have a look to:
-# - http://api.mongodb.org/java/current/com/mongodb/MongoClientURI.html
+# - http://mongodb.github.io/mongo-java-driver/4.1/apidocs/mongodb-driver-core/com/mongodb/ConnectionString.html
 #management:
 #  type: mongodb
 #  mongodb:
