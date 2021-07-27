@@ -19,7 +19,7 @@ import NotificationService from '../../../../services/notification.service';
 import ApiService from '../../../../services/api.service';
 import DialogAddPathMappingController from './modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './modal/import-pathMapping.dialog.controller';
-import DocumentationService, { DocumentationQuery } from '../../../../services/documentation.service';
+import { DocumentationService, DocumentationQuery } from '../../../../services/documentation.service';
 
 class ApiPathMappingsController {
   private api: any;

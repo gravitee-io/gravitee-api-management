@@ -15,6 +15,7 @@
  */
 
 import { IHttpPromise, IPromise } from 'angular';
+import { Constants } from '../entities/Constants';
 
 export class DocumentationQuery {
   api: string;
@@ -70,10 +71,8 @@ export enum FolderSituation {
   FOLDER_IN_FOLDER,
 }
 
-class DocumentationService {
-  private folderPromise;
-
-  constructor(private $http: ng.IHttpService, private $q: ng.IQService, private Constants: any) {
+export class DocumentationService {
+  constructor(private readonly $http: ng.IHttpService, private readonly $q: ng.IQService, private readonly Constants: Constants) {
     'ngInject';
   }
 
@@ -277,5 +276,3 @@ class DocumentationService {
     return this.$http.get(this.url(apiId, pageId) + '/media');
   }
 }
-
-export default DocumentationService;

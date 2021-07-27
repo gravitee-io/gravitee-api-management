@@ -23,7 +23,7 @@ import ApiService from '../../services/api.service';
 import DictionaryService from '../../services/dictionary.service';
 import ApiHeaderService from '../../services/apiHeader.service';
 import IdentityProviderService from '../../services/identityProvider.service';
-import DocumentationService, { DocumentationQuery } from '../../services/documentation.service';
+import { DocumentationService, DocumentationQuery } from '../../services/documentation.service';
 import FetcherService from '../../services/fetcher.service';
 import { StateParams } from '@uirouter/core';
 import ClientRegistrationProviderService from '../../services/clientRegistrationProvider.service';

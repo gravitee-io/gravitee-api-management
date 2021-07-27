@@ -15,7 +15,7 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, { PageType } from '../../services/documentation.service';
+import { DocumentationService, PageType } from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
 import { IController, IScope } from 'angular';
 import UserService from '../../services/user.service';

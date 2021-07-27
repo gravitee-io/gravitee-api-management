@@ -16,7 +16,7 @@
 import ApiService from '../../../services/api.service';
 import MetadataService from '../../../services/metadata.service';
 import GroupService from '../../../services/group.service';
-import DocumentationService, { DocumentationQuery } from '../../../services/documentation.service';
+import { DocumentationService, DocumentationQuery } from '../../../services/documentation.service';
 import { StateParams } from '@uirouter/core';
 import FetcherService from '../../../services/fetcher.service';
 import PolicyService from '../../../services/policy.service';

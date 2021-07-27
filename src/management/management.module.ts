@@ -56,7 +56,7 @@ import DialogEditPolicyController from '../management/api/design/policies/dialog
 import FileContentDirective from '../components/filecontent/filecontent.directive';
 import FileLoaderDirective from '../components/fileloader/fileloader.directive';
 
-import DocumentationService from '../services/documentation.service';
+import { DocumentationService } from '../services/documentation.service';
 import NotificationService from '../services/notification.service';
 
 import PolicyService from '../services/policy.service';

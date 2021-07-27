@@ -15,7 +15,7 @@
  */
 
 import NotificationService from '../../services/notification.service';
-import DocumentationService, { DocumentationQuery, FolderSituation, PageType } from '../../services/documentation.service';
+import { DocumentationService, DocumentationQuery, FolderSituation, PageType } from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
 import { IController, IScope } from 'angular';
 import _ = require('lodash');

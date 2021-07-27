@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { IController } from 'angular';
-import DocumentationService from '../../../services/documentation.service';
+import { DocumentationService } from '../../../services/documentation.service';
 
 class EditLinkContentComponentController implements IController {
   categoryResources: any[];
