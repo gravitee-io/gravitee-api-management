@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.configuration.application.ApplicationGrantType
 import io.gravitee.rest.api.model.configuration.application.ApplicationTypeEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
@@ -43,6 +44,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -90,6 +92,11 @@ public class ApplicationService_CreateTest {
 
     @Mock
     private ApplicationTypeService applicationTypeService;
+
+    @Before
+    public void setup() {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldCreateForUser() throws TechnicalException {
