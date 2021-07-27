@@ -29,7 +29,9 @@ public class DynamicRoutingPolicy {
 
     @OnRequest
     public void onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
-        executionContext.setAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT, request.headers().getFirst("X-Dynamic-Routing-URI"));
+        String endpoint = executionContext.getTemplateEngine().getValue("{#endpoints['default']}", String.class);
+        executionContext.setAttribute(ExecutionContext.ATTR_REQUEST_ENDPOINT, endpoint);
+
         policyChain.doNext(request, response);
     }
 }

@@ -18,8 +18,14 @@ package io.gravitee.gateway.reactor.handler.context;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.SpringFactoriesLoader;
@@ -29,40 +35,43 @@ import org.springframework.util.ClassUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class TemplateVariableProviderFactory {
+public abstract class TemplateVariableProviderFactory {
+
+    private final Logger logger = LoggerFactory.getLogger(TemplateVariableProviderFactory.class);
 
     @Autowired
     private ApplicationContext applicationContext;
 
-    List<TemplateVariableProvider> getTemplateVariableProviders() {
+    public List<TemplateVariableProvider> getTemplateVariableProviders() {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Set<String> factories = new LinkedHashSet<>(
-            SpringFactoriesLoader.loadFactoryNames(TemplateVariableProvider.class, Thread.currentThread().getContextClassLoader())
-        );
-
-        return factories
+        return loadFactories(classLoader)
             .stream()
             .map(
                 name -> {
                     try {
-                        Class<TemplateVariableProvider> instanceClass = (Class<TemplateVariableProvider>) ClassUtils.forName(
-                            name,
-                            classLoader
-                        );
-                        if (instanceClass.isAnnotationPresent(TemplateVariable.class)) {
-                            TemplateVariable templateVariable = instanceClass.getAnnotation(TemplateVariable.class);
-                            if (Arrays.asList(templateVariable.scopes()).contains(TemplateVariableScope.API)) {
-                                return applicationContext.getBean(instanceClass);
-                            }
-                        }
-                        return null;
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
+                        Class<TemplateVariableProvider> instance = (Class<TemplateVariableProvider>) ClassUtils.forName(name, classLoader);
+                        return applicationContext.getBean(instance);
+                    } catch (ClassNotFoundException | NoSuchBeanDefinitionException e) {
+                        logger.warn(e.getMessage());
                         return null;
                     }
                 }
             )
-            .filter(Objects::nonNull)
+            .filter(
+                provider -> {
+                    if (provider != null) {
+                        TemplateVariable annotation = provider.getClass().getAnnotation(TemplateVariable.class);
+                        return annotation != null && Arrays.asList(annotation.scopes()).contains(getTemplateVariableScope());
+                    }
+                    return false;
+                }
+            )
             .collect(Collectors.toList());
     }
+
+    public Set<String> loadFactories(ClassLoader classLoader) {
+        return new LinkedHashSet<>(SpringFactoriesLoader.loadFactoryNames(TemplateVariableProvider.class, classLoader));
+    }
+
+    public abstract TemplateVariableScope getTemplateVariableScope();
 }

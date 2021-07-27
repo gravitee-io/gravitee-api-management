@@ -27,7 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class HealthCheckContextFactory {
 
     @Autowired
-    private TemplateVariableProviderFactory templateVariableProviderFactory;
+    private HealthCheckTemplateVariableProviderFactory templateVariableProviderFactory;
 
     private List<TemplateVariableProvider> providers;
 

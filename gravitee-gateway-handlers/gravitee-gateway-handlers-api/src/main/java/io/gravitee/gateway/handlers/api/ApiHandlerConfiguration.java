@@ -36,6 +36,7 @@ import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.reactor.handler.context.ExecutionContextFactory;
 import io.gravitee.gateway.reactor.handler.context.TemplateVariableProviderFactory;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
@@ -110,7 +111,7 @@ public class ApiHandlerConfiguration {
 
     @Bean
     public TemplateVariableProviderFactory templateVariableProviderFactory() {
-        return new TemplateVariableProviderFactory();
+        return new ApiTemplateVariableProviderFactory();
     }
 
     @Bean
