@@ -195,18 +195,20 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
             healthRequestPromise.onComplete(
                 requestPreparationEvent -> {
-                    if (requestPreparationEvent.succeeded()) {
-                        HttpClientRequest healthRequest = requestPreparationEvent.result();
-                        final EndpointStatus.Builder healthBuilder = EndpointStatus
-                            .forEndpoint(rule.api(), endpoint.getName())
-                            .on(currentTimeMillis());
+                    HttpClientRequest healthRequest = requestPreparationEvent.result();
+                    final EndpointStatus.Builder healthBuilder = EndpointStatus
+                        .forEndpoint(rule.api(), endpoint.getName())
+                        .on(currentTimeMillis());
 
-                        long startTime = currentTimeMillis();
+                    long startTime = currentTimeMillis();
 
-                        Request request = new Request();
-                        request.setMethod(step.getRequest().getMethod());
-                        request.setUri(hcRequestUri.toString());
+                    Request request = new Request();
+                    request.setMethod(step.getRequest().getMethod());
+                    request.setUri(hcRequestUri.toString());
 
+                    if (requestPreparationEvent.failed()) {
+                        reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request, httpClient);
+                    } else {
                         healthRequest.response(
                             healthRequestEvent -> {
                                 if (healthRequestEvent.succeeded()) {
@@ -234,31 +236,18 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                                     );
                                     response.exceptionHandler(
                                         throwable -> {
-                                            logger.error("An error has occurred during Health check response handler", throwable);
-                                            // Close client
-                                            httpClient.close();
+                                            closeThrowable(httpClient, throwable);
                                         }
                                     );
+                                } else {
+                                    closeThrowable(httpClient, healthRequestEvent.cause());
                                 }
                             }
                         );
 
                         healthRequest.exceptionHandler(
                             throwable -> {
-                                long endTime = currentTimeMillis();
-                                Step failingStep = buildFailingStep(step, startTime, endTime, request, throwable);
-
-                                // Append step result
-                                healthBuilder.step(failingStep);
-
-                                report(healthBuilder.build());
-
-                                try {
-                                    // Close client
-                                    httpClient.close();
-                                } catch (IllegalStateException ise) {
-                                    // Do not take care about exception when closing client
-                                }
+                                reportThrowable(throwable, step, healthBuilder, startTime, request, httpClient);
                             }
                         );
 
@@ -279,6 +268,36 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
             );
         } catch (Exception ex) {
             logger.error("An unexpected error has occurred while configuring Healthcheck for API : {}", rule.api(), ex);
+        }
+    }
+
+    private void closeThrowable(HttpClient httpClient, Throwable throwable) {
+        logger.error("An error has occurred during Health check response handler", throwable);
+        // Close client
+        httpClient.close();
+    }
+
+    private void reportThrowable(
+        Throwable throwable,
+        io.gravitee.definition.model.services.healthcheck.Step step,
+        EndpointStatus.Builder healthBuilder,
+        long startTime,
+        Request request,
+        HttpClient httpClient
+    ) {
+        long endTime = currentTimeMillis();
+        Step failingStep = buildFailingStep(step, startTime, endTime, request, throwable);
+
+        // Append step result
+        healthBuilder.step(failingStep);
+
+        report(healthBuilder.build());
+
+        try {
+            // Close client
+            httpClient.close();
+        } catch (IllegalStateException ise) {
+            // Do not take care about exception when closing client
         }
     }
 
