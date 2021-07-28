@@ -52,7 +52,12 @@ public class HttpEnvironmentRepository extends AbstractRepository implements Env
 
     @Override
     public Set<Environment> findAll() throws TechnicalException {
-        throw new IllegalStateException();
+        try {
+            return blockingGet(get("/environments", BodyCodecs.set(Environment.class)).send()).payload();
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
     }
 
     @Override

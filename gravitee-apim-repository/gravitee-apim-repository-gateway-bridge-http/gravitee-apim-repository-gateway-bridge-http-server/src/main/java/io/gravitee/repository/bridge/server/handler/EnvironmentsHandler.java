@@ -20,8 +20,10 @@ import io.gravitee.repository.management.model.Environment;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.RoutingContext;
+import java.util.Collection;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -32,9 +34,19 @@ public class EnvironmentsHandler extends AbstractHandler {
     @Autowired
     private EnvironmentRepository environmentRepository;
 
-    public void findByOrganizationsAndHrids(RoutingContext ctx) {
-        final Set<String> organizationsIds = readListParam(ctx.request().getParam("organizationsIds"));
-        final Set<String> hrids = readListParam(ctx.request().getParam("hrids"));
+    public void find(RoutingContext ctx) {
+        final String organizationsIdsParam = ctx.request().getParam("organizationsIds");
+        final String hridsParam = ctx.request().getParam("hrids");
+        if (StringUtils.isEmpty(organizationsIdsParam) && StringUtils.isEmpty(hridsParam)) {
+            findAll(ctx);
+        } else {
+            findByOrganizationsAndHrids(ctx, organizationsIdsParam, hridsParam);
+        }
+    }
+
+    private void findByOrganizationsAndHrids(RoutingContext ctx, String organizationsIdsParam, String hridsParam) {
+        final Set<String> organizationsIds = readListParam(organizationsIdsParam);
+        final Set<String> hrids = readListParam(ctx.request().getParam(hridsParam));
 
         ctx
             .vertx()
@@ -42,6 +54,22 @@ public class EnvironmentsHandler extends AbstractHandler {
                 (Handler<Promise<Set<Environment>>>) promise -> {
                     try {
                         promise.complete(environmentRepository.findByOrganizationsAndHrids(organizationsIds, hrids));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to search for environments", ex);
+                        promise.fail(ex);
+                    }
+                },
+                event -> handleResponse(ctx, event)
+            );
+    }
+
+    private void findAll(RoutingContext ctx) {
+        ctx
+            .vertx()
+            .executeBlocking(
+                (Handler<Promise<Collection<Environment>>>) promise -> {
+                    try {
+                        promise.complete(environmentRepository.findAll());
                     } catch (Exception ex) {
                         LOGGER.error("Unable to search for environments", ex);
                         promise.fail(ex);

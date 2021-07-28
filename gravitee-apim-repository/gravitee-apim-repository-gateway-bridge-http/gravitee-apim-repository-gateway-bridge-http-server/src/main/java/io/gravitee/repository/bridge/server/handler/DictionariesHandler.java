@@ -20,9 +20,11 @@ import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.ext.web.RoutingContext;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,7 +35,34 @@ public class DictionariesHandler extends AbstractHandler {
     @Autowired
     private DictionaryRepository dictionaryRepository;
 
-    public void findAll(RoutingContext ctx) {
+    public void find(RoutingContext ctx) {
+        final String environementsIdsParam = ctx.request().getParam("environmentsIds");
+        if (StringUtils.isEmpty(environementsIdsParam)) {
+            findAll(ctx);
+        } else {
+            findAllByEnvironment(ctx, environementsIdsParam);
+        }
+    }
+
+    private void findAllByEnvironment(RoutingContext ctx, String environementsIdsParam) {
+        final Set<String> environments = readListParam(environementsIdsParam);
+
+        ctx
+            .vertx()
+            .executeBlocking(
+                (Handler<Promise<Set<Dictionary>>>) promise -> {
+                    try {
+                        promise.complete(dictionaryRepository.findAllByEnvironments(environments));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to search for dictionaries", ex);
+                        promise.fail(ex);
+                    }
+                },
+                event -> handleResponse(ctx, event)
+            );
+    }
+
+    private void findAll(RoutingContext ctx) {
         ctx
             .vertx()
             .executeBlocking(

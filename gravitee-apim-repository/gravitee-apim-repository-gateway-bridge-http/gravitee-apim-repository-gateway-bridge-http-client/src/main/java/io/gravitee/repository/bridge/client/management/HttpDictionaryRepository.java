@@ -57,6 +57,16 @@ public class HttpDictionaryRepository extends AbstractRepository implements Dict
 
     @Override
     public Set<Dictionary> findAllByEnvironments(Set<String> environments) throws TechnicalException {
-        throw new IllegalStateException();
+        try {
+            return blockingGet(
+                get("/dictionaries", BodyCodecs.set(Dictionary.class))
+                    .addQueryParam("environmentsIds", String.join(",", environments))
+                    .send()
+            )
+                .payload();
+        } catch (TechnicalException te) {
+            // Ensure that an exception is thrown and managed by the caller
+            throw new IllegalStateException(te);
+        }
     }
 }

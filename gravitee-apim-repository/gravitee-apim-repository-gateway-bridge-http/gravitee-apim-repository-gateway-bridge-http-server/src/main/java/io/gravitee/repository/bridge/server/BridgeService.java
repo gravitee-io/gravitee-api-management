@@ -144,7 +144,7 @@ public class BridgeService extends AbstractService {
             // Dictionaries handler
             DictionariesHandler dictionariesHandler = new DictionariesHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(dictionariesHandler);
-            bridgeRouter.get("/dictionaries").handler(dictionariesHandler::findAll);
+            bridgeRouter.get("/dictionaries").handler(dictionariesHandler::find);
 
             // Node Monitoring handler
             NodeMonitoringHandler nodeMonitoringHandler = new NodeMonitoringHandler();
@@ -156,7 +156,7 @@ public class BridgeService extends AbstractService {
             // Environments handler
             EnvironmentsHandler environmentsHandler = new EnvironmentsHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(environmentsHandler);
-            bridgeRouter.get("/environments").handler(environmentsHandler::findByOrganizationsAndHrids);
+            bridgeRouter.get("/environments").handler(environmentsHandler::find);
 
             // Organizations handler
             OrganizationsHandler organizationsHandler = new OrganizationsHandler();
