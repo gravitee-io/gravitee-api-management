@@ -226,6 +226,7 @@
                     <configuration>
                         <nodeVersion>12.13.0</nodeVersion>
                         <prettierJavaVersion>1.0.1</prettierJavaVersion>
+                        <skip>${skipTests}</skip>
                     </configuration>
                     <executions>
                         <execution>
