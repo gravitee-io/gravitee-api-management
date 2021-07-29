@@ -239,12 +239,6 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             EnvironmentEntity environment = environmentService.findByCockpitId(existing.getTargetEnvCockpitId());
 
-            final boolean canProcessPromotion = permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE, UPDATE);
-
-            if (!canProcessPromotion) {
-                throw new ForbiddenAccessException();
-            }
-
             existing.setStatus(accepted ? PromotionStatus.ACCEPTED : PromotionStatus.REJECTED);
 
             final PromotionQuery promotionQuery = new PromotionQuery();
@@ -265,6 +259,10 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 // FIXME: All the methods should take then env id as input instead of relying on GraviteeContext.getCurrentEnv
                 GraviteeContext.setCurrentEnvironment(environment.getId());
                 if (shouldCreate) {
+                    if (!permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE)) {
+                        throw new ForbiddenAccessException();
+                    }
+
                     promoted =
                         apiDuplicatorService.createWithImportedDefinition(
                             existing.getApiDefinition(),
@@ -273,6 +271,10 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                             GraviteeContext.getCurrentEnvironment()
                         );
                 } else {
+                    if (!permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), UPDATE)) {
+                        throw new ForbiddenAccessException();
+                    }
+
                     PromotionEntity lastAcceptedPromotion = previousPromotions.get(0);
                     final ApiEntity existingApi = apiService.findById(lastAcceptedPromotion.getTargetApiId());
                     promoted =

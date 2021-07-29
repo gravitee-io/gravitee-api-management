@@ -251,7 +251,6 @@ public class PromotionServiceTest {
     public void shouldProcessRejectedPromotion() throws Exception {
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
-        when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
 
         Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
@@ -279,6 +278,10 @@ public class PromotionServiceTest {
     public void shouldNotProcessPromotionIfNoPermissionForTargetEnvironment() throws Exception {
         when(promotionRepository.findById(any())).thenReturn(Optional.of(getAPromotion()));
         when(environmentService.findByCockpitId(any())).thenReturn(new EnvironmentEntity());
+        when(apiService.exists(any())).thenReturn(true);
+        Page<Promotion> promotionPage = new Page<>(singletonList(getAPromotion()), 0, 1, 1);
+        when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
+
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(false);
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);

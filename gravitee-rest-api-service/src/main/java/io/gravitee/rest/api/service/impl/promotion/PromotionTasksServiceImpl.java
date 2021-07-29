@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -77,11 +78,29 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
 
     @Override
     public List<TaskEntity> getPromotionTasks(String organizationId) {
-        List<EnvironmentEntity> environments = environmentService
-            .findByOrganization(organizationId)
+        List<EnvironmentEntity> environments = environmentService.findByOrganization(organizationId);
+
+        List<EnvironmentEntity> environmentsWithCreationPermissions = environments
             .stream()
-            .filter(environment -> permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE, UPDATE))
+            .filter(environment -> permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), CREATE))
             .collect(toList());
+
+        List<EnvironmentEntity> environmentsWithUpdatePermissions = environments
+            .stream()
+            .filter(environment -> permissionService.hasPermission(ENVIRONMENT_API, environment.getId(), UPDATE))
+            .collect(toList());
+
+        List<TaskEntity> tasks = new ArrayList<>();
+        tasks.addAll(getPromotionTasksForEnvironments(environmentsWithCreationPermissions, false));
+        tasks.addAll(getPromotionTasksForEnvironments(environmentsWithUpdatePermissions, true));
+        return tasks;
+    }
+
+    @NotNull
+    private List<TaskEntity> getPromotionTasksForEnvironments(List<EnvironmentEntity> environments, boolean selectUpdatePromotion) {
+        if (environments.isEmpty()) {
+            return emptyList();
+        }
 
         List<String> envCockpitIds = environments.stream().map(EnvironmentEntity::getCockpitId).filter(Objects::nonNull).collect(toList());
 
@@ -107,26 +126,26 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         return promotionsPage
             .getContent()
             .stream()
-            .map(this::convert)
-            .peek(
-                task -> {
-                    final Map<String, Object> data = ((Map<String, Object>) task.getData());
+            .map(
+                promotionEntity -> {
                     Optional<String> foundTargetApiId = promotionByApiWithTargetApiId
-                        .getOrDefault((String) data.get("apiId"), emptyList())
+                        .getOrDefault(promotionEntity.getApiId(), emptyList())
                         .stream()
-                        .filter(targetApiId -> !StringUtils.isEmpty(targetApiId))
+                        .filter(StringUtils::hasText)
                         .findFirst();
 
                     boolean isUpdate = foundTargetApiId.isPresent() && apiService.exists(foundTargetApiId.get());
-
-                    data.put("isApiUpdate", isUpdate);
-                    foundTargetApiId.ifPresent(targetApiId -> data.put("targetApiId", targetApiId));
+                    return convert(promotionEntity, isUpdate, foundTargetApiId);
                 }
+            )
+            .filter(
+                taskEntity ->
+                    ((Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion)
             )
             .collect(toList());
     }
 
-    private TaskEntity convert(PromotionEntity promotionEntity) {
+    private TaskEntity convert(PromotionEntity promotionEntity, boolean isUpdate, Optional<String> foundTargetApiId) {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setType(TaskType.PROMOTION_APPROVAL);
         taskEntity.setCreatedAt(promotionEntity.getCreatedAt());
@@ -148,6 +167,9 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         data.put("authorEmail", promotionEntity.getAuthor().getEmail());
         data.put("authorPicture", promotionEntity.getAuthor().getPicture());
         data.put("promotionId", promotionEntity.getId());
+        data.put("isApiUpdate", isUpdate);
+
+        foundTargetApiId.ifPresent(targetApiId -> data.put("targetApiId", targetApiId));
 
         taskEntity.setData(data);
         return taskEntity;
