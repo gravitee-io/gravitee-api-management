@@ -156,12 +156,14 @@ public class BridgeService extends AbstractService {
             // Environments handler
             EnvironmentsHandler environmentsHandler = new EnvironmentsHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(environmentsHandler);
-            bridgeRouter.get("/environments").handler(environmentsHandler::find);
+            bridgeRouter.get("/environments").handler(environmentsHandler::findAll);
+            bridgeRouter.get("/environments/_byOrganizationsAndHrids").handler(environmentsHandler::findByOrganizationsAndHrids);
 
             // Organizations handler
             OrganizationsHandler organizationsHandler = new OrganizationsHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(organizationsHandler);
-            bridgeRouter.get("/organizations").handler(organizationsHandler::find);
+            bridgeRouter.get("/organizations").handler(organizationsHandler::findAll);
+            bridgeRouter.get("/organizations/_byHrids").handler(organizationsHandler::findByHrids);
         }
     }
 

@@ -69,7 +69,7 @@ public class HttpEnvironmentRepository extends AbstractRepository implements Env
     public Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids) throws TechnicalException {
         try {
             return blockingGet(
-                get("/environments", BodyCodecs.set(Environment.class))
+                get("/environments/_byOrganizationsAndHrids", BodyCodecs.set(Environment.class))
                     .addQueryParam("organizationsIds", String.join(",", organizationsHrids))
                     .addQueryParam("hrids", String.join(",", hrids))
                     .send()

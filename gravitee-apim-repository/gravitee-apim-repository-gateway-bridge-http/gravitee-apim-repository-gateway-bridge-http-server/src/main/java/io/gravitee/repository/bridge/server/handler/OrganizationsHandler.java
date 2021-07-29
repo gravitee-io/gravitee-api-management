@@ -34,16 +34,8 @@ public class OrganizationsHandler extends AbstractHandler {
     @Autowired
     private OrganizationRepository organizationRepository;
 
-    public void find(RoutingContext ctx) {
+    public void findByHrids(RoutingContext ctx) {
         final String hridsParam = ctx.request().getParam("hrids");
-        if (StringUtils.isEmpty(hridsParam)) {
-            findAll(ctx);
-        } else {
-            findByHrids(ctx, hridsParam);
-        }
-    }
-
-    private void findByHrids(RoutingContext ctx, String hridsParam) {
         final Set<String> hrids = readListParam(hridsParam);
 
         ctx
@@ -61,7 +53,7 @@ public class OrganizationsHandler extends AbstractHandler {
             );
     }
 
-    private void findAll(RoutingContext ctx) {
+    public void findAll(RoutingContext ctx) {
         ctx
             .vertx()
             .executeBlocking(

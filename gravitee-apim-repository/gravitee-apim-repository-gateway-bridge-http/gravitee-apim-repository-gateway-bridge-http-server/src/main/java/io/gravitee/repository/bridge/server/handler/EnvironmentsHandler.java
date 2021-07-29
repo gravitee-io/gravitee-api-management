@@ -34,19 +34,12 @@ public class EnvironmentsHandler extends AbstractHandler {
     @Autowired
     private EnvironmentRepository environmentRepository;
 
-    public void find(RoutingContext ctx) {
+    public void findByOrganizationsAndHrids(RoutingContext ctx) {
         final String organizationsIdsParam = ctx.request().getParam("organizationsIds");
         final String hridsParam = ctx.request().getParam("hrids");
-        if (StringUtils.isEmpty(organizationsIdsParam) && StringUtils.isEmpty(hridsParam)) {
-            findAll(ctx);
-        } else {
-            findByOrganizationsAndHrids(ctx, organizationsIdsParam, hridsParam);
-        }
-    }
 
-    private void findByOrganizationsAndHrids(RoutingContext ctx, String organizationsIdsParam, String hridsParam) {
         final Set<String> organizationsIds = readListParam(organizationsIdsParam);
-        final Set<String> hrids = readListParam(ctx.request().getParam(hridsParam));
+        final Set<String> hrids = readListParam(hridsParam);
 
         ctx
             .vertx()
@@ -63,7 +56,7 @@ public class EnvironmentsHandler extends AbstractHandler {
             );
     }
 
-    private void findAll(RoutingContext ctx) {
+    public void findAll(RoutingContext ctx) {
         ctx
             .vertx()
             .executeBlocking(

@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -90,6 +91,10 @@ public abstract class AbstractHandler {
     }
 
     protected Set<String> readListParam(String strList) {
-        return Stream.of(strList.split(",")).collect(Collectors.toSet());
+        if (!StringUtils.isEmpty(strList)) {
+            return Stream.of(strList.split(",")).collect(Collectors.toSet());
+        } else {
+            return Collections.emptySet();
+        }
     }
 }

@@ -60,7 +60,7 @@ public class HttpOrganizationRepository extends AbstractRepository implements Or
     public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
         try {
             return blockingGet(
-                get("/organizations", BodyCodecs.set(Organization.class)).addQueryParam("hrids", String.join(",", hrids)).send()
+                get("/organizations/_byHrids", BodyCodecs.set(Organization.class)).addQueryParam("hrids", String.join(",", hrids)).send()
             )
                 .payload();
         } catch (TechnicalException te) {
