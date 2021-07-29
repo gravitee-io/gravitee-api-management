@@ -20,8 +20,12 @@ import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.goodbye.GoodbyeCommand;
 import io.gravitee.cockpit.api.command.goodbye.GoodbyeReply;
+import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
+import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.service.InstallationService;
+import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.reactivex.Single;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +42,11 @@ public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, Goo
     private final Logger logger = LoggerFactory.getLogger(GoodbyeCommandHandler.class);
 
     private final InstallationService installationService;
+    private final PromotionService promotionService;
 
-    public GoodbyeCommandHandler(final InstallationService installationService) {
+    public GoodbyeCommandHandler(final InstallationService installationService, PromotionService promotionService) {
         this.installationService = installationService;
+        this.promotionService = promotionService;
     }
 
     @Override
@@ -52,6 +58,9 @@ public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, Goo
     public Single<GoodbyeReply> handle(GoodbyeCommand command) {
         final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
         additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, DELETED_STATUS);
+
+        rejectAllPromotionToValidate();
+
         try {
             this.installationService.setAdditionalInformation(additionalInformation);
             logger.info("Installation status is [{}].", DELETED_STATUS);
@@ -60,5 +69,20 @@ public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, Goo
             logger.info("Error occurred when deleting installation.", ex);
             return Single.just(new GoodbyeReply(command.getId(), CommandStatus.ERROR));
         }
+    }
+
+    private void rejectAllPromotionToValidate() {
+        PromotionQuery promotionQuery = new PromotionQuery();
+        promotionQuery.setStatuses(List.of(PromotionEntityStatus.TO_BE_VALIDATED));
+
+        promotionService
+            .search(promotionQuery, null, null)
+            .getContent()
+            .forEach(
+                promotionEntity -> {
+                    promotionEntity.setStatus(PromotionEntityStatus.REJECTED);
+                    promotionService.createOrUpdate(promotionEntity);
+                }
+            );
     }
 }
