@@ -54,6 +54,11 @@ public class HttpDynamicPropertyProviderConfigurationDeserializer extends StdSca
             throw ctxt.mappingException("[dynamic-property] [HTTP] Specification is required");
         }
 
+        final JsonNode useSystemProxy = node.get("useSystemProxy");
+        if (useSystemProxy != null) {
+            configuration.setUseSystemProxy(useSystemProxy.asBoolean());
+        }
+
         return configuration;
     }
 }

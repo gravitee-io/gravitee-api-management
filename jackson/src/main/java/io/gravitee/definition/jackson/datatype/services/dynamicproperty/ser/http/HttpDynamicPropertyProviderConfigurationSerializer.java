@@ -37,6 +37,7 @@ public class HttpDynamicPropertyProviderConfigurationSerializer extends StdScala
         jgen.writeStartObject();
         jgen.writeStringField("url", configuration.getUrl());
         jgen.writeStringField("specification", configuration.getSpecification());
+        jgen.writeBooleanField("useSystemProxy", configuration.isUseSystemProxy());
         jgen.writeEndObject();
     }
 }

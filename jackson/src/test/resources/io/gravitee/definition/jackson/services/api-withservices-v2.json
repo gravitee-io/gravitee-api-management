@@ -75,7 +75,8 @@
       "provider": "HTTP",
       "configuration": {
         "url": "http://my_configuration_url",
-        "specification": "{}"
+        "specification": "{}",
+        "useSystemProxy": true
       }
     }
   }
