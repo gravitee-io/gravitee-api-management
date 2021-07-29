@@ -179,6 +179,9 @@ class EditPageComponentController implements IController {
   isAsciiDoc(): boolean {
     return PageType.ASCIIDOC === this.page.type;
   }
+  isAsyncApi(): boolean {
+    return PageType.ASYNCAPI === this.page.type;
+  }
 
   initEditor() {
     this.$scope.editorReadonly = false;

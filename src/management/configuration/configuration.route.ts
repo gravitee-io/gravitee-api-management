@@ -290,7 +290,10 @@ function configurationRouterConfig($stateProvider) {
             return DocumentationService.search(q).then((response) =>
               response.data.filter(
                 (page) =>
-                  page.type.toUpperCase() === 'MARKDOWN' || page.type.toUpperCase() === 'SWAGGER' || page.type.toUpperCase() === 'ASCIIDOC',
+                  page.type.toUpperCase() === 'MARKDOWN' ||
+                  page.type.toUpperCase() === 'SWAGGER' ||
+                  page.type.toUpperCase() === 'ASCIIDOC' ||
+                  page.type.toUpperCase() === 'ASYNCAPI',
               ),
             );
           }
@@ -390,7 +393,8 @@ function configurationRouterConfig($stateProvider) {
                 (page) =>
                   (page.type.toUpperCase() === 'MARKDOWN' ||
                     page.type.toUpperCase() === 'SWAGGER' ||
-                    page.type.toUpperCase() === 'ASCIIDOC') &&
+                    page.type.toUpperCase() === 'ASCIIDOC' ||
+                    page.type.toUpperCase() === 'ASYNCAPI') &&
                   page.id !== $stateParams.pageId,
               ),
             );
@@ -418,7 +422,7 @@ function configurationRouterConfig($stateProvider) {
           }
         },
         attachedResources: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
-          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'ASCIIDOC') {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'ASCIIDOC' || $stateParams.type === 'ASYNCAPI') {
             return DocumentationService.getMedia($stateParams.pageId, null).then((response) => response.data);
           }
         },

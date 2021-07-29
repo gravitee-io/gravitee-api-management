@@ -56,7 +56,8 @@ class EditPageTranslationsComponentController implements IController {
       this.page.type === PageType.MARKDOWN ||
       this.page.type === PageType.SWAGGER ||
       this.page.type === PageType.LINK ||
-      this.page.type === PageType.ASCIIDOC
+      this.page.type === PageType.ASCIIDOC ||
+      this.page.type === PageType.ASYNCAPI
     ) {
       this.currentTranslation.configuration.inheritContent = 'true';
     }

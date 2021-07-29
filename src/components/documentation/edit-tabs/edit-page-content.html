@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<!-- edit AsciiDoc or SWAGGER inline -->
-<div ng-if="$ctrl.isSwagger() || $ctrl.isAsciiDoc()" style="display: inline-block; width: 100%">
+<!-- edit AsciiDoc or AsynApi Or Swagger inline -->
+<div ng-if="$ctrl.isSwagger() || $ctrl.isAsciiDoc() || $ctrl.isAsyncApi()" style="display: inline-block; width: 100%">
   <div layout="row" ng-class="{'newPageEditor': $ctrl.newPage, 'editPageEditor': !$ctrl.newPage}">
     <gv-code
       ng-if="$ctrl.canUpdate"
@@ -29,6 +29,7 @@
       gv-model
     ></gv-code>
     <gv-page-ascii-doc ng-if="$ctrl.isAsciiDoc()" class="editPanel" flex="50" page-content="$ctrl.page.content"></gv-page-ascii-doc>
+    <gv-page-async-api ng-if="$ctrl.isAsyncApi()" class="editPanel" flex="50" page-content="$ctrl.page.content"></gv-page-async-api>
     <gv-page-swagger
       ng-if="$ctrl.isSwagger()"
       class="editPanel"

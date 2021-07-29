@@ -15,9 +15,12 @@
     limitations under the License.
 
 -->
-<gv-documentation ng-attr-text="{{$ctrl.pageContent}}" ng-attr-without-header="'true'">
+<gv-documentation ng-if="!$ctrl.pageContent" ng-attr-without-header="'true'">
   <div slot="empty">
     <gv-icon class="no-content-page-icon" shape="text:align-center"></gv-icon>
     <div>No content to display</div>
   </div>
 </gv-documentation>
+
+<asyncapi-component ng-if="$ctrl.pageContent" schema="{{$ctrl.pageContent}}" cssImportPath="assets/style/asyncapi-component.css">
+</asyncapi-component>

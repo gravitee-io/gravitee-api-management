@@ -56,6 +56,7 @@ export enum SystemFolderName {
 
 export enum PageType {
   ASCIIDOC = 'ASCIIDOC',
+  ASYNCAPI = 'ASYNCAPI',
   FOLDER = 'FOLDER',
   LINK = 'LINK',
   SWAGGER = 'SWAGGER',
@@ -81,6 +82,7 @@ export class DocumentationService {
       ?.filter(
         (p) =>
           p.type === 'ASCIIDOC' ||
+          p.type === 'ASYNCAPI' ||
           p.type === 'MARKDOWN' ||
           p.type === 'SWAGGER' ||
           (p.type === 'FOLDER' && folderSituation !== FolderSituation.FOLDER_IN_SYSTEM_FOLDER),
@@ -113,13 +115,13 @@ export class DocumentationService {
   supportedTypes(folderSituation: FolderSituation): PageType[] {
     switch (folderSituation) {
       case FolderSituation.ROOT:
-        return [PageType.ASCIIDOC, PageType.SWAGGER, PageType.MARKDOWN, PageType.MARKDOWN_TEMPLATE, PageType.FOLDER];
+        return [PageType.ASCIIDOC, PageType.ASYNCAPI, PageType.SWAGGER, PageType.MARKDOWN, PageType.MARKDOWN_TEMPLATE, PageType.FOLDER];
       case FolderSituation.SYSTEM_FOLDER:
         return [PageType.LINK];
       case FolderSituation.SYSTEM_FOLDER_WITH_FOLDERS:
         return [PageType.FOLDER, PageType.LINK];
       case FolderSituation.FOLDER_IN_FOLDER:
-        return [PageType.ASCIIDOC, PageType.SWAGGER, PageType.MARKDOWN, PageType.MARKDOWN_TEMPLATE, PageType.FOLDER];
+        return [PageType.ASCIIDOC, PageType.ASYNCAPI, PageType.SWAGGER, PageType.MARKDOWN, PageType.MARKDOWN_TEMPLATE, PageType.FOLDER];
       case FolderSituation.FOLDER_IN_SYSTEM_FOLDER:
         return [PageType.LINK];
     }

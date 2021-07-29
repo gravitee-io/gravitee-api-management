@@ -3,6 +3,7 @@
   "version": "3.10.0",
   "description": "Gravitee.io APIM - Portal",
   "dependencies": {
+    "@asyncapi/web-component": "^1.0.0-next.15",
     "@fontsource/libre-franklin": "^4.4.5",
     "@gravitee/ui-components": "^3.9.2",
     "@highcharts/map-collection": "^1.1.3",

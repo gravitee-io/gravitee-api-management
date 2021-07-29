@@ -481,7 +481,11 @@ class ApiCreationController {
           case 'YAML':
           case 'YML':
           case 'JSON':
-            file.type = 'SWAGGER';
+            if (file.content.match(/.*"?(swagger|openapi)"?: *['"]?\d/)) {
+              file.type = 'SWAGGER';
+            } else if (file.content.match(/.*"?asyncapi"?: *['"]?\d/)) {
+              file.type = 'ASYNCAPI';
+            }
             break;
           case 'ADOC':
             file.type = 'ASCIIDOC';
@@ -490,7 +494,7 @@ class ApiCreationController {
         if (file.type) {
           this.selectFile(file);
         } else {
-          this.NotificationService.showError('Only Markdown, OpenAPI, and AsciiDoc files are supported');
+          this.NotificationService.showError('Only Markdown, OpenAPI, AsyncAPI, and AsciiDoc files are supported');
         }
       }
     });

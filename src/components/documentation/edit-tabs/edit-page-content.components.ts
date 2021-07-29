@@ -38,6 +38,9 @@ class EditPageContentComponentController implements IController {
   isAsciiDoc(): boolean {
     return PageType.ASCIIDOC === this.pageType;
   }
+  isAsyncApi(): boolean {
+    return PageType.ASYNCAPI === this.pageType;
+  }
   isSwagger(): boolean {
     return PageType.SWAGGER === this.pageType;
   }

@@ -28,6 +28,7 @@ import { EditPageTranslationsComponent } from './edit-tabs/edit-page-translation
 import { ImportPagesComponent } from './import-pages.component';
 import { NewPageComponent } from './new-page.component';
 import { PageAsciiDocComponent } from './page/page-asciidoc.component';
+import { PageAsyncApiComponent } from './page/page-asyncapi.component';
 import { PageEditorMarkdownComponent } from './page/page-editormarkdown.component';
 import { PageMarkdownComponent } from './page/page-markdown.component';
 import { PageSwaggerComponent } from './page/page-swagger.component';
@@ -52,6 +53,7 @@ graviteeDocumentationModule.component('gvEditPageTranslations', EditPageTranslat
 graviteeDocumentationModule.component('importPages', ImportPagesComponent);
 graviteeDocumentationModule.component('newPage', NewPageComponent);
 graviteeDocumentationModule.component('gvPageAsciiDoc', PageAsciiDocComponent);
+graviteeDocumentationModule.component('gvPageAsyncApi', PageAsyncApiComponent);
 graviteeDocumentationModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
 graviteeDocumentationModule.component('gvPageMarkdown', PageMarkdownComponent);
 graviteeDocumentationModule.component('gvPageSwagger', PageSwaggerComponent);

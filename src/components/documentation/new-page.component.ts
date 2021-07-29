@@ -98,6 +98,8 @@ class NewPageComponentController implements IController {
     switch (this.page.type) {
       case PageType.ASCIIDOC:
         return 'New AsciiDoc';
+      case PageType.ASYNCAPI:
+        return 'New AsyncApi';
       case PageType.FOLDER:
         return 'New Folder';
       case PageType.LINK:
