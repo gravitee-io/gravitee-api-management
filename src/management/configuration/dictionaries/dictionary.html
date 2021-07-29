@@ -155,6 +155,10 @@
               <input ng-model="$ctrl.dictionary.provider.configuration.url" type="url" ng-required="true" />
             </md-input-container>
 
+            <md-checkbox ng-model="$ctrl.dictionary.provider.configuration.useSystemProxy" aria-label="Use system proxy"
+              >Use system proxy</md-checkbox
+            >
+
             <div layout="column" layout-sm="column" style="margin-bottom: 15px">
               <h5 style="color: grey">
                 <span>Headers</span>
