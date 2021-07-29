@@ -119,11 +119,11 @@ management:
 #    journal:                    # (default is true)
 
 ## Socket settings
-#    connectTimeOut:              # mongodb connection time out (default 1000)
-#    socketTimeout:               # mongodb socket time out (default 1000)
+#    connectTimeout:              # mongodb connection timeout (default 1000)
+#    socketTimeout:               # mongodb socket timeout (default 1000)
 
 ## Cluster settings
-#    serverSelectionTimeout:      # mongodb server selection time out (default 1000)
+#    serverSelectionTimeout:      # mongodb server selection timeout (default 1000)
 #    localThreshold:              # mongodb local threshold (default 15)
 
 ## Connection pool settings
