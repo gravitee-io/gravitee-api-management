@@ -19,16 +19,14 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.utils.NodeUtils;
+import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.common.RandomString;
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
 import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
-import io.gravitee.rest.api.services.dictionary.provider.http.vertx.VertxCompletableFuture;
-import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import java.net.URI;
@@ -52,7 +50,7 @@ public class HttpProvider implements Provider {
 
     private JoltMapper mapper;
 
-    private Vertx vertx;
+    private HttpClientService httpClientService;
 
     private Node node;
 
@@ -64,20 +62,11 @@ public class HttpProvider implements Provider {
 
     @Override
     public CompletableFuture<Collection<DynamicProperty>> get() {
-        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
+        CompletableFuture<Buffer> future = new CompletableFuture<>();
 
         URI requestUri = URI.create(configuration.getUrl());
-        boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
 
-        final HttpClientOptions options = new HttpClientOptions()
-            .setSsl(ssl)
-            .setTrustAll(true)
-            .setMaxPoolSize(1)
-            .setKeepAlive(false)
-            .setTcpKeepAlive(false)
-            .setConnectTimeout(2000);
-
-        final HttpClient httpClient = vertx.createHttpClient(options);
+        final HttpClient httpClient = httpClientService.createHttpClient(requestUri.getScheme(), configuration.isUseSystemProxy());
 
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
@@ -155,8 +144,8 @@ public class HttpProvider implements Provider {
         this.mapper = mapper;
     }
 
-    public void setVertx(Vertx vertx) {
-        this.vertx = vertx;
+    public void setHttpClientService(HttpClientService httpClientService) {
+        this.httpClientService = httpClientService;
     }
 
     public void setNode(Node node) {

@@ -25,6 +25,8 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.node.api.Node;
+import io.gravitee.rest.api.service.HttpClientService;
+import io.gravitee.rest.api.service.impl.HttpClientServiceImpl;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
@@ -63,9 +65,13 @@ public class HttpProviderTest {
     @Mock
     private Node node;
 
+    @Mock
+    private HttpClientService httpClientService;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
     }
 
     @Test
@@ -77,7 +83,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -96,7 +102,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -115,7 +121,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(dynamicPropertyService);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         future.join();
