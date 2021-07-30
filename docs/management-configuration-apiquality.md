@@ -2,8 +2,7 @@
 
 Add a quality rate on apis according to criteria:
 
-- markdown documentation exists and is published
-- swagger documentation exists and is published
+- documentation exists and is published
 - a health-check is set
 - the description contains has a minimum length
 - the default logo is not used

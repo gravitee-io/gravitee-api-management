@@ -1,9 +1,10 @@
 # Portal pages
 
-At this date, two types of document are supported :
+At this date, three types of document are supported :
 
-* Swagger
+* Swagger/OpenApi
 * Markdown (MD)
+* AsciiDoc
 
 By default, portal pages are in staging mode and will be visible to administrator or users with management portal roles.
 To make documentation visible for all users, you can switch on the *published* button.

@@ -21,4 +21,4 @@ Auto-validation mode tells you if a manual action is required to validate a subs
 . Documentation **optional**
 
 Import documentation to make them available to the application teams.
-Support three types of document : Swagger, Markdown and Raml.
+Support three types of document : Swagger/OpenApi, Markdown and AsciiDoc.
