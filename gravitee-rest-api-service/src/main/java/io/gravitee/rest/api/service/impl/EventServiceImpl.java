@@ -30,7 +30,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -85,7 +85,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             LOGGER.debug("Create {} for server {}", newEventEntity, hostAddress);
 
             Event event = convert(newEventEntity);
-            event.setId(RandomString.generate());
+            event.setId(UuidString.generateRandom());
             event.setEnvironments(Collections.singleton(GraviteeContext.getCurrentEnvironment()));
             // Set origin
             event.getProperties().put(Event.EventProperties.ORIGIN.getValue(), hostAddress);

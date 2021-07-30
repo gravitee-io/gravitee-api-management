@@ -29,7 +29,7 @@ import io.gravitee.rest.api.model.quality.QualityRuleEntity;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.QualityRuleService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.QualityRuleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
@@ -162,7 +162,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
 
     private QualityRule convert(final NewQualityRuleEntity qualityRuleEntity) {
         final QualityRule qualityRule = new QualityRule();
-        qualityRule.setId(RandomString.generate());
+        qualityRule.setId(UuidString.generateRandom());
         qualityRule.setName(qualityRuleEntity.getName());
         qualityRule.setDescription(qualityRuleEntity.getDescription());
         qualityRule.setWeight(qualityRuleEntity.getWeight());

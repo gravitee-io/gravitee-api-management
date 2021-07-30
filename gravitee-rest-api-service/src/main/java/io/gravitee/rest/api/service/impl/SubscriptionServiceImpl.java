@@ -41,7 +41,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -300,7 +300,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             Subscription subscription = new Subscription();
             subscription.setPlan(plan);
-            subscription.setId(RandomString.generate());
+            subscription.setId(UuidString.generateRandom());
             subscription.setApplication(application);
             subscription.setCreatedAt(new Date());
             subscription.setUpdatedAt(subscription.getCreatedAt());

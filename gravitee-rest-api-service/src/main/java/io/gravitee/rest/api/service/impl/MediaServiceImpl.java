@@ -25,7 +25,7 @@ import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.MediaService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -70,7 +70,7 @@ public class MediaServiceImpl implements MediaService {
             String hashString = DatatypeConverter.printHexBinary(hash);
             String id = mediaEntity.getId() != null && UUID.fromString(mediaEntity.getId()) != null
                 ? mediaEntity.getId()
-                : RandomString.generate();
+                : UuidString.generateRandom();
 
             Optional<Media> checkMedia = null;
 

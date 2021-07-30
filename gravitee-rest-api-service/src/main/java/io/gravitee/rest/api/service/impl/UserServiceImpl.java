@@ -63,7 +63,7 @@ import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.ACTION;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -675,7 +675,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             }
 
             User user = convert(newExternalUserEntity);
-            user.setId(RandomString.generate());
+            user.setId(UuidString.generateRandom());
             user.setOrganizationId(organizationId);
             user.setStatus(autoRegistrationEnabled ? UserStatus.ACTIVE : UserStatus.PENDING);
 

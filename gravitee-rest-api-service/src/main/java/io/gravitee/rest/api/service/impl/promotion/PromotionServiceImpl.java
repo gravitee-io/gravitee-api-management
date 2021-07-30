@@ -45,7 +45,7 @@ import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
 import io.gravitee.rest.api.service.cockpit.services.CockpitService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -143,7 +143,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         }
 
         Promotion promotionToSave = convert(apiId, apiDefinition, currentEnvironmentEntity, promotionRequest, author);
-        promotionToSave.setId(RandomString.generate());
+        promotionToSave.setId(UuidString.generateRandom());
         Promotion createdPromotion = null;
         try {
             createdPromotion = promotionRepository.create(promotionToSave);

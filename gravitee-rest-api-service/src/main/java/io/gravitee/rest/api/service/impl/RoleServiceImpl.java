@@ -37,7 +37,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -131,7 +131,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
             ) {
                 throw new RoleAlreadyExistsException(role.getScope(), role.getName());
             }
-            role.setId(RandomString.generate());
+            role.setId(UuidString.generateRandom());
             role.setCreatedAt(new Date());
             role.setUpdatedAt(role.getCreatedAt());
             role.setReferenceId(organizationId);
@@ -587,7 +587,7 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
     private Role createSystemRoleWithoutPermissions(String name, RoleScope scope, Date date) {
         LOGGER.info("      - <" + scope + "> " + name + " (system)");
         Role systemRole = new Role();
-        systemRole.setId(RandomString.generate());
+        systemRole.setId(UuidString.generateRandom());
         systemRole.setName(name);
         systemRole.setDescription("System Role. Created by Gravitee.io");
         systemRole.setDefaultRole(false);

@@ -37,7 +37,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.processor.PlanSynchronizationProcessor;
 import java.io.IOException;
@@ -161,7 +161,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 throw new ApiDeprecatedException(api.getName());
             }
 
-            String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : RandomString.generate();
+            String id = newPlan.getId() != null && UUID.fromString(newPlan.getId()) != null ? newPlan.getId() : UuidString.generateRandom();
 
             Plan plan = new Plan();
             plan.setId(id);
@@ -273,7 +273,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 NewPlanEntity newPlan = NewPlanEntity.from(plan);
                 newPlan.setApi(apiId);
 
-                String newPlanId = RandomString.generateForEnvironment(environmentId, apiId, plan.getId());
+                String newPlanId = UuidString.generateForEnvironment(environmentId, apiId, plan.getId());
                 newPlan.setId(newPlanId);
                 create(newPlan);
             }

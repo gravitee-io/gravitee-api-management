@@ -37,7 +37,7 @@ import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder.EmailTemplate;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.NotificationTemplateNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
@@ -384,7 +384,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     public NotificationTemplateEntity create(NotificationTemplateEntity newNotificationTemplate) {
         try {
             LOGGER.debug("Create notificationTemplate {}", newNotificationTemplate);
-            newNotificationTemplate.setId(RandomString.generate());
+            newNotificationTemplate.setId(UuidString.generateRandom());
             if (newNotificationTemplate.getCreatedAt() == null) {
                 newNotificationTemplate.setCreatedAt(new Date());
             }

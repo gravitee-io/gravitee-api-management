@@ -19,7 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.utils.NodeUtils;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.Provider;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
@@ -94,7 +94,7 @@ public class HttpProvider implements Provider {
 
         //headers
         options.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
-        options.putHeader("X-Gravitee-Request-Id", RandomString.generate());
+        options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
 
         if (configuration.getHeaders() != null) {
             configuration.getHeaders().forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));

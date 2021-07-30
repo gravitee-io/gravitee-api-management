@@ -28,7 +28,7 @@ import io.gravitee.rest.api.model.NewEntryPointEntity;
 import io.gravitee.rest.api.model.UpdateEntryPointEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EntrypointService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
@@ -170,7 +170,7 @@ public class EntrypointServiceImpl extends TransactionalService implements Entry
 
     private Entrypoint convert(final NewEntryPointEntity entrypointEntity, String referenceId, EntrypointReferenceType referenceType) {
         final Entrypoint entrypoint = new Entrypoint();
-        entrypoint.setId(RandomString.generate());
+        entrypoint.setId(UuidString.generateRandom());
         entrypoint.setValue(entrypointEntity.getValue());
         entrypoint.setTags(String.join(SEPARATOR, entrypointEntity.getTags()));
         entrypoint.setReferenceId(referenceId);

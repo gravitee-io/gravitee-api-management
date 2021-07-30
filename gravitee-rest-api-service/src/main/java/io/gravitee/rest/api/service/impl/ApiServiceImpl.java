@@ -82,7 +82,7 @@ import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
@@ -373,7 +373,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.debug("Create {} for user {}", api, userId);
 
             String apiId = apiDefinition != null && apiDefinition.has("id") ? apiDefinition.get("id").asText() : null;
-            String id = apiId != null && UUID.fromString(apiId) != null ? apiId : RandomString.generate();
+            String id = apiId != null && UUID.fromString(apiId) != null ? apiId : UuidString.generateRandom();
 
             Optional<Api> checkApi = apiRepository.findById(id);
             if (checkApi.isPresent()) {

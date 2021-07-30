@@ -34,7 +34,7 @@ import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.*;
@@ -308,7 +308,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         Object newValue
     ) {
         Audit audit = new Audit();
-        audit.setId(RandomString.generate());
+        audit.setId(UuidString.generateRandom());
         audit.setCreatedAt(createdAt == null ? new Date() : createdAt);
 
         final UserDetails authenticatedUser = getAuthenticatedUser();

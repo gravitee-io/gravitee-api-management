@@ -21,7 +21,7 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.definition.model.services.dynamicproperty.http.HttpDynamicPropertyProviderConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.utils.NodeUtils;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.services.dynamicproperties.model.DynamicProperty;
 import io.gravitee.rest.api.services.dynamicproperties.provider.Provider;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.mapper.JoltMapper;
@@ -92,7 +92,7 @@ public class HttpProvider implements Provider {
 
         //headers
         options.putHeader(HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
-        options.putHeader("X-Gravitee-Request-Id", RandomString.generate());
+        options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
 
         if (dpConfiguration.getHeaders() != null) {
             dpConfiguration.getHeaders().forEach(httpHeader -> options.putHeader(httpHeader.getName(), httpHeader.getValue()));

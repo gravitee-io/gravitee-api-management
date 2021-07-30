@@ -29,7 +29,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.PlanServiceImpl;
 import java.util.Collections;
 import java.util.List;
@@ -95,7 +95,7 @@ public class PlanService_DuplicatePlansTest {
     @NotNull
     private PlanEntity getAPlanEntity(String name, PlanSecurityType oauth2) {
         PlanEntity plan = new PlanEntity();
-        plan.setId(RandomString.generate());
+        plan.setId(UuidString.generateRandom());
         plan.setSecurity(oauth2);
         plan.setType(PlanType.API);
         plan.setStatus(PlanStatus.PUBLISHED);

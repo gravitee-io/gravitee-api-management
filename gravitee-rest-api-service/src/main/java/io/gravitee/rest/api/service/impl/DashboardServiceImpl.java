@@ -24,7 +24,6 @@ import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.utils.UUID;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
@@ -34,7 +33,7 @@ import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.DashboardService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.DashboardNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.File;
@@ -251,7 +250,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
 
     private Dashboard convert(final NewDashboardEntity dashboardEntity, final List<Dashboard> dashboards) {
         final Dashboard dashboard = new Dashboard();
-        dashboard.setId(RandomString.generate());
+        dashboard.setId(UuidString.generateRandom());
         dashboard.setReferenceId(dashboardEntity.getReferenceId());
         dashboard.setReferenceType(dashboardEntity.getReferenceType().name());
         dashboard.setName(dashboardEntity.getName());

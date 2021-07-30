@@ -16,19 +16,29 @@
 package io.gravitee.rest.api.service.common;
 
 import io.gravitee.common.utils.UUID;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
- * Random version-4 UUID will have 6 predetermined variant and version bits, leaving 122 bits for the randomly generated part.
+ * UuidString class generates UUID strings. Randomly, or from fields.
  *
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface RandomString {
-    static String generate() {
+public interface UuidString {
+    /**
+     * Random version-4 UUID will have 6 predetermined variant and version bits, leaving 122 bits for the randomly generated part.
+     * @return A random UUID as string
+     */
+    static String generateRandom() {
         return UUID.toString(UUID.random());
     }
 
     static String generateForEnvironment(String environmentId, String... fields) {
+        if (Stream.of(fields).anyMatch(Objects::isNull)) {
+            return generateRandom();
+        }
+
         StringBuilder b = new StringBuilder();
         b.append(environmentId);
         for (String f : fields) {

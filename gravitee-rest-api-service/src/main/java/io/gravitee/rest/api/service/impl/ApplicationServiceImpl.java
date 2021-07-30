@@ -46,7 +46,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -430,7 +430,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
 
         Application application = convert(newApplicationEntity);
-        application.setId(RandomString.generate());
+        application.setId(UuidString.generateRandom());
         application.setStatus(ApplicationStatus.ACTIVE);
         metadata.forEach((key, value) -> application.getMetadata().put(key, value));
 

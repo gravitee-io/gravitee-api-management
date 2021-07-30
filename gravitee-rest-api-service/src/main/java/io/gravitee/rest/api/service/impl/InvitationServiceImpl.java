@@ -21,19 +21,17 @@ import static io.gravitee.rest.api.service.notification.NotificationParamsBuilde
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InvitationRepository;
 import io.gravitee.repository.management.model.Invitation;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.MembershipService.MembershipReference;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvitationEmailAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.InvitationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.MemberEmailAlreadyExistsException;
@@ -252,7 +250,7 @@ public class InvitationServiceImpl extends TransactionalService implements Invit
 
     private Invitation convert(final NewInvitationEntity invitationEntity) {
         final Invitation invitation = new Invitation();
-        invitation.setId(RandomString.generate());
+        invitation.setId(UuidString.generateRandom());
         invitation.setReferenceId(invitationEntity.getReferenceId());
         invitation.setReferenceType(invitationEntity.getReferenceType().name());
         invitation.setApiRole(invitationEntity.getApiRole());

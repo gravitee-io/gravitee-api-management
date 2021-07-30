@@ -21,7 +21,7 @@ import io.gravitee.repository.management.model.PortalNotification;
 import io.gravitee.rest.api.model.notification.NewPortalNotificationEntity;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.PortalNotificationService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.Hook;
@@ -124,7 +124,7 @@ public class PortalNotificationServiceImpl extends AbstractService implements Po
         List<PortalNotification> notifications = notificationEntities.stream().map(this::convert).collect(Collectors.toList());
         notifications.forEach(
             n -> {
-                n.setId(RandomString.generate());
+                n.setId(UuidString.generateRandom());
                 n.setCreatedAt(now);
             }
         );

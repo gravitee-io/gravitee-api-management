@@ -32,7 +32,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.exceptions.DuplicateCategoryNameException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -296,7 +296,7 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
 
     private Category convert(final NewCategoryEntity categoryEntity) {
         final Category category = new Category();
-        category.setId(RandomString.generate());
+        category.setId(UuidString.generateRandom());
         category.setKey(IdGenerator.generate(categoryEntity.getName()));
         category.setName(categoryEntity.getName());
         category.setDescription(categoryEntity.getDescription());

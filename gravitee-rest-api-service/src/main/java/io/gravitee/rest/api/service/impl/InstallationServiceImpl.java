@@ -20,7 +20,7 @@ import io.gravitee.repository.management.model.Installation;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.InstallationStatus;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InstallationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
@@ -102,7 +102,7 @@ public class InstallationServiceImpl implements InstallationService {
     private InstallationEntity createInstallation() {
         final Date now = Date.from(Instant.now());
         final Installation installation = new Installation();
-        installation.setId(RandomString.generate());
+        installation.setId(UuidString.generateRandom());
         installation.setCreatedAt(now);
         installation.setUpdatedAt(now);
         installation.setAdditionalInformation(new HashMap<>());

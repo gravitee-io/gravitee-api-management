@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -34,10 +33,8 @@ import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.RandomString;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -516,7 +513,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 planEntity -> {
                     planEntity.setApi(createdOrUpdatedApiEntity.getId());
                     planEntity.setId(
-                        RandomString.generateForEnvironment(environmentId, createdOrUpdatedApiEntity.getId(), planEntity.getId())
+                        UuidString.generateForEnvironment(environmentId, createdOrUpdatedApiEntity.getId(), planEntity.getId())
                     );
                     planService.createOrUpdatePlan(planEntity, environmentId);
                 }

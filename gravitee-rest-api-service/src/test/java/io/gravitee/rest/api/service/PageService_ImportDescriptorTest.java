@@ -33,7 +33,7 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageSourceEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.GraviteeDescriptorServiceImpl;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -117,7 +117,7 @@ public class PageService_ImportDescriptorTest {
         PageSource ps = new PageSource();
         ps.setType(pageSource.getType());
         ps.setConfiguration(pageSource.getConfiguration());
-        when(newPage.getId()).thenReturn(RandomString.generate());
+        when(newPage.getId()).thenReturn(UuidString.generateRandom());
         when(newPage.getSource()).thenReturn(ps);
         when(newPage.getType()).thenReturn("MARKDOWN");
         when(newPage.getReferenceType()).thenReturn(PageReferenceType.ENVIRONMENT);

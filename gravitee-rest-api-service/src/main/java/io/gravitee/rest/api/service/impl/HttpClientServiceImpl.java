@@ -20,7 +20,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.service.HttpClientService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
@@ -142,7 +142,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             headers.forEach(options::putHeader);
         }
 
-        options.putHeader("X-Gravitee-Request-Id", RandomString.generate().trim());
+        options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom().trim());
 
         if (body != null) {
             if (!options.getHeaders().contains(HttpHeaders.CONTENT_TYPE)) {

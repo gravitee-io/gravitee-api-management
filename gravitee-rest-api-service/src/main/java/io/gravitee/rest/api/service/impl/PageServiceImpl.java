@@ -45,7 +45,7 @@ import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
 import io.gravitee.rest.api.service.impl.swagger.transformer.SwaggerTransformer;
@@ -712,7 +712,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             logger.debug("Create page {} for API {}", newPageEntity, apiId);
 
-            String id = pageId != null && UUID.fromString(pageId) != null ? pageId : RandomString.generate();
+            String id = pageId != null && UUID.fromString(pageId) != null ? pageId : UuidString.generateRandom();
 
             PageType newPageType = newPageEntity.getType();
 
@@ -1845,7 +1845,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (searchResult.isEmpty()) {
                 page.setCreatedAt(new Date());
                 page.setUpdatedAt(page.getCreatedAt());
-                page.setId(RandomString.generate());
+                page.setId(UuidString.generateRandom());
                 validateSafeContent(page);
                 return pageRepository.create(page);
             } else {
@@ -2582,7 +2582,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            String newPageEntityId = RandomString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
+            String newPageEntityId = UuidString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
 
             PageEntity createdOrUpdatedPage = null;
             if (pageEntityToImport.getId() != null) {
@@ -2634,7 +2634,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             PageEntity pageEntityToImport = child.data;
             pageEntityToImport.setParentId(parentId);
 
-            String newId = RandomString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
+            String newId = UuidString.generateForEnvironment(environmentId, apiId, pageEntityToImport.getId());
             createPage(apiId, NewPageEntity.from(pageEntityToImport), environmentId, newId);
 
             if (child.children != null && !child.children.isEmpty()) {

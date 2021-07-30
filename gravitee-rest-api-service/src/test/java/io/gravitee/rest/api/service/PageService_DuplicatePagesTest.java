@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.not;
-import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -26,7 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import java.util.*;
 import org.junit.Test;
@@ -58,17 +57,17 @@ public class PageService_DuplicatePagesTest {
     @Test
     public void shouldDuplicatePages() throws TechnicalException {
         PageEntity page1 = new PageEntity();
-        page1.setId(RandomString.generate());
+        page1.setId(UuidString.generateRandom());
         page1.setName("Page 1");
         page1.setType("SWAGGER");
 
         PageEntity page2 = new PageEntity();
-        page2.setId(RandomString.generate());
+        page2.setId(UuidString.generateRandom());
         page2.setName("Page 2");
         page2.setType("MARKDOWN");
 
         PageEntity page3 = new PageEntity();
-        page3.setId(RandomString.generate());
+        page3.setId(UuidString.generateRandom());
         page3.setName("Sub Page 3");
         page3.setType("ASCIIDOC");
         page3.setParentId(page2.getId());

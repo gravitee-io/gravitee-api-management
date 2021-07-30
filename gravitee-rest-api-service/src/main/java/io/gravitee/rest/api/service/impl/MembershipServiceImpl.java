@@ -47,7 +47,7 @@ import io.gravitee.rest.api.model.providers.User;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
@@ -195,7 +195,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 if (member.getMemberType() == MembershipMemberType.USER) {
                     UserEntity userEntity = findUserFromMembershipMember(member);
                     io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
-                        RandomString.generate(),
+                        UuidString.generateRandom(),
                         userEntity.getId(),
                         convert(member.getMemberType()),
                         reference.getId(),
@@ -247,7 +247,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                     userMember = getUserMember(reference.getType(), reference.getId(), userEntity.getId());
                 } else {
                     io.gravitee.repository.management.model.Membership membership = new io.gravitee.repository.management.model.Membership(
-                        RandomString.generate(),
+                        UuidString.generateRandom(),
                         member.getMemberId(),
                         convert(member.getMemberType()),
                         reference.getId(),
@@ -1336,7 +1336,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 );
                 String oldMembershipId = membership.getId();
                 if (membershipsWithNewRole.isEmpty()) {
-                    membership.setId(RandomString.generate());
+                    membership.setId(UuidString.generateRandom());
                     membership.setRoleId(newRoleId);
                     membership.setSource(DEFAULT_SOURCE);
                     membershipRepository.create(membership);

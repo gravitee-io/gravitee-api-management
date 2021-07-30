@@ -22,7 +22,7 @@ import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.WorkflowType;
 import io.gravitee.rest.api.service.WorkflowService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +53,7 @@ public class WorkflowServiceImpl extends TransactionalService implements Workflo
         final String comment
     ) {
         final Workflow workflow = new Workflow();
-        workflow.setId(RandomString.generate());
+        workflow.setId(UuidString.generateRandom());
         workflow.setReferenceType(referenceType.name());
         workflow.setReferenceId(referenceId);
         workflow.setType(type.name());

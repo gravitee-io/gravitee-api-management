@@ -35,7 +35,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
 import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -164,7 +164,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
             sendUserNotification(user, api, applicationEntity);
 
             Ticket ticket = convert(ticketEntity);
-            ticket.setId(RandomString.generate());
+            ticket.setId(UuidString.generateRandom());
             ticket.setCreatedAt(new Date());
             ticket.setFromUser(userId);
 

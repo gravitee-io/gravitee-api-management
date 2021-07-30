@@ -35,7 +35,7 @@ import io.gravitee.rest.api.model.configuration.application.registration.Initial
 import io.gravitee.rest.api.model.configuration.application.registration.NewClientRegistrationProviderEntity;
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
@@ -130,7 +130,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             // Check renew_client_secret configuration
             renewClientSecretSupport(clientRegistrationProvider);
 
-            clientRegistrationProvider.setId(RandomString.generate());
+            clientRegistrationProvider.setId(UuidString.generateRandom());
 
             DynamicClientRegistrationProviderClient registrationProviderClient = getDCRClient(true, convert(clientRegistrationProvider));
 

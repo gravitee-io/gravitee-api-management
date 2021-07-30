@@ -19,7 +19,7 @@ import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notifiers.WebNotifierService;
 import io.vertx.core.AsyncResult;
@@ -134,7 +134,7 @@ public class WebNotifierServiceImpl implements WebNotifierService {
         options.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         options.putHeader(HttpHeaders.CONTENT_LENGTH, Integer.toString(body.length()));
         headers.forEach(options::putHeader);
-        options.putHeader("X-Gravitee-Request-Id", RandomString.generate());
+        options.putHeader("X-Gravitee-Request-Id", UuidString.generateRandom());
 
         Future<HttpClientRequest> requestFuture = httpClient.request(options);
 

@@ -40,7 +40,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -213,7 +213,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 throw new GroupNameAlreadyExistsException(group.getName());
             }
             Group newGroup = this.map(group);
-            newGroup.setId(RandomString.generate());
+            newGroup.setId(UuidString.generateRandom());
             newGroup.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
             newGroup.setCreatedAt(new Date());
             newGroup.setUpdatedAt(newGroup.getCreatedAt());

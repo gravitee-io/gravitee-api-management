@@ -26,7 +26,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.impl.PageServiceImpl;
 import java.util.Collections;
@@ -61,21 +61,21 @@ public class PageService_CreateOrUpdatePagesTest {
     @Test
     public void shouldCreateOrUpdatePages() throws TechnicalException {
         PageEntity page1 = new PageEntity();
-        page1.setId(RandomString.generate());
+        page1.setId(UuidString.generateRandom());
         page1.setName("Page 1");
         page1.setType("SWAGGER");
         page1.setReferenceType("API");
         page1.setReferenceId(API_ID);
 
         PageEntity page2 = new PageEntity();
-        page2.setId(RandomString.generate());
+        page2.setId(UuidString.generateRandom());
         page2.setName("Page 2");
         page2.setType("MARKDOWN");
         page2.setReferenceType("API");
         page2.setReferenceId(API_ID);
 
         PageEntity page3 = new PageEntity();
-        page3.setId(RandomString.generate());
+        page3.setId(UuidString.generateRandom());
         page3.setName("Sub Page 3");
         page3.setType("ASCIIDOC");
         page3.setParentId(page1.getId());
@@ -85,7 +85,7 @@ public class PageService_CreateOrUpdatePagesTest {
         when(pageRepository.create(any(Page.class))).thenAnswer(returnsFirstArg());
         when(pageRepository.update(any(Page.class))).thenAnswer(returnsFirstArg());
 
-        String page1NewId = RandomString.generateForEnvironment(ENVIRONMENT_ID, API_ID, page1.getId());
+        String page1NewId = UuidString.generateForEnvironment(ENVIRONMENT_ID, API_ID, page1.getId());
         Page page = new Page();
         page.setId(page1NewId);
         page.setName(page1.getName());

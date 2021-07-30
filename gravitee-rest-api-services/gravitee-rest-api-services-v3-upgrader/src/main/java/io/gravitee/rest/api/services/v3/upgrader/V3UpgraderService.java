@@ -22,7 +22,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.RoleRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.RandomString;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import java.util.Map.Entry;
@@ -177,7 +177,7 @@ public class V3UpgraderService extends AbstractService {
                         logger.info("No org role exist with the same name");
 
                         orgRole = new Role();
-                        orgRole.setId(RandomString.generate());
+                        orgRole.setId(UuidString.generateRandom());
                         orgRole.setName(envRole.getName());
                         orgRole.setDefaultRole(envRole.isDefaultRole());
                         orgRole.setReferenceId(GraviteeContext.getDefaultOrganization());
@@ -209,7 +209,7 @@ public class V3UpgraderService extends AbstractService {
                                 );
                         if (orgMembershipsWithRole.isEmpty()) {
                             Membership newOrganizationMembership = membership;
-                            newOrganizationMembership.setId(RandomString.generate());
+                            newOrganizationMembership.setId(UuidString.generateRandom());
                             newOrganizationMembership.setReferenceId("DEFAULT");
                             newOrganizationMembership.setReferenceType(MembershipReferenceType.ORGANIZATION);
                             newOrganizationMembership.setRoleId(orgRole.getId());
