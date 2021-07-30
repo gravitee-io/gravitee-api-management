@@ -15,28 +15,30 @@
     limitations under the License.
 
 -->
-<gv-policy-studio
-  flows-title="{{$ctrl.flowsTitle}}"
-  ng-attr-has-properties="{{$ctrl.hasProperties}}"
-  ng-attr-can-add="{{$ctrl.canAdd}}"
-  ng-attr-has-resources="{{$ctrl.hasResources}}"
-  ng-attr-has-policy-filter="{{$ctrl.hasPolicyFilter}}"
-  ng-attr-sortable="{{$ctrl.sortable}}"
-  ng-attr-has-plans="{{$ctrl.hasPlans}}"
-  ng-attr-policies="{{$ctrl.policies}}"
-  ng-attr-definition="{{$ctrl.definition}}"
-  ng-attr-services="{{$ctrl.services}}"
-  ng-attr-flow-schema="{{$ctrl.flowSchema}}"
-  ng-attr-resource-types="{{$ctrl.resourceTypes}}"
-  ng-attr-property-providers="{{$ctrl.propertyProviders}}"
-  ng-attr-readonly-plans="{{$ctrl.readonlyPlans}}"
-  ng-attr-configuration-schema="{{$ctrl.configurationSchema}}"
-  ng-attr-configuration-information="{{$ctrl.configurationInformation}}"
-  ng-on-gv-policy-studio:save="$ctrl.save($event)"
-  ng-on-gv-policy-studio:select-flows="$ctrl.onSelectFlows($event)"
-  ng-on-gv-policy-studio:change-tab="$ctrl.onChangeTab($event)"
-  ng-on-gv-expression-language:ready="$ctrl.fetchSpelGrammar($event)"
-  ng-on-gv-policy-studio:fetch-documentation="$ctrl.fetchPolicyDocumentation($event)"
-  ng-on-gv-resources:fetch-documentation="$ctrl.fetchResourceDocumentation($event)"
->
-</gv-policy-studio>
+<div class="policy-studio-wrapper">
+  <gv-policy-studio
+    flows-title="{{$ctrl.flowsTitle}}"
+    ng-attr-has-properties="{{$ctrl.hasProperties}}"
+    ng-attr-can-add="{{$ctrl.canAdd}}"
+    ng-attr-has-resources="{{$ctrl.hasResources}}"
+    ng-attr-has-policy-filter="{{$ctrl.hasPolicyFilter}}"
+    ng-attr-sortable="{{$ctrl.sortable}}"
+    ng-attr-has-plans="{{$ctrl.hasPlans}}"
+    ng-attr-policies="{{$ctrl.policies}}"
+    ng-attr-definition="{{$ctrl.definition}}"
+    ng-attr-services="{{$ctrl.services}}"
+    ng-attr-flow-schema="{{$ctrl.flowSchema}}"
+    ng-attr-resource-types="{{$ctrl.resourceTypes}}"
+    ng-attr-property-providers="{{$ctrl.propertyProviders}}"
+    ng-attr-readonly-plans="{{$ctrl.readonlyPlans}}"
+    ng-attr-configuration-schema="{{$ctrl.configurationSchema}}"
+    ng-attr-configuration-information="{{$ctrl.configurationInformation}}"
+    ng-on-gv-policy-studio:save="$ctrl.save($event)"
+    ng-on-gv-policy-studio:select-flows="$ctrl.onSelectFlows($event)"
+    ng-on-gv-policy-studio:change-tab="$ctrl.onChangeTab($event)"
+    ng-on-gv-expression-language:ready="$ctrl.fetchSpelGrammar($event)"
+    ng-on-gv-policy-studio:fetch-documentation="$ctrl.fetchPolicyDocumentation($event)"
+    ng-on-gv-resources:fetch-documentation="$ctrl.fetchResourceDocumentation($event)"
+  >
+  </gv-policy-studio>
+</div>
