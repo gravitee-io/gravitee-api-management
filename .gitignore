@@ -23,6 +23,8 @@ node_modules
 
 # used in makefile as working directory
 .working/
+# used
+.logs/
 # -- Cicd : Git ignore the [.circleci/**/*] which contains
 # files which do not need to be commited (password to artifactory)
 #.circleci/**/*
