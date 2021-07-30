@@ -46,7 +46,7 @@ class PromotionTaskComponentController {
 
   public openAcceptDialog(): IPromise<void> {
     const msg = this.task.data.isApiUpdate
-      ? `As the API <code>${this.task.data.apiName}</code> has already been promoted to <strong>${this.task.data.targetEnvironmentName}</strong> environment, accepting this promotion will update it.`
+      ? `Since the API <code>${this.task.data.apiName}</code> has already been promoted to <strong>${this.task.data.targetEnvironmentName}</strong> environment, accepting this promotion will update it.`
       : `Accepting this promotion will create a new API in <strong>${this.task.data.targetEnvironmentName}</strong> environment.`;
     return this.$mdDialog
       .show({
