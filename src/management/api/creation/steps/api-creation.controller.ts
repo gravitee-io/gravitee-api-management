@@ -459,11 +459,14 @@ class ApiCreationController {
           case 'JSON':
             file.type = 'SWAGGER';
             break;
+          case 'ADOC':
+            file.type = 'ASCIIDOC';
+            break;
         }
         if (file.type) {
           this.selectFile(file);
         } else {
-          this.NotificationService.showError('Only Markdown and OpenAPI file are supported');
+          this.NotificationService.showError('Only Markdown, OpenAPI, and AsciiDoc files are supported');
         }
       }
     });
