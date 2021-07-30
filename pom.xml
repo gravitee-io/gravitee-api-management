@@ -254,7 +254,7 @@
         <gravitee-plugin-service-discovery.version>1.16.0</gravitee-plugin-service-discovery.version>
         <gravitee-gateway-api.version>1.23.0</gravitee-gateway-api.version>
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
-        <gravitee-alert-api.version>1.6.0</gravitee-alert-api.version>
+        <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
         <gravitee-reporter-api.version>1.18.0</gravitee-reporter-api.version>
         <gravitee-api-management.version>3.5.18-SNAPSHOT</gravitee-api-management.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
