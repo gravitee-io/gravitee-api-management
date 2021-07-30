@@ -102,7 +102,6 @@ public class PageService_ImportDescriptorTest {
         pageSource.setConfiguration(mapper.readTree("{}"));
         ImportPageEntity pageEntity = new ImportPageEntity();
         pageEntity.setSource(pageSource);
-        pageEntity.setVisibility(Visibility.PUBLIC);
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.PageService_ImportDescriptorMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockDescriptorFetcherConfiguration.class);
