@@ -19,7 +19,7 @@ import io.gravitee.common.http.IdGenerator;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.ws.WebSocket;
-import io.gravitee.gateway.standalone.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
 import io.vertx.core.http.HttpServerRequest;
 
 /**

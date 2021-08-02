@@ -13,30 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.http.vertx.grpc;
 
-import io.gravitee.gateway.reactor.Reactable;
-import java.util.List;
+import io.gravitee.common.http.IdGenerator;
+import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.http.vertx.VertxHttp2ServerRequest;
+import io.vertx.core.http.HttpServerRequest;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
-    void create(Reactable reactable);
+public class VertxGrpcServerRequest extends VertxHttp2ServerRequest {
 
-    void update(Reactable reactable);
+    public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
+        super(httpServerRequest, idGenerator);
+    }
 
-    void remove(Reactable reactable);
-
-    void clear();
-
-    boolean contains(Reactable reactable);
-
-    /**
-     * An ordered collection of registered entrypoints.
-     *
-     * @return
-     */
-    List<HandlerEntrypoint> getEntrypoints();
+    @Override
+    public Response create() {
+        return new VertxGrpcServerResponse(this);
+    }
 }

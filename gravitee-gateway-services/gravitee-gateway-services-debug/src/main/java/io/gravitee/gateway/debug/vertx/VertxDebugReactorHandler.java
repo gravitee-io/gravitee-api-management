@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.vertx;
+package io.gravitee.gateway.debug.vertx;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.IdGenerator;
@@ -28,17 +28,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class VertxReactorHandler implements Handler<HttpServerRequest> {
+public class VertxDebugReactorHandler implements Handler<HttpServerRequest> {
 
     private final Reactor reactor;
     private final IdGenerator idGenerator;
 
-    public VertxReactorHandler(final Reactor reactor, IdGenerator idGenerator) {
+    public VertxDebugReactorHandler(final Reactor reactor, IdGenerator idGenerator) {
         this.reactor = reactor;
         this.idGenerator = idGenerator;
     }

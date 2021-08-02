@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.vertx.grpc;
+package io.gravitee.gateway.http.vertx.grpc;
 
-import io.gravitee.gateway.standalone.vertx.http2.VertxHttp2ServerResponse;
+import io.gravitee.gateway.http.vertx.VertxHttp2ServerResponse;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

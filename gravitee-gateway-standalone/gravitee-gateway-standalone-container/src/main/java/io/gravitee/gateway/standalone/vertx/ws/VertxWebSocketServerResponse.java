@@ -17,10 +17,8 @@ package io.gravitee.gateway.standalone.vertx.ws;
 
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.ws.WebSocket;
-import io.gravitee.gateway.standalone.vertx.VertxHttpServerRequest;
-import io.gravitee.gateway.standalone.vertx.VertxHttpServerResponse;
-import io.gravitee.reporter.api.http.Metrics;
-import io.vertx.core.http.HttpServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpServerRequest;
+import io.gravitee.gateway.http.vertx.VertxHttpServerResponse;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

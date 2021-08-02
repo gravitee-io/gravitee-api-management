@@ -47,7 +47,7 @@ public class DefaultReactor extends AbstractService implements Reactor, EventLis
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactor.class);
 
     @Autowired
-    private EventManager eventManager;
+    protected EventManager eventManager;
 
     @Autowired
     private ReactorHandlerRegistry reactorHandlerRegistry;
