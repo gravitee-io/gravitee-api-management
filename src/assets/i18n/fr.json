@@ -45,7 +45,7 @@
     "rateTitlePlaceholder": "En un mot",
     "ratingAnswerCreated": "Votre réponse a bien été envoyée",
     "ratingAnswerDeleted": "Votre réponse a bien été supprimée",
-    "ratingCreated": "Votre avis a bien été envoyée",
+    "ratingCreated": "Votre avis a bien été envoyé",
     "ratingDeleted": "Votre avis a bien été supprimé",
     "ratingUpdated": "Merci d'avoir donné votre avis",
     "ratingsSortOptions": {
@@ -77,7 +77,7 @@
     "connectedApps": "{count, plural, =0{} one{Application liée} other{Applications liées}} au plan {planName}",
     "errors": {
       "information": "Une erreur est survenue lors de la souscription.",
-      "notConnected": "Connectez-vous ou créer un compte pour souscrire à l'API.",
+      "notConnected": "Connectez-vous ou créez un compte pour souscrire à l'API.",
       "sorry": "Désolé !"
     },
     "exit": "Quitter",
@@ -93,7 +93,7 @@
       "congratulations": "Bravo !",
       "discoverApi": "Commencez à découvrir l'API",
       "goToHome": "Retour à l'accueil",
-      "oauth2": "Vous devez récupèrer un access_token auprès du serveur d'autorisation avant de pouvoir consommer cette API.",
+      "oauth2": "Vous devez récupérer un access_token auprès du serveur d'autorisation avant de pouvoir consommer cette API.",
       "subscriptionAccepted": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est acceptée!",
       "subscriptionKey": "Voici votre clé personnelle pour accèder à l'API",
       "subscriptionPending": "La souscription de l'application <b>{appName}</b> au plan <b>{planName}</b> de l'API <b>{apiName}</b> est en cours de validation.",
@@ -192,7 +192,7 @@
         },
         "responseTimes": {
           "label": "Temps de réponse",
-          "title": "Sélectionner un interval de temps de réponse"
+          "title": "Sélectionner un intervalle de temps de réponse"
         },
         "status": {
           "label": "Status HTTP",
@@ -618,7 +618,7 @@
     "cancel": "Annuler",
     "date": {
       "range": {
-        "title": "Sélectionner un interval de temps"
+        "title": "Sélectionner un intervalle de temps"
       }
     },
     "delete": "Supprimer",
