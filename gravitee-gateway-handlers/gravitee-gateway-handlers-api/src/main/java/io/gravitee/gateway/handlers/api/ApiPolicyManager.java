@@ -18,7 +18,6 @@ package io.gravitee.gateway.handlers.api;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
-import org.springframework.context.ApplicationContext;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -28,11 +27,6 @@ public class ApiPolicyManager extends DefaultPolicyManager {
 
     public ApiPolicyManager(PolicyFactory policyFactory) {
         super(policyFactory);
-    }
-
-    @Override
-    protected ApplicationContext getApplicationContext() {
-        return applicationContext.getParent();
     }
 
     @Override

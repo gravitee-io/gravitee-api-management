@@ -109,14 +109,20 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
         resources.clear();
     }
 
+    public ApplicationContext getRootContext() {
+        ApplicationContext rootContext = applicationContext;
+        while (rootContext.getParent() != null) {
+            rootContext = rootContext.getParent();
+        }
+        return rootContext;
+    }
+
     private void initialize() {
-        String[] beanNamesForType = applicationContext
-            .getParent()
+        String[] beanNamesForType = getRootContext()
             .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
 
-        ConfigurablePluginManager<ResourcePlugin> rpm = (ConfigurablePluginManager<ResourcePlugin>) applicationContext.getBean(
-            beanNamesForType[0]
-        );
+        ConfigurablePluginManager<ResourcePlugin> rpm = (ConfigurablePluginManager<ResourcePlugin>) getRootContext()
+            .getBean(beanNamesForType[0]);
 
         ResourceClassLoaderFactory rclf = applicationContext.getBean(ResourceClassLoaderFactory.class);
         ResourceConfigurationFactory rcf = applicationContext.getBean(ResourceConfigurationFactory.class);

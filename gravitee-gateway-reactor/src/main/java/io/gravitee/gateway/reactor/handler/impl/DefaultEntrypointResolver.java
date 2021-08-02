@@ -29,8 +29,11 @@ public class DefaultEntrypointResolver implements EntrypointResolver {
 
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
-    @Autowired
-    private ReactorHandlerRegistry handlerRegistry;
+    private final ReactorHandlerRegistry handlerRegistry;
+
+    public DefaultEntrypointResolver(ReactorHandlerRegistry handlerRegistry) {
+        this.handlerRegistry = handlerRegistry;
+    }
 
     @Override
     public HandlerEntrypoint resolve(ExecutionContext context) {

@@ -46,7 +46,7 @@ import org.springframework.util.ClassUtils;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
+public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPolicyManager.class);
 
@@ -139,10 +139,10 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
     }
 
     private void initialize() {
-        String[] beanNamesForType = getApplicationContext()
+        String[] beanNamesForType = getRootContext()
             .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-        ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) getApplicationContext()
+        ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) getRootContext()
             .getBean(beanNamesForType[0]);
         PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
         ClassLoader globalClassLoader = getClassLoader();
@@ -253,8 +253,12 @@ public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<Po
             );
     }
 
-    protected ApplicationContext getApplicationContext() {
-        return applicationContext;
+    public ApplicationContext getRootContext() {
+        ApplicationContext rootContext = applicationContext;
+        while (rootContext.getParent() != null) {
+            rootContext = rootContext.getParent();
+        }
+        return rootContext;
     }
 
     protected ClassLoader getClassLoader() {

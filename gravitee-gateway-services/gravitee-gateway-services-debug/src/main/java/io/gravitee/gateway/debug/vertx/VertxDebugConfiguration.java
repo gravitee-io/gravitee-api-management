@@ -13,49 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.spring;
+package io.gravitee.gateway.debug.vertx;
 
+import io.gravitee.gateway.debug.reactor.DebugReactor;
 import io.gravitee.gateway.reactor.Reactor;
-import io.gravitee.gateway.reactor.handler.EntrypointResolver;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
-import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.handler.context.provider.NodeTemplateVariableProvider;
-import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
-import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
-import io.gravitee.gateway.reactor.impl.DefaultReactor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
 @Configuration
-public class ReactorConfiguration {
+public class VertxDebugConfiguration {
+
+    @Bean
+    public VertxDebugHttpServerConfiguration httpServerConfiguration() {
+        return new VertxDebugHttpServerConfiguration();
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public DebugReactorVerticle graviteeDebugVerticle() {
+        return new DebugReactorVerticle();
+    }
 
     @Bean
     public Reactor reactor() {
-        return new DefaultReactor();
-    }
-
-    @Bean
-    public EntrypointResolver reactorHandlerResolver(ReactorHandlerRegistry reactorHandlerRegistry) {
-        return new DefaultEntrypointResolver(reactorHandlerRegistry);
-    }
-
-    @Bean
-    public ReactorHandlerRegistry reactorHandlerManager() {
-        return new DefaultReactorHandlerRegistry();
-    }
-
-    @Bean
-    public ReactorHandlerFactoryManager reactorHandlerFactoryManager() {
-        return new ReactorHandlerFactoryManager();
+        return new DebugReactor();
     }
 
     @Bean
@@ -83,8 +71,9 @@ public class ReactorConfiguration {
         return new NotFoundProcessorChainFactory();
     }
 
-    @Bean
-    public NodeTemplateVariableProvider nodeTemplateVariableProvider() {
-        return new NodeTemplateVariableProvider();
+    @Bean("gatewayDebugHttpServer")
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public VertxDebugHttpServerFactory vertxHttpServerFactory() {
+        return new VertxDebugHttpServerFactory();
     }
 }

@@ -157,6 +157,11 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         }
     }
 
+    @Override
+    public boolean contains(Reactable reactable) {
+        return handlers.containsKey(reactable);
+    }
+
     private void remove(Reactable reactable, ReactorHandler handler, boolean remove) {
         if (handler != null) {
             try {

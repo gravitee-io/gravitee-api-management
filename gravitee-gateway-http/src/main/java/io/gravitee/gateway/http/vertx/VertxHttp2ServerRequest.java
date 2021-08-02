@@ -13,25 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.vertx.grpc;
+package io.gravitee.gateway.http.vertx;
 
+import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.http.IdGenerator;
+import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.standalone.vertx.http2.VertxHttp2ServerRequest;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
+import io.gravitee.gateway.api.http2.HttpFrame;
 import io.vertx.core.http.HttpServerRequest;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxGrpcServerRequest extends VertxHttp2ServerRequest {
+public class VertxHttp2ServerRequest extends VertxHttpServerRequest {
 
-    public VertxGrpcServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
+    public VertxHttp2ServerRequest(HttpServerRequest httpServerRequest, IdGenerator idGenerator) {
         super(httpServerRequest, idGenerator);
     }
 
     @Override
+    public HttpVersion version() {
+        return HttpVersion.HTTP_2;
+    }
+
+    @Override
+    public Request customFrameHandler(Handler<HttpFrame> frameHandler) {
+        getNativeServerRequest()
+            .customFrameHandler(
+                frame -> frameHandler.handle(HttpFrame.create(frame.type(), frame.flags(), Buffer.buffer(frame.payload().getBytes())))
+            );
+
+        return this;
+    }
+
+    @Override
     public Response create() {
-        return new VertxGrpcServerResponse(this);
+        return new VertxHttp2ServerResponse(this);
     }
 }

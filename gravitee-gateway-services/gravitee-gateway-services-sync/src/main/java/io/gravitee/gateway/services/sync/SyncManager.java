@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
@@ -88,10 +89,10 @@ public class SyncManager {
     private DictionaryManager dictionaryManager;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     @Autowired
-    private ClusterManager clusterManager;
+    protected ClusterManager clusterManager;
 
     @Autowired
     private OrganizationRepository organizationRepository;
@@ -99,22 +100,25 @@ public class SyncManager {
     @Autowired
     private GatewayConfiguration gatewayConfiguration;
 
+    @Autowired
+    protected EventManager eventManager;
+
     @Value("${services.sync.distributed:false}")
-    private boolean distributed;
+    protected boolean distributed;
 
-    private final AtomicLong counter = new AtomicLong(0);
+    protected final AtomicLong counter = new AtomicLong(0);
 
-    private long lastRefreshAt = -1;
+    protected long lastRefreshAt = -1;
 
     private int totalErrors = 0;
 
-    private int errors = 0;
+    protected int errors = 0;
 
     private String lastErrorMessage;
 
     private boolean allApisSync = false;
 
-    void refresh(List<String> environments) {
+    protected void refresh(List<String> environments) {
         long nextLastRefreshAt = System.currentTimeMillis();
         boolean error = false;
         if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
@@ -196,7 +200,7 @@ public class SyncManager {
         computeOrganizationEvents(organizationEvents);
     }
 
-    private void synchronizeApis(long nextLastRefreshAt, List<String> environments) {
+    protected void synchronizeApis(long nextLastRefreshAt, List<String> environments) {
         Map<String, Event> apiEvents;
 
         // Initial synchronization
@@ -346,7 +350,7 @@ public class SyncManager {
         );
     }
 
-    private void computeApiEvents(Map<String, Event> apiEvents) {
+    protected void computeApiEvents(Map<String, Event> apiEvents) {
         apiEvents.forEach(
             (apiId, apiEvent) -> {
                 try {
@@ -421,29 +425,31 @@ public class SyncManager {
     }
 
     private List<Event> getLatestApiEvents(long nextLastRefreshAt, List<String> environments) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder()
-            .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
+        return eventRepository.search(getLatestApiEventsCriteria(nextLastRefreshAt, environments).build());
+    }
+
+    public EventCriteria.Builder getLatestApiEventsCriteria(long nextLastRefreshAt, List<String> environments) {
+        return new EventCriteria.Builder()
+            .types(getApiEventTypes())
             // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
             .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors))
             .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
             .environments(environments);
-
-        return eventRepository.search(builder.build());
     }
 
     private Event getLastApiEvent(final String api, List<String> environments) {
-        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
-            .property(Event.EventProperties.API_ID.getValue(), api)
-            .environments(environments);
-
         List<Event> events = eventRepository
-            .search(
-                eventCriteriaBuilder.types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
+            .search(getLastApiEventCriteria(api, environments).build(), new PageableBuilder().pageNumber(0).pageSize(1).build())
             .getContent();
 
         return (!events.isEmpty()) ? events.get(0) : null;
+    }
+
+    public EventCriteria.Builder getLastApiEventCriteria(final String api, List<String> environments) {
+        return new EventCriteria.Builder()
+            .property(Event.EventProperties.API_ID.getValue(), api)
+            .environments(environments)
+            .types(getApiEventTypes());
     }
 
     private List<Event> getLatestOrganizationEvents(long nextLastRefreshAt) {
@@ -470,7 +476,7 @@ public class SyncManager {
         return (!events.isEmpty()) ? events.get(0) : null;
     }
 
-    private void enhanceWithData(Api definition) {
+    protected void enhanceWithData(Api definition) {
         try {
             // for v2, plans are already part of the api definition
             if (definition.getDefinitionVersion() == DefinitionVersion.V1) {
@@ -567,5 +573,9 @@ public class SyncManager {
 
     public String getLastErrorMessage() {
         return lastErrorMessage;
+    }
+
+    protected EventType[] getApiEventTypes() {
+        return new EventType[] { EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API };
     }
 }
