@@ -47,6 +47,7 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.swagger.annotations.*;
 import java.io.ByteArrayOutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -95,6 +96,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     protected ApiDuplicatorService apiDuplicatorService;
+
+    @Inject
+    protected DebugApiService debugApiService;
 
     @PathParam("api")
     @ApiParam(name = "api", required = true, value = "The ID of the API")
@@ -318,6 +322,29 @@ public class ApiResource extends AbstractResource {
                 .tag(Long.toString(apiEntity.getUpdatedAt().getTime()))
                 .lastModified(apiEntity.getUpdatedAt())
                 .build();
+        } catch (Exception e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
+        }
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("_debug")
+    @ApiOperation(
+        value = "Debug an API on gateway instances",
+        notes = "User must have the UPDATE permission on API_DEFINITION to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(code = 200, message = "Debug session successfully started", response = EventEntity.class),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response debugAPI(@ApiParam(name = "request") @Valid final DebugApiEntity debugApiEntity) {
+        try {
+            EventEntity apiEntity = debugApiService.debug(api, getAuthenticatedUser(), debugApiEntity);
+            return Response.ok(apiEntity).build();
         } catch (Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
         }

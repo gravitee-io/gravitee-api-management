@@ -34,4 +34,5 @@ public enum EventType {
     STOP_DICTIONARY,
     ALERT_NOTIFICATION,
     PUBLISH_ORGANIZATION,
+    DEBUG_API,
 }

@@ -270,7 +270,7 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         event.setType(io.gravitee.repository.management.model.EventType.valueOf(newEventEntity.getType().toString()));
         event.setPayload(newEventEntity.getPayload());
         event.setParentId(newEventEntity.getParentId());
-        event.setProperties(newEventEntity.getProperties());
+        event.setProperties(new HashMap<>(newEventEntity.getProperties()));
 
         return event;
     }

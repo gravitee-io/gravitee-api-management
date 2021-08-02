@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at gravitee.io)
@@ -45,6 +47,9 @@ import javax.ws.rs.*;
  */
 @Api(tags = { "API Events" })
 public class ApiEventsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private EventService eventService;
@@ -68,6 +73,11 @@ public class ApiEventsResource extends AbstractResource {
             .filter(event -> eventTypeListParam.getEventTypes().contains(event.getType()))
             .sorted((e1, e2) -> e2.getCreatedAt().compareTo(e1.getCreatedAt()))
             .collect(Collectors.toList());
+    }
+
+    @Path("{eventId}")
+    public ApiEventResource getApiEventResource() {
+        return resourceContext.getResource(ApiEventResource.class);
     }
 
     @GET

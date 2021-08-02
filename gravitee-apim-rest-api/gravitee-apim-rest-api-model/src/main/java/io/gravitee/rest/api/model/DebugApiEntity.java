@@ -13,26 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.rest.api.model;
 
-/**
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum EventType {
-    PUBLISH_API,
-    PUBLISH_API_RESULT,
-    UNPUBLISH_API,
-    UNPUBLISH_API_RESULT,
-    START_API,
-    STOP_API,
-    GATEWAY_STARTED,
-    GATEWAY_STOPPED,
-    PUBLISH_DICTIONARY,
-    UNPUBLISH_DICTIONARY,
-    START_DICTIONARY,
-    STOP_DICTIONARY,
-    PUBLISH_ORGANIZATION,
-    DEBUG_API,
+import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.HttpResponse;
+import io.gravitee.rest.api.model.api.ApiEntity;
+
+public class DebugApiEntity extends ApiEntity {
+
+    private HttpRequest request;
+
+    private HttpResponse response;
+
+    public HttpRequest getRequest() {
+        return request;
+    }
+
+    public void setRequest(HttpRequest request) {
+        this.request = request;
+    }
+
+    public HttpResponse getResponse() {
+        return response;
+    }
+
+    public void setResponse(HttpResponse response) {
+        this.response = response;
+    }
 }
