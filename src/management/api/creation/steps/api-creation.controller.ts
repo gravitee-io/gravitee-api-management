@@ -21,8 +21,29 @@ import NewApiController, { getDefinitionVersionDescription, getDefinitionVersion
 import UserService from '../../../../services/user.service';
 import { IPromise } from 'angular';
 
+interface Page {
+  fileName: string;
+  published?: boolean;
+  name?: string;
+}
+
+interface Api {
+  name?: string;
+  version?: string;
+  gravitee: string;
+  proxy: {
+    endpoints: any[];
+    context_path?: string;
+  };
+  pages: Array<Page>;
+  plans: any[];
+  tags: any[];
+  groups: any[];
+  lifecycle_state?: string;
+}
+
 class ApiCreationController {
-  api: any;
+  api: Api;
   selectedTenants: any[];
   attachableGroups: any[];
   poGroups: any[];
@@ -78,16 +99,18 @@ class ApiCreationController {
     private $rootScope,
   ) {
     'ngInject';
-    this.api = {};
-    this.api.gravitee = ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0';
-    this.contextPathInvalid = true;
-    this.api.proxy = {};
-    this.api.proxy.endpoints = [];
-    this.api.pages = [];
-    this.api.plans = [];
-    this.api.tags = [];
-    this.api.groups = [];
+    this.api = {
+      gravitee: ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0',
+      proxy: {
+        endpoints: [],
+      },
+      pages: [],
+      plans: [],
+      tags: [],
+      groups: [],
+    };
 
+    this.contextPathInvalid = true;
     this.plan = {
       characteristics: [],
     };

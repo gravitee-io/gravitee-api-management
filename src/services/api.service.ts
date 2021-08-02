@@ -245,9 +245,9 @@ class ApiService {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/rollback', apiDescriptor);
   }
 
-  import(apiId: string, apiDefinition: string, definitionVersion?: string): ng.IPromise<any> {
+  import(apiId: string, apiDefinition: any, definitionVersion?: string): ng.IPromise<any> {
     if (apiId) {
-      return this.$http.put(`${this.Constants.env.baseURL}/apis/` + apiId + '/import', apiDefinition);
+      return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/import`, apiDefinition);
     }
     const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
     return this.$http.post(`${this.Constants.env.baseURL}/apis/import${params}`, apiDefinition);
