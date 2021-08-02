@@ -23,7 +23,6 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Locale;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,6 +37,11 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
     @Override
     public void serialize(Api api, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
+        this.serializeContent(api, jgen, provider);
+        jgen.writeEndObject();
+    }
+
+    public void serializeContent(Api api, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStringField("id", api.getId());
         jgen.writeStringField("name", api.getName());
         jgen.writeObjectField("version", api.getVersion());
@@ -135,7 +139,5 @@ public class ApiSerializer extends StdScalarSerializer<Api> {
         if (api.getResponseTemplates() != null && !api.getResponseTemplates().isEmpty()) {
             jgen.writeObjectField("response_templates", api.getResponseTemplates());
         }
-
-        jgen.writeEndObject();
     }
 }

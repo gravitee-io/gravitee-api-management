@@ -50,9 +50,10 @@ public class ApiDeserializer extends StdScalarDeserializer<Api> {
     @Override
     public Api deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
+        return this.deserialize(jp, ctxt, new Api(), node);
+    }
 
-        Api api = new Api();
-
+    public Api deserialize(JsonParser jp, DeserializationContext ctxt, Api api, JsonNode node) throws IOException {
         JsonNode idNode = node.get("id");
         if (idNode == null) {
             throw ctxt.mappingException("ID property is required");
