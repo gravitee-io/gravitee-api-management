@@ -19,6 +19,7 @@ import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
 import UserService from '../../../../services/user.service';
+import { IPromise } from 'angular';
 
 class ApiCreationController {
   api: any;
@@ -500,19 +501,21 @@ class ApiCreationController {
     return this.api.pages && this.api.pages.length > 0;
   }
 
-  removePage(page) {
-    const alert = this.$mdDialog.confirm({
-      title: 'Warning',
-      content: 'Are you sure you want to remove this page?',
-      ok: 'OK',
-      cancel: 'Cancel',
-    });
-
-    this.$mdDialog.show(alert).then(() => {
-      _.remove(this.api.pages, (_page: any) => {
-        return _page.fileName === page.fileName;
+  removePage(pageToRemove: { fileName: string }): IPromise<void> {
+    return this.$mdDialog
+      .show({
+        controller: 'DialogConfirmController',
+        controllerAs: 'ctrl',
+        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        clickOutsideToClose: true,
+        locals: {
+          title: 'Warning',
+          msg: 'Are you sure you want to remove this page?',
+        },
+      })
+      .then(() => {
+        this.api.pages = this.api.pages.filter((page) => page.fileName !== pageToRemove.fileName);
       });
-    });
   }
 
   skipDocumentation() {
