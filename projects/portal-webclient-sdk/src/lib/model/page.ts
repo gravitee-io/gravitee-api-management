@@ -16,7 +16,7 @@ import { PageMedia } from './pageMedia';
 import { PageLinks } from './pageLinks';
 
 
-export interface Page { 
+export interface Page {
     /**
      * Unique identifier of a page.
      */
@@ -52,15 +52,16 @@ export interface Page {
     metadata?: Array<Metadata>;
     _links?: PageLinks;
     /**
-     * Only returned with *_/apis/{apiId}/pages/{pageId}* and *_/pages/{pageId}*. Need *include* query param to contain \'content\'.  The content of the page. 
+     * Only returned with *_/apis/{apiId}/pages/{pageId}* and *_/pages/{pageId}*. Need *include* query param to contain \'content\'.  The content of the page.
      */
     content?: string;
     contentRevisionId?: PageRevisionId;
 }
 export namespace Page {
-    export type TypeEnum = 'ASCIIDOC' | 'SWAGGER' | 'MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';
+    export type TypeEnum = 'ASCIIDOC' | 'ASYNCAPI' | 'SWAGGER' | 'MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';
     export const TypeEnum = {
         ASCIIDOC: 'ASCIIDOC' as TypeEnum,
+        ASYNCAPI: 'ASYNCAPI' as TypeEnum,
         SWAGGER: 'SWAGGER' as TypeEnum,
         MARKDOWN: 'MARKDOWN' as TypeEnum,
         FOLDER: 'FOLDER' as TypeEnum,

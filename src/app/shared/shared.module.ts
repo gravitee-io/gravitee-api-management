@@ -36,6 +36,7 @@ import { GvPageMarkdownComponent } from '../components/gv-page-markdown/gv-page-
 import { GvPageRedocComponent } from '../components/gv-page-redoc/gv-page-redoc.component';
 import { GvPageSwaggerUIComponent } from '../components/gv-page-swaggerui/gv-page-swaggerui.component';
 import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdown-toc.component';
+import { GvPageAsyncApiComponent } from '../components/gv-page-asyncapi/gv-page-asyncapi.component';
 
 @NgModule({
   declarations: [
@@ -48,12 +49,19 @@ import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdow
     GvPageComponent,
     GvPageContentSlotDirective,
     GvPageAsciiDocComponent,
+    GvPageAsyncApiComponent,
     GvPageMarkdownComponent,
     GvPageRedocComponent,
     GvPageSwaggerUIComponent,
     GvMarkdownTocComponent,
   ],
-  entryComponents: [GvPageAsciiDocComponent, GvPageMarkdownComponent, GvPageRedocComponent, GvPageSwaggerUIComponent],
+  entryComponents: [
+    GvPageAsciiDocComponent,
+    GvPageAsyncApiComponent,
+    GvPageMarkdownComponent,
+    GvPageRedocComponent,
+    GvPageSwaggerUIComponent,
+  ],
   imports: [
     CommonModule,
     HttpClientModule,

@@ -17,6 +17,7 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator';
 import { GvDocumentationComponent } from './gv-documentation.component';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
+import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 
 describe('GvDocumentationComponent', () => {
   const createComponent = createComponentFactory({
@@ -61,5 +62,25 @@ describe('GvDocumentationComponent', () => {
     linkToPage.click();
 
     expect(component.onPageChange).toBeCalledTimes(0);
+  });
+
+  describe('when page type is asyncApi', () => {
+    const page: Page = { type: 'ASYNCAPI' } as Page;
+
+    it('should return false on isAsciiDoc', () => {
+      expect(component.isAsciiDoc(page)).toBeFalsy();
+    });
+    it('should return false on isMarkdown', () => {
+      expect(component.isMarkdown(page)).toBeFalsy();
+    });
+    it('should return false on isSwagger', () => {
+      expect(component.isSwagger(page)).toBeFalsy();
+    });
+    it('should return true on isAsyncApi', () => {
+      expect(component.isAsyncApi(page)).toBeTruthy();
+    });
+    it('should be returned by getFirstPage', () => {
+      expect(component.getFirstPage([page])).toBe(page);
+    });
   });
 });
