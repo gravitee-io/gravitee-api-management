@@ -45,6 +45,7 @@ import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
@@ -1452,30 +1453,46 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkPolicyConfigurations(final UpdateApiEntity updateApiEntity) {
-        if (updateApiEntity.getPaths() != null) {
+        checkPathsPolicyConfiguration(updateApiEntity.getPaths());
+        checkFlowsPolicyConfiguration(updateApiEntity.getFlows());
+
+        if (updateApiEntity.getPlans() != null) {
             updateApiEntity
-                .getPaths()
+                .getPlans()
+                .stream()
                 .forEach(
-                    (s, path) ->
-                        path
-                            .getRules()
-                            .stream()
-                            .filter(Rule::isEnabled)
-                            .map(Rule::getPolicy)
-                            .forEach(policy -> policyService.validatePolicyConfiguration(policy))
+                    plan -> {
+                        checkPathsPolicyConfiguration(plan.getPaths());
+                        checkFlowsPolicyConfiguration(plan.getFlows());
+                    }
                 );
         }
-        if (updateApiEntity.getFlows() != null) {
-            updateApiEntity
-                .getFlows()
+    }
+
+    private void checkPathsPolicyConfiguration(Map<String, Path> paths) {
+        if (paths != null) {
+            paths.forEach(
+                (s, path) ->
+                    path
+                        .getRules()
+                        .stream()
+                        .filter(Rule::isEnabled)
+                        .map(Rule::getPolicy)
+                        .forEach(policy -> policyService.validatePolicyConfiguration(policy))
+            );
+        }
+    }
+
+    private void checkFlowsPolicyConfiguration(List<Flow> flows) {
+        if (flows != null) {
+            flows
                 .stream()
                 .filter(flow -> flow.getPre() != null)
                 .forEach(
                     flow -> flow.getPre().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
                 );
 
-            updateApiEntity
-                .getFlows()
+            flows
                 .stream()
                 .filter(flow -> flow.getPost() != null)
                 .forEach(

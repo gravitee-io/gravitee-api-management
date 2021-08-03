@@ -21,6 +21,9 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
+import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.flow.Step;
+import io.gravitee.policy.api.PolicyConfiguration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.MembershipRepository;
@@ -321,7 +324,7 @@ public class ApiService_CreateWithDefinitionTest {
     }
 
     @Test
-    public void shouldCreateImportApiWithOnlyNewDefinition() throws IOException, TechnicalException {
+    public void shouldCreateImportNewDefinitionApi() throws IOException, TechnicalException {
         URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-new-api.definition.json");
         String toBeImport = Resources.toString(url, Charsets.UTF_8);
         ApiEntity apiEntity = new ApiEntity();
@@ -346,6 +349,8 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(policyService, times(0)).validatePolicyConfiguration(any(Policy.class));
+        verify(policyService, times(1)).validatePolicyConfiguration(any(Step.class));
     }
 
     @Test
@@ -405,6 +410,7 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(policyService, times(4)).validatePolicyConfiguration(any(Policy.class));
     }
 
     @Test
@@ -436,5 +442,37 @@ public class ApiService_CreateWithDefinitionTest {
         verify(apiRepository, never()).update(any());
         verify(apiRepository, times(1)).create(any());
         verify(genericNotificationConfigService, times(1)).create(any());
+        verify(policyService, times(2)).validatePolicyConfiguration(any(Policy.class));
+    }
+
+    @Test
+    public void shouldCreateImportNewDefinitionApiWithPlans() throws IOException, TechnicalException {
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-new-api.definition+plans.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId(API_ID);
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId(API_ID);
+        when(userService.findById(admin.getId())).thenReturn(admin);
+        when(planService.findById(anyString())).thenThrow(PlanNotFoundException.class);
+
+        ApiEntity apiEntityCreated = apiService.createWithImportedDefinition(null, toBeImport, "admin");
+
+        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class));
+        verify(apiRepository, never()).update(any());
+        verify(apiRepository, times(1)).create(any());
+        verify(genericNotificationConfigService, times(1)).create(any());
+        verify(policyService, times(0)).validatePolicyConfiguration(any(Policy.class));
+        verify(policyService, times(3)).validatePolicyConfiguration(any(Step.class));
     }
 }
