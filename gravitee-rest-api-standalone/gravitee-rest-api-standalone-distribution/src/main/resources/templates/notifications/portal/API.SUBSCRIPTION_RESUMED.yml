@@ -1,0 +1,5 @@
+title: |
+  [${api.name}] Subscription Resumed
+message: |
+  The subscription request for the application "${application.name}" 
+  to the plan "${plan.name}" was resumed.

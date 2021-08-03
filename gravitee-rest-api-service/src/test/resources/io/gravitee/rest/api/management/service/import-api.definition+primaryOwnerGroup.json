@@ -1,0 +1,111 @@
+{
+  "name": "test",
+  "version": "1",
+  "description": "bmll",
+  "visibility": "PRIVATE",
+  "lifecycle_state": "CREATED",
+  "tags": [],
+  "primaryOwner": {
+    "id": "group",
+    "type": "GROUP"
+  },
+  "proxy": {
+    "context_path": "/test",
+    "endpoints": [
+      {
+        "name": "default",
+        "target": "http://google.fr",
+        "weight": 1,
+        "backup": false,
+        "healthcheck": true
+      }
+    ],
+    "load_balancing": {
+      "type": "ROUND_ROBIN"
+    },
+    "failover": {
+      "maxAttempts": 1,
+      "retryTimeout": 0,
+      "cases": [
+        "TIMEOUT"
+      ]
+    },
+    "strip_context_path": false,
+    "http": {
+      "configuration": {
+        "connectTimeout": 5000,
+        "idleTimeout": 60000,
+        "keepAlive": true,
+        "dumpRequest": false,
+        "readTimeout": 10000,
+        "pipelining": false,
+        "maxConcurrentConnections": 100,
+        "useCompression": false
+      }
+    }
+  },
+  "paths": {
+    "/": [
+      {
+        "methods": [
+          "CONNECT",
+          "DELETE",
+          "GET",
+          "HEAD",
+          "OPTIONS",
+          "PATCH",
+          "POST",
+          "PUT",
+          "TRACE"
+        ],
+        "api-key": {}
+      },
+      {
+        "methods": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "HEAD",
+          "PATCH",
+          "OPTIONS",
+          "TRACE",
+          "CONNECT"
+        ],
+        "cache": {
+          "cacheName": null,
+          "key": null,
+          "timeToLiveSeconds": null,
+          "useResponseCacheHeaders": null,
+          "scope": null
+        },
+        "description": "Description of the Cache Gravitee Policy"
+      }
+    ]
+  },
+  "properties": {
+    "prop1": "value1"
+  },
+  "services": {},
+  "resources": [
+    {
+      "name": "cache_name",
+      "type": "cache",
+      "enabled": true,
+      "configuration": {
+        "name": "my-cache",
+        "timeToIdleSeconds": 1,
+        "timeToLiveSeconds": 2,
+        "maxEntriesLocalHeap": 1000
+      }
+    }
+  ],
+  "response_templates": {
+    "API_KEY_MISSING": {
+      "*/*": {
+        "status": 400,
+        "body": "{\"bad\":\"news\"}"
+      }
+    }
+  }
+}

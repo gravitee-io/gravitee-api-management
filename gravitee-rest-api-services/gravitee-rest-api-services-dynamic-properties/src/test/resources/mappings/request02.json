@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/error"
+  },
+  "response": {
+    "status": 404
+  }
+}

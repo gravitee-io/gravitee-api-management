@@ -1,0 +1,5 @@
+title: |
+  [${api.name}] Apikey Renewed
+message: |
+  An apikey has been renewed for plan "${plan.name}"
+  and application "${application.name}".

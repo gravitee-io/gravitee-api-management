@@ -1,0 +1,190 @@
+[
+  {
+    "row": 0,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 1,
+    "title": "Number of APIs",
+    "chart": {
+      "type": "count",
+      "data": [
+        {
+          "key": "count",
+          "label": "total",
+          "color": "#42a5f5"
+        }
+      ],
+      "request": {
+        "type": "count",
+        "field": "api"
+      }
+    }
+  },
+  {
+    "row": 0,
+    "col": 1,
+    "sizeY": 1,
+    "sizeX": 1,
+    "title": "Number of Applications",
+    "chart": {
+      "type": "count",
+      "data": [
+        {
+          "key": "count",
+          "label": "total",
+          "color": "#ff8f2d"
+        }
+      ],
+      "request": {
+        "type": "count",
+        "field": "application"
+      }
+    }
+  },
+  {
+    "row": 0,
+    "col": 2,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "API Lifecycle State",
+    "chart": {
+      "type": "pie",
+      "request": {
+        "type": "group_by",
+        "field": "lifecycle_state"
+      },
+      "labels": [
+        "CREATED",
+        "PUBLISHED",
+        "UNPUBLISHED"
+      ],
+      "colors": [
+        "#42a5f5",
+        "#66bb6a",
+        "#ffee58"
+      ]
+    }
+  },
+  {
+    "row": 0,
+    "col": 4,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "API State",
+    "chart": {
+      "type": "pie",
+      "request": {
+        "type": "group_by",
+        "field": "state"
+      },
+      "labels": [
+        "STOPPED",
+        "STARTED"
+      ],
+      "colors": [
+        "#42a5f5",
+        "#66bb6a"
+      ]
+    }
+  },
+  {
+    "row": 1,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "API Response Status",
+    "chart": {
+      "type": "pie",
+      "request": {
+        "type": "group_by",
+        "field": "status",
+        "ranges": "100:199%3B200:299%3B300:399%3B400:499%3B500:599"
+      },
+      "labels": [
+        "1xx",
+        "2xx",
+        "3xx",
+        "4xx",
+        "5xx"
+      ],
+      "colors": [
+        "#42a5f5",
+        "#66bb6a",
+        "#ffee58",
+        "#ff8f2d",
+        "#ef5350"
+      ]
+    }
+  },
+  {
+    "row": 1,
+    "col": 2,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Top APIs",
+    "subhead": "Ordered by API calls",
+    "chart": {
+      "type": "table",
+      "columns": ["API", "Hits"],
+      "paging": 5,
+      "request": {
+        "type": "group_by",
+        "field": "api"
+      }
+    }
+  },
+  {
+    "row": 1,
+    "col": 4,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Request stats",
+    "chart": {
+      "type": "stats",
+      "data": [
+        {
+          "key": "min",
+          "label": "min",
+          "unit": "ms",
+          "color": "#66bb6a"
+        },
+        {
+          "key": "max",
+          "label": "max",
+          "unit": "ms",
+          "color": "#ef5350"
+        },
+        {
+          "key": "avg",
+          "label": "avg",
+          "unit": "ms",
+          "color": "#42a5f5"
+        },
+        {
+          "key": "rps",
+          "label": "requests per second",
+          "color": "#ff8f2d",
+          "fallback": [
+            {
+              "key": "rpm",
+              "label": "requests per minute"
+            },
+            {
+              "key": "rph",
+              "label": "requests per hour"
+            }
+          ]
+        },
+        {
+          "key": "count",
+          "label": "total",
+          "color": "black"
+        }
+      ],
+      "request": {
+        "type": "stats",
+        "field": "response-time"
+      }
+    }
+  }
+]
