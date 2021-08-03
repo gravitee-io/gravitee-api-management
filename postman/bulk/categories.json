@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Showcase APIs",
+    "description": "Some documented use cases of what you can do with Gravitee.io policies"
+  },
+  {
+    "name": "Supplier",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+  },
+  {
+    "name": "Store",
+    "description": "Store API can be used to model e.g. physical retail locations, brand stores, or country-specific stores. Currently, a store holds carts and orders. During the Beta phase, we plan to let the store define what subset of resources within a project is available in the context of the store, e.g. which products are sold at what price, and which currency or shipping methods can be used."
+  },
+  {
+    "name": "Machine learning",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+  },
+  {
+    "name": "Stock",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+  },
+  {
+    "name": "Open data",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+  },
+  {
+    "name": "Monitoring",
+    "description": "Monitoring APIs"
+  },
+  {
+    "name": "Support",
+    "description": ""
+  },
+  {
+    "name": "Product",
+    "description": "The Product API automatically extracts complete data from any shopping or e-commerce product page. Retrieve full pricing information, product IDs (SKU, UPC, MPN), images, product specifications, brand and more."
+  }
+]

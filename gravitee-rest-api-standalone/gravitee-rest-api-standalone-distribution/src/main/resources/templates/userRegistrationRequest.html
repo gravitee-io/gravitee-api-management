@@ -1,0 +1,19 @@
+<html>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi, a new user has just sent a registration request!</h3>
+			<p>
+				The request of the user
+				<#if user.firstname?? && user.lastname??>
+					${user.firstname} ${user.lastname}
+				<#else>
+					${user.email}
+				</#if>
+				has to be to be validated<#if userUrl?? && userUrl != ''> <a href="${userUrl}">here</a></#if>.
+			</p>
+		</div>
+	</body>
+</html>

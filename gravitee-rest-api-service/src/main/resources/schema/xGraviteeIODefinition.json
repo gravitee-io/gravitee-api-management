@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "description": "Definition of the Gravitee vendor extension for Swagger/OpenAPI descriptors : x-graviteeio-definition",
+  "title": "xGraviteeIODefinition",
+  "type": "object",
+  "properties": {
+    "categories": {
+      "type": "array",
+      "description": "List of categories the API belongs to.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "virtualHosts": {
+      "type": "array",
+      "description": "List of virtual hosts for this API.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "Host which must be set into the HTTP request to access the entrypoint."
+          },
+          "path": {
+            "type": "string",
+            "description": "Listening path."
+          },
+          "overrideEntrypoint": {
+            "type": "boolean",
+            "description": "Useful to override entrypoint with the virtual host on the portal."
+          }
+        }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "description": "List of groups attached to this API.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "labels": {
+      "type": "array",
+      "description": "List of labels attached to this API.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "metadata": {
+      "type": "array",
+      "description": "List of <key, value> data about API.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Metadata name."
+          },
+          "value": {
+            "type": "string",
+            "description": "Metadata value."
+          },
+          "format": {
+            "type": "string",
+            "description": "Metadata format.",
+            "enum": [
+              "STRING",
+              "NUMERIC",
+              "BOOLEAN",
+              "DATE",
+              "MAIL",
+              "URL"
+            ]
+          }
+        }
+      }
+    },
+    "picture": {
+      "type": "string",
+      "description": "A picture in data-URI format."
+    },
+    "properties": {
+      "type": "array",
+      "description": "A list of properties about the API.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The key of the property."
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the property."
+          }
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "description": "List of the sharding tags of the API. Used for deployment on Gateway.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "PUBLIC",
+        "PRIVATE"
+      ],
+      "description": "The visibility of the API."
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id" : "api-id",
+  "name" : "Path_based",
+  "version" : "2",
+  "description" : "Test description",
+  "visibility" : "private",
+  "state" : "stopped",
+  "context_path" : "/api1",
+  "flow_mode" : "best_match",
+  "flows" : [
+    {
+      "name" : "",
+      "path-operator" : {
+        "operator" : "STARTS_WITH",
+        "path" : "/"
+      },
+      "condition" : "",
+      "methods" : [ "DELETE", "PUT" ],
+      "pre" : [ {
+        "name" : "Assign content",
+        "description" : "Description of the Assign content Policy",
+        "enabled" : false,
+        "policy" : "policy-assign-content",
+        "configuration" : {"scope":"REQUEST","body":"dfezf"}
+      } , {
+        "name" : "URL Rewriting",
+        "description" : "Description of the Url rewriting Policy",
+        "enabled" : true,
+        "policy" : "url-rewriting",
+        "configuration" : {"scope":"REQUEST","body":"dfezf"}
+      }],
+      "post" : [ {
+        "name" : "URL Rewriting",
+        "description" : "Description of the Url rewriting Policy",
+        "enabled" : true,
+        "policy" : "url-rewriting",
+        "configuration" : {"scope":"RESPONSE","body":"fezfze"}
+      },   {
+        "name" : "Assign content",
+        "description" : "Description of the Assign content Policy",
+        "enabled" : true,
+        "policy" : "policy-assign-content",
+        "configuration" : {"scope":"RESPONSE","body":"fezfze"}
+      } ],
+      "enabled" : true
+    } ],
+  "plans" : [],
+  "gravitee" : "2.0.0",
+  "resources" : [ ],
+  "path_mappings" : [ ],
+  "response_templates" : { },
+  "lifecycle_state" : "created",
+  "disable_membership_notifications" : false
+}

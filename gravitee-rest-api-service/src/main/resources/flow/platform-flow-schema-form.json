@@ -1,0 +1,72 @@
+{
+  "type": "object",
+  "id": "apim",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "description": "The name of flow. If empty, the name will be generated with the path and methods",
+      "type": "string"
+    },
+    "path-operator": {
+      "type": "object",
+      "properties": {
+        "operator": {
+          "title": "Operator path",
+          "description": "The operator path",
+          "type": "string",
+          "enum": [
+            "EQUALS",
+            "STARTS_WITH"
+          ],
+          "default": "STARTS_WITH",
+          "x-schema-form": {
+            "titleMap": {
+              "EQUALS": "Equals",
+              "STARTS_WITH": "Starts with"
+            }
+          }
+        },
+        "path": {
+          "title": "Path",
+          "description": "The path of flow (must start by /)",
+          "type": "string",
+          "pattern": "^/",
+          "default": "/"
+        }
+      },
+      "required": [
+        "path",
+        "operator"
+      ]
+    },
+    "methods": {
+      "title": "Methods",
+      "description": "The HTTP methods of flow (ALL if empty)",
+      "type": "array",
+      "items" : {
+        "type" : "string",
+        "enum" : [ "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE" ]
+      }
+    },
+    "consumers": {
+      "title": "Tags",
+      "description": "The tags of flow.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": []
+      }
+    },
+    "condition": {
+      "title": "Condition",
+      "description": "The condition of the flow. Supports EL.",
+      "type": "string",
+      "x-schema-form": {
+        "expression-language": true
+      }
+    }
+
+  },
+  "required": [],
+  "disabled": []
+}

@@ -1,0 +1,41 @@
+{
+  "id" : "api-id",
+  "name" : "Path_based",
+  "version" : "2",
+  "description" : "Test description",
+  "visibility" : "private",
+  "state" : "stopped",
+  "context_path" : "/api1",
+  "flow_mode" : "default",
+  "paths" : {
+    "/" : [ {
+      "methods" : [ "DELETE", "PUT" ],
+      "policy-assign-content" : {"scope":"REQUEST","body":"dfezf"},
+      "description" : "Description of the Assign content Policy",
+      "enabled" : false
+    },
+      {
+        "methods" : [ "DELETE", "PUT" ],
+        "url-rewriting" : {"scope":"REQUEST","body":"dfezf"},
+        "description" : "Description of the Url rewriting Policy",
+        "enabled" : true
+      }
+    , {
+      "methods" : [ "DELETE", "PUT" ],
+      "policy-assign-content" : {"scope":"RESPONSE","body":"fezfze"},
+      "description" : "Description of the Assign content Policy",
+      "enabled" : true
+    },
+      {
+        "methods" : [ "DELETE", "PUT" ],
+        "url-rewriting" : {"scope":"RESPONSE","body":"fezfze"},
+        "description" : "Description of the Url rewriting Policy",
+        "enabled" : true
+      }]
+  },
+  "gravitee" : "1.0.0",
+  "path_mappings" : [ ],
+  "response_templates" : { },
+  "lifecycle_state" : "created",
+  "disable_membership_notifications" : false
+}

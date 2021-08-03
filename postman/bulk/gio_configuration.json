@@ -1,0 +1,288 @@
+{
+	"info": {
+		"_postman_id": "099c17c8-f2b9-4d03-bc81-15ab9b9b8fc9",
+		"name": "Gravitee.io-configuration",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "configuration",
+			"item": [
+				{
+					"name": "Get portal configuration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code should be 200 / found \" + responseCode.code] = responseCode.code === 200;",
+									"",
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setGlobalVariable(\"portal\", responseBody);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"portal"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate rating and support",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"var jsonData = JSON.parse(globals.portal);",
+									"jsonData.portal.rating.enabled = true;",
+									"jsonData.portal.support.enabled = true;",
+									"postman.setGlobalVariable(\"portal\", JSON.stringify(jsonData));"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{portal}}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add homepage",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"Homepage\",\"type\":\"MARKDOWN\",\"parentId\":\"\",\"published\":true,\"content\":\"## Welcome to the API portal\",\"homepage\":true}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"portal",
+								"pages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add best practice page",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"REST API Design Best Practices\",\"type\":\"MARKDOWN\",\"parentId\":\"\",\"published\":true,\"content\":\"\",\"source\":{\"type\":\"http-fetcher\",\"configuration\":{\"useSystemProxy\":false,\"url\":\"https://raw.githubusercontent.com/anilkbachola/restapi-design-guidelines/master/README.md\"}}}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"portal",
+								"pages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add how it works directory",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"tests[\"Status code is 201\"] = responseCode.code === 201;",
+									"",
+									"var doc = JSON.parse(responseBody);",
+									"tests[\"Doc has ID\"] = doc.id !== undefined;",
+									"tests[\"Doc with type API\"] = doc.type === \"FOLDER\";",
+									"",
+									"",
+									"postman.setGlobalVariable(\"DOC_ID\", doc.id);"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"How it works\",\"type\":\"FOLDER\",\"parentId\":\"\",\"published\":true}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"portal",
+								"pages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add how it works",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"How it works\",\"type\":\"MARKDOWN\",\"parentId\":\"{{DOC_ID}}\",\"published\":true,\"content\":\"## How it works\"}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"portal",
+								"pages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add swagger example",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "{{AUTHORIZATION_ADMIN}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\":\"Petstore example\",\"type\":\"SWAGGER\",\"parentId\":\"{{DOC_ID}}\",\"published\":true,\"source\":{\"type\":\"http-fetcher\",\"configuration\":{\"useSystemProxy\":false,\"url\":\"https://petstore.swagger.io/v2/swagger.json\"}}}"
+						},
+						"url": {
+							"raw": "{{GRAVITEEIO_MGMT_URL}}/portal/pages",
+							"host": [
+								"{{GRAVITEEIO_MGMT_URL}}"
+							],
+							"path": [
+								"portal",
+								"pages"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "59d2e8f1-e826-479e-b9bd-ef9bfd36db6b",
+				"type": "text/javascript",
+				"exec": [
+					"if(!pm.environment.get('X-Xsrf-Token')) {",
+					"    pm.sendRequest({",
+					"        url: pm.environment.get('GRAVITEEIO_MGMT_URL') + '/portal',",
+					"        method: 'GET',",
+					"    ",
+					"    }, function (err, res) {",
+					"        pm.environment.set('X-Xsrf-Token', res.headers.get('X-Xsrf-Token'));",
+					"    });",
+					"}",
+					"",
+					"pm.request.headers.add({key: 'X-Xsrf-Token', value: pm.environment.get('X-Xsrf-Token') });"
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
