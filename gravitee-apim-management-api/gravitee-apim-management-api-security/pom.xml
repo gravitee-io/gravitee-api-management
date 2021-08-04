@@ -41,7 +41,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.gravitee.apim.management.api</groupId>
+			<groupId>io.gravitee.apim.management.api.idp</groupId>
 			<artifactId>gravitee-apim-management-api-idp-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -75,22 +75,18 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>${imageio.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>${imageio.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-batik</artifactId>
-			<version>${imageio.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-transcoder</artifactId>
-			<version>1.11</version>
 		</dependency>
     </dependencies>
 </project>

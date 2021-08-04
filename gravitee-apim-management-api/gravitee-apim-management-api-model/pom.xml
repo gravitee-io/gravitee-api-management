@@ -48,7 +48,6 @@
 		<dependency>
 			<groupId>io.gravitee.alert</groupId>
 			<artifactId>gravitee-alert-api</artifactId>
-			<version>${gravitee-alert-api.version}</version>
 		</dependency>
 
 		<!-- Jackson dependencies -->
@@ -65,13 +64,11 @@
 		<dependency>
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
-			<version>${validation-api.version}</version>
 		</dependency>
 
         <dependency>
             <groupId>io.swagger</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>${swagger.version}</version>
         </dependency>
 
 		<dependency>

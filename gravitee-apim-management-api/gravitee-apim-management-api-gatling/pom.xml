@@ -42,21 +42,15 @@
     <dependency>
       <groupId>io.gatling.highcharts</groupId>
       <artifactId>gatling-charts-highcharts</artifactId>
-      <version>3.5.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
 
   <build>
     <plugins>
       <plugin>
         <groupId>io.gatling</groupId>
         <artifactId>gatling-maven-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <simulationClass>io.gravitee.rest.api.gatling.Apis3xSimulation</simulationClass>
-        </configuration>
       </plugin>
     </plugins>
   </build>

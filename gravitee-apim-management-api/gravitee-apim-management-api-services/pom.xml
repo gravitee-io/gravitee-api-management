@@ -29,6 +29,7 @@
         <version>3.11.0-SNAPSHOT</version>
     </parent>
 
+    <groupId>io.gravitee.apim.management.api.services</groupId>
     <artifactId>gravitee-apim-management-api-services</artifactId>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Management API - Services</name>
@@ -45,17 +46,24 @@
     </modules>
 
     <dependencies>
-        <!-- Gravitee.io dependencies -->
+        <dependency>
+            <groupId>io.gravitee.apim.management.api</groupId>
+            <artifactId>gravitee-apim-management-api-service</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Exclude from plugin zip -->
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
             <scope>provided</scope>
         </dependency>
 
+        <!-- Exclude from plugin zip -->
         <dependency>
-            <groupId>io.gravitee.apim.management.api</groupId>
-            <artifactId>gravitee-apim-management-api-service</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
             <scope>provided</scope>
         </dependency>
     </dependencies>

@@ -29,12 +29,15 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.NewEventEntity;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.EventServiceImpl;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -53,6 +56,7 @@ public class EventServiceTest {
     private static final String EVENT_USERNAME = "admin";
     private static final String EVENT_ORIGIN = "localhost";
     private static final String API_ID = "id-api";
+    private static final String ENVIRONMENT_ID = "DEFAULT";
     private static final Map<String, String> EVENT_PROPERTIES = new HashMap<String, String>() {
         {
             put(Event.EventProperties.API_ID.getValue(), API_ID);
@@ -60,6 +64,16 @@ public class EventServiceTest {
             put(Event.EventProperties.ORIGIN.getValue(), EVENT_ORIGIN);
         }
     };
+
+    @Before
+    public void setup() {
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT_ID);
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+    }
 
     @InjectMocks
     private EventServiceImpl eventService = new EventServiceImpl();
@@ -146,7 +160,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .types(EventType.START_API)
-                    .environments(Collections.singletonList("DEFAULT"))
+                    .environments(Collections.singletonList(ENVIRONMENT_ID))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -188,7 +202,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .types(EventType.START_API)
-                    .environments(Collections.singletonList("DEFAULT"))
+                    .environments(Collections.singletonList(ENVIRONMENT_ID))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -229,7 +243,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .types(EventType.START_API, EventType.STOP_API)
-                    .environments(Collections.singletonList("DEFAULT"))
+                    .environments(Collections.singletonList(ENVIRONMENT_ID))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -273,7 +287,7 @@ public class EventServiceTest {
                     .from(1420070400000L)
                     .to(1422748800000L)
                     .property(Event.EventProperties.API_ID.getValue(), "id-api")
-                    .environments(Collections.singletonList("DEFAULT"))
+                    .environments(Collections.singletonList(ENVIRONMENT_ID))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
@@ -311,7 +325,7 @@ public class EventServiceTest {
                     .to(1422748800000L)
                     .property(Event.EventProperties.API_ID.getValue(), "id-api")
                     .types(EventType.START_API, EventType.STOP_API)
-                    .environments(Collections.singletonList("DEFAULT"))
+                    .environments(Collections.singletonList(ENVIRONMENT_ID))
                     .build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build()
             )
