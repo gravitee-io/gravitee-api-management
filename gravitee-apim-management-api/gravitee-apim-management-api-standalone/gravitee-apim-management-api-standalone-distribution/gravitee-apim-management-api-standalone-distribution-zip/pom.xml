@@ -24,7 +24,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>io.gravitee.apim.management.api</groupId>
+		<groupId>io.gravitee.apim.management.api.standalone.distribution</groupId>
         <artifactId>gravitee-apim-management-api-standalone-distribution</artifactId>
     	<version>3.10.1-SNAPSHOT</version>
     </parent>
@@ -42,7 +42,7 @@
 
 		<!-- Gravitee dependencies on distribution -->
 		<dependency>
-			<groupId>io.gravitee.apim.management.api</groupId>
+			<groupId>io.gravitee.apim.management.api.standalone.distribution</groupId>
 			<artifactId>gravitee-apim-management-api-standalone-distribution</artifactId>
 			<version>${project.version}</version>
 			<type>pom</type>
