@@ -31,7 +31,7 @@
     <version>3.11.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Gravitee.io APIM - API Management</name>
+    <name>Gravitee.io APIM</name>
 
     <scm>
         <url>https://github.com/gravitee-io/gravitee-api-management</url>
@@ -46,6 +46,7 @@
 
     <modules>
         <module>gravitee-apim-repository</module>
+        <module>gravitee-apim-management-api</module>
     </modules>
 
     <properties>
