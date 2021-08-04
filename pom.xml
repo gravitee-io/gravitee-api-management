@@ -30,7 +30,7 @@
     <artifactId>gravitee-api-management</artifactId>
     <packaging>pom</packaging>
 
-    <version>3.5.18</version>
+    <version>3.5.19-SNAPSHOT</version>
     <name>Gravitee.io APIM - API Management</name>
 
     <scm>
