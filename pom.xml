@@ -46,7 +46,7 @@
 
     <modules>
         <module>gravitee-apim-repository</module>
-        <module>gravitee-apim-management-api</module>
+        <module>gravitee-apim-rest-api</module>
     </modules>
 
     <properties>
