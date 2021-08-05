@@ -28,10 +28,10 @@
 
     <groupId>io.gravitee.apim</groupId>
     <artifactId>gravitee-api-management</artifactId>
+    <version>3.5.19-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <version>3.5.19-SNAPSHOT</version>
-    <name>Gravitee.io APIM - API Management</name>
+    <name>Gravitee.io APIM</name>
 
     <scm>
         <url>https://github.com/gravitee-io/gravitee-api-management</url>
@@ -46,6 +46,7 @@
 
     <modules>
         <module>gravitee-apim-repository</module>
+        <module>gravitee-apim-rest-api</module>
     </modules>
 
     <properties>
