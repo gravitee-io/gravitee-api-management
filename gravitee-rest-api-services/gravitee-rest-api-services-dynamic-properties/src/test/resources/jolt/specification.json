@@ -1,0 +1,13 @@
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "content": {
+        "*": {
+          "stores_id": "[&1].key",
+          "backend_url": "[&1].value"
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,43 @@
+{
+  "type" : "object",
+  "properties" : {
+    "from" : {
+      "title": "From",
+      "description": "Email address used as 'from' when sending email",
+      "type" : "string"
+    },
+    "to" : {
+      "title": "Recipients",
+      "description": "The recipients of the email",
+      "type" : "string"
+    },
+    "subject" : {
+      "title": "Subject",
+      "description": "The subject of the email",
+      "type" : "string"
+    },
+    "body" : {
+      "title": "Body",
+      "description": "The email payload",
+      "type" : "string",
+      "x-schema-form": {
+        "type": "codemirror",
+        "codemirrorOptions": {
+          "placeholder": "Put the content of the email here...",
+          "lineWrapping": true,
+          "lineNumbers": true,
+          "allowDropFileTypes": true,
+          "autoCloseTags": true,
+          "mode": {
+            "name": "html"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "from",
+    "to",
+    "subject"
+  ]
+}

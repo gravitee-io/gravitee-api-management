@@ -1,0 +1,16 @@
+{
+  "id" : "api-id",
+  "name" : "Path_based",
+  "version" : "2",
+  "description" : "Test description",
+  "visibility" : "private",
+  "state" : "stopped",
+  "context_path" : "/api1",
+  "flow_mode" : "default",
+  "paths" : { },
+  "gravitee" : "1.0.0",
+  "path_mappings" : [ ],
+  "response_templates" : { },
+  "lifecycle_state" : "created",
+  "disable_membership_notifications" : false
+}
