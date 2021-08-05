@@ -1,0 +1,3 @@
+title: API stopped
+message: |
+  "${api.name}" was stopped by ${user.displayName}.
