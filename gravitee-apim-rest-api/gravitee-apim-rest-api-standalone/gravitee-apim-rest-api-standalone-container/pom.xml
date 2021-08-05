@@ -246,7 +246,7 @@
             <build>
                 <resources>
                     <resource>
-                        <directory>../gravitee-rest-api-standalone-distribution/src/main/resources/</directory>
+                        <directory>../gravitee-apim-rest-api-standalone-distribution/src/main/resources/</directory>
                         <includes>
                             <include>config/*</include>
                             <include>templates/*</include>
@@ -260,7 +260,7 @@
                     </resource>
                     <resource>
                         <directory>
-                            ../gravitee-rest-api-standalone-distribution/gravitee-rest-api-standalone-distribution-zip/target/distribution
+                            ../gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/distribution
                         </directory>
                         <includes>
                             <include>plugins/*</include>
