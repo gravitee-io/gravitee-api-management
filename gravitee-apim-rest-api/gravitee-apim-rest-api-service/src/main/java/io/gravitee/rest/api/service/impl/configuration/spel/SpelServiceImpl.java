@@ -15,21 +15,22 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.spel;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.el.spel.context.SecuredMethodResolver;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import net.minidev.json.JSONObject;
-import net.minidev.json.parser.JSONParser;
-import net.minidev.json.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -39,13 +40,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class SpelServiceImpl implements SpelService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpelServiceImpl.class);
+
     // Generate with EvaluableExtractor
     // TODO: replace this file by direct call
     private static final String GRAMMAR_PATH = "/spel/grammar.json";
 
-    SecuredMethodResolver securedMethodResolver = new SecuredMethodResolver();
+    private final ObjectMapper mapper;
+    private final SecuredMethodResolver securedMethodResolver;
 
-    private List<Class> supportedTypes = new ArrayList() {
+    public SpelServiceImpl(ObjectMapper mapper) {
+        this.mapper = mapper;
+        this.securedMethodResolver = new SecuredMethodResolver();
+    }
+
+    private final List<Class<?>> supportedTypes = new ArrayList<>() {
         {
             add(MultiValueMap.class);
             add(HttpHeaders.class);
@@ -64,56 +73,63 @@ public class SpelServiceImpl implements SpelService {
     };
 
     @Override
-    public JSONObject getGrammar() {
+    public JsonNode getGrammar() {
         try {
-            JSONParser parser = new JSONParser(JSONParser.MODE_JSON_SIMPLE);
             InputStream resourceAsStream = this.getClass().getResourceAsStream(GRAMMAR_PATH);
-            JSONObject parse = (JSONObject) parser.parse(resourceAsStream);
-            Map<String, Object> types = buildTypes();
-            parse.appendField("_types", types);
-            return parse;
-        } catch (ParseException | UnsupportedEncodingException e) {}
+            JsonNode actualObj = mapper.readTree(resourceAsStream);
+
+            ObjectNode typesNode = ((ObjectNode) actualObj).putObject("_types");
+            buildTypes(typesNode);
+
+            return actualObj;
+        } catch (IOException e) {
+            LOGGER.error("Error while getting the Expression Language grammar", e);
+        }
         return null;
     }
 
-    private Map<String, Object> buildTypes() {
-        Map<String, Object> types = new HashMap<>();
-        supportedTypes.forEach(aClass -> types.put(aClass.getSimpleName(), buildType(aClass)));
-        return types;
+    private void buildTypes(ObjectNode types) {
+        supportedTypes.forEach(
+            aClass -> {
+                ObjectNode type = types.putObject(aClass.getSimpleName());
+                buildType(type, aClass);
+            }
+        );
     }
 
-    private Map<String, Object> buildType(Class<?> classz) {
-        Map type = new HashMap<>();
-
-        List<Object> methods = Arrays
+    private void buildType(ObjectNode type, Class<?> classz) {
+        final ArrayNode methodsNode = type.putArray("methods");
+        Arrays
             .stream(securedMethodResolver.getMethods(classz))
             .filter(f -> Modifier.isPublic(f.getModifiers()))
-            .map((Function<Method, Object>) method -> new MethodWrapper(method))
-            .collect(Collectors.toList());
-        type.put("methods", methods);
-        return type;
+            .forEach(
+                method -> {
+                    ObjectNode methodNode = methodsNode.addObject();
+                    fillMethod(methodNode, method);
+                }
+            );
     }
 
-    private static class MethodWrapper extends HashMap {
+    private void fillMethod(ObjectNode methodNode, Method method) {
+        methodNode.put("name", method.getName());
+        methodNode.put("returnType", method.getReturnType().getSimpleName());
 
-        public MethodWrapper(Method method) {
-            this.put("name", method.getName());
-            this.put("returnType", method.getReturnType().getSimpleName());
-            List<Object> params = Arrays
-                .stream(method.getParameters())
-                .map((Function<Parameter, Object>) parameter -> new ParameterWrapper(parameter))
-                .collect(Collectors.toList());
-            if (params.size() > 0) {
-                this.put("params", params);
-            }
+        final Parameter[] parameters = method.getParameters();
+        if (parameters.length > 0) {
+            final ArrayNode paramsNode = methodNode.putArray("params");
+            Arrays
+                .stream(parameters)
+                .forEach(
+                    parameter -> {
+                        ObjectNode paramNode = paramsNode.addObject();
+                        fillParameter(paramNode, parameter);
+                    }
+                );
         }
     }
 
-    private static class ParameterWrapper extends HashMap {
-
-        public ParameterWrapper(Parameter parameter) {
-            this.put("name", parameter.getName());
-            this.put("type", parameter.getType().getSimpleName());
-        }
+    private void fillParameter(ObjectNode parameterNode, Parameter parameter) {
+        parameterNode.put("name", parameter.getName());
+        parameterNode.put("type", parameter.getType().getSimpleName());
     }
 }

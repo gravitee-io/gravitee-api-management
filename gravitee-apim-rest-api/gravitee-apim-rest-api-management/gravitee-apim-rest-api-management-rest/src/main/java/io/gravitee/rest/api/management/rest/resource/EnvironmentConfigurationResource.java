@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
@@ -198,7 +199,7 @@ public class EnvironmentConfigurationResource {
     @GET
     @Path("spel/grammar")
     @Produces(MediaType.APPLICATION_JSON)
-    public JSONObject getGrammar() {
+    public JsonNode getGrammar() {
         return spelService.getGrammar();
     }
 }

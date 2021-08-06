@@ -15,12 +15,12 @@
  */
 package io.gravitee.rest.api.service.configuration.spel;
 
-import net.minidev.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface SpelService {
-    JSONObject getGrammar();
+    JsonNode getGrammar();
 }
