@@ -65,6 +65,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,7 +176,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         page.setExcludedAccessControls(newPageEntity.isExcludedAccessControls());
         page.setAccessControls(convertACL(newPageEntity.getAccessControls()));
         page.setParentId("".equals(newPageEntity.getParentId()) ? null : newPageEntity.getParentId());
-
+        page.setMetadata(newPageEntity.getMetadata());
+        page.setUseAutoFetch(newPageEntity.getUseAutoFetch());
         return page;
     }
 
@@ -276,6 +278,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         page.setAccessControls(convertACL(updatePageEntity.getAccessControls()));
         page.setAttachedMedia(convertMediaEntity(updatePageEntity.getAttachedMedia()));
         page.setParentId("".equals(updatePageEntity.getParentId()) ? null : updatePageEntity.getParentId());
+        page.setMetadata(updatePageEntity.getMetadata());
+        page.setUseAutoFetch(updatePageEntity.getUseAutoFetch());
         return page;
     }
 
@@ -792,11 +796,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 createRevision = true;
             }
 
-            Page page = convert(newPageEntity);
-
-            if (page.getSource() != null) {
-                fetchPage(page);
+            if (newPageEntity.getContent() == null && newPageEntity.getSource() != null) {
+                fetchPage(newPageEntity);
             }
+
+            Page page = convert(newPageEntity);
 
             page.setId(id);
             if (StringUtils.isEmpty(apiId)) {
@@ -1095,23 +1099,35 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 updatePageEntity.setExcludedGroups(updatePageEntity.getExcludedGroups());
             }
 
+            if (updatePageEntity.getSource() != null) {
+                try {
+                    if (updatePageEntity.getContent() == null) {
+                        fetchPage(updatePageEntity);
+                    }
+                } catch (FetcherException e) {
+                    throw onUpdateFail(pageId, e);
+                }
+            } else {
+                updatePageEntity.setUseAutoFetch(null); // set null to remove the value not set to false
+            }
+
             if (partial) {
                 page = merge(updatePageEntity, pageToUpdate);
             } else {
                 page = convert(updatePageEntity);
             }
 
-            if (page.getSource() != null) {
-                try {
-                    if (pageToUpdate.getSource() != null && pageToUpdate.getSource().getConfiguration() != null) {
-                        mergeSensitiveData(this.getFetcher(pageToUpdate.getSource()).getConfiguration(), page);
-                    }
-                    fetchPage(page);
-                } catch (FetcherException e) {
-                    throw onUpdateFail(pageId, e);
+            try {
+                if (
+                    pageToUpdate.getSource() != null &&
+                    pageToUpdate.getSource().getConfiguration() != null &&
+                    page.getSource() != null &&
+                    page.getSource().getConfiguration() != null
+                ) {
+                    mergeSensitiveData(this.getFetcher(pageToUpdate.getSource()).getConfiguration(), page);
                 }
-            } else {
-                page.setUseAutoFetch(null); // set null to remove the value not set to false
+            } catch (FetcherException e) {
+                throw onUpdateFail(pageId, e);
             }
 
             if (isSwaggerOrMarkdown(pageType)) {
@@ -1394,9 +1410,9 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void fetchPage(final Page page) throws FetcherException {
-        validateSafeSource(page);
-        Fetcher fetcher = this.getFetcher(page.getSource());
+    private void fetchPage(FetchablePageEntity page) throws FetcherException {
+        validateSafeSource(page.getSource());
+        Fetcher fetcher = this.getFetcher(convert(page.getSource()));
 
         if (fetcher != null) {
             try {
@@ -1603,26 +1619,29 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         List<PageEntity> createdPages = new ArrayList<>();
         int order = 0;
         for (GraviteeDescriptorPageEntity descriptorPage : descriptorEntity.getDocumentation().getPages()) {
-            NewPageEntity newPage = getPageFromPath(descriptorPage.getSrc());
-            if (newPage == null) {
-                logger.warn("Unable to find a source file to import. Please fix the descriptor content.");
-            } else {
-                if (descriptorPage.getName() != null && !descriptorPage.getName().isEmpty()) {
-                    newPage.setName(descriptorPage.getName());
-                }
+            NewPageEntity newPage = new NewPageEntity();
+            newPage.setName(
+                StringUtils.isEmpty(descriptorPage.getName())
+                    ? FilenameUtils.getBaseName(descriptorPage.getSrc())
+                    : descriptorPage.getName()
+            );
+            newPage.setHomepage(descriptorPage.isHomepage());
+            newPage.setLastContributor(descriptorPageEntity.getLastContributor());
+            newPage.setPublished(descriptorPageEntity.isPublished());
+            newPage.setOrder(order++);
+            newPage.setVisibility(descriptorPageEntity.getVisibility());
+            newPage.setSource(descriptorPageEntity.getSource());
 
-                newPage.setHomepage(descriptorPage.isHomepage());
-                newPage.setLastContributor(descriptorPageEntity.getLastContributor());
-                newPage.setPublished(descriptorPageEntity.isPublished());
-                newPage.setSource(descriptorPageEntity.getSource());
-                newPage.setOrder(order++);
-                newPage.setVisibility(descriptorPageEntity.getVisibility());
+            try {
+                fetchPageAndDefineType(newPage, fetcher, descriptorPage.getSrc());
 
-                String parentPath = descriptorPage.getDest() == null || descriptorPage.getDest().isEmpty()
-                    ? getParentPathFromFilePath(descriptorPage.getSrc())
-                    : descriptorPage.getDest();
+                if (newPage.getType() == null) {
+                    logger.warn("Unable to find a source file to import. Please fix the descriptor content.");
+                } else {
+                    String parentPath = descriptorPage.getDest() == null || descriptorPage.getDest().isEmpty()
+                        ? getParentPathFromFilePath(descriptorPage.getSrc())
+                        : descriptorPage.getDest();
 
-                try {
                     createdPages.addAll(
                         upsertPageAndParentFolders(
                             parentPath,
@@ -1634,22 +1653,36 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                             environmentId
                         )
                     );
-                } catch (TechnicalException ex) {
-                    logger.error("An error occurs while trying to import a gravitee descriptor", ex);
-                    throw new TechnicalManagementException("An error occurs while trying to import a gravitee descriptor", ex);
                 }
+            } catch (TechnicalException | FetcherException ex) {
+                logger.error("An error occurs while trying to import a gravitee descriptor", ex);
+                throw new TechnicalManagementException("An error occurs while trying to import a gravitee descriptor", ex);
             }
         }
         return createdPages;
     }
 
+    private void fetchPageAndDefineType(NewPageEntity newPage, Fetcher fetcher, String filePath) throws FetcherException {
+        updatePageSourceConfigurationFromFetcherConfiguration(newPage.getSource(), fetcher, filePath);
+
+        fetchPage(newPage);
+
+        newPage.setType(PageType.fromPageExtensionAndContent(FilenameUtils.getExtension(filePath), newPage.getContent()));
+    }
+
+    private void updatePageSourceConfigurationFromFetcherConfiguration(PageSourceEntity pageSource, Fetcher fetcher, String filePath) {
+        FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration) fetcher.getConfiguration();
+        configuration.setFilepath(filePath);
+        pageSource.setConfiguration(new ObjectMapper().valueToTree(configuration));
+    }
+
     private List<PageEntity> importDirectory(String apiId, ImportPageEntity pageEntity, FilesFetcher fetcher, String environmentId) {
         try {
-            String[] files = fetcher.files();
+            String[] filenames = fetcher.files();
 
             // if a gravitee descriptor is present, import it.
             Optional<String> optDescriptor = Arrays
-                .stream(files)
+                .stream(filenames)
                 .filter(f -> f.endsWith(graviteeDescriptorService.descriptorName()))
                 .findFirst();
             if (optDescriptor.isPresent()) {
@@ -1669,22 +1702,26 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             List<PageEntity> createdPages = new ArrayList<>();
             // for each files returned by the fetcher
             int order = 0;
-            for (String file : files) {
-                NewPageEntity pageFromPath = getPageFromPath(file);
-                if (pageFromPath != null) {
-                    pageFromPath.setLastContributor(pageEntity.getLastContributor());
-                    pageFromPath.setPublished(pageEntity.isPublished());
-                    pageFromPath.setSource(pageEntity.getSource());
-                    pageFromPath.setOrder(order++);
+            for (String filename : filenames) {
+                NewPageEntity newPage = new NewPageEntity();
+                newPage.setLastContributor(pageEntity.getLastContributor());
+                newPage.setPublished(pageEntity.isPublished());
+                newPage.setSource(pageEntity.getSource());
+                newPage.setOrder(order++);
+                newPage.setName(FilenameUtils.getBaseName(filename));
+
+                fetchPageAndDefineType(newPage, fetcher, filename);
+
+                if (newPage.getType() != null) {
                     try {
                         createdPages.addAll(
                             upsertPageAndParentFolders(
-                                getParentPathFromFilePath(file),
-                                pageFromPath,
+                                getParentPathFromFilePath(filename),
+                                newPage,
                                 parentsIdByPath,
                                 fetcher,
                                 apiId,
-                                file,
+                                filename,
                                 environmentId
                             )
                         );
@@ -1692,6 +1729,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         logger.error("An error occurs while trying to import a directory", ex);
                         throw new TechnicalManagementException("An error occurs while trying to import a directory", ex);
                     }
+                } else {
+                    logger.warn("Importing a directory containing a file {} in a unknown format. Ignoring this file.", filename);
                 }
             }
             return createdPages;
@@ -1701,41 +1740,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private NewPageEntity getPageFromPath(String path) {
-        if (path != null) {
-            String[] extensions = path.split("\\.");
-            if (extensions.length > 0) {
-                PageType supportedPageType = getSupportedPageType(extensions[extensions.length - 1]);
-                // if the file is supported by gravitee
-                if (supportedPageType != null) {
-                    String[] pathElements = path.split("/");
-                    if (pathElements.length > 0) {
-                        String filename = pathElements[pathElements.length - 1];
-                        NewPageEntity newPage = new NewPageEntity();
-                        newPage.setName(filename.substring(0, filename.lastIndexOf(".")));
-                        newPage.setType(supportedPageType);
-                        return newPage;
-                    }
-                }
-            }
-        }
-        logger.warn("Unable to extract Page informations from :[" + path + "]");
-        return null;
-    }
-
-    private String getParentPathFromFilePath(String filePath) {
-        if (filePath != null && !filePath.isEmpty()) {
-            String[] pathElements = filePath.split("/");
-            if (pathElements.length > 0) {
-                StringJoiner stringJoiner = new StringJoiner("/");
-                for (int i = 0; i < pathElements.length - 1; i++) {
-                    stringJoiner.add(pathElements[i]);
-                }
-                return stringJoiner.toString();
-            }
-        }
-
-        return "/";
+    protected String getParentPathFromFilePath(String filePath) {
+        return StringUtils.isEmpty(filePath) ? "/" : FilenameUtils.getFullPathNoEndSeparator(filePath);
     }
 
     private List<PageEntity> upsertPageAndParentFolders(
@@ -1747,7 +1753,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         final String src,
         String environmentId
     ) throws TechnicalException {
-        ObjectMapper mapper = new ObjectMapper();
         String[] pathElements = parentPath.split("/");
         String pwd = "";
         List<PageEntity> createdPages = new ArrayList<>();
@@ -1801,22 +1806,19 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         );
         if (pages.isEmpty()) {
             newPageEntity.setParentId(parentId);
-            FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration) fetcher.getConfiguration();
-            configuration.setFilepath(src);
-            newPageEntity.getSource().setConfiguration(mapper.valueToTree(configuration));
+            updatePageSourceConfigurationFromFetcherConfiguration(newPageEntity.getSource(), fetcher, src);
             newPageEntity.setVisibility(Visibility.PUBLIC);
             createdPages.add(createPage(apiId, newPageEntity, environmentId));
         } else {
             Page page = pages.get(0);
             UpdatePageEntity updatePage = convertToUpdateEntity(page);
+            updatePage.setContent(newPageEntity.getContent());
             updatePage.setLastContributor(newPageEntity.getLastContributor());
             updatePage.setPublished(newPageEntity.isPublished());
             updatePage.setOrder(newPageEntity.getOrder());
             updatePage.setHomepage(newPageEntity.isHomepage());
-            FilepathAwareFetcherConfiguration configuration = (FilepathAwareFetcherConfiguration) fetcher.getConfiguration();
-            configuration.setFilepath(src);
             updatePage.setSource(newPageEntity.getSource());
-            updatePage.getSource().setConfiguration(mapper.valueToTree(configuration));
+            updatePageSourceConfigurationFromFetcherConfiguration(updatePage.getSource(), fetcher, src);
             createdPages.add(this.update(page.getId(), updatePage, false));
         }
         return createdPages;
@@ -1860,15 +1862,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             logger.error("An error occurs while trying to save the configuration", ex);
             throw new TechnicalManagementException("An error occurs while trying to save the configuration", ex);
         }
-    }
-
-    private PageType getSupportedPageType(String extension) {
-        for (PageType pageType : PageType.values()) {
-            if (pageType.extensions().contains(extension.toLowerCase())) {
-                return pageType;
-            }
-        }
-        return null;
     }
 
     private void reorderAndSavePages(final Page pageToReorder) throws TechnicalException {
@@ -2089,18 +2082,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         try {
             logger.debug("Fetch page {}", pageId);
 
-            Optional<Page> optPageToUpdate = pageRepository.findById(pageId);
-            if (!optPageToUpdate.isPresent()) {
-                throw new PageNotFoundException(pageId);
-            }
+            Page pageToUpdate = pageRepository.findById(pageId).orElseThrow(() -> new PageNotFoundException(pageId));
 
-            Page page = optPageToUpdate.get();
-
-            if (page.getSource() == null) {
+            if (pageToUpdate.getSource() == null) {
                 throw new NoFetcherDefinedException(pageId);
             }
 
-            return fetch(page, contributor);
+            return fetch(pageToUpdate, contributor);
         } catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
         }
@@ -2113,12 +2101,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         previousPage.setContent(page.getContent());
         previousPage.setName(page.getName());
 
+        UpdatePageEntity updatePageEntity = convertToUpdateEntity(page);
         try {
-            fetchPage(page);
+            fetchPage(updatePageEntity);
         } catch (FetcherException e) {
             throw onUpdateFail(page.getId(), e);
         }
-
+        page.setContent(updatePageEntity.getContent());
+        page.setMetadata(updatePageEntity.getMetadata());
         page.setUpdatedAt(new Date());
         page.setLastContributor(contributor);
 
@@ -2424,12 +2414,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         return new ArrayList<>();
     }
 
-    private void validateSafeSource(Page page) {
-        if (importConfiguration.isAllowImportFromPrivate() || page.getSource() == null || page.getSource().getConfiguration() == null) {
+    private void validateSafeSource(PageSourceEntity source) {
+        if (importConfiguration.isAllowImportFromPrivate() || source == null || source.getConfiguration() == null) {
             return;
         }
 
-        PageSource source = page.getSource();
         Map<String, String> map;
 
         try {

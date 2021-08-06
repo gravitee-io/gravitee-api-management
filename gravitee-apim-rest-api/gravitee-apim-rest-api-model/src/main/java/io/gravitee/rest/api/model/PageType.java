@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.model;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Ludovic Dussart (ludovic.dussart at gmail.com)
@@ -29,29 +28,44 @@ import java.util.List;
  *
  */
 public enum PageType {
-    ASCIIDOC(unmodifiableList(asList("adoc")), 200),
-    MARKDOWN(unmodifiableList(asList("md", "markdown")), 200),
-    MARKDOWN_TEMPLATE(emptyList(), 200),
-    SWAGGER(unmodifiableList(asList("json", "yaml", "yml")), 200),
-    FOLDER(emptyList(), 300),
-    LINK(emptyList(), 100),
-    ROOT(emptyList(), 500),
-    SYSTEM_FOLDER(emptyList(), 400),
-    TRANSLATION(emptyList(), 0);
+    ASCIIDOC(List.of("adoc"), 200, null),
+    ASYNCAPI(List.of("json", "yaml", "yml"), 200, "(?s).*\\\"?asyncapi\\\"?: *['\\\"]?\\d.*"),
+    MARKDOWN(List.of("md", "markdown"), 200, null),
+    MARKDOWN_TEMPLATE(emptyList(), 200, null),
+    SWAGGER(List.of("json", "yaml", "yml"), 200, "(?s).*\\\"?(swagger|openapi)\\\"?: *['\\\"]?\\d.*"),
+    FOLDER(emptyList(), 300, null),
+    LINK(emptyList(), 100, null),
+    ROOT(emptyList(), 500, null),
+    SYSTEM_FOLDER(emptyList(), 400, null),
+    TRANSLATION(emptyList(), 0, null);
 
     List<String> extensions;
     Integer removeOrder;
+    String contentRegexp;
 
-    PageType(List<String> extensions, Integer removeOrder) {
+    PageType(List<String> extensions, Integer removeOrder, String contentRegexp) {
         this.extensions = extensions;
         this.removeOrder = removeOrder;
-    }
-
-    public List<String> extensions() {
-        return extensions;
+        this.contentRegexp = contentRegexp;
     }
 
     public Integer getRemoveOrder() {
         return removeOrder;
+    }
+
+    public boolean matchesExtension(String pageExtension) {
+        return extensions.contains(pageExtension.toLowerCase());
+    }
+
+    public boolean matchesExtensionAndContent(String pageExtension, String pageContent) {
+        return matchesExtension(pageExtension) && (contentRegexp == null || pageContent.matches(contentRegexp));
+    }
+
+    public static PageType fromPageExtensionAndContent(String pageExtension, String pageContent) {
+        return Stream
+            .of(values())
+            .filter(pageType -> pageType.matchesExtensionAndContent(pageExtension, pageContent))
+            .findFirst()
+            .orElse(null);
     }
 }

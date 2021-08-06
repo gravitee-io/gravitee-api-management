@@ -3544,6 +3544,7 @@ components:
           type: string
           enum:
             - ASCIIDOC
+            - ASYNCAPI
             - SWAGGER
             - MARKDOWN
             - FOLDER
