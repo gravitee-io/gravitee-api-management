@@ -133,7 +133,7 @@ public class Bootstrap {
 
         File graviteeLibDir = new File(graviteeHomeDir, LIB_DIRECTORY);
 
-        File[] files = graviteeLibDir.listFiles(pathname -> pathname.getName().startsWith("gravitee-rest-api-standalone-bootstrap"));
+        File[] files = graviteeLibDir.listFiles(pathname -> pathname.getName().startsWith("gravitee-apim-rest-api-standalone-bootstrap"));
 
         if (files == null || files.length == 0 || files.length > 1) {
             throw new RuntimeException(
