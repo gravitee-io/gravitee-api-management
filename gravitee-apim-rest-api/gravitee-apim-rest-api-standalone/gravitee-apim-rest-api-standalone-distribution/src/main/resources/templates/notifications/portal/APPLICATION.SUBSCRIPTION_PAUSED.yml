@@ -1,0 +1,5 @@
+title: |
+  [${application.name}] Subscription Paused
+message: |
+  The subscription request to the plan "${plan.name}" 
+  of the api "${api.name}" has been paused.

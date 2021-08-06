@@ -1,0 +1,11 @@
+<html>
+    <body style="text-align: center">
+        <header><#include "header.html" /></header>
+        <div style="margin-top: 50px; color: #424e5a">
+            <h3>Hi,</h3>
+            <p>
+                <#if apiKey??> The API key <code>${apiKey.key}</code> related to plan<#else>The subscription to plan</#if> <b>${plan.name}</b> for API <b>${api.name}</b> and application <b>${application.name}</b> will expire in ${expirationDelay} days.
+            </p>
+        </div>
+    </body>
+</html>

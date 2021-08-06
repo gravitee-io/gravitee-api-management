@@ -1,0 +1,83 @@
+[
+  {
+    "row": 0,
+    "col": 0,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Hits by users",
+    "subhead": "Hits repartition by users",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "Users",
+        "Hits"
+      ],
+      "paging": 5,
+      "percent": true,
+      "request": {
+        "type": "group_by",
+        "field": "user"
+      }
+    }
+  },
+  {
+    "row": 0,
+    "col": 2,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Hits by user agent",
+    "subhead": "Hits repartition by user agent name",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "User agent name",
+        "Hits"
+      ],
+      "paging": 5,
+      "percent": true,
+      "request": {
+        "type": "group_by",
+        "field": "user_agent.name"
+      }
+    }
+  },
+  {
+    "row": 0,
+    "col": 4,
+    "sizeY": 1,
+    "sizeX": 2,
+    "title": "Hits by OS",
+    "subhead": "Hits repartition by OS name",
+    "chart": {
+      "type": "table",
+      "selectable": true,
+      "columns": [
+        "OS name",
+        "Hits"
+      ],
+      "paging": 5,
+      "percent": true,
+      "request": {
+        "type": "group_by",
+        "field": "user_agent.os_name"
+      }
+    }
+  },
+  {
+    "row": 1,
+    "col": 0,
+    "sizeY": 2,
+    "sizeX": 6,
+    "title": "Geomap",
+    "subhead": "Hits by location",
+    "chart": {
+      "type": "map",
+      "request": {
+        "type": "group_by",
+        "field": "geoip.country_iso_code"
+      }
+    }
+  }
+]

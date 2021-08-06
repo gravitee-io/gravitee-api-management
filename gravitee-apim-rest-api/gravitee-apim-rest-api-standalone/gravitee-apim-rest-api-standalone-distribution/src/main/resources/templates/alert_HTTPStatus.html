@@ -1,0 +1,14 @@
+<html>
+  <body style="text-align: center;">
+    <div style="color: #424e5a;">
+      <p>${notification.timestamp?number?number_to_date?iso_utc}</p>
+      <p>
+        <#if alert.conditions[0].comparison.thresholdLow == alert.conditions[0].comparison.thresholdHigh>
+          ${alert.conditions[0].comparison.thresholdLow} over ${alert.conditions[0].threshold}% during ${alert.conditions[0].duration} ${alert.conditions[0].timeUnit}.
+        <#else>
+          ${alert.conditions[0].comparison.thresholdLow[0]}XX over ${alert.conditions[0].threshold}% during ${alert.conditions[0].duration} ${alert.conditions[0].timeUnit}.
+        </#if>
+      </p>
+    </div>
+  </body>
+</html>
