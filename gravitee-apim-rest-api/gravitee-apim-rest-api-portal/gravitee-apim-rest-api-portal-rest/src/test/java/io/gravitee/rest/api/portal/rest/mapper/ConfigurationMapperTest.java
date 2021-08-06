@@ -51,6 +51,6 @@ public class ConfigurationMapperTest {
         mapper.setSerializationInclusion(Include.NON_NULL);
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         String configurationAsJSON = mapper.writeValueAsString(configuration);
-        assertEquals(expected.trim(), configurationAsJSON.trim());
+        assertEquals(mapper.readTree(expected), mapper.readTree(configurationAsJSON));
     }
 }
