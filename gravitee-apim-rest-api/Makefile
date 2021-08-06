@@ -30,7 +30,7 @@ endef
 GIO_APIM_VERSION:=$(shell cat .working/.version 2>/dev/null)
 GIO_APIM_NETWORK:=gio_apim_network
 GIO_APIM_MANAGEMENT_API_IMAGE:=graviteeio/apim-management-api
-GIO_APIM_MANAGEMENT_API_PLUGINS:=gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/plugins/
+GIO_APIM_MANAGEMENT_API_PLUGINS:=gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/plugins/
 
 # Retrieve current file name, must be done before doing "include .env" ...
 makefile := $(MAKEFILE_LIST)

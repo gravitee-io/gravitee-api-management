@@ -14,7 +14,7 @@ set JAVA_OPTS="-Djava.net.preferIPv4Stack=true"
 set JAVA="%JAVA_HOME%/bin/java"
 
 rem Setup the classpath
-for /f %%i in ('dir ..\lib\gravitee-rest-api-standalone-bootstrap-*.jar /s /b') do set runjar=%%i
+for /f %%i in ('dir ..\lib\gravitee-apim-rest-api-standalone-bootstrap-*.jar /s /b') do set runjar=%%i
 
 set GRAVITEE_BOOT_CLASSPATH=%runjar%
 
