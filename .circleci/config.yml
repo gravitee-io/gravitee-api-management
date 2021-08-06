@@ -91,7 +91,6 @@ workflows:
           # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
           maven_profile_id: 'gio-dev'
       - publish-on-artifactory-and-nexus:
-          name: 🚀 Publish on Artifactory & Nexus
           requires:
             - process_pull_request_qa
               # filters:

@@ -1,0 +1,17 @@
+{
+  "title": "Properties schema validator",
+  "description": "Validate json schema expecting to have an array of key and values",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties" : {
+      "key": {
+        "type": "string"
+      },
+      "value": {
+        "type": "string"
+      }
+    },
+    "required": ["key", "value"]
+  }
+}
