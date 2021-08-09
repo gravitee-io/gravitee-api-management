@@ -98,7 +98,6 @@ public class PageService_ImportDirectoryTest {
         ImportPageEntity pageEntity = new ImportPageEntity();
         pageEntity.setSource(pageSource);
         pageEntity.setPublished(true);
-        pageEntity.setVisibility(Visibility.PUBLIC);
         FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
         when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.PageService_ImportDirectoryMockFetcher");
         when(fetcherPlugin.configuration()).thenReturn(PageService_MockFilesFetcherConfiguration.class);

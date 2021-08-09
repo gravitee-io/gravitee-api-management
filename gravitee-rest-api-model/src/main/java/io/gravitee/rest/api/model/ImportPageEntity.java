@@ -32,8 +32,7 @@ public class ImportPageEntity {
 
     private boolean published;
 
-    @NotNull
-    private Visibility visibility;
+    private Visibility visibility = Visibility.PUBLIC;
 
     private String lastContributor;
     private PageSourceEntity source;
