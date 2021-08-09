@@ -237,17 +237,12 @@ export class GvDocumentationComponent implements AfterViewInit {
   }
 
   private getFirstPage(pages: any[], pageId?: string) {
-    for (const page of pages) {
-      if (this.isAsciiDoc(page) || this.isAsyncApi(page) || this.isSwagger(page) || this.isMarkdown(page)) {
-        if (pageId) {
-          if (pageId === page.id) {
-            return page;
-          }
-        } else {
-          return page;
-        }
-      }
-    }
+    return pages
+      .filter((page) => this.isAsciiDoc(page) || this.isAsyncApi(page) || this.isSwagger(page) || this.isMarkdown(page))
+      .find((page) =>
+        // Check pageId if input is defined otherwise fallback on the first page
+        pageId ? pageId === page.id : true,
+      );
   }
 
   isEmpty() {

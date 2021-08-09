@@ -83,4 +83,30 @@ describe('GvDocumentationComponent', () => {
       expect(component.getFirstPage([page])).toBe(page);
     });
   });
+
+  describe('getFirstPage', () => {
+    const page1: Page = { type: 'LINK', id: '187' } as Page;
+    const page2: Page = { type: 'ASYNCAPI', id: '1141' } as Page;
+    const page3: Page = { type: 'ASYNCAPI', id: '11' } as Page;
+    const page4: Page = { type: 'SWAGGER', id: '148' } as Page;
+    const pages: Page[] = [page1, page2, page3, page4];
+
+    describe('when pageId is specified', () => {
+      it('should return the first page found with this id', () => {
+        expect(component.getFirstPage(pages, '11')).toBe(page3);
+      });
+      it('should return undefined with not existing id', () => {
+        expect(component.getFirstPage(pages, '12')).toBeUndefined();
+      });
+      it('should return undefined with id of a page with no displayed type', () => {
+        expect(component.getFirstPage(pages, '187')).toBeUndefined();
+      });
+    });
+
+    describe('when pageId is not specified', () => {
+      it('should return the first page found with displayed type', () => {
+        expect(component.getFirstPage(pages)).toBe(page2);
+      });
+    });
+  });
 });
