@@ -19,13 +19,11 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.node.api.Node;
+import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.services.dictionary.model.DynamicProperty;
 import io.gravitee.rest.api.services.dictionary.provider.http.configuration.HttpProviderConfiguration;
 import io.gravitee.rest.api.services.dictionary.provider.http.mapper.JoltMapper;
@@ -62,9 +60,13 @@ public class HttpProviderTest {
     @Mock
     private Node node;
 
+    @Mock
+    private HttpClientService httpClientService;
+
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        when(httpClientService.createHttpClient(anyString(), anyBoolean())).thenReturn(Vertx.vertx().createHttpClient());
     }
 
     @Test
@@ -75,7 +77,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -93,7 +95,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -112,7 +114,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -130,7 +132,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         Collection<DynamicProperty> dynamicProperties = future.join();
@@ -148,7 +150,7 @@ public class HttpProviderTest {
 
         HttpProvider provider = new HttpProvider(configuration);
         provider.setMapper(mapper);
-        provider.setVertx(Vertx.vertx());
+        provider.setHttpClientService(httpClientService);
 
         CompletableFuture<Collection<DynamicProperty>> future = provider.get();
         future.join();
