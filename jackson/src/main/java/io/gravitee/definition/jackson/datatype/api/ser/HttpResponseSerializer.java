@@ -31,7 +31,24 @@ public class HttpResponseSerializer extends StdScalarSerializer<HttpResponse> {
     public void serialize(HttpResponse httpResponse, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         jgen.writeStringField("body", httpResponse.getBody());
-        jgen.writeObjectField("headers", httpResponse.getHeaders());
+
+        if (httpResponse.getHeaders() != null) {
+            jgen.writeObjectFieldStart("headers");
+            httpResponse
+                .getHeaders()
+                .forEach(
+                    (header, values) -> {
+                        try {
+                            jgen.writeObjectField(header, String.join(", ", values));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                );
+
+            jgen.writeEndObject();
+        }
+
         jgen.writeNumberField("statusCode", httpResponse.getStatusCode());
         jgen.writeEndObject();
     }

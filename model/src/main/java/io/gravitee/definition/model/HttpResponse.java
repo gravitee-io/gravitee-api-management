@@ -16,13 +16,14 @@
 package io.gravitee.definition.model;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 
 public class HttpResponse implements Serializable {
 
     private String body;
 
-    private Map<String, String> headers;
+    private Map<String, List<String>> headers;
 
     private int statusCode;
 
@@ -34,11 +35,11 @@ public class HttpResponse implements Serializable {
         return body;
     }
 
-    public void setHeaders(Map<String, String> headers) {
+    public void setHeaders(Map<String, List<String>> headers) {
         this.headers = headers;
     }
 
-    public Map<String, String> getHeaders() {
+    public Map<String, List<String>> getHeaders() {
         return headers;
     }
 

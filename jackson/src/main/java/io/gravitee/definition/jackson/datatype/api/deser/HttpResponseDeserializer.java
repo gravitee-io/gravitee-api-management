@@ -23,8 +23,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.HttpResponse;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class HttpResponseDeserializer extends StdScalarDeserializer<HttpResponse> {
 
@@ -42,7 +45,18 @@ public class HttpResponseDeserializer extends StdScalarDeserializer<HttpResponse
         JsonNode headersNode = jsonNode.get("headers");
         if (headersNode != null && !headersNode.isEmpty(null)) {
             Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
-            httpResponse.setHeaders(headers);
+
+            final Map<String, List<String>> multiValueHeaders = headers
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> Arrays.stream(e.getValue().split(",")).map(String::trim).collect(Collectors.toList())
+                    )
+                );
+
+            httpResponse.setHeaders(multiValueHeaders);
         }
         return httpResponse;
     }
