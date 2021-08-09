@@ -2679,7 +2679,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             );
                     Map<String, String> metadataDecoded = Arrays
                         .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                        .map(entry -> entry.split("="))
+                        .map(entry -> entry.split("=", 2))
                         .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
                     apiModelEntity.setMetadata(metadataDecoded);
                 } catch (Exception ex) {
