@@ -69,9 +69,9 @@ public class PageService_ImportAutFetchDescriptorMockFetcher implements FilesFet
         "                \"name\": \"ma deuxieme page\"" +
         "            }," +
         "            {" +
-        "                \"src\": \"/docs/swagger/swagger.json\"," +
+        "                \"src\": \"/docs/asciidoc/asciidoc.adoc\"," +
         "                \"dest\": \"/technical\"," +
-        "                \"name\": \"Swagger\"" +
+        "                \"name\": \"AsciiDoc\"" +
         "            }," +
         "            {" +
         "                \"src\": \"/docs/swagger/readme.md\"," +

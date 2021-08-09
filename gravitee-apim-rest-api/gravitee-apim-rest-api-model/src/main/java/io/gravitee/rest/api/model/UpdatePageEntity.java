@@ -26,13 +26,11 @@ import javax.validation.constraints.Size;
  * @author Titouan COMPIEGNE
  * @author Guillaume GILLON
  */
-public class UpdatePageEntity {
+public class UpdatePageEntity extends FetchablePageEntity {
 
     @NotNull
     @Size(min = 1)
     private String name;
-
-    private String content;
 
     private String lastContributor;
 
@@ -66,14 +64,6 @@ public class UpdatePageEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 
     public String getLastContributor() {

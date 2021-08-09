@@ -68,9 +68,9 @@ public class PageService_ImportDescriptorMockFetcher implements FilesFetcher {
         "                \"name\": \"ma deuxieme page\"" +
         "            }," +
         "            {" +
-        "                \"src\": \"/docs/swagger/swagger.json\"," +
+        "                \"src\": \"/docs/asciidoc/asciidoc.adoc\"," +
         "                \"dest\": \"/technical\"," +
-        "                \"name\": \"Swagger\"" +
+        "                \"name\": \"Asciidoc\"" +
         "            }," +
         "            {" +
         "                \"src\": \"/docs/swagger/readme.md\"," +

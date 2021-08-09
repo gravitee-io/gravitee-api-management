@@ -45,9 +45,9 @@ public class PageService_ImportDirectoryMockFetcher implements FilesFetcher {
     public String[] files() throws FetcherException {
         return new String[] {
             "/src/doc/m1.md",
-            "/swagger.json",
+            "/asciidoc.adoc",
             "/src/doc/sub.m11.md",
-            "/src/doc/m2.yaml",
+            "/src/doc/asciidoc2.adoc",
             "/src/folder.with.dot/m2.MD",
             "/src/noFolder",
             "/src/noFolder2/",

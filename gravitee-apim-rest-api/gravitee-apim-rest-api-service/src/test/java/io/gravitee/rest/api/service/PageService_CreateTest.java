@@ -462,7 +462,6 @@ public class PageService_CreateTest {
 
         final String name = "PAGE_NAME";
 
-        when(newPage.getName()).thenReturn(name);
         when(newPage.getSource()).thenReturn(pageSource);
         when(newPage.getVisibility()).thenReturn(Visibility.PUBLIC);
 

@@ -131,6 +131,6 @@ public class PageService_ImportDescriptorTest {
 
         assertNotNull(pageEntities);
         assertEquals(8, pageEntities.size());
-        verify(pageRevisionService, times(6)).create(any());
+        verify(pageRevisionService, times(5)).create(any());
     }
 }

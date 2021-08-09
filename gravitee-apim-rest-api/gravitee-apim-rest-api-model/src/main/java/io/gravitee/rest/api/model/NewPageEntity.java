@@ -27,7 +27,7 @@ import javax.validation.constraints.Size;
  * @author Guillaume GILLON
  * @author GraviteeSource Team
  */
-public class NewPageEntity {
+public class NewPageEntity extends FetchablePageEntity {
 
     @NotNull
     @Size(min = 1)
@@ -35,8 +35,6 @@ public class NewPageEntity {
 
     @NotNull
     private PageType type;
-
-    private String content;
 
     private int order;
 
@@ -78,14 +76,6 @@ public class NewPageEntity {
 
     public void setType(PageType type) {
         this.type = type;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 
     public int getOrder() {
