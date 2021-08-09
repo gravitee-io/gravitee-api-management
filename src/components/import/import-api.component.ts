@@ -225,15 +225,17 @@ const ImportComponent: ng.IComponentOptions = {
       var id = this.isForUpdate() ? this.apiId : null;
       var apiDefinition = this.importFileMode ? this.importAPIFile.content : this.apiDescriptorURL;
       var isUpdate = this.isForUpdate();
-      ApiService.import(id, apiDefinition, this.definitionVersion).then(function (api) {
-        if (isUpdate) {
-          NotificationService.show('API updated');
-          $state.reload();
-        } else {
-          NotificationService.show('API created');
-          $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
-        }
-      });
+      ApiService.import(id, apiDefinition, this.definitionVersion)
+        .then(function (api) {
+          if (isUpdate) {
+            NotificationService.show('API updated');
+            $state.reload();
+          } else {
+            NotificationService.show('API created');
+            $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
+          }
+        })
+        .catch(this._manageError);
     };
 
     this.toggleTab = () => {
@@ -242,8 +244,9 @@ const ImportComponent: ng.IComponentOptions = {
       this.error = null;
     };
 
-    this._manageSwaggerError = (err) => {
+    this._manageError = (err) => {
       this.error = { ...err.data, title: "Sorry, we can't seem to parse the definition" };
+      this.importTriggered = false;
     };
 
     this.importSwagger = () => {
@@ -280,7 +283,7 @@ const ImportComponent: ng.IComponentOptions = {
             NotificationService.show('API successfully imported');
             $state.reload();
           })
-          .catch(this._manageSwaggerError);
+          .catch(this._manageError);
       } else {
         // @ts-ignore
         ApiService.importSwagger(null, swagger, this.definitionVersion, { silentCall: true })
@@ -288,7 +291,7 @@ const ImportComponent: ng.IComponentOptions = {
             NotificationService.show('API successfully updated');
             $state.go('management.apis.detail.portal.general', { apiId: api.data.id });
           })
-          .catch(this._manageSwaggerError);
+          .catch(this._manageError);
       }
     };
   },

@@ -85,7 +85,9 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
       this.chart.columns[1] = _.find(this.projections, (p) => p.value === this.projection).label;
       if (this.projection) {
         this.chart.request.order = this.order + this.aggregate + ':' + this.projection;
-        this.chart.percent = false;
+        if (this.projection !== '_count') {
+          this.chart.percent = false;
+        }
       } else {
         delete this.chart.request.order;
       }

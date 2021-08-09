@@ -37,6 +37,11 @@ export const propertyProviders = [
           type: 'string',
           pattern: '^(http://|https://)',
         },
+        useSystemProxy: {
+          title: 'Use system proxy',
+          description: 'Use the system proxy configured by your administrator.',
+          type: 'boolean',
+        },
         headers: {
           type: 'array',
           title: 'Request Headers',
@@ -92,6 +97,48 @@ export const propertyProviders = [
 
 export const configurationInformation =
   'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
+
+export const providersTitleMap = propertyProviders.reduce((map, provider) => {
+  map[provider.id] = provider.name;
+  return map;
+}, {});
+
+export const providersEnum = Object.keys(providersTitleMap);
+
+export const dynamicPropertySchema = {
+  properties: {
+    enabled: {
+      type: 'boolean',
+      title: 'Enabled',
+      description: ' This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.',
+    },
+    trigger: {
+      type: 'object',
+      properties: {
+        rate: {
+          type: 'integer',
+          title: 'Polling frequency interval',
+        },
+        unit: {
+          type: 'string',
+          title: 'Time unit',
+          enum: ['SECONDS', 'MINUTES', 'HOURS'],
+        },
+      },
+      required: ['rate', 'unit'],
+    },
+    provider: {
+      type: 'string',
+      title: 'Provider type',
+      enum: providersEnum,
+      default: providersEnum[0],
+      'x-schema-form': {
+        titleMap: providersTitleMap,
+      },
+    },
+  },
+  required: ['trigger', 'provider'],
+};
 
 class ApiPolicyStudioController {
   private studio: any;
@@ -159,6 +206,7 @@ class ApiPolicyStudioController {
     this.studio.setAttribute('configuration-schema', JSON.stringify(this.resolvedConfigurationSchema.data));
     this.studio.setAttribute('configuration-information', configurationInformation);
     this.studio.setAttribute('property-providers', JSON.stringify(propertyProviders));
+    this.studio.setAttribute('dynamic-property-schema', JSON.stringify(dynamicPropertySchema));
     if (!this.UserService.isUserHasPermissions(['api-plan-u'])) {
       this.studio.setAttribute('readonly-plans', 'true');
     }
