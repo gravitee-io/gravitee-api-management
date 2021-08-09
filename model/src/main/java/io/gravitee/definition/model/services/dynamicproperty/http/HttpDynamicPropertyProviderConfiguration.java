@@ -18,6 +18,7 @@ package io.gravitee.definition.model.services.dynamicproperty.http;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
+import java.util.Objects;
 
 import java.util.List;
 
@@ -25,55 +26,83 @@ import java.util.List;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class HttpDynamicPropertyProviderConfiguration implements DynamicPropertyProviderConfiguration {
+public class HttpDynamicPropertyProviderConfiguration
+  implements DynamicPropertyProviderConfiguration {
 
-    private String url;
+  private String url;
 
-    private String specification;
+  private String specification;
 
-    private HttpMethod method;
+  private boolean useSystemProxy;
 
-    private List<HttpHeader> headers;
+  private HttpMethod method;
 
-    private String body;
+  private List<HttpHeader> headers;
 
-    public String getUrl() {
-        return url;
-    }
+  private String body;
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
+  public String getUrl() {
+    return url;
+  }
 
-    public String getSpecification() {
-        return specification;
-    }
+  public void setUrl(String url) {
+    this.url = url;
+  }
 
-    public void setSpecification(String specification) {
-        this.specification = specification;
-    }
+  public String getSpecification() {
+    return specification;
+  }
 
-    public HttpMethod getMethod() {
-        return method;
-    }
+  public void setSpecification(String specification) {
+    this.specification = specification;
+  }
 
-    public void setMethod(HttpMethod method) {
-        this.method = method;
-    }
+  public boolean isUseSystemProxy() {
+    return useSystemProxy;
+  }
 
-    public List<HttpHeader> getHeaders() {
-        return headers;
-    }
+  public void setUseSystemProxy(boolean useSystemProxy) {
+    this.useSystemProxy = useSystemProxy;
+  }
 
-    public void setHeaders(List<HttpHeader> headers) {
-        this.headers = headers;
-    }
+  public HttpMethod getMethod() {
+      return method;
+  }
 
-    public String getBody() {
-        return body;
-    }
+  public void setMethod(HttpMethod method) {
+      this.method = method;
+  }
 
-    public void setBody(String body) {
-        this.body = body;
-    }
+  public List<HttpHeader> getHeaders() {
+      return headers;
+  }
+
+  public void setHeaders(List<HttpHeader> headers) {
+      this.headers = headers;
+  }
+
+  public String getBody() {
+      return body;
+  }
+
+  public void setBody(String body) {
+      this.body = body;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    HttpDynamicPropertyProviderConfiguration that = (HttpDynamicPropertyProviderConfiguration) o;
+    return (
+            useSystemProxy == that.useSystemProxy &&
+                    Objects.equals(url, that.url) &&
+                    Objects.equals(specification, that.specification)
+    );
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(url, specification, useSystemProxy);
+  }
 }

@@ -74,6 +74,7 @@
       "configuration": {
         "url": "http://my_configuration_url",
         "specification": "{}",
+        "useSystemProxy": true,
         "method": "GET"
       }
     }

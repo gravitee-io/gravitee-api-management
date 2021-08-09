@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.services.schedule;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -42,5 +43,18 @@ public class Trigger implements Serializable {
 
     public void setUnit(TimeUnit unit) {
         this.unit = unit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Trigger trigger = (Trigger) o;
+        return rate == trigger.rate && unit == trigger.unit;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(rate, unit);
     }
 }
