@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createOffsetClause;
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.createPagingClause;
 import static io.gravitee.repository.jdbc.management.JdbcHelper.*;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -174,6 +176,35 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
     }
 
     @Override
+    public List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("JdbcEventRepository.search({})", criteriaToString(criteria));
+        }
+
+        final List<Object> args = new ArrayList<>();
+        final StringBuilder builder = new StringBuilder(
+            "select ev.*, evp.* from " + this.tableName + " ev inner join " + EVENT_PROPERTIES + " evp on ev.id = evp.event_id "
+        );
+
+        builder.append(" inner join (select e.id from " + this.tableName + " e ");
+        appendCriteria(builder, criteria, args);
+        builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("e.id in(").append(joinLatest(group, args)).append(")");
+        builder.append("    order by e.updated_at desc ");
+
+        if (page != null && size != null) {
+            final int limit = size.intValue();
+            builder.append(createPagingClause(limit, (page.intValue() * limit)));
+        } else {
+            // Hack to add offset O because some db engines do not support ordering sub query without specifying offset (-> sqlserver), others do not support offset without limit (--> mysql).
+            builder.append(createOffsetClause(0L));
+        }
+        builder.append("    ) as je on je.id = ev.id ");
+        builder.append(" order by ev.updated_at desc");
+
+        return queryEvents(builder.toString(), args);
+    }
+
+    @Override
     public Page<Event> search(EventCriteria filter, Pageable page) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("JdbcEventRepository.search({}, {})", criteriaToString(filter), page);
@@ -188,35 +219,14 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             LOGGER.debug("JdbcEventRepository.search({})", criteriaToString(filter));
         }
         final List<Object> args = new ArrayList<>();
-        final StringBuilder builder = new StringBuilder(
-            "select e.*, ep.* from " + this.tableName + " e left join " + EVENT_PROPERTIES + " ep on e.id = ep.event_id "
-        );
-        boolean started = addPropertiesWhereClause(filter, args, builder);
-        if (filter.getFrom() > 0) {
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("updated_at >= ?");
-            args.add(new Date(filter.getFrom()));
-            started = true;
-        }
-        if (filter.getTo() > 0) {
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("updated_at < ?");
-            args.add(new Date(filter.getTo()));
-            started = true;
-        }
-        if (filter.getEnvironmentId() != null) {
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("e.environment_id = ?");
-            args.add(filter.getEnvironmentId());
-            started = true;
-        }
-        if (!isEmpty(filter.getTypes())) {
-            final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
-            addStringsWhereClause(types, "type", args, builder, started);
-        }
+        final StringBuilder builder = createSearchQueryBuilder();
+        appendCriteria(builder, filter, args);
 
         builder.append(" order by updated_at desc ");
-        String sql = builder.toString();
+        return queryEvents(builder.toString(), args);
+    }
+
+    private List<Event> queryEvents(String sql, List<Object> args) {
         LOGGER.debug("SQL: {}", sql);
         LOGGER.debug("Args: {}", args);
         final JdbcHelper.CollatingRowMapper<Event> rowCallbackHandler = new JdbcHelper.CollatingRowMapper<>(
@@ -245,6 +255,38 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         return events;
     }
 
+    private StringBuilder createSearchQueryBuilder() {
+        return new StringBuilder(
+            "select e.*, ep.* from " + this.tableName + " e left join " + EVENT_PROPERTIES + " ep on e.id = ep.event_id "
+        );
+    }
+
+    private void appendCriteria(StringBuilder builder, EventCriteria filter, List<Object> args) {
+        boolean started = addPropertiesWhereClause(filter, args, builder);
+        if (filter.getFrom() > 0) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("e.updated_at >= ?");
+            args.add(new Date(filter.getFrom()));
+            started = true;
+        }
+        if (filter.getTo() > 0) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("e.updated_at < ?");
+            args.add(new Date(filter.getTo()));
+            started = true;
+        }
+        if (filter.getEnvironmentId() != null) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("e.environment_id = ?");
+            args.add(filter.getEnvironmentId());
+            started = true;
+        }
+        if (!isEmpty(filter.getTypes())) {
+            final Collection<String> types = filter.getTypes().stream().map(Enum::name).collect(toList());
+            addStringsWhereClause(types, "e.type", args, builder, started);
+        }
+    }
+
     private boolean addPropertiesWhereClause(EventCriteria filter, List<Object> args, StringBuilder builder) {
         if (!isEmpty(filter.getProperties())) {
             builder.append(" left join " + EVENT_PROPERTIES + " prop on prop.event_id = e.id ");
@@ -264,6 +306,38 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             return true;
         }
         return false;
+    }
+
+    /**
+     * Create a select query that can be used in a join in order to select the latest event of each api or dictionary (eg: group).
+     */
+    private StringBuilder joinLatest(Event.EventProperties group, List<Object> args) {
+        // Add group argument twice as there are 2 inner selects to include.
+        args.add(group.getValue());
+        args.add(group.getValue());
+
+        return new StringBuilder()
+            .append("select t1.event_id ")
+            .append("from (")
+            .append(innerSelectLatest())
+            .append(") as t1 ")
+            .append("where t1.event_date = ")
+            .append("    (select max(event_date) from (")
+            .append(innerSelectLatest())
+            .append(") as t2 ")
+            .append("     where t2.api_id = t1.api_id) ");
+    }
+
+    private StringBuilder innerSelectLatest() {
+        return new StringBuilder()
+            .append("select ep1.property_value as api_id, ep1.event_id as event_id, max(e1.updated_at) as event_date ")
+            .append("from " + this.tableName + " e1 ")
+            .append(
+                "inner join " +
+                EVENT_PROPERTIES +
+                " ep1 on e1.id = ep1.event_id and ep1.property_key = ? and ep1.property_value is not null "
+            )
+            .append("group by ep1.property_value, ep1.event_id ");
     }
 
     private String criteriaToString(EventCriteria filter) {

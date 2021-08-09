@@ -27,4 +27,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PlanMongoRepository extends MongoRepository<PlanMongo, String> {
     List<PlanMongo> findByApi(String api);
+
+    List<PlanMongo> findByApiIn(List<String> apis);
 }
