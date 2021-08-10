@@ -43,11 +43,5 @@
             <artifactId>gravitee-apim-repository-api</artifactId>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-            <version>${nimbus-jwt.version}</version>
-        </dependency>
     </dependencies>
 </project>
