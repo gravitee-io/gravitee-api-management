@@ -568,6 +568,7 @@ require('angular-moment-picker');
 require('md-color-picker');
 
 angular.module('gravitee-management', [
+  'angular-loading-bar',
   uiRouter,
   permission,
   uiPermission,
@@ -591,7 +592,6 @@ angular.module('gravitee-management', [
   'ui.tree',
   'angular-jwt',
   'gridster',
-  'angular-loading-bar',
   'ngAnimate',
   'LocalStorageModule',
   'satellizer',
