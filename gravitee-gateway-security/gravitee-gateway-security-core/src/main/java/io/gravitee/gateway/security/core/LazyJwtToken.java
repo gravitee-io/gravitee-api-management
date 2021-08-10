@@ -13,18 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.security.jwt;
+package io.gravitee.gateway.security.core;
 
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTParser;
 import java.text.ParseException;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class LazyJwtToken {
+
+    private final Logger logger = LoggerFactory.getLogger(LazyJwtToken.class);
 
     private final String token;
 
@@ -34,7 +38,7 @@ public class LazyJwtToken {
 
     private boolean parsed = false;
 
-    LazyJwtToken(final String token) {
+    public LazyJwtToken(final String token) {
         this.token = token;
     }
 
@@ -62,6 +66,7 @@ public class LazyJwtToken {
                 }
             } catch (ParseException ex) {
                 // Nothing to do in case of a bad JWT token
+                logger.debug("Error while parsing JWT token", ex);
             }
         }
     }
