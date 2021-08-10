@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class EventsService {
-  constructor(private $http, private Constants) {
+import { IHttpPromise, IHttpService } from 'angular';
+import { Constants } from '../entities/Constants';
+
+export class EventService {
+  constructor(private readonly $http: IHttpService, private readonly Constants: Constants) {
     'ngInject';
   }
 
-  search(type, apis, from, to, page, size) {
+  public search(type: string, apis: string, from: string, to: string, page: number | string, size: number | string): IHttpPromise<any> {
     return this.$http.get(
       `${this.Constants.env.baseURL}/platform/events?type=${type}&api_ids=${apis}&from=${from}&to=${to}&page=${page}&size=${size}`,
     );
   }
 }
-
-export default EventsService;

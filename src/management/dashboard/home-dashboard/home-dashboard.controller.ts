@@ -15,6 +15,7 @@
  */
 import * as _ from 'lodash';
 import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
+import { EventService } from '../../../services/event.service';
 
 class HomeDashboardController {
   private eventLabels: any;
@@ -29,7 +30,13 @@ class HomeDashboardController {
   private customTimeframeLastDay: any;
   private timeframe: ITimeframe;
 
-  constructor(private EventsService, private EnvironmentService, private $scope, private dashboards, private UserService) {
+  constructor(
+    private readonly eventService: EventService,
+    private EnvironmentService,
+    private $scope,
+    private dashboards,
+    private UserService,
+  ) {
     'ngInject';
     this.eventLabels = {};
     this.eventTypes = [];
@@ -88,17 +95,12 @@ class HomeDashboardController {
 
       // search
       this.$scope.eventsFetchData = true;
-      this.EventsService.search(
-        types,
-        apis,
-        this.customTimeframe.from,
-        this.customTimeframe.to,
-        this.query.page - 1,
-        this.query.limit,
-      ).then((response) => {
-        this.events = response.data;
-        this.$scope.eventsFetchData = false;
-      });
+      this.eventService
+        .search(types, apis, this.customTimeframe.from, this.customTimeframe.to, this.query.page - 1, this.query.limit)
+        .then((response) => {
+          this.events = response.data;
+          this.$scope.eventsFetchData = false;
+        });
     }
   }
 

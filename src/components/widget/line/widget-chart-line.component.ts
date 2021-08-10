@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import AnalyticsService from '../../../services/analytics.service';
-import EventsService from '../../../services/events.service';
+import { EventService } from '../../../services/event.service';
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-line');
 
@@ -26,11 +26,11 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvWidget',
   },
-  controller: function ($scope, $element, $rootScope, $state, AnalyticsService: AnalyticsService, EventsService: EventsService) {
+  controller: function ($scope, $element, $rootScope, $state, AnalyticsService: AnalyticsService, eventService: EventService) {
     'ngInject';
 
     this.AnalyticsService = AnalyticsService;
-    this.EventsService = EventsService;
+    this.eventService = eventService;
     this.$scope = $scope;
 
     this.$onInit = () => {

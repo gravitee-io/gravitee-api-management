@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+import { EventService } from '../../../services/event.service';
 
 class AnalyticsDashboardController {
   private eventLabels: any;
@@ -28,7 +29,7 @@ class AnalyticsDashboardController {
   private dashboard: any;
 
   constructor(
-    private EventsService,
+    private eventService: EventService,
     private AnalyticsService,
     private ApiService,
     private ApplicationService,
@@ -123,7 +124,7 @@ class AnalyticsDashboardController {
 
     // search
     this.$scope.eventsFetchData = true;
-    this.EventsService.search(types, apis, this.lastFrom, this.lastTo, this.query.page - 1, this.query.limit).then((response) => {
+    this.eventService.search(types, apis, this.lastFrom, this.lastTo, this.query.page - 1, this.query.limit).then((response) => {
       this.events = response.data;
       this.$scope.eventsFetchData = false;
     });
