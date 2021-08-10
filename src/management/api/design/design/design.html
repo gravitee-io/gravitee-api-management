@@ -22,6 +22,7 @@
   has-properties
   has-resources
   has-policy-filter
+  can-debug
   sortable
   can-add
   has-plans
@@ -34,4 +35,5 @@
   property-providers="apiDesignCtrl.propertyProviders"
   flow-schema="apiDesignCtrl.resolvedFlowSchemaForm.data"
   ng-on-gv-policy-studio:save="apiDesignCtrl.onSave($event)"
+  ng-on-gv-policy-studio:debug="apiDesignCtrl.onDebug($event)"
 ></gv-policy-studio-wrapper>

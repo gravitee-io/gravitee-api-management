@@ -23,6 +23,7 @@ const PolicyStudioWrapperComponent: ng.IComponentOptions = {
   bindings: {
     flowsTitle: '@',
     canAdd: '@',
+    canDebug: '@',
     hasPolicyFilter: '@',
     hasProperties: '@',
     hasResources: '@',

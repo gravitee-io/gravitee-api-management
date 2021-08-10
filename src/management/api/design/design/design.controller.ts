@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';
+import { IPromise } from 'angular';
+import { ApiService } from '../../../../services/api.service';
+import { DebugApiService } from '../../../../services/debugApi.service';
+
 export const propertyProviders = [
   {
     id: 'HTTP',
@@ -99,7 +103,8 @@ class ApiDesignController {
     private resolvedPolicies,
     private resolvedFlowSchemaForm,
     private $scope,
-    private ApiService,
+    private readonly ApiService: ApiService,
+    private readonly debugApiService: DebugApiService,
     private NotificationService,
     private $rootScope,
     private $stateParams,
@@ -147,6 +152,27 @@ class ApiDesignController {
       this.NotificationService.show('Design of api has been updated');
       event.target.saved();
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
+    });
+  }
+
+  public onDebug(event: { detail: { definition: any; services: any; request: any } }): IPromise<void> {
+    const { definition, services, request } = event.detail;
+    const debugApi = deepClone(this.api);
+    debugApi.flows = definition.flows;
+    debugApi.plans = definition.plans;
+    debugApi.resources = definition.resources;
+    debugApi.properties = definition.properties;
+    debugApi.services = services;
+    debugApi.flow_mode = definition['flow-mode'];
+
+    const consolidatedRequest = {
+      body: '',
+      headers: {},
+      ...request,
+    };
+
+    return this.debugApiService.debug(debugApi, consolidatedRequest).then(() => {
+      this.NotificationService.show('Try it in progress...');
     });
   }
 }

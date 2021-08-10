@@ -559,6 +559,7 @@ NoDataToDisplay(Highcharts);
 Map(Highcharts);
 
 import '@highcharts/map-collection/custom/world';
+import { DebugApiService } from '../services/debugApi.service';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -780,6 +781,7 @@ graviteeManagementModule.controller('PoliciesController', PoliciesController);
 graviteeManagementModule.service('ApplicationService', ApplicationService);
 graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
 graviteeManagementModule.service('ApiService', ApiService);
+graviteeManagementModule.service('debugApiService', DebugApiService);
 graviteeManagementModule.service('ApiPrimaryOwnerModeService', ApiPrimaryOwnerModeService);
 graviteeManagementModule.service('CorsService', CorsService);
 graviteeManagementModule.service('DocumentationService', DocumentationService);

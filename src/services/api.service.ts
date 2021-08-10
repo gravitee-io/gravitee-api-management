@@ -15,8 +15,9 @@
  */
 import { PagedResult } from '../entities/pagedResult';
 import { Constants } from '../entities/Constants';
-import { IHttpPromise, IHttpService, IRootScopeService } from 'angular';
+import { IHttpPromise, IHttpService, IPromise, IRootScopeService } from 'angular';
 import { clone } from 'lodash';
+import { Event } from '../entities/event/event';
 
 export class LogsQuery {
   from: number;
