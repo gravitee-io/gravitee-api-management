@@ -16,7 +16,7 @@
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import NotificationService from '../../services/notification.service';
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import UserService from '../../services/user.service';
 import ApiPrimaryOwnerModeService from '../../services/apiPrimaryOwnerMode.service';
 import _ = require('lodash');

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService from '../../../../services/api.service';
+import { ApiService } from '../../../../services/api.service';
 import _ = require('lodash');
 
 const ApplicationCreationStep3Component: ng.IComponentOptions = {

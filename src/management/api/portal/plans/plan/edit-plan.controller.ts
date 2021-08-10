@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import ApiService, { isV2 } from '../../../../../services/api.service';
+import { ApiService } from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 
@@ -58,7 +58,7 @@ class ApiEditPlanController {
   }
 
   isV2() {
-    return isV2(this.api);
+    return this.ApiService.isV2(this.api);
   }
 
   $onInit() {

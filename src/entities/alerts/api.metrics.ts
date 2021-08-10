@@ -16,7 +16,7 @@
 
 import _ = require('lodash');
 import { CompareCondition, Metrics, Scope, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
 import TenantService from '../../services/tenant.service';
 

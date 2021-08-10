@@ -29,7 +29,7 @@ import * as tinycolor from 'tinycolor2';
 import FormDirective from '../components/form/form.directive';
 import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import GvModelDirective from '../libraries/gv-model.directive';
-import ApiService from '../services/api.service';
+import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
 import ApisController from '../management/api/apis.controller';
 import ApisStatusDashboardController from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';

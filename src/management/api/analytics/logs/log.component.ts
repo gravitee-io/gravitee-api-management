@@ -2,7 +2,7 @@ import { StateService } from '@uirouter/core';
 import NotificationService from '../../../../services/notification.service';
 import { toPairs } from 'lodash';
 import AnalyticsService from '../../../../services/analytics.service';
-import ApiService from '../../../../services/api.service';
+import { ApiService } from '../../../../services/api.service';
 import '@gravitee/ui-components/wc/gv-code';
 
 /*

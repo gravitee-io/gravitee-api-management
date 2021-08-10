@@ -17,7 +17,7 @@ import _ = require('lodash');
 import angular = require('angular');
 import '@gravitee/ui-components/wc/gv-cron-editor';
 import '@gravitee/ui-components/wc/gv-expression-language';
-import ApiService from '../../../../../services/api.service';
+import { ApiService } from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
 
 class ApiHealthCheckConfigureController {

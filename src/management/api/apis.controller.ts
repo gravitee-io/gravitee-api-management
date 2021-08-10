@@ -17,7 +17,7 @@ import * as _ from 'lodash';
 
 import UserService from '../../services/user.service';
 import { StateParams, StateService, TransitionService } from '@uirouter/core';
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 
 interface IApisScope extends ng.IScope {
   apisLoading: boolean;

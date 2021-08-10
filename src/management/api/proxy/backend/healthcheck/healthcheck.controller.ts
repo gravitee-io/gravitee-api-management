@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService, { LogsQuery } from '../../../../../services/api.service';
+import { ApiService, LogsQuery } from '../../../../../services/api.service';
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import SidenavService from './sidenav.service';
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
 import UserService from '../../services/user.service';
 import _ = require('lodash');

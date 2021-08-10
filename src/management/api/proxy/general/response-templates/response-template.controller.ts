@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { StateParams, StateService } from '@uirouter/core';
-import ApiService from '../../../../../services/api.service';
+import { ApiService } from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
 import _ = require('lodash');
 

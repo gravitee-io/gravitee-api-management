@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import MetadataService from '../../../services/metadata.service';
-import ApiService from '../../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
 function NewMetadataDialogController(
   MetadataService: MetadataService,

@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 
-import ApiService from '../../../../services/api.service';
+import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import angular = require('angular');
 

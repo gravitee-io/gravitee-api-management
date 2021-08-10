@@ -19,7 +19,7 @@ import MetadataService from '../../services/metadata.service';
 import RoleService from '../../services/role.service';
 import GroupService from '../../services/group.service';
 import TopApiService from '../../services/top-api.service';
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import DictionaryService from '../../services/dictionary.service';
 import ApiHeaderService from '../../services/apiHeader.service';
 import IdentityProviderService from '../../services/identityProvider.service';

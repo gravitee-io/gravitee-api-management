@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import TenantService from '../../../services/tenant.service';
-import ApiService from '../../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
 import EnvironmentService from '../../../services/environment.service';
 import SpelService from '../../../services/spel.service';

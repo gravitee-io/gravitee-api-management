@@ -16,7 +16,7 @@
 import _ = require('lodash');
 import SidenavService from '../../../components/sidenav/sidenav.service';
 import UserService from '../../../services/user.service';
-import ApiService from '../../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 import NotificationService from '../../../services/notification.service';
 import GroupService from '../../../services/group.service';
 import CorsService from '../../../services/cors.service';

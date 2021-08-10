@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import ApiService from '../../../../services/api.service';
+import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';

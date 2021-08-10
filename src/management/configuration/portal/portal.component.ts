@@ -17,7 +17,7 @@ import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
 import { StateService } from '@uirouter/core';
 import CorsService from '../../../services/cors.service';
-import ApiService from '../../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 import _ = require('lodash');
 
 const PortalSettingsComponent: ng.IComponentOptions = {

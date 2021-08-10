@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import ApiService from '../../../../../services/api.service';
+import { ApiService } from '../../../../../services/api.service';
 
 export enum CustomApiKeyInputState {
   EMPTY = 'empty',

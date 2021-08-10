@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiService from '../../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 import MetadataService from '../../../services/metadata.service';
 import GroupService from '../../../services/group.service';
 import { DocumentationService, DocumentationQuery } from '../../../services/documentation.service';

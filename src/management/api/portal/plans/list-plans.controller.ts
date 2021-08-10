@@ -16,7 +16,7 @@
 import _ = require('lodash');
 import angular = require('angular');
 import UserService from '../../../../services/user.service';
-import ApiService, { isV2 } from '../../../../services/api.service';
+import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
 
@@ -86,7 +86,7 @@ class ApiListPlansController {
   }
 
   canDesign(plan) {
-    return isV2(this.api) && plan.status !== 'CLOSED';
+    return this.ApiService.isV2(this.api) && plan.status !== 'CLOSED';
   }
 
   design(plan) {

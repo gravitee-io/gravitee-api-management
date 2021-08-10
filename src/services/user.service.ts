@@ -16,7 +16,7 @@
 import { User } from '../entities/user';
 import RoleService from './role.service';
 import ApplicationService from './application.service';
-import ApiService from './api.service';
+import { ApiService } from './api.service';
 import StringService from './string.service';
 import { UrlService } from '@uirouter/angularjs';
 import { PagedResult } from '../entities/pagedResult';

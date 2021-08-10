@@ -16,7 +16,7 @@
 import SidenavService from '../../components/sidenav/sidenav.service';
 import UserService from '../../services/user.service';
 import NotificationService from '../../services/notification.service';
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import FlowService from '../../services/flow.service';
 import { IScope } from 'angular';
 

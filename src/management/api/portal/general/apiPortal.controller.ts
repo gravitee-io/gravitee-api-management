@@ -17,7 +17,7 @@ import _ = require('lodash');
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import UserService from '../../../../services/user.service';
 import { QualityMetrics } from '../../../../entities/qualityMetrics';
-import ApiService from '../../../../services/api.service';
+import { ApiService } from '../../../../services/api.service';
 import PolicyService from '../../../../services/policy.service';
 import '@gravitee/ui-components/wc/gv-icon';
 import * as angular from 'angular';

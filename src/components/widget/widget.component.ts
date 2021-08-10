@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 import AnalyticsService from '../../services/analytics.service';
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 import EventsService from '../../services/events.service';
 
 const WidgetComponent: ng.IComponentOptions = {

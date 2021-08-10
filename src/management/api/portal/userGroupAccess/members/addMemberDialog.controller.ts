@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import RoleService from '../../../../../services/role.service';
-import ApiService from '../../../../../services/api.service';
+import { ApiService } from '../../../../../services/api.service';
 import * as _ from 'lodash';
 
 function DialogAddMemberApiController(

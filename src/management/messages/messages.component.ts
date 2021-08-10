@@ -17,7 +17,7 @@ import { StateService } from '@uirouter/core';
 import MessageService from '../../services/message.service';
 import NotificationService from '../../services/notification.service';
 import _ = require('lodash');
-import ApiService from '../../services/api.service';
+import { ApiService } from '../../services/api.service';
 
 const MessagesComponent: ng.IComponentOptions = {
   bindings: {

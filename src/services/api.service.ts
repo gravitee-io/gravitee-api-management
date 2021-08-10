@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { PagedResult } from '../entities/pagedResult';
-import { IHttpResponse } from 'angular';
+import { Constants } from '../entities/Constants';
+import { IHttpPromise, IHttpService, IRootScopeService } from 'angular';
+import { clone } from 'lodash';
 
 export class LogsQuery {
   from: number;
@@ -33,8 +34,8 @@ interface IMembership {
   role: string;
 }
 
-class ApiService {
-  constructor(private $http, private $rootScope, private Constants) {
+export class ApiService {
+  constructor(private readonly $http: IHttpService, private readonly $rootScope: IRootScopeService, private readonly Constants: Constants) {
     'ngInject';
   }
 
@@ -112,15 +113,15 @@ class ApiService {
     ];
   }
 
-  get(name): ng.IPromise<any> {
+  get(name: string): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/` + name);
   }
 
-  getAnalyticsHttpTimeout() {
+  getAnalyticsHttpTimeout(): number {
     return this.Constants.env.settings.analytics.clientTimeout as number;
   }
 
-  list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any): ng.IPromise<any> {
+  list(category?: string, portal?: boolean, page?: any, order?: string, opts?: any): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/`;
 
     // Fallback to paginated list if a page parameter is provided.
@@ -139,7 +140,7 @@ class ApiService {
     return this.$http.get(url, opts);
   }
 
-  searchApis(query?: string, page?: any, order?: string, opts?: any): ng.IPromise<any> {
+  searchApis(query?: string, page?: any, order?: string, opts?: any): IHttpPromise<any> {
     let url = `${this.Constants.env.baseURL}/apis/_search/`;
 
     // Fallback to paginated search if a page parameter is provided.
@@ -157,34 +158,34 @@ class ApiService {
     return this.$http.post(url, {}, opts);
   }
 
-  listTopAPIs(): ng.IPromise<any> {
+  listTopAPIs(): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/` + '?top=true');
   }
 
-  listByGroup(group): ng.IPromise<any> {
+  listByGroup(group: string): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/` + '?group=' + group);
   }
 
-  start(api): ng.IPromise<any> {
+  start(api: { id: string; etag: string }): IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '?action=START', {}, { headers: { 'If-Match': api.etag } });
   }
 
-  stop(api): ng.IPromise<any> {
+  stop(api: { id: string; etag: string }): IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '?action=STOP', {}, { headers: { 'If-Match': api.etag } });
   }
 
-  reload(name): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + 'reload/' + name);
+  reload(name: string): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/reload/${name}`, {});
   }
 
-  migrateApiToPolicyStudio(apiId): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/_migrate');
+  migrateApiToPolicyStudio(apiId: string): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/_migrate`, {});
   }
 
-  update(api): ng.IPromise<any> {
+  update(api): IHttpPromise<any> {
     // clean endpoint http proxy
     if (api.proxy && api.proxy.endpoints) {
-      _.forEach(api.proxy.endpoints, (endpoint) => {
+      api.proxy.endpoints.forEach((endpoint) => {
         if (endpoint.proxy && !endpoint.proxy.useSystemProxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
           delete endpoint.proxy;
         }
@@ -225,27 +226,27 @@ class ApiService {
     );
   }
 
-  delete(name): ng.IPromise<any> {
+  delete(name: string): IHttpPromise<any> {
     return this.$http.delete(`${this.Constants.env.baseURL}/apis/` + name);
   }
 
-  listPolicies(apiName): ng.IPromise<any> {
+  listPolicies(apiName: string): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiName + '/policies');
   }
 
-  isAPISynchronized(apiId): ng.IPromise<any> {
+  isAPISynchronized(apiId: string): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/state');
   }
 
-  deploy(apiId, apiDeployment?): ng.IPromise<any> {
+  deploy(apiId: string, apiDeployment?: { deploymentLabel: any }): IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/deploy', apiDeployment);
   }
 
-  rollback(apiId, apiDescriptor): ng.IPromise<any> {
+  rollback(apiId: string, apiDescriptor: any): IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/rollback', apiDescriptor);
   }
 
-  import(apiId: string, apiDefinition: any, definitionVersion?: string): ng.IPromise<any> {
+  import(apiId: string, apiDefinition: any, definitionVersion?: string): IHttpPromise<any> {
     if (apiId) {
       return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/import`, apiDefinition);
     }
@@ -253,7 +254,7 @@ class ApiService {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/import${params}`, apiDefinition);
   }
 
-  importSwagger(apiId: string, swaggerDescriptor: string, definitionVersion?: string, config?): ng.IPromise<any> {
+  importSwagger(apiId: string, swaggerDescriptor: string, definitionVersion?: string, config?): IHttpPromise<any> {
     const params = definitionVersion ? `?definitionVersion=${definitionVersion}` : '';
     if (apiId) {
       return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/import/swagger${params}`, swaggerDescriptor, config);
@@ -261,7 +262,7 @@ class ApiService {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/import/swagger${params}`, swaggerDescriptor, config);
   }
 
-  export(apiId, exclude, exportVersion): ng.IPromise<any> {
+  export(apiId: string, exclude: any[], exportVersion: string): IHttpPromise<any> {
     return this.$http.get(
       `${this.Constants.env.baseURL}/apis/` +
         apiId +
@@ -271,26 +272,25 @@ class ApiService {
     );
   }
 
-  verify(criteria, config?): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + 'verify', criteria, config);
+  verify(criteria: any, config?: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/verify`, criteria, config);
   }
 
-  importPathMappings(apiId, page): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/import-path-mappings?page=' + page);
+  importPathMappings(apiId: any, page: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/import-path-mappings?page=${page}`, {});
   }
 
-  duplicate(apiId, config): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/duplicate', config);
+  duplicate(apiId: any, config: { context_path: any; version: any; filtered_fields: any[] }): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/duplicate`, config);
   }
 
   /*
    * Analytics
    */
-  analytics(api, request): ng.IPromise<any> {
-    let url = `${this.Constants.env.baseURL}/apis/` + api + '/analytics?';
+  analytics(apiId: string, request: any): IHttpPromise<any> {
+    let url = `${this.Constants.env.baseURL}/apis/${apiId}/analytics?`;
 
-    const keys = Object.keys(request);
-    _.forEach(keys, (key) => {
+    Object.keys(request).forEach((key) => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -300,90 +300,80 @@ class ApiService {
     return this.$http.get(url, { timeout: this.getAnalyticsHttpTimeout() });
   }
 
-  findLogs(api: string, query: LogsQuery): ng.IPromise<any> {
-    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), `${this.Constants.env.baseURL}/apis/` + api + '/logs?'), {
+  findLogs(api: string, query: LogsQuery): IHttpPromise<any> {
+    return this.$http.get(this.buildURLWithQuery(this.cloneQuery(query), `${this.Constants.env.baseURL}/apis/${api}/logs?`), {
       timeout: 30000,
     });
   }
 
-  exportLogsAsCSV(api: string, query: LogsQuery): ng.IPromise<any> {
+  exportLogsAsCSV(api: string, query: LogsQuery): IHttpPromise<any> {
     const logsQuery = this.cloneQuery(query);
     logsQuery.page = 1;
     logsQuery.size = 10000;
-    return this.$http.get(this.buildURLWithQuery(logsQuery, `${this.Constants.env.baseURL}/apis/` + api + '/logs/export?'), {
+    return this.$http.get(this.buildURLWithQuery(logsQuery, `${this.Constants.env.baseURL}/apis/${api}/logs/export?`), {
       timeout: 30000,
     });
   }
 
-  getLog(api, logId, timestamp): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/logs/' + logId + (timestamp ? '?timestamp=' + timestamp : ''));
+  getLog(api: any, logId: any, timestamp: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/logs/${logId}${timestamp ? '?timestamp=' + timestamp : ''}`);
   }
 
   /*
    * Members
    */
-  getMembers(api: string): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/members');
+  getMembers(api: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/members`);
   }
 
-  addOrUpdateMember(api: string, membership: IMembership): ng.IHttpPromise<any> {
+  addOrUpdateMember(api: string, membership: IMembership): IHttpPromise<any> {
     return this.$http.post(`${this.Constants.env.baseURL}/apis/${api}/members`, membership);
   }
 
-  deleteMember(api: string, userId: string): ng.IHttpPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/apis/` + api + '/members?user=' + userId);
+  deleteMember(api: string, userId: string): IHttpPromise<any> {
+    return this.$http.delete(`${this.Constants.env.baseURL}/apis/${api}/members?user=${userId}`);
   }
 
-  transferOwnership(api: string, ownership: IMembership): ng.IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api + '/members/transfer_ownership', ownership);
+  transferOwnership(api: string, ownership: IMembership): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api}/members/transfer_ownership`, ownership);
   }
 
   /*
    * API events
    */
-  getApiEvents(api, eventTypes): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/events?type=' + eventTypes);
+  getApiEvents(api: any, eventTypes: any): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/events?type=${eventTypes}`);
   }
 
-  searchApiEvents(type, api, from, to, page, size): ng.IPromise<any> {
+  searchApiEvents(type: any, api: any, from: any, to: any, page: any, size: any): IHttpPromise<any> {
     return this.$http.get(
-      `${this.Constants.env.baseURL}/apis/` + api + `/events/search?type=${type}&from=${from}&to=${to}&page=${page}&size=${size}`,
+      `${this.Constants.env.baseURL}/apis/${api}/events/search?type=${type}&from=${from}&to=${to}&page=${page}&size=${size}`,
     );
-  }
-
-  listPlans(apiId, type): string {
-    let url = this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/plans');
-    if (type) {
-      url += '?type=' + type;
-    }
-    return url;
   }
 
   /*
    * API plans
    */
-  getApiPlans(apiId, status?, security?): ng.IPromise<any> {
+  getApiPlans(apiId: string, status?: string, security?: string): IHttpPromise<any> {
     return this.$http.get(
-      `${this.Constants.env.baseURL}/apis/` +
-        apiId +
-        '/plans?status=' +
-        (status ? status : 'staging,published,closed,deprecated') +
-        (security ? '&security=' + security : ''),
+      `${this.Constants.env.baseURL}/apis/${apiId}/plans?status=${status ? status : 'staging,published,closed,deprecated'}${
+        security ? '&security=' + security : ''
+      }`,
     );
   }
 
-  getApiPlan(apiId, planId): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/plans/' + planId);
+  getApiPlan(apiId: string, planId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/plans/${planId}`);
   }
 
-  getPublishedApiPlans(apiId): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/plans?status=published');
+  getPublishedApiPlans(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/plans?status=published`);
   }
 
-  savePlan(api, plan): ng.IPromise<any> {
+  savePlan(api: { id: string }, plan: any): IHttpPromise<any> {
     let promise = null;
     if (plan.id) {
-      promise = this.$http.put(`${this.Constants.env.baseURL}/apis/` + api.id + '/plans/' + plan.id, {
+      promise = this.$http.put(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${plan.id}`, {
         id: plan.id,
         name: plan.name,
         description: plan.description,
@@ -401,7 +391,7 @@ class ApiService {
         general_conditions: plan.general_conditions,
       });
     } else {
-      promise = this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '/plans', {
+      promise = this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans`, {
         name: plan.name,
         description: plan.description,
         api: plan.api,
@@ -427,22 +417,22 @@ class ApiService {
     });
   }
 
-  closePlan(api, planId): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '/plans/' + planId + '/_close').then(async (response) => {
+  closePlan(api: { id: any }, planId: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_close`, {}).then(async (response) => {
       await this.syncV2Api(api);
       return response;
     });
   }
 
-  publishPlan(api, planId): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '/plans/' + planId + '/_publish').then(async (response) => {
+  publishPlan(api: { id: any }, planId: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_publish`, {}).then(async (response) => {
       await this.syncV2Api(api);
       return response;
     });
   }
 
-  deprecatePlan(api, planId) {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api.id + '/plans/' + planId + '/_deprecate').then(async (response) => {
+  deprecatePlan(api: { id: any }, planId: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${api.id}/plans/${planId}/_deprecate`, {}).then(async (response) => {
       await this.syncV2Api(api);
       return response;
     });
@@ -451,8 +441,8 @@ class ApiService {
   /*
    * API subscriptions
    */
-  getSubscriptions(apiId: string, query?: string): ng.IHttpPromise<PagedResult> {
-    let req = `${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions';
+  getSubscriptions(apiId: string, query?: string): IHttpPromise<PagedResult> {
+    let req = `${this.Constants.env.baseURL}/apis/${apiId}/subscriptions`;
     if (query !== undefined) {
       req += query;
     }
@@ -460,8 +450,8 @@ class ApiService {
     return this.$http.get(req);
   }
 
-  exportSubscriptionsAsCSV(apiId: string, query?: string): ng.IPromise<any> {
-    let req = `${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/export';
+  exportSubscriptionsAsCSV(apiId: string, query?: string): IHttpPromise<any> {
+    let req = `${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/export`;
     if (query !== undefined) {
       req += query;
     }
@@ -469,24 +459,24 @@ class ApiService {
     return this.$http.get(req, { timeout: 30000 });
   }
 
-  getSubscribers(apiId: string): ng.IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscribers');
+  getSubscribers(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscribers`);
   }
 
-  getSubscription(apiId, subscriptionId): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId);
+  getSubscription(apiId, subscriptionId): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}`);
   }
 
-  closeSubscription(apiId, subscriptionId): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/status?status=CLOSED');
+  closeSubscription(apiId, subscriptionId): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/status?status=CLOSED`, {});
   }
 
   pauseSubscription(apiId, subscriptionId) {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/status?status=PAUSED');
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/status?status=PAUSED`, {});
   }
 
   updateSubscription(apiId, subscription) {
-    return this.$http.put(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscription.id, {
+    return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscription.id}`, {
       id: subscription.id,
       starting_at: subscription.starting_at,
       ending_at: subscription.ending_at,
@@ -494,34 +484,34 @@ class ApiService {
   }
 
   resumeSubscription(apiId, subscriptionId) {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/status?status=RESUMED');
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/status?status=RESUMED`, {});
   }
 
-  processSubscription(apiId, subscriptionId, processSubscription): ng.IPromise<any> {
+  processSubscription(apiId, subscriptionId, processSubscription): IHttpPromise<any> {
     return this.$http.post(
       `${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/_process',
       processSubscription,
     );
   }
 
-  transferSubscription(apiId, subscriptionId, transferSubscription): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/_transfer', {
+  transferSubscription(apiId, subscriptionId, transferSubscription): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/_transfer`, {
       id: transferSubscription.id,
       plan: transferSubscription.plan,
     });
   }
 
-  getPlanSubscriptions(apiId, planId): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions?plan=' + planId);
+  getPlanSubscriptions(apiId, planId): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions?plan=${planId}`);
   }
 
-  getAllPlanSubscriptions(apiId, planId): ng.IPromise<any> {
+  getAllPlanSubscriptions(apiId, planId): IHttpPromise<any> {
     return this.$http.get(
-      `${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions?plan=' + planId + '&status=accepted,pending,rejected,closed,paused',
+      `${this.Constants.env.baseURL}/apis/${apiId}/subscriptions?plan=${planId}&status=accepted,pending,rejected,closed,paused`,
     );
   }
 
-  subscribe(apiId: string, applicationId: string, planId: string, customApiKey: string): ng.IHttpPromise<any> {
+  subscribe(apiId: string, applicationId: string, planId: string, customApiKey: string): IHttpPromise<any> {
     const params = {
       params: {
         plan: planId,
@@ -529,62 +519,59 @@ class ApiService {
         customApiKey: customApiKey,
       },
     };
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions', null, params);
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions`, null, params);
   }
 
-  listApiKeys(apiId, subscriptionId): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/keys');
+  listApiKeys(apiId: string, subscriptionId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/keys`);
   }
 
-  revokeApiKey(apiId, subscriptionId, apiKey): ng.IPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey);
+  revokeApiKey(apiId: string, subscriptionId: string, apiKey: string): IHttpPromise<any> {
+    return this.$http.delete(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/keys/${apiKey}`);
   }
 
-  reactivateApiKey(apiId, subscriptionId, apiKey): ng.IPromise<any> {
-    return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId + '/keys/' + apiKey + '/_reactivate',
-      '',
-    );
+  reactivateApiKey(apiId: string, subscriptionId: string, apiKey: string): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/keys/${apiKey}/_reactivate`, '');
   }
 
-  renewApiKey(apiId, subscriptionId, customApiKey): ng.IPromise<any> {
+  renewApiKey(apiId: string, subscriptionId: string, customApiKey: any): IHttpPromise<any> {
     const params = {
       params: {
         customApiKey: customApiKey,
       },
     };
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/subscriptions/' + subscriptionId, null, params);
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}`, null, params);
   }
 
-  updateApiKey(apiId, apiKey): ng.IPromise<any> {
-    return this.$http.put(`${this.Constants.env.baseURL}/apis/` + apiId + '/keys/' + apiKey.key, apiKey);
+  updateApiKey(apiId: string, apiKey: { key: string }): IHttpPromise<any> {
+    return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/keys/${apiKey.key}`, apiKey);
   }
 
-  listApiMetadata(apiId): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + apiId + '/metadata');
+  listApiMetadata(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/metadata`);
   }
 
-  createMetadata(apiId, metadata): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/metadata', metadata);
+  createMetadata(apiId: string, metadata: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/metadata`, metadata);
   }
 
-  updateMetadata(apiId, metadata): ng.IPromise<any> {
-    return this.$http.put(`${this.Constants.env.baseURL}/apis/` + apiId + '/metadata/' + metadata.key, metadata);
+  updateMetadata(apiId: string, metadata: { key: string }): IHttpPromise<any> {
+    return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/metadata/${metadata.key}`, metadata);
   }
 
-  deleteMetadata(apiId, metadataId): ng.IPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/apis/` + apiId + '/metadata/' + metadataId);
+  deleteMetadata(apiId: string, metadataId: string): IHttpPromise<any> {
+    return this.$http.delete(`${this.Constants.env.baseURL}/apis/${apiId}/metadata/${metadataId}`);
   }
 
-  getPermissions(api): ng.IPromise<IHttpResponse<any>> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/members/permissions');
+  getPermissions(api: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/members/permissions`);
   }
 
   /*
    * Health-check
    */
-  apiHealth(api: string, type?: string, field?: string): ng.IPromise<any> {
-    let req = `${this.Constants.env.baseURL}/apis/` + api + '/health';
+  apiHealth(api: string, type?: string, field?: string): IHttpPromise<any> {
+    let req = `${this.Constants.env.baseURL}/apis/${api}/health`;
     if (type !== undefined) {
       req += '?type=' + type;
     }
@@ -595,11 +582,10 @@ class ApiService {
     return this.$http.get(req, { timeout: 30000 });
   }
 
-  apiHealthLogs(api: string, query: LogsQuery): ng.IPromise<any> {
-    let url = `${this.Constants.env.baseURL}/apis/` + api + '/health/logs?';
+  apiHealthLogs(api: string, query: LogsQuery): IHttpPromise<any> {
+    let url = `${this.Constants.env.baseURL}/apis/${api}/health/logs?`;
 
-    const keys = Object.keys(query);
-    _.forEach(keys, (key) => {
+    Object.keys(query).forEach((key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -609,15 +595,14 @@ class ApiService {
     return this.$http.get(url, { timeout: 30000 });
   }
 
-  getHealthLog(api: string, log: string): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/health/logs/' + log);
+  getHealthLog(api: string, log: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${api}/health/logs/${log}`);
   }
 
-  apiHealthAverage(api, request): ng.IPromise<IHttpResponse<any>> {
-    let url = `${this.Constants.env.baseURL}/apis/` + api + '/health/average?';
+  apiHealthAverage(api, request): IHttpPromise<any> {
+    let url = `${this.Constants.env.baseURL}/apis/${api}/health/average?`;
 
-    const keys = Object.keys(request);
-    _.forEach(keys, (key) => {
+    Object.keys(request).forEach((key) => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -635,50 +620,50 @@ class ApiService {
     return this.Constants.env.settings.portal.rating.enabled;
   }
 
-  getApiRatings(api, pageNumber): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/ratings?pageSize=10&pageNumber=' + pageNumber);
+  getApiRatings(apiId: string, pageNumber: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/ratings?pageSize=10&pageNumber=${pageNumber}`);
   }
 
-  getApiRatingForConnectedUser(api): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/ratings/current');
+  getApiRatingForConnectedUser(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/ratings/current`);
   }
 
-  getApiRatingSummaryByApi(api): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/ratings/summary');
+  getApiRatingSummaryByApi(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/ratings/summary`);
   }
 
-  createRating(api, rating): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api + '/ratings', rating);
+  createRating(apiId: string, rating: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/ratings`, rating);
   }
 
-  createRatingAnswer(api, ratingId, ratingAnswer): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + api + '/ratings/' + ratingId + '/answers', ratingAnswer);
+  createRatingAnswer(apiId: string, ratingId: string, ratingAnswer: any): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/ratings/${ratingId}/answers`, ratingAnswer);
   }
 
-  updateRating(api, rating): ng.IPromise<any> {
-    return this.$http.put(`${this.Constants.env.baseURL}/apis/` + api + '/ratings/' + rating.id, {
+  updateRating(apiId: string, rating: any): IHttpPromise<any> {
+    return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/ratings/${rating.id}`, {
       rate: rating.rate,
       title: rating.title,
       comment: rating.comment,
     });
   }
 
-  deleteRating(api, ratingId): ng.IPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/apis/` + api + '/ratings/' + ratingId);
+  deleteRating(apiId: string, ratingId: string): IHttpPromise<any> {
+    return this.$http.delete(`${this.Constants.env.baseURL}/apis/${apiId}/ratings/${ratingId}`);
   }
 
-  deleteRatingAnswer(api, ratingId, answerId): ng.IPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/apis/` + api + '/ratings/' + ratingId + '/answers/' + answerId);
+  deleteRatingAnswer(apiId, ratingId, answerId): IHttpPromise<any> {
+    return this.$http.delete(`${this.Constants.env.baseURL}/apis/${apiId}/ratings/${ratingId}/answers/${answerId}`);
   }
 
   /*
    * Quality Metrics
    */
-  getQualityMetrics(api): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/quality');
+  getQualityMetrics(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/quality`);
   }
 
-  getQualityMetricCssClass(score): string {
+  getQualityMetricCssClass(score?: number): string | undefined {
     if (score !== undefined) {
       if (score < 50) {
         return 'gravitee-qm-score-bad';
@@ -691,42 +676,42 @@ class ApiService {
     return;
   }
 
-  getPortalHeaders(api): ng.IPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/` + api + '/headers');
+  getPortalHeaders(apiId: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/headers`);
   }
 
-  isEndpointNameAlreadyUsed(api: any, name: string, onCreate: boolean) {
+  isEndpointNameAlreadyUsed(api: { proxy: { groups: any[] } }, name: string, onCreate: boolean): boolean {
     const endpointsName: string[] = [];
-    _.forEach(api.proxy.groups, (group) => {
+    api.proxy.groups.forEach((group) => {
       endpointsName.push(group.name);
-      _.forEach(group.endpoints, (endpoint) => {
+      group.endpoints.forEach((endpoint) => {
         endpointsName.push(endpoint.name);
       });
     });
     // in update mode, the api endpoint is updated when the form is filled.
     // that's why we have to count it twice to detect non uniqueness
-    return _.filter(endpointsName, (endpointName) => name === endpointName).length > (onCreate ? 0 : 1);
+    return endpointsName.filter((endpointName) => name === endpointName).length > (onCreate ? 0 : 1);
   }
 
-  askForReview(api, message?): ng.IPromise<any> {
+  askForReview(api: { id: string; etag: any }, message?: any): IHttpPromise<any> {
     return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/` + api.id + '/reviews?action=ASK',
-      { message: message },
+      `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ASK`,
+      { message },
       { headers: { 'If-Match': api.etag } },
     );
   }
 
-  acceptReview(api, message): ng.IPromise<any> {
+  acceptReview(api: { id: string; etag: any }, message: any): IHttpPromise<any> {
     return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/` + api.id + '/reviews?action=ACCEPT',
-      { message: message },
+      `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=ACCEPT`,
+      { message },
       { headers: { 'If-Match': api.etag } },
     );
   }
 
-  rejectReview(api, message): ng.IPromise<any> {
+  rejectReview(api: { id: string; etag: any }, message: any): IHttpPromise<any> {
     return this.$http.post(
-      `${this.Constants.env.baseURL}/apis/` + api.id + '/reviews?action=REJECT',
+      `${this.Constants.env.baseURL}/apis/${api.id}/reviews?action=REJECT`,
       { message: message },
       { headers: { 'If-Match': api.etag } },
     );
@@ -735,16 +720,16 @@ class ApiService {
   /*
    * Api Keys
    */
-  verifyApiKey(apiId: string, apiKey: string): ng.IPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/` + apiId + '/keys/_verify?apiKey=' + apiKey);
+  verifyApiKey(apiId: string, apiKey: string): IHttpPromise<any> {
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/keys/_verify?apiKey=${apiKey}`, {});
   }
 
-  getFlowSchemaForm(): ng.IPromise<any> {
+  getFlowSchemaForm(): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/schema`);
   }
 
-  private async syncV2Api(api) {
-    if (isV2(api)) {
+  private async syncV2Api(api: { id: string }): Promise<boolean> {
+    if (this.isV2(api)) {
       const updatedApi = await this.get(api.id);
       this.$rootScope.$broadcast('apiChangeSuccess', { api: updatedApi.data });
       return true;
@@ -755,9 +740,8 @@ class ApiService {
   /*
    * Logs
    */
-  private buildURLWithQuery(query: LogsQuery, url) {
-    const keys = Object.keys(query);
-    _.forEach(keys, (key) => {
+  private buildURLWithQuery(query: LogsQuery, url: string): string {
+    Object.keys(query).forEach((key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -766,9 +750,9 @@ class ApiService {
     return url;
   }
 
-  private cloneQuery(query: LogsQuery) {
-    const clonedQuery = _.clone(query);
-    if (_.startsWith(clonedQuery.field, '-')) {
+  private cloneQuery(query: LogsQuery): LogsQuery {
+    const clonedQuery = clone(query);
+    if (clonedQuery.field.startsWith('-')) {
       clonedQuery.order = false;
       clonedQuery.field = clonedQuery.field.substring(1);
     } else {
@@ -776,10 +760,8 @@ class ApiService {
     }
     return clonedQuery;
   }
-}
 
-export default ApiService;
-
-export function isV2(api) {
-  return api && api.gravitee === '2.0.0';
+  public isV2(api: any): boolean {
+    return api && api.gravitee === '2.0.0';
+  }
 }
