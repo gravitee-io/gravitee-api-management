@@ -102,9 +102,9 @@ public abstract class AbstractReactorHandler extends AbstractLifecycleComponent<
 
     protected void dumpVirtualHosts() {
         List<Entrypoint> entrypoints = reactable.entrypoints();
-        logger.info("{} ready to accept requests on:", this);
+        logger.debug("{} ready to accept requests on:", this);
         entrypoints.forEach(entrypoint -> {
-            logger.info("\thost[{}] - path[{}/*]", null, entrypoint.path());
+            logger.debug("\thost[{}] - path[{}/*]", null, entrypoint.path());
         });
     }
 

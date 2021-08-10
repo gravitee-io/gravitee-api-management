@@ -103,7 +103,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         // Configure triggers on resolved API endpoints
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
         if (!healthCheckEndpoints.isEmpty()) {
-            LOGGER.info("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
+            LOGGER.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
             apiHandlers.put(api, new ArrayList<>());
             healthCheckEndpoints.forEach(rule -> addTrigger(api, rule));
         }
@@ -124,7 +124,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
         apiHandlers.get(api).add(cronHandler);
 
-        LOGGER.info("Add health-check for endpoint name[{}] target[{}] with cron[{}]",
+        LOGGER.debug("Add health-check for endpoint name[{}] target[{}] with cron[{}]",
             rule.endpoint().getName(),
             rule.endpoint().getTarget(),
             rule.schedule());
@@ -133,7 +133,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     private void removeTriggers(Api api) {
         List<EndpointRuleCronHandler> triggers = apiHandlers.remove(api);
         if (triggers != null) {
-            LOGGER.info("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
+            LOGGER.debug("Stop health-check for API id[{}] name[{}]", api.getId(), api.getName());
             triggers.forEach(trigger -> trigger.cancel());
         }
     }
@@ -147,7 +147,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
                 .filter(trigger -> trigger.getEndpoint().equals(endpoint)).findFirst();
 
             endpointCronHandler.ifPresent(trigger -> {
-                LOGGER.info("Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
+                LOGGER.debug("Remove health-check trigger id[{}] for endpoint name[{}] type[{}] target[{}]",
                     trigger.getTimerId(),
                     endpoint.getName(), endpoint.getType(), endpoint.getTarget());
                 trigger.cancel();

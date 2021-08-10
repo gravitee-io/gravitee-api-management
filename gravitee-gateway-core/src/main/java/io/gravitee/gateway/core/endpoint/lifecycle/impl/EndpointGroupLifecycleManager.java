@@ -137,7 +137,7 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
 
     public void start(io.gravitee.definition.model.Endpoint model) {
         try {
-            logger.info("Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
+            logger.debug("Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
                     model.getName(), model.getType(), model.getTarget(), !model.isBackup());
 
             EndpointContext context = new EndpointContext();
@@ -164,7 +164,7 @@ public class EndpointGroupLifecycleManager extends AbstractLifecycleComponent<En
     }
 
     public void stop(String endpointName) {
-        logger.info("Closing endpoint: name[{}]", endpointName);
+        logger.debug("Closing endpoint: name[{}]", endpointName);
 
         io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointsByName.remove(endpointName);
         stop(endpoint);

@@ -49,7 +49,7 @@ public class DictionaryTemplateProvider implements DictionaryManager, TemplateVa
                 dictionary.setProperties(Collections.emptyMap());
             }
             
-            LOGGER.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
+            LOGGER.debug("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
             dictionaries.put(dictionary.getId(), dictionary);
             values.put(dictionary.getId(), dictionary.getProperties());
         }

@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
-
-import io.gravitee.gateway.reactor.Reactable;
-
-import java.util.Collection;
-import java.util.List;
+package io.gravitee.gateway.services.sync.cache.stats;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
+public class Statistics {
 
-    void create(Reactable reactable);
+    private long minTime;
 
-    void update(Reactable reactable);
+    private long maxTime;
 
-    void remove(Reactable reactable);
+    private long avgTime;
 
-    void clear();
+    private long totalTime;
 
-    /**
-     * An ordered collection of registered entrypoints.
-     *
-     * @return
-     */
-    Collection<HandlerEntrypoint> getEntrypoints();
+    private long count;
+
+    private long errorsCount;
+
+    private Throwable lastException;
+
 }

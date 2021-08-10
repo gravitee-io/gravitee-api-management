@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,14 +39,13 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     @Autowired
     private ReactorHandlerFactoryManager handlerFactoryManager;
 
-    private final Map<Reactable, ReactorHandler> handlers = new HashMap<>();
-    private final Map<Reactable, List<HandlerEntrypoint>> entrypointByReactable = new HashMap<>();
-
-    private final List<HandlerEntrypoint> registeredEntrypoints = new ArrayList<>();
+    private final Map<Reactable, ReactorHandler> handlers = new ConcurrentHashMap<>();
+    private final Map<Reactable, List<HandlerEntrypoint>> entrypointByReactable = new ConcurrentHashMap<>();
+    private final Set<HandlerEntrypoint> registeredEntrypoints = new ConcurrentSkipListSet<>(new PriorityComparator());
 
     @Override
     public void create(Reactable reactable) {
-        logger.info("Creating a new handler for {}", reactable);
+        logger.debug("Creating a new handler for {}", reactable);
 
         ReactorHandler handler = prepare(reactable);
         if (handler != null) {
@@ -53,7 +54,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     }
 
     private void register(ReactorHandler handler) {
-        logger.info("Registering a new handler: {}", handler);
+        logger.debug("Registering a new handler: {}", handler);
         handlers.put(handler.reactable(), handler);
 
         // Associate the handler to the entrypoints
@@ -87,7 +88,6 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
         entrypointByReactable.put(handler.reactable(), reactableEntrypoints);
         registeredEntrypoints.addAll(reactableEntrypoints);
-        registeredEntrypoints.sort(Comparator.comparingInt(Entrypoint::priority).reversed());
     }
 
     private ReactorHandler prepare(Reactable reactable) {
@@ -107,12 +107,12 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     @Override
     public void update(Reactable reactable) {
-        logger.info("Updating handler for: {}", reactable);
+        logger.debug("Updating handler for: {}", reactable);
 
         ReactorHandler currentHandler = handlers.get(reactable);
 
         if (currentHandler != null) {
-            logger.info("Handler is already deployed: {}", currentHandler);
+            logger.debug("Handler is already deployed: {}", currentHandler);
 
             ReactorHandler newHandler = prepare(reactable);
 
@@ -125,7 +125,7 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 register(newHandler);
 
                 try {
-                    logger.info("Stopping previous handler for: {}", reactable);
+                    logger.debug("Stopping previous handler for: {}", reactable);
                     previousHandler.stop();
                 } catch (Exception ex) {
                     logger.error("Unable to stop handler", ex);
@@ -147,7 +147,8 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     public void clear() {
         Iterator<Map.Entry<Reactable, ReactorHandler>> reactableIte = handlers.entrySet().iterator();
         while(reactableIte.hasNext()) {
-            remove(reactableIte.next().getKey(), reactableIte.next().getValue(), false);
+            final Map.Entry<Reactable, ReactorHandler> next = reactableIte.next();
+            remove(next.getKey(), next.getValue(), false);
             reactableIte.remove();
         }
     }
@@ -157,13 +158,12 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
             try {
                 handler.stop();
                 List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(handler.reactable());
-                registeredEntrypoints.removeAll(previousEntrypoints);
-                registeredEntrypoints.sort(Comparator.comparingInt(Entrypoint::priority).reversed());
+                registeredEntrypoints.removeIf(previousEntrypoints::contains);
 
                 if (remove) {
                     handlers.remove(reactable);
                 }
-                logger.info("Handler has been unregistered from the proxy");
+                logger.debug("Handler has been unregistered from the proxy");
             } catch (Exception e) {
                 logger.error("Unable to un-register handler", e);
             }
@@ -171,7 +171,35 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     }
 
     @Override
-    public List<HandlerEntrypoint> getEntrypoints() {
+    public Collection<HandlerEntrypoint> getEntrypoints() {
         return registeredEntrypoints;
+    }
+
+    /**
+     * Comparator used to sort {@link HandlerEntrypoint} in a centralized entrypoints collection.
+     * The final entrypoint collection is a {@link ConcurrentSkipListSet} which rely on this comparator to add / remove entry keeping entries ordered.
+     *
+     * Entrypoint are first sorted by path and, in case of equality in path, the entrypoint priority is used (higher priority first).
+     *
+     */
+    private static class PriorityComparator implements Comparator<HandlerEntrypoint> {
+
+        @Override
+        public int compare(HandlerEntrypoint o1, HandlerEntrypoint o2) {
+            if(o1.equals(o2)) {
+                return 0;
+            }
+
+            final int pathCompare = o1.path().compareTo(o2.path());
+
+            if(pathCompare == 0) {
+                if(o1.priority() <= o2.priority()) {
+                    return 1;
+                }
+                return -1;
+            }
+
+            return pathCompare;
+        }
     }
 }

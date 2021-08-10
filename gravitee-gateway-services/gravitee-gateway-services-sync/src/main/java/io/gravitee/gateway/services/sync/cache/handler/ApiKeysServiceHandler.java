@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.apikeys.handler;
+package io.gravitee.gateway.services.sync.cache.handler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,7 +27,7 @@ import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -37,9 +37,9 @@ public class ApiKeysServiceHandler implements Handler<RoutingContext> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApiKeysServiceHandler.class);
 
-    private final ScheduledThreadPoolExecutor executorService;
+    private final ThreadPoolExecutor executorService;
 
-    public ApiKeysServiceHandler(ScheduledThreadPoolExecutor executorService) {
+    public ApiKeysServiceHandler(ThreadPoolExecutor executorService) {
         this.executorService = executorService;
     }
 

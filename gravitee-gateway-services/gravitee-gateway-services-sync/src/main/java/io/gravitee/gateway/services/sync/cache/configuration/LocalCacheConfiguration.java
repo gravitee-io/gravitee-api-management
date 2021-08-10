@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.subscriptions.spring;
+package io.gravitee.gateway.services.sync.cache.configuration;
 
-import io.gravitee.gateway.services.sync.subscriptions.SubscriptionsCacheService;
+import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
+import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,7 +25,12 @@ import org.springframework.context.annotation.Configuration;
  * @author GraviteeSource Team
  */
 @Configuration
-public class SubscriptionsConfiguration {
+public class LocalCacheConfiguration {
+
+    @Bean
+    public ApiKeysCacheService apiKeysCacheService() {
+        return new ApiKeysCacheService();
+    }
 
     @Bean
     public SubscriptionsCacheService subscriptionsCacheService() {
