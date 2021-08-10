@@ -54,8 +54,12 @@ public class LazyJwtToken {
 
             try {
                 JWT jwt = JWTParser.parse(token);
-                headers = jwt.getHeader().toJSONObject();
-                claims = jwt.getJWTClaimsSet().getClaims();
+                if (jwt.getHeader() != null) {
+                    headers = jwt.getHeader().toJSONObject();
+                }
+                if (jwt.getJWTClaimsSet() != null) {
+                    claims = jwt.getJWTClaimsSet().getClaims();
+                }
             } catch (ParseException ex) {
                 // Nothing to do in case of a bad JWT token
             }
