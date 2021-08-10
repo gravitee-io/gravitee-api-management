@@ -2345,7 +2345,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 try {
                     field.set(fetcherConfiguration, SENSITIVE_DATA_REPLACEMENT);
                 } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                    logger.error("Error while removing fetcher sensitive data", e);
                 }
                 field.setAccessible(accessible);
             }
@@ -2367,8 +2367,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         updated = true;
                         field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
                     }
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                } catch (IllegalAccessException | IllegalArgumentException e) {
+                    logger.error("Error while merging original fetcher sensitive data to new fetcher", e);
                 }
                 field.setAccessible(accessible);
             }
