@@ -17,11 +17,17 @@ package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.HttpRequest;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class HttpRequestDeserializer extends StdScalarDeserializer<HttpRequest> {
 
@@ -36,6 +42,22 @@ public class HttpRequestDeserializer extends StdScalarDeserializer<HttpRequest> 
         httpRequest.setPath(readStringValue(node, "path"));
         httpRequest.setMethod(readStringValue(node, "method"));
         httpRequest.setBody(readStringValue(node, "body"));
+        JsonNode headersNode = node.get("headers");
+        if (headersNode != null && !headersNode.isEmpty(null)) {
+            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
+
+            final Map<String, List<String>> multiValueHeaders = headers
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        Map.Entry::getKey,
+                        e -> Arrays.stream(e.getValue().split(",")).map(String::trim).collect(Collectors.toList())
+                    )
+                );
+
+            httpRequest.setHeaders(multiValueHeaders);
+        }
         return httpRequest;
     }
 

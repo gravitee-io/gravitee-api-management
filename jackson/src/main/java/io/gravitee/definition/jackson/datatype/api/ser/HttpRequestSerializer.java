@@ -35,6 +35,24 @@ public class HttpRequestSerializer extends StdScalarSerializer<HttpRequest> {
         if (httpRequest.getBody() != null) {
             jgen.writeStringField("body", httpRequest.getBody());
         }
+
+        if (httpRequest.getHeaders() != null) {
+            jgen.writeObjectFieldStart("headers");
+            httpRequest
+                .getHeaders()
+                .forEach(
+                    (header, values) -> {
+                        try {
+                            jgen.writeObjectField(header, String.join(", ", values));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                );
+
+            jgen.writeEndObject();
+        }
+
         jgen.writeEndObject();
     }
 }

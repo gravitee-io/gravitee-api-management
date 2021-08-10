@@ -17,6 +17,8 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 public class HttpRequest implements Serializable {
 
@@ -28,6 +30,9 @@ public class HttpRequest implements Serializable {
 
     @JsonProperty("body")
     private String body;
+
+    @JsonProperty("headers")
+    private Map<String, List<String>> headers;
 
     public String getPath() {
         return path;
@@ -51,5 +56,13 @@ public class HttpRequest implements Serializable {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public Map<String, List<String>> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Map<String, List<String>> headers) {
+        this.headers = headers;
     }
 }
