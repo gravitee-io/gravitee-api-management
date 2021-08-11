@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IHttpPromise, IHttpService } from 'angular';
+import { IHttpPromise, IHttpService, IPromise } from 'angular';
 import { Constants } from '../entities/Constants';
+import { Event } from '../entities/event/event';
 
 export class EventService {
   constructor(private readonly $http: IHttpService, private readonly Constants: Constants) {
@@ -25,5 +26,9 @@ export class EventService {
     return this.$http.get(
       `${this.Constants.env.baseURL}/platform/events?type=${type}&api_ids=${apis}&from=${from}&to=${to}&page=${page}&size=${size}`,
     );
+  }
+
+  public findById(apiId: string, eventId: string): IPromise<Event> {
+    return this.$http.get<Event>(`${this.Constants.env.baseURL}/apis/${apiId}/events/${eventId}`).then((response) => response.data);
   }
 }

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';
-import { IPromise } from 'angular';
+import { IIntervalService, IPromise, ITimeoutService } from 'angular';
 import { ApiService } from '../../../../services/api.service';
 import { DebugApiService } from '../../../../services/debugApi.service';
+import { EventService } from '../../../../services/event.service';
+import { Event } from '../../../../entities/event/event';
+import NotificationService from '../../../../services/notification.service';
 
 export const propertyProviders = [
   {
@@ -97,6 +100,11 @@ class ApiDesignController {
   private definition: any;
   private services: any;
   private propertyProviders = propertyProviders;
+  private debugResponse: {
+    isLoading: boolean;
+    response?: unknown;
+    request?: unknown;
+  };
 
   constructor(
     private resolvedResources,
@@ -105,9 +113,12 @@ class ApiDesignController {
     private $scope,
     private readonly ApiService: ApiService,
     private readonly debugApiService: DebugApiService,
-    private NotificationService,
+    private readonly eventService: EventService,
+    private NotificationService: NotificationService,
     private $rootScope,
     private $stateParams,
+    private $interval: IIntervalService,
+    private $timeout: ITimeoutService,
     private UserService,
   ) {
     'ngInject';
@@ -165,14 +176,56 @@ class ApiDesignController {
     debugApi.services = services;
     debugApi.flow_mode = definition['flow-mode'];
 
+    const headersAsMap = (request.headers ?? [])
+      .filter((header) => !!header.value)
+      .reduce((acc, current) => {
+        acc[current.name] = current.value;
+        return acc;
+      }, {});
+
     const consolidatedRequest = {
-      body: '',
-      headers: {},
-      ...request,
+      body: request.body,
+      path: request.path,
+      method: request.method,
+      headers: headersAsMap,
     };
 
-    return this.debugApiService.debug(debugApi, consolidatedRequest).then(() => {
-      this.NotificationService.show('Try it in progress...');
+    this.debugResponse = {
+      isLoading: true,
+    };
+
+    return this.debugApiService
+      .debug(debugApi, consolidatedRequest)
+      .then((event) => this.pollAndGetSuccessfulEvent(event, 10))
+      .then((event) => {
+        this.debugResponse = {
+          isLoading: false,
+          response: JSON.parse(event.payload).response,
+          request: consolidatedRequest,
+        };
+      })
+      .catch((error) => {
+        this.NotificationService.showError(error, 'Unable to try the request, please try again');
+        this.debugResponse = {
+          isLoading: false,
+          request: consolidatedRequest,
+        };
+      });
+  }
+
+  private pollAndGetSuccessfulEvent(debugEvent: Event, retryCount: number): IPromise<Event> {
+    if (retryCount <= 0) {
+      throw new Error('Max number of retry reached');
+    }
+
+    return this.$timeout(() => {
+      return this.eventService.findById(this.api.id, debugEvent.id);
+    }, 1000).then((event) => {
+      if (event.properties.api_debug_status === 'SUCCESS') {
+        return event;
+      } else {
+        return this.pollAndGetSuccessfulEvent(debugEvent, retryCount - 1);
+      }
     });
   }
 }
