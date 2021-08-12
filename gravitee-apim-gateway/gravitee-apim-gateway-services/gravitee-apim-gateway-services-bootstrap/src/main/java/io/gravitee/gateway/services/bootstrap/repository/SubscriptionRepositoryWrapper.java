@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.cache.repository;
+package io.gravitee.gateway.services.bootstrap.repository;
 
+import com.hazelcast.core.IMap;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -30,11 +37,12 @@ import java.util.*;
  */
 public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
 
-    private final SubscriptionRepository wrapped;
-    private final Map<String, Object> cache;
+    private  SubscriptionRepository repository;
+    private final IMap<String, Object> cache;
+    private final ApplicationContext applicationContext;
 
-    public SubscriptionRepositoryWrapper(final SubscriptionRepository wrapped, final Map<String, Object> cache) {
-        this.wrapped = wrapped;
+    public SubscriptionRepositoryWrapper(final ApplicationContext applicationContext, final IMap<String, Object> cache) {
+        this.applicationContext =  applicationContext;
         this.cache = cache;
     }
 
@@ -68,7 +76,7 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
         // If criteria does not include the clientId, it is a search from underlying repository
         // If clientId is included, the search is done by the gateway to check a subscription from the cache.
         if (criteria.getClientId() == null) {
-            return this.wrapped.search(criteria);
+            return this.getRepository().search(criteria);
         } else {
             String key = criteria.getApis().iterator().next() + '-' + criteria.getClientId();
             Subscription subscription = (Subscription) this.cache.get(key);
@@ -76,8 +84,17 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
         }
     }
 
-    @Override
-    public Set<Subscription> findAll() {
-        throw new IllegalStateException();
+    private SubscriptionRepository getRepository() {
+
+        if(repository != null) {
+            return repository;
+        }
+
+        try {
+            repository = (SubscriptionRepository) applicationContext.getBean(SubscriptionRepository.class.getName());
+        }catch (NoSuchBeanDefinitionException e) {
+        }
+
+        return repository;
     }
 }

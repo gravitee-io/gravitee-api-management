@@ -39,7 +39,7 @@ public abstract class SubscriptionRefresher implements Callable<Result<Boolean>>
     private Map<String, Object> cache;
 
     protected Result<Boolean> doRefresh(SubscriptionCriteria criteria) {
-        logger.debug("Refresh api-keys");
+        logger.debug("Refresh subscriptions");
 
         try {
             subscriptionRepository

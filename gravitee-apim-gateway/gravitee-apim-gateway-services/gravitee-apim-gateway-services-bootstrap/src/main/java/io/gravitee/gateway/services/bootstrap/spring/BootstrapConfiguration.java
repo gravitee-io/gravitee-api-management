@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.spring;
+package io.gravitee.gateway.services.bootstrap.spring;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.services.sync.SyncManager;
-import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
-import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
-import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
+import io.gravitee.gateway.services.bootstrap.LocalBootstrapService;
 import io.gravitee.repository.management.model.ApiKey;
 import io.reactivex.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
@@ -35,49 +32,30 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({
-        LocalCacheConfiguration.class
-})
-public class SyncConfiguration {
+public class BootstrapConfiguration {
 
     public static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
 
-    @Bean
-    public SyncManager syncManager() {
-        return new SyncManager();
-    }
-
     @Bean("syncExecutor")
     public ThreadPoolExecutor syncExecutor() {
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(PARALLELISM, PARALLELISM, 15L, TimeUnit.SECONDS,
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(PARALLELISM, PARALLELISM, 60L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
                 new ThreadFactory() {
                     private int counter = 0;
 
                     @Override
                     public Thread newThread(@NonNull Runnable r) {
-                        return new Thread(r, "gio.sync-" + counter++);
+                        return new Thread(r, "gio.boot-" + counter++);
                     }
                 });
 
         threadPoolExecutor.allowCoreThreadTimeOut(true);
 
         return threadPoolExecutor;
-    }
-
-    @Bean
-    public ApiSynchronizer apiSynchronizer() {
-        return new ApiSynchronizer();
-    }
-
-    @Bean
-    public DictionarySynchronizer dictionarySynchronizer() {
-        return new DictionarySynchronizer();
     }
 
     @Bean("apiMap")

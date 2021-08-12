@@ -16,7 +16,13 @@
 package io.gravitee.gateway.services.sync.synchronizer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.core.EntryEventType;
+import com.hazelcast.core.IMap;
+import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.Flowable;
@@ -26,6 +32,7 @@ import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
@@ -41,14 +48,35 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
     private final Logger logger = LoggerFactory.getLogger(DictionarySynchronizer.class);
 
+    @Value("${services.sync.bulk_items:100}")
+    protected int bulkItems = 100;
+
     @Autowired
     private DictionaryManager dictionaryManager;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${services.sync.bulk_items:100}")
-    protected int bulkItems = 100;
+    @Autowired
+    private ClusterManager clusterManager;
+
+    @Autowired
+    @Qualifier("dictionaryMap")
+    private IMap<String, Dictionary> dictionaries;
+
+    private String dictionaryListenerId;
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+        dictionaryListenerId = dictionaries.addEntryListener(createApiListener(), true);
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        dictionaries.removeEntryListener(dictionaryListenerId);
+        super.doStop();
+    }
 
     public void synchronize(long lastRefreshAt, long nextLastRefreshAt) {
         final long start = System.currentTimeMillis();
@@ -109,9 +137,17 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
                 .runOn(Schedulers.from(executor))
                 .doOnNext(dictionary -> {
                     try {
+                        // Only the master node manage the dictionary map. (note: when not in a cluster, all local instances are master).
+                        if (clusterManager.isMasterNode()) {
+                            final Dictionary deployedDictionary = dictionaries.get(dictionary.getId());
+                            if (deployedDictionary == null || dictionary.getDeployedAt().after(deployedDictionary.getDeployedAt())) {
+                                dictionaries.put(dictionary.getId(), dictionary);
+                            }
+                        }
+
                         dictionaryManager.deploy(dictionary);
                     } catch (Exception e) {
-                        logger.error("An error occurred when trying to deploy dictionary {} [{}].", dictionary.getName(), dictionary.getId());
+                        logger.error("An error occurred when trying to deploy dictionary {} [{}].", dictionary.getName(), dictionary.getId(), e);
                     }
                 })
                 .sequential()
@@ -124,9 +160,14 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
                 .runOn(Schedulers.from(executor))
                 .doOnNext(dictionaryId -> {
                     try {
+                        // Only the master node manage the dictionary map. (note: when not in a cluster, all local instances are master).
+                        if (clusterManager.isMasterNode()) {
+                            dictionaries.remove(dictionaryId);
+                        }
+
                         dictionaryManager.undeploy(dictionaryId);
                     } catch (Exception e) {
-                        logger.error("An error occurred when trying to undeploy dictionary [{}].", dictionaryId);
+                        logger.error("An error occurred when trying to undeploy dictionary [{}].", dictionaryId, e);
                     }
                 })
                 .sequential();
@@ -152,4 +193,26 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         }
         return Maybe.just(dictionaryId);
     }
+
+    @NonNull
+    private MapListenerAdapter<String, Dictionary> createApiListener() {
+        return new MapListenerAdapter<String, Dictionary>() {
+            @Override
+            public void onEntryEvent(EntryEvent<String, Dictionary> event) {
+                // Only non master nodes process dictionaries from shared map.
+                if (!clusterManager.isMasterNode()) {
+                    if (event.getEventType() == EntryEventType.ADDED) {
+                        dictionaryManager.deploy(event.getValue());
+                    } else if (event.getEventType() == EntryEventType.UPDATED) {
+                        dictionaryManager.deploy(event.getValue());
+                    } else if (event.getEventType() == EntryEventType.REMOVED ||
+                            event.getEventType() == EntryEventType.EVICTED ||
+                            event.getEventType() == EntryEventType.EXPIRED) {
+                        dictionaryManager.undeploy(event.getKey());
+                    }
+                }
+            }
+        };
+    }
+
 }

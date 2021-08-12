@@ -16,11 +16,17 @@
 package io.gravitee.gateway.services.sync.synchronizer;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.core.EntryEventType;
+import com.hazelcast.core.IMap;
+import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Path;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Event;
@@ -35,6 +41,7 @@ import io.reactivex.schedulers.Schedulers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
@@ -55,6 +62,9 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     private final Logger logger = LoggerFactory.getLogger(ApiSynchronizer.class);
 
+    @Value("${services.sync.bulk_items:100}")
+    protected int bulkItems = 100;
+
     @Autowired
     private PlanRepository planRepository;
 
@@ -67,8 +77,26 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     @Autowired
     private ApiManager apiManager;
 
-    @Value("${services.sync.bulk_items:100}")
-    protected int bulkItems = 100;
+    @Autowired
+    private ClusterManager clusterManager;
+
+    @Autowired
+    @Qualifier("apiMap")
+    private IMap<String, Api> apis;
+
+    private String apiListenerId;
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+        apiListenerId = apis.addEntryListener(createApiListener(), true);
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        apis.removeEntryListener(apiListenerId);
+        super.doStop();
+    }
 
     public void synchronize(long lastRefreshAt, long nextLastRefreshAt) {
         final long start = System.currentTimeMillis();
@@ -81,7 +109,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                     .compose(this::processApiEvents)
                     .count()
                     .blockingGet();
-
         }
 
         if (lastRefreshAt == -1) {
@@ -96,12 +123,10 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      */
     private long initialSynchronizeApis(long nextLastRefreshAt) {
 
-        final Long count = this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, API_ID, EventType.PUBLISH_API, EventType.START_API)
+        return this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, API_ID, EventType.PUBLISH_API, EventType.START_API)
                 .compose(this::processApiRegisterEvents)
                 .count()
                 .blockingGet();
-
-        return count;
     }
 
     @NonNull
@@ -158,9 +183,17 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 .runOn(Schedulers.from(executor))
                 .doOnNext(api -> {
                     try {
+                        // Only the master node manages the api map. (note: when not in a cluster, all local instances are master).
+                        if (clusterManager.isMasterNode()) {
+                            final Api deployedApi = apis.get(api.getId());
+                            if(deployedApi == null || api.getDeployedAt().after(deployedApi.getDeployedAt())) {
+                                apis.put(api.getId(), api);
+                            }
+                        }
+
                         apiManager.register(api);
                     } catch (Exception e) {
-                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId());
+                        logger.error("An error occurred when trying to synchronize api {} [{}].", api.getName(), api.getId(), e);
                     }
                 })
                 .sequential()
@@ -173,6 +206,11 @@ public class ApiSynchronizer extends AbstractSynchronizer {
                 .runOn(Schedulers.from(executor))
                 .doOnNext(apiId -> {
                     try {
+                        // Only the master node manages the api map. (note: when not in a cluster, all local instances are master).
+                        if (clusterManager.isMasterNode()) {
+                            apis.remove(apiId);
+                        }
+
                         apiManager.unregister(apiId);
                     } catch (Exception e) {
                         logger.error("An error occurred when trying to unregister api [{}].", apiId);
@@ -318,5 +356,26 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         }
 
         return plan;
+    }
+
+    @NonNull
+    private MapListenerAdapter<String, Api> createApiListener() {
+        return new MapListenerAdapter<String, Api>() {
+            @Override
+            public void onEntryEvent(EntryEvent<String, Api> event) {
+                // Only non master nodes process api definitions from shared map.
+                if (!clusterManager.isMasterNode()) {
+                    if (event.getEventType() == EntryEventType.ADDED) {
+                        apiManager.register(event.getValue());
+                    } else if (event.getEventType() == EntryEventType.UPDATED) {
+                        apiManager.register(event.getValue());
+                    } else if (event.getEventType() == EntryEventType.REMOVED ||
+                            event.getEventType() == EntryEventType.EVICTED ||
+                            event.getEventType() == EntryEventType.EXPIRED) {
+                        apiManager.unregister(event.getKey());
+                    }
+                }
+            }
+        };
     }
 }
