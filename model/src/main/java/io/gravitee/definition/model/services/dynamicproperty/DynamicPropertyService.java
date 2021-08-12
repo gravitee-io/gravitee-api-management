@@ -17,6 +17,7 @@ package io.gravitee.definition.model.services.dynamicproperty;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,5 +54,19 @@ public class DynamicPropertyService extends ScheduledService {
 
     public static String getServiceKey() {
         return SERVICE_KEY;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        DynamicPropertyService that = (DynamicPropertyService) o;
+        return provider == that.provider && Objects.equals(configuration, that.configuration);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), provider, configuration);
     }
 }
