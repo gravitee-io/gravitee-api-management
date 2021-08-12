@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -26,6 +27,15 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface PlanRepository extends CrudRepository<Plan, String> {
+    /**
+     * Find plans by api ids.
+     * @param apiIds the list of id of the apis to which to retrieve plans.
+     *
+     * @return the list of plans linked to the specified api ids.
+     * @throws TechnicalException
+     */
+    List<Plan> findByApis(List<String> apiIds) throws TechnicalException;
+
     /**
      * Returns the list of plans for a given API.
      *
