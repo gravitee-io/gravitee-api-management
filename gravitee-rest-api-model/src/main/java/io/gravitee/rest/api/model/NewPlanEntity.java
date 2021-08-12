@@ -76,6 +76,8 @@ public class NewPlanEntity {
     @JsonProperty("general_conditions")
     private String generalConditions;
 
+    private int order;
+
     public String getId() {
         return id;
     }
@@ -218,6 +220,14 @@ public class NewPlanEntity {
 
     public void setGeneralConditions(String generalConditions) {
         this.generalConditions = generalConditions;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
     }
 
     @Override

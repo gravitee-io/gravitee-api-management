@@ -44,6 +44,7 @@ import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
@@ -1637,29 +1638,45 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkPolicyConfigurations(final UpdateApiEntity updateApiEntity) {
-        if (updateApiEntity.getPaths() != null) {
+        checkPathsPolicyConfiguration(updateApiEntity.getPaths());
+        checkFlowsPolicyConfiguration(updateApiEntity.getFlows());
+
+        if (updateApiEntity.getPlans() != null) {
             updateApiEntity
-                .getPaths()
+                .getPlans()
+                .stream()
                 .forEach(
-                    (s, rules) ->
-                        rules
-                            .stream()
-                            .filter(Rule::isEnabled)
-                            .map(Rule::getPolicy)
-                            .forEach(policy -> policyService.validatePolicyConfiguration(policy))
+                    plan -> {
+                        checkPathsPolicyConfiguration(plan.getPaths());
+                        checkFlowsPolicyConfiguration(plan.getFlows());
+                    }
                 );
         }
-        if (updateApiEntity.getFlows() != null) {
-            updateApiEntity
-                .getFlows()
+    }
+
+    private void checkPathsPolicyConfiguration(Map<String, List<Rule>> paths) {
+        if (paths != null) {
+            paths.forEach(
+                (s, rules) ->
+                    rules
+                        .stream()
+                        .filter(Rule::isEnabled)
+                        .map(Rule::getPolicy)
+                        .forEach(policy -> policyService.validatePolicyConfiguration(policy))
+            );
+        }
+    }
+
+    private void checkFlowsPolicyConfiguration(List<Flow> flows) {
+        if (flows != null) {
+            flows
                 .stream()
                 .filter(flow -> flow.getPre() != null)
                 .forEach(
                     flow -> flow.getPre().stream().filter(Step::isEnabled).forEach(step -> policyService.validatePolicyConfiguration(step))
                 );
 
-            updateApiEntity
-                .getFlows()
+            flows
                 .stream()
                 .filter(flow -> flow.getPost() != null)
                 .forEach(
@@ -2321,7 +2338,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         PlanEntity plan = planService.findById(planNode.get("id").asText());
                         UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
                         updatePlanEntity.setId(plan.getId());
-                        planService.update(updatePlanEntity);
+                        planService.update(updatePlanEntity, true);
                     } catch (PlanNotFoundException npe) {
                         NewPlanEntity newPlanEntity = objectMapper.readValue(planNode.toString(), NewPlanEntity.class);
                         newPlanEntity.setApi(createdOrUpdatedApiEntity.getId());
@@ -2345,7 +2362,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     } else if (planEntities.size() == 1) {
                         UpdatePlanEntity updatePlanEntity = objectMapper.readValue(planNode.toString(), UpdatePlanEntity.class);
                         updatePlanEntity.setId(planEntities.iterator().next().getId());
-                        planService.update(updatePlanEntity);
+                        planService.update(updatePlanEntity, true);
                     } else {
                         LOGGER.error(
                             "Not able to identify the plan to update: {}. Too much plan with the same name",
@@ -2661,7 +2678,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             );
                     Map<String, String> metadataDecoded = Arrays
                         .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                        .map(entry -> entry.split("="))
+                        .map(entry -> entry.split("=", 2))
                         .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
                     apiModelEntity.setMetadata(metadataDecoded);
                 } catch (Exception ex) {

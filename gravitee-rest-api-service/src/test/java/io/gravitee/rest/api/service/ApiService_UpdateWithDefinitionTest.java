@@ -466,7 +466,7 @@ public class ApiService_UpdateWithDefinitionTest {
 
         apiService.updateWithImportedDefinition(apiEntity, toBeImport, "import");
 
-        verify(planService, times(2)).update(any(UpdatePlanEntity.class));
+        verify(planService, times(2)).update(any(UpdatePlanEntity.class), eq(true));
         verify(apiRepository, times(1)).update(any());
         verify(apiRepository, never()).create(any());
         verify(searchEngineService, times(1)).index(any(), eq(false));
