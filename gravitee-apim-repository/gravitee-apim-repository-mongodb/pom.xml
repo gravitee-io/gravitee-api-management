@@ -23,15 +23,15 @@
 	<parent>
 		<groupId>io.gravitee.apim.repository</groupId>
 		<artifactId>gravitee-apim-repository</artifactId>
-		<version>3.8.7-SNAPSHOT</version>
+		<version>3.8.7</version>
 	</parent>
 
 	<artifactId>gravitee-apim-repository-mongodb</artifactId>
-	<version>3.8.7-SNAPSHOT</version>
+	<version>3.8.7</version>
 	<name>Gravitee.io APIM - Repository - MongoDB</name>
 
 	<properties>
-		<gravitee-definition.version>1.25.0</gravitee-definition.version>
+		<gravitee-definition.version>1.25.1</gravitee-definition.version>
 		<embed.mongo.version>2.0.0</embed.mongo.version>
 		<mongo.version>3.12.0</mongo.version>
 		<mongodb-driver-reactivestreams.version>1.13.0</mongodb-driver-reactivestreams.version>
