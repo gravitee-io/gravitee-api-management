@@ -16,12 +16,16 @@
 package io.gravitee.gateway.services.sync.synchronizer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.core.IMap;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.model.Dictionary;
+import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -55,8 +59,20 @@ public class DictionarySynchronizerTest extends TestCase {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private ClusterManager clusterManager;
+
+    @Mock
+    private IMap<String, java.util.Dictionary> dictionaries;
+
     @Spy
     private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+
+    @Before
+    public void before() {
+        lenient().when(clusterManager.isMasterNode()).thenReturn(true);
+        lenient().when(dictionaries.get(anyString())).thenReturn(null);
+    }
 
     @Test
     public void initialSynchronize() throws Exception {

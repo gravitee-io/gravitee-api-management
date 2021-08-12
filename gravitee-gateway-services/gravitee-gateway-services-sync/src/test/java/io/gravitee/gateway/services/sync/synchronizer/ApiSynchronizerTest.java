@@ -16,18 +16,21 @@
 package io.gravitee.gateway.services.sync.synchronizer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hazelcast.core.IMap;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.Plan;
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -70,9 +73,20 @@ public class ApiSynchronizerTest extends TestCase {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private ClusterManager clusterManager;
+
+    @Mock
+    private IMap<String, Api> apis;
+
     @Spy
     private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
+    @Before
+    public void before() {
+        lenient().when(clusterManager.isMasterNode()).thenReturn(true);
+        lenient().when(apis.get(anyString())).thenReturn(null);
+    }
 
     @Test
     public void initialSynchronize() throws Exception {

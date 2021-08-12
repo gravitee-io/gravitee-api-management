@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.EventType;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -44,17 +45,8 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
     protected ObjectMapper objectMapper;
 
     @Autowired
+    @Qualifier("syncExecutor")
     protected ExecutorService executor;
-
-    @Override
-    protected void doStart() throws Exception {
-        super.doStart();
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        super.doStop();
-    }
 
     /**
      * Synchronize the elements retrieving events from the datasource.

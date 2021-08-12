@@ -206,6 +206,11 @@ services:
     unit: MILLISECONDS
     distributed: false # By enabling this mode, data synchronization process is distributed over clustered API gateways.
     bulk_items: 100 # Defines the number of items to retrieve during synchronization (events, plans, api keys, ...).
+    localBootstrap: # Local bootstrap allows to maintain a copy of the api definitions locally and reuse it for faster startup even when repository is not available.
+      enabled: false
+      backupDelay: 60000 # time between backup of api definitions in milliseconds
+      path: ${gravitee.home}/data # Path where to store the local copy of the api definitions.
+        # You must ensure that this path is well protected as the local copy may contains sensitive data.
 
   # Local registry service.
   # This registry is used to load API Definition with json format from the file system. By doing so, you do not need

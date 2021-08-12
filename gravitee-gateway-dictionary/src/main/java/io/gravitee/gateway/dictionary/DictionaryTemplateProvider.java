@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,8 +33,8 @@ public class DictionaryTemplateProvider implements DictionaryManager, TemplateVa
 
     private final Logger LOGGER = LoggerFactory.getLogger(DictionaryTemplateProvider.class);
 
-    private final Map<String, Dictionary> dictionaries = new HashMap<>();
-    private final Map<String, Map<String, String>> values = new HashMap<>();
+    private final Map<String, Dictionary> dictionaries = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, String>> values = new ConcurrentHashMap<>();
 
     @Override
     public void provide(TemplateContext context) {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.dictionary.model;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -22,7 +23,7 @@ import java.util.Map;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Dictionary {
+public class Dictionary implements Serializable {
 
     private String id;
 

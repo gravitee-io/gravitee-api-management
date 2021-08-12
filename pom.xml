@@ -259,7 +259,7 @@
         <gravitee-common.version>1.19.4</gravitee-common.version>
         <gravitee-expression-language.version>1.5.2</gravitee-expression-language.version>
         <gravitee-plugin-resource.version>1.16.0</gravitee-plugin-resource.version>
-        <gravitee-plugin-core.version>1.16.0</gravitee-plugin-core.version>
+        <gravitee-plugin-core.version>1.18.1-SNAPSHOT</gravitee-plugin-core.version>
         <gravitee-plugin-policy.version>1.16.0</gravitee-plugin-policy.version>
         <gravitee-plugin-alert.version>1.16.0</gravitee-plugin-alert.version>
         <gravitee-plugin-service-discovery.version>1.16.0</gravitee-plugin-service-discovery.version>
