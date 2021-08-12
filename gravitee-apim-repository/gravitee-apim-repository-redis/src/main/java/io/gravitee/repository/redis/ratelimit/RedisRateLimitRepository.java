@@ -49,14 +49,14 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
         RateLimit newRate = supplier.get();
 
         //TODO: for now, we have to call the supplier for each call, we must find a better way to handle this case
-        List values = redisTemplate.execute(
+        final List values = redisTemplate.execute(
             rateLimitIncrScript,
             Arrays.asList(KEY_PREFIX + key, Long.toString(weight)),
             convertToValuesArray(newRate)
         );
 
         // It may happen when the rate has been expired while running the script
-        if (!values.isEmpty()) {
+        if (!values.isEmpty() && values.get(0) != null) {
             RateLimit rateLimit = new RateLimit(key);
             rateLimit.setCounter(Long.parseLong((String) values.get(0)));
             rateLimit.setLimit(Long.parseLong((String) values.get(1)));
