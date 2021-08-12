@@ -393,6 +393,7 @@ class ApiService {
         characteristics: plan.characteristics,
         order: plan.order,
         paths: plan.paths,
+        flows: plan.flows,
         excluded_groups: plan.excluded_groups,
         comment_required: plan.comment_required,
         comment_message: plan.comment_message,
