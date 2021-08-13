@@ -30,7 +30,9 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cluster.ClusterManager;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -46,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements ApiManager, InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(ApiManagerImpl.class);
+    private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
 
     @Autowired
     private EventManager eventManager;
@@ -150,24 +153,49 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
     @Override
     public void refresh() {
-        apis.forEach((s, api) -> register(api, true));
+        if (apis != null && !apis.isEmpty()) {
+            final long begin = System.currentTimeMillis();
+
+            logger.info("Starting apis refresh. {} apis to be refreshed.", apis.size());
+
+            // Create an executor to parallelize a refresh for all the apis.
+            final ExecutorService refreshAllExecutor = createExecutor(Math.min(PARALLELISM, apis.size()));
+
+            final List<Callable<Boolean>> toInvoke = apis
+                .values()
+                .stream()
+                .map(api -> ((Callable<Boolean>) () -> register(api, true)))
+                .collect(Collectors.toList());
+
+            try {
+                refreshAllExecutor.invokeAll(toInvoke);
+                refreshAllExecutor.shutdown();
+                while (!refreshAllExecutor.awaitTermination(100, TimeUnit.MILLISECONDS));
+            } catch (Exception e) {
+                logger.error("Unable to refresh apis", e);
+            } finally {
+                refreshAllExecutor.shutdown();
+            }
+
+            logger.info("Apis refresh done in {}ms", (System.currentTimeMillis() - begin));
+        }
     }
 
     private void deploy(Api api) {
         MDC.put("api", api.getId());
+        logger.debug("Deployment of {}", api);
 
         if (api.isEnabled()) {
-            logger.info("Deployment of {}", api);
-
             // Deploy the API only if there is at least one plan
             if (!api.getPlans().isEmpty() || !planRequired(api)) {
-                logger.info("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
+                logger.debug("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
                 for (Plan plan : api.getPlans()) {
-                    logger.info("\t- {}", plan.getName());
+                    logger.debug("\t- {}", plan.getName());
                 }
 
                 apis.put(api.getId(), api);
                 eventManager.publishEvent(ReactorEvent.DEPLOY, api);
+                logger.info("{} has been deployed", api);
             } else {
                 logger.warn("There is no published plan associated to this API, skipping deployment...");
             }
@@ -178,18 +206,33 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
         MDC.remove("api");
     }
 
+    private ExecutorService createExecutor(int threadCount) {
+        return Executors.newFixedThreadPool(
+            threadCount,
+            new ThreadFactory() {
+                private int counter = 0;
+
+                @Override
+                public Thread newThread(Runnable r) {
+                    return new Thread(r, "gio.api-manager-" + counter++);
+                }
+            }
+        );
+    }
+
     private void update(Api api) {
         MDC.put("api", api.getId());
-        logger.info("Updating {}", api);
+        logger.debug("Updating {}", api);
 
         if (!api.getPlans().isEmpty() || !planRequired(api)) {
-            logger.info("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
+            logger.debug("Deploying {} plan(s) for {}:", api.getPlans().size(), api);
             for (Plan plan : api.getPlans()) {
                 logger.info("\t- {}", plan.getName());
             }
 
             apis.put(api.getId(), api);
             eventManager.publishEvent(ReactorEvent.UPDATE, api);
+            logger.info("{} has been updated", api);
         } else {
             logger.warn("There is no published plan associated to this API, undeploy it...");
             undeploy(api.getId());
@@ -202,7 +245,7 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
         Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
             MDC.put("api", apiId);
-            logger.info("Undeployment of {}", currentApi);
+            logger.debug("Undeployment of {}", currentApi);
 
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
             logger.info("{} has been undeployed", currentApi);

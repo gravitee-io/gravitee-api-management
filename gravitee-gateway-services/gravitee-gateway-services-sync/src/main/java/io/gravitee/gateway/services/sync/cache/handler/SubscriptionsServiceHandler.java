@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.subscriptions.handler;
+package io.gravitee.gateway.services.sync.cache.handler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,7 +24,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.RoutingContext;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,9 +36,9 @@ public class SubscriptionsServiceHandler implements Handler<RoutingContext> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(SubscriptionsServiceHandler.class);
 
-    private final ScheduledThreadPoolExecutor executorService;
+    private final ThreadPoolExecutor executorService;
 
-    public SubscriptionsServiceHandler(ScheduledThreadPoolExecutor executorService) {
+    public SubscriptionsServiceHandler(ThreadPoolExecutor executorService) {
         this.executorService = executorService;
     }
 

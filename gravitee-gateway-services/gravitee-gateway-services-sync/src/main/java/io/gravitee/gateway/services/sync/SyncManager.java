@@ -20,32 +20,32 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.gateway.dictionary.DictionaryManager;
-import io.gravitee.gateway.dictionary.model.Dictionary;
 import io.gravitee.gateway.env.GatewayConfiguration;
-import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.platform.Organization;
 import io.gravitee.gateway.platform.manager.OrganizationManager;
+import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.OrganizationSynchronizer;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.*;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
+import io.gravitee.repository.management.api.EventRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.gravitee.repository.management.model.LifecycleState;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
@@ -53,76 +53,98 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SyncManager {
+public class SyncManager extends AbstractService<SyncManager> {
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
-
-    private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
-    private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
-
-    @Autowired
-    private ApiRepository apiRepository;
-
-    @Autowired
-    private DictionaryRepository dictionaryRepository;
-
-    @Autowired
-    private PlanRepository planRepository;
-
-    @Autowired
-    private EventRepository eventRepository;
-
-    @Autowired
-    private ApiManager apiManager;
 
     @Autowired
     private OrganizationManager organizationManager;
 
-    @Autowired
-    private DictionaryManager dictionaryManager;
+    /**
+     * Add 30s delay before and after to avoid problem with out of sync clocks.
+     */
+    public static final int TIMEFRAME_BEFORE_DELAY = 30000;
+    public static final int TIMEFRAME_AFTER_DELAY = 30000;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ApiSynchronizer apiSynchronizer;
+
+    @Autowired
+    private DictionarySynchronizer dictionarySynchronizer;
+
+    @Autowired
+    private OrganizationSynchronizer organizationSynchronizer;
 
     @Autowired
     private ClusterManager clusterManager;
-
-    @Autowired
-    private OrganizationRepository organizationRepository;
-
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
 
     @Value("${services.sync.distributed:false}")
     private boolean distributed;
 
     private final AtomicLong counter = new AtomicLong(0);
-
     private long lastRefreshAt = -1;
-
     private int totalErrors = 0;
-
     private int errors = 0;
-
     private String lastErrorMessage;
-
+    private final ThreadPoolTaskScheduler scheduler;
+    private ScheduledFuture<?> scheduledFuture;
     private boolean allApisSync = false;
+    private List<String> environments;
 
-    void refresh(List<String> environments) {
-        long nextLastRefreshAt = System.currentTimeMillis();
+    public SyncManager() {
+        scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setThreadNamePrefix("gio.sync-");
+        // Ensure every execution is done before running next execution
+        scheduler.setPoolSize(1);
+        scheduler.initialize();
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+        apiSynchronizer.start();
+        dictionarySynchronizer.start();
+        organizationSynchronizer.start();
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        apiSynchronizer.stop();
+        dictionarySynchronizer.stop();
+        organizationSynchronizer.stop();
+
+        if (scheduledFuture != null) {
+            scheduledFuture.cancel(false);
+        }
+
+        if (scheduler != null) {
+            scheduler.shutdown();
+        }
+
+        super.doStop();
+    }
+
+    public void startScheduler(int delay, TimeUnit unit) {
+        scheduledFuture = scheduler.scheduleAtFixedRate(this::refresh, Duration.ofMillis(unit.toMillis(delay)));
+    }
+
+    public void refresh() {
+        final long nextLastRefreshAt = System.currentTimeMillis();
         boolean error = false;
+
         if (clusterManager.isMasterNode() || (!clusterManager.isMasterNode() && !distributed)) {
             logger.debug("Synchronization #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
             logger.debug("Refreshing gateway state...");
 
             try {
-                synchronizeOrganization(nextLastRefreshAt);
+                organizationSynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
             } catch (Exception ex) {
                 error = true;
                 lastErrorMessage = ex.getMessage();
@@ -130,7 +152,7 @@ public class SyncManager {
             }
 
             try {
-                synchronizeApis(nextLastRefreshAt, environments);
+                apiSynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
             } catch (Exception ex) {
                 error = true;
                 lastErrorMessage = ex.getMessage();
@@ -138,7 +160,7 @@ public class SyncManager {
             }
 
             try {
-                synchronizeDictionaries(nextLastRefreshAt, environments);
+                dictionarySynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
             } catch (Exception ex) {
                 error = true;
                 lastErrorMessage = ex.getMessage();
@@ -151,398 +173,22 @@ public class SyncManager {
             } else {
                 errors = 0;
             }
-
-            logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
         }
+
+        logger.debug("Synchronization #{} ended at {}", counter.get(), Instant.now().toString());
 
         // If there was no error during the sync process, let's continue it with the next period of time
         if (!error) {
+            allApisSync = true;
+
             // We refresh the date even if process did not run (not a master node) to ensure that we sync the same way as
             // soon as the node is becoming the master later.
             lastRefreshAt = nextLastRefreshAt;
         }
     }
 
-    private void synchronizeOrganization(long nextLastRefreshAt) throws TechnicalException {
-        // Initial synchronization
-        Map<String, Event> organizationEvents;
-        if (lastRefreshAt == -1) {
-            Collection<io.gravitee.repository.management.model.Organization> organizations = organizationRepository.findAll();
-
-            organizationEvents =
-                organizations
-                    .stream()
-                    .map(org -> getLastOrganizationEvent(org.getId()))
-                    .filter(Objects::nonNull)
-                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.ORGANIZATION_ID.getValue()), event -> event));
-        } else {
-            // Get latest API events
-            List<Event> events = getLatestOrganizationEvents(nextLastRefreshAt);
-
-            // Extract only the latest event by API
-            organizationEvents =
-                events
-                    .stream()
-                    .collect(
-                        toMap(
-                            event -> event.getProperties().get(Event.EventProperties.ORGANIZATION_ID.getValue()),
-                            event -> event,
-                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
-                        )
-                    );
-        }
-
-        // Then, compute events
-        computeOrganizationEvents(organizationEvents);
-    }
-
-    private void synchronizeApis(long nextLastRefreshAt, List<String> environments) {
-        Map<String, Event> apiEvents;
-
-        // Initial synchronization
-        if (lastRefreshAt == -1) {
-            // Extract all registered APIs
-            List<io.gravitee.repository.management.model.Api> apis = apiRepository.search(
-                new ApiCriteria.Builder().environments(environments).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            );
-
-            // Get last event by API
-            apiEvents =
-                apis
-                    .stream()
-                    .map(api -> getLastApiEvent(api.getId(), environments))
-                    .filter(Objects::nonNull)
-                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()), event -> event));
-        } else {
-            // Get latest API events
-            List<Event> events = getLatestApiEvents(nextLastRefreshAt, environments);
-
-            // Extract only the latest event by API
-            apiEvents =
-                events
-                    .stream()
-                    .collect(
-                        toMap(
-                            event -> event.getProperties().get(Event.EventProperties.API_ID.getValue()),
-                            event -> event,
-                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
-                        )
-                    );
-        }
-
-        // Then, compute events
-        computeApiEvents(apiEvents);
-    }
-
-    private void synchronizeDictionaries(long nextLastRefreshAt, List<String> environments) throws Exception {
-        Map<String, Event> dictionaryEvents;
-
-        // Initial synchronization
-        if (lastRefreshAt == -1) {
-            Set<io.gravitee.repository.management.model.Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(
-                new HashSet<>(environments)
-            );
-
-            // Get last event by dictionary
-            dictionaryEvents =
-                dictionaries
-                    .stream()
-                    .map(dictionary -> getLastDictionaryEvent(dictionary.getId(), environments))
-                    .filter(Objects::nonNull)
-                    .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
-        } else {
-            // Get latest dictionary events
-            List<Event> events = getLatestDictionaryEvents(nextLastRefreshAt, environments);
-
-            // Extract only the latest event by API
-            dictionaryEvents =
-                events
-                    .stream()
-                    .collect(
-                        toMap(
-                            event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()),
-                            event -> event,
-                            BinaryOperator.maxBy(comparing(Event::getCreatedAt))
-                        )
-                    );
-        }
-
-        // Then, compute events
-        computeDictionaryEvents(dictionaryEvents);
-    }
-
-    private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {
-        dictionaryEvents.forEach(
-            (dictionaryId, event) -> {
-                switch (event.getType()) {
-                    case UNPUBLISH_DICTIONARY:
-                        dictionaryManager.undeploy(dictionaryId);
-                        break;
-                    case PUBLISH_DICTIONARY:
-                        try {
-                            // Read dictionary definition from event
-                            Dictionary dictionary = objectMapper.readValue(event.getPayload(), Dictionary.class);
-                            dictionaryManager.deploy(dictionary);
-                        } catch (IOException ioe) {
-                            logger.error("Error while determining deployed dictionaries into events payload", ioe);
-                        }
-                        break;
-                }
-            }
-        );
-    }
-
-    private void computeOrganizationEvents(Map<String, Event> organizationEvents) {
-        organizationEvents.forEach(
-            (orgId, organizationEvent) -> {
-                try {
-                    switch (organizationEvent.getType()) {
-                        case PUBLISH_ORGANIZATION:
-                            try {
-                                // Read Organization definition from event
-                                io.gravitee.definition.model.Organization eventOrganization = objectMapper.readValue(
-                                    organizationEvent.getPayload(),
-                                    io.gravitee.definition.model.Organization.class
-                                );
-
-                                List<String> shardingTags = gatewayConfiguration.shardingTags().orElse(null);
-                                if (shardingTags != null && !shardingTags.isEmpty()) {
-                                    List<Flow> filteredFlows = eventOrganization
-                                        .getFlows()
-                                        .stream()
-                                        .filter(
-                                            flow -> {
-                                                List<Consumer> consumers = flow.getConsumers();
-                                                if (consumers != null && !consumers.isEmpty()) {
-                                                    Set<String> flowTags = consumers
-                                                        .stream()
-                                                        .filter((consumer -> consumer.getConsumerType().equals(ConsumerType.TAG)))
-                                                        .map(consumer -> consumer.getConsumerId())
-                                                        .collect(Collectors.toSet());
-                                                    return gatewayConfiguration.hasMatchingTags(flowTags);
-                                                }
-                                                return true;
-                                            }
-                                        )
-                                        .collect(Collectors.toList());
-
-                                    eventOrganization.setFlows(filteredFlows);
-                                }
-
-                                // Update definition with required information for deployment phase
-                                final Organization organization = new Organization(eventOrganization);
-                                organization.setUpdatedAt(organizationEvent.getUpdatedAt());
-                                organizationManager.register(organization);
-                            } catch (Exception e) {
-                                logger.error("Error while determining organization store into events payload", e);
-                            }
-                            break;
-                    }
-                } catch (Throwable t) {
-                    logger.error("An unexpected error occurs while managing the deployment of Organization id[{}]", orgId, t);
-                }
-            }
-        );
-    }
-
-    private void computeApiEvents(Map<String, Event> apiEvents) {
-        apiEvents.forEach(
-            (apiId, apiEvent) -> {
-                try {
-                    switch (apiEvent.getType()) {
-                        case UNPUBLISH_API:
-                        case STOP_API:
-                            apiManager.unregister(apiId);
-                            break;
-                        case START_API:
-                        case PUBLISH_API:
-                            try {
-                                // Read API definition from event
-                                io.gravitee.repository.management.model.Api eventPayload = objectMapper.readValue(
-                                    apiEvent.getPayload(),
-                                    io.gravitee.repository.management.model.Api.class
-                                );
-
-                                io.gravitee.definition.model.Api eventApiDefinition = objectMapper.readValue(
-                                    eventPayload.getDefinition(),
-                                    io.gravitee.definition.model.Api.class
-                                );
-
-                                // Update definition with required information for deployment phase
-                                final Api api = new Api(eventApiDefinition);
-                                api.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
-                                api.setDeployedAt(eventPayload.getDeployedAt());
-
-                                enhanceWithData(api);
-
-                                apiManager.register(api);
-                            } catch (Exception e) {
-                                logger.error("Error while determining deployed APIs store into events payload", e);
-                            }
-                            break;
-                    }
-                } catch (Throwable t) {
-                    logger.error("An unexpected error occurs while managing the deployment of API id[{}]", apiId, t);
-                }
-            }
-        );
-        allApisSync = true;
-    }
-
-    public boolean isAllApisSync() {
-        return allApisSync;
-    }
-
-    private Event getLastDictionaryEvent(final String dictionary, List<String> environments) {
-        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
-            .property(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary)
-            .environments(environments);
-
-        List<Event> events = eventRepository
-            .search(
-                eventCriteriaBuilder.types(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
-            .getContent();
-
-        return (!events.isEmpty()) ? events.get(0) : null;
-    }
-
-    private List<Event> getLatestDictionaryEvents(long nextLastRefreshAt, List<String> environments) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder()
-            .types(EventType.PUBLISH_DICTIONARY, EventType.UNPUBLISH_DICTIONARY)
-            // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors))
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
-            .environments(environments);
-
-        return eventRepository.search(builder.build());
-    }
-
-    private List<Event> getLatestApiEvents(long nextLastRefreshAt, List<String> environments) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder()
-            .types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API)
-            // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors))
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
-            .environments(environments);
-
-        return eventRepository.search(builder.build());
-    }
-
-    private Event getLastApiEvent(final String api, List<String> environments) {
-        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
-            .property(Event.EventProperties.API_ID.getValue(), api)
-            .environments(environments);
-
-        List<Event> events = eventRepository
-            .search(
-                eventCriteriaBuilder.types(EventType.PUBLISH_API, EventType.UNPUBLISH_API, EventType.START_API, EventType.STOP_API).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
-            .getContent();
-
-        return (!events.isEmpty()) ? events.get(0) : null;
-    }
-
-    private List<Event> getLatestOrganizationEvents(long nextLastRefreshAt) {
-        final EventCriteria.Builder builder = new EventCriteria.Builder()
-            .types(EventType.PUBLISH_ORGANIZATION)
-            // Search window is extended by 5 seconds for each sync error to ensure that we are never missing data
-            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY - (5000 * errors))
-            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY);
-
-        return eventRepository.search(builder.build());
-    }
-
-    private Event getLastOrganizationEvent(final String organization) {
-        final EventCriteria.Builder eventCriteriaBuilder = new EventCriteria.Builder()
-        .property(Event.EventProperties.ORGANIZATION_ID.getValue(), organization);
-
-        List<Event> events = eventRepository
-            .search(
-                eventCriteriaBuilder.types(EventType.PUBLISH_ORGANIZATION).build(),
-                new PageableBuilder().pageNumber(0).pageSize(1).build()
-            )
-            .getContent();
-
-        return (!events.isEmpty()) ? events.get(0) : null;
-    }
-
-    private void enhanceWithData(Api definition) {
-        try {
-            // for v2, plans are already part of the api definition
-            if (definition.getDefinitionVersion() == DefinitionVersion.V1) {
-                // Deploy only published plan
-                definition.setPlans(
-                    planRepository
-                        .findByApi(definition.getId())
-                        .stream()
-                        .filter(
-                            plan ->
-                                io.gravitee.repository.management.model.Plan.Status.PUBLISHED.equals(plan.getStatus()) ||
-                                io.gravitee.repository.management.model.Plan.Status.DEPRECATED.equals(plan.getStatus())
-                        )
-                        .map(this::convert)
-                        .collect(Collectors.toList())
-                );
-            } else if (definition.getDefinitionVersion() == DefinitionVersion.V2) {
-                definition.setPlans(
-                    definition
-                        .getPlans()
-                        .stream()
-                        .filter(plan -> "published".equalsIgnoreCase(plan.getStatus()) || "deprecated".equalsIgnoreCase(plan.getStatus()))
-                        .collect(Collectors.toList())
-                );
-            }
-        } catch (TechnicalException te) {
-            logger.error("Unexpected error while adding plan to the API: {} [{}]", definition.getName(), definition.getId(), te);
-        }
-    }
-
-    private Plan convert(io.gravitee.repository.management.model.Plan repoPlan) {
-        Plan plan = new Plan();
-
-        plan.setId(repoPlan.getId());
-        plan.setName(repoPlan.getName());
-        plan.setSecurityDefinition(repoPlan.getSecurityDefinition());
-        plan.setSelectionRule(repoPlan.getSelectionRule());
-        plan.setTags(repoPlan.getTags());
-
-        if (repoPlan.getSecurity() != null) {
-            plan.setSecurity(repoPlan.getSecurity().name());
-        } else {
-            // TODO: must be handle by a migration script
-            plan.setSecurity("api_key");
-        }
-
-        try {
-            if (repoPlan.getDefinition() != null && !repoPlan.getDefinition().trim().isEmpty()) {
-                HashMap<String, List<Rule>> paths = objectMapper.readValue(
-                    repoPlan.getDefinition(),
-                    new TypeReference<HashMap<String, List<Rule>>>() {}
-                );
-
-                plan.setPaths(paths);
-            }
-        } catch (IOException ioe) {
-            logger.error("Unexpected error while converting plan: {}", plan, ioe);
-        }
-
-        return plan;
-    }
-
-    public void setApiRepository(ApiRepository apiRepository) {
-        this.apiRepository = apiRepository;
-    }
-
-    public void setEventRepository(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
-    }
-
-    public void setApiManager(ApiManager apiManager) {
-        this.apiManager = apiManager;
+    public boolean isDistributed() {
+        return distributed;
     }
 
     public void setDistributed(boolean distributed) {
@@ -567,5 +213,17 @@ public class SyncManager {
 
     public String getLastErrorMessage() {
         return lastErrorMessage;
+    }
+
+    public boolean isAllApisSync() {
+        return allApisSync;
+    }
+
+    public List<String> getEnvironments() {
+        return environments;
+    }
+
+    public void setEnvironments(List<String> environments) {
+        this.environments = environments;
     }
 }
