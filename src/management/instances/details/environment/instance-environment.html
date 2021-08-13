@@ -62,15 +62,15 @@
             <td md-cell>Tenant</td>
             <td md-cell>{{$ctrl.instance.tenant}}</td>
           </tr>
-          <tr md-row ng-if="$ctrl.instance.organizations && $ctrl.instance.organizations.length > 0">
+          <tr md-row ng-if="$ctrl.instance.organizations_hrids && $ctrl.instance.organizations_hrids.length > 0">
             <td md-cell><gv-icon shape="design:component" style="--gv-icon--s: 24px"></gv-icon></td>
             <td md-cell>Organizations</td>
-            <td md-cell>{{$ctrl.instance.organizations}}</td>
+            <td md-cell>{{$ctrl.instance.organizations_hrids}}</td>
           </tr>
-          <tr md-row ng-if="$ctrl.instance.environments && $ctrl.instance.environments.length > 0">
+          <tr md-row ng-if="$ctrl.instance.environments_hrids && $ctrl.instance.environments_hrids.length > 0">
             <td md-cell><gv-icon shape="general:settings#1" style="--gv-icon--s: 24px"></gv-icon></td>
             <td md-cell>Environments</td>
-            <td md-cell>{{$ctrl.instance.environments}}</td>
+            <td md-cell>{{$ctrl.instance.environments_hrids}}</td>
           </tr>
           <tr md-row>
             <td md-cell><ng-md-icon icon="timer"></ng-md-icon></td>
