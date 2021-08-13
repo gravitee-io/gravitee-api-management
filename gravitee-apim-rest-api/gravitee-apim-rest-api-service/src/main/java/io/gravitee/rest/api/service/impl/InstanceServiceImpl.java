@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
@@ -59,9 +60,6 @@ public class InstanceServiceImpl implements InstanceService {
 
     @Value("${gateway.unknown-expire-after:604800}") // default value : 7 days
     private long unknownExpireAfterInSec;
-
-    public static final String ENVIRONMENTS_HRIDS_PROPERTY = "environments_hrids";
-    public static final String ORGANIZATIONS_HRIDS_PROPERTY = "organizations_hrids";
 
     private static final List<EventType> instancesAllState = new ArrayList<>();
 
@@ -141,20 +139,39 @@ public class InstanceServiceImpl implements InstanceService {
             LOGGER.debug("Find instance by event ID: {}", eventId);
 
             EventEntity event = eventService.findById(eventId);
-            List<String> environments = Stream
-                .of(event.getProperties().get(ENVIRONMENTS_HRIDS_PROPERTY).split(", "))
-                .filter(env -> !StringUtils.isEmpty(env))
-                .collect(Collectors.toList());
+            List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
 
-            List<String> organizations = Stream
-                .of(event.getProperties().get(ORGANIZATIONS_HRIDS_PROPERTY).split(", "))
-                .filter(org -> !StringUtils.isEmpty(org))
-                .collect(Collectors.toList());
+            List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
 
             return convert(event, environments, organizations);
         } catch (EventNotFoundException enfe) {
             throw new InstanceNotFoundException(eventId);
         }
+    }
+
+    @Override
+    public List<InstanceEntity> findAllStarted() {
+        LOGGER.debug("Find started instances by event");
+
+        final EventQuery query = new EventQuery();
+        query.setTypes(instancesRunningOnly);
+
+        Collection<EventEntity> events = eventService.search(query);
+
+        return events
+            .stream()
+            .map(
+                event -> {
+                    List<String> environments = extractProperty(event, Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue());
+                    List<String> organizations = extractProperty(event, Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue());
+                    return convert(event, environments, organizations);
+                }
+            )
+            .collect(Collectors.toList());
+    }
+
+    private List<String> extractProperty(EventEntity event, String property) {
+        return Stream.of(event.getProperties().get(property).split(", ")).filter(StringUtils::hasText).collect(Collectors.toList());
     }
 
     private InstanceEntity convert(EventEntity event) {
@@ -169,8 +186,9 @@ public class InstanceServiceImpl implements InstanceService {
         instance.setEvent(event.getId());
         instance.setLastHeartbeatAt(new Date(Long.parseLong(props.get("last_heartbeat_at"))));
         instance.setStartedAt(new Date(Long.parseLong(props.get("started_at"))));
-        instance.setEnvironments(environments);
-        instance.setOrganizations(organizations);
+        instance.setEnvironments(event.getEnvironments());
+        instance.setEnvironmentsHrids(environments);
+        instance.setOrganizationsHrids(organizations);
 
         if (event.getPayload() != null) {
             try {

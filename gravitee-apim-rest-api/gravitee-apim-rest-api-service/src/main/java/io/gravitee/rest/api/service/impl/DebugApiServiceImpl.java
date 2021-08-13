@@ -16,23 +16,29 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Map.entry;
+import static java.util.Optional.ofNullable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.definition.model.*;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.DebugApiEntity;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.InstanceEntity;
 import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,25 +51,33 @@ public class DebugApiServiceImpl implements DebugApiService {
     private final ApiService apiService;
     private final EventService eventService;
     private final ObjectMapper objectMapper;
+    private final InstanceService instanceService;
 
-    public DebugApiServiceImpl(ApiService apiService, EventService eventService, ObjectMapper objectMapper) {
+    public DebugApiServiceImpl(
+        ApiService apiService,
+        EventService eventService,
+        ObjectMapper objectMapper,
+        InstanceService instanceService
+    ) {
         this.apiService = apiService;
         this.eventService = eventService;
         this.objectMapper = objectMapper;
+        this.instanceService = instanceService;
     }
 
     @Override
     public EventEntity debug(String apiId, String userId, DebugApiEntity debugApiEntity) {
         try {
             LOGGER.debug("Debug API : {}", apiId);
-            if (!apiService.exists(apiId)) {
-                throw new ApiNotFoundException(apiId);
-            }
+            final ApiEntity api = apiService.findById(apiId);
+
+            final InstanceEntity instanceEntity = selectTargetGateway(api);
 
             Map<String, String> properties = Map.ofEntries(
                 entry(Event.EventProperties.API_ID.getValue(), apiId),
                 entry(Event.EventProperties.USER.getValue(), userId),
-                entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
+                entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name()),
+                entry(Event.EventProperties.GATEWAY_ID.getValue(), instanceEntity.getId())
             );
 
             DebugApi debugApi = convert(debugApiEntity, apiId);
@@ -97,6 +111,17 @@ public class DebugApiServiceImpl implements DebugApiService {
         if (!hasValidPlan) {
             throw new DebugApiNoValidPlanException(debugApi.getId());
         }
+    }
+
+    private InstanceEntity selectTargetGateway(ApiEntity api) {
+        final List<InstanceEntity> startedInstances = instanceService.findAllStarted();
+
+        return startedInstances
+            .stream()
+            .filter(instanceEntity -> instanceEntity.getEnvironments().contains(api.getReferenceId()))
+            .filter(instanceEntity -> EnvironmentUtils.hasMatchingTags(ofNullable(instanceEntity.getTags()), api.getTags()))
+            .findFirst()
+            .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(api.getId()));
     }
 
     private DebugApi convert(DebugApiEntity debugApiEntity, String apiId) {

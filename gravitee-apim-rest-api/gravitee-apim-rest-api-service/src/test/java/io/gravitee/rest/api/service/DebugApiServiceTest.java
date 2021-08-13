@@ -25,12 +25,15 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.rest.api.service.impl.DebugApiServiceImpl;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.Before;
@@ -38,12 +41,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DebugApiServiceTest {
 
     private static final String API_ID = "api#1";
+    private static final String ENVIRONMENT_ID = "environment#1";
+    private static final String INSTANCE_ID = "instance#1";
     private static final String USER_ID = "user#1";
     private final ObjectMapper objectMapper = new GraviteeMapper();
 
@@ -53,23 +59,28 @@ public class DebugApiServiceTest {
     @Mock
     private EventService eventService;
 
+    @Mock
+    private InstanceService instanceService;
+
     private DebugApiService debugApiService;
 
     @Before
     public void setup() {
-        debugApiService = new DebugApiServiceImpl(apiService, eventService, objectMapper);
+        debugApiService = new DebugApiServiceImpl(apiService, eventService, objectMapper, instanceService);
+
+        ApiEntity apiEntity = mock(ApiEntity.class);
+        when(apiEntity.getReferenceId()).thenReturn(ENVIRONMENT_ID);
+        when(apiService.findById(API_ID)).thenReturn(apiEntity);
+
+        InstanceEntity instanceEntity = mock(InstanceEntity.class);
+        when(instanceEntity.getId()).thenReturn(INSTANCE_ID);
+        when(instanceEntity.getEnvironments()).thenReturn(Sets.newSet(ENVIRONMENT_ID));
+        when(instanceService.findAllStarted()).thenReturn(Arrays.asList(instanceEntity));
     }
 
     @Test
     public void debug_shouldCallEventServiceWithSpecificProperties() {
-        when(apiService.exists(API_ID)).thenReturn(true);
-        Plan deprecatedPlan = new Plan();
-        deprecatedPlan.setStatus(PlanStatus.PUBLISHED.name());
-
-        DebugApiEntity debugApiEntity = new DebugApiEntity();
-        debugApiEntity.setRequest(new HttpRequest());
-        debugApiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        debugApiEntity.setPlans(List.of(deprecatedPlan));
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
 
         debugApiService.debug(API_ID, USER_ID, debugApiEntity);
 
@@ -86,29 +97,27 @@ public class DebugApiServiceTest {
 
     @Test(expected = DebugApiNoValidPlanException.class)
     public void debug_shouldThrowIfApiHasOnlyDeprecatedPlan() {
-        when(apiService.exists(API_ID)).thenReturn(true);
-        Plan deprecatedPlan = new Plan();
-        deprecatedPlan.setStatus(PlanStatus.DEPRECATED.name());
-
-        DebugApiEntity debugApiEntity = new DebugApiEntity();
-        debugApiEntity.setRequest(new HttpRequest());
-        debugApiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
-        debugApiEntity.setPlans(List.of(deprecatedPlan));
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.DEPRECATED, DefinitionVersion.V2);
 
         debugApiService.debug(API_ID, USER_ID, debugApiEntity);
     }
 
     @Test(expected = DebugApiInvalidDefinitionVersionException.class)
     public void debug_shouldThrowIfApiDefinitionIsNotV2() {
-        when(apiService.exists(API_ID)).thenReturn(true);
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V1);
+
+        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+    }
+
+    private DebugApiEntity prepareDebugApiEntity(PlanStatus planStatus, DefinitionVersion definitionVersion) {
         Plan deprecatedPlan = new Plan();
-        deprecatedPlan.setStatus(PlanStatus.PUBLISHED.name());
+        deprecatedPlan.setStatus(planStatus.name());
 
         DebugApiEntity debugApiEntity = new DebugApiEntity();
         debugApiEntity.setRequest(new HttpRequest());
-        debugApiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V1.getLabel());
+        debugApiEntity.setGraviteeDefinitionVersion(definitionVersion.getLabel());
         debugApiEntity.setPlans(List.of(deprecatedPlan));
 
-        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        return debugApiEntity;
     }
 }

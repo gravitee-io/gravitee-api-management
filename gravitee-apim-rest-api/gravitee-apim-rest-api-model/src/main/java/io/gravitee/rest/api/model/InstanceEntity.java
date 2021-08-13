@@ -49,9 +49,13 @@ public class InstanceEntity {
 
     private List<String> tags;
 
-    private List<String> environments;
+    private Set<String> environments;
 
-    private List<String> organizations;
+    @JsonProperty("environments_hrids")
+    private List<String> environmentsHrids;
+
+    @JsonProperty("organizations_hrids")
+    private List<String> organizationsHrids;
 
     private InstanceState state = InstanceState.UNKNOWN;
 
@@ -121,20 +125,28 @@ public class InstanceEntity {
         this.tags = tags;
     }
 
-    public List<String> getEnvironments() {
+    public Set<String> getEnvironments() {
         return environments;
     }
 
-    public void setEnvironments(List<String> environments) {
+    public void setEnvironments(Set<String> environments) {
         this.environments = environments;
     }
 
-    public List<String> getOrganizations() {
-        return organizations;
+    public List<String> getEnvironmentsHrids() {
+        return environmentsHrids;
     }
 
-    public void setOrganizations(List<String> organizations) {
-        this.organizations = organizations;
+    public void setEnvironmentsHrids(List<String> environmentsHrids) {
+        this.environmentsHrids = environmentsHrids;
+    }
+
+    public List<String> getOrganizationsHrids() {
+        return organizationsHrids;
+    }
+
+    public void setOrganizationsHrids(List<String> organizationsHrids) {
+        this.organizationsHrids = organizationsHrids;
     }
 
     public String getVersion() {
