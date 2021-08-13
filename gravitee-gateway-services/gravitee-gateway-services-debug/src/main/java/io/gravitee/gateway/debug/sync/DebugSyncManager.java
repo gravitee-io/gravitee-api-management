@@ -20,6 +20,7 @@ import io.gravitee.gateway.debug.handler.definition.DebugApi;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.services.sync.SyncManager;
+import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
@@ -31,10 +32,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DebugSyncManager extends SyncManager {
 
     private final Logger logger = LoggerFactory.getLogger(DebugSyncManager.class);
+
+    @Autowired
+    private Node node;
 
     protected void refresh(List<String> environments) {
         long nextLastRefreshAt = System.currentTimeMillis();
@@ -115,14 +120,16 @@ public class DebugSyncManager extends SyncManager {
     public EventCriteria.Builder getLastApiEventCriteria(String api, List<String> environments) {
         return super
             .getLastApiEventCriteria(api, environments)
-            .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name());
+            .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
+            .property(Event.EventProperties.GATEWAY_ID.getValue(), node.id());
     }
 
     @Override
     public EventCriteria.Builder getLatestApiEventsCriteria(long nextLastRefreshAt, List<String> environments) {
         return super
             .getLatestApiEventsCriteria(nextLastRefreshAt, environments)
-            .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name());
+            .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
+            .property(Event.EventProperties.GATEWAY_ID.getValue(), node.id());
     }
 
     protected EventType[] getApiEventTypes() {

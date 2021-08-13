@@ -18,6 +18,7 @@ package io.gravitee.gateway.debug.sync;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -34,6 +35,7 @@ import io.gravitee.gateway.debug.handler.definition.DebugApi;
 import io.gravitee.gateway.debug.utils.RepositoryApiBuilder;
 import io.gravitee.gateway.debug.utils.Stubs;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -42,6 +44,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.util.Arrays;
@@ -62,6 +65,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class DebugSyncManagerTest {
 
     private static final String EVENT_ID = "evt-id";
+    private static final String GATEWAY_ID = "gateway-id";
 
     @InjectMocks
     private final DebugSyncManager syncManager = new DebugSyncManager();
@@ -81,12 +85,16 @@ public class DebugSyncManagerTest {
     @Mock
     private EventManager eventManager;
 
+    @Mock
+    private Node node;
+
     private List<String> environments;
 
     @Before
     public void setUp() {
         when(clusterManager.isMasterNode()).thenReturn(true);
         environments = Arrays.asList("DEFAULT", "ENVIRONMENT_2");
+        when(node.id()).thenReturn(GATEWAY_ID);
     }
 
     @Test
@@ -180,8 +188,12 @@ public class DebugSyncManagerTest {
         mockApi.setPlans(singletonList(plan));
 
         final Event mockEvent = mockEvent(mockApi, EventType.DEBUG_API);
-        when(eventRepository.search(any(EventCriteria.class), any(Pageable.class)))
-            .thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
+        EventCriteria eventCriteria = argThat(
+            e ->
+                e.getProperties().get(Event.EventProperties.API_DEBUG_STATUS.getValue()).equals(ApiDebugStatus.TO_DEBUG.name()) &&
+                e.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue()).equals(GATEWAY_ID)
+        );
+        when(eventRepository.search(eventCriteria, any(Pageable.class))).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         when(
             apiRepository.search(
@@ -207,8 +219,12 @@ public class DebugSyncManagerTest {
         final io.gravitee.definition.model.DebugApi mockApi = mockDebugApi();
 
         final Event mockEvent = mockEvent(mockApi, EventType.DEBUG_API);
-        when(eventRepository.search(any(EventCriteria.class), any(Pageable.class)))
-            .thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
+        EventCriteria eventCriteria = argThat(
+            e ->
+                e.getProperties().get(Event.EventProperties.API_DEBUG_STATUS.getValue()).equals(ApiDebugStatus.TO_DEBUG.name()) &&
+                e.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue()).equals(GATEWAY_ID)
+        );
+        when(eventRepository.search(eventCriteria, any(Pageable.class))).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
 
         when(
             apiRepository.search(
