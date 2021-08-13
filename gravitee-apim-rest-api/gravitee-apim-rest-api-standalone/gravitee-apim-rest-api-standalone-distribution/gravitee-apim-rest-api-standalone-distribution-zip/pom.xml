@@ -50,24 +50,37 @@
 	</dependencies>
 
 	<build>
-		<finalName>gravitee-apim-rest-api-standalone-${project.version}</finalName>
 
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.6</version>
 				<extensions>true</extensions>
 				<executions>
 					<execution>
-						<id>bin</id>
+						<id>component</id>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
 						</goals>
 						<configuration>
+							<finalName>graviteeio-apim-rest-api-standalone-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
-								<descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
+								<descriptor>src/main/assembly/plugin-assembly-standalone.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>distribution</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>graviteeio-apim-rest-api-distribution-${project.version}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
@@ -75,4 +88,5 @@
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
