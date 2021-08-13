@@ -66,8 +66,6 @@ public class HeartbeatService extends AbstractService implements MessageListener
     static final String EVENT_STOPPED_AT_PROPERTY = "stopped_at";
     static final String EVENT_ID_PROPERTY = "id";
     static final String EVENT_STATE_PROPERTY = "create";
-    static final String EVENT_ENVIRONMENTS_HRIDS_PROPERTY = "environments_hrids";
-    static final String EVENT_ORGANIZATIONS_HRIDS_PROPERTY = "organizations_hrids";
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -315,7 +313,7 @@ public class HeartbeatService extends AbstractService implements MessageListener
         }
         event.setEnvironments(environmentsIds);
 
-        properties.put(EVENT_ENVIRONMENTS_HRIDS_PROPERTY, String.join(", ", environmentsHrids));
-        properties.put(EVENT_ORGANIZATIONS_HRIDS_PROPERTY, String.join(", ", organizationsHrids));
+        properties.put(Event.EventProperties.ENVIRONMENTS_HRIDS_PROPERTY.getValue(), String.join(", ", environmentsHrids));
+        properties.put(Event.EventProperties.ORGANIZATIONS_HRIDS_PROPERTY.getValue(), String.join(", ", organizationsHrids));
     }
 }

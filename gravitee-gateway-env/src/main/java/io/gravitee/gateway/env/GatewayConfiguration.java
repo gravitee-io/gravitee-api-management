@@ -15,12 +15,11 @@
  */
 package io.gravitee.gateway.env;
 
-import java.text.Collator;
+import io.gravitee.common.util.EnvironmentUtils;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -153,68 +152,6 @@ public class GatewayConfiguration implements InitializingBean {
     }
 
     public boolean hasMatchingTags(Set<String> tags) {
-        final Optional<List<String>> optTagList = shardingTags();
-
-        if (optTagList.isPresent()) {
-            List<String> tagList = optTagList.get();
-            if (tags != null) {
-                final List<String> inclusionTags = tagList
-                    .stream()
-                    .map(String::trim)
-                    .filter(tag -> !tag.startsWith("!"))
-                    .collect(Collectors.toList());
-
-                final List<String> exclusionTags = tagList
-                    .stream()
-                    .map(String::trim)
-                    .filter(tag -> tag.startsWith("!"))
-                    .map(tag -> tag.substring(1))
-                    .collect(Collectors.toList());
-
-                if (inclusionTags.stream().anyMatch(exclusionTags::contains)) {
-                    throw new IllegalArgumentException("You must not configure a tag to be included and excluded");
-                }
-
-                return (
-                    (
-                        inclusionTags.isEmpty() ||
-                        inclusionTags
-                            .stream()
-                            .anyMatch(
-                                tag ->
-                                    tags
-                                        .stream()
-                                        .anyMatch(
-                                            crtTag -> {
-                                                final Collator collator = Collator.getInstance();
-                                                collator.setStrength(Collator.NO_DECOMPOSITION);
-                                                return collator.compare(tag, crtTag) == 0;
-                                            }
-                                        )
-                            )
-                    ) &&
-                    (
-                        exclusionTags.isEmpty() ||
-                        exclusionTags
-                            .stream()
-                            .noneMatch(
-                                tag ->
-                                    tags
-                                        .stream()
-                                        .anyMatch(
-                                            crtTag -> {
-                                                final Collator collator = Collator.getInstance();
-                                                collator.setStrength(Collator.NO_DECOMPOSITION);
-                                                return collator.compare(tag, crtTag) == 0;
-                                            }
-                                        )
-                            )
-                    )
-                );
-            }
-        }
-
-        // no tags configured on this gateway instance
-        return true;
+        return EnvironmentUtils.hasMatchingTags(shardingTags(), tags);
     }
 }
