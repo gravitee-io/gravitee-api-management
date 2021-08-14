@@ -634,24 +634,6 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>com.hubspot.maven.plugins</groupId>
-                    <artifactId>prettier-maven-plugin</artifactId>
-                    <version>${prettier-maven-plugin.version}</version>
-                    <configuration>
-                        <nodeVersion>12.13.0</nodeVersion>
-                        <prettierJavaVersion>1.0.1</prettierJavaVersion>
-                        <skip>${skipTests}</skip>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
                     <groupId>io.gatling</groupId>
                     <artifactId>gatling-maven-plugin</artifactId>
                     <version>${gatling-maven-plugin.version}</version>
@@ -665,6 +647,20 @@
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
+                <version>${prettier-maven-plugin.version}</version>
+                <configuration>
+                    <nodeVersion>12.13.0</nodeVersion>
+                    <prettierJavaVersion>1.0.1</prettierJavaVersion>
+                    <skip>${skipTests}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.mycila</groupId>
