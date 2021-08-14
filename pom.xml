@@ -47,6 +47,7 @@
     <modules>
         <module>gravitee-apim-repository</module>
         <module>gravitee-apim-rest-api</module>
+        <module>gravitee-apim-distribution</module>
     </modules>
 
     <properties>
@@ -616,13 +617,6 @@
                 <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>${maven-assembly-plugin.version}</version>
-                    <inherited>true</inherited>
-                    <configuration>
-                        <appendAssemblyId>false</appendAssemblyId>
-                        <descriptors>
-                            <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-                        </descriptors>
-                    </configuration>
                     <executions>
                         <execution>
                             <id>make-plugin-assembly</id>
@@ -630,6 +624,12 @@
                             <goals>
                                 <goal>single</goal>
                             </goals>
+                            <configuration>
+                                <appendAssemblyId>false</appendAssemblyId>
+                                <descriptors>
+                                    <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
+                                </descriptors>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>

@@ -96,6 +96,9 @@
             <includes>
                 <include>*.zip</include>
             </includes>
+            <excludes>
+                <exclude>*gravitee-apim-repository-gateway-bridge-http*</exclude>
+            </excludes>
         </fileSet>
         <!-- Just to create an empty data directory -->
         <fileSet>
@@ -120,6 +123,9 @@
             <includes>
                 <include>*.zip</include>
             </includes>
+            <excludes>
+                <exclude>*gravitee-gateway-services-ratelimit*</exclude>
+            </excludes>
         </fileSet>
 
         <fileSet>
