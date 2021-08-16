@@ -54,7 +54,7 @@ jobs:
       - run:
           name: "Maven Package and deploy to Artifactory [gravitee-snapshots] repository"
           command: |
-            mvn -s /tmp/.artifactory.settings.xml -P gio-dev clean deploy --no-transfer-progress -DskipTests
+            mvn -s /tmp/.artifactory.settings.xml -P gio-dev clean deploy --no-transfer-progress -DskipTests -T 2C
       - run:
           name: "Exclude Gravitee internal dependencies from cache"
           command: |
@@ -72,7 +72,7 @@ jobs:
       - run:
           name: "Maven Package and deploy to Nexus Snapshots"
           command: |
-            mvn -s /tmp/.nexus.settings.xml deploy --no-transfer-progress -DskipTests -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
+            mvn -s /tmp/.nexus.settings.xml deploy --no-transfer-progress -DskipTests -T 2C -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
 
 workflows:
   pull_requests:
