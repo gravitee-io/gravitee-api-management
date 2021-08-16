@@ -47,7 +47,6 @@ import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.swagger.annotations.*;
 import java.io.ByteArrayOutputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -342,12 +341,8 @@ public class ApiResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     public Response debugAPI(@ApiParam(name = "request") @Valid final DebugApiEntity debugApiEntity) {
-        try {
-            EventEntity apiEntity = debugApiService.debug(api, getAuthenticatedUser(), debugApiEntity);
-            return Response.ok(apiEntity).build();
-        } catch (Exception e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("JsonProcessingException " + e).build();
-        }
+        EventEntity apiEntity = debugApiService.debug(api, getAuthenticatedUser(), debugApiEntity);
+        return Response.ok(apiEntity).build();
     }
 
     @GET
