@@ -102,6 +102,14 @@
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.gateway.services</groupId>
+            <artifactId>gravitee-gateway-services-debug</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <type>zip</type>
+        </dependency>
     </dependencies>
 
     <build>
@@ -148,6 +156,12 @@
                                 <artifactItem>
                                     <groupId>io.gravitee.gateway.services</groupId>
                                     <artifactId>gravitee-gateway-services-endpoint-discovery</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>zip</type>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>io.gravitee.gateway.services</groupId>
+                                    <artifactId>gravitee-gateway-services-debug</artifactId>
                                     <version>${project.version}</version>
                                     <type>zip</type>
                                 </artifactItem>
