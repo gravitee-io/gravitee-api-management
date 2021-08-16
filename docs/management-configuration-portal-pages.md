@@ -1,26 +1,27 @@
-# Portal pages
+# Portal Pages
 
-At this date, four types of document are supported :
+Currently, we support four types of documentation:
 
-* Swagger/OpenApi
-* Markdown (MD)
-* AsciiDoc
-* AsyncApi
+* Swagger/OpenApi.
+* Markdown (MD).
+* AsciiDoc.
+* AsyncApi.
 
-By default, portal pages are in staging mode and will be visible to administrator or users with management portal roles.
-To make documentation visible for all users, you can switch on the *published* button.
-Portal pages will be accessible from the *DOCUMENTATION* main section.
+By default, portal pages are in staging mode and will be visible to administrators and users with management portal roles.
 
-You can set a page to be a *homepage* by clicking on the *house* button. Portal homepage will be visible in the Portal landing page.
+To make documentation visible for all users, switch on the *published* button.
+Portal pages can be accessed from the main *DOCUMENTATION* section.
 
-You can also configure a page by clicking on the *settings* button. Page's configuration let you fetch page's content from an external resource such as Git repositories, or HTTP urls.
+You can set the *homepage* by clicking on the *house* button. The portal homepage will be visible in the portal landing page.
 
-(+) button let you create a new documentation page.
+You can also configure a page by clicking on the *settings* button. Within this section, the page will fetch and pull in content from an external resource such as Git repositories, or HTTP URLs.
 
-Another possibility is to add a whole directory. Click on the link at the top of the screen and import a directory.
-If this directory contains a gravitee descriptor (a file named `.gravitee.json`) we will add the content according to the descriptor.
+To create a new page of documentation, click the (+) button.
 
-Here is a descriptor sample :
+You can also add an entire directory. Click the link at the top of the screen to import a directory.
+If this directory contains a gravitee descriptor (a file named `.gravitee.json`), we will add the content according to the descriptor.
+
+Here is a descriptor sample:
 ```json
 {
   "version": 1,
