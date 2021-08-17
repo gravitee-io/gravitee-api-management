@@ -16,7 +16,9 @@
 package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,17 +27,28 @@ import java.io.Serializable;
 public class Property implements Serializable {
 
     @JsonProperty(value = "key", required = true)
-    private final String key;
+    private String key;
 
     @JsonProperty(value = "value", required = true)
-    private final String value;
+    private String value;
 
     @JsonProperty("dynamic")
     protected boolean dynamic = false;
 
+    @JsonProperty(value = "encrypted")
+    private boolean encrypted = false;
+
+    public Property() {}
+
     public Property(String key, String value) {
         this.key = key;
         this.value = value;
+    }
+
+    public Property(String key, String value, boolean encrypted) {
+        this.key = key;
+        this.value = value;
+        this.encrypted = encrypted;
     }
 
     public String getKey() {
@@ -44,6 +57,18 @@ public class Property implements Serializable {
 
     public String getValue() {
         return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public boolean isEncrypted() {
+        return encrypted;
+    }
+
+    public void setEncrypted(boolean encrypted) {
+        this.encrypted = encrypted;
     }
 
     public boolean isDynamic() {
@@ -57,18 +82,18 @@ public class Property implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || !(o.getClass().isAssignableFrom(getClass()) || getClass().isAssignableFrom(o.getClass()))) return false;
-
+        if (o == null || getClass() != o.getClass()) return false;
         Property property = (Property) o;
-
-        if (!key.equals(property.key)) return false;
-        return value.equals(property.value);
+        return (
+            dynamic == property.dynamic &&
+            encrypted == property.encrypted &&
+            Objects.equals(key, property.key) &&
+            Objects.equals(value, property.value)
+        );
     }
 
     @Override
     public int hashCode() {
-        int result = key.hashCode();
-        result = 31 * result + value.hashCode();
-        return result;
+        return Objects.hash(key, value, dynamic, encrypted);
     }
 }

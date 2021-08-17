@@ -37,6 +37,7 @@ public class PropertySerializer extends StdScalarSerializer<Property> {
         jgen.writeStartObject();
         jgen.writeStringField("key", property.getKey());
         jgen.writeStringField("value", property.getValue());
+        jgen.writeBooleanField("encrypted", property.isEncrypted());
         if (property.isDynamic()) {
             jgen.writeBooleanField("dynamic", property.isDynamic());
         }

@@ -36,6 +36,7 @@ public class PropertyDeserializer extends AbstractStdScalarDeserializer<Property
         JsonNode node = jp.getCodec().readTree(jp);
 
         String key, value;
+        boolean encrypted = false;
 
         JsonNode keyNode = node.get("key");
         if (keyNode == null) {
@@ -51,7 +52,11 @@ public class PropertyDeserializer extends AbstractStdScalarDeserializer<Property
             value = valueNode.asText();
         }
 
-        Property property = new Property(key, value);
+        if (node.has("encrypted")) {
+            encrypted = node.get("encrypted").asBoolean(false);
+        }
+
+        Property property = new Property(key, value, encrypted);
 
         JsonNode isDynamicNode = node.get("dynamic");
         if (isDynamicNode != null) {

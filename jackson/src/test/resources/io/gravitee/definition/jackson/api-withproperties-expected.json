@@ -16,15 +16,19 @@
   },
   "properties" : [ {
     "key" : "my_property",
-    "value" : "true"
+    "value" : "true",
+    "encrypted" : false
   }, {
     "key" : "my_property2",
-    "value" : "123"
+    "value" : "123",
+    "encrypted" : false
   }, {
     "key" : "my_property3",
-    "value" : "text"
+    "value" : "text",
+    "encrypted" : false
   }, {
     "key" : "my_property4",
-    "value" : "{{my_property3}}"
+    "value" : "{{my_property3}}",
+    "encrypted" : false
   } ]
 }
