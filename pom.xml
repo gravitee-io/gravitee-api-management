@@ -212,6 +212,22 @@
                 <artifactId>httpclient</artifactId>
                 <version>${httpclient.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.jayway.jsonpath</groupId>
+                <artifactId>json-path</artifactId>
+                <version>${json-path.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.minidev</groupId>
+                <artifactId>json-smart</artifactId>
+                <version>${json-smart.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${asm.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -262,7 +278,7 @@
         <gravitee-api-management.version>3.11.0-SNAPSHOT</gravitee-api-management.version>
         <gravitee-definition.version>1.29.0-SNAPSHOT</gravitee-definition.version>
         <gravitee-common.version>1.21.0-SNAPSHOT</gravitee-common.version>
-        <gravitee-expression-language.version>1.6.0</gravitee-expression-language.version>
+        <gravitee-expression-language.version>1.6.1-SNAPSHOT</gravitee-expression-language.version>
         <gravitee-license-node.version>1.1.0</gravitee-license-node.version>
         <gravitee-node.version>1.16.0</gravitee-node.version>
         <gravitee-plugin-resource.version>1.16.0</gravitee-plugin-resource.version>
@@ -282,7 +298,8 @@
         <snakeyaml.version>1.26</snakeyaml.version>
         <commons-io.version>2.7</commons-io.version>
         <commons-validator.version>1.4.1</commons-validator.version>
-        <json-path.version>2.4.0</json-path.version>
+        <json-path.version>2.6.0</json-path.version>
+        <json-smart.version>2.4.7</json-smart.version>
         <wiremock.version>2.28.0</wiremock.version>
         <guava.version>30.1.1-jre</guava.version>
         <powermock.version>2.0.9</powermock.version>
@@ -290,6 +307,8 @@
         <protobuf-java.version>3.15.8</protobuf-java.version>
         <hazelcast.version>4.1.1</hazelcast.version>
         <jmh.version>1.26</jmh.version>
+        <!-- Fix the asm version at gateway level -->
+        <asm.version>9.1</asm.version>
     </properties>
 
     <build>
