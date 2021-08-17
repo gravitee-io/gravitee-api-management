@@ -100,6 +100,15 @@
             <scope>compile</scope>
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
+        <dependencySet>
+            <outputDirectory>/lib/ext</outputDirectory>
+            <unpack>false</unpack>
+            <excludes>
+                <exclude>io.gravitee.*:*</exclude>
+            </excludes>
+            <scope>runtime</scope>
+            <useProjectArtifact>false</useProjectArtifact>
+        </dependencySet>
     </dependencySets>
 </assembly>
 
