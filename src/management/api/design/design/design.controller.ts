@@ -160,8 +160,9 @@ class ApiDesignController {
     this.api.properties = definition.properties;
     this.api.services = services;
     this.api.flow_mode = definition['flow-mode'];
-    this.ApiService.update(this.api).then(() => {
+    this.ApiService.update(this.api).then((updatedApi) => {
       this.NotificationService.show('Design of api has been updated');
+      this.setApi(updatedApi.data);
       event.target.saved();
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
     });
