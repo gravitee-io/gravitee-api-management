@@ -17,7 +17,8 @@ package io.gravitee.rest.api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,17 +26,17 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.rest.api.service.impl.DebugApiServiceImpl;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,10 +73,7 @@ public class DebugApiServiceTest {
         when(apiEntity.getReferenceId()).thenReturn(ENVIRONMENT_ID);
         when(apiService.findById(API_ID)).thenReturn(apiEntity);
 
-        InstanceEntity instanceEntity = mock(InstanceEntity.class);
-        when(instanceEntity.getId()).thenReturn(INSTANCE_ID);
-        when(instanceEntity.getEnvironments()).thenReturn(Sets.newSet(ENVIRONMENT_ID));
-        when(instanceService.findAllStarted()).thenReturn(Arrays.asList(instanceEntity));
+        when(instanceService.findAllStarted()).thenReturn(List.of(getAnInstanceEntity()));
     }
 
     @Test
@@ -109,6 +107,32 @@ public class DebugApiServiceTest {
         debugApiService.debug(API_ID, USER_ID, debugApiEntity);
     }
 
+    @Test(expected = DebugApiNoCompatibleInstanceException.class)
+    public void debug_shouldThrowIfNoGatewayWithCorrectTag() {
+        InstanceEntity instanceEntity = getAnInstanceEntity();
+        instanceEntity.setTags(List.of("internal"));
+
+        when(instanceService.findAllStarted()).thenReturn(List.of(instanceEntity));
+
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
+        debugApiEntity.setTags(Set.of("external"));
+        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+    }
+
+    @Test(expected = DebugApiNoCompatibleInstanceException.class)
+    public void debug_shouldThrowIfNoGatewayWithDebugPlugin() {
+        InstanceEntity instanceEntity = getAnInstanceEntity();
+
+        PluginEntity pluginEntity = new PluginEntity();
+        pluginEntity.setId("rate-limit");
+        instanceEntity.setPlugins(Set.of(pluginEntity));
+
+        when(instanceService.findAllStarted()).thenReturn(List.of(instanceEntity));
+
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
+        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+    }
+
     private DebugApiEntity prepareDebugApiEntity(PlanStatus planStatus, DefinitionVersion definitionVersion) {
         Plan deprecatedPlan = new Plan();
         deprecatedPlan.setStatus(planStatus.name());
@@ -119,5 +143,18 @@ public class DebugApiServiceTest {
         debugApiEntity.setPlans(List.of(deprecatedPlan));
 
         return debugApiEntity;
+    }
+
+    private InstanceEntity getAnInstanceEntity() {
+        InstanceEntity instanceEntity = new InstanceEntity();
+        instanceEntity.setId(INSTANCE_ID);
+        instanceEntity.setEnvironments(Sets.newSet(ENVIRONMENT_ID));
+
+        PluginEntity pluginEntity = new PluginEntity();
+        pluginEntity.setId("gateway-debug");
+
+        instanceEntity.setPlugins(Set.of(pluginEntity));
+
+        return instanceEntity;
     }
 }

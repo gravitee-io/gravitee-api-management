@@ -24,11 +24,7 @@ import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.definition.model.*;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.rest.api.model.DebugApiEntity;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.model.InstanceEntity;
-import io.gravitee.rest.api.model.PlanStatus;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.DebugApiService;
@@ -116,9 +112,14 @@ public class DebugApiServiceImpl implements DebugApiService {
     private InstanceEntity selectTargetGateway(ApiEntity api) {
         final List<InstanceEntity> startedInstances = instanceService.findAllStarted();
 
+        String debugPluginId = "gateway-debug";
+
         return startedInstances
             .stream()
             .filter(instanceEntity -> instanceEntity.getEnvironments().contains(api.getReferenceId()))
+            .filter(
+                instanceEntity -> instanceEntity.getPlugins().stream().map(PluginEntity::getId).anyMatch(debugPluginId::equalsIgnoreCase)
+            )
             .filter(instanceEntity -> EnvironmentUtils.hasMatchingTags(ofNullable(instanceEntity.getTags()), api.getTags()))
             .findFirst()
             .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(api.getId()));

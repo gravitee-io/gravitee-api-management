@@ -39,7 +39,7 @@ public class DebugApiNoCompatibleInstanceException extends AbstractManagementExc
 
     @Override
     public String getMessage() {
-        return "There is no compatible instance to debug this API [" + apiId + "].";
+        return "There is no compatible gateway instance to debug this API [" + apiId + "].";
     }
 
     @Override
