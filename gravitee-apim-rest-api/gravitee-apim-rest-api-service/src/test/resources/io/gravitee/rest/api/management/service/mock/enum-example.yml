@@ -1,0 +1,83 @@
+openapi: '3.0.0'
+info:
+  title: Gravitee Import Mock Example
+  version: v1
+paths:
+  /:
+    get:
+      operationId: getRoot
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExampleResource'
+components:
+  schemas:
+    ExampleResource:
+      type: object
+      required:
+        - stringValue
+        - stringExampleValue
+        - enumValue
+        - integerValue
+        - integerExampleValue
+        - objectValue
+        - arrayValue
+      properties:
+        optionalValue:
+          type: string
+        stringValue:
+          type: string
+        stringExampleValue:
+          type: string
+          example: 'exampleValue'
+        enumValue:
+          type: string
+          enum: [ 'value1', 'value2' ]
+        integerValue:
+          type: integer
+        integerExampleValue:
+          type: integer
+          example: 123
+        inlinedObjectValue:
+          type: object
+          required:
+            - nestedStringValue
+            - nestedStringExampleValue
+          properties:
+            nestedOptionalValue:
+              type: string
+            nestedStringValue:
+              type: string
+            nestedStringExampleValue:
+              type: string
+              example: 'nestedExampleValue'
+        objectValue:
+          $ref: '#/components/schemas/Object'
+        inlinedArrayValue:
+          type: array
+          items:
+            type: string
+            example: 'itemValue'
+        arrayValue:
+          $ref: '#/components/schemas/Array'
+    Object:
+      type: object
+      required:
+        - nestedStringValue
+        - nestedStringExampleValue
+      properties:
+        nestedOptionalValue:
+          type: string
+        nestedStringValue:
+          type: string
+        nestedStringExampleValue:
+          type: string
+          example: 'nestedExampleValue'
+    Array:
+      type: array
+      items:
+        type: string
+        example: 'itemValue'

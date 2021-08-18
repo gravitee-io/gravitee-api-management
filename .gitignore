@@ -12,10 +12,10 @@ target/
 /bin/
 
 # TODO
-# gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/license/*
-# gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/logs/*
-# gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/data/*
-# gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/plugins/*
+# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/license/*
+# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/logs/*
+# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/data/*
+# gravitee-apim-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/plugins/*
 
 # used in makefile as working directory
 .working/
