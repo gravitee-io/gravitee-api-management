@@ -9,8 +9,7 @@ You can classically call your apis through your gateway, for example: `http://lo
 To test the **Bridge Server**, you can call, for example, `http://localhost:18092/_bridge/apis` to list all the apis.
 
 ---
-**NOTE**
-For more information, please read this doc: To use this gateway, call your API with `http://localhost:8082/myapi`.
+> For more information, please read this doc: To use this gateway, call your API with `http://localhost:8082/myapi`.
 ---
 
 ## How to use ?
