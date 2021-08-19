@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionE
 import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -121,7 +122,7 @@ public class DebugApiServiceImpl implements DebugApiService {
                 instanceEntity -> instanceEntity.getPlugins().stream().map(PluginEntity::getId).anyMatch(debugPluginId::equalsIgnoreCase)
             )
             .filter(instanceEntity -> EnvironmentUtils.hasMatchingTags(ofNullable(instanceEntity.getTags()), api.getTags()))
-            .findFirst()
+            .max(Comparator.comparing(InstanceEntity::getStartedAt))
             .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(api.getId()));
     }
 

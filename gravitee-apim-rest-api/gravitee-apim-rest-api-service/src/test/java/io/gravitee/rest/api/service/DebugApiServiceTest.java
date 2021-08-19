@@ -34,6 +34,7 @@ import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionE
 import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
 import io.gravitee.rest.api.service.impl.DebugApiServiceImpl;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,6 +92,27 @@ public class DebugApiServiceTest {
                 entry(Event.EventProperties.USER.getValue(), USER_ID),
                 entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
             );
+    }
+
+    @Test
+    public void debug_shouldCallEventServiceWithYoungestGatewayInstance() {
+        InstanceEntity youngInstance = getAnInstanceEntity();
+        youngInstance.setId("instance#young");
+        youngInstance.setStartedAt(new Date(5000));
+
+        InstanceEntity oldInstance = getAnInstanceEntity();
+        oldInstance.setId("instance#old");
+        oldInstance.setStartedAt(new Date(1000));
+
+        when(instanceService.findAllStarted()).thenReturn(List.of(youngInstance, oldInstance));
+
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
+        debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+
+        ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(eventService).create(eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+
+        assertThat(propertiesCaptor.getValue()).contains(entry(Event.EventProperties.GATEWAY_ID.getValue(), "instance#young"));
     }
 
     @Test(expected = DebugApiNoValidPlanException.class)
