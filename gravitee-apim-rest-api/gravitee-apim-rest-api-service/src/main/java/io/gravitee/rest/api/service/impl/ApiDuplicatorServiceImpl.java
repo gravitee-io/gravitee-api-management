@@ -311,7 +311,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
         updateApiEntity.setPicture(apiEntity.getPicture());
         updateApiEntity.setBackground(apiEntity.getBackground());
-        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
         updateApiEntity.setProxy(apiEntity.getProxy());
         updateApiEntity.setResources(apiEntity.getResources());
         updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());

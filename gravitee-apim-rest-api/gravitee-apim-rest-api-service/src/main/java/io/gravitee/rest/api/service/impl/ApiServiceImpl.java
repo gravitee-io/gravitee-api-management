@@ -38,9 +38,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
@@ -101,6 +101,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -244,6 +245,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private APIV1toAPIV2Converter apiv1toAPIV2Converter;
+
+    @Autowired
+    private DataEncryptor dataEncryptor;
 
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
@@ -1240,9 +1244,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (swaggerApiEntity.getProperties() != null) {
-            Properties properties = updateApiEntity.getProperties();
+            PropertiesEntity properties = updateApiEntity.getProperties();
             if (properties == null) {
-                properties = new Properties();
+                properties = new PropertiesEntity();
             }
             properties.setProperties(new ArrayList<>(merge(properties.getProperties(), swaggerApiEntity.getProperties().getProperties())));
             updateApiEntity.setProperties(properties);
@@ -1403,6 +1407,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     );
             }
 
+            // encrypt API properties
+            encryptProperties(updateApiEntity.getPropertyList());
+
             Api apiToUpdate = optApiToUpdate.get();
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
@@ -1542,7 +1549,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             updateApiDefinition.setServices(updateApiEntity.getServices());
             updateApiDefinition.setResources(updateApiEntity.getResources());
-            updateApiDefinition.setProperties(updateApiEntity.getProperties());
+            if (updateApiEntity.getProperties() != null) {
+                updateApiDefinition.setProperties(updateApiEntity.getProperties().toDefinition());
+            }
             updateApiDefinition.setTags(updateApiEntity.getTags());
 
             updateApiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
@@ -2432,7 +2441,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
         updateApiEntity.setPicture(apiEntity.getPicture());
         updateApiEntity.setBackground(apiEntity.getBackground());
-        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
         updateApiEntity.setProxy(apiEntity.getProxy());
         updateApiEntity.setResources(apiEntity.getResources());
         updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
@@ -3045,5 +3054,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return comparator;
+    }
+
+    protected void encryptProperties(List<PropertyEntity> properties) {
+        for (PropertyEntity property : properties) {
+            if (property.isEncryptable() && !property.isEncrypted()) {
+                try {
+                    property.setValue(dataEncryptor.encrypt(property.getValue()));
+                    property.setEncrypted(true);
+                } catch (GeneralSecurityException e) {
+                    LOGGER.error("Error encrypting property value", e);
+                }
+            }
+        }
     }
 }

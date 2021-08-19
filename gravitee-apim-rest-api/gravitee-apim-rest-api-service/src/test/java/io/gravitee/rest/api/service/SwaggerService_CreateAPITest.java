@@ -210,7 +210,7 @@ public class SwaggerService_CreateAPITest {
         assertEquals(2, tags.size());
         assertTrue(tags.containsAll(asList("tagId1", "tagId2")));
 
-        final Map<String, String> properties = updateApiEntity.getProperties().getValues();
+        final Map<String, String> properties = updateApiEntity.getProperties().toDefinition().getValues();
         assertEquals(2, properties.size());
         assertTrue(properties.keySet().containsAll(asList("prop1", "prop2")));
         assertTrue(properties.values().containsAll(asList("propValue1", "propValue2")));

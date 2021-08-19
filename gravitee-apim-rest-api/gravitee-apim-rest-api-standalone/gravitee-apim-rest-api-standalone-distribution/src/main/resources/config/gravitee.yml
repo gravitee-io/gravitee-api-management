@@ -544,3 +544,9 @@ notifiers:
 # Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
 #cockpit:
 #  url: https://cockpit.gravitee.io
+
+# Encrypt API properties using this secret
+api:
+  properties:
+    encryption:
+      secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6

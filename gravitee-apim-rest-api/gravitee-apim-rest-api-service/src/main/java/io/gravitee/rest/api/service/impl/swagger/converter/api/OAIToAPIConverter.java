@@ -244,12 +244,12 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
 
             // Properties
             if (xGraviteeIODefinition.getProperties() != null && !xGraviteeIODefinition.getProperties().isEmpty()) {
-                Properties properties = new Properties();
+                PropertiesEntity properties = new PropertiesEntity();
                 properties.setProperties(
                     xGraviteeIODefinition
                         .getProperties()
                         .stream()
-                        .map(prop -> new Property(prop.getKey(), prop.getValue()))
+                        .map(prop -> new PropertyEntity(prop.getKey(), prop.getValue()))
                         .collect(Collectors.toList())
                 );
 

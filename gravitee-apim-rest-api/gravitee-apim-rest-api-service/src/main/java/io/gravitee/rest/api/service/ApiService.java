@@ -108,7 +108,7 @@ public interface ApiService {
         updateApiEntity.setProxy(apiEntity.getProxy());
         updateApiEntity.setVersion(apiEntity.getVersion());
         updateApiEntity.setName(apiEntity.getName());
-        updateApiEntity.setProperties(apiEntity.getProperties());
+        updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
         updateApiEntity.setDescription(apiEntity.getDescription());
         updateApiEntity.setGroups(apiEntity.getGroups());
         updateApiEntity.setPaths(apiEntity.getPaths());

@@ -25,9 +25,8 @@ import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
-import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.DeploymentRequired;
-import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.jackson.PropertiesEntityAsListDeserializer;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.*;
 import javax.validation.constraints.NotEmpty;
@@ -79,7 +78,7 @@ public class UpdateApiEntity {
 
     @JsonProperty(value = "properties")
     @ApiModelProperty(value = "A dictionary (could be dynamic) of properties available in the API context.")
-    private io.gravitee.definition.model.Properties properties;
+    private PropertiesEntity properties;
 
     @NotNull
     @ApiModelProperty(value = "The visibility of the API regarding the portal.", example = "PUBLIC", allowableValues = "PUBLIC, PRIVATE")
@@ -198,23 +197,22 @@ public class UpdateApiEntity {
         this.services = services;
     }
 
-    public Properties getProperties() {
+    public PropertiesEntity getProperties() {
         return properties;
     }
 
-    public void setProperties(Properties properties) {
+    public void setProperties(PropertiesEntity properties) {
         this.properties = properties;
     }
 
     @JsonSetter("properties")
-    @JsonDeserialize(using = PropertiesAsListDeserializer.class)
-    public void setPropertyList(List<Property> properties) {
-        this.properties = new Properties();
-        this.properties.setProperties(properties);
+    @JsonDeserialize(using = PropertiesEntityAsListDeserializer.class)
+    public void setPropertyList(List<PropertyEntity> properties) {
+        this.properties = new PropertiesEntity(properties);
     }
 
     @JsonGetter("properties")
-    public List<Property> getPropertyList() {
+    public List<PropertyEntity> getPropertyList() {
         if (properties != null) {
             return properties.getProperties();
         }

@@ -29,6 +29,7 @@ import com.github.fge.jsonschema.library.LibraryBuilder;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
@@ -49,10 +50,12 @@ import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
 import io.gravitee.rest.api.service.validator.jsonschema.JavaRegexFormatAttribute;
 import java.util.Collections;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -76,6 +79,9 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
     }
 )
 public class ServiceConfiguration {
+
+    @Autowired
+    private Environment environment;
 
     @Bean
     public EventManager eventManager() {
@@ -138,5 +144,10 @@ public class ServiceConfiguration {
             .setReportProvider(new ListReportProvider(LogLevel.ERROR, LogLevel.FATAL)) // Log errors only, throw fatal exceptions only
             .setValidationConfiguration(cfg.freeze())
             .freeze();
+    }
+
+    @Bean
+    public DataEncryptor apiPropertiesEncryptor() {
+        return new DataEncryptor(environment, "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
     }
 }
