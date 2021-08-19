@@ -27,5 +27,9 @@ http-bridge: ## Run API Management with two gateways as Bridge HTTP Server and B
 tags-internal-external: ## Run API Management with two gateways configured with internal and external tag. Will run by default with 'nightly' images, but you can pass version with: make tags-internal-external APIM_VERSION={version}
 	cd ./quick-setup/tags-internal-external && docker-compose down -v && docker-compose pull && docker-compose up
 
+redis-rate-limit: ## Run API Management with redis for rate limiting. Will run by default with 'nightly' images, but you can pass version with: make redis-rate-limit APIM_VERSION={version}
+	cd ./quick-setup/redis-rate-limit && docker-compose down -v && docker-compose pull && docker-compose up
+
+
 .DEFAULT_GOAL := help
-.PHONY: http-bridge, tags-internal-external
+.PHONY: http-bridge, tags-internal-external, redis-rate-limit
