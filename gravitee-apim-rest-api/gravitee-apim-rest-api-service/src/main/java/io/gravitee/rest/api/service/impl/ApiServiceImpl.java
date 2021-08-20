@@ -1203,7 +1203,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity updateFromSwagger(String apiId, SwaggerApiEntity swaggerApiEntity, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final ApiEntity apiEntityToUpdate = this.findById(apiId);
-        final UpdateApiEntity updateApiEntity = convert(apiEntityToUpdate);
+        final UpdateApiEntity updateApiEntity = ApiService.convert(apiEntityToUpdate);
 
         // Overwrite from swagger
         updateApiEntity.setVersion(swaggerApiEntity.getVersion());
@@ -2428,33 +2428,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.error("An error occurs while trying to remove group {} from API {}: {}", group, apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to remove group " + group + " from API " + apiId, ex);
         }
-    }
-
-    private UpdateApiEntity convert(final ApiEntity apiEntity) {
-        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setDescription(apiEntity.getDescription());
-        updateApiEntity.setName(apiEntity.getName());
-        updateApiEntity.setVersion(apiEntity.getVersion());
-        updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
-        updateApiEntity.setGroups(apiEntity.getGroups());
-        updateApiEntity.setLabels(apiEntity.getLabels());
-        updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
-        updateApiEntity.setPicture(apiEntity.getPicture());
-        updateApiEntity.setBackground(apiEntity.getBackground());
-        updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
-        updateApiEntity.setProxy(apiEntity.getProxy());
-        updateApiEntity.setResources(apiEntity.getResources());
-        updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
-        updateApiEntity.setServices(apiEntity.getServices());
-        updateApiEntity.setTags(apiEntity.getTags());
-        updateApiEntity.setCategories(apiEntity.getCategories());
-        updateApiEntity.setVisibility(apiEntity.getVisibility());
-        updateApiEntity.setPaths(apiEntity.getPaths());
-        updateApiEntity.setFlows(apiEntity.getFlows());
-        updateApiEntity.setPathMappings(apiEntity.getPathMappings());
-        updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-        updateApiEntity.setPlans(apiEntity.getPlans());
-        return updateApiEntity;
     }
 
     private ApiEntity updateWorkflowReview(

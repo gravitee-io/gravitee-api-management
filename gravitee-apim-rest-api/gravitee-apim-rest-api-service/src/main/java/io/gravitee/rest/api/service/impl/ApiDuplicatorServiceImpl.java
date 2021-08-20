@@ -125,7 +125,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         final String apiId = apiEntity.getId();
         LOGGER.debug("Duplicate API {}", apiId);
 
-        final UpdateApiEntity newApiEntity = convert(apiEntity);
+        final UpdateApiEntity newApiEntity = ApiService.convert(apiEntity);
         final Proxy proxy = apiEntity.getProxy();
         proxy.setVirtualHosts(singletonList(new VirtualHost(duplicateApiEntity.getContextPath())));
         newApiEntity.setProxy(proxy);
@@ -298,33 +298,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
         asideSystemFolder.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
         pageService.createPage(apiId, asideSystemFolder, environmentId);
-    }
-
-    private UpdateApiEntity convert(final ApiEntity apiEntity) {
-        final UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-        updateApiEntity.setDescription(apiEntity.getDescription());
-        updateApiEntity.setName(apiEntity.getName());
-        updateApiEntity.setVersion(apiEntity.getVersion());
-        updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
-        updateApiEntity.setGroups(apiEntity.getGroups());
-        updateApiEntity.setLabels(apiEntity.getLabels());
-        updateApiEntity.setLifecycleState(apiEntity.getLifecycleState());
-        updateApiEntity.setPicture(apiEntity.getPicture());
-        updateApiEntity.setBackground(apiEntity.getBackground());
-        updateApiEntity.setProperties(new PropertiesEntity(apiEntity.getProperties()));
-        updateApiEntity.setProxy(apiEntity.getProxy());
-        updateApiEntity.setResources(apiEntity.getResources());
-        updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
-        updateApiEntity.setServices(apiEntity.getServices());
-        updateApiEntity.setTags(apiEntity.getTags());
-        updateApiEntity.setCategories(apiEntity.getCategories());
-        updateApiEntity.setVisibility(apiEntity.getVisibility());
-        updateApiEntity.setPaths(apiEntity.getPaths());
-        updateApiEntity.setFlows(apiEntity.getFlows());
-        updateApiEntity.setPathMappings(apiEntity.getPathMappings());
-        updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-        updateApiEntity.setPlans(apiEntity.getPlans());
-        return updateApiEntity;
     }
 
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {

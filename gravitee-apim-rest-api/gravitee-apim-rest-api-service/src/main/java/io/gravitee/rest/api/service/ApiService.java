@@ -104,7 +104,6 @@ public interface ApiService {
 
     static UpdateApiEntity convert(ApiEntity apiEntity) {
         UpdateApiEntity updateApiEntity = new UpdateApiEntity();
-
         updateApiEntity.setProxy(apiEntity.getProxy());
         updateApiEntity.setVersion(apiEntity.getVersion());
         updateApiEntity.setName(apiEntity.getName());
@@ -126,7 +125,8 @@ public interface ApiService {
         updateApiEntity.setGraviteeDefinitionVersion(apiEntity.getGraviteeDefinitionVersion());
         updateApiEntity.setFlowMode(apiEntity.getFlowMode());
         updateApiEntity.setResponseTemplates(apiEntity.getResponseTemplates());
-
+        updateApiEntity.setCategories(apiEntity.getCategories());
+        updateApiEntity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
         return updateApiEntity;
     }
 
