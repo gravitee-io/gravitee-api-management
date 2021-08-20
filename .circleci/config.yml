@@ -1,5 +1,19 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.4
+  gravitee: gravitee-io/gravitee@1.0
+  secrethub: secrethub/cli@1.1
+
+commands:
+  restore-maven-cache:
+    description: "Restore Maven cache"
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management
+
 parameters:
   gio_action:
     type: enum
@@ -29,50 +43,112 @@ parameters:
     type: string
     default: ''
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
-orbs:
-  slack: circleci/slack@4.2.1
-  gravitee: gravitee-io/gravitee@1.0
-  secrethub: secrethub/cli@1.1.0
 
 jobs:
-  publish-on-artifactory-and-nexus:
+  build:
     docker:
       - image: circleci/openjdk:11-jdk-stretch
-    resource_class: large
-    environment:
-      NEXUS_SNAPSHOTS_URL: 'https://oss.sonatype.org/content/repositories/snapshots'
-      NEXUS_SNAPSHOTS_SERVER_ID: 'sonatype-nexus-snapshots'
+    resource_class: small
     steps:
-      - attach_workspace:
-          at: /tmp
       - checkout
-      - restore_cache:
-          keys:
-            - gravitee-api-management-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management
-      - secrethub/install
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
       - run:
-          name: "Maven Package and deploy to Artifactory [gravitee-snapshots] repository"
+          name: "Build project"
           command: |
-            mvn -s /tmp/.artifactory.settings.xml -P gio-dev clean deploy --no-transfer-progress -DskipTests -T 2C
-      - run:
-          name: "Exclude Gravitee internal dependencies from cache"
-          command: |
-            if [ -d ${HOME}/.m2/io/gravitee ]; then
-              rm -fr ${HOME}/.m2/io/gravitee
-            fi;
-            if [ -d ${HOME}/.m2/com/graviteesource ]; then
-              rm -fr ${HOME}/.m2/com/graviteesource
-            fi;
+            mvn -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
       - save_cache:
           paths:
             - ~/.m2
           key: gravitee-api-management-{{ .Branch }}-{{ checksum "pom.xml" }}
           when: always
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./gravitee-*/*/target/*
+
+  test-repository:
+    machine:
+      image: ubuntu-2004:202107-02
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: Test `gravitee-apim-repository`
+          command: |
+            cd gravitee-apim-repository
+            # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
+            mvn -s ../.artifactory.settings.xml package --no-transfer-progress -T 1C
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+
+  test-rest-api:
+    docker:
+      - image: circleci/openjdk:11-jdk-stretch
+    resource_class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: Test `gravitee-apim-rest-api`
+          command: |
+            cd gravitee-apim-rest-api
+            mvn -s ../.artifactory.settings.xml test --no-transfer-progress -T 1C
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+
+  publish-on-artifactory:
+    docker:
+      - image: circleci/openjdk:11-jdk-stretch
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
+          command: |
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .artifactory.settings.xml -P gio-dev
+
+  publish-on-nexus:
+    docker:
+      - image: circleci/openjdk:11-jdk-stretch
+    resource_class: medium
+    environment:
+      NEXUS_SNAPSHOTS_URL: 'https://oss.sonatype.org/content/repositories/snapshots'
+      NEXUS_SNAPSHOTS_SERVER_ID: 'sonatype-nexus-snapshots'
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
       - run:
           name: "Maven Package and deploy to Nexus Snapshots"
           command: |
-            mvn -s /tmp/.nexus.settings.xml deploy --no-transfer-progress -DskipTests -T 2C -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
 
 workflows:
   pull_requests:
@@ -83,38 +159,24 @@ workflows:
       - gravitee/d_pull_requests_secrets:
           context: cicd-orchestrator
           name: pr_secrets_resolution
-      - gravitee/d_pr_tests_containers_qa:
+      - build:
           context: gravitee-qa
-          name: process_pull_request_qa
           requires:
             - pr_secrets_resolution
-          # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          maven_profile_id: 'gio-dev'
-      - publish-on-artifactory-and-nexus:
+      - test-rest-api:
           requires:
-            - process_pull_request_qa
-          # filters:
-            # branches:
-              # ignore:
-                # - master
-      # --- +
-      #  No Standard pull request for Mongo : Only Test Containers
-      # --- +
-      # - gravitee/d_pull_requests_ce:
-          # name: process_pull_request
-          # requires:
-            # - pr_secrets_resolution
-          # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          # maven_profile_id: 'gio-dev'
-          # nexus_snapshots_url: 'https://oss.sonatype.org/content/repositories/snapshots'
-          # nexus_snapshots_server_id: 'sonatype-nexus-snapshots'
-          # container_gun_image_org: 'circleci'
-          # container_gun_image_name: 'openjdk'
-          # container_gun_image_tag: '11.0.3-jdk-stretch'
-            # filters:
-            # branches:
-            # ignore:
-          # - master
+            - build
+      - test-repository:
+          requires:
+            - build
+      - publish-on-artifactory:
+          requires:
+            - test-repository
+            - test-rest-api
+      - publish-on-nexus:
+          requires:
+            - test-repository
+            - test-rest-api
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
