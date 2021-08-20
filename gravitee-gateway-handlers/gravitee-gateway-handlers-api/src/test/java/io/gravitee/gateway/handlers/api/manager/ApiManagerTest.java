@@ -21,9 +21,10 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.Proxy;
-import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.el.TemplateContext;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
@@ -55,6 +56,9 @@ public class ApiManagerTest {
 
     @Mock
     private GatewayConfiguration gatewayConfiguration;
+
+    @Mock
+    private DataEncryptor dataEncryptor;
 
     @Before
     public void setUp() {
@@ -351,6 +355,29 @@ public class ApiManagerTest {
 
         verify(eventManager, never()).publishEvent(ReactorEvent.UPDATE, api);
         verify(eventManager).publishEvent(ReactorEvent.UNDEPLOY, api);
+    }
+
+    @Test
+    public void shouldDecryptApiPropertiesOnDeployment() throws Exception {
+        final Api api = buildTestApi();
+
+        Properties properties = new Properties();
+        properties.setProperties(
+            List.of(
+                new Property("key1", "plain value 1", false),
+                new Property("key2", "value2Base64encrypted", true),
+                new Property("key3", "value3Base64encrypted", true)
+            )
+        );
+        api.setProperties(properties);
+
+        when(dataEncryptor.decrypt("value2Base64encrypted")).thenReturn("plain value 2");
+        when(dataEncryptor.decrypt("value3Base64encrypted")).thenReturn("plain value 3");
+
+        apiManager.register(api);
+
+        verify(dataEncryptor, times(2)).decrypt(any());
+        assertEquals(Map.of("key1", "plain value 1", "key2", "plain value 2", "key3", "plain value 3"), api.getProperties().getValues());
     }
 
     /*

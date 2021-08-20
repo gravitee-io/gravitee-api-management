@@ -23,12 +23,16 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.impl.MapListenerAdapter;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cluster.ClusterManager;
+import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -58,6 +62,9 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
     @Autowired
     private ClusterManager clusterManager;
+
+    @Autowired
+    private DataEncryptor dataEncryptor;
 
     private Map<String, Api> apis;
 
@@ -117,11 +124,20 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
                     .collect(Collectors.toList())
             );
 
-            // API is not yet deployed, so let's do it !
-            if (deployedApi == null || force) {
+            boolean apiToDeploy = deployedApi == null || force;
+            boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(api.getDeployedAt());
+
+            if (apiToDeploy || apiToUpdate) {
+                decryptProperties(api.getProperties());
+            }
+
+            // API is not yet deployed, so let's do it
+            if (apiToDeploy) {
                 deploy(api);
                 return true;
-            } else if (deployedApi.getDeployedAt().before(api.getDeployedAt())) {
+            }
+            // API has to be updated, so update it
+            else if (apiToUpdate) {
                 update(api);
                 return true;
             }
@@ -207,6 +223,22 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
             eventManager.publishEvent(ReactorEvent.UNDEPLOY, currentApi);
             logger.info("{} has been undeployed", currentApi);
             MDC.remove("api");
+        }
+    }
+
+    private void decryptProperties(Properties properties) {
+        if (properties != null) {
+            for (Property property : properties.getProperties()) {
+                if (property.isEncrypted()) {
+                    try {
+                        property.setValue(dataEncryptor.decrypt(property.getValue()));
+                        property.setEncrypted(false);
+                        properties.getValues().put(property.getKey(), property.getValue());
+                    } catch (GeneralSecurityException e) {
+                        logger.error("Error decrypting API property value for key {}", property.getKey(), e);
+                    }
+                }
+            }
         }
     }
 
