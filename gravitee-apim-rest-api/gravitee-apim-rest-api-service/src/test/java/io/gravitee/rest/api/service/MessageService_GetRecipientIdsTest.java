@@ -27,9 +27,12 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.MessageRecipientFormatException;
 import io.gravitee.rest.api.service.impl.MessageServiceImpl;
 import java.util.*;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -66,6 +69,16 @@ public class MessageService_GetRecipientIdsTest {
 
     @Mock
     SubscriptionService subscriptionService;
+
+    @Before
+    public void setUp() {
+        GraviteeContext.setCurrentEnvironment("DEFAULT");
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
+    }
 
     @Test
     public void shouldThrowExceptionIfNull() {
