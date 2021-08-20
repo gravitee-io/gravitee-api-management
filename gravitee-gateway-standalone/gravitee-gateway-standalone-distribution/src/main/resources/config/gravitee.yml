@@ -386,3 +386,9 @@ ds:
 #  hazelcast:
 #    config:
 #      path: ${gravitee.home}/config/hazelcast.xml
+
+# Encrypt API properties using this secret
+api:
+  properties:
+    encryption:
+      secret: vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6
