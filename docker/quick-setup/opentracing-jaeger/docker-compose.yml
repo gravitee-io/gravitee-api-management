@@ -21,16 +21,16 @@ networks:
     name: frontend
   storage:
     name: storage
+  jaeger:
+    name: jaeger
 
 volumes:
   data-elasticsearch:
   data-mongo:
-  data-redis:
-  data-redis-client:
 
 services:
   mongodb:
-    image: mongo:${MONGODB_VERSION:-3.6}
+    image: mongo:${MONGODB_VERSION:-4.4.6}
     container_name: gio_apim_mongodb
     restart: always
     volumes:
@@ -62,27 +62,22 @@ services:
     networks:
       - storage
 
-  redis_rate_limit:
-    image: redis:6.2.4
-    command: ["redis-server", "--appendonly", "yes"]
-    container_name: gio_redis_ratelimit
-    restart: always
+  jaeger:
+    image: jaegertracing/all-in-one:1.24
+    container_name: gio_jaeger
+    environment:
+      - discovery.type=single-node
     ports:
-      - "6379:6379"
-    volumes:
-      - data-redis:/data
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "14250:14250"
+      - "9411:9411"
     networks:
-      - storage
-
-  redis_client:
-    image: redislabs/redisinsight:latest
-    container_name: gio_redis_client
-    ports:
-      - "8001:8001"
-    depends_on:
-      - redis_rate_limit
-    volumes:
-      - data-redis-client:/db
+      - jaeger
 
   gateway:
     image: graviteeio/apim-gateway:${APIM_VERSION:-nightly}
@@ -93,24 +88,26 @@ services:
     depends_on:
       - mongodb
       - elasticsearch
-      - redis_rate_limit
+      - jaeger
     links:
-      - "redis_rate_limit:redis-rate-limit"
+      - "jaeger:jaeger"
     volumes:
       - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
       - ./.plugins:/opt/graviteeio-gateway/plugins-ext
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
-      - gravitee_ratelimit_type=redis
-      - gravitee_ratelimit_redis_host=redis-rate-limit
-      - gravitee_ratelimit_redis_port=6379
-      - gravitee_ratelimit_redis_timeout=2000
+      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_services_tracing_enabled=true
+      - gravitee_services_tracing_type=jaeger
+      - gravitee_services_tracing_jaeger_host=jaeger
+      - gravitee_services_tracing_jaeger_port=14250
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
       - gravitee_plugins_path_0=$${gravitee.home}/plugins
       - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
     networks:
       - storage
       - frontend
+      - jaeger
 
   management_api:
     image: graviteeio/apim-management-api:${APIM_VERSION:-nightly}
