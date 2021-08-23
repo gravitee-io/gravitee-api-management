@@ -48,8 +48,10 @@ class LogComponentController {
     if (obj) {
       obj.headersAsList = [];
       for (const k in obj.headers) {
+        // eslint-disable-next-line no-prototype-builtins
         if (obj.headers.hasOwnProperty(k)) {
           for (const v in obj.headers[k]) {
+            // eslint-disable-next-line no-prototype-builtins
             if (obj.headers[k].hasOwnProperty(v)) {
               obj.headersAsList.push([k, obj.headers[k][v]]);
             }

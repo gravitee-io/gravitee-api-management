@@ -136,6 +136,7 @@ const ImportComponent: ng.IComponentOptions = {
         if (this.enableFileImport) {
           const fileContent = JSON.parse(this.importAPIFile.content);
           return (
+            // eslint-disable-next-line no-prototype-builtins
             fileContent.hasOwnProperty('swagger') || fileContent.hasOwnProperty('swaggerVersion') || fileContent.hasOwnProperty('openapi')
           );
         }
@@ -274,7 +275,6 @@ const ImportComponent: ng.IComponentOptions = {
       swagger.format = format;
 
       if (this.isForUpdate()) {
-        // @ts-ignore
         ApiService.importSwagger(this.apiId, swagger, this.definitionVersion, { silentCall: true })
           .then(() => {
             NotificationService.show('API successfully imported');
@@ -282,7 +282,6 @@ const ImportComponent: ng.IComponentOptions = {
           })
           .catch(this._manageSwaggerError);
       } else {
-        // @ts-ignore
         ApiService.importSwagger(null, swagger, this.definitionVersion, { silentCall: true })
           .then((api) => {
             NotificationService.show('API successfully updated');

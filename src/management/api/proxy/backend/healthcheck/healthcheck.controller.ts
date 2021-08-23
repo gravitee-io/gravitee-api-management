@@ -140,7 +140,7 @@ class ApiHealthCheckController {
           _.forEach(values, (value) => {
             _.forEach(value.buckets, (bucket) => {
               if (bucket) {
-                // eslint:disable-next-line:triple-equals
+                // eslint-disable-next-line eqeqeq
                 const responseTimeLine = i == 0;
                 series.push({
                   name: 'Average of ' + (responseTimeLine ? 'response time' : 'availability'),

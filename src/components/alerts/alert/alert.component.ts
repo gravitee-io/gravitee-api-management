@@ -51,14 +51,12 @@ const AlertComponent: ng.IComponentOptions = {
         referenceType = Scope.API;
         referenceId = $state.params.apiId;
         this.groups = ['API metrics', 'Health-check'];
-        // @ts-ignore
-        this.titlePrefix = $scope.$parent.$resolve.resolvedApi.data.name;
+        this.titlePrefix = ($scope.$parent as any).$resolve.resolvedApi.data.name;
       } else if ($state.params.applicationId) {
         referenceType = Scope.APPLICATION;
         referenceId = $state.params.applicationId;
         this.groups = ['Application'];
-        // @ts-ignore
-        this.titlePrefix = $scope.$parent.$resolve.resolvedApplication.data.name;
+        this.titlePrefix = ($scope.$parent as any).$resolve.resolvedApplication.data.name;
       } else {
         referenceType = Scope.PLATFORM;
         this.groups = ['Node', 'API metrics', 'Health-check'];

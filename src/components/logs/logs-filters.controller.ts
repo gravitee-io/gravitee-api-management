@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import { IScope, ITimeoutService } from 'angular';
+import { ILogService, IScope, ITimeoutService } from 'angular';
 import { StateService } from '@uirouter/core';
 
 interface ILogsFiltersScope extends IScope {
@@ -127,7 +127,12 @@ class LogsFiltersController {
     return '(' + params.join(' OR ') + ')';
   }
 
-  constructor(private $scope: ILogsFiltersScope, private $state: StateService, private $timeout: ITimeoutService) {
+  constructor(
+    private $scope: ILogsFiltersScope,
+    private $state: StateService,
+    private $timeout: ITimeoutService,
+    private $log: ILogService,
+  ) {
     'ngInject';
     this.$scope = $scope;
   }
@@ -265,14 +270,14 @@ class LogsFiltersController {
           this.filters.host = v[0].replace(/\\"/g, '');
           break;
         default:
-          console.error('unknown filter: ', k);
+          this.$log.error('unknown filter: ', k);
           break;
       }
     }
   }
 
   private isEmpty(map) {
-    // eslint:disable-next-line:forin
+    // eslint-disable-next-line guard-for-in
     for (const key in map) {
       const val = map[key];
       if (val !== undefined && val.length > 0) {

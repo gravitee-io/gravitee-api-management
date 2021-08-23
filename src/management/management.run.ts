@@ -169,10 +169,12 @@ function runBlock(
     }
   });
 
+  // eslint-disable-next-line angular/on-watch
   $rootScope.$on('graviteeLogout', (event, params) => {
     $state.go('login', { redirectUri: params.redirectUri });
   });
 
+  // eslint-disable-next-line angular/on-watch
   $rootScope.$watch(
     () => {
       return $http.pendingRequests.length > 0;

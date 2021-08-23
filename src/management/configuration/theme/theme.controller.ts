@@ -257,8 +257,7 @@ class ThemeController {
       if (!iframe) {
         return null;
       }
-      // @ts-ignore
-      return iframe.contentWindow;
+      return (iframe as any).contentWindow;
     } else if (this.detachedWindow == null || this.detachedWindow.opener == null) {
       this.$scope.isDetached = false;
     }
@@ -474,8 +473,7 @@ class ThemeController {
         // force to false, to force the user to validate the imported theme before saving and enabling it.
         jsonFromFile.enabled = false;
 
-        // @ts-ignore
-        const theme = Object.assign({}, this.$scope.theme, JSON.parse(event.target.result));
+        const theme = Object.assign({}, this.$scope.theme, JSON.parse(event.target.result.toString()));
         this.setTheme(theme);
         this.onDataChanged();
         this.$scope.themeForm.$commitViewValue();

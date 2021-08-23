@@ -176,6 +176,7 @@ function routerConfig($stateProvider: StateProvider, $urlServiceProvider: UrlSer
           }
         });
       },
+      controllerAs: '$ctrl',
     })
     .state('newsletter', {
       url: '/newsletter',

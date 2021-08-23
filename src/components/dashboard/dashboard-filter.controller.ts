@@ -16,31 +16,37 @@
 import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
 import AnalyticsService from '../../services/analytics.service';
+import { IOnDestroy, IOnInit, IRootScopeService } from 'angular';
 
-class DashboardFilterController {
-  private fields: any;
+class DashboardFilterController implements IOnInit, IOnDestroy {
+  private readonly fields: any;
   private filters: any[];
   private onFilterChange: any;
   private lastSource: any;
+  private readonly filterItemChangeListener: () => void;
 
   constructor(
-    private $rootScope,
-    private $state: StateService,
-    private AnalyticsService: AnalyticsService,
-    private $timeout: ng.ITimeoutService,
+    private readonly $rootScope: IRootScopeService,
+    private readonly $state: StateService,
+    private readonly AnalyticsService: AnalyticsService,
+    private readonly $timeout: ng.ITimeoutService,
   ) {
     'ngInject';
 
     this.fields = {};
     this.filters = [];
 
-    $rootScope.$on('filterItemChange', (event, filter) => {
+    this.filterItemChangeListener = $rootScope.$on('filterItemChange', (event, filter) => {
       if (filter.mode === 'add') {
         this.addFieldFilter(filter);
       } else if (filter.mode === 'remove') {
         this.removeFieldFilter(filter);
       }
     });
+  }
+
+  $onDestroy(): void {
+    this.filterItemChangeListener();
   }
 
   $onInit() {

@@ -1,3 +1,5 @@
+import { IOnDestroy, IOnInit } from 'angular';
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -13,10 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class ContextualDocController {
+class ContextualDocController implements IOnInit, IOnDestroy {
   public isOpen = true;
   public page: any = {};
   private contextualDocVisibilityKey = 'gv-contextual-doc-visibility';
+
+  private openContextualDocumentationListener: () => void;
 
   constructor(private $transitions, private $http, public $state, private $window, private $rootScope) {
     'ngInject';
@@ -36,12 +40,18 @@ class ContextualDocController {
     $transitions.onFinish({}, (trans) => {
       this.changeDocumentationPage(trans.to());
     });
+  }
 
+  $onInit(): void {
     // watch for open documentation events
-    $rootScope.$on('openContextualDocumentation', () => {
+    this.openContextualDocumentationListener = this.$rootScope.$on('openContextualDocumentation', () => {
       this.openDocumentation();
-      this.changeDocumentationPage($state.current);
+      this.changeDocumentationPage(this.$state.current);
     });
+  }
+
+  $onDestroy(): void {
+    this.openContextualDocumentationListener();
   }
 
   openDocumentation() {

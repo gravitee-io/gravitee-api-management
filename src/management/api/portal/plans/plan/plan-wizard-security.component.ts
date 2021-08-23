@@ -82,8 +82,7 @@ const ApiPlanWizardSecurityComponent: ng.IComponentOptions = {
             const resourceType = this.parent.resourceTypes.find((type) => type.id === resource.type);
             const row = document.createElement('gv-row');
             const picture = resourceType.icon ? resourceType.icon : null;
-            // @ts-ignore
-            row.item = { picture, name: resource.name };
+            (row as any).item = { picture, name: resource.name };
             return {
               element: row,
               value: resource.name,

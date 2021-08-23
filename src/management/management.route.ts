@@ -36,6 +36,7 @@ function managementRouterConfig($stateProvider) {
       controller: function ($rootScope, Constants) {
         $rootScope.consoleTitle = Constants.org.settings.management.title;
       },
+      controllerAs: '$ctrl',
     })
     .state('management.dashboard', {
       redirectTo: 'management.dashboard.home',

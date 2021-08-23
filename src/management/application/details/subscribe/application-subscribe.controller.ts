@@ -41,7 +41,6 @@ class ApplicationSubscribeController {
   $onInit = () => {
     const subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
     _.forEach(subscriptionsByAPI, (subscriptions, api) => {
-      // @ts-ignore
       this.subscribedAPIs.push(
         _.merge(_.find(this.apis, { id: api }), {
           plans: _.join(
@@ -62,7 +61,6 @@ class ApplicationSubscribeController {
         this.plans = _.filter(response.data, (plan) => {
           plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
           const subscription = _.find(this.subscriptions.data, { plan: plan.id });
-          // @ts-ignore
           plan.pending = subscription && 'PENDING' === subscription.status;
           return _.includes(authorizedSecurity, plan.security);
         });
