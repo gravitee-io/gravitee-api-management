@@ -25,9 +25,9 @@ class StringService {
     }
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      // eslint:disable-next-line:no-bitwise
+      // eslint-disable-next-line no-bitwise
       hash = (hash << 5) - hash + char;
-      // eslint:disable-next-line:no-bitwise
+      // eslint-disable-next-line no-bitwise
       hash = hash & hash; // Convert to 32bit integer
     }
     return hash;
