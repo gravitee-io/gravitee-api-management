@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway</artifactId>
-    <version>3.9.4-SNAPSHOT</version>
+    <version>3.9.4</version>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway</name>
 
@@ -272,7 +272,7 @@
 
     <properties>
         <gravitee-node.version>1.14.1</gravitee-node.version>
-        <gravitee-definition.version>1.28.1-SNAPSHOT</gravitee-definition.version>
+        <gravitee-definition.version>1.28.1</gravitee-definition.version>
         <gravitee-common.version>1.19.3</gravitee-common.version>
         <gravitee-expression-language.version>1.4.2</gravitee-expression-language.version>
         <gravitee-license-node.version>1.1.0</gravitee-license-node.version>
@@ -285,7 +285,7 @@
         <gravitee-policy-api.version>1.10.0</gravitee-policy-api.version>
         <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
         <gravitee-reporter-api.version>1.20.1</gravitee-reporter-api.version>
-        <gravitee-api-management.version>3.9.4-SNAPSHOT</gravitee-api-management.version>
+        <gravitee-api-management.version>3.9.4</gravitee-api-management.version>
         <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
         <gravitee-resource-cache-provider-api.version>1.0.0</gravitee-resource-cache-provider-api.version>
