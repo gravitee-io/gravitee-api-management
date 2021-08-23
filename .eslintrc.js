@@ -42,7 +42,7 @@ module.exports = {
     'no-useless-escape': 'error',
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
-    '@typescript-eslint/ban-types': 'warn',
+    '@typescript-eslint/ban-types': 'error',
     '@typescript-eslint/no-unused-vars': 'error',
     '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-module-boundary-types': 'off',

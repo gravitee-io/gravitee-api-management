@@ -23,7 +23,7 @@ class Policy {
   description: string;
   enabled?: boolean = false;
   schema?: string;
-  model?: object;
+  model?: Record<string, any>;
   form?: ng.IFormController;
 }
 

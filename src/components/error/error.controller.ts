@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class ErrorController {
-  private error: Object;
+  private error: Record<string, any>;
 
   constructor() {
     'ngInject';
