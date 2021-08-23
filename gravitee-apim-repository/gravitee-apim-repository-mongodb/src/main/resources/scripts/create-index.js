@@ -2,6 +2,7 @@
 db.apis.dropIndexes();
 db.apis.createIndex( { "visibility" : 1 } );
 db.apis.createIndex( { "group" : 1 } );
+db.apis.createIndex( { "name" : 1 } );
 db.apis.reIndex();
 
 // "applications" collection
