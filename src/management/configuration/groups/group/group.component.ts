@@ -54,7 +54,7 @@ const GroupComponent: ng.IComponentOptions = {
       this.defaultPageSize = 10;
 
       this.membersPageQuery = {
-        page: $state.params.page ? parseInt($state.params.page, 0) : 1,
+        page: $state.params.page ? parseInt($state.params.page, 10) : 1,
         size: this.defaultPageSize,
       };
 

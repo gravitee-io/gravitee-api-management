@@ -87,7 +87,7 @@ module.exports = {
     'no-new-wrappers': 'error',
     'no-underscore-dangle': 'off',
     'no-unused-labels': 'error',
-    radix: 'warn',
+    radix: 'error',
     'spaced-comment': [
       'warn',
       'always',

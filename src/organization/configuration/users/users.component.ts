@@ -37,7 +37,7 @@ const UsersComponent: ng.IComponentOptions = {
     this.$onInit = () => {
       this.onPaginate = this.onPaginate.bind(this);
       this.query = $state.params.q;
-      $window.localStorage.usersTablePage = $state.params.page ? parseInt($state.params.page, 0) : 1;
+      $window.localStorage.usersTablePage = $state.params.page ? parseInt($state.params.page, 10) : 1;
     };
 
     this.remove = (ev: Event, user: User) => {
