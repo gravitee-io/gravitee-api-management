@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { PagedResult } from '../entities/pagedResult';
 import { IHttpPromise } from 'angular';
+
 import UserService from './user.service';
+
 import { Constants } from '../entities/Constants';
+import { PagedResult } from '../entities/pagedResult';
 import { User } from '../entities/user';
 
 class TaskService {

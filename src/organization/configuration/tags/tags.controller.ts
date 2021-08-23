@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-import TagService from '../../../services/tag.service';
-import NotificationService from '../../../services/notification.service';
-import EntrypointService from '../../../services/entrypoint.service';
-import PortalSettingsService from '../../../services/portalSettings.service';
-import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
+import * as _ from 'lodash';
+
+import EntrypointService from '../../../services/entrypoint.service';
+import NotificationService from '../../../services/notification.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
+import TagService from '../../../services/tag.service';
 
 class TagsController {
   public providedConfigurationMessage = 'Configuration provided by the system';

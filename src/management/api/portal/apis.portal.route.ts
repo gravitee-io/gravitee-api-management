@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiService } from '../../../services/api.service';
-import MetadataService from '../../../services/metadata.service';
-import GroupService from '../../../services/group.service';
-import { DocumentationService, DocumentationQuery } from '../../../services/documentation.service';
 import { StateParams } from '@uirouter/core';
+
+import { ApiService } from '../../../services/api.service';
+import CategoryService from '../../../services/category.service';
+import { DocumentationQuery, DocumentationService } from '../../../services/documentation.service';
 import FetcherService from '../../../services/fetcher.service';
+import GroupService from '../../../services/group.service';
+import MetadataService from '../../../services/metadata.service';
 import PolicyService from '../../../services/policy.service';
+import QualityRuleService from '../../../services/qualityRule.service';
 import ResourceService from '../../../services/resource.service';
 import TagService from '../../../services/tag.service';
 import UserService from '../../../services/user.service';
-import QualityRuleService from '../../../services/qualityRule.service';
-import CategoryService from '../../../services/category.service';
 
 export default apisPortalRouterConfig;
 

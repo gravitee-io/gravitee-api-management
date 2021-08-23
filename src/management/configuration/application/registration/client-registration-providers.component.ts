@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-import NotificationService from '../../../../services/notification.service';
-import PortalSettingsService from '../../../../services/portalSettings.service';
+import _ = require('lodash');
+
 import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
 import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
-import _ = require('lodash');
+import NotificationService from '../../../../services/notification.service';
+import PortalSettingsService from '../../../../services/portalSettings.service';
 
 const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   bindings: {

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import SidenavService from '../../components/sidenav/sidenav.service';
-import { IScope } from 'angular';
-import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import _ = require('lodash');
+
+import SidenavService from '../../components/sidenav/sidenav.service';
+import UserService from '../../services/user.service';
 
 const SettingsComponent: ng.IComponentOptions = {
   template: require('./settings.html'),

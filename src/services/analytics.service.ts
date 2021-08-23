@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
+import * as _ from 'lodash';
 
 export class LogsQuery {
   from: number;

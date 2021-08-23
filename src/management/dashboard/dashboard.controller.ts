@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+
 import UserService from '../../services/user.service';
 
 class DashboardController {

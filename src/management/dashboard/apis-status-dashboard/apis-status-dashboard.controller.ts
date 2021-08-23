@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiService } from '../../../services/api.service';
-import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
+
+import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
+import { ApiService } from '../../../services/api.service';
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-gauge');
 // eslint:disable-next-line:no-var-requires

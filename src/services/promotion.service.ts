@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IHttpService, IPromise, IQService } from 'angular';
-import { Promotion, PromotionRequest, PromotionTarget } from '../entities/promotion';
+
 import { Constants } from '../entities/Constants';
+import { Promotion, PromotionRequest, PromotionTarget } from '../entities/promotion';
 import { PromotionSearchParams } from '../entities/promotion/promotionSearchParams';
 
 export class PromotionService {

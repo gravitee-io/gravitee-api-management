@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ITimeframe, TimeframeRanges } from '../../../components/quick-time-range/quick-time-range.component';
-import { Alert, Scope } from '../../../entities/alert';
-import AlertService, { IAlertTriggerAnalytics } from '../../../services/alert.service';
-import '@gravitee/ui-components/wc/gv-chart-bar';
+
 import { IPromise, IScope } from 'angular';
 import { StateService } from '@uirouter/core';
+import '@gravitee/ui-components/wc/gv-chart-bar';
+
+import { ITimeframe, TimeframeRanges } from '../../quick-time-range/quick-time-range.component';
+import { Alert, Scope } from '../../../entities/alert';
+import AlertService, { IAlertTriggerAnalytics } from '../../../services/alert.service';
 import UserService from '../../../services/user.service';
+
 class AlertsDashboardComponent implements ng.IComponentController {
   private static INFO_COLOR = '#54a3ff';
   private static WARNING_COLOR = '#FF950D';

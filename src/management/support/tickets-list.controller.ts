@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TicketService, { TicketsQuery } from '../../services/ticket.service';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
+
+import TicketService, { TicketsQuery } from '../../services/ticket.service';
 
 class TicketsListController {
   private query: TicketsQuery;

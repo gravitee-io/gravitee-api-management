@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoleService from '../services/role.service';
-import UserService from '../services/user.service';
-import EnvironmentService from '../services/environment.service';
-import IdentityProviderService from '../services/identityProvider.service';
-import GroupService from '../services/group.service';
-import OrganizationService from '../services/organization.service';
-import NotificationTemplatesService from '../services/notificationTemplates.service';
-import ConsoleSettingsService from '../services/consoleSettings.service';
-import TenantService from '../services/tenant.service';
-import EntrypointService from '../services/entrypoint.service';
-import TagService from '../services/tag.service';
-import FlowService from '../services/flow.service';
-import PortalSettingsService from '../services/portalSettings.service';
 import { Scope } from '../entities/alert';
 import AlertService from '../services/alert.service';
+import ConsoleSettingsService from '../services/consoleSettings.service';
+import EntrypointService from '../services/entrypoint.service';
+import EnvironmentService from '../services/environment.service';
+import FlowService from '../services/flow.service';
+import GroupService from '../services/group.service';
+import IdentityProviderService from '../services/identityProvider.service';
+import NotificationTemplatesService from '../services/notificationTemplates.service';
+import OrganizationService from '../services/organization.service';
 import PolicyService from '../services/policy.service';
+import PortalSettingsService from '../services/portalSettings.service';
+import RoleService from '../services/role.service';
+import TagService from '../services/tag.service';
+import TenantService from '../services/tenant.service';
+import UserService from '../services/user.service';
 
 export default organizationRouterConfig;
 

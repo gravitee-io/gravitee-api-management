@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import QualityRuleService from '../../../services/qualityRule.service';
+
 import { QualityRule } from '../../../entities/qualityRule';
+import QualityRuleService from '../../../services/qualityRule.service';
 
 function DialogReviewController($scope, $mdDialog, api, QualityRuleService: QualityRuleService, $q, apiQualityRules, qualityRules) {
   'ngInject';

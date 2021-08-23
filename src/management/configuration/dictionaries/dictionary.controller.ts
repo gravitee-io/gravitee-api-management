@@ -15,11 +15,11 @@
  */
 
 import { StateService } from '@uirouter/core';
+import angular = require('angular');
+import _ = require('lodash');
 
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';
-import angular = require('angular');
-import _ = require('lodash');
 
 interface IDictionaryScope extends ng.IScope {
   formDictionary: any;

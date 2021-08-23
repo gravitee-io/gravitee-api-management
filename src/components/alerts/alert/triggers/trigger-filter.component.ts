@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiMetrics } from '../../../../entities/alerts/api.metrics';
-import { NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics } from '../../../../entities/alerts/node.metrics';
-import { HealthcheckMetrics } from '../../../../entities/alerts/healthcheck.metrics';
 import { Metrics } from '../../../../entities/alert';
+import { ApiMetrics } from '../../../../entities/alerts/api.metrics';
+import { HealthcheckMetrics } from '../../../../entities/alerts/healthcheck.metrics';
+import { NodeHealthcheckMetrics, NodeLifecycleMetrics, NodeMetrics } from '../../../../entities/alerts/node.metrics';
 
 const AlertTriggerFilterComponent: ng.IComponentOptions = {
   bindings: {

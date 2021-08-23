@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { QualityRule } from '../entities/qualityRule';
 import { IHttpPromise } from 'angular';
+
 import { ApiQualityRule } from '../entities/apiQualityRule';
+import { QualityRule } from '../entities/qualityRule';
 
 class QualityRuleService {
   constructor(private $http, private Constants) {

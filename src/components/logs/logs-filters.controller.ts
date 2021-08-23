@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-import { ILogService, IScope, ITimeoutService } from 'angular';
 import { StateService } from '@uirouter/core';
+import { ILogService, IScope, ITimeoutService } from 'angular';
+import * as _ from 'lodash';
 
 interface ILogsFiltersScope extends IScope {
   logsFiltersForm: any;

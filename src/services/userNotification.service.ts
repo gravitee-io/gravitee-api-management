@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { User } from '../entities/user';
-import { PagedResult } from '../entities/pagedResult';
-import { UserNotification } from '../entities/userNotification';
 import { IHttpPromise } from 'angular';
+
+import { PagedResult } from '../entities/pagedResult';
+import { User } from '../entities/user';
+import { UserNotification } from '../entities/userNotification';
 
 class UserNotificationService {
   constructor(private $http: ng.IHttpService, private Constants) {

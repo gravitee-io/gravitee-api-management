@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
-import { StateService } from '@uirouter/core';
 
 const ApplicationSubscriptionComponent: ng.IComponentOptions = {
   bindings: {

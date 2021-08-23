@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IHttpPromise, IHttpService, IPromise } from 'angular';
+
 import { Constants } from '../entities/Constants';
 import { Event } from '../entities/event/event';
 

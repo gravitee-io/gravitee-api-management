@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
 import TenantService from '../../services/tenant.service';
+import { CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
 
 const statusloader = () => {
   const events: Tuple[] = [];

@@ -13,19 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import InstancesService from '../services/instances.service';
-import AuditService from '../services/audit.service';
+import { StateParams } from '@uirouter/core';
+
+import TicketsListController from './support/tickets-list.controller';
+
+import { Scope } from '../entities/alert';
+import { User } from '../entities/user';
+import AlertService from '../services/alert.service';
+import AnalyticsService from '../services/analytics.service';
 import { ApiService } from '../services/api.service';
 import ApplicationService from '../services/application.service';
-import AlertService from '../services/alert.service';
-import { User } from '../entities/user';
-import RoleService from '../services/role.service';
+import AuditService from '../services/audit.service';
 import DashboardService from '../services/dashboard.service';
-import { StateParams } from '@uirouter/core';
-import AnalyticsService from '../services/analytics.service';
-import TicketsListController from './support/tickets-list.controller';
+import InstancesService from '../services/instances.service';
+import RoleService from '../services/role.service';
 import TicketService from '../services/ticket.service';
-import { Scope } from '../entities/alert';
 
 function managementRouterConfig($stateProvider) {
   'ngInject';

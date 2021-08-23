@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiService, LogsQuery } from '../../../../services/api.service';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import _ = require('lodash');
+
 import AnalyticsService from '../../../../services/analytics.service';
+import { ApiService, LogsQuery } from '../../../../services/api.service';
 
 class ApiLogsController {
   private api: any;

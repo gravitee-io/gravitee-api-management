@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import TenantService from '../../../services/tenant.service';
+
 import NotificationService from '../../../services/notification.service';
+import TenantService from '../../../services/tenant.service';
 
 class TenantsController {
   private tenantsToCreate: any[];

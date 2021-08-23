@@ -15,6 +15,7 @@
  */
 
 import { IHttpPromise } from 'angular';
+
 import { Alert, Scope } from '../entities/alert';
 
 export interface IAlertAnalytics {

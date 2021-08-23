@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IController, IScope } from 'angular';
+
 import RoleService from '../../../services/role.service';
 import '@gravitee/ui-components/wc/gv-switch';
 

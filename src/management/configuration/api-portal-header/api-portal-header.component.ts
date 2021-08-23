@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from '../../../services/notification.service';
-import ApiHeaderService from '../../../services/apiHeader.service';
-import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
-import PortalSettingsService from '../../../services/portalSettings.service';
 import { IScope } from 'angular';
 import _ = require('lodash');
+
+import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
+import ApiHeaderService from '../../../services/apiHeader.service';
+import NotificationService from '../../../services/notification.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
 
 const ApiPortalHeaderComponent: ng.IComponentOptions = {
   bindings: {

@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import CategoryService from '../../../../services/category.service';
-import NotificationService from '../../../../services/notification.service';
-import { ApiService } from '../../../../services/api.service';
-import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
+import * as _ from 'lodash';
+
+import { ApiService } from '../../../../services/api.service';
+import CategoryService from '../../../../services/category.service';
+import NotificationService from '../../../../services/notification.service';
 
 class CategoryController {
   public searchText = '';

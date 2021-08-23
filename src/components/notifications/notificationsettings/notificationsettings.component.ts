@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-import { Hook } from '../../../entities/hook';
-import { NotificationConfig } from '../../../entities/notificationConfig';
-import NotificationSettingsService from '../../../services/notificationSettings.service';
-import NotificationService from '../../../services/notification.service';
-import { Scope } from '../../../entities/scope';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
+import _ = require('lodash');
+
+import { Hook } from '../../../entities/hook';
+import { NotificationConfig } from '../../../entities/notificationConfig';
+import { Scope } from '../../../entities/scope';
+import NotificationService from '../../../services/notification.service';
+import NotificationSettingsService from '../../../services/notificationSettings.service';
 
 const NotificationSettingsComponent: ng.IComponentOptions = {
   bindings: {

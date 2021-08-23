@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Constants } from '../entities/Constants';
 import { IHttpService, IPromise } from 'angular';
+
+import { Constants } from '../entities/Constants';
 import { Event } from '../entities/event/event';
 
 export class DebugApiService {

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-import TopApiService from '../../../services/top-api.service';
-import NotificationService from '../../../services/notification.service';
 import { IScope } from 'angular';
+import * as _ from 'lodash';
+
+import NotificationService from '../../../services/notification.service';
+import TopApiService from '../../../services/top-api.service';
 
 class TopApisController {
   private topApis: any[];

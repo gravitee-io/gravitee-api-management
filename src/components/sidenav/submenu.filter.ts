@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
+
+import UserService from '../../services/user.service';
 export const submenuFilter = function ($state: StateService, UserService: UserService, Constants) {
   'ngInject';
   return function (menuItems) {

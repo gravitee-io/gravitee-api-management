@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from '../services/notification.service';
-import { User } from '../entities/user';
-import { IScope } from 'angular';
-import UserService from '../services/user.service';
 import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
+
+import { User } from '../entities/user';
+import NotificationService from '../services/notification.service';
 import TokenService from '../services/token.service';
+import UserService from '../services/user.service';
 
 interface IUserScope extends ng.IScope {
   formUser: any;

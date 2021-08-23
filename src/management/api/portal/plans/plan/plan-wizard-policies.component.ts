@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import PolicyService from '../../../../../services/policy.service';
 import ApiEditPlanController from './edit-plan.controller';
+
+import PolicyService from '../../../../../services/policy.service';
 
 const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
   require: {

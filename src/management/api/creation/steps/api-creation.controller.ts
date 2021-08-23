@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import { IPromise } from 'angular';
 import * as _ from 'lodash';
+
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import { StateService } from '@uirouter/core';
-import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
 import UserService from '../../../../services/user.service';
-import { IPromise } from 'angular';
+import NewApiController, { getDefinitionVersionDescription, getDefinitionVersionTitle } from '../newApiPortal.controller';
 
 interface Page {
   fileName: string;

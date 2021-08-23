@@ -13,27 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import CategoryService from '../../services/category.service';
-import TagService from '../../services/tag.service';
-import MetadataService from '../../services/metadata.service';
-import RoleService from '../../services/role.service';
-import GroupService from '../../services/group.service';
-import TopApiService from '../../services/top-api.service';
-import { ApiService } from '../../services/api.service';
-import DictionaryService from '../../services/dictionary.service';
-import ApiHeaderService from '../../services/apiHeader.service';
-import IdentityProviderService from '../../services/identityProvider.service';
-import { DocumentationService, DocumentationQuery } from '../../services/documentation.service';
-import FetcherService from '../../services/fetcher.service';
 import { StateParams } from '@uirouter/core';
-import ClientRegistrationProviderService from '../../services/clientRegistrationProvider.service';
-import QualityRuleService from '../../services/qualityRule.service';
-import DashboardService from '../../services/dashboard.service';
-import CustomUserFieldsService from '../../services/custom-user-fields.service';
-import EnvironmentService from '../../services/environment.service';
-import PortalSettingsService from '../../services/portalSettings.service';
-import ConsoleSettingsService from '../../services/consoleSettings.service';
 import _ = require('lodash');
+
+import { ApiService } from '../../services/api.service';
+import ApiHeaderService from '../../services/apiHeader.service';
+import CategoryService from '../../services/category.service';
+import ClientRegistrationProviderService from '../../services/clientRegistrationProvider.service';
+import ConsoleSettingsService from '../../services/consoleSettings.service';
+import CustomUserFieldsService from '../../services/custom-user-fields.service';
+import DashboardService from '../../services/dashboard.service';
+import DictionaryService from '../../services/dictionary.service';
+import { DocumentationQuery, DocumentationService } from '../../services/documentation.service';
+import EnvironmentService from '../../services/environment.service';
+import FetcherService from '../../services/fetcher.service';
+import GroupService from '../../services/group.service';
+import IdentityProviderService from '../../services/identityProvider.service';
+import MetadataService from '../../services/metadata.service';
+import PortalSettingsService from '../../services/portalSettings.service';
+import QualityRuleService from '../../services/qualityRule.service';
+import RoleService from '../../services/role.service';
+import TagService from '../../services/tag.service';
+import TopApiService from '../../services/top-api.service';
 
 export default configurationRouterConfig;
 

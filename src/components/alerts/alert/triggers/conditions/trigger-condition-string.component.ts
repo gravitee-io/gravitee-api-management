@@ -15,6 +15,7 @@
  */
 
 import _ = require('lodash');
+
 import { Metrics, Scope } from '../../../../../entities/alert';
 
 const AlertTriggerConditionStringComponent: ng.IComponentOptions = {

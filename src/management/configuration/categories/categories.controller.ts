@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import * as _ from 'lodash';
+
 import CategoryService from '../../../services/category.service';
 import NotificationService from '../../../services/notification.service';
-import { StateService } from '@uirouter/core';
 import PortalSettingsService from '../../../services/portalSettings.service';
-import { IScope } from 'angular';
 
 class CategoriesController {
   public providedConfigurationMessage = 'Configuration provided by the system';

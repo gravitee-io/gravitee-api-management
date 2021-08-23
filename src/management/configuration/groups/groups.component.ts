@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import _ = require('lodash');
+
 import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';
 import UserService from '../../../services/user.service';
-import { StateService } from '@uirouter/core';
-import { IScope } from 'angular';
 
 const GroupsComponent: ng.IComponentOptions = {
   bindings: {

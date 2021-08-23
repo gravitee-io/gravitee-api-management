@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';

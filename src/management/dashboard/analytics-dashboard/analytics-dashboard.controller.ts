@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+
 import { EventService } from '../../../services/event.service';
 
 class AnalyticsDashboardController {

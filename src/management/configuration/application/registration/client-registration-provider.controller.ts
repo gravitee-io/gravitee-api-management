@@ -15,12 +15,12 @@
  */
 
 import { StateService } from '@uirouter/core';
-
-import NotificationService from '../../../../services/notification.service';
-import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
-import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
 import angular = require('angular');
 import _ = require('lodash');
+
+import { ClientRegistrationProvider } from '../../../../entities/clientRegistrationProvider';
+import ClientRegistrationProviderService from '../../../../services/clientRegistrationProvider.service';
+import NotificationService from '../../../../services/notification.service';
 
 interface IClientRegistrationProviderScope extends ng.IScope {
   formClientRegistrationProvider: any;

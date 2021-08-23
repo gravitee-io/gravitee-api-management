@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { IHttpBackendService } from 'angular';
+
 import { EventService } from './event.service';
+
 import { fakeEvent } from '../entities/event/event.fixture';
 
 describe('EventService', () => {

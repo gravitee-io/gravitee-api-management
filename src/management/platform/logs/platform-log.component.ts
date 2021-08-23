@@ -1,4 +1,5 @@
 import { StateService } from '@uirouter/core';
+
 import NotificationService from '../../../services/notification.service';
 
 /*

@@ -15,10 +15,11 @@
  */
 
 import _ = require('lodash');
-import { CompareCondition, Metrics, Scope, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
+
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
 import TenantService from '../../services/tenant.service';
+import { CompareCondition, Metrics, Scope, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
 
 export class ApiMetrics extends Metrics {
   static RESPONSE_TIME: ApiMetrics = new ApiMetrics('response.response_time', 'Response Time (ms)', [

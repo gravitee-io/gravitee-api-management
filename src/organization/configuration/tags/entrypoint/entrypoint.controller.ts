@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from '../../../../services/notification.service';
 import EntrypointService from '../../../../services/entrypoint.service';
+import NotificationService from '../../../../services/notification.service';
 
 class EntrypointController {
   private entrypoint: any;

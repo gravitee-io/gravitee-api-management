@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import QualityRuleService from '../../../../services/qualityRule.service';
-import { QualityRule } from '../../../../entities/qualityRule';
 import { IScope } from 'angular';
+
+import { QualityRule } from '../../../../entities/qualityRule';
+import QualityRuleService from '../../../../services/qualityRule.service';
 
 function DeleteApiQualityRuleDialogController(
   $scope: IScope,

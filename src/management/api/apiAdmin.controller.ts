@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import SidenavService from '../../components/sidenav/sidenav.service';
-import UserService from '../../services/user.service';
-import NotificationService from '../../services/notification.service';
-import { ApiService } from '../../services/api.service';
-import FlowService from '../../services/flow.service';
+import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 
-import { StateService } from '@uirouter/core';
+import SidenavService from '../../components/sidenav/sidenav.service';
+import { ApiService } from '../../services/api.service';
+import FlowService from '../../services/flow.service';
+import NotificationService from '../../services/notification.service';
 import QualityRuleService from '../../services/qualityRule.service';
+import UserService from '../../services/user.service';
 
 class ApiAdminController {
   private api: any;

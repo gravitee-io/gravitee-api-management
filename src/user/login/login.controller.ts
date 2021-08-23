@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from '../../services/user.service';
 import { StateParams, StateService } from '@uirouter/core';
 import { IScope } from 'angular';
-import { User } from '../../entities/user';
-import RouterService from '../../services/router.service';
 import * as _ from 'lodash';
+
 import { IdentityProvider } from '../../entities/identityProvider';
+import { User } from '../../entities/user';
 import AuthenticationService from '../../services/authentication.service';
 import ReCaptchaService from '../../services/reCaptcha.service';
+import RouterService from '../../services/router.service';
+import UserService from '../../services/user.service';
 
 class LoginController {
   user: any = {};

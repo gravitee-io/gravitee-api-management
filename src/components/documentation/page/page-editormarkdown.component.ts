@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import * as codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
+import { StateService } from '@uirouter/core';
 import * as hljs from 'highlight.js';
+
 import NotificationService from '../../../services/notification.service';
 
 class ComponentCtrl implements ng.IComponentController {

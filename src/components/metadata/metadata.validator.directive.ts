@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IScope, IDirective } from 'angular';
+import { IDirective, IScope } from 'angular';
 
 interface IMyScope extends IScope {
   ngPattern: RegExp;

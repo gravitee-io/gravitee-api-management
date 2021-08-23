@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiService } from '../../../services/api.service';
 import { StateParams } from '@uirouter/core';
+
+import { Scope } from '../../../entities/alert';
+import AlertService from '../../../services/alert.service';
+import { ApiService } from '../../../services/api.service';
+import DashboardService from '../../../services/dashboard.service';
 import SpelService from '../../../services/spel.service';
 import TenantService from '../../../services/tenant.service';
-import DashboardService from '../../../services/dashboard.service';
-import AlertService from '../../../services/alert.service';
-import { Scope } from '../../../entities/alert';
 
 export default apisAnalyticsRouterConfig;
 

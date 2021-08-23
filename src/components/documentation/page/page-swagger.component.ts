@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as jsyaml from 'js-yaml';
-import * as _ from 'lodash';
-import UserService from '../../../services/user.service';
-import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { StateService } from '@uirouter/core';
 import { IController } from 'angular';
 import angular = require('angular');
+import * as jsyaml from 'js-yaml';
+import * as _ from 'lodash';
+import { SwaggerUIBundle } from 'swagger-ui-dist';
+
+import UserService from '../../../services/user.service';
 
 const DisableTryItOutPlugin = function () {
   return {

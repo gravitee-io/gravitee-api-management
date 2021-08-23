@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
-
-import ApplicationService, { LogsQuery } from '../../../../services/application.service';
 import { IScope } from 'angular';
 import _ = require('lodash');
+
+import ApplicationService, { LogsQuery } from '../../../../services/application.service';
 
 class ApplicationLogsController {
   private logs: { total: string; logs: any[]; metadata: any };

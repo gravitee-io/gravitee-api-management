@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
+import _ = require('lodash');
+
 import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';
-import UserService from '../../../services/user.service';
 import RoleService from '../../../services/role.service';
-import { IScope } from 'angular';
-import { StateService } from '@uirouter/core';
-import _ = require('lodash');
+import UserService from '../../../services/user.service';
 
 interface IUserDetailComponentScope extends ng.IScope {
   selectedOrganizationRole: string[];

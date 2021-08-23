@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DashboardService from '../../../services/dashboard.service';
 import * as _ from 'lodash';
+
+import DashboardService from '../../../services/dashboard.service';
 const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-stats-configuration.html'),
   bindings: {

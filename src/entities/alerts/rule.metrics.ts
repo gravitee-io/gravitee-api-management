@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { Metrics, Scope } from '../alert';
 import { ApiMetrics } from './api.metrics';
 import { NodeHealthcheckMetrics, NodeMetrics } from './node.metrics';
+
+import { Metrics, Scope } from '../alert';
 
 export class Rule {
   static API_METRICS_THRESHOLD: Rule = new Rule(

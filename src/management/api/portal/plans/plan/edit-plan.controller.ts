@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
 import _ = require('lodash');
+
 import { ApiService } from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
-import { StateService } from '@uirouter/core';
 
 class ApiEditPlanController {
   pages: any[];

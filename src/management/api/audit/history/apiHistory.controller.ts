@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires,import/order
 const copy = require('clipboard-copy');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires,import/order
 const JsDiff = require('diff/dist/diff.min.js');
+
 import '@gravitee/ui-components/wc/gv-policy-studio';
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-popover';
 import * as _ from 'lodash';
 import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
+
 import { propertyProviders } from '../../design/design/design.controller';
 
 enum Modes {

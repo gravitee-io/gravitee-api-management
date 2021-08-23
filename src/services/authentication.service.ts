@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-import { AuthProvider, SatellizerConfig } from 'satellizer';
-import { IdentityProvider } from '../entities/identityProvider';
-import * as _ from 'lodash';
-import UserService from './user.service';
-import RouterService from './router.service';
-import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
+import * as _ from 'lodash';
+import { AuthProvider, SatellizerConfig } from 'satellizer';
+
+import RouterService from './router.service';
+import UserService from './user.service';
+
+import { IdentityProvider } from '../entities/identityProvider';
 
 class AuthenticationService {
   constructor(

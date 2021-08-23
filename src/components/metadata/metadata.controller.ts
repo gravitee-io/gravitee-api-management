@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
 import * as _ from 'lodash';
+
 import MetadataService from '../../services/metadata.service';
 import NotificationService from '../../services/notification.service';
 import UserService from '../../services/user.service';
-import { IScope } from 'angular';
-import { StateService } from '@uirouter/core';
 
 class MetadataController {
   private metadata: any;

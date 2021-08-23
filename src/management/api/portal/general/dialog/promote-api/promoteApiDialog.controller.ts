@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PromotionService } from '../../../../../../services/promotion.service';
+
 import { IOnInit } from 'angular';
 import '@gravitee/ui-components/wc/gv-select';
 import * as angular from 'angular';
+
+import { PromotionService } from '../../../../../../services/promotion.service';
 import NotificationService from '../../../../../../services/notification.service';
 
 interface PromotionTargetVM {

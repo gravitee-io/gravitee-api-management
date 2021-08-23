@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+import * as angular from 'angular';
+import '@gravitee/ui-components/wc/gv-icon';
+
+import { PromoteApiDialogController } from './dialog/promote-api/promoteApiDialog.controller';
+
 import SidenavService from '../../../../components/sidenav/sidenav.service';
-import UserService from '../../../../services/user.service';
 import { QualityMetrics } from '../../../../entities/qualityMetrics';
 import { ApiService } from '../../../../services/api.service';
 import PolicyService from '../../../../services/policy.service';
-import '@gravitee/ui-components/wc/gv-icon';
-import * as angular from 'angular';
-import { PromoteApiDialogController } from './dialog/promote-api/promoteApiDialog.controller';
+import UserService from '../../../../services/user.service';
 import InstallationService from '../../../../services/installation.service';
 import { Constants } from '../../../../entities/Constants';
 import {

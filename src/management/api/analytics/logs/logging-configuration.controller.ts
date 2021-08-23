@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+
+import DialogConfigureLoggingEditorController from './configure-logging-editor.dialog.controller';
+
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import DialogConfigureLoggingEditorController from './configure-logging-editor.dialog.controller';
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-expression-language';
 import '@gravitee/ui-components/wc/gv-option';

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IController } from 'angular';
+
 import { DocumentationService } from '../../../services/documentation.service';
 import NotificationService from '../../../services/notification.service';
 

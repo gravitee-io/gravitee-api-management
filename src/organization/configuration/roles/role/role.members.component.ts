@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoleService from '../../../../services/role.service';
-import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
-import * as _ from 'lodash';
 import { IScope } from 'angular';
+import * as _ from 'lodash';
+
+import NotificationService from '../../../../services/notification.service';
+import RoleService from '../../../../services/role.service';
 
 const RoleMembersComponent: ng.IComponentOptions = {
   bindings: {

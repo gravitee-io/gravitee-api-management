@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import MetadataService from '../../../services/metadata.service';
 import { ApiService } from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
+import MetadataService from '../../../services/metadata.service';
 
 function DeleteMetadataDialogController(
   MetadataService: MetadataService,

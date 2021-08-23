@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IIntervalService, IScope } from 'angular';
+
+import { PagedResult } from '../../entities/pagedResult';
 import { UserNotification } from '../../entities/userNotification';
 import UserNotificationService from '../../services/userNotification.service';
-import { PagedResult } from '../../entities/pagedResult';
-import { IIntervalService, IScope } from 'angular';
 
 const PortalNotificationsComponent: ng.IComponentOptions = {
   bindings: {

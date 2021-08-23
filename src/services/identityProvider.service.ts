@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { IdentityProvider } from '../entities/identityProvider';
 import { IHttpPromise, IPromise } from 'angular';
+
+import { IdentityProvider } from '../entities/identityProvider';
 
 class IdentityProviderService {
   constructor(private $http, private Constants) {

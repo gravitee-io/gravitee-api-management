@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
+import angular = require('angular');
+
 import { DocumentationManagementComponent } from './documentation-management.component';
-import { DocumentationNewFolderComponent } from './folder/new-folder.component';
-import { DocumentationNewLinkComponent } from './link/new-link.component';
-import { EditLinkContentComponent } from './edit-tabs/edit-link-content.components';
 import { EditPageComponent } from './edit-page.component';
+import { EditLinkContentComponent } from './edit-tabs/edit-link-content.components';
 import { EditPageAclsComponent } from './edit-tabs/edit-page-acls.components';
 import { EditPageAttachedResourcesComponent } from './edit-tabs/edit-page-attached-resources.components';
 import { EditPageConfigurationComponent } from './edit-tabs/edit-page-configuration.components';
 import { EditPageContentComponent } from './edit-tabs/edit-page-content.components';
 import { EditPageFetchersComponent } from './edit-tabs/edit-page-fetchers.component';
 import { EditPageTranslationsComponent } from './edit-tabs/edit-page-translations.components';
+import { DocumentationNewFolderComponent } from './folder/new-folder.component';
 import { ImportPagesComponent } from './import-pages.component';
+import { DocumentationNewLinkComponent } from './link/new-link.component';
 import { NewPageComponent } from './new-page.component';
 import { PageAsciiDocComponent } from './page/page-asciidoc.component';
 import { PageAsyncApiComponent } from './page/page-asyncapi.component';
 import { PageEditorMarkdownComponent } from './page/page-editormarkdown.component';
 import { PageMarkdownComponent } from './page/page-markdown.component';
 import { PageSwaggerComponent } from './page/page-swagger.component';
-
-import angular = require('angular');
 
 angular.module('gravitee-component-documentation', []);
 

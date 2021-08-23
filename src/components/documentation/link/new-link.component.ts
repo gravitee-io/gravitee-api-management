@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DocumentationService } from '../../../services/documentation.service';
 import { IController } from 'angular';
+
+import { DocumentationService } from '../../../services/documentation.service';
 
 class DocumentationNewLinkComponentController implements IController {
   page: any;

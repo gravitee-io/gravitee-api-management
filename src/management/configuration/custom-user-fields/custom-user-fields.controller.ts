@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import UserService from '../../../services/user.service';
 import { StateService } from '@uirouter/angularjs';
+
 import NotificationService from '../../../services/notification.service';
+import UserService from '../../../services/user.service';
 
 class CustomUserFieldsController {
   private canCreate: boolean;

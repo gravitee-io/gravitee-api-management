@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
 

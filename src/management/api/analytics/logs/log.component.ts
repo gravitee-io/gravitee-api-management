@@ -1,10 +1,3 @@
-import { StateService } from '@uirouter/core';
-import NotificationService from '../../../../services/notification.service';
-import { toPairs } from 'lodash';
-import AnalyticsService from '../../../../services/analytics.service';
-import { ApiService } from '../../../../services/api.service';
-import '@gravitee/ui-components/wc/gv-code';
-
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -20,6 +13,14 @@ import '@gravitee/ui-components/wc/gv-code';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import { toPairs } from 'lodash';
+
+import AnalyticsService from '../../../../services/analytics.service';
+import { ApiService } from '../../../../services/api.service';
+import NotificationService from '../../../../services/notification.service';
+
+import '@gravitee/ui-components/wc/gv-code';
 
 interface IQueryParam {
   key: string;

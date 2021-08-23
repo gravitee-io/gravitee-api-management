@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import angular = require('angular');
 import * as _ from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
-import angular = require('angular');
 
 interface IApiPropertiesScope extends ng.IScope {
   formDynamicProperties: any;

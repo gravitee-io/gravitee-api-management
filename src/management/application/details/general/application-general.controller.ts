@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 
+import SidenavService from '../../../../components/sidenav/sidenav.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
-import SidenavService from '../../../../components/sidenav/sidenav.service';
-import { StateService } from '@uirouter/core';
 
 interface IApplicationScope extends ng.IScope {
   formApplication: any;

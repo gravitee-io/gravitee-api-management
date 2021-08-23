@@ -15,6 +15,7 @@
  */
 
 import { IHttpPromise, IPromise } from 'angular';
+
 import { Constants } from '../entities/Constants';
 
 export class DocumentationQuery {

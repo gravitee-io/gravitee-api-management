@@ -18,6 +18,7 @@ import '@gravitee/ui-components/wc/gv-date-picker';
 import '@gravitee/ui-components/wc/gv-row-expandable';
 import { deepEqual } from '@gravitee/ui-components/src/lib/utils';
 import moment = require('moment');
+
 import { Period } from '../../../../entities/alert';
 
 const AlertTriggerTimeframeComponent: ng.IComponentOptions = {

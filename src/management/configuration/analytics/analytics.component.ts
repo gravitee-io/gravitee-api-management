@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
+import _ = require('lodash');
+
+import { Dashboard } from '../../../entities/dashboard';
+import DashboardService from '../../../services/dashboard.service';
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
-import { StateService } from '@uirouter/core';
-import DashboardService from '../../../services/dashboard.service';
-import { Dashboard } from '../../../entities/dashboard';
-import _ = require('lodash');
 
 const AnalyticsSettingsComponent: ng.IComponentOptions = {
   bindings: {

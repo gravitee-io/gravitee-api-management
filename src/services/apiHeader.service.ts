@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { ApiPortalHeader } from '../entities/apiPortalHeader';
 import { IHttpPromise } from 'angular';
+
+import { ApiPortalHeader } from '../entities/apiPortalHeader';
 
 class ApiHeaderService {
   constructor(private $http, private Constants) {

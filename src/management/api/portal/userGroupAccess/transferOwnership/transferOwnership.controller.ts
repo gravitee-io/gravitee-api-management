@@ -15,9 +15,10 @@
  */
 import angular = require('angular');
 import _ = require('lodash');
+
 import { ApiService } from '../../../../../services/api.service';
-import UserService from '../../../../../services/user.service';
 import ApiPrimaryOwnerModeService from '../../../../../services/apiPrimaryOwnerMode.service';
+import UserService from '../../../../../services/user.service';
 
 class ApiTransferOwnershipController {
   private api: any;

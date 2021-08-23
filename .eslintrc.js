@@ -9,12 +9,14 @@ module.exports = {
     sourceType: 'module',
   },
   ignorePatterns: ['**/*.js'],
-  plugins: ['eslint-plugin-jsdoc', '@typescript-eslint'],
+  plugins: ['eslint-plugin-jsdoc', '@typescript-eslint', 'eslint-plugin-import'],
   extends: [
     'angular',
     'eslint:recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
     'prettier',
   ],
   reportUnusedDisableDirectives: true,
@@ -93,6 +95,13 @@ module.exports = {
       'always',
       {
         markers: ['/'],
+      },
+    ],
+    'import/order': [
+      'error',
+      {
+        groups: ['internal', 'external', 'builtin', 'object', 'type', 'index', 'sibling', 'parent'],
+        'newlines-between': 'always',
       },
     ],
   },

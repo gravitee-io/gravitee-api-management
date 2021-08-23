@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PromotionTask } from '../../../entities/task/task';
 import { IPromise } from 'angular';
+
+import { PromotionTask } from '../../../entities/task/task';
 import { PromotionService } from '../../../services/promotion.service';
 
 class PromotionTaskComponentController {

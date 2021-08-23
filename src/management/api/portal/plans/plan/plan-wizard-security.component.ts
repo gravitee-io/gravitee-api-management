@@ -15,9 +15,11 @@
  */
 
 import _ = require('lodash');
+
+import ApiEditPlanController from './edit-plan.controller';
+
 import PolicyService from '../../../../../services/policy.service';
 import ResourceService from '../../../../../services/resource.service';
-import ApiEditPlanController from './edit-plan.controller';
 import '@gravitee/ui-components/wc/gv-schema-form';
 import '@gravitee/ui-components/wc/gv-row';
 

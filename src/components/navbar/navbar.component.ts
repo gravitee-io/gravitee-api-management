@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from '../../services/user.service';
-import TaskService from '../../services/task.service';
-import { IIntervalService, IScope } from 'angular';
-import { PagedResult } from '../../entities/pagedResult';
-import UserNotificationService from '../../services/userNotification.service';
 import { StateService } from '@uirouter/core';
-import OrganizationService from '../../services/organization.service';
+import { IIntervalService, IScope } from 'angular';
+
+import { PagedResult } from '../../entities/pagedResult';
 import AuthenticationService from '../../services/authentication.service';
+import OrganizationService from '../../services/organization.service';
+import TaskService from '../../services/task.service';
+import UserService from '../../services/user.service';
+import UserNotificationService from '../../services/userNotification.service';
 
 export const NavbarComponent: ng.IComponentOptions = {
   template: require('./navbar.html'),

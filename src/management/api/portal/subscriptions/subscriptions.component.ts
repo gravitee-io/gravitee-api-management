@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-import { ApiService } from '../../../../services/api.service';
-import NotificationService from '../../../../services/notification.service';
-import { PagedResult } from '../../../../entities/pagedResult';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
+import _ = require('lodash');
 import * as moment from 'moment';
+
+import { PagedResult } from '../../../../entities/pagedResult';
+import { ApiService } from '../../../../services/api.service';
+import NotificationService from '../../../../services/notification.service';
 
 const defaultStatus = ['ACCEPTED', 'PENDING', 'PAUSED'];
 

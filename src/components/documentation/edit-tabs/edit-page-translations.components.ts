@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IController, IScope } from 'angular';
+
 import { DocumentationService, PageType } from '../../../services/documentation.service';
 import NotificationService from '../../../services/notification.service';
-import { IController, IScope } from 'angular';
 
 class EditPageTranslationsComponentController implements IController {
   apiId: string;

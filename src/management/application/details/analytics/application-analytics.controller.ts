@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 
 import ApplicationService from '../../../../services/application.service';
-import { StateService } from '@uirouter/core';
 import DashboardService from '../../../../services/dashboard.service';
 
 class ApplicationAnalyticsController {

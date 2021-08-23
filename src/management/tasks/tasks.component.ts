@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
 import { IController, IOnInit } from 'angular';
+
 import { PagedResult } from '../../entities/pagedResult';
 import { Task } from '../../entities/task/task';
+import UserService from '../../services/user.service';
 
 class TasksComponentController implements IController, IOnInit {
   private tasks: PagedResult<Task>;

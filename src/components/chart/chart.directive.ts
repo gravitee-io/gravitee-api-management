@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import angular = require('angular');
 import * as Highcharts from 'highcharts';
 import * as Highmaps from 'highcharts/highmaps';
-import angular = require('angular');
+import * as _ from 'lodash';
+import 'highcharts/modules/map';
 
 class ChartDirective {
   constructor() {
@@ -363,6 +364,7 @@ class ChartDirective {
             }
 
             if (scope.type === 'map') {
+              // eslint-disable-next-line import/namespace
               Highmaps.mapChart(chartElement, _.cloneDeep(newOptions));
             } else {
               Highcharts.chart(chartElement, _.cloneDeep(newOptions));

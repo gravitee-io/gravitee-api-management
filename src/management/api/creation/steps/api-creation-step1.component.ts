@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import ApiCreationController from './api-creation.controller';
-import ApiPrimaryOwnerModeService from '../../../../services/apiPrimaryOwnerMode.service';
 import { shouldDisplayHint } from './form.helper';
+
+import ApiPrimaryOwnerModeService from '../../../../services/apiPrimaryOwnerMode.service';
 
 const ApiCreationStep1Component: ng.IComponentOptions = {
   require: {

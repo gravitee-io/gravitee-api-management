@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import DashboardService from '../../../../services/dashboard.service';
-import NotificationService from '../../../../services/notification.service';
-import _ = require('lodash');
 import { StateService } from '@uirouter/core';
 import angular = require('angular');
+import _ = require('lodash');
+
+import DashboardService from '../../../../services/dashboard.service';
+import NotificationService from '../../../../services/notification.service';
 const DashboardComponent: ng.IComponentOptions = {
   template: require('./dashboard.html'),
   controller: function (

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import _ = require('lodash');
-import angular = require('angular');
 import { StateService } from '@uirouter/core';
+import angular = require('angular');
+import _ = require('lodash');
 
 class ApiPoliciesController {
   private apiPoliciesByPath: any;

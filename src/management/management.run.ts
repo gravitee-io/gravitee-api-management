@@ -15,9 +15,9 @@
  */
 // eslint-disable-next-line
 /* global setInterval:false, clearInterval:false, screen:false */
-import UserService from '../services/user.service';
 import EnvironmentService from '../services/environment.service';
 import PortalConfigService from '../services/portalConfig.service';
+import UserService from '../services/user.service';
 
 function runBlock(
   $rootScope,

@@ -15,12 +15,12 @@
  */
 
 import { StateService } from '@uirouter/core';
-
-import NotificationService from '../../../services/notification.service';
-import IdentityProviderService from '../../../services/identityProvider.service';
-import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identityProvider';
 import angular = require('angular');
 import _ = require('lodash');
+
+import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identityProvider';
+import IdentityProviderService from '../../../services/identityProvider.service';
+import NotificationService from '../../../services/notification.service';
 
 interface IIdentityProviderScope extends ng.IScope {
   formIdentityProvider: any;

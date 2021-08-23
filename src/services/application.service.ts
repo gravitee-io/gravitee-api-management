@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
-import { PagedResult } from '../entities/pagedResult';
 import { IHttpResponse } from 'angular';
+import * as _ from 'lodash';
+
+import { PagedResult } from '../entities/pagedResult';
 
 export class LogsQuery {
   from: number;

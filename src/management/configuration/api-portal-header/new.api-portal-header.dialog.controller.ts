@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import ApiHeaderService from '../../../services/apiHeader.service';
 import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
+import ApiHeaderService from '../../../services/apiHeader.service';
 
 function NewApiPortalHeaderDialogController(ApiHeaderService: ApiHeaderService, $mdDialog: angular.material.IDialogService) {
   'ngInject';

@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import * as moment from 'moment';
+import { duration } from 'moment';
+
 import InstancesService from '../../../../services/instances.service';
 
 class InstanceMonitoringController {
@@ -48,7 +49,7 @@ class InstanceMonitoringController {
   }
 
   humanizeDuration(timeInMillis) {
-    return moment.duration(-timeInMillis).humanize(true);
+    return duration(-timeInMillis).humanize(true);
   }
 
   humanizeSize(bytes, precision) {

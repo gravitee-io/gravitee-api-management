@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TagService from '../../../services/tag.service';
-import NotificationService from '../../../services/notification.service';
-import PortalSettingsService from '../../../services/portalSettings.service';
 import { IPromise, IScope } from 'angular';
-import '@gravitee/ui-components/wc/gv-policy-studio';
+
+import NotificationService from '../../../services/notification.service';
 import OrganizationService, { Organization } from '../../../services/organization.service';
+import PortalSettingsService from '../../../services/portalSettings.service';
+import TagService from '../../../services/tag.service';
+
+import '@gravitee/ui-components/wc/gv-policy-studio';
 
 class PoliciesController {
   private tags: any;

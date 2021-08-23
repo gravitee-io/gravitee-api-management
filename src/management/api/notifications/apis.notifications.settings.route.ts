@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationSettingsService from '../../../services/notificationSettings.service';
 import { Scope } from '../../../entities/scope';
 import AlertService from '../../../services/alert.service';
 import { ApiService } from '../../../services/api.service';
+import NotificationSettingsService from '../../../services/notificationSettings.service';
 import NotifierService from '../../../services/notifier.service';
 
 export default apisNotificationsRouterConfig;

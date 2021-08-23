@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NotificationTemplate } from '../model/notificationTemplate.model';
-import NotificationTemplatesService from '../../../../services/notificationTemplates.service';
-import NotificationService from '../../../../services/notification.service';
 import * as _ from 'lodash';
+
+import NotificationService from '../../../../services/notification.service';
+import NotificationTemplatesService from '../../../../services/notificationTemplates.service';
+import { NotificationTemplate } from '../model/notificationTemplate.model';
 
 class NotificationTemplateByTypeController {
   public notifTemplateForm: any;

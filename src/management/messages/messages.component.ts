@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+import _ = require('lodash');
+
+import { ApiService } from '../../services/api.service';
 import MessageService from '../../services/message.service';
 import NotificationService from '../../services/notification.service';
-import _ = require('lodash');
-import { ApiService } from '../../services/api.service';
 
 const MessagesComponent: ng.IComponentOptions = {
   bindings: {

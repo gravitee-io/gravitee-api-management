@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+
 import { AuditQuery, default as AuditService } from '../../services/audit.service';
 
 const AuditComponent: ng.IComponentOptions = {

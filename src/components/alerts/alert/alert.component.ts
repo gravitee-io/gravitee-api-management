@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { IScope } from 'angular';
 import _ = require('lodash');
-import AlertService from '../../../services/alert.service';
-import NotificationService from '../../../services/notification.service';
+
 import { Alert, Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
-import { IScope } from 'angular';
+import AlertService from '../../../services/alert.service';
+import NotificationService from '../../../services/notification.service';
 
 const AlertComponent: ng.IComponentOptions = {
   bindings: {

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from '../../../services/notification.service';
 import ConsoleSettingsService from '../../../services/consoleSettings.service';
+import NotificationService from '../../../services/notification.service';
 
 class ApiLoggingController {
   public providedConfigurationMessage = 'Configuration provided by the system';

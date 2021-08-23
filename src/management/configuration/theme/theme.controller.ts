@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import ThemeService from '../../../services/theme.service';
-import NotificationService from '../../../services/notification.service';
-import { Theme } from '../../../entities/theme';
 import angular = require('angular');
+
+import { Theme } from '../../../entities/theme';
+import NotificationService from '../../../services/notification.service';
+import ThemeService from '../../../services/theme.service';
 
 class ThemeController {
   detachedWindow: Window;

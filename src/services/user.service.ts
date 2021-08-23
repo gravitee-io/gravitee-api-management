@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { User } from '../entities/user';
-import RoleService from './role.service';
-import ApplicationService from './application.service';
-import { ApiService } from './api.service';
-import StringService from './string.service';
 import { UrlService } from '@uirouter/angularjs';
-import { PagedResult } from '../entities/pagedResult';
-import Base64Service from './base64.service';
-import EnvironmentService from './environment.service';
 import { IHttpResponse, ILocationService, IScope } from 'angular';
 import _ = require('lodash');
+
+import { ApiService } from './api.service';
+import ApplicationService from './application.service';
+import Base64Service from './base64.service';
+import EnvironmentService from './environment.service';
+import RoleService from './role.service';
+import StringService from './string.service';
+
+import { PagedResult } from '../entities/pagedResult';
+import { User } from '../entities/user';
 
 class UserService {
   /**

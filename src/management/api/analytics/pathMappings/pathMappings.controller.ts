@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import _ = require('lodash');
 
-import NotificationService from '../../../../services/notification.service';
-import { ApiService } from '../../../../services/api.service';
 import DialogAddPathMappingController from './modal/add-pathMapping.dialog.controller';
 import DialogImportPathMappingController from './modal/import-pathMapping.dialog.controller';
-import { DocumentationService, DocumentationQuery } from '../../../../services/documentation.service';
+
+import { ApiService } from '../../../../services/api.service';
+import { DocumentationQuery, DocumentationService } from '../../../../services/documentation.service';
+import NotificationService from '../../../../services/notification.service';
 
 class ApiPathMappingsController {
   private api: any;

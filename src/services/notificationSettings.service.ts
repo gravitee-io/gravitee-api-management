@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { Scope } from '../entities/scope';
 import { IHttpPromise } from 'angular';
+
 import { NotificationConfig } from '../entities/notificationConfig';
+import { Scope } from '../entities/scope';
 
 class NotificationSettingsService {
   constructor(private $http: ng.IHttpService, private Constants) {

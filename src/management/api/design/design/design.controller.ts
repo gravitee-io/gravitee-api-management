@@ -15,10 +15,11 @@
  */
 import { deepClone } from '@gravitee/ui-components/src/lib/utils';
 import { IIntervalService, IPromise, ITimeoutService } from 'angular';
+
+import { Event } from '../../../../entities/event/event';
 import { ApiService } from '../../../../services/api.service';
 import { DebugApiService } from '../../../../services/debugApi.service';
 import { EventService } from '../../../../services/event.service';
-import { Event } from '../../../../entities/event/event';
 import NotificationService from '../../../../services/notification.service';
 
 export const propertyProviders = [

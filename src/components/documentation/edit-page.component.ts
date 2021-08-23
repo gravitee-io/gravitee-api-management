@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-import NotificationService from '../../services/notification.service';
-import { DocumentationService, PageType } from '../../services/documentation.service';
 import { StateService } from '@uirouter/core';
 import { IController, IScope } from 'angular';
-import UserService from '../../services/user.service';
-import _ = require('lodash');
-import { emptyFetcher } from './edit-tabs/edit-page-fetchers.component';
 import angular = require('angular');
+import _ = require('lodash');
+
+import { emptyFetcher } from './edit-tabs/edit-page-fetchers.component';
+
+import { DocumentationService, PageType } from '../../services/documentation.service';
+import NotificationService from '../../services/notification.service';
+import UserService from '../../services/user.service';
 
 interface IPageScope extends IScope {
   fetcherJsonSchema: {

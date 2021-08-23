@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TenantService from '../../../services/tenant.service';
 import { ApiService } from '../../../services/api.service';
-import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
 import EnvironmentService from '../../../services/environment.service';
+import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
 import SpelService from '../../../services/spel.service';
+import TenantService from '../../../services/tenant.service';
 
 export default apisProxyRouterConfig;
 

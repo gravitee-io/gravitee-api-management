@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import _ = require('lodash');
+
 import SidenavService from './sidenav.service';
+
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
 import UserService from '../../services/user.service';
-import _ = require('lodash');
 
 export const SubmenuComponent: ng.IComponentOptions = {
   template: require('./submenu.html'),

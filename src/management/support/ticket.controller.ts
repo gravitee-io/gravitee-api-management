@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TicketService from '../../services/ticket.service';
-import NotificationService from '../../services/notification.service';
+import _ = require('lodash');
+
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
+import NotificationService from '../../services/notification.service';
+import TicketService from '../../services/ticket.service';
 import UserService from '../../services/user.service';
-import _ = require('lodash');
 
 class SupportTicketController {
   private ticket: any;

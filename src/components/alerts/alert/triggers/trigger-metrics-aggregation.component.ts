@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Rule } from '../../../../entities/alerts/rule.metrics';
 import { AggregationCondition } from '../../../../entities/alert';
+import { Rule } from '../../../../entities/alerts/rule.metrics';
 
 const AlertTriggerMetricsAggregationComponent: ng.IComponentOptions = {
   bindings: {

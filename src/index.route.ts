@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from './services/user.service';
-import { User } from './entities/user';
-import { IScope } from 'angular';
-import { StateService } from '@uirouter/core';
 import { StateProvider, UrlService } from '@uirouter/angularjs';
+import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
+
+import { User } from './entities/user';
 import OrganizationService from './services/organization.service';
+import UserService from './services/user.service';
 
 function reinitToDefaultOrganization($window: angular.IWindowService, Constants) {
   $window.localStorage.setItem('gv-last-organization-loaded', 'DEFAULT');

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import UserService from '../../../../services/user.service';
-import NotificationService from '../../../../services/notification.service';
 import { StateService } from '@uirouter/core';
+
+import NotificationService from '../../../../services/notification.service';
+import UserService from '../../../../services/user.service';
 
 const NewUserComponent: ng.IComponentOptions = {
   template: require('./new-user.html'),

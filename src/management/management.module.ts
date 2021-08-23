@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/* eslint-disable import/order */
 import * as jQuery from 'jquery';
 import 'angular-aria';
 import 'angular-animate';
@@ -31,7 +32,7 @@ import AutofocusDirective from '../components/autofocus/autofocus.directive';
 import GvModelDirective from '../libraries/gv-model.directive';
 import { ApiService } from '../services/api.service';
 import CorsService from '../services/cors.service';
-import ApisController from '../management/api/apis.controller';
+import { ApisController } from './api/apis.controller';
 import ApisStatusDashboardController from '../management/dashboard/apis-status-dashboard/apis-status-dashboard.controller';
 import ApiPortalController from '../management/api/portal/general/apiPortal.controller';
 import ApiAdminController from '../management/api/apiAdmin.controller';

@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from '../services/notification.service';
-import UserService from '../services/user.service';
-import ReCaptchaService from '../services/reCaptcha.service';
 import { ILocationService } from 'angular';
+
+import NotificationService from '../services/notification.service';
+import ReCaptchaService from '../services/reCaptcha.service';
+import UserService from '../services/user.service';
 
 export class Future {
   private timeouts = [];

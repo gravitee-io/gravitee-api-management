@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import AnalyticsService from './analytics.service';
 import * as _ from 'lodash';
+
+import AnalyticsService from './analytics.service';
+
 import { Dashboard } from '../entities/dashboard';
 
 class DashboardService {

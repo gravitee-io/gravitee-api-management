@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IScope } from 'angular';
 import { StateService } from '@uirouter/core';
-import UserService from '../../services/user.service';
+import { IScope } from 'angular';
 import _ = require('lodash');
+
+import UserService from '../../services/user.service';
 
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-state');

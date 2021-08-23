@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-import UserService from '../../services/user.service';
 import { StateService } from '@uirouter/core';
+import * as _ from 'lodash';
+
 import ApplicationService from '../../services/application.service';
 import NotificationService from '../../services/notification.service';
+import UserService from '../../services/user.service';
 
 class ApplicationsController {
   private applications: any;

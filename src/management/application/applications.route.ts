@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApplicationType } from '../../entities/application';
-import ApplicationService from '../../services/application.service';
-import GroupService from '../../services/group.service';
-import * as _ from 'lodash';
-import UserService from '../../services/user.service';
 import { StateParams, StateService } from '@uirouter/core';
+import * as _ from 'lodash';
+
+import { ApplicationType } from '../../entities/application';
 import { ApiService } from '../../services/api.service';
+import ApplicationService from '../../services/application.service';
 import ApplicationTypesService from '../../services/applicationTypes.service';
-import MetadataService from '../../services/metadata.service';
 import EnvironmentService from '../../services/environment.service';
+import GroupService from '../../services/group.service';
+import MetadataService from '../../services/metadata.service';
+import UserService from '../../services/user.service';
 
 export default applicationsConfig;
 

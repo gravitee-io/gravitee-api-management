@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { IdentityProviderActivation } from '../entities/identityProvider';
-import * as _ from 'lodash';
 import { IHttpResponse } from 'angular';
+import * as _ from 'lodash';
+
 import { EnvironmentPermissions } from '../entities/environment/environmentPermissions';
+import { IdentityProviderActivation } from '../entities/identityProvider';
 
 class EnvironmentService {
   constructor(private $http, private Constants, private $q) {

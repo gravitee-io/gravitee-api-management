@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IController, IScope } from 'angular';
+
 import { PageType } from '../../../services/documentation.service';
 import '@gravitee/ui-components/wc/gv-code';
 

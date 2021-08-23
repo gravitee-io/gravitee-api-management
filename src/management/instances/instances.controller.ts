@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import InstancesService from '../../services/instances.service';
 import { StateService } from '@uirouter/core';
+
+import InstancesService from '../../services/instances.service';
 
 interface IInstancesScope extends ng.IScope {
   showHistory: boolean;

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+
 import { Alert, Scope } from '../../entities/alert';
 import AlertService from '../../services/alert.service';
 import NotificationService from '../../services/notification.service';

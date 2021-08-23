@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+import { IScope } from 'angular';
+import _ = require('lodash');
+
 import { IdentityProvider, IdentityProviderActivation } from '../../entities/identityProvider';
+import ConsoleSettingsService from '../../services/consoleSettings.service';
+import EnvironmentService from '../../services/environment.service';
 import IdentityProviderService from '../../services/identityProvider.service';
 import NotificationService from '../../services/notification.service';
-import PortalSettingsService from '../../services/portalSettings.service';
-import { IScope } from 'angular';
 import OrganizationService from '../../services/organization.service';
-import EnvironmentService from '../../services/environment.service';
-import ConsoleSettingsService from '../../services/consoleSettings.service';
-import _ = require('lodash');
+import PortalSettingsService from '../../services/portalSettings.service';
 
 const IdentityProvidersComponent: ng.IComponentOptions = {
   bindings: {

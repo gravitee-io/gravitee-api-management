@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import CategoryService from '../../services/category.service';
-import ApisController from './apis.controller';
-import TagService from '../../services/tag.service';
-import GroupService from '../../services/group.service';
+import { StateParams, StateService } from '@uirouter/core';
+import { StateProvider } from '@uirouter/angularjs';
 import * as _ from 'lodash';
+
+import { ApisController } from './apis.controller';
+
 import { ApiService } from '../../services/api.service';
-import { StateProvider } from '../../../node_modules/@uirouter/angularjs';
+import CategoryService from '../../services/category.service';
+import EnvironmentService from '../../services/environment.service';
+import GroupService from '../../services/group.service';
+import PolicyService from '../../services/policy.service';
+import TagService from '../../services/tag.service';
 import TenantService from '../../services/tenant.service';
 import UserService from '../../services/user.service';
-import PolicyService from '../../services/policy.service';
-import EnvironmentService from '../../services/environment.service';
-import { StateParams, StateService } from '@uirouter/core';
 
 export default apisRouterConfig;
 

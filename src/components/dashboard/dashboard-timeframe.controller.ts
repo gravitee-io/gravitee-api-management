@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-import * as angular from 'angular';
 import { StateService } from '@uirouter/core';
+import * as angular from 'angular';
+import * as _ from 'lodash';
 import { Moment } from 'moment';
 import moment = require('moment');
 

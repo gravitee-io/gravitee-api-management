@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IController } from 'angular';
+
 import { PageType } from '../../../services/documentation.service';
 
 class EditPageConfigurationComponentController implements IController {

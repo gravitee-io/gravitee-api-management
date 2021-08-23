@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { StateService } from '@uirouter/core';
-import AnalyticsService from '../../services/analytics.service';
 import { IOnDestroy, IOnInit, IRootScopeService } from 'angular';
+import * as _ from 'lodash';
+
+import AnalyticsService from '../../services/analytics.service';
 
 class DashboardFilterController implements IOnInit, IOnDestroy {
   private readonly fields: any;

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+
 import { PagedResult } from './pagedResult';
 
 export class User {

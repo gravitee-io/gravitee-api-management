@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
+
 import AnalyticsService from '../../services/analytics.service';
 import { ApiService } from '../../services/api.service';
 import { EventService } from '../../services/event.service';

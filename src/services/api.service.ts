@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PagedResult } from '../entities/pagedResult';
-import { Constants } from '../entities/Constants';
 import { IHttpPromise, IHttpService, IRootScopeService } from 'angular';
 import { clone } from 'lodash';
+
+import { Constants } from '../entities/Constants';
+import { PagedResult } from '../entities/pagedResult';
 
 export class LogsQuery {
   from: number;

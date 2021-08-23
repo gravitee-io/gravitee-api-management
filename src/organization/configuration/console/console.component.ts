@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import NotificationService from '../../../services/notification.service';
-import ConsoleSettingsService from '../../../services/consoleSettings.service';
 import { StateService } from '@uirouter/core';
-import CorsService from '../../../services/cors.service';
-import { ApiService } from '../../../services/api.service';
 import _ = require('lodash');
+
+import { ApiService } from '../../../services/api.service';
+import ConsoleSettingsService from '../../../services/consoleSettings.service';
+import CorsService from '../../../services/cors.service';
+import NotificationService from '../../../services/notification.service';
 
 const ConsoleSettingsComponent: ng.IComponentOptions = {
   bindings: {

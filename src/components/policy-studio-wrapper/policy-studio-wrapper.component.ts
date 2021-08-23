@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import PolicyService from '../../services/policy.service';
 import FlowService from '../../services/flow.service';
+import PolicyService from '../../services/policy.service';
 import ResourceService from '../../services/resource.service';
 import SpelService from '../../services/spel.service';
 import '@gravitee/ui-components/wc/gv-policy-studio';

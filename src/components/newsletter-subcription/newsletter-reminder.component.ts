@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import UserService from '../../services/user.service';
+
 import NotificationService from '../../services/notification.service';
+import UserService from '../../services/user.service';
 
 const NewsletterReminderComponent: ng.IComponentOptions = {
   template: require('./newsletter-reminder.html'),

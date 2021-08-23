@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import RoleService from '../../../../../services/role.service';
-import { ApiService } from '../../../../../services/api.service';
 import * as _ from 'lodash';
+
+import { ApiService } from '../../../../../services/api.service';
+import RoleService from '../../../../../services/role.service';
 
 function DialogAddMemberApiController(
   $scope,

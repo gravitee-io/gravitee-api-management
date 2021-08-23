@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { IHttpBackendService } from 'angular';
 
 import QualityRuleService from './qualityRule.service';
+
 import { QualityRule } from '../entities/qualityRule';
 
 describe('QualityRuleService', () => {

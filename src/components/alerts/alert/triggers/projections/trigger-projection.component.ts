@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiMetrics } from '../../../../../entities/alerts/api.metrics';
-import { NodeLifecycleMetrics, NodeMetrics } from '../../../../../entities/alerts/node.metrics';
-import { HealthcheckMetrics } from '../../../../../entities/alerts/healthcheck.metrics';
-import { Metrics } from '../../../../../entities/alert';
 import _ = require('lodash');
+
+import { Metrics } from '../../../../../entities/alert';
+import { ApiMetrics } from '../../../../../entities/alerts/api.metrics';
+import { HealthcheckMetrics } from '../../../../../entities/alerts/healthcheck.metrics';
+import { NodeLifecycleMetrics, NodeMetrics } from '../../../../../entities/alerts/node.metrics';
 
 const AlertTriggerProjectionComponent: ng.IComponentOptions = {
   bindings: {

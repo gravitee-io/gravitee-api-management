@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { IHttpBackendService } from 'angular';
 
 import { PromotionService } from './promotion.service';
-import { fakePromotion, fakePromotionTarget, PromotionTarget } from '../entities/promotion';
+
+import { PromotionTarget, fakePromotion, fakePromotionTarget } from '../entities/promotion';
 
 describe('PromotionService', () => {
   let promotionService: PromotionService;

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { StateService } from '@uirouter/core';
+
+import { QualityRule } from '../../../../entities/qualityRule';
 import NotificationService from '../../../../services/notification.service';
 import QualityRuleService from '../../../../services/qualityRule.service';
-import { QualityRule } from '../../../../entities/qualityRule';
 
 class ApiQualityRuleController {
   private createMode = false;

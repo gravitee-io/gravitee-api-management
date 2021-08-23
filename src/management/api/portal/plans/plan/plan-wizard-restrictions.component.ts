@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import _ = require('lodash');
-import PolicyService from '../../../../../services/policy.service';
+
 import ApiEditPlanController from './edit-plan.controller';
+
+import PolicyService from '../../../../../services/policy.service';
 
 class Policy {
   id: string;

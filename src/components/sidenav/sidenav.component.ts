@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { IScope, IWindowService } from 'angular';
 import { StateService } from '@uirouter/core';
+import { IScope, IWindowService } from 'angular';
+
+import EnvironmentService from '../../services/environment.service';
 import PortalConfigService from '../../services/portalConfig.service';
 import UserService from '../../services/user.service';
-import EnvironmentService from '../../services/environment.service';
 
 export const SidenavComponent: ng.IComponentOptions = {
   template: require('./sidenav.html'),

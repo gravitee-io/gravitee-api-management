@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { StateService } from '@uirouter/core';
 import * as angular from 'angular';
+import _ = require('lodash');
+
 import ApplicationService from '../../../../services/application.service';
+import GroupService from '../../../../services/group.service';
 import NotificationService from '../../../../services/notification.service';
 import RoleService from '../../../../services/role.service';
-import GroupService from '../../../../services/group.service';
 import UserService from '../../../../services/user.service';
-import { StateService } from '@uirouter/core';
-import _ = require('lodash');
 
 class ApplicationMembersController {
   private application: any;
