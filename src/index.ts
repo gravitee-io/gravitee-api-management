@@ -88,7 +88,7 @@ function computeBaseURLs(constants: any): any {
 }
 
 function preselectEnvironment() {
-  const environmentRegex = /environments\/([\w|\-]+)/;
+  const environmentRegex = /environments\/([\w|-]+)/;
   const environment = environmentRegex.exec(document.location.toString());
   if (environment && environment[1]) {
     $window.localStorage.setItem('gv-last-environment-loaded', environment[1]);

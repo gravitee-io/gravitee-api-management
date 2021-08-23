@@ -39,7 +39,7 @@ module.exports = {
     'angular/timeout-service': 'off',
     'no-bitwise': 'warn',
     'no-redeclare': 'warn',
-    'no-useless-escape': 'warn',
+    'no-useless-escape': 'error',
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
     '@typescript-eslint/ban-types': 'warn',

@@ -297,7 +297,7 @@ class LogsFiltersController {
       // 2. escape reserved characters
       // + - = && || > < ! ( ) { } [ ] ^ " ~ ? : \ /
       if (typeof val === 'string' || val instanceof String) {
-        val = val.replace(/(\+|\-|\=|\&{2}|\|{2}|\>|\<|\!|\(|\)|\{|\}|\[|\]|\^|\"|\~|\?|\:|\\|\/)/g, '\\\\$1');
+        val = val.replace(/(\+|-|=|&{2}|\|{2}|>|<|!|\(|\)|{|}|\[|]|\^|"|~|\?|:|\\|\/)/g, '\\\\$1');
       }
 
       // 3. add the last * for uri

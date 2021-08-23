@@ -150,10 +150,7 @@ class AnalyticsService {
   }
 
   private cleanParam(param) {
-    return param
-      .replace('%20', ' ')
-      .replace(/[()]/g, '')
-      .replace(/[\\\"]/g, '');
+    return param.replace('%20', ' ').replace(/[()]/g, '').replace(/[\\"]/g, '');
   }
 }
 

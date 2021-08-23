@@ -132,19 +132,19 @@ class UserService {
         } as ng.IRequestShortcutConfig),
       ];
 
-      const applicationRegex = /applications\/([\w|\-]+)/;
+      const applicationRegex = /applications\/([\w|-]+)/;
       const applicationId = applicationRegex.exec(this.$location.$$path);
       if (this.Constants.org.currentEnv && !this.isLogout && applicationId && applicationId[1] !== 'create') {
         promises.push(this.ApplicationService.getPermissions(applicationId[1]));
       }
 
-      const apiRegex = /apis\/([\w|\-]+)/;
+      const apiRegex = /apis\/([\w|-]+)/;
       const apiId = apiRegex.exec(this.$location.$$path);
       if (this.Constants.org.currentEnv && !this.isLogout && apiId && apiId[1] !== 'new') {
         promises.push(this.ApiService.getPermissions(apiId[1]));
       }
 
-      const environmentRegex = /environments\/([\w|\-]+)/;
+      const environmentRegex = /environments\/([\w|-]+)/;
       const environmentId = environmentRegex.exec(this.$location.$$path);
       if (environmentId && environmentId[1]) {
         promises.push(this.EnvironmentService.getPermissions(environmentId[1]));
