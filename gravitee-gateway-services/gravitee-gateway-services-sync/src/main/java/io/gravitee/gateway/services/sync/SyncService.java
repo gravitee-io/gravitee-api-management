@@ -43,10 +43,10 @@ public class SyncService extends AbstractService {
 
     private final static String PATH = "/sync";
 
-    @Value("${services.apikeyscache.delay:10000}")
+    @Value("${services.sync.delay:5000}")
     private int delay;
 
-    @Value("${services.apikeyscache.unit:MILLISECONDS}")
+    @Value("${services.sync.unit:MILLISECONDS}")
     private TimeUnit unit;
 
     @Value("${services.sync.enabled:true}")
