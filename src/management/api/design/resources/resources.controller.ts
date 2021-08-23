@@ -146,6 +146,8 @@ class ApiResourcesController {
   }
 
   saveResource() {
+    // FIXME: Create a new object with only the wanted properties
+    // eslint-disable-next-line angular/no-private-call
     delete this.resource.$$hashKey;
 
     if (this.creation) {

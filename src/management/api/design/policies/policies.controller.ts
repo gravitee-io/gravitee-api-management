@@ -209,6 +209,7 @@ class ApiPoliciesController {
 
   getApiPolicyClass(policy) {
     const classes = [];
+    // eslint-disable-next-line angular/no-private-call
     const selected = this.selectedApiPolicy && this.selectedApiPolicy.$$hashKey === policy.$$hashKey;
     if (selected) {
       classes.push('gravitee-policy-card-selected');
@@ -252,6 +253,7 @@ class ApiPoliciesController {
   removePolicy(index, path, ev) {
     ev.stopPropagation();
     this.selectedApiPolicy = null;
+    // eslint-disable-next-line angular/no-private-call
     const hashKey = this.apiPoliciesByPath[path][index].$$hashKey;
     this.$mdDialog
       .show({
@@ -267,6 +269,7 @@ class ApiPoliciesController {
       .then((response) => {
         if (response) {
           _.forEach(this.apiPoliciesByPath[path], (policy, idx) => {
+            // eslint-disable-next-line angular/no-private-call
             if (policy.$$hashKey === hashKey) {
               this.apiPoliciesByPath[path].splice(idx, 1);
               return false;

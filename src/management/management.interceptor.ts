@@ -16,6 +16,7 @@
 import NotificationService from '../services/notification.service';
 import UserService from '../services/user.service';
 import ReCaptchaService from '../services/reCaptcha.service';
+import { ILocationService } from 'angular';
 
 export class Future {
   private timeouts = [];
@@ -50,7 +51,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   const interceptorUnauthorized = (
     $q: angular.IQService,
     $injector: angular.auto.IInjectorService,
-    $location,
+    $location: ILocationService,
     $state,
   ): angular.IHttpInterceptor => ({
     responseError: function (error) {
@@ -69,11 +70,11 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
           } else {
             // if on portal home do not redirect
             error.config.forceSessionExpired =
-              $location.$$path !== '' &&
-              $location.$$path !== '/' &&
-              $location.$$path !== '/login' &&
-              !$location.$$path.startsWith('/registration') &&
-              !$location.$$path.startsWith('/resetPassword') &&
+              $location.path() !== '' &&
+              $location.path() !== '/' &&
+              $location.path() !== '/login' &&
+              !$location.path().startsWith('/registration') &&
+              !$location.path().startsWith('/resetPassword') &&
               !error.config.url.startsWith(
                 Constants.env.baseURL.endsWith('/') ? Constants.env.baseURL + 'user' : Constants.env.baseURL + '/user/',
               );
@@ -81,7 +82,7 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
               sessionExpired = true;
               // session expired
               notificationService.showError(error, 'Session expired, redirecting to home...');
-              const redirectUri = $location.$$path;
+              const redirectUri = $location.path();
               $timeout(() => {
                 userService.removeCurrentUserData();
                 $injector.get('$rootScope').$broadcast('graviteeUserRefresh', {});

@@ -54,6 +54,7 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
 
     getPolicyClass(policy) {
       const classes = [];
+      // eslint-disable-next-line angular/no-private-call
       const selected = this.editablePolicy && this.editablePolicy.$$hashKey === policy.$$hashKey;
       if (selected) {
         classes.push('gravitee-policy-card-selected');
@@ -150,7 +151,9 @@ const ApiPlanWizardPoliciesComponent: ng.IComponentOptions = {
     gotoNextStep() {
       // Clean policy definition from plan policies
       const policies = JSON.parse(JSON.stringify(this.parent.planPolicies));
+      // FIXME: Create a dedicated new object instead of doing magical stuff with properties
       policies.forEach((policy) => {
+        // eslint-disable-next-line angular/no-private-call
         delete policy.$$hashKey;
         delete policy.id;
         delete policy.name;

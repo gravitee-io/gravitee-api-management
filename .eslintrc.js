@@ -19,6 +19,7 @@ module.exports = {
   ],
   reportUnusedDisableDirectives: true,
   rules: {
+    'angular/no-private-call': 'error',
     'angular/controller-as-route': 'warn',
     'angular/controller-name': 'warn',
     'angular/module-setter': 'warn',
@@ -29,7 +30,6 @@ module.exports = {
     'angular/module-getter': 'off',
     'angular/definedundefined': 'off',
     'angular/document-service': 'off',
-    'angular/no-private-call': 'warn',
     'angular/json-functions': 'off',
     'angular/typecheck-array': 'off',
     'angular/typecheck-string': 'off',

@@ -22,7 +22,7 @@ import { UrlService } from '@uirouter/angularjs';
 import { PagedResult } from '../entities/pagedResult';
 import Base64Service from './base64.service';
 import EnvironmentService from './environment.service';
-import { IHttpResponse, IScope } from 'angular';
+import { IHttpResponse, ILocationService, IScope } from 'angular';
 import _ = require('lodash');
 
 class UserService {
@@ -43,7 +43,7 @@ class UserService {
     private ApplicationService: ApplicationService,
     private ApiService: ApiService,
     private EnvironmentService: EnvironmentService,
-    private $location,
+    private $location: ILocationService,
     private $cookies,
     private $window,
     private StringService: StringService,
@@ -133,19 +133,19 @@ class UserService {
       ];
 
       const applicationRegex = /applications\/([\w|-]+)/;
-      const applicationId = applicationRegex.exec(this.$location.$$path);
+      const applicationId = applicationRegex.exec(this.$location.path());
       if (this.Constants.org.currentEnv && !this.isLogout && applicationId && applicationId[1] !== 'create') {
         promises.push(this.ApplicationService.getPermissions(applicationId[1]));
       }
 
       const apiRegex = /apis\/([\w|-]+)/;
-      const apiId = apiRegex.exec(this.$location.$$path);
+      const apiId = apiRegex.exec(this.$location.path());
       if (this.Constants.org.currentEnv && !this.isLogout && apiId && apiId[1] !== 'new') {
         promises.push(this.ApiService.getPermissions(apiId[1]));
       }
 
       const environmentRegex = /environments\/([\w|-]+)/;
-      const environmentId = environmentRegex.exec(this.$location.$$path);
+      const environmentId = environmentRegex.exec(this.$location.path());
       if (environmentId && environmentId[1]) {
         promises.push(this.EnvironmentService.getPermissions(environmentId[1]));
       }
