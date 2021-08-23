@@ -50,7 +50,7 @@ class CorsService {
         let invalidRegex = false;
         if (['{', '[', '(', '*'].some((v) => this.allowOriginPattern.includes(v))) {
           try {
-            const regExp = new RegExp(chip);
+            new RegExp(chip);
           } catch (e) {
             invalidRegex = true;
           }

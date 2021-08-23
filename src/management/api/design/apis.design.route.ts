@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import FlowService from '../../../services/flow.service';
 import TenantService from '../../../services/tenant.service';
 import ResourceService from '../../../services/resource.service';
 import PolicyService from '../../../services/policy.service';

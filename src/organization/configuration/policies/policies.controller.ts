@@ -19,7 +19,6 @@ import PortalSettingsService from '../../../services/portalSettings.service';
 import { IPromise, IScope } from 'angular';
 import '@gravitee/ui-components/wc/gv-policy-studio';
 import OrganizationService, { Organization } from '../../../services/organization.service';
-import { response } from 'express';
 
 class PoliciesController {
   private tags: any;
@@ -40,7 +39,7 @@ class PoliciesController {
   }
 
   $onInit = () => {
-    this.OrganizationService.get().then(({ data: { id, ...organization } }) => {
+    this.OrganizationService.get().then(({ data: { ...organization } }) => {
       this.setOrganization(organization);
     });
   };

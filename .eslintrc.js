@@ -43,6 +43,7 @@ module.exports = {
     'no-prototype-builtins': 'warn',
     'no-cond-assign': 'warn',
     '@typescript-eslint/ban-types': 'warn',
+    '@typescript-eslint/no-unused-vars': 'error',
     '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
