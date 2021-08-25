@@ -85,6 +85,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-console', {
+      url: '/ng-console',
+      component: 'ngConsoleSettings',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-console',
+        },
+        perms: {
+          only: ['organization-settings-r'],
+        },
+      },
+    })
     .state('organization.settings.roles', {
       url: '/roles',
       component: 'roles',

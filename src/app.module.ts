@@ -15,13 +15,13 @@
  */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UpgradeModule } from '@angular/upgrade/static';
 
+import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
+
 @NgModule({
-  declarations: [],
-  imports: [BrowserModule, UpgradeModule],
-  providers: [],
-  bootstrap: [],
+  imports: [BrowserModule, BrowserAnimationsModule, UpgradeModule, OrganizationSettingsModule],
 })
 export class AppModule {
   constructor(private upgrade: UpgradeModule) {}

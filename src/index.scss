@@ -66,6 +66,10 @@
 @import 'user/login/login';
 
 @import '~@fontsource/libre-franklin/scss/mixins';
+
+// Angular Material
+@import 'scss/gio-material-theme.scss';
+
 $fontName: 'Libre Franklin';
 $fontId: 'libre-franklin';
 $style: normal;

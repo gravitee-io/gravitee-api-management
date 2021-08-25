@@ -32,6 +32,11 @@ module.exports = {
         include: [path.resolve(__dirname, '../src/index.scss')],
         use: ['style-loader', 'css-loader', 'sass-loader'],
       },
+      {
+        test: /\.(scss)$/,
+        exclude: [path.resolve(__dirname, '../src/index.scss')],
+        use: ['to-string-loader', 'css-loader', 'sass-loader'],
+      },
       { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       {
         test: /\.ts$/,

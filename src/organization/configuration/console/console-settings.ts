@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatButtonModule } from '@angular/material/button';
+import { Component } from '@angular/core';
 
-import { ConsoleSettingsComponent } from './console/console-settings';
-@NgModule({
-  imports: [BrowserAnimationsModule, MatButtonModule],
-  declarations: [ConsoleSettingsComponent],
-  exports: [ConsoleSettingsComponent],
-  entryComponents: [ConsoleSettingsComponent],
+@Component({
+  selector: 'gio-org-config-console-settings',
+  template: require('./console-settings.html'),
 })
-export class OrganizationSettingsModule {}
+export class ConsoleSettingsComponent {}

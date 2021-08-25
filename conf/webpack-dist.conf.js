@@ -38,6 +38,11 @@ module.exports = {
         }),
         include: [path.resolve(__dirname, '..') + '/src/index.scss'],
       },
+      {
+        test: /\.(scss)$/,
+        exclude: [path.resolve(__dirname, '../src/index.scss')],
+        use: ['to-string-loader', 'css-loader', 'sass-loader'],
+      },
       { test: /\.css$/, loaders: ['style-loader', 'css-loader'] },
       {
         test: /\.ts$/,
