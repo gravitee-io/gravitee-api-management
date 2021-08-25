@@ -4,12 +4,8 @@ Here is a docker-compose to run APIM with two gateways:
  - One configured with sharding tag `internal`. It will only sync APIs configured for this tag. To use this gateway, call your API with `http://localhost:8082/myapi`.
  - One configured with sharding tag `external`. It will only sync APIs configured for this tag. To use this gateway, call your API with `http://localhost:8081/myapi`.
 
-You can classically call your apis through your gateway, for example: `http://localhost:8082/myapi`.
-
-To test the **Bridge Server**, you can call, for example, `http://localhost:18092/_bridge/apis` to list all the apis.
-
 ---
-> For more information, please read this doc: To use this gateway, call your API with `http://localhost:8082/myapi`.
+> For more information, please read this doc: https://docs.gravitee.io/apim/3.x/apim_installguide_gateway_configuration.html#configure_sharding_tags
 ---
 
 ## How to use ?

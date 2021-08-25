@@ -18,22 +18,24 @@ makefile := $(MAKEFILE_LIST)
 # -----------------------------------------------------------------------------
 
 help: ## Print this message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(makefile) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo "\033[0;36m Will run by default with 'nightly' images, but you can pass version with: \033[0mmake \033[0;33m{target}\033[0m \033[0mAPIM_VERSION=\033[0;33m{version} \036"
+	@echo "\033[0;36m Example: \033[0mmake \033[0;33mtags-internal-external\033[0m \033[0mAPIM_VERSION=\033[0;33m3.10.0 \036"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(makefile) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-35s\033[0m %s\n", $$1, $$2}'
 
 
-http-bridge: ## Run API Management with two gateways as Bridge HTTP Server and Bridge HTTP Client. Will run by default with 'nightly' images, but you can pass version with: make http-bridge APIM_VERSION={version}
+gateway-http-bridge-repository: ## Run API Management with two gateways as Bridge HTTP Server and Bridge HTTP Client.
 	cd ./quick-setup/gateway-http-bridge-repository && docker-compose down -v && docker-compose pull && docker-compose up -d
 
-tags-internal-external: ## Run API Management with two gateways configured with internal and external tag. Will run by default with 'nightly' images, but you can pass version with: make tags-internal-external APIM_VERSION={version}
+tags-internal-external: ## Run API Management with two gateways configured with internal and external tag.
 	cd ./quick-setup/tags-internal-external && docker-compose down -v && docker-compose pull && docker-compose up -d
 
-redis-rate-limit: ## Run API Management with redis for rate limiting. Will run by default with 'nightly' images, but you can pass version with: make redis-rate-limit APIM_VERSION={version}
+redis-rate-limit: ## Run API Management with redis for rate limiting.
 	cd ./quick-setup/redis-rate-limit && docker-compose down -v && docker-compose pull && docker-compose up -d
 
-opentracing: ## Run API Management with opentracing service activated and jaeger as a tracer. Will run by default with 'nightly' images, but you can pass version with: make opentracing APIM_VERSION={version}
+opentracing-jaeger: ## Run API Management with opentracing service activated and jaeger as a tracer.
 	cd ./quick-setup/opentracing-jaeger && docker-compose down -v && docker-compose pull && docker-compose up -d
 
-prometheus: ## Run API Management with Prometheus support enabled. Will run by default with 'nightly' images, but you can pass version with: make prometheus APIM_VERSION={version}
+prometheus: ## Run API Management with Prometheus support enabled.
 	cd ./quick-setup/prometheus && docker-compose down -v && docker-compose pull && docker-compose up -d
 
 start: ## Start a docker-compose based on target. Example: make start TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to start. Example: make start TARGET=tags-internal-external SERVICES=elasticsearch
@@ -44,7 +46,7 @@ else
 	cd ./quick-setup/$(TARGET) && docker-compose start $(SERVICES)
 endif
 
-stop: ## Stop a docker-compose based on target. Example: make stop TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to stop.
+stop: ## Stop a docker-compose based on target. Example: make stop TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to stop. Example: make stop TARGET=tags-internal-external SERVICES=elasticsearch
 ifeq ($(TARGET),)
 	@echo "\033[0;31m ⚠️ Please provide the target you want to stop \033[0m"
 	@echo " 👍 Example: make stop TARGET=tags-internal-external"
@@ -52,7 +54,7 @@ else
 	cd ./quick-setup/$(TARGET) && docker-compose stop $(SERVICES)
 endif
 
-down: ## Stop a docker-compose based on target. Example: make stop TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to stop.
+down: ## Down a docker-compose based on target. Example: make down TARGET=tags-internal-external.
 ifeq ($(TARGET),)
 	@echo "\033[0;31m ⚠️ Please provide the target you want to down \033[0m"
 	@echo " 👍 Example: make down TARGET=tags-internal-external"
