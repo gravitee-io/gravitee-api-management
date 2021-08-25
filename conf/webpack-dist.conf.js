@@ -24,6 +24,8 @@ const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
+const backendEnv = process.env.BACKEND_ENV;
+
 module.exports = {
   mode: 'production',
   module: {
@@ -99,8 +101,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: './constants.json',
-          to: '',
+          from: !!backendEnv ? `./constants.${backendEnv}.json` : `./constants.json`,
+          to: 'constants.json',
         },
         {
           from: './build.json',
