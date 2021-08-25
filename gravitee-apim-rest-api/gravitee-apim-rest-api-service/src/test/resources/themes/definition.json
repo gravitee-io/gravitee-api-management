@@ -543,6 +543,34 @@
           "type": "string",
           "default": "auto",
           "value": "auto"
+        },
+        {
+          "name": "--gv-table--colmg",
+          "description": "Column gap",
+          "type": "length",
+          "default": "0.2rem",
+          "value": "0.2rem"
+        },
+        {
+          "name": "--gv-table-row--ai",
+          "description": "Row align-items",
+          "type": "string",
+          "default": "center",
+          "value": "center"
+        },
+        {
+          "name": "--gv-table-row--ac",
+          "description": "Row align-content",
+          "type": "string",
+          "default": "center",
+          "value": "center"
+        },
+        {
+          "name": "--gv-table-cell--d",
+          "description": "Cell display",
+          "type": "string",
+          "default": "flex",
+          "value": "flex"
         }
       ]
     },
@@ -1207,6 +1235,13 @@
           "type": "color",
           "default": "var(--gv-theme-neutral-color-lightest, #ffffff)",
           "value": ""
+        },
+        {
+          "name": "--gv-switch--ta",
+          "description": "Switch label text alignment",
+          "type": "string",
+          "default": "left",
+          "value": "left"
         }
       ]
     },
