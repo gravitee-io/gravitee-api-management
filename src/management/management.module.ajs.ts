@@ -464,7 +464,7 @@ import ApiDesignController from './api/design/design/design.controller';
 import ApiKeyValidatedInput from './api/portal/subscriptions/components/apiKeyValidatedInput.component';
 import TicketsListController from './support/tickets-list.controller';
 import TicketDetailComponent from './support/ticket-detail.component';
-import organizationRouterConfig from '../organization/organization.route';
+import organizationRouterConfig from '../organization/organization.route.ajs';
 import SpelService from '../services/spel.service';
 import DashboardController from './dashboard/dashboard.controller';
 import HomeDashboardController from './dashboard/home-dashboard/home-dashboard.controller';
