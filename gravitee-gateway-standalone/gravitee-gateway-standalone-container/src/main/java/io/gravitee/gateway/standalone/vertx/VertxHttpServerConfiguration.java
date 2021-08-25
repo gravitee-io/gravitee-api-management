@@ -47,6 +47,9 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.ssl.sni:false}")
     private boolean sni;
 
+    @Value("${http.ssl.openssl:false}")
+    private boolean openssl;
+
     @Value("${http.ssl.tlsProtocols:#{null}}")
     private String tlsProtocols;
 
@@ -300,6 +303,14 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     public void setProxyProtocolTimeout(long proxyProtocolTimeout) {
         this.proxyProtocolTimeout = proxyProtocolTimeout;
+    }
+
+    public boolean isOpenssl() {
+        return openssl;
+    }
+
+    public void setOpenssl(boolean openssl) {
+        this.openssl = openssl;
     }
 
     public List<Certificate> getKeyStoreCertificates() {

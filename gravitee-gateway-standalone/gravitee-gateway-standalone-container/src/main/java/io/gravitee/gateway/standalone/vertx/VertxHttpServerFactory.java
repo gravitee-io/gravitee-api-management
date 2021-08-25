@@ -19,10 +19,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.ClientAuth;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.net.JksOptions;
-import io.vertx.core.net.PemKeyCertOptions;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.PfxOptions;
+import io.vertx.core.net.*;
 import io.vertx.core.tracing.TracingPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +40,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
     private static final String CERTIFICATE_FORMAT_JKS = "JKS";
     private static final String CERTIFICATE_FORMAT_PEM = "PEM";
     private static final String CERTIFICATE_FORMAT_PKCS12 = "PKCS12";
+    private static final String CERTIFICATE_FORMAT_SELF_SIGNED = "SELF-SIGNED";
 
     @Autowired
     private Vertx vertx;
@@ -61,6 +59,10 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
         options.setHost(httpServerConfiguration.getHost());
 
         if (httpServerConfiguration.isSecured()) {
+            if (httpServerConfiguration.isOpenssl()) {
+                options.setSslEngineOptions(new OpenSSLEngineOptions());
+            }
+
             options.setSsl(httpServerConfiguration.isSecured());
             options.setUseAlpn(httpServerConfiguration.isAlpn());
             options.setSni(httpServerConfiguration.isSni());
@@ -110,6 +112,8 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
                             .setPath(httpServerConfiguration.getTrustStorePaths().get(0))
                             .setPassword(httpServerConfiguration.getTrustStorePassword())
                     );
+                } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_SELF_SIGNED)) {
+                    options.setPemTrustOptions(SelfSignedCertificate.create().trustOptions());
                 }
             }
 
@@ -150,6 +154,8 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
                             .setPassword(httpServerConfiguration.getKeyStorePassword())
                     );
                 }
+            } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_SELF_SIGNED)) {
+                options.setPemKeyCertOptions(SelfSignedCertificate.create().keyCertOptions());
             }
         }
 
