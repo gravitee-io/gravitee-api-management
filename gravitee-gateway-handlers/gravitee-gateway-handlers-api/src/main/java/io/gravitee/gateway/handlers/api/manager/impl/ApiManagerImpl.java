@@ -34,6 +34,7 @@ import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cluster.ClusterManager;
 import java.security.GeneralSecurityException;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -98,36 +99,12 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
 
         // Does the API have a matching sharding tags ?
         if (gatewayConfiguration.hasMatchingTags(api.getTags())) {
-            // API to deploy
-            api.setPlans(
-                api
-                    .getPlans()
-                    .stream()
-                    .filter(
-                        new Predicate<Plan>() {
-                            @Override
-                            public boolean test(Plan plan) {
-                                if (plan.getTags() != null && !plan.getTags().isEmpty()) {
-                                    boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
-                                    logger.debug(
-                                        "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
-                                        plan.getName(),
-                                        api.getName()
-                                    );
-                                    return hasMatchingTags;
-                                }
-
-                                return true;
-                            }
-                        }
-                    )
-                    .collect(Collectors.toList())
-            );
-
             boolean apiToDeploy = deployedApi == null || force;
             boolean apiToUpdate = !apiToDeploy && deployedApi.getDeployedAt().before(api.getDeployedAt());
 
+            // if API will be deployed or updated
             if (apiToDeploy || apiToUpdate) {
+                api.setPlans(getPlansMatchingShardingTag(api));
                 decryptProperties(api.getProperties());
             }
 
@@ -192,6 +169,30 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
         }
 
         MDC.remove("api");
+    }
+
+    private List<Plan> getPlansMatchingShardingTag(Api api) {
+        return api
+            .getPlans()
+            .stream()
+            .filter(
+                new Predicate<Plan>() {
+                    @Override
+                    public boolean test(Plan plan) {
+                        if (plan.getTags() != null && !plan.getTags().isEmpty()) {
+                            boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
+                            logger.debug(
+                                "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
+                                plan.getName(),
+                                api.getName()
+                            );
+                            return hasMatchingTags;
+                        }
+                        return true;
+                    }
+                }
+            )
+            .collect(Collectors.toList());
     }
 
     private void update(Api api) {
