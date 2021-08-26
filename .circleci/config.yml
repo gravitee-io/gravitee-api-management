@@ -92,7 +92,7 @@ jobs:
   build:
     executor:
       name: node-lts
-      class: medium
+      class: large
     steps:
       - checkout
       - attach_workspace:
@@ -101,7 +101,7 @@ jobs:
           name: Build
           command: npm run build:prod
           environment:
-            NODE_OPTIONS: --max_old_space_size=3072
+            NODE_OPTIONS: --max_old_space_size=4086
             BACKEND_ENV: element-zero
       - run:
           name: Zip dist folder
