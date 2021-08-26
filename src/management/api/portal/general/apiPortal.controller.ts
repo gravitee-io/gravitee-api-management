@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import _ = require('lodash');
+import '@gravitee/ui-components/wc/gv-icon';
+
 import SidenavService from '../../../../components/sidenav/sidenav.service';
 import UserService from '../../../../services/user.service';
 import { QualityMetrics } from '../../../../entities/qualityMetrics';
@@ -24,10 +26,6 @@ import * as angular from 'angular';
 import { PromoteApiDialogController } from './dialog/promote-api/promoteApiDialog.controller';
 import InstallationService from '../../../../services/installation.service';
 import { Constants } from '../../../../entities/Constants';
-import {
-  MeetCockpitDialogController,
-  MeetCockpitDialogLocals,
-} from '../../../../components/dialog/meet-cockpit/meetCockpitDialog.controller';
 
 class ApiPortalController {
   private initialApi: any;
@@ -47,8 +45,6 @@ class ApiPortalController {
   private qualityMetricsDescription: Map<string, string>;
   private isQualityEnabled: boolean;
   private apiLabelsDictionary = [];
-  private linkedToCockpit: boolean;
-  private installation: any;
 
   constructor(
     private ApiService: ApiService,
@@ -84,11 +80,6 @@ class ApiPortalController {
     this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.tenants = resolvedTenants.data;
     this.$scope.selected = [];
-
-    InstallationService.getInstallationInformation().then((response) => {
-      this.installation = response.data;
-      this.linkedToCockpit = this.installation.additionalInformation.COCKPIT_INSTALLATION_STATUS === 'ACCEPTED';
-    });
 
     this.$scope.searchHeaders = null;
 
@@ -612,25 +603,6 @@ class ApiPortalController {
       template: require('./dialog/promote-api/promoteApi.dialog.html'),
       clickOutsideToClose: true,
       locals: { api: this.api },
-    });
-  }
-
-  showMeetCockpitDialog(): void {
-    const cockpitLink = `<a href="${this.installation.cockpitURL}" target="_blank">Cockpit</a>`;
-
-    const locals: MeetCockpitDialogLocals = {
-      message: `${cockpitLink} is a centralized, multi-tenancy tool for monitoring all your Gravitee.io installations from one handy interactive dashboard.
-</br>
-</br>
- Create an account on ${cockpitLink}, register your current installation and start promoting your APIs across multiple environments!`,
-    };
-
-    this.$mdDialog.show({
-      controller: MeetCockpitDialogController,
-      controllerAs: '$ctrl',
-      template: require('../../../../components/dialog/meet-cockpit/meetCockpit.dialog.html'),
-      clickOutsideToClose: true,
-      locals,
     });
   }
 

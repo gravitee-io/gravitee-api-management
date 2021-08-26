@@ -16,7 +16,7 @@
 
 -->
 <md-dialog class="promote-api-dialog">
-  <form name="formApiPromotion" ng-submit="$ctrl.promote()" novalidate>
+  <form name="formApiPromotion" ng-submit="$ctrl.promote()" novalidate ng-if="$ctrl.hasCockpit">
     <md-dialog-title class="promote-api-dialog__title"><h4>Promote the API</h4></md-dialog-title>
     <md-dialog-content class="promote-api-dialog__content">
       <div ng-if="$ctrl.isLoading" class="promote-api-dialog__content__loading">
@@ -49,4 +49,28 @@
       <md-button type="submit" class="md-primary" ng-disabled="!$ctrl.selectedPromotionTarget">Promote</md-button>
     </md-dialog-actions>
   </form>
+
+  <div ng-if="!$ctrl.hasCockpit" class="promote-api-dialog__meet-cockpit">
+    <md-dialog-title class="promote-api-dialog__meet-cockpit__title"><h4>Meet Cockpit</h4></md-dialog-title>
+    <md-dialog-content class="promote-api-dialog__meet-cockpit__content">
+      <span></span>
+      <img
+        class="promote-api-dialog__meet-cockpit__content__logo"
+        ng-src="{{'assets/gravitee_cockpit_logo.png'}}"
+        alt="Logo of Gravitee.io Cockpit"
+      />
+      <p>
+        <a ng-href="{{$ctrl.cockpitURL}}" target="_blank">Cockpit</a> is a centralized, multi-tenancy tool for monitoring all your
+        Gravitee.io installations from one handy interactive dashboard.
+      </p>
+      <p>
+        Create an account on <a ng-href="{{$ctrl.cockpitURL}}" target="_blank">Cockpit</a>, register your current installation and start
+        promoting your APIs across multiple environments!`.
+      </p>
+    </md-dialog-content>
+
+    <md-dialog-actions>
+      <md-button class="md-primary" ng-click="$ctrl.hide()">OK</md-button>
+    </md-dialog-actions>
+  </div>
 </md-dialog>

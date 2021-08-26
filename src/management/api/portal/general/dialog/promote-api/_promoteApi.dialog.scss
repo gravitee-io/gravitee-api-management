@@ -46,4 +46,21 @@
       }
     }
   }
+
+  &__meet-cockpit {
+    padding: 8px;
+    width: 600px;
+
+    &__content {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      &__logo {
+        margin: 32px;
+      }
+    }
+  }
 }

@@ -30,6 +30,8 @@ export class PromoteApiDialogController implements IOnInit {
   public selectedPromotionTarget?: PromotionTargetVM;
   public isLoading = false;
   public hasPromotionInProgress = false;
+  private cockpitURL: string;
+  private hasCockpit: boolean;
 
   constructor(
     private readonly promotionService: PromotionService,
@@ -45,6 +47,7 @@ export class PromoteApiDialogController implements IOnInit {
 
   $onInit(): void {
     this.isLoading = true;
+    this.hasCockpit = true;
 
     Promise.all([
       this.promotionService.listPromotionTargets(),
@@ -63,10 +66,17 @@ export class PromoteApiDialogController implements IOnInit {
           .sort((target1, target2) => target1.name.localeCompare(target2.name));
 
         this.hasPromotionInProgress = this.promotionTargets.some((target) => target.promotionInProgress);
-
         const selectableTarget = this.promotionTargets.filter((target) => !target.promotionInProgress);
         if (selectableTarget.length === 1) {
           this.selectedPromotionTarget = selectableTarget[0];
+        }
+      })
+      .catch((err) => {
+        if (err && err.data.technicalCode === 'installation.notAccepted') {
+          err.interceptorFuture.cancel();
+          this.hasCockpit = false;
+          const { cockpitURL } = err.data.parameters;
+          this.cockpitURL = cockpitURL;
         }
       })
       .finally(() => {
