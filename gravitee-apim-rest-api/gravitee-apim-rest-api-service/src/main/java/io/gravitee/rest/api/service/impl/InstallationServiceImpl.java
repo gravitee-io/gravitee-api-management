@@ -96,7 +96,13 @@ public class InstallationServiceImpl implements InstallationService {
 
     @Override
     public InstallationStatus getInstallationStatus() {
-        return InstallationStatus.valueOf(getOrInitialize().getAdditionalInformation().get(COCKPIT_INSTALLATION_STATUS));
+        final String statusStr = getOrInitialize().getAdditionalInformation().get(COCKPIT_INSTALLATION_STATUS);
+
+        if (statusStr != null) {
+            return InstallationStatus.valueOf(statusStr);
+        }
+
+        return InstallationStatus.NOT_LINKED;
     }
 
     private InstallationEntity createInstallation() {
