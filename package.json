@@ -47,7 +47,6 @@
     "angular-utf8-base64": "^0.0.5",
     "asciidoctor": "^2.2.4",
     "asciidoctor-highlight.js": "^0.3.0",
-    "bootstrap": "3.4.1",
     "codemirror-asciidoc": "^1.0.4",
     "diff": "^3.5.0",
     "dragular": "^4.6.0",

@@ -15,6 +15,8 @@
  */
 // eslint-disable-next-line
 /* global setInterval:false, clearInterval:false, screen:false */
+import angular = require('angular');
+
 import EnvironmentService from '../services/environment.service';
 import PortalConfigService from '../services/portalConfig.service';
 import UserService from '../services/user.service';
@@ -201,6 +203,29 @@ function runBlock(
   $window.onfocus = () => {
     $rootScope.isWindowFocused = true;
   };
+
+  // Add or remove `bootstrap, mat` class wrapper to disable it on some routes with `useAngularMaterial` flag
+  $transitions.onFinish({}, function (trans) {
+    const toState = trans.to();
+
+    const useAngularMaterial = toState.data && toState.data.useAngularMaterial;
+
+    const htmlClass = {
+      bootstrap: !useAngularMaterial,
+      mat: useAngularMaterial,
+      'mat-typography': useAngularMaterial,
+    };
+
+    Object.entries(htmlClass).forEach(([key, toAdd]) => {
+      if (toAdd) {
+        angular.element(document.querySelector('html')).addClass(key);
+        return;
+      }
+      angular.element(document.querySelector('html')).removeClass(key);
+    });
+
+    return true;
+  });
 }
 
 export default runBlock;
