@@ -181,11 +181,13 @@ public class ApiManagerImpl extends MapListenerAdapter<String, Api> implements A
                     public boolean test(Plan plan) {
                         if (plan.getTags() != null && !plan.getTags().isEmpty()) {
                             boolean hasMatchingTags = gatewayConfiguration.hasMatchingTags(plan.getTags());
-                            logger.debug(
-                                "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
-                                plan.getName(),
-                                api.getName()
-                            );
+                            if (!hasMatchingTags) {
+                                logger.debug(
+                                    "Plan name[{}] api[{}] has been ignored because not in configured sharding tags",
+                                    plan.getName(),
+                                    api.getName()
+                                );
+                            }
                             return hasMatchingTags;
                         }
                         return true;
