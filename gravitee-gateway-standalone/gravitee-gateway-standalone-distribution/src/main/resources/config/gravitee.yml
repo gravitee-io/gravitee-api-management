@@ -32,7 +32,12 @@
 #    tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
 #    keystore:
 #      type: jks # Supports jks, pem, pkcs12
-#      path: ${gravitee.home}/security/keystore.jks
+#      path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#      certificates: # Certificates are required if keystore's type is pem
+#        - cert: ${gravitee.home}/security/mycompany.org.pem
+#          key: ${gravitee.home}/security/mycompany.org.key
+#        - cert: ${gravitee.home}/security/mycompany.com.pem
+#          key: ${gravitee.home}/security/mycompany.com.key
 #      password: secret
 #    truststore:
 #      type: jks # Supports jks, pem, pkcs12

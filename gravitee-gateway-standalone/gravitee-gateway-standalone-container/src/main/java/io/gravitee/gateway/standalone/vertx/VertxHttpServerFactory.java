@@ -27,6 +27,8 @@ import io.vertx.core.tracing.TracingPolicy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,6 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
+
+    private final Logger logger = LoggerFactory.getLogger(VertxHttpServerFactory.class);
 
     private static final String CERTIFICATE_FORMAT_JKS = "JKS";
     private static final String CERTIFICATE_FORMAT_PEM = "PEM";
@@ -85,7 +89,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
                 options.setClientAuth(ClientAuth.REQUIRED);
             }
 
-            if (httpServerConfiguration.getTrustStorePath() != null) {
+            if (httpServerConfiguration.getTrustStorePaths() != null && !httpServerConfiguration.getTrustStorePaths().isEmpty()) {
                 if (
                     httpServerConfiguration.getTrustStoreType() == null ||
                     httpServerConfiguration.getTrustStoreType().isEmpty() ||
@@ -93,34 +97,53 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
                 ) {
                     options.setTrustStoreOptions(
                         new JksOptions()
-                            .setPath(httpServerConfiguration.getTrustStorePath())
+                            .setPath(httpServerConfiguration.getTrustStorePaths().get(0))
                             .setPassword(httpServerConfiguration.getTrustStorePassword())
                     );
                 } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
-                    options.setPemTrustOptions(new PemTrustOptions().addCertPath(httpServerConfiguration.getTrustStorePath()));
+                    final PemTrustOptions pemTrustOptions = new PemTrustOptions();
+                    httpServerConfiguration.getTrustStorePaths().forEach(pemTrustOptions::addCertPath);
+                    options.setPemTrustOptions(pemTrustOptions);
                 } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
                     options.setPfxTrustOptions(
                         new PfxOptions()
-                            .setPath(httpServerConfiguration.getTrustStorePath())
+                            .setPath(httpServerConfiguration.getTrustStorePaths().get(0))
                             .setPassword(httpServerConfiguration.getTrustStorePassword())
                     );
                 }
             }
 
-            if (httpServerConfiguration.getKeyStorePath() != null) {
-                if (
-                    httpServerConfiguration.getKeyStoreType() == null ||
-                    httpServerConfiguration.getKeyStoreType().isEmpty() ||
-                    httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)
-                ) {
+            if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)) {
+                if (httpServerConfiguration.getKeyStorePath() == null || httpServerConfiguration.getKeyStorePath().isEmpty()) {
+                    logger.error("A JKS Keystore is missing. Skipping SSL keystore configuration...");
+                } else {
                     options.setKeyStoreOptions(
                         new JksOptions()
                             .setPath(httpServerConfiguration.getKeyStorePath())
                             .setPassword(httpServerConfiguration.getKeyStorePassword())
                     );
-                } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
-                    options.setPemKeyCertOptions(new PemKeyCertOptions().addCertPath(httpServerConfiguration.getKeyStorePath()));
-                } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
+                }
+            } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
+                if (
+                    httpServerConfiguration.getKeyStoreCertificates() == null || httpServerConfiguration.getKeyStoreCertificates().isEmpty()
+                ) {
+                    logger.error("A PEM Keystore is missing. Skipping SSL keystore configuration...");
+                } else {
+                    final PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
+
+                    httpServerConfiguration
+                        .getKeyStoreCertificates()
+                        .forEach(
+                            certificate ->
+                                pemKeyCertOptions.addCertPath(certificate.getCertificate()).addKeyPath(certificate.getPrivateKey())
+                        );
+
+                    options.setPemKeyCertOptions(pemKeyCertOptions);
+                }
+            } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
+                if (httpServerConfiguration.getKeyStorePath() == null || httpServerConfiguration.getKeyStorePath().isEmpty()) {
+                    logger.error("A PKCS#12 Keystore is missing. Skipping SSL keystore configuration...");
+                } else {
                     options.setPfxKeyCertOptions(
                         new PfxOptions()
                             .setPath(httpServerConfiguration.getKeyStorePath())
