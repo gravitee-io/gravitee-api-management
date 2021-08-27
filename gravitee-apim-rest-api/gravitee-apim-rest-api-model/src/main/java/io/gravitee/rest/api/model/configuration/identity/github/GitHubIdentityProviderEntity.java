@@ -87,8 +87,11 @@ public class GitHubIdentityProviderEntity extends SocialIdentityProviderEntity {
                 put(UserProfile.ID, isEmailRequired() ? "email" : "id");
                 put(UserProfile.SUB, "id");
                 put(UserProfile.EMAIL, "email");
-                put(UserProfile.FIRSTNAME, "{#jsonPath(#profile, '$.name').split(' ')[1]}");
-                put(UserProfile.LASTNAME, "{#jsonPath(#profile, '$.name').split(' ')[0]}");
+                put(UserProfile.FIRSTNAME, "{#jsonPath(#profile, '$.name').split(' ')[0]}");
+                put(
+                    UserProfile.LASTNAME,
+                    "{#jsonPath(#profile, '$.name').split(' ').length == 1 ? #jsonPath(#profile, '$.name').split(' ')[0] : #jsonPath(#profile, '$.name').split(' ')[1]}"
+                );
                 put(UserProfile.PICTURE, "avatar_url");
             }
         };

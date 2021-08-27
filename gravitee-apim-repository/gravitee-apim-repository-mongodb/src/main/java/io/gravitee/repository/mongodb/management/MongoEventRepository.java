@@ -94,8 +94,8 @@ public class MongoEventRepository implements EventRepository {
             EventMongo eventMongoUpdated = internalEventRepo.save(eventMongo);
             return mapEvent(eventMongoUpdated);
         } catch (Exception e) {
-            logger.error("An error occured when updating event", e);
-            throw new TechnicalException("An error occured when updating event");
+            logger.error("An error occurred when updating event", e);
+            throw new TechnicalException("An error occurred when updating event");
         }
     }
 
@@ -104,9 +104,15 @@ public class MongoEventRepository implements EventRepository {
         try {
             internalEventRepo.deleteById(id);
         } catch (Exception e) {
-            logger.error("An error occured when deleting event [{}]", id, e);
-            throw new TechnicalException("An error occured when deleting event");
+            logger.error("An error occurred when deleting event [{}]", id, e);
+            throw new TechnicalException("An error occurred when deleting event");
         }
+    }
+
+    @Override
+    public List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
+        List<EventMongo> eventsMongo = internalEventRepo.searchLatest(criteria, group, page, size);
+        return mapper.collection2list(eventsMongo, EventMongo.class, Event.class);
     }
 
     @Override

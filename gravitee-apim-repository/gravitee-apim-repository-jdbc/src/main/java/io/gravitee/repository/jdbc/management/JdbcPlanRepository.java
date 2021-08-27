@@ -241,6 +241,27 @@ public class JdbcPlanRepository extends JdbcAbstractRepository<Plan> implements 
     }
 
     @Override
+    public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {
+        LOGGER.debug("JdbcPlanRepository.findByApis({})", apiIds);
+        try {
+            List<Plan> plans = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where api in (" + getOrm().buildInClause(apiIds) + ")",
+                (PreparedStatement ps) -> getOrm().setArguments(ps, apiIds, 1),
+                getOrm().getRowMapper()
+            );
+            for (Plan plan : plans) {
+                addCharacteristics(plan);
+                addExcludedGroups(plan);
+                addTags(plan);
+            }
+            return plans;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find plans by api:", ex);
+            throw new TechnicalException("Failed to find plans by api", ex);
+        }
+    }
+
+    @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {

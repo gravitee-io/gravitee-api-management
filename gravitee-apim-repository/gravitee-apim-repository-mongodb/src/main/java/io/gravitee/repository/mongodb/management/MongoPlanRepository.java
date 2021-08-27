@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.PlanMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -39,6 +40,11 @@ public class MongoPlanRepository implements PlanRepository {
 
     @Autowired
     private PlanMongoRepository internalPlanRepository;
+
+    @Override
+    public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {
+        return internalPlanRepository.findByApiIn(apiIds).stream().map(this::map).collect(Collectors.toList());
+    }
 
     @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {

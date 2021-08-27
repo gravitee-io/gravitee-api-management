@@ -100,6 +100,9 @@ public class ApiMapper {
             apiItem.setRatingSummary(ratingSummary);
         }
 
+        if (api.getCreatedAt() != null) {
+            apiItem.setCreatedAt(api.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
+        }
         if (api.getUpdatedAt() != null) {
             apiItem.setUpdatedAt(api.getUpdatedAt().toInstant().atOffset(ZoneOffset.UTC));
         }

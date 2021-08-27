@@ -41,8 +41,8 @@ public class EventsHandler extends AbstractHandler {
     @Autowired
     private EventRepository eventRepository;
 
-    private static final int DEFAULT_PAGE_SIZE = 10;
-    private static final int DEFAULT_PAGE_NUMBER = 1;
+    private static final long DEFAULT_PAGE_SIZE = 10;
+    private static final long DEFAULT_PAGE_NUMBER = 1;
 
     public void search(RoutingContext ctx) {
         final JsonObject searchPayload = ctx.getBodyAsJson();
@@ -55,26 +55,14 @@ public class EventsHandler extends AbstractHandler {
                 .vertx()
                 .executeBlocking(
                     promise -> {
-                        final String sPageSize = ctx.request().getParam("size");
-                        int pageSize, pageNumber;
-
-                        try {
-                            pageSize = Integer.parseInt(sPageSize);
-                        } catch (NumberFormatException nfe) {
-                            pageSize = DEFAULT_PAGE_SIZE;
-                        }
-
-                        try {
-                            pageNumber = Integer.parseInt(sPageNumber);
-                        } catch (NumberFormatException nfe) {
-                            pageNumber = DEFAULT_PAGE_NUMBER;
-                        }
+                        Long pageSize = getPageSize(ctx, DEFAULT_PAGE_SIZE);
+                        Long pageNumber = getPageNumber(ctx, DEFAULT_PAGE_NUMBER);
 
                         try {
                             promise.complete(
                                 eventRepository.search(
                                     eventCriteria,
-                                    new PageableBuilder().pageNumber(pageNumber).pageSize(pageSize).build()
+                                    new PageableBuilder().pageNumber(pageNumber.intValue()).pageSize(pageSize.intValue()).build()
                                 )
                             );
                         } catch (Exception ex) {
@@ -98,6 +86,54 @@ public class EventsHandler extends AbstractHandler {
                     },
                     event -> handleResponse(ctx, event)
                 );
+        }
+    }
+
+    public void searchLatest(RoutingContext ctx) {
+        final JsonObject searchPayload = ctx.getBodyAsJson();
+        final EventCriteria eventCriteria = readCriteria(searchPayload);
+
+        ctx
+            .vertx()
+            .executeBlocking(
+                (Handler<Promise<List<Event>>>) promise -> {
+                    Long pageSize = getPageSize(ctx, null);
+                    Long pageNumber = getPageNumber(ctx, null);
+                    Event.EventProperties group = getGroup(ctx);
+
+                    try {
+                        promise.complete(eventRepository.searchLatest(eventCriteria, group, pageNumber, pageSize));
+                    } catch (Exception ex) {
+                        LOGGER.error("Unable to search for events", ex);
+                        promise.fail(ex);
+                    }
+                },
+                event -> handleResponse(ctx, event)
+            );
+    }
+
+    private Event.EventProperties getGroup(RoutingContext ctx) {
+        return Event.EventProperties.valueOf(ctx.request().getParam("group"));
+    }
+
+    private Long getPageSize(RoutingContext ctx, Long defaultValue) {
+        final String sPageSize = ctx.request().getParam("size");
+
+        int pageSize;
+        try {
+            return Long.parseLong(sPageSize);
+        } catch (NumberFormatException nfe) {
+            return defaultValue;
+        }
+    }
+
+    private Long getPageNumber(RoutingContext ctx, Long defaultValue) {
+        final String sPageNumber = ctx.request().getParam("page");
+
+        try {
+            return Long.parseLong(sPageNumber);
+        } catch (NumberFormatException nfe) {
+            return defaultValue;
         }
     }
 

@@ -71,8 +71,14 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private static final String POSTGRESQL_DRIVER_TYPE = "postgresql";
     private static final String SQLSERVER_DRIVER_TYPE = "sqlserver";
 
-    private static final String DEFAULT_PAGING_QUERY = "LIMIT %d OFFSET %d ";
-    private static final String MSSQL_PAGING_QUERY = "OFFSET %d ROWS FETCH NEXT %d ROWS ONLY ";
+    private static final String DEFAULT_OFFSET_QUERY = "OFFSET %d ";
+    private static final String MSSQL_OFFSET_QUERY = "OFFSET %d ROWS ";
+
+    private static final String DEFAULT_LIMIT_QUERY = "LIMIT %d ";
+    private static final String MSSQL_LIMIT_QUERY = "FETCH NEXT %d ROWS ONLY ";
+
+    private static final String DEFAULT_PAGING_QUERY = DEFAULT_LIMIT_QUERY + DEFAULT_OFFSET_QUERY;
+    private static final String MSSQL_PAGING_QUERY = MSSQL_OFFSET_QUERY + MSSQL_LIMIT_QUERY;
 
     private static String pagingQuery = DEFAULT_PAGING_QUERY;
 
@@ -86,6 +92,20 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         } else {
             return String.format(pagingQuery, limit, offset);
         }
+    }
+
+    public static String createOffsetClause(final Long offset) {
+        if (offset == null) {
+            return "";
+        }
+
+        if (pagingQuery.startsWith(MSSQL_OFFSET_QUERY)) {
+            return String.format(MSSQL_OFFSET_QUERY, offset);
+        } else if (offset > 0L) {
+            return String.format(DEFAULT_OFFSET_QUERY, offset);
+        }
+
+        return "";
     }
 
     @Override

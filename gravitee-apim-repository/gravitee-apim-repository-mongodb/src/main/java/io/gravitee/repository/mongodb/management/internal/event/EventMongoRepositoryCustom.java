@@ -18,7 +18,9 @@ package io.gravitee.repository.mongodb.management.internal.event;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
+import java.util.List;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -26,5 +28,7 @@ import io.gravitee.repository.mongodb.management.internal.model.EventMongo;
  * @author GraviteeSource Team
  */
 public interface EventMongoRepositoryCustom {
-    Page<EventMongo> search(EventCriteria filter, Pageable pageable);
+    List<EventMongo> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
+
+    Page<EventMongo> search(EventCriteria criteria, Pageable pageable);
 }

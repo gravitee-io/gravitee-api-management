@@ -181,6 +181,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             plan.setTags(newPlan.getTags());
             plan.setSelectionRule(newPlan.getSelectionRule());
             plan.setGeneralConditions(newPlan.getGeneralConditions());
+            plan.setOrder(newPlan.getOrder());
 
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // There is no need for a validation when authentication is KEY_LESS, force to AUTO
@@ -282,14 +283,27 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
     @Override
     public PlanEntity update(UpdatePlanEntity updatePlan) {
+        return update(updatePlan, false);
+    }
+
+    public PlanEntity update(UpdatePlanEntity updatePlan, boolean fromImport) {
         try {
             logger.debug("Update plan {}", updatePlan.getName());
             Optional<Plan> optPlan = planRepository.findById(updatePlan.getId());
             if (!optPlan.isPresent()) {
                 throw new PlanNotFoundException(updatePlan.getId());
             }
+
             Plan oldPlan = optPlan.get();
             assertPlanSecurityIsAllowed(PlanSecurityType.valueOf(oldPlan.getSecurity().name()));
+
+            ApiEntity api = apiService.findById(oldPlan.getApi());
+            if (
+                DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion())) &&
+                updatePlan.getFlows() == null
+            ) {
+                throw new PlanInvalidException(updatePlan.getId());
+            }
 
             Plan newPlan = new Plan();
             //copy immutable values
@@ -309,7 +323,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
                 newPlan.setNeedRedeployAt(oldPlan.getNeedRedeployAt());
             }
 
-            // update datas
+            // update data
             newPlan.setName(updatePlan.getName());
             newPlan.setDescription(updatePlan.getDescription());
             newPlan.setUpdatedAt(new Date());
@@ -338,7 +352,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
 
             newPlan.setCharacteristics(updatePlan.getCharacteristics());
 
-            updatePlanToApiDefinition(newPlan);
+            updatePlanToApiDefinition(api, newPlan, updatePlan.getFlows(), fromImport);
 
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
@@ -493,18 +507,28 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
         String apiId = updatedPlan.getApi();
         if (apiId != null) {
             ApiEntity api = apiService.findById(apiId);
+            updatePlanToApiDefinition(api, updatedPlan, null, false);
+        }
+    }
+
+    private void updatePlanToApiDefinition(ApiEntity api, Plan updatedPlan, List<Flow> flows, boolean fromImport) {
+        if (api != null) {
             if (DefinitionVersion.V2.equals(DefinitionVersion.valueOfLabel(api.getGraviteeDefinitionVersion()))) {
-                api
+                final Optional<io.gravitee.definition.model.Plan> existingPlan = api
                     .getPlans()
                     .stream()
-                    .forEach(
-                        plan -> {
-                            if (plan.getId().equals(updatedPlan.getId())) {
-                                fillApiDefinitionPlan(plan, updatedPlan, null);
-                            }
-                        }
-                    );
-                apiService.update(updatedPlan.getApi(), ApiService.convert(api));
+                    .filter(plan -> plan.getId().equals(updatedPlan.getId()))
+                    .findFirst();
+
+                final UpdateApiEntity updateApi = ApiService.convert(api);
+                if (existingPlan.isPresent()) {
+                    // plan already exist, provide flows only if this is an import to override
+                    fillApiDefinitionPlan(existingPlan.get(), updatedPlan, flows);
+                } else if (fromImport) {
+                    // we are importing an API, create the plan definition
+                    updateApi.addPlan(fillApiDefinitionPlan(new io.gravitee.definition.model.Plan(), updatedPlan, flows));
+                }
+                apiService.update(updatedPlan.getApi(), updateApi);
             }
         }
     }
@@ -741,7 +765,7 @@ public class PlanServiceImpl extends TransactionalService implements PlanService
             Optional<List<Flow>> planFlows = api
                 .getPlans()
                 .stream()
-                .filter(pl -> plan.getId().equals(pl.getId()))
+                .filter(pl -> plan.getId() != null && plan.getId().equals(pl.getId()))
                 .map(plan1 -> plan1.getFlows())
                 .findFirst();
             if (planFlows.isPresent()) {

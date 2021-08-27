@@ -21,7 +21,6 @@ import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 import static java.lang.Byte.parseByte;
 import static java.util.Collections.emptyList;
 import static org.springframework.util.StringUtils.hasText;
-import static org.springframework.util.StringUtils.isEmpty;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
