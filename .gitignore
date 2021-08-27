@@ -22,12 +22,13 @@ report.*.json
 # -- Cicd : Git ignore the [gpg.script.snippet.sh] which contains
 # secrets (password to artifactory)
 gpg.script.snippet.sh
-# -- Cicd : The [graviteebot.gpg.priv.key] file contains secrets 
+# -- Cicd : The [graviteebot.gpg.priv.key] file contains secrets
 # which should not be commited
 graviteebot.gpg.priv.key
-# -- Cicd : The [.secrethub.credential] file contains secrets 
+# -- Cicd : The [.secrethub.credential] file contains secrets
 # which should not be commited
 graviteebot.gpg.pub.key
-# -- Cicd : The [.secrets.json] file contains secrets 
+# -- Cicd : The [.secrets.json] file contains secrets
 # which should not be commited
 .secrets.json
+storybook-static
