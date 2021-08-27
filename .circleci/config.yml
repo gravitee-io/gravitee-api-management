@@ -124,9 +124,10 @@ jobs:
       - run:
           name: Login into Azure Storage and upload dist
           command: |
+            export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az storage container create -n $CIRCLE_BRANCH --public-access blob
-            az storage blob upload-batch -s dist -d $CIRCLE_BRANCH
+            az storage container create -n $BRANCH_ID --public-access blob
+            az storage blob upload-batch -s dist -d $BRANCH_ID
 
   comment-pr-after-deployment:
     executor:
@@ -138,9 +139,10 @@ jobs:
       - run:
           name: Comment Pull Request
           command: |
+            export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
             gh pr comment --body "**Gravitee.io Automatic Deployment**
 
-            Congrats, all the CI steps were 🟢 . The Bot was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${CIRCLE_BRANCH}/index.html)! 🚀
+            Congrats, all the CI steps were 🟢 . The Bot was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${BRANCH_ID}/index.html)! 🚀
 
             _Notes_: The deployed app is linked to the management API of the Element Zero team's environment."
 
