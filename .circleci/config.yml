@@ -140,7 +140,7 @@ jobs:
           name: Comment Pull Request
           command: |
             # First check there is an associated pull request, otherwise just stop the job here
-            gh pr checks || circleci-agent step halt
+            gh pr checks || exit 0
 
             export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
             gh pr comment --body "**Gravitee.io Automatic Deployment**
