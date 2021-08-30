@@ -34,6 +34,7 @@ orbs:
   gravitee: gravitee-io/gravitee@1.0
   secrethub: secrethub/cli@1.1
   gh: circleci/github-cli@1.0
+  sonarcloud: sonarsource/sonarcloud@1.0
 
 executors:
   node-lts:
@@ -88,6 +89,22 @@ jobs:
       - run:
           name: Run unit tests
           command: npm run test:ci
+      - persist_to_workspace:
+          root: .
+          paths:
+            - coverage
+      - store_test_results:
+          path: coverage
+
+  sonarcloud-analysis:
+    executor:
+      name: node-lts
+      class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - sonarcloud/scan
 
   build:
     executor:
@@ -153,6 +170,7 @@ jobs:
 
             _Notes_: The deployed app is linked to the management API of the Element Zero team's environment."
 
+
 workflows:
   pull_requests:
     when:
@@ -168,6 +186,14 @@ workflows:
       - lint-test:
           requires:
             - install
+      - sonarcloud-analysis:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
+                var-name: SONAR_TOKEN
+          requires:
+            - lint-test
       - build:
           requires:
             - install
