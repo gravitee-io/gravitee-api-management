@@ -29,4 +29,10 @@ export const Default: Story<ConsoleSettingsComponent> = {
   render: (args) => ({
     props: args,
   }),
+  parameters: {
+    design: {
+      type: 'figma',
+      url: 'https://www.figma.com/file/wKU2mCqdmzhtDKlKbh5MPL/Front_End_lib?node-id=242%3A7153',
+    },
+  },
 };
