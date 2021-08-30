@@ -626,6 +626,7 @@ function configurationRouterConfig($stateProvider) {
       component: 'configApiPortalHeader',
       resolve: {
         apiPortalHeaders: (ApiHeaderService: ApiHeaderService) => ApiHeaderService.list().then((response) => response.data),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
       },
       data: {
         menu: null,
