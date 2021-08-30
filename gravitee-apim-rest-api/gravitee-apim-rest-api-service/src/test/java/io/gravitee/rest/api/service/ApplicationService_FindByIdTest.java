@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -47,6 +48,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class ApplicationService_FindByIdTest {
 
     private static final String APPLICATION_ID = "id-app";
+    private static final String ENV_ID = "DEFAULT";
+    private static final String ORG_ID = "DEFAULT";
 
     @InjectMocks
     private ApplicationServiceImpl applicationService = new ApplicationServiceImpl();
@@ -63,10 +66,18 @@ public class ApplicationService_FindByIdTest {
     @Mock
     private Application application;
 
+    @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
+    private EnvironmentEntity environmentEntity;
+
     @Before
     public void setUp() {
-        GraviteeContext.setCurrentEnvironment("DEFAULT");
-        when(application.getEnvironmentId()).thenReturn("DEFAULT");
+        GraviteeContext.setCurrentEnvironment(ENV_ID);
+        when(application.getEnvironmentId()).thenReturn(ENV_ID);
+        when(environmentEntity.getOrganizationId()).thenReturn(ORG_ID);
+        when(environmentService.findById(ENV_ID)).thenReturn(environmentEntity);
     }
 
     @After

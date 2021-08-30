@@ -242,7 +242,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         Mockito
             .verify(membershipService)
-            .transferApplicationOwnership(applicationCaptor.capture(), memberShipUserCaptor.capture(), roleCaptor.capture());
+            .transferApplicationOwnership(any(), applicationCaptor.capture(), memberShipUserCaptor.capture(), roleCaptor.capture());
         assertEquals(APPLICATION, applicationCaptor.getValue());
         assertEquals(mockRoleEntity, roleCaptor.getValue().get(0));
         assertEquals(MEMBER_1, memberShipUserCaptor.getValue().getMemberId());
@@ -263,7 +263,7 @@ public class ApplicationMembersResourceTest extends AbstractResourceTest {
 
         Mockito
             .verify(membershipService)
-            .transferApplicationOwnership(applicationCaptor.capture(), memberShipUserCaptor.capture(), roleCaptor.capture());
+            .transferApplicationOwnership(any(), applicationCaptor.capture(), memberShipUserCaptor.capture(), roleCaptor.capture());
         assertEquals(APPLICATION, applicationCaptor.getValue());
         assertNotNull(roleCaptor.getValue());
         assertTrue(roleCaptor.getValue().isEmpty());

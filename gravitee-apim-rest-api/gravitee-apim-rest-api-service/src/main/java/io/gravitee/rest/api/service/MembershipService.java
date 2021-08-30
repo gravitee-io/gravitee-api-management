@@ -98,7 +98,7 @@ public interface MembershipService {
     Set<MembershipEntity> getMembershipsByReference(MembershipReferenceType referenceType, String referenceId);
     Set<MembershipEntity> getMembershipsByReferenceAndRole(MembershipReferenceType referenceType, String referenceId, String role);
     Set<MembershipEntity> getMembershipsByReferencesAndRole(MembershipReferenceType referenceType, List<String> referenceIds, String role);
-    MembershipEntity getPrimaryOwner(MembershipReferenceType referenceType, String referenceId);
+    MembershipEntity getPrimaryOwner(String organizationId, MembershipReferenceType referenceType, String referenceId);
     Set<RoleEntity> getRoles(MembershipReferenceType referenceType, String referenceId, MembershipMemberType memberType, String memberId);
     MemberEntity getUserMember(MembershipReferenceType referenceType, String referenceId, String userId);
     Map<String, char[]> getUserMemberPermissions(MembershipReferenceType referenceType, String referenceId, String userId);
@@ -115,8 +115,13 @@ public interface MembershipService {
     );
     void removeRoleUsage(String oldRoleId, String newRoleId);
     void removeMemberMemberships(MembershipMemberType memberType, String memberId);
-    void transferApiOwnership(String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
-    void transferApplicationOwnership(String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
+    void transferApiOwnership(String organizationId, String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles);
+    void transferApplicationOwnership(
+        String organizationId,
+        String applicationId,
+        MembershipMember member,
+        List<RoleEntity> newPrimaryOwnerRoles
+    );
     MemberEntity updateRoleToMemberOnReference(MembershipReference reference, MembershipMember member, MembershipRole role);
     List<MemberEntity> updateRolesToMemberOnReference(
         MembershipReference reference,

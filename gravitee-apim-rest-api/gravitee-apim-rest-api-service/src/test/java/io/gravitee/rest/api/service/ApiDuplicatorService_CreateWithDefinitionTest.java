@@ -241,7 +241,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
-        verify(membershipService, never()).transferApiOwnership(any(), any(), any());
+        verify(membershipService, never()).transferApiOwnership(any(), any(), any(), any());
     }
 
     @Test

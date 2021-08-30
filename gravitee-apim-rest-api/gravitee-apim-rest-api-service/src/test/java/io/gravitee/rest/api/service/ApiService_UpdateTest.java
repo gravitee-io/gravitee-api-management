@@ -139,6 +139,8 @@ public class ApiService_UpdateTest {
         "  }\n" +
         "}\n";
 
+    private static final String ORG_ID = "DEFAULT";
+
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
 
@@ -202,6 +204,12 @@ public class ApiService_UpdateTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
+    private EnvironmentEntity environmentEntity;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -223,8 +231,11 @@ public class ApiService_UpdateTest {
             .thenReturn("toDecode=decoded-value");
         MembershipEntity primaryOwner = new MembershipEntity();
         primaryOwner.setMemberType(MembershipMemberType.USER);
-        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
         reset(searchEngineService);
+
+        when(environmentService.findById("DEFAULT")).thenReturn(environmentEntity);
+        when(environmentEntity.getOrganizationId()).thenReturn(ORG_ID);
     }
 
     @After
@@ -816,7 +827,7 @@ public class ApiService_UpdateTest {
 
         final MembershipEntity membership = new MembershipEntity();
         membership.setMemberId(USER_NAME);
-        when(membershipService.getPrimaryOwner(MembershipReferenceType.API, API_ID)).thenReturn(membership);
+        when(membershipService.getPrimaryOwner(ORG_ID, MembershipReferenceType.API, API_ID)).thenReturn(membership);
 
         when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
 

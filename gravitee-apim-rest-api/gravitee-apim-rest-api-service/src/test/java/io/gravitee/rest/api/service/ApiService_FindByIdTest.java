@@ -16,16 +16,20 @@
 package io.gravitee.rest.api.service;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import freemarker.core.Environment;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
@@ -82,6 +86,12 @@ public class ApiService_FindByIdTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
+    private EnvironmentEntity env;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -89,6 +99,7 @@ public class ApiService_FindByIdTest {
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
         GraviteeContext.setCurrentEnvironment("DEFAULT");
+        when(env.getOrganizationId()).thenReturn("DEFAULT");
     }
 
     @After
@@ -103,9 +114,11 @@ public class ApiService_FindByIdTest {
         api.setEnvironmentId("DEFAULT");
 
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        when(environmentService.findById(api.getEnvironmentId())).thenReturn(env);
         MembershipEntity po = new MembershipEntity();
         po.setMemberId(USER_NAME);
-        when(membershipService.getPrimaryOwner(MembershipReferenceType.API, API_ID)).thenReturn(po);
+        when(membershipService.getPrimaryOwner(GraviteeContext.getCurrentOrganization(), MembershipReferenceType.API, API_ID))
+            .thenReturn(po);
         when(userService.findById(USER_NAME)).thenReturn(mock(UserEntity.class));
 
         final ApiEntity apiEntity = apiService.findById(API_ID);

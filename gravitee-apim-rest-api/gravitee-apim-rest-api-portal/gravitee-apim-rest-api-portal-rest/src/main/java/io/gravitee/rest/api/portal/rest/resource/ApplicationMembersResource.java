@@ -34,6 +34,7 @@ import io.gravitee.rest.api.portal.rest.security.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import java.util.ArrayList;
 import java.util.List;
@@ -208,6 +209,7 @@ public class ApplicationMembersResource extends AbstractResource {
         // else condition doesn't matter because default role will be applied on former PrimaryOwner
 
         membershipService.transferApplicationOwnership(
+            GraviteeContext.getCurrentOrganization(),
             applicationId,
             new MembershipService.MembershipMember(
                 transferOwnershipInput.getNewPrimaryOwnerId(),

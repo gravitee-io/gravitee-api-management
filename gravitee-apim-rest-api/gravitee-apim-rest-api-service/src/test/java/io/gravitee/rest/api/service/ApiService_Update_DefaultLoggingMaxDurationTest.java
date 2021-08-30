@@ -185,7 +185,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(parameterService.find(Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT)).thenReturn("USER");
         MembershipEntity primaryOwner = new MembershipEntity();
         primaryOwner.setMemberType(MembershipMemberType.USER);
-        when(membershipService.getPrimaryOwner(eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
+        when(membershipService.getPrimaryOwner(any(), eq(MembershipReferenceType.API), any())).thenReturn(primaryOwner);
         reset(searchEngineService);
     }
 

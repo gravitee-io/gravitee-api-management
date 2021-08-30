@@ -1065,7 +1065,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public MembershipEntity getPrimaryOwner(MembershipReferenceType referenceType, String referenceId) {
+    public MembershipEntity getPrimaryOwner(String organizationId, MembershipReferenceType referenceType, String referenceId) {
         RoleScope poRoleScope;
         if (referenceType == MembershipReferenceType.API) {
             poRoleScope = RoleScope.API;
@@ -1074,7 +1074,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         } else {
             throw new RoleNotFoundException(referenceType.name() + "_PRIMARY_OWNER");
         }
-        RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), poRoleScope);
+        RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(organizationId, poRoleScope);
         if (poRole != null) {
             try {
                 Optional<io.gravitee.repository.management.model.Membership> poMember = membershipRepository
@@ -1378,16 +1378,29 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     }
 
     @Override
-    public void transferApiOwnership(String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles) {
-        this.transferOwnership(MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
+    public void transferApiOwnership(String organizationId, String apiId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles) {
+        this.transferOwnership(organizationId, MembershipReferenceType.API, RoleScope.API, apiId, member, newPrimaryOwnerRoles);
     }
 
     @Override
-    public void transferApplicationOwnership(String applicationId, MembershipMember member, List<RoleEntity> newPrimaryOwnerRoles) {
-        this.transferOwnership(MembershipReferenceType.APPLICATION, RoleScope.APPLICATION, applicationId, member, newPrimaryOwnerRoles);
+    public void transferApplicationOwnership(
+        String organizationId,
+        String applicationId,
+        MembershipMember member,
+        List<RoleEntity> newPrimaryOwnerRoles
+    ) {
+        this.transferOwnership(
+                organizationId,
+                MembershipReferenceType.APPLICATION,
+                RoleScope.APPLICATION,
+                applicationId,
+                member,
+                newPrimaryOwnerRoles
+            );
     }
 
     private void transferOwnership(
+        String organizationId,
         MembershipReferenceType membershipReferenceType,
         RoleScope roleScope,
         String itemId,
@@ -1401,7 +1414,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             newRoles = newPrimaryOwnerRoles;
         }
 
-        MembershipEntity primaryOwner = this.getPrimaryOwner(membershipReferenceType, itemId);
+        MembershipEntity primaryOwner = this.getPrimaryOwner(organizationId, membershipReferenceType, itemId);
         // Set the new primary owner
         MemberEntity newPrimaryOwnerMember =
             this.addRoleToMemberOnReference(
@@ -1415,7 +1428,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
             apiService.addGroup(itemId, member.getMemberId());
         }
 
-        RoleEntity poRoleEntity = roleService.findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), roleScope);
+        RoleEntity poRoleEntity = roleService.findPrimaryOwnerRoleByOrganization(organizationId, roleScope);
         if (poRoleEntity != null) {
             // if the new primary owner is a user, remove its previous role
             if (member.getMemberType() == MembershipMemberType.USER) this.getRoles(

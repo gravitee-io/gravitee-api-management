@@ -251,6 +251,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private APIV1toAPIV2Converter apiv1toAPIV2Converter;
 
+    @Autowired
+    private EnvironmentService environmentService;
+
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
@@ -285,11 +288,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
     }
 
-    private Set<String> removePOGroups(Set<String> groups, String apiId) {
+    private Set<String> removePOGroups(String organizationId, Set<String> groups, String apiId) {
         Stream<GroupEntity> groupEntityStream = groupService.findByIds(groups).stream();
 
         if (apiId != null) {
-            final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(MembershipReferenceType.API, apiId);
+            final MembershipEntity primaryOwner = membershipService.getPrimaryOwner(organizationId, MembershipReferenceType.API, apiId);
             if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
                 // don't remove the primary owner group of this API.
                 groupEntityStream =
@@ -335,7 +338,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Set<String> groups = newApiEntity.getGroups();
         if (groups != null && !groups.isEmpty()) {
             checkGroupExistence(groups);
-            groups = removePOGroups(groups, null);
+            groups = removePOGroups(GraviteeContext.getCurrentOrganization(), groups, null);
             newApiEntity.setGroups(groups);
         }
         apiEntity.setGroups(groups);
@@ -823,7 +826,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public PrimaryOwnerEntity getPrimaryOwner(String apiId) throws TechnicalManagementException {
+        return getPrimaryOwner(this.findApiById(apiId));
+    }
+
+    @Override
+    public PrimaryOwnerEntity getPrimaryOwner(Api api) throws TechnicalManagementException {
+        String apiId = api.getId();
+
+        EnvironmentEntity environmentEntity = environmentService.findById(api.getEnvironmentId());
+
         MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
+            environmentEntity.getOrganizationId(),
             io.gravitee.rest.api.model.MembershipReferenceType.API,
             apiId
         );
@@ -835,10 +848,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return new PrimaryOwnerEntity(groupService.findById(primaryOwnerMemberEntity.getMemberId()));
         }
         return new PrimaryOwnerEntity(userService.findById(primaryOwnerMemberEntity.getMemberId()));
-    }
-
-    private PrimaryOwnerEntity getPrimaryOwner(Api api) throws TechnicalManagementException {
-        return this.getPrimaryOwner(api.getId());
     }
 
     private void calculateEntrypoints(ApiEntity api, String environmentId) {
@@ -1351,7 +1360,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check policy configurations.
             checkPolicyConfigurations(updateApiEntity);
 
-            final ApiEntity apiToCheck = convert(optApiToUpdate.get());
+            Api apiToUpdate = optApiToUpdate.get();
+            final ApiEntity apiToCheck = convert(apiToUpdate);
 
             // if user changes sharding tags, then check if he is allowed to do it
             checkShardingTags(updateApiEntity, apiToCheck);
@@ -1368,9 +1378,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (groups != null && !groups.isEmpty()) {
                 // check the existence of groups
                 checkGroupExistence(groups);
-
+                String environmentId = apiToUpdate.getEnvironmentId();
+                EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
                 // remove PO group if exists
-                groups = removePOGroups(groups, apiId);
+                groups = removePOGroups(environmentEntity.getOrganizationId(), groups, apiId);
                 updateApiEntity.setGroups(groups);
             }
 
@@ -1408,8 +1419,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         }
                     );
             }
-
-            Api apiToUpdate = optApiToUpdate.get();
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
                 planService
@@ -2280,6 +2289,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
                         }
                         membershipService.transferApiOwnership(
+                            GraviteeContext.getCurrentOrganization(),
                             createdOrUpdatedApiEntity.getId(),
                             new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
                             roleEntity

@@ -255,12 +255,7 @@ public class SyncManager {
             apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
-        // FIXME: Find a way to avoid this context override needed because the same thread synchronize all the apis
-        //  (and they can be related to different organizations)
-        EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
-        GraviteeContext.setCurrentOrganization(environmentEntity.getOrganizationId());
-
-        apiEntity.setPrimaryOwner(apiService.getPrimaryOwner(api.getId()));
+        apiEntity.setPrimaryOwner(apiService.getPrimaryOwner(api));
 
         return apiEntity;
     }

@@ -91,6 +91,12 @@ public class ApiService_StopTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
+    private EnvironmentEntity environmentEntity;
+
     @Before
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
@@ -101,8 +107,13 @@ public class ApiService_StopTest {
         when(u.getId()).thenReturn("uid");
         when(userService.findById(any())).thenReturn(u);
         MembershipEntity po = mock(MembershipEntity.class);
-        when(membershipService.getPrimaryOwner(eq(io.gravitee.rest.api.model.MembershipReferenceType.API), anyString())).thenReturn(po);
+        when(membershipService.getPrimaryOwner(any(), eq(io.gravitee.rest.api.model.MembershipReferenceType.API), anyString()))
+            .thenReturn(po);
         when(api.getId()).thenReturn(API_ID);
+
+        when(api.getEnvironmentId()).thenReturn("DEFAULT");
+        when(environmentService.findById("DEFAULT")).thenReturn(environmentEntity);
+        when(environmentEntity.getOrganizationId()).thenReturn("DEFAULT");
     }
 
     @Test

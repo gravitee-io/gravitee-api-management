@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SinglePrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.annotations.*;
@@ -176,6 +177,7 @@ public class ApiMembersResource extends AbstractResource {
 
         apiService.findById(api);
         membershipService.transferApiOwnership(
+            GraviteeContext.getCurrentOrganization(),
             api,
             new MembershipService.MembershipMember(
                 transferOwnership.getId(),

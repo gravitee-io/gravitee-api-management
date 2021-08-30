@@ -137,7 +137,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             if (applicationOptional.isPresent()) {
                 Application application = applicationOptional.get();
+                String environmentId = application.getEnvironmentId();
+                EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
                 MembershipEntity primaryOwnerMemberEntity = membershipService.getPrimaryOwner(
+                    environmentEntity.getOrganizationId(),
                     MembershipReferenceType.APPLICATION,
                     application.getId()
                 );

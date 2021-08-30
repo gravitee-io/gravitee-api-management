@@ -480,6 +480,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                             roleEntity = roleUsedInTransfert.stream().map(roleService::findById).collect(Collectors.toList());
                         }
                         membershipService.transferApiOwnership(
+                            organizationId,
                             createdOrUpdatedApiEntity.getId(),
                             new MembershipService.MembershipMember(userEntity.getId(), null, MembershipMemberType.USER),
                             roleEntity

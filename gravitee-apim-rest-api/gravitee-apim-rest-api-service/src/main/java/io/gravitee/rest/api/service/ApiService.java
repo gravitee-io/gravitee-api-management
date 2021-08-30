@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
@@ -160,6 +161,8 @@ public interface ApiService {
     ApiEntity fetchMetadataForApi(ApiEntity apiEntity);
 
     PrimaryOwnerEntity getPrimaryOwner(String apiId) throws TechnicalManagementException;
+
+    PrimaryOwnerEntity getPrimaryOwner(Api api) throws TechnicalManagementException;
 
     void addGroup(String api, String group);
     void removeGroup(String api, String group);
