@@ -94,7 +94,7 @@ public class ApiKeyAuthenticationHandlerTest {
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
-        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
+        when(apiKeyRepository.findByKey("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
@@ -109,7 +109,7 @@ public class ApiKeyAuthenticationHandlerTest {
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.put("api-key", Collections.singletonList("xxxxx-xxxx-xxxxx"));
         when(request.parameters()).thenReturn(parameters);
-        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
+        when(apiKeyRepository.findByKey("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
 
         HttpHeaders headers = new HttpHeaders();
         when(request.headers()).thenReturn(headers);
@@ -168,7 +168,7 @@ public class ApiKeyAuthenticationHandlerTest {
         ApiKey apiKey = mock(ApiKey.class);
         when(apiKey.getPlan()).thenReturn("plan-id");
 
-        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(Optional.of(apiKey));
+        when(apiKeyRepository.findByKey("xxxxx-xxxx-xxxxx")).thenReturn(Optional.of(apiKey));
 
         boolean handle = authenticationHandler.canHandle(request, authenticationContext);
         Assert.assertFalse(handle);
@@ -186,7 +186,7 @@ public class ApiKeyAuthenticationHandlerTest {
         ApiKey apiKey = mock(ApiKey.class);
         when(apiKey.getPlan()).thenReturn("plan-id");
 
-        when(apiKeyRepository.findById("xxxxx-xxxx-xxxxx")).thenReturn(Optional.of(apiKey));
+        when(apiKeyRepository.findByKey("xxxxx-xxxx-xxxxx")).thenReturn(Optional.of(apiKey));
 
         boolean handle = authenticationHandler.canHandle(request, authenticationContext);
         Assert.assertTrue(handle);
