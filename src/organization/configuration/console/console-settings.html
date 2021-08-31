@@ -122,5 +122,23 @@
     </mat-card-content>
   </mat-card>
 
+  <mat-card class="console-settings__card">
+    <mat-card-header>
+      <mat-card-title>Alerting</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <section class="console-settings__card__checkbox-section">
+        <mat-checkbox
+          #alertCheckbox
+          aria-label="Alerting enabled"
+          formControlName="alert"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!alertCheckbox.disabled"
+          >Enable Alerting</mat-checkbox
+        >
+      </section>
+    </mat-card-content>
+  </mat-card>
+
   <button mat-raised-button color="accent" type="submit" [disabled]="formSettings.invalid">Save</button>
 </form>

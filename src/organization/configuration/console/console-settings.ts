@@ -93,6 +93,7 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
               { value: this.settings?.scheduler?.notifications, disabled: this.isReadonlySetting('scheduler.notifications') },
             ],
           }),
+          alert: [{ value: this.settings?.alert?.enabled, disabled: this.isReadonlySetting('alert.enabled') }],
         });
 
         // Disable `management.automaticValidation` if `management.userCreation` is not checked
