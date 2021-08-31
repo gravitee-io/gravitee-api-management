@@ -39,6 +39,7 @@ Object.defineProperty(window, 'getComputedStyle', {
 });
 
 require('./src/index');
+require('jest-preset-angular/setup-jest');
 
 angular.module('gravitee-management').constant('Constants', {
   org: {

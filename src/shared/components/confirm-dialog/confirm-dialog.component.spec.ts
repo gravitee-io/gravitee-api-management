@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { waitForAsync, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 import { GioConfirmDialogComponent } from './confirm-dialog.component';
@@ -26,36 +26,28 @@ describe('GioConfirmDialogComponent', () => {
     close: () => ({}),
   };
 
-  beforeEach(
-    waitForAsync(() => {
-      TestBed.configureTestingModule({
-        imports: [GioConfirmDialogModule],
-        providers: [
-          {
-            provide: MAT_DIALOG_DATA,
-            useValue: {
-              title: 'Are you sure you want to remove all cats ?',
-              content: '🙀😿',
-              confirmButton: 'Yes, I want',
-              cancelButton: 'Nope',
-            },
-          },
-          { provide: MatDialogRef, useValue: matDialogRefMock },
-        ],
-      });
-    }),
-  );
-
   beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [GioConfirmDialogModule],
+      providers: [
+        {
+          provide: MAT_DIALOG_DATA,
+          useValue: {
+            title: 'Are you sure you want to remove all cats ?',
+            content: '🙀😿',
+            confirmButton: 'Yes, I want',
+            cancelButton: 'Nope',
+          },
+        },
+        { provide: MatDialogRef, useValue: matDialogRefMock },
+      ],
+    });
     fixture = TestBed.createComponent(GioConfirmDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it(
-    'should init correctly',
-    waitForAsync(() => {
-      expect(component).toBeTruthy();
-    }),
-  );
+  it('should init correctly', () => {
+    expect(component).toBeTruthy();
+  });
 });
