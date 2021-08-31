@@ -277,5 +277,97 @@
     </mat-card-content>
   </mat-card>
 
+  <mat-card class="console-settings__card" formGroupName="email">
+    <mat-card-header>
+      <mat-card-title>SMTP</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <section class="console-settings__card__checkbox-section">
+        <mat-checkbox
+          #emailEnabledCheckbox
+          formControlName="enabled"
+          aria-label="Email enabled"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!emailEnabledCheckbox.disabled"
+          >Enable Emailing</mat-checkbox
+        >
+      </section>
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Host</mat-label>
+        <input #emailHostInput matInput formControlName="host" />
+        <mat-icon *ngIf="emailHostInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Port</mat-label>
+        <input #emailPortInput matInput formControlName="port" type="number" min="0" />
+        <mat-icon *ngIf="emailPortInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Username</mat-label>
+        <input #emailUsernameInput matInput formControlName="username" />
+        <mat-icon *ngIf="emailUsernameInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Password</mat-label>
+        <input #emailPasswordInput matInput formControlName="password" type="password" />
+        <mat-icon *ngIf="emailPasswordInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Protocol</mat-label>
+        <input #emailProtocolInput matInput formControlName="protocol" />
+        <mat-icon *ngIf="emailProtocolInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Subject</mat-label>
+        <input #emailSubjectInput matInput formControlName="subject" />
+        <mat-icon *ngIf="emailSubjectInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>From</mat-label>
+        <input #emailFromInput matInput formControlName="from" type="email" />
+        <mat-icon *ngIf="emailFromInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-divider [inset]="true"></mat-divider>
+
+      <h3>Mail properties</h3>
+      <ng-container formGroupName="properties">
+        <section class="console-settings__card__checkbox-section">
+          <mat-checkbox
+            #emailPropertiesAuthCheckbox
+            formControlName="auth"
+            aria-label="Alerting enabled"
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!emailPropertiesAuthCheckbox.disabled"
+            >Enable Auth</mat-checkbox
+          >
+        </section>
+
+        <section class="console-settings__card__checkbox-section">
+          <mat-checkbox
+            #emailPropertiesStartTlsEnableCheckbox
+            formControlName="startTlsEnable"
+            aria-label="Start TLS enabled"
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!emailPropertiesStartTlsEnableCheckbox.disabled"
+            >Enable Start TLS</mat-checkbox
+          >
+        </section>
+
+        <mat-form-field appearance="fill" class="console-settings__card__form-field">
+          <mat-label>SSL Trust</mat-label>
+          <input #emailPropertiesSslTrustInput matInput formControlName="sslTrust" />
+          <mat-icon *ngIf="emailPropertiesSslTrustInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+      </ng-container>
+    </mat-card-content>
+  </mat-card>
+
   <button mat-raised-button color="accent" type="submit" [disabled]="formSettings.invalid">Save</button>
 </form>

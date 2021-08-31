@@ -20,8 +20,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
 import { isEmpty, set } from 'lodash';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
@@ -123,6 +123,29 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
             exposedHeaders: [{ value: this.settings?.cors?.exposedHeaders ?? [], disabled: this.isReadonlySetting('cors.exposedHeaders') }],
             maxAge: [{ value: this.settings?.cors?.maxAge, disabled: this.isReadonlySetting('cors.maxAge') }],
           }),
+
+          email: this.fb.group({
+            enabled: [{ value: this.settings?.email?.enabled, disabled: this.isReadonlySetting('email.enabled') }],
+            host: [{ value: this.settings?.email?.host, disabled: this.isReadonlySetting('email.host') }],
+            port: [{ value: this.settings?.email?.port, disabled: this.isReadonlySetting('email.port') }],
+            username: [{ value: this.settings?.email?.username, disabled: this.isReadonlySetting('email.username') }],
+            password: [{ value: this.settings?.email?.password, disabled: this.isReadonlySetting('email.password') }],
+            protocol: [{ value: this.settings?.email?.protocol, disabled: this.isReadonlySetting('email.protocol') }],
+            subject: [{ value: this.settings?.email?.subject, disabled: this.isReadonlySetting('email.subject') }],
+            from: [{ value: this.settings?.email?.from, disabled: this.isReadonlySetting('email.from') }],
+            properties: this.fb.group({
+              auth: [{ value: this.settings?.email?.properties?.auth, disabled: this.isReadonlySetting('email.properties.auth') }],
+              startTlsEnable: [
+                {
+                  value: this.settings?.email?.properties?.startTlsEnable,
+                  disabled: this.isReadonlySetting('email.properties.startTlsEnable'),
+                },
+              ],
+              sslTrust: [
+                { value: this.settings?.email?.properties?.sslTrust, disabled: this.isReadonlySetting('email.properties.sslTrust') },
+              ],
+            }),
+          }),
         });
 
         // Disable `management.automaticValidation` if `management.userCreation` is not checked
@@ -136,6 +159,28 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
             }
             this.formSettings.get('management.automaticValidation').disable();
           });
+
+        // Disable all `email` group if `email.enabled` is not checked without impacting the already readonly properties
+        this.formSettings.get('email.enabled').valueChanges.subscribe((checked) => {
+          const controlKey = [
+            'host',
+            'port',
+            'username',
+            'password',
+            'protocol',
+            'subject',
+            'from',
+            'properties.auth',
+            'properties.startTlsEnable',
+            'properties.sslTrust',
+          ];
+
+          if (checked) {
+            controlKey.filter((k) => !this.isReadonlySetting(`email.${k}`)).forEach((k) => this.formSettings.get(`email.${k}`).enable());
+            return;
+          }
+          controlKey.filter((k) => !this.isReadonlySetting(`email.${k}`)).forEach((k) => this.formSettings.get(`email.${k}`).disable());
+        });
       });
 
     this.allowHeadersFilteredOptions$ = this.allowHeadersInputFormControl.valueChanges.pipe(
