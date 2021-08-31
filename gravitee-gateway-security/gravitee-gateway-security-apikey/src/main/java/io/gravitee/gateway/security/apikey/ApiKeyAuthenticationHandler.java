@@ -82,7 +82,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
             // Get the api-key from the repository if not present in the context
             if (context.get(APIKEY_CONTEXT_ATTRIBUTE) == null) {
                 try {
-                    final Optional<ApiKey> optApiKey = apiKeyRepository.findById(apiKey);
+                    final Optional<ApiKey> optApiKey = apiKeyRepository.findByKey(apiKey);
                     if (optApiKey.isPresent()) {
                         context.request().metrics().setSecurityType(API_KEY);
                         context.request().metrics().setSecurityToken(apiKey);
