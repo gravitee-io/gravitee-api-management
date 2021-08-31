@@ -140,5 +140,142 @@
     </mat-card-content>
   </mat-card>
 
+  <mat-card class="console-settings__card" formGroupName="cors">
+    <mat-card-header>
+      <mat-card-title>CORS</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-form-field
+        *ngIf="formSettings.get('cors.allowOrigin'); let allowOriginFormControl"
+        class="console-settings__card__form-field"
+        appearance="fill"
+      >
+        <mat-label>Allow-Origin</mat-label>
+        <mat-chip-list #allowOriginChipList aria-label="Allow-Origin selection" multiple [disabled]="allowOriginFormControl.disabled">
+          <mat-chip
+            *ngFor="let origin of allowOriginFormControl.value"
+            [selectable]="false"
+            [removable]="!allowOriginFormControl.disabled"
+            (removed)="removeChipToFormControl(origin, 'cors.allowOrigin', allowOriginChipList)"
+          >
+            {{ origin }}
+            <mat-icon *ngIf="!allowOriginFormControl.disabled" matChipRemove>cancel</mat-icon>
+          </mat-chip>
+          <input
+            *ngIf="!allowOriginFormControl.disabled"
+            #allowOriginInput
+            placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
+            [matChipInputFor]="allowOriginChipList"
+            [matChipInputAddOnBlur]="true"
+            (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowOrigin', allowOriginChipList); confirmAllowAllOrigins($event)"
+          />
+        </mat-chip-list>
+        <mat-error *ngIf="allowOriginFormControl.errors?.allowOrigin">{{ allowOriginFormControl.errors?.allowOrigin }}</mat-error>
+        <mat-hint>
+          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
+          <em>same-origin</em> definition.<br />
+          If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
+        </mat-hint>
+        <mat-icon *ngIf="allowOriginFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field class="console-settings__card__form-field" appearance="fill">
+        <mat-label>Access-Control-Allow-Methods</mat-label>
+        <mat-select #allowMethodsSelect formControlName="allowMethods" multiple>
+          <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+        </mat-select>
+        <mat-hint>
+          Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
+        </mat-hint>
+        <mat-icon *ngIf="allowMethodsSelect.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field
+        *ngIf="formSettings.get('cors.allowHeaders'); let allowHeadersFormControl"
+        class="console-settings__card__form-field"
+        appearance="fill"
+      >
+        <mat-label>Allow-Headers</mat-label>
+        <mat-chip-list #allowHeadersChipList aria-label="Allow-Headers selection" multiple [disabled]="allowHeadersFormControl.disabled">
+          <mat-chip
+            *ngFor="let header of allowHeadersFormControl.value"
+            [selectable]="false"
+            [removable]="!allowHeadersFormControl.disabled"
+            (removed)="removeChipToFormControl(header, 'cors.allowHeaders', allowHeadersChipList)"
+          >
+            {{ header }}
+            <mat-icon *ngIf="!allowHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
+          </mat-chip>
+          <input
+            *ngIf="!allowHeadersFormControl.disabled"
+            placeholder="Content-Type, ..."
+            [formControl]="allowHeadersInputFormControl"
+            [matAutocomplete]="auto"
+            [matChipInputFor]="allowHeadersChipList"
+            [matChipInputAddOnBlur]="true"
+            (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowHeaders', allowHeadersChipList)"
+          />
+        </mat-chip-list>
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.allowHeaders')">
+          <mat-option *ngFor="let defaultHeader of allowHeadersFilteredOptions$ | async" [value]="defaultHeader">
+            {{ defaultHeader }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-hint>
+          Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+        </mat-hint>
+        <mat-icon *ngIf="allowHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field
+        *ngIf="formSettings.get('cors.exposedHeaders'); let exposedHeadersFormControl"
+        class="console-settings__card__form-field"
+        appearance="fill"
+      >
+        <mat-label>Exposed-Headers</mat-label>
+        <mat-chip-list
+          #exposedHeadersChipList
+          aria-label="Exposed-Headers selection"
+          multiple
+          [disabled]="exposedHeadersFormControl.disabled"
+        >
+          <mat-chip
+            *ngFor="let header of exposedHeadersFormControl.value"
+            [selectable]="false"
+            [removable]="!exposedHeadersFormControl.disabled"
+            (removed)="removeChipToFormControl(header, 'cors.exposedHeaders', exposedHeadersChipList)"
+          >
+            {{ header }}
+            <mat-icon *ngIf="!exposedHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
+          </mat-chip>
+          <input
+            *ngIf="!exposedHeadersFormControl.disabled"
+            placeholder="Content-Type, ..."
+            [formControl]="exposedHeadersInputFormControl"
+            [matAutocomplete]="auto"
+            [matChipInputFor]="exposedHeadersChipList"
+            [matChipInputAddOnBlur]="true"
+            (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.exposedHeaders', exposedHeadersChipList)"
+          />
+        </mat-chip-list>
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.exposedHeaders')">
+          <mat-option *ngFor="let defaultHeader of exposedHeadersFilteredOptions$ | async" [value]="defaultHeader">
+            {{ defaultHeader }}
+          </mat-option>
+        </mat-autocomplete>
+        <mat-hint>
+          Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+        </mat-hint>
+        <mat-icon *ngIf="exposedHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></mat-label>
+        <input #maxAgeInput matInput formControlName="maxAge" type="number" min="0" />
+        <mat-icon *ngIf="maxAgeInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+    </mat-card-content>
+  </mat-card>
+
   <button mat-raised-button color="accent" type="submit" [disabled]="formSettings.invalid">Save</button>
 </form>

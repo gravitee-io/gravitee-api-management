@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Observable, Subject } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { set } from 'lodash';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
+import { isEmpty, set } from 'lodash';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { CorsUtil } from '../../../shared/utils';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'gio-org-config-console-settings',
@@ -37,6 +42,14 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
 
   providedConfigurationMessage = 'Configuration provided by the system';
 
+  httpMethods = CorsUtil.httpMethods;
+
+  allowHeadersInputFormControl = new FormControl();
+  allowHeadersFilteredOptions$: Observable<string[]>;
+
+  exposedHeadersInputFormControl = new FormControl();
+  exposedHeadersFilteredOptions$: Observable<string[]>;
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   private hasIdpDefined = () => {
@@ -47,7 +60,13 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
     );
   };
 
-  constructor(private readonly fb: FormBuilder, private readonly consoleSettingsService: ConsoleSettingsService) {}
+  private allowAllOriginsConfirmDialog?: MatDialogRef<GioConfirmDialogComponent, boolean>;
+
+  constructor(
+    private readonly fb: FormBuilder,
+    private readonly consoleSettingsService: ConsoleSettingsService,
+    private matDialog: MatDialog,
+  ) {}
 
   ngOnInit(): void {
     this.consoleSettingsService
@@ -94,6 +113,16 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
             ],
           }),
           alert: [{ value: this.settings?.alert?.enabled, disabled: this.isReadonlySetting('alert.enabled') }],
+          cors: this.fb.group({
+            allowOrigin: [
+              { value: this.settings?.cors?.allowOrigin ?? [], disabled: this.isReadonlySetting('cors.allowOrigin') },
+              [CorsUtil.allowOriginValidator()],
+            ],
+            allowMethods: [{ value: this.settings?.cors?.allowMethods ?? [], disabled: this.isReadonlySetting('cors.allowMethods') }],
+            allowHeaders: [{ value: this.settings?.cors?.allowHeaders ?? [], disabled: this.isReadonlySetting('cors.allowHeaders') }],
+            exposedHeaders: [{ value: this.settings?.cors?.exposedHeaders ?? [], disabled: this.isReadonlySetting('cors.exposedHeaders') }],
+            maxAge: [{ value: this.settings?.cors?.maxAge, disabled: this.isReadonlySetting('cors.maxAge') }],
+          }),
         });
 
         // Disable `management.automaticValidation` if `management.userCreation` is not checked
@@ -108,6 +137,20 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
             this.formSettings.get('management.automaticValidation').disable();
           });
       });
+
+    this.allowHeadersFilteredOptions$ = this.allowHeadersInputFormControl.valueChanges.pipe(
+      startWith(''),
+      map((value: string | null) => {
+        return CorsUtil.defaultHttpHeaders.filter((defaultHeader) => defaultHeader.toLowerCase().includes((value ?? '').toLowerCase()));
+      }),
+    );
+
+    this.exposedHeadersFilteredOptions$ = this.exposedHeadersInputFormControl.valueChanges.pipe(
+      startWith(''),
+      map((value: string | null) => {
+        return CorsUtil.defaultHttpHeaders.filter((defaultHeader) => defaultHeader.toLowerCase().includes((value ?? '').toLowerCase()));
+      }),
+    );
   }
 
   ngOnDestroy() {
@@ -117,5 +160,78 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
 
   isReadonlySetting(property: string): boolean {
     return ConsoleSettingsService.isReadonly(this.settings, property);
+  }
+
+  addChipToFormControl(event: MatChipInputEvent, formControlPath: string, matChipList: MatChipList): void {
+    const input = event.chipInput.inputElement;
+    const chipToAdd = (event.value ?? '').trim();
+    const formControl = this.formSettings.get(formControlPath);
+
+    // Add new Chip in form control
+    if (!isEmpty(chipToAdd)) {
+      // Delete Chip if already existing
+      const formControlValue = [...formControl.value].filter((v) => v !== chipToAdd);
+
+      formControl.setValue([...formControlValue, chipToAdd]);
+    }
+
+    // Reset the input value
+    if (input) {
+      input.value = '';
+    }
+
+    // Check error state
+    matChipList.errorState = formControl.errors !== null;
+  }
+
+  confirmAllowAllOrigins(event: MatChipInputEvent) {
+    const chipToAdd = (event.value ?? '').trim();
+    const formControl = this.formSettings.get('cors.allowOrigin');
+
+    // Confirm allow all origins
+    if ('*' === chipToAdd && !this.allowAllOriginsConfirmDialog) {
+      this.allowAllOriginsConfirmDialog = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '300px',
+        data: {
+          title: 'Are you sure you want to remove all cross-origin restrictions?',
+          confirmButton: 'Yes, I want to allow all origins.',
+        },
+        role: 'alertdialog',
+        id: 'allowAllOriginsConfirmDialog',
+      });
+      this.allowAllOriginsConfirmDialog
+        .afterClosed()
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe((confirm) => {
+          if (!confirm) {
+            formControl.setValue([...formControl.value].filter((v) => v !== chipToAdd));
+          }
+          this.allowAllOriginsConfirmDialog = undefined;
+        });
+    }
+  }
+
+  removeChipToFormControl(value: string, formControlPath: string, matChipList: MatChipList) {
+    const formControl = this.formSettings.get(formControlPath);
+    // Remove Chip in form control
+    formControl.setValue([...formControl.value].filter((v) => v !== value));
+
+    // Check error state
+    matChipList.errorState = formControl.errors !== null;
+  }
+
+  addSelectedToFormControl(event: MatAutocompleteSelectedEvent, formControlPath: string): void {
+    const optionToAdd = event.option.viewValue;
+
+    // Add selected option in form control
+    if (!isEmpty(optionToAdd)) {
+      const formControl = this.formSettings.get(formControlPath);
+      // Delete Chip if already existing
+      const formControlValue = [...formControl.value].filter((v) => v !== optionToAdd);
+
+      formControl.setValue([...formControlValue, optionToAdd]);
+    }
+    this.allowHeadersInputFormControl.setValue(null);
+    this.allowHeadersInputFormControl.updateValueAndValidity();
   }
 }

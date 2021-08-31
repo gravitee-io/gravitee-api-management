@@ -23,10 +23,15 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ConsoleSettingsComponent } from './console/console-settings';
 
+import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 @NgModule({
   imports: [
     BrowserAnimationsModule,
@@ -40,6 +45,12 @@ import { ConsoleSettingsComponent } from './console/console-settings';
     MatCheckboxModule,
     MatDividerModule,
     MatTooltipModule,
+    MatChipsModule,
+    MatSelectModule,
+    MatAutocompleteModule,
+    MatDialogModule,
+
+    GioConfirmDialogModule,
   ],
   declarations: [ConsoleSettingsComponent],
   exports: [ConsoleSettingsComponent],
