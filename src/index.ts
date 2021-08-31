@@ -24,6 +24,7 @@ import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
 import { AppModule } from './app.module';
+import { Constants } from './entities/Constants';
 
 // fix angular-schema-form angular<1.7
 Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
@@ -35,11 +36,12 @@ const $window: ng.IWindowService = initInjector.get('$window');
 const configNoCache = { headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' } };
 let ConstantsJSON: any;
 
-fetchData()
-  .then((constants: any) => initLoader(constants))
-  .then((constants: any) => initTheme(constants))
-  .then(initComponents)
-  .then(bootstrapApplication);
+fetchData().then((constants: Constants) => {
+  return initLoader(constants)
+    .then(() => initTheme(constants))
+    .then(() => initComponents())
+    .then(() => bootstrapApplication(constants));
+});
 
 function fetchData() {
   return $q
@@ -116,7 +118,7 @@ function preselectOrganization() {
   return orgId;
 }
 
-function initLoader(constants: any) {
+function initLoader(constants: Constants) {
   const img = document.createElement('img');
   img.classList.add('gravitee-splash-screen');
   img.setAttribute('src', constants.org.settings.theme.loader);
@@ -126,7 +128,7 @@ function initLoader(constants: any) {
   return $q.resolve(constants);
 }
 
-function initTheme(constants: any) {
+function initTheme(constants: Constants) {
   return $http
     .get(`./themes/${constants.org.settings.theme.name}-theme.json`, configNoCache)
     .then((response: any) => {
@@ -143,6 +145,6 @@ function initComponents() {
   loadDefaultTranslations();
 }
 
-function bootstrapApplication() {
-  platformBrowserDynamic().bootstrapModule(AppModule);
+function bootstrapApplication(constants: Constants) {
+  platformBrowserDynamic([{ provide: 'Constants', useValue: constants }]).bootstrapModule(AppModule);
 }
