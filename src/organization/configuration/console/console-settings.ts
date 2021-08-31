@@ -82,6 +82,11 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
               },
             ],
           }),
+          theme: this.fb.group({
+            name: [{ value: this.settings?.theme?.name, disabled: this.isReadonlySetting('theme.name') }],
+            logo: [{ value: this.settings?.theme?.logo, disabled: this.isReadonlySetting('theme.logo') }],
+            loader: [{ value: this.settings?.theme?.loader, disabled: this.isReadonlySetting('theme.loader') }],
+          }),
         });
 
         // Disable `management.automaticValidation` if `management.userCreation` is not checked
