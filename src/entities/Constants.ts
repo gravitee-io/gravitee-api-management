@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ConsoleSettings } from './consoleSettings';
 import { Environment } from './environment/environment';
 
 export interface Constants {
@@ -23,68 +24,10 @@ export interface Constants {
   org?: {
     environments: Environment[];
     currentEnv: Environment;
-    settings?: OrgSettings;
+    settings?: ConsoleSettings;
     baseURL?: string;
   };
   baseURL: string;
-}
-
-interface OrgSettings {
-  alert?: {
-    enabled?: boolean;
-  };
-  authentication?: {
-    google?: unknown;
-    github?: unknown;
-    oauth2?: unknown;
-    localLogin?: {
-      enabled?: boolean;
-    };
-  };
-  reCaptcha?: {
-    enabled?: boolean;
-    siteKey?: string;
-  };
-  scheduler?: {
-    tasks?: number;
-    notifications?: number;
-  };
-  logging?: {
-    maxDurationMillis?: number;
-    audit?: {
-      enabled?: boolean;
-      trail?: {
-        enabled?: boolean;
-      };
-    };
-    user?: {
-      displayed?: boolean;
-    };
-  };
-  maintenance?: {
-    enabled?: boolean;
-  };
-  management?: {
-    support?: {
-      enabled?: boolean;
-    };
-    title?: string;
-    userCreation?: {
-      enabled?: boolean;
-    };
-    automaticValidation?: {
-      enabled?: boolean;
-    };
-  };
-  newsletter?: {
-    enabled?: boolean;
-  };
-  theme?: {
-    css?: string;
-    name?: string;
-    logo?: string;
-    loader?: string;
-  };
 }
 
 interface EnvSettings {
