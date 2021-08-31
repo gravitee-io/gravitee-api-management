@@ -20,7 +20,6 @@ const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
@@ -32,50 +31,54 @@ module.exports = {
     rules: [
       {
         test: /\.(scss)$/,
-        loaders: ExtractTextPlugin.extract({
+        use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: 'css-loader!postcss-loader!sass-loader',
         }),
-        include: [path.resolve(__dirname, '..') + '/src/index.scss'],
+        include: path.resolve(__dirname, '..', 'src', 'index.scss'),
       },
       {
         test: /\.(scss)$/,
-        exclude: [path.resolve(__dirname, '../src/index.scss')],
+        exclude: path.resolve(__dirname, '..', 'src', 'index.scss'),
         use: ['to-string-loader', 'css-loader', 'sass-loader'],
       },
-      { test: /\.css$/, loaders: ['style-loader', 'css-loader'] },
+      { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        loaders: ['ng-annotate-loader', 'ts-loader?transpileOnly=true'],
+        use: ['ng-annotate-loader', 'ts-loader?transpileOnly=true'],
       },
       {
         test: /\.html$/i,
-        loader: 'ignore-loader',
+        use: ['ignore-loader'],
         include: /node_modules\/codemirror/,
       },
       {
         test: /\.html$/,
         exclude: /node_modules/,
-        loader: 'html-loader',
-        options: {
-          minimize: true,
-          removeComments: true,
-          collapseWhitespace: true,
-          removeAttributeQuotes: true,
-        },
+        use: [
+          {
+            loader: 'html-loader',
+            options: {
+              minimize: true,
+              removeComments: true,
+              collapseWhitespace: true,
+              removeAttributeQuotes: true,
+            },
+          },
+        ],
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
-        loaders: ['file-loader?hash=sha512&digest=hex&name=[hash].[ext]'],
+        use: ['file-loader?hash=sha512&digest=hex&name=[hash].[ext]'],
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: 'url-loader?limit=10000&minetype=application/font-woff',
+        use: ['url-loader?limit=10000&minetype=application/font-woff'],
       },
       {
         test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: 'file-loader',
+        use: ['file-loader'],
       },
     ],
   },
@@ -88,21 +91,10 @@ module.exports = {
       tinycolor: 'tinycolor2',
       Highcharts: 'highcharts',
     }),
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, '..', 'src', 'index.html'),
     }),
     new ExtractTextPlugin('index-[hash].css'),
-    new webpack.LoaderOptionsPlugin({
-      options: {
-        postcss: () => [autoprefixer],
-        resolve: {},
-        ts: {
-          configFileName: 'tsconfig.json',
-        },
-      },
-    }),
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -162,10 +154,6 @@ module.exports = {
   },
   entry: {
     app: `./${path.join('src', 'index')}`,
-  },
-  node: {
-    fs: 'empty',
-    module: 'empty',
   },
   externals: [{ 'api-console': {}, unicode: {} }],
   optimization: {

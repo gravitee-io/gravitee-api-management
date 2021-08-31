@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const webpack = require('webpack');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const env = process.env.BACKEND_ENV;
 
@@ -29,12 +26,12 @@ module.exports = {
     rules: [
       {
         test: /\.(scss)$/,
-        include: [path.resolve(__dirname, '../src/index.scss')],
+        include: path.resolve(__dirname, '..', 'src', 'index.scss'),
         use: ['style-loader', 'css-loader', 'sass-loader'],
       },
       {
         test: /\.(scss)$/,
-        exclude: [path.resolve(__dirname, '../src/index.scss')],
+        exclude: path.resolve(__dirname, '..', 'src', 'index.scss'),
         use: ['to-string-loader', 'css-loader', 'sass-loader'],
       },
       { test: /\.css$/, use: ['style-loader', 'css-loader'] },
@@ -45,41 +42,30 @@ module.exports = {
       },
       {
         test: /\.html$/i,
-        loader: 'ignore-loader',
+        use: ['ignore-loader'],
         include: /node_modules\/codemirror/,
       },
       {
         test: /.html$/,
-        loader: 'html-loader',
+        use: ['html-loader'],
       },
       {
         test: /\.(jpe?g|png|gif|svg)$/i,
-        loader: 'file-loader?hash=sha512&digest=hex&name=[hash].[ext]',
+        use: ['file-loader?hash=sha512&digest=hex&name=[hash].[ext]'],
       },
       {
         test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader?limit=10000&minetype=application/font-woff',
+        use: ['url-loader?limit=10000&minetype=application/font-woff'],
       },
       {
         test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'file-loader',
+        use: ['file-loader'],
       },
     ],
   },
   plugins: [
-    new ForkTsCheckerWebpackPlugin(),
-    new webpack.optimize.OccurrenceOrderPlugin(),
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, '..', 'src', 'index.html'),
-    }),
-    new webpack.LoaderOptionsPlugin({
-      options: {
-        postcss: () => [autoprefixer],
-        resolve: {},
-        ts: {
-          configFileName: 'tsconfig.json',
-        },
-      },
     }),
     new CopyWebpackPlugin({
       patterns: [
@@ -139,10 +125,6 @@ module.exports = {
     extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
   },
   entry: `./${path.join('src', 'index')}`,
-  node: {
-    fs: 'empty',
-    module: 'empty',
-  },
   devServer: {
     port: 3000,
     proxy: {
