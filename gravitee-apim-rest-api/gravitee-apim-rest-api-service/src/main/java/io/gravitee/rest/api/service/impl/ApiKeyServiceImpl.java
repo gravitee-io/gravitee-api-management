@@ -219,12 +219,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public void revoke(String apiKey, boolean notify) {
         try {
             LOGGER.debug("Revoke API Key {}", apiKey);
-            Optional<ApiKey> optKey = apiKeyRepository.findByKey(apiKey);
-            if (!optKey.isPresent()) {
-                throw new ApiKeyNotFoundException();
-            }
-
-            ApiKey key = optKey.get();
+            ApiKey key = apiKeyRepository.findByKey(apiKey).orElseThrow(() -> new ApiKeyNotFoundException());
 
             checkApiKeyExpired(key);
 
@@ -269,12 +264,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public ApiKeyEntity reactivate(String apiKey) {
         try {
             LOGGER.debug("Reactivate API Key {}", apiKey);
-            Optional<ApiKey> optKey = apiKeyRepository.findByKey(apiKey);
-            if (!optKey.isPresent()) {
-                throw new ApiKeyNotFoundException();
-            }
-
-            ApiKey key = optKey.get();
+            ApiKey key = apiKeyRepository.findByKey(apiKey).orElseThrow(() -> new ApiKeyNotFoundException());
 
             if (!key.isRevoked() && !convert(key).isExpired()) {
                 throw new ApiKeyAlreadyActivatedException("The API key is already activated");
@@ -340,14 +330,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public ApiKeyEntity findByKey(String apiKey) {
         try {
             LOGGER.debug("Find an API Key by key: {}", apiKey);
-
-            Optional<ApiKey> optApiKey = apiKeyRepository.findByKey(apiKey);
-
-            if (optApiKey.isPresent()) {
-                return convert(optApiKey.get());
-            }
-
-            throw new ApiKeyNotFoundException();
+            ApiKey key = apiKeyRepository.findByKey(apiKey).orElseThrow(() -> new ApiKeyNotFoundException());
+            return convert(key);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to find an API Key by key {}", apiKey, ex);
             throw new TechnicalManagementException(String.format("An error occurs while trying to find an API Key by key: %s", apiKey), ex);
@@ -358,12 +342,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public ApiKeyEntity update(ApiKeyEntity apiKeyEntity) {
         try {
             LOGGER.debug("Update API Key {}", apiKeyEntity.getKey());
-            Optional<ApiKey> optKey = apiKeyRepository.findByKey(apiKeyEntity.getKey());
-            if (!optKey.isPresent()) {
-                throw new ApiKeyNotFoundException();
-            }
-
-            ApiKey key = optKey.get();
+            ApiKey key = apiKeyRepository.findByKey(apiKeyEntity.getKey()).orElseThrow(() -> new ApiKeyNotFoundException());
 
             checkApiKeyExpired(key);
 
