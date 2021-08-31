@@ -322,6 +322,19 @@ tbody {
   border-color: inherit;
 }
 
+.snack-bar-success {
+  background-color: var(--gv-theme-color-success);
+
+  // FIXME: Set the color to dark for a better contrast
+  // color: var(--gv-theme-font-color-dark);
+}
+
+.snack-bar-error {
+  background-color: var(--gv-theme-color-error);
+  // FIXME: Set the color to dark for a better contrast
+  // color: var(--gv-theme-font-color-dark);
+}
+
 md-toast {
   position: fixed;
 

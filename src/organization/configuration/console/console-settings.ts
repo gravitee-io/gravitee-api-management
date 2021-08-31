@@ -15,11 +15,11 @@
  */
 
 import { Observable, Subject } from 'rxjs';
-import { map, startWith, takeUntil } from 'rxjs/operators';
+import { map, startWith, takeUntil, tap } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
-import { isEmpty, set } from 'lodash';
+import { cloneDeep, isEmpty, set } from 'lodash';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
@@ -27,6 +27,7 @@ import { ConsoleSettingsService } from '../../../services-ngx/console-settings.s
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { CorsUtil } from '../../../shared/utils';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'gio-org-config-console-settings',
@@ -65,7 +66,8 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
   constructor(
     private readonly fb: FormBuilder,
     private readonly consoleSettingsService: ConsoleSettingsService,
-    private matDialog: MatDialog,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
@@ -278,5 +280,62 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
     }
     this.allowHeadersInputFormControl.setValue(null);
     this.allowHeadersInputFormControl.updateValueAndValidity();
+  }
+
+  onSubmit() {
+    if (this.formSettings.invalid) {
+      return;
+    }
+
+    const formSettingsValue = this.formSettings.getRawValue();
+
+    const settingsToSave = cloneDeep(this.settings);
+
+    set(settingsToSave, 'management.title', formSettingsValue.management.title);
+    set(settingsToSave, 'management.url', formSettingsValue.management.url);
+    set(settingsToSave, 'management.support', {
+      enabled: formSettingsValue.management.support,
+    });
+    set(settingsToSave, 'management.userCreation', {
+      enabled: formSettingsValue.management.userCreation,
+    });
+    set(settingsToSave, 'management.automaticValidation', {
+      enabled: formSettingsValue.management.automaticValidation,
+    });
+
+    set(settingsToSave, 'theme.name', formSettingsValue.theme.name);
+    set(settingsToSave, 'theme.logo', formSettingsValue.theme.logo);
+    set(settingsToSave, 'theme.loader', formSettingsValue.theme.loader);
+
+    set(settingsToSave, 'scheduler.tasks', formSettingsValue.scheduler.tasks);
+    set(settingsToSave, 'scheduler.notifications', formSettingsValue.scheduler.notifications);
+
+    set(settingsToSave, 'alert', { enabled: formSettingsValue.alert });
+
+    set(settingsToSave, 'cors.allowOrigin', formSettingsValue.cors.allowOrigin);
+    set(settingsToSave, 'cors.allowMethods', formSettingsValue.cors.allowMethods);
+    set(settingsToSave, 'cors.allowHeaders', formSettingsValue.cors.allowHeaders);
+    set(settingsToSave, 'cors.exposedHeaders', formSettingsValue.cors.exposedHeaders);
+    set(settingsToSave, 'cors.maxAge', formSettingsValue.cors.maxAge);
+
+    set(settingsToSave, 'email.enabled', formSettingsValue.email.enabled);
+    set(settingsToSave, 'email.host', formSettingsValue.email.host);
+    set(settingsToSave, 'email.port', formSettingsValue.email.port);
+    set(settingsToSave, 'email.username', formSettingsValue.email.username);
+    set(settingsToSave, 'email.password', formSettingsValue.email.password);
+    set(settingsToSave, 'email.protocol', formSettingsValue.email.protocol);
+    set(settingsToSave, 'email.subject', formSettingsValue.email.subject);
+    set(settingsToSave, 'email.from', formSettingsValue.email.from);
+    set(settingsToSave, 'email.properties.auth', formSettingsValue.email.properties.auth);
+    set(settingsToSave, 'email.properties.startTlsEnable', formSettingsValue.email.properties.startTlsEnable);
+    set(settingsToSave, 'email.properties.sslTrust', formSettingsValue.email.properties.sslTrust);
+
+    this.consoleSettingsService
+      .save(settingsToSave)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+      )
+      .subscribe();
   }
 }

@@ -28,6 +28,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ConsoleSettingsComponent } from './console/console-settings';
 
@@ -49,6 +50,7 @@ import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/c
     MatSelectModule,
     MatAutocompleteModule,
     MatDialogModule,
+    MatSnackBarModule,
 
     GioConfirmDialogModule,
   ],

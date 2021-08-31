@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form *ngIf="!isLoading" [formGroup]="formSettings">
+<form *ngIf="!isLoading" [formGroup]="formSettings" (ngSubmit)="onSubmit()">
   <h1>Settings</h1>
   <blockquote class="console-settings__info mat-caption">
     <mat-icon aria-hidden="false" aria-label="Info icon">info</mat-icon>
