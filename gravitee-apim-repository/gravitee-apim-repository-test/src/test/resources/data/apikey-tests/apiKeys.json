@@ -1,52 +1,73 @@
 [
 	{
-		"key":"d449098d-8c31-4275-ad59-8dd707865a33",
+		"id": "id-of-apikey-0",
+		"key": "d449098d-8c31-4275-ad59-8dd707865999",
+		"revoked": true,
+		"expireAt": 29919401755,
+		"subscription": "subscription2",
+		"api": "api2",
+		"createdAt": 1439022010883
+	},
+	{
+		"id": "id-of-apikey-1",
+		"key": "d449098d-8c31-4275-ad59-8dd707865a34",
 		"revoked": true,
 		"expireAt": 1439022010883,
 		"subscription": "subscription1",
+		"api": "api1",
 		"createdAt": 1439022010883,
 		"paused": true,
 		"daysToExpirationOnLastNotification": 30
 	},
 	{
-		"key":"d449098d-8c31-4275-ad59-8dd707865a34",
-		"revoked":false,
+		"id": "id-of-apikey-2",
+		"key": "d449098d-8c31-4275-ad59-8dd707865a34",
+		"revoked": false,
 		"expireAt": 1439022010883,
 		"subscription": "subscription2",
+		"api": "api2",
 		"createdAt": 1439022010883
 	},
 	{
-		"key":"d449098d-8c31-4275-ad59-8dd707865a35",
-		"revoked":false,
+		"id": "id-of-apikey-3",
+		"key": "d449098d-8c31-4275-ad59-8dd707865a35",
+		"revoked": false,
 		"expireAt": 1439022010883,
 		"subscription": "subscription1",
+		"api": "api2",
 		"createdAt": 1439022010883
 	},
 	{
+		"id": "id-of-apikey-4",
 		"key": "findByCriteria1",
 		"subscription": "sub1",
 		"application": "app1",
 		"plan": "plan1",
+		"api": "api2",
 		"expireAt": 29919401755,
 		"createdAt": 1486771200000,
 		"updatedAt": 1486771200000,
 		"revoked": false
 	},
 	{
+		"id": "id-of-apikey-5",
 		"key": "findByCriteria1Revoked",
 		"subscription": "sub1",
 		"application": "app1",
 		"plan": "plan1",
+		"api": "api2",
 		"expireAt": 29919401755,
 		"createdAt": 1486771200000,
 		"updatedAt": 1486771400000,
 		"revoked": true
 	},
 	{
+		"id": "id-of-apikey-6",
 		"key": "findByCriteria2",
 		"subscription": "sub2",
 		"application": "app2",
 		"plan": "plan1",
+		"api": "api2",
 		"expireAt": 29919401755,
 		"createdAt": 1486771200000,
 		"updatedAt": 1486771600000,

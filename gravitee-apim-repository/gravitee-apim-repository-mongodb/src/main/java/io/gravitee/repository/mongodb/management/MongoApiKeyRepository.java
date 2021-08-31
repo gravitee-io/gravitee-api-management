@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +38,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MongoApiKeyRepository implements ApiKeyRepository {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongoApiKeyRepository.class);
 
     @Autowired
     private GraviteeMapper mapper;
@@ -57,10 +61,10 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
             throw new IllegalStateException("ApiKey to update must have an key");
         }
 
-        ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findById(apiKey.getKey()).orElse(null);
+        ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findById(apiKey.getId()).orElse(null);
 
         if (apiKeyMongo == null) {
-            throw new IllegalStateException(String.format("No apiKey found with key [%s]", apiKey.getKey()));
+            throw new IllegalStateException(String.format("No apiKey found with id [%s]", apiKey.getId()));
         }
 
         apiKeyMongo = internalApiKeyRepo.save(mapper.map(apiKey, ApiKeyMongo.class));
@@ -89,9 +93,22 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public Optional<ApiKey> findById(String key) throws TechnicalException {
-        ApiKeyMongo apiKey = internalApiKeyRepo.findById(key).orElse(null);
+    public Optional<ApiKey> findById(String id) throws TechnicalException {
+        ApiKeyMongo apiKey = internalApiKeyRepo.findById(id).orElse(null);
 
         return (apiKey != null) ? Optional.of(mapper.map(apiKey, ApiKey.class)) : Optional.empty();
+    }
+
+    @Override
+    public Optional<ApiKey> findByKey(String key) throws TechnicalException {
+        List<ApiKeyMongo> apiKeys = internalApiKeyRepo.findByKey(key);
+
+        if (apiKeys.isEmpty()) {
+            return Optional.empty();
+        }
+        if (apiKeys.size() > 1) {
+            LOGGER.warn("Mutliple API keys found with key [{}]. Returning the first one", key);
+        }
+        return Optional.of(mapper.map(apiKeys.get(0), ApiKey.class));
     }
 }

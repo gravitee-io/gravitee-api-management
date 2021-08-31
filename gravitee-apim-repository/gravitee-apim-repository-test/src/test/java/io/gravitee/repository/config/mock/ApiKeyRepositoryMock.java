@@ -42,18 +42,21 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
     @Override
     void prepare(ApiKeyRepository apiKeyRepository) throws Exception {
         final ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getId()).thenReturn("id-of-apikey-1");
         when(apiKey.getKey()).thenReturn("apiKey");
         when(apiKey.getExpireAt()).thenReturn(parse("11/02/2016"));
         when(apiKey.getSubscription()).thenReturn("subscription1");
+        when(apiKey.getApi()).thenReturn("api1");
         when(apiKey.isRevoked()).thenReturn(true);
         when(apiKey.isPaused()).thenReturn(true);
         when(apiKey.getDaysToExpirationOnLastNotification()).thenReturn(30);
         when(apiKeyRepository.findById(anyString())).thenReturn(empty());
-        when(apiKeyRepository.findById("d449098d-8c31-4275-ad59-8dd707865a33")).thenReturn(of(apiKey));
-        when(apiKeyRepository.findById("apiKey")).thenReturn(of(apiKey));
+        when(apiKeyRepository.findById("id-of-apikey-1")).thenReturn(of(apiKey));
+        when(apiKeyRepository.findById("id-of-new-apikey")).thenReturn(of(apiKey));
+        when(apiKeyRepository.findByKey("d449098d-8c31-4275-ad59-8dd707865a34")).thenReturn(of(apiKey));
         when(apiKeyRepository.findBySubscription("subscription1")).thenReturn(newSet(apiKey, mock(ApiKey.class)));
 
-        when(apiKeyRepository.update(argThat(o -> o == null || o.getKey().equals("unknown")))).thenThrow(new IllegalStateException());
+        when(apiKeyRepository.update(argThat(o -> o == null || o.getId().equals("unknown_key_id")))).thenThrow(new IllegalStateException());
 
         ApiKey mockCriteria1 = mock(ApiKey.class);
         ApiKey mockCriteria1Revoked = mock(ApiKey.class);

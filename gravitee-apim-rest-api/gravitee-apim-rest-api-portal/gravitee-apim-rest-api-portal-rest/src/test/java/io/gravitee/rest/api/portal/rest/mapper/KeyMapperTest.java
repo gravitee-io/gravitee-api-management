@@ -16,52 +16,34 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Key;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.time.Instant;
 import java.util.Date;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
 public class KeyMapperTest {
 
     private static final String API = "my-api";
     private static final String APPLICATION = "my-application";
     private static final String PLAN = "my-plan";
-    private static final String UNKNOWN_PLAN = "my-unknown-plan";
     private static final String SUBSCRIPTION = "my-subscription";
     private static final String KEY = "my-key";
+    private static final String ID = "my-ID";
 
-    private ApiKeyEntity apiKeyEntity;
     private final Instant now = Instant.now();
     private final Date nowDate = Date.from(now);
 
-    @Mock
-    private PlanService planService;
+    private KeyMapper keyMapper = new KeyMapper();
 
-    @InjectMocks
-    private KeyMapper keyMapper;
-
-    @Before
-    public void init() {
-        //init
-        apiKeyEntity = new ApiKeyEntity();
-
+    @Test
+    public void should_convert() {
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setApplication(APPLICATION);
         apiKeyEntity.setCreatedAt(nowDate);
         apiKeyEntity.setExpireAt(nowDate);
@@ -72,43 +54,19 @@ public class KeyMapperTest {
         apiKeyEntity.setRevokedAt(nowDate);
         apiKeyEntity.setSubscription(SUBSCRIPTION);
         apiKeyEntity.setUpdatedAt(nowDate);
+        apiKeyEntity.setApi(API);
+        apiKeyEntity.setId(ID);
 
-        PlanEntity planEntity = new PlanEntity();
-        planEntity.setApi(API);
-        doReturn(planEntity).when(planService).findById(PLAN);
-        doThrow(PlanNotFoundException.class).when(planService).findById(UNKNOWN_PLAN);
-    }
-
-    @Test
-    public void testConvert() {
-        //Test
         Key key = keyMapper.convert(apiKeyEntity);
-        assertNotNull(key);
 
+        assertNotNull(key);
         assertEquals(API, key.getApi());
         assertEquals(APPLICATION, key.getApplication());
         assertEquals(now.toEpochMilli(), key.getCreatedAt().toInstant().toEpochMilli());
-        assertEquals(KEY, key.getId());
+        assertEquals(KEY, key.getKey());
+        assertEquals(ID, key.getId());
         assertEquals(Boolean.FALSE, key.getPaused());
         assertEquals(PLAN, key.getPlan());
-        assertEquals(Boolean.FALSE, key.getRevoked());
-        assertNull(key.getRevokedAt());
-    }
-
-    @Test
-    public void testConvertWithoutPlan() {
-        apiKeyEntity.setPlan(UNKNOWN_PLAN);
-
-        //Test
-        Key key = keyMapper.convert(apiKeyEntity);
-        assertNotNull(key);
-
-        assertNull(key.getApi());
-        assertEquals(APPLICATION, key.getApplication());
-        assertEquals(now.toEpochMilli(), key.getCreatedAt().toInstant().toEpochMilli());
-        assertEquals(KEY, key.getId());
-        assertEquals(Boolean.FALSE, key.getPaused());
-        assertEquals(UNKNOWN_PLAN, key.getPlan());
         assertEquals(Boolean.FALSE, key.getRevoked());
         assertNull(key.getRevokedAt());
     }

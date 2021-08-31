@@ -31,18 +31,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiKeyRepositoryProxy extends AbstractProxy<ApiKeyRepository> implements ApiKeyRepository {
 
-    public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
-        return target.findById(apiKey);
+    @Override
+    public Optional<ApiKey> findById(String id) throws TechnicalException {
+        return target.findById(id);
     }
 
+    @Override
+    public Optional<ApiKey> findByKey(String key) throws TechnicalException {
+        return target.findByKey(key);
+    }
+
+    @Override
     public ApiKey create(ApiKey apiKey) throws TechnicalException {
         return target.create(apiKey);
     }
 
+    @Override
     public ApiKey update(ApiKey key) throws TechnicalException {
         return target.update(key);
     }
 
+    @Override
     public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
         return target.findBySubscription(subscription);
     }

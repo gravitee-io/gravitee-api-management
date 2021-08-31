@@ -45,10 +45,12 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     @Override
     protected JdbcObjectMapper<ApiKey> buildOrm() {
         return JdbcObjectMapper
-            .builder(ApiKey.class, this.tableName, "key")
+            .builder(ApiKey.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("key", Types.NVARCHAR, String.class)
             .addColumn("subscription", Types.NVARCHAR, String.class)
             .addColumn("application", Types.NVARCHAR, String.class)
+            .addColumn("api", Types.NVARCHAR, String.class)
             .addColumn("plan", Types.NVARCHAR, String.class)
             .addColumn("expire_at", Types.TIMESTAMP, Date.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
@@ -62,7 +64,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     @Override
     protected String getId(ApiKey item) {
-        return item.getKey();
+        return item.getId();
     }
 
     @Override
@@ -154,6 +156,24 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         } catch (final Exception ex) {
             LOGGER.error("Failed to find api keys by plan:", ex);
             throw new TechnicalException("Failed to find api keys by plan", ex);
+        }
+    }
+
+    @Override
+    public Optional<ApiKey> findByKey(String key) throws TechnicalException {
+        LOGGER.debug("JdbcApiKeyRepository.findByKey({})", key);
+        try {
+            List<ApiKey> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where key = ?", getOrm().getRowMapper(), key);
+            if (items.isEmpty()) {
+                return Optional.empty();
+            }
+            if (items.size() > 1) {
+                LOGGER.warn("Mutliple API keys found with key [{}]. Returning the first one", key);
+            }
+            return Optional.of(items.get(0));
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find api key by key", ex);
+            throw new TechnicalException("Failed to find api key by key", ex);
         }
     }
 }

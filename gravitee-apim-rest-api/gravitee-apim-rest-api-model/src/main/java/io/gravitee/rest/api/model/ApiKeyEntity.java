@@ -25,6 +25,8 @@ import java.util.Objects;
  */
 public class ApiKeyEntity {
 
+    private String id;
+
     private String key;
 
     private String subscription;
@@ -32,6 +34,8 @@ public class ApiKeyEntity {
     private String application;
 
     private String plan;
+
+    private String api;
 
     @JsonProperty("expire_at")
     private Date expireAt;
@@ -152,16 +156,32 @@ public class ApiKeyEntity {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiKeyEntity that = (ApiKeyEntity) o;
-        return Objects.equals(key, that.key);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key);
+        return Objects.hash(id);
     }
 }

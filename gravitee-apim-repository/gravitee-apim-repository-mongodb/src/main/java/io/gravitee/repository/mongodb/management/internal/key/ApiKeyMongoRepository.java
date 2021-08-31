@@ -29,4 +29,6 @@ public interface ApiKeyMongoRepository extends MongoRepository<ApiKeyMongo, Stri
     List<ApiKeyMongo> findBySubscription(String subscription);
 
     List<ApiKeyMongo> findByPlan(String plan);
+
+    List<ApiKeyMongo> findByKey(String key);
 }

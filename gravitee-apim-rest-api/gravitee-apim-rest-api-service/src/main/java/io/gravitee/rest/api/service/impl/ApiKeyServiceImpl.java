@@ -26,6 +26,7 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -85,6 +86,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             LOGGER.debug("Generate an API Key for subscription {}", subscription);
 
+            if (customApiKey != null && exists(customApiKey)) {
+                throw new TechnicalManagementException(String.format("API key [%s] is already used", customApiKey));
+            }
             ApiKey apiKey = generateForSubscription(subscription, customApiKey);
             apiKey = apiKeyRepository.create(apiKey);
 
@@ -119,6 +123,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             LOGGER.debug("Renew API Key for subscription {}", subscription);
 
+            if (customApiKey != null && exists(customApiKey)) {
+                throw new TechnicalManagementException(String.format("API key [%s] is already used", customApiKey));
+            }
             ApiKey newApiKey = generateForSubscription(subscription, customApiKey);
             newApiKey = apiKeyRepository.create(newApiKey);
 
@@ -193,12 +200,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
 
         ApiKey apiKey = new ApiKey();
+        apiKey.setId(UuidString.generateRandom());
         apiKey.setSubscription(subscription);
         apiKey.setApplication(subscriptionEntity.getApplication());
         apiKey.setPlan(subscriptionEntity.getPlan());
         apiKey.setCreatedAt(new Date());
         apiKey.setUpdatedAt(apiKey.getCreatedAt());
         apiKey.setKey(customApiKey != null ? customApiKey : apiKeyGenerator.generate());
+        apiKey.setApi(subscriptionEntity.getApi());
 
         // By default, the API Key will expire when subscription is closed
         apiKey.setExpireAt(subscriptionEntity.getEndingAt());
@@ -210,7 +219,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public void revoke(String apiKey, boolean notify) {
         try {
             LOGGER.debug("Revoke API Key {}", apiKey);
-            Optional<ApiKey> optKey = apiKeyRepository.findById(apiKey);
+            Optional<ApiKey> optKey = apiKeyRepository.findByKey(apiKey);
             if (!optKey.isPresent()) {
                 throw new ApiKeyNotFoundException();
             }
@@ -260,7 +269,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public ApiKeyEntity reactivate(String apiKey) {
         try {
             LOGGER.debug("Reactivate API Key {}", apiKey);
-            Optional<ApiKey> optKey = apiKeyRepository.findById(apiKey);
+            Optional<ApiKey> optKey = apiKeyRepository.findByKey(apiKey);
             if (!optKey.isPresent()) {
                 throw new ApiKeyNotFoundException();
             }
@@ -332,7 +341,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             LOGGER.debug("Find an API Key by key: {}", apiKey);
 
-            Optional<ApiKey> optApiKey = apiKeyRepository.findById(apiKey);
+            Optional<ApiKey> optApiKey = apiKeyRepository.findByKey(apiKey);
 
             if (optApiKey.isPresent()) {
                 return convert(optApiKey.get());
@@ -349,7 +358,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public ApiKeyEntity update(ApiKeyEntity apiKeyEntity) {
         try {
             LOGGER.debug("Update API Key {}", apiKeyEntity.getKey());
-            Optional<ApiKey> optKey = apiKeyRepository.findById(apiKeyEntity.getKey());
+            Optional<ApiKey> optKey = apiKeyRepository.findByKey(apiKeyEntity.getKey());
             if (!optKey.isPresent()) {
                 throw new ApiKeyNotFoundException();
             }
@@ -381,7 +390,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public ApiKeyEntity updateDaysToExpirationOnLastNotification(String apiKey, Integer value) {
         try {
             return apiKeyRepository
-                .findById(apiKey)
+                .findByKey(apiKey)
                 .map(
                     dbApiKey -> {
                         dbApiKey.setDaysToExpirationOnLastNotification(value);
@@ -408,7 +417,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     public boolean exists(String apiKey) {
         LOGGER.debug("Check if an API Key exists by key: {}", apiKey);
         try {
-            return apiKeyRepository.findById(apiKey).isPresent();
+            return apiKeyRepository.findByKey(apiKey).isPresent();
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while checking if API Key {} exists", apiKey, ex);
             throw new TechnicalManagementException(String.format("An error occurs while checking if API Key %s exists", apiKey), ex);
@@ -504,6 +513,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     private static ApiKeyEntity convert(ApiKey apiKey) {
         ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
 
+        apiKeyEntity.setId(apiKey.getId());
         apiKeyEntity.setKey(apiKey.getKey());
         apiKeyEntity.setCreatedAt(apiKey.getCreatedAt());
         apiKeyEntity.setExpireAt(apiKey.getExpireAt());
@@ -515,6 +525,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         apiKeyEntity.setApplication(apiKey.getApplication());
         apiKeyEntity.setPlan(apiKey.getPlan());
         apiKeyEntity.setDaysToExpirationOnLastNotification(apiKey.getDaysToExpirationOnLastNotification());
+        apiKeyEntity.setApi(apiKey.getApi());
 
         return apiKeyEntity;
     }

@@ -4795,6 +4795,8 @@ components:
       properties:
         id:
           type: string
+        key:
+          type: string
         api:
           type: string
         application:

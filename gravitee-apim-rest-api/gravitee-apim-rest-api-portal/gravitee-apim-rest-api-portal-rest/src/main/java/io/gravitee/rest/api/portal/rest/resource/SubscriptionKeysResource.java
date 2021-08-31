@@ -66,15 +66,15 @@ public class SubscriptionKeysResource extends AbstractResource {
     }
 
     @POST
-    @Path("/{keyId}/_revoke")
+    @Path("/{apiKey}/_revoke")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response revokeKeySubscription(@PathParam("subscriptionId") String subscriptionId, @PathParam("keyId") String keyId) {
+    public Response revokeKeySubscription(@PathParam("subscriptionId") String subscriptionId, @PathParam("apiKey") String apiKey) {
         SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
         if (
             hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.UPDATE) ||
             hasPermission(RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
         ) {
-            ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(keyId);
+            ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
             if (apiKeyEntity.getSubscription() != null && !subscriptionId.equals(apiKeyEntity.getSubscription())) {
                 return Response
                     .status(Response.Status.BAD_REQUEST)
@@ -82,7 +82,7 @@ public class SubscriptionKeysResource extends AbstractResource {
                     .build();
             }
 
-            apiKeyService.revoke(keyId, true);
+            apiKeyService.revoke(apiKey, true);
 
             return Response.noContent().build();
         }

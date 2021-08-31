@@ -31,9 +31,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class ApiKeyMongo {
 
     /**
-     * Api Key
+     * Api Key's unique id
      */
     @Id
+    private String id;
+
+    /**
+     * Api Key
+     */
     private String key;
 
     /**
@@ -50,6 +55,11 @@ public class ApiKeyMongo {
      * The subscribed plan
      */
     private String plan;
+
+    /**
+     * The api on which this api key is used
+     */
+    private String api;
 
     /**
      * Expiration date (end date) of the Api Key
@@ -174,17 +184,33 @@ public class ApiKeyMongo {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiKeyMongo key = (ApiKeyMongo) o;
-        return Objects.equals(this.key, key.key);
+        return Objects.equals(this.id, key.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key);
+        return Objects.hash(id);
     }
 
     @Override

@@ -16,14 +16,8 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.ApiKeyEntity;
-import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Key;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import java.time.ZoneOffset;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,27 +28,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class KeyMapper {
 
-    @Autowired
-    PlanService planService;
-
-    protected static final Logger LOGGER = LoggerFactory.getLogger(KeyMapper.class);
-
     public Key convert(ApiKeyEntity apiKeyEntity) {
         final Key keyItem = new Key();
-        final String plan = apiKeyEntity.getPlan();
-
-        try {
-            PlanEntity planEntity = planService.findById(plan);
-            keyItem.setApi(planEntity.getApi());
-        } catch (PlanNotFoundException e) {
-            LOGGER.warn("plan does not exist : {}", plan);
-        }
-
+        keyItem.setId(apiKeyEntity.getId());
+        keyItem.setApi(apiKeyEntity.getApi());
         keyItem.setApplication(apiKeyEntity.getApplication());
         keyItem.setCreatedAt(apiKeyEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
-        keyItem.setId(apiKeyEntity.getKey());
+        keyItem.setKey(apiKeyEntity.getKey());
         keyItem.setPaused(apiKeyEntity.isPaused());
-        keyItem.setPlan(plan);
+        keyItem.setPlan(apiKeyEntity.getPlan());
         keyItem.setRevoked(apiKeyEntity.isRevoked());
         if (apiKeyEntity.isRevoked()) {
             keyItem.setRevokedAt(apiKeyEntity.getRevokedAt().toInstant().atOffset(ZoneOffset.UTC));

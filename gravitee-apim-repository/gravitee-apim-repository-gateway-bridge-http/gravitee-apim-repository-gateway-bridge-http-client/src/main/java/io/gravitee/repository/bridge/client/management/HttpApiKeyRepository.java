@@ -33,7 +33,12 @@ import org.springframework.stereotype.Component;
 public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRepository {
 
     @Override
-    public Optional<ApiKey> findById(String apiKey) throws TechnicalException {
+    public Optional<ApiKey> findById(String id) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Optional<ApiKey> findByKey(String apiKey) throws TechnicalException {
         return blockingGet(get("/keys/" + apiKey, BodyCodecs.optional(ApiKey.class)).send()).payload();
     }
 

@@ -34,6 +34,11 @@ public class ApiKey implements Serializable {
     }
 
     /**
+     * Api Key's unique id
+     */
+    private String id;
+
+    /**
      * Api Key
      */
     private String key;
@@ -52,6 +57,11 @@ public class ApiKey implements Serializable {
      * The subscribed plan
      */
     private String plan;
+
+    /**
+     * The api on which this api key is used
+     */
+    private String api;
 
     /**
      * Expiration date (end date) of the Api Key
@@ -91,6 +101,7 @@ public class ApiKey implements Serializable {
     public ApiKey() {}
 
     public ApiKey(ApiKey cloned) {
+        this.id = cloned.id;
         this.key = cloned.key;
         this.subscription = cloned.subscription;
         this.application = cloned.application;
@@ -102,6 +113,7 @@ public class ApiKey implements Serializable {
         this.revokedAt = cloned.revokedAt;
         this.paused = cloned.paused;
         this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
+        this.api = cloned.api;
     }
 
     public boolean isRevoked() {
@@ -192,16 +204,32 @@ public class ApiKey implements Serializable {
         this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getApi() {
+        return api;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiKey apiKey = (ApiKey) o;
-        return Objects.equals(key, apiKey.key);
+        return Objects.equals(id, apiKey.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key);
+        return Objects.hash(id);
     }
 }
