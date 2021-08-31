@@ -30,24 +30,24 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ApplicationMongoRepository extends MongoRepository<ApplicationMongo, String>, ApplicationMongoRepositoryCustom {
-    @Query("{ _id: {$in: ?0} }")
+    @Query(value = "{ _id: {$in: ?0} }", fields = "{ 'background' : 0, 'picture': 0}")
     Set<ApplicationMongo> findByIds(List<String> ids);
 
-    @Query("{ groups: {$in: ?0} }")
+    @Query(value = "{ groups: {$in: ?0} }", fields = "{ 'background' : 0, 'picture': 0}")
     Set<ApplicationMongo> findByGroups(List<String> ids);
 
-    @Query("{ groups: {$in: ?0}, status: {$in: ?1} }")
+    @Query(value = "{ groups: {$in: ?0}, status: {$in: ?1} }", fields = "{ 'background' : 0, 'picture': 0}")
     Set<ApplicationMongo> findByGroups(List<String> ids, List<ApplicationStatus> statuses);
 
-    @Query("{ name: { $regex: ?0, $options: 'i'}}")
+    @Query(value = "{ name: { $regex: ?0, $options: 'i'}}", fields = "{ 'background' : 0, 'picture': 0}")
     Set<ApplicationMongo> findByName(String name);
 
-    @Query("{ status: {$in: ?0} }")
+    @Query(value = "{ status: {$in: ?0} }", fields = "{ 'background' : 0, 'picture': 0}")
     List<ApplicationMongo> findAll(List<ApplicationStatus> statuses);
 
-    @Query("{ environmentId: ?0, status: {$in: ?1} }")
+    @Query(value = "{ environmentId: ?0, status: {$in: ?1} }", fields = "{ 'background' : 0, 'picture': 0}")
     List<ApplicationMongo> findAllByEnvironmentId(String environmentId, List<ApplicationStatus> statuses);
 
-    @Query("{ environmentId: ?0 }")
+    @Query(value = "{ environmentId: ?0 }", fields = "{ 'background' : 0, 'picture': 0}")
     List<ApplicationMongo> findAllByEnvironmentId(String environmentId);
 }

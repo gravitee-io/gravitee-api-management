@@ -29,9 +29,14 @@ import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.Upgrader;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
@@ -59,54 +64,84 @@ public class SearchIndexUpgrader implements Upgrader, Ordered {
     @Override
     public boolean upgrade() {
         // Index APIs
-        Set<ApiEntity> apis = apiService.findAll();
+        final Set<ApiEntity> apis = apiService.findAllLight();
 
-        ForkJoinPool customThreadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors() * 2);
+        ExecutorService executorService = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors() * 2,
+            new ThreadFactory() {
+                private final AtomicLong counter = new AtomicLong(0);
 
-        customThreadPool.submit(
-            () ->
-                apis
-                    .parallelStream()
-                    .forEach(
-                        apiEntity -> {
-                            // API
-                            searchEngineService.index(apiEntity, true);
+                @Override
+                public Thread newThread(@NotNull Runnable r) {
+                    return new Thread(r, "gio.search-indexer-upgrader-" + counter.getAndIncrement());
+                }
+            }
+        );
 
-                            // Pages
-                            List<PageEntity> apiPages = pageService.search(
-                                new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
-                                true
-                            );
-                            apiPages.forEach(
-                                page -> {
-                                    try {
-                                        if (
-                                            !PageType.FOLDER.name().equals(page.getType()) &&
-                                            !PageType.ROOT.name().equals(page.getType()) &&
-                                            !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
-                                            !PageType.LINK.name().equals(page.getType())
-                                        ) {
-                                            pageService.transformSwagger(page, apiEntity.getId());
-                                            searchEngineService.index(page, true);
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        apis
+            .stream()
+            .forEach(
+                new Consumer<ApiEntity>() {
+                    @Override
+                    public void accept(ApiEntity apiEntity) {
+                        futures.add(
+                            CompletableFuture.runAsync(
+                                () -> {
+                                    // API
+                                    searchEngineService.index(apiEntity, true, false);
+
+                                    // Pages
+                                    List<PageEntity> apiPages = pageService.search(
+                                        new PageQuery.Builder().api(apiEntity.getId()).published(true).build(),
+                                        true
+                                    );
+                                    apiPages.forEach(
+                                        page -> {
+                                            try {
+                                                if (
+                                                    !PageType.FOLDER.name().equals(page.getType()) &&
+                                                    !PageType.ROOT.name().equals(page.getType()) &&
+                                                    !PageType.SYSTEM_FOLDER.name().equals(page.getType()) &&
+                                                    !PageType.LINK.name().equals(page.getType())
+                                                ) {
+                                                    pageService.transformSwagger(page, apiEntity.getId());
+                                                    searchEngineService.index(page, true, false);
+                                                }
+                                            } catch (Exception ignored) {}
                                         }
-                                    } catch (Exception ignored) {}
-                                }
-                            );
-                        }
-                    )
+                                    );
+                                },
+                                executorService
+                            )
+                        );
+                    }
+                }
+            );
+
+        futures.add(
+            CompletableFuture.runAsync(
+                () -> {
+                    // Index users
+                    Page<UserEntity> users = userService.search(
+                        new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
+                        new PageableImpl(1, Integer.MAX_VALUE)
+                    );
+
+                    users.getContent().forEach(userEntity -> searchEngineService.index(userEntity, true, false));
+                }
+            )
         );
 
-        // Index users
-        Page<UserEntity> users = userService.search(
-            new UserCriteria.Builder().statuses(UserStatus.ACTIVE).build(),
-            new PageableImpl(1, Integer.MAX_VALUE)
-        );
+        CompletableFuture<Void> future = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
-        customThreadPool.submit(
-            () -> users.getContent().parallelStream().forEach(userEntity -> searchEngineService.index(userEntity, true))
+        future.whenCompleteAsync(
+            (unused, throwable) -> {
+                executorService.shutdown();
+                searchEngineService.commit();
+            },
+            executorService
         );
-
-        customThreadPool.shutdown();
 
         return true;
     }

@@ -58,6 +58,9 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Retrieve list of categories")
     public List<CategoryEntity> getCategories() {
+        //TODO: Total APIs is not required when loading categories for editing an API from the console.
+        // But this service is also used to managed Categories from Settings.
+        // We should find a way to load total API only when necessary (ie. not while editing an API)
         Set<ApiEntity> apis;
         if (isAdmin()) {
             apis = apiService.findAll();

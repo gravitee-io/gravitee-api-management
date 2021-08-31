@@ -110,6 +110,20 @@ public class JdbcSubscriptionRepository extends JdbcAbstractCrudRepository<Subsc
             argsList.add(criteria.getClientId());
             started = true;
         }
+
+        if (criteria.getEndingAtAfter() > 0) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("ending_at >= ?");
+            argsList.add(new Date(criteria.getEndingAtAfter()));
+            started = true;
+        }
+        if (criteria.getEndingAtBefore() > 0) {
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
+            builder.append("ending_at <= ?");
+            argsList.add(new Date(criteria.getEndingAtBefore()));
+            started = true;
+        }
+
         started = addStringsWhereClause(criteria.getPlans(), escapeReservedWord("plan"), argsList, builder, started);
         started = addStringsWhereClause(criteria.getApplications(), "application", argsList, builder, started);
         started = addStringsWhereClause(criteria.getApis(), "api", argsList, builder, started);

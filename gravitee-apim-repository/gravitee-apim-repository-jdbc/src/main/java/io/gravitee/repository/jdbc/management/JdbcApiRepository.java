@@ -226,13 +226,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         String projection =
             "ac.*, a.id, a.environment_id, a.name, a.description, a.version, a.deployed_at, a.created_at, a.updated_at, " +
-            "a.visibility, a.lifecycle_state, a.picture, a.api_lifecycle_state";
+            "a.visibility, a.lifecycle_state, a.api_lifecycle_state";
 
         if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isDefinition()) {
             projection += ", a.definition";
         }
         if (apiFieldExclusionFilter == null || !apiFieldExclusionFilter.isPicture()) {
-            projection += ", a.picture";
+            projection += ", a.picture, a.background";
         }
 
         final StringBuilder sbQuery = new StringBuilder("select ").append(projection).append(" from apis a ");

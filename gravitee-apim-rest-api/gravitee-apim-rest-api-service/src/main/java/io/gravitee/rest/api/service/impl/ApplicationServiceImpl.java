@@ -723,8 +723,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getMemberId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
+        // We don't need user metadata, only global information
         userService
-            .findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(Collectors.toList()))
+            .findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(Collectors.toList()), false)
             .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return applications

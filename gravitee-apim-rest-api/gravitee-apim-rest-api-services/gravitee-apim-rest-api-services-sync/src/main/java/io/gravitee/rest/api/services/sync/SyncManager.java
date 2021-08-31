@@ -15,18 +15,13 @@
  */
 package io.gravitee.rest.api.services.sync;
 
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -38,13 +33,10 @@ import io.gravitee.rest.api.service.UserService;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BinaryOperator;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,7 +149,13 @@ public class SyncManager {
         final int parallelism = Runtime.getRuntime().availableProcessors() * 2;
 
         if (apiEvents.size() > parallelism) {
-            ForkJoinPool customThreadPool = new ForkJoinPool(parallelism);
+            final ForkJoinPool.ForkJoinWorkerThreadFactory factory = pool -> {
+                final ForkJoinWorkerThread worker = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+                worker.setName("gio.sync-" + worker.getPoolIndex());
+                return worker;
+            };
+
+            ForkJoinPool customThreadPool = new ForkJoinPool(parallelism, factory, null, false);
             customThreadPool.submit(() -> apiEvents.entrySet().parallelStream().forEach(e -> processApiEvent(e.getKey(), e.getValue())));
             customThreadPool.shutdown();
         } else {

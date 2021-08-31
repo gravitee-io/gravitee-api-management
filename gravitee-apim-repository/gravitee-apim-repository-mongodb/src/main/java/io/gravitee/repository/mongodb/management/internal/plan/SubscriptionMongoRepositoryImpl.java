@@ -77,8 +77,34 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
             }
         }
 
-        if (criteria.getFrom() != 0 && criteria.getTo() != 0) {
-            query.addCriteria(Criteria.where("updatedAt").gte(new Date(criteria.getFrom())).lt(new Date(criteria.getTo())));
+        if (criteria.getFrom() > 0 || criteria.getTo() > 0) {
+            // Need to mutualize the instantiation of this criteria otherwise mongo drive is throwing an error, when
+            // using multiple `Criteria.where("updatedAt").xxx` with the same query
+            Criteria updatedAtCriteria = Criteria.where("updatedAt");
+
+            if (criteria.getFrom() > 0) {
+                updatedAtCriteria = updatedAtCriteria.gte(new Date(criteria.getFrom()));
+            }
+            if (criteria.getTo() > 0) {
+                updatedAtCriteria = updatedAtCriteria.lte(new Date(criteria.getTo()));
+            }
+
+            query.addCriteria(updatedAtCriteria);
+        }
+
+        if (criteria.getEndingAtAfter() > 0 || criteria.getEndingAtBefore() > 0) {
+            // Need to mutualize the instantiation of this criteria otherwise mongo drive is throwing an error, when
+            // using multiple `Criteria.where("endingAt").xxx` with the same query
+            Criteria endingAtCriteria = Criteria.where("endingAt");
+
+            if (criteria.getEndingAtAfter() > 0) {
+                endingAtCriteria = endingAtCriteria.gte(new Date(criteria.getEndingAtAfter()));
+            }
+            if (criteria.getEndingAtBefore() > 0) {
+                endingAtCriteria = endingAtCriteria.lte(new Date(criteria.getEndingAtBefore()));
+            }
+
+            query.addCriteria(endingAtCriteria);
         }
 
         // set sort by created at

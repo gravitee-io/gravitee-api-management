@@ -68,6 +68,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         .addColumn("background", Types.NVARCHAR, String.class)
         .build();
 
+    private static final String PROJECTION_WITHOUT_PICTURES =
+        "a.id, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications";
+
     private static final JdbcHelper.ChildAdder<Application> CHILD_ADDER = (Application parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
         if (metadata == null) {
@@ -212,7 +215,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             }
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
-                "select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.id in ( " +
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.id in ( " +
                 ORM.buildInClause(ids) +
                 " )",
                 (PreparedStatement ps) -> ORM.setArguments(ps, ids, 1),
@@ -236,7 +241,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             List<ApplicationStatus> statuses = Arrays.asList(ass);
 
             StringBuilder query = new StringBuilder(
-                "select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id"
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id"
             );
             boolean first = true;
             ORM.buildInCondition(first, query, STATUS_FIELD, statuses);
@@ -263,7 +270,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         try {
             final List<ApplicationStatus> statuses = Arrays.asList(ass);
             final StringBuilder query = new StringBuilder(
-                "select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id join application_groups ag on ag.application_id = a.id "
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id join application_groups ag on ag.application_id = a.id "
             );
             boolean first = true;
             first = ORM.buildInCondition(first, query, "group_id", groupIds);
@@ -294,7 +303,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         try {
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
-                "select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where lower(name) like ?",
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where lower(name) like ?",
                 rowMapper,
                 "%" + partialName.toLowerCase() + "%"
             );
@@ -317,7 +328,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             "id"
         );
 
-        String projection = "a.*, am.k as am_k, am.v as am_v";
+        String projection = PROJECTION_WITHOUT_PICTURES + ", am.k as am_k, am.v as am_v";
 
         final StringBuilder sbQuery = new StringBuilder("select ")
             .append(projection)
@@ -379,7 +390,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             List<ApplicationStatus> statuses = Arrays.asList(ass);
 
             StringBuilder query = new StringBuilder(
-                "select a.*, am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.environment_id = ?"
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from applications a left join application_metadata am on a.id = am.application_id where a.environment_id = ?"
             );
             boolean first = false;
             ORM.buildInCondition(first, query, STATUS_FIELD, statuses);

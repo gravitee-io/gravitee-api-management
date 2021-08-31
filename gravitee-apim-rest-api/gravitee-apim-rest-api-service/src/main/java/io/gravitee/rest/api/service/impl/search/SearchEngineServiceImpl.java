@@ -89,10 +89,10 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     private static final String ACTION_INDEX = "I";
     private static final String ACTION_DELETE = "D";
 
-    @Async
+    @Async("indexerThreadPoolTaskExecutor")
     @Override
-    public void index(Indexable source, boolean locally) {
-        indexLocally(source);
+    public void index(Indexable source, boolean locally, boolean commit) {
+        indexLocally(source, commit);
         if (!locally) {
             CommandSearchIndexerEntity content = new CommandSearchIndexerEntity();
             content.setAction(ACTION_INDEX);
@@ -103,7 +103,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
         }
     }
 
-    @Async
+    @Async("indexerThreadPoolTaskExecutor")
     @Override
     public void delete(Indexable source, boolean locally) {
         deleteLocally(source);
@@ -114,6 +114,15 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             content.setClazz(source.getClass().getName());
 
             sendCommands(content);
+        }
+    }
+
+    @Override
+    public void commit() {
+        try {
+            indexer.commit();
+        } catch (TechnicalException te) {
+            logger.error("Unexpected error while Lucene commit", te);
         }
     }
 
@@ -133,7 +142,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
         } else if (ACTION_INDEX.equals(content.getAction())) {
             Indexable source = getSource(content.getClazz(), content.getId());
             if (source != null) {
-                indexLocally(source);
+                indexLocally(source, true);
             }
         }
     }
@@ -166,7 +175,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
         return null;
     }
 
-    private void indexLocally(Indexable source) {
+    private void indexLocally(Indexable source, boolean commit) {
         transformers
             .stream()
             .filter(transformer -> transformer.handle(source.getClass()))
@@ -174,7 +183,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
             .ifPresent(
                 transformer -> {
                     try {
-                        indexer.index(transformer.transform(source));
+                        indexer.index(transformer.transform(source), commit);
                     } catch (TechnicalException te) {
                         logger.error("Unexpected error while indexing a document", te);
                     }

@@ -919,7 +919,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         //get all public apis
         List<Api> publicApis;
         if (portal) {
-            publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
+            // Pictures are not required when looking for APIs
+            publicApis =
+                apiRepository.search(
+                    queryToCriteria(apiQuery).visibility(PUBLIC).build(),
+                    new ApiFieldExclusionFilter.Builder().excludePicture().build()
+                );
         } else {
             publicApis = emptyList();
         }
@@ -1026,7 +1031,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
-        apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
         return findByUser(userId, apiQuery, true);
     }
 
@@ -1035,7 +1040,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
-        apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
         return findByUser(userId, apiQuery, sortable, pageable, true);
     }
 
@@ -2515,7 +2520,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.debug("Search paginated APIs by {}", query);
 
             // We need to sort on fields which cannot be sort using db engine (ex: api's definition fields). Retrieve all the apis, then sort and paginate in memory.
-            Page<Api> apiPage = sortAndPaginate(apiRepository.search(queryToCriteria(query).build()), sortable, pageable);
+            // Pictures are not required when looking for APIs
+            Page<Api> apiPage = sortAndPaginate(
+                apiRepository.search(queryToCriteria(query).build(), new ApiFieldExclusionFilter.Builder().excludePicture().build()),
+                sortable,
+                pageable
+            );
 
             // Unfortunately, for now, filterApiByQuery can't be invoked because it could break pagination and sort.
             // Pagination MUST be applied before calls to convert as it involved a lot of data fetching and can be very slow.

@@ -42,6 +42,9 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     public Page<ApplicationMongo> search(final ApplicationCriteria criteria, final Pageable pageable) {
         final Query query = new Query();
 
+        query.fields().exclude("background");
+        query.fields().exclude("picture");
+
         if (criteria != null) {
             if (criteria.getIds() != null && !criteria.getIds().isEmpty()) {
                 query.addCriteria(where("id").in(criteria.getIds()));
