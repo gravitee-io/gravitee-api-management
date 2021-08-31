@@ -15,4 +15,68 @@
     limitations under the License.
 
 -->
-<button mat-button>Basic</button>
+<form *ngIf="!isLoading" [formGroup]="formSettings">
+  <h1>Settings</h1>
+  <blockquote class="console-settings__info mat-caption">
+    <mat-icon aria-hidden="false" aria-label="Info icon">info</mat-icon>
+    <span class="console-settings__info__text">
+      Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
+      information.
+    </span>
+  </blockquote>
+
+  <mat-card class="console-settings__card" formGroupName="management">
+    <mat-card-header>
+      <mat-card-title>Management</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Title</mat-label>
+        <input #managementTitleInput matInput formControlName="title" />
+        <mat-icon *ngIf="managementTitleInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="fill" class="console-settings__card__form-field">
+        <mat-label>Management URL</mat-label>
+        <input #managementUrlInput matInput formControlName="url" />
+        <mat-icon *ngIf="managementUrlInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      </mat-form-field>
+
+      <section class="console-settings__card__checkbox-section">
+        <mat-checkbox
+          #managementSupportCheckbox
+          formControlName="support"
+          aria-label="Support"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!managementSupportCheckbox.disabled"
+          >Activate Support</mat-checkbox
+        >
+      </section>
+      <section class="console-settings__card__checkbox-section">
+        <mat-checkbox
+          #managementUserCreationCheckbox
+          formControlName="userCreation"
+          aria-label="Allow user creation"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!managementUserCreationCheckbox.disabled"
+          >Allow User Registration</mat-checkbox
+        >
+        <ul>
+          <li>
+            <mat-checkbox
+              #managementAutomaticValidationCheckbox
+              formControlName="automaticValidation"
+              aria-label="Enable auto validation of creation"
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!managementAutomaticValidationCheckbox.disabled"
+              >Enable automatic validation of registration requests</mat-checkbox
+            >
+          </li>
+        </ul>
+      </section>
+    </mat-card-content>
+  </mat-card>
+
+  <button mat-raised-button color="accent" type="submit" [disabled]="formSettings.invalid">Save</button>
+</form>

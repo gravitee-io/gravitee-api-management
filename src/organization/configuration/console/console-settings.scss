@@ -1,0 +1,24 @@
+.console-settings {
+  &__info {
+    display: flex;
+    align-items: center;
+    &__text {
+      margin-left: 8px;
+    }
+  }
+
+  &__card {
+    margin-bottom: 16px;
+
+    &__form-field {
+      width: 100%;
+    }
+
+    &__checkbox-section {
+      ul {
+        list-style-type: none;
+        margin-top: 4px;
+      }
+    }
+  }
+}

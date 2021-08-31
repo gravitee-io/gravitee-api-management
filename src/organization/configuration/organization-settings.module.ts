@@ -14,12 +14,33 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ConsoleSettingsComponent } from './console/console-settings';
+
 @NgModule({
-  imports: [BrowserAnimationsModule, MatButtonModule],
+  imports: [
+    BrowserAnimationsModule,
+    ReactiveFormsModule,
+
+    MatButtonModule,
+    MatIconModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCheckboxModule,
+    MatDividerModule,
+    MatTooltipModule,
+  ],
   declarations: [ConsoleSettingsComponent],
   exports: [ConsoleSettingsComponent],
   entryComponents: [ConsoleSettingsComponent],

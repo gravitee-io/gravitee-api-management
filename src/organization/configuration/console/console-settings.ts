@@ -13,10 +13,97 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { set } from 'lodash';
+
+import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
+import { ConsoleSettings } from '../../../entities/consoleSettings';
 
 @Component({
   selector: 'gio-org-config-console-settings',
   template: require('./console-settings.html'),
+  styles: [require('./console-settings.scss')],
 })
-export class ConsoleSettingsComponent {}
+export class ConsoleSettingsComponent implements OnInit, OnDestroy {
+  isLoading = true;
+
+  formSettings: FormGroup;
+
+  settings: ConsoleSettings;
+
+  providedConfigurationMessage = 'Configuration provided by the system';
+
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  private hasIdpDefined = () => {
+    return (
+      this.settings.authentication?.google?.clientId ||
+      this.settings.authentication?.github?.clientId ||
+      this.settings.authentication?.oauth2?.clientId
+    );
+  };
+
+  constructor(private readonly fb: FormBuilder, private readonly consoleSettingsService: ConsoleSettingsService) {}
+
+  ngOnInit(): void {
+    this.consoleSettingsService
+      .get()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((settings) => {
+        this.isLoading = false;
+        this.settings = settings;
+
+        // FIXME: Rule kept after Angular migration
+        // The properties of this rule do not concern the editable forms of this component
+        // To see to move it on the backend or in service
+        set(this.settings, 'authentication.localLogin.enabled', this.settings.authentication?.localLogin?.enabled || !this.hasIdpDefined());
+
+        this.formSettings = this.fb.group({
+          management: this.fb.group({
+            title: [{ value: this.settings?.management?.title, disabled: this.isReadonlySetting('management.title') }],
+            url: [{ value: this.settings?.management?.url, disabled: this.isReadonlySetting('management.url') }],
+            support: [
+              { value: this.settings?.management?.support?.enabled, disabled: this.isReadonlySetting('management.support.enabled') },
+            ],
+            userCreation: [
+              {
+                value: this.settings?.management?.userCreation?.enabled,
+                disabled: this.isReadonlySetting('management.userCreation.enabled'),
+              },
+            ],
+            automaticValidation: [
+              {
+                value: this.settings?.management?.automaticValidation?.enabled,
+                disabled: this.isReadonlySetting('management.automaticValidation.enabled'),
+              },
+            ],
+          }),
+        });
+
+        // Disable `management.automaticValidation` if `management.userCreation` is not checked
+        this.formSettings
+          .get('management.userCreation')
+          .valueChanges.pipe(takeUntil(this.unsubscribe$))
+          .subscribe((checked) => {
+            if (checked) {
+              this.formSettings.get('management.automaticValidation').enable();
+              return;
+            }
+            this.formSettings.get('management.automaticValidation').disable();
+          });
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  isReadonlySetting(property: string): boolean {
+    return ConsoleSettingsService.isReadonly(this.settings, property);
+  }
+}

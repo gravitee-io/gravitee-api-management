@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -21,7 +23,7 @@ import { UpgradeModule } from '@angular/upgrade/static';
 import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 
 @NgModule({
-  imports: [BrowserModule, BrowserAnimationsModule, UpgradeModule, OrganizationSettingsModule],
+  imports: [CommonModule, BrowserModule, BrowserAnimationsModule, HttpClientModule, UpgradeModule, OrganizationSettingsModule],
 })
 export class AppModule {
   constructor(private upgrade: UpgradeModule) {}
