@@ -159,7 +159,7 @@
     "serve": "webpack serve -c ./conf/webpack.conf.js --progress --hot",
     "serve:nightly": "BACKEND_ENV=nightly npm run serve",
     "serve:prod": "node scripts/serve.js",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "test:auto": "jest --watch",
     "test:ci": "jest --runInBand --ci --collectCoverage=true"
   }
