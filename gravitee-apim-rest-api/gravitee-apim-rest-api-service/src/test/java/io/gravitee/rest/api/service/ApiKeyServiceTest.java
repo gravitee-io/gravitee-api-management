@@ -172,7 +172,7 @@ public class ApiKeyServiceTest {
         apiKeyService.generate(SUBSCRIPTION_ID);
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test(expected = ApiKeyAlreadyExistingException.class)
     public void shouldNotGenerateBecauseApiKeyAlreadyExists() throws TechnicalException {
         when(apiKeyRepository.findByKey("alreadyExistingApiKey")).thenReturn(Optional.of(new ApiKey()));
 
@@ -458,7 +458,7 @@ public class ApiKeyServiceTest {
         assertNotNull(apiKey.getExpireAt());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test(expected = ApiKeyAlreadyExistingException.class)
     public void shouldNotRenewBecauseApiKeyAlreadyExists() throws TechnicalException {
         when(apiKeyRepository.findByKey("alreadyExistingApiKey")).thenReturn(Optional.of(new ApiKey()));
 

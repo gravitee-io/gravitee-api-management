@@ -571,7 +571,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             if (plan.getSecurity() == PlanSecurityType.API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 if (StringUtils.isNotEmpty(processSubscription.getCustomApiKey())) {
                     if (apiKeyService.exists(processSubscription.getCustomApiKey())) {
-                        throw new ApiKeyAlreadyActivatedException("The API key is already activated");
+                        throw new ApiKeyAlreadyExistingException();
                     }
                     apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
                 } else {

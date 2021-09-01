@@ -87,7 +87,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             LOGGER.debug("Generate an API Key for subscription {}", subscription);
 
             if (customApiKey != null && exists(customApiKey)) {
-                throw new TechnicalManagementException(String.format("API key [%s] is already used", customApiKey));
+                throw new ApiKeyAlreadyExistingException();
             }
             ApiKey apiKey = generateForSubscription(subscription, customApiKey);
             apiKey = apiKeyRepository.create(apiKey);
@@ -124,7 +124,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             LOGGER.debug("Renew API Key for subscription {}", subscription);
 
             if (customApiKey != null && exists(customApiKey)) {
-                throw new TechnicalManagementException(String.format("API key [%s] is already used", customApiKey));
+                throw new ApiKeyAlreadyExistingException();
             }
             ApiKey newApiKey = generateForSubscription(subscription, customApiKey);
             newApiKey = apiKeyRepository.create(newApiKey);
@@ -267,7 +267,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey key = apiKeyRepository.findByKey(apiKey).orElseThrow(() -> new ApiKeyNotFoundException());
 
             if (!key.isRevoked() && !convert(key).isExpired()) {
-                throw new ApiKeyAlreadyActivatedException("The API key is already activated");
+                throw new ApiKeyAlreadyActivatedException();
             }
 
             // Get the subscription to get ending date and set key expiration date.
@@ -301,7 +301,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
     private void checkApiKeyExpired(ApiKey key) {
         if (key.isRevoked() || convert(key).isExpired()) {
-            throw new ApiKeyAlreadyExpiredException("The API key is already expired");
+            throw new ApiKeyAlreadyExpiredException();
         }
     }
 

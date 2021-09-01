@@ -19,13 +19,12 @@ import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiKeyAlreadyExpiredException extends AbstractManagementException {
+public class ApiKeyAlreadyExistingException extends AbstractManagementException {
 
-    public ApiKeyAlreadyExpiredException() {
-        super("API key is already expired");
+    public ApiKeyAlreadyExistingException() {
+        super("API key already exists");
     }
 
     @Override
@@ -35,7 +34,7 @@ public class ApiKeyAlreadyExpiredException extends AbstractManagementException {
 
     @Override
     public String getTechnicalCode() {
-        return "apiKey.expired";
+        return "apiKey.existing";
     }
 
     @Override

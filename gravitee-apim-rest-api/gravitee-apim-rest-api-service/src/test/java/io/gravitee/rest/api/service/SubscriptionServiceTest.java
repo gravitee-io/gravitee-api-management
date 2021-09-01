@@ -955,7 +955,7 @@ public class SubscriptionServiceTest {
         assertNotNull(subscriptionEntity.getProcessedAt());
     }
 
-    @Test(expected = ApiKeyAlreadyActivatedException.class)
+    @Test(expected = ApiKeyAlreadyExistingException.class)
     public void shouldProcessWithExistingCustomApiKeyForAcceptedSubscription() throws Exception {
         // Prepare data
         final String customApiKey = "customApiKey";
