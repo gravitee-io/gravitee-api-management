@@ -1,28 +1,25 @@
-# Opentracing with jaeger
 
-Here is a docker-compose to run APIM with Opentracing activated and jaeger as a tracer.
+# OpenTracing With Jaeger
 
-You can classically call your apis through your gateway, for example: `http://localhost:8082/myapi`.
+This docker-compose allows you to run APIM with OpenTracing activated and Jaeger as a tracer.
 
-## How to run ?
+You can call your APIs through your gateway classically (for example: `http://localhost:8082/myapi`). 
 
-⚠️ As Jaeger tracer is not bundled by default, do not forget to download the zip file related to the version you want to run.
+## How To Run This Docker Compose 
 
-The zip is downloadable here: https://download.gravitee.io/#graviteeio-apim/plugins/tracers/gravitee-tracer-jaeger/
+⚠️ 1. Since the Jaeger tracer is not bundled by default, **you must download the zip file** related to the version you want to run. [Click here](https://download.gravitee.io/#graviteeio-apim/plugins/tracers/gravitee-tracer-jaeger/) to download the .ZIP.
 
-Then you have to copy it into `opentracing-jaeger/.plugins` directory
+2. Next, **copy the .ZIP file into `opentracing-jaeger/.plugins` directory** using the command below:
 
 `APIM_VERSION={APIM_VERSION} docker-compose up -d ` 
 
-To be sure to fetch last version of images, you can do
+3. Be sure to fetch last version of images by running this command: 
 `export APIM_VERSION={APIM_VERSION} && docker-compose down -v && docker-compose pull && docker-compose up`
 
-## And how to see my traces ?
+## How To See Your Traces 
 
-Jaeger comes with an UI, that will allow you to see your calls.
+Jaeger comes with a helpful, user-friendly UI that allows you to see your calls. To access this UI, visit http://localhost:16686.
 
-To access this UI, browse to http://localhost:16686.
-
-Then select **gio_apim_gateway** in the _Service_ list and click on the _Find Traces_ button.
+Then, select **gio_apim_gateway** in the _Service_ list and click on the _Find Traces_ button.
 
 ![Search from in Jaeger UI](assets/jaeger_search.png)
