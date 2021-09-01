@@ -252,6 +252,42 @@ describe('ConsoleSettingsComponent', () => {
     });
   });
 
+  describe('alert', () => {
+    it('should disable field when setting is readonly', async () => {
+      expectConsoleSettingsGetRequest({
+        alert: {
+          enabled: false,
+        },
+        metadata: {
+          readonly: ['alert.enabled'],
+        },
+      });
+
+      const enableAlertingCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Alerting' }));
+      expect(await enableAlertingCheckbox.isDisabled()).toEqual(true);
+    });
+
+    it('should save alert settings', async () => {
+      expectConsoleSettingsGetRequest({
+        alert: {
+          enabled: false,
+        },
+      });
+
+      const enableAlertingCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Alerting' }));
+      await enableAlertingCheckbox.check();
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await saveButton.click();
+
+      expectConsoleSettingsSendRequest({
+        alert: {
+          enabled: true,
+        },
+      });
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
