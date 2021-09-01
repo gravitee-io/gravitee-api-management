@@ -207,6 +207,51 @@ describe('ConsoleSettingsComponent', () => {
     });
   });
 
+  describe('scheduler', () => {
+    it('should disable field when setting is readonly', async () => {
+      expectConsoleSettingsGetRequest({
+        scheduler: {
+          tasks: undefined,
+          notifications: 0,
+        },
+        metadata: {
+          readonly: ['scheduler.tasks', 'scheduler.notifications'],
+        },
+      });
+
+      const taskFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /^Tasks/ }));
+      expect(await taskFormField.isDisabled()).toEqual(true);
+
+      const notificationFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /^Notifications/ }));
+      expect(await notificationFormField.isDisabled()).toEqual(true);
+    });
+
+    it('should save scheduler settings', async () => {
+      expectConsoleSettingsGetRequest({
+        scheduler: {
+          tasks: undefined,
+          notifications: 0,
+        },
+      });
+
+      const taskFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /^Tasks/ }));
+      await (await taskFormField.getControl(MatInputHarness)).setValue('666');
+
+      const notificationFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /^Notifications/ }));
+      await (await notificationFormField.getControl(MatInputHarness)).setValue('');
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await saveButton.click();
+
+      expectConsoleSettingsSendRequest({
+        scheduler: {
+          tasks: 666,
+          notifications: null,
+        },
+      });
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
