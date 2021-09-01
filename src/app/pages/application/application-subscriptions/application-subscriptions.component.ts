@@ -236,9 +236,9 @@ export class ApplicationSubscriptionsComponent implements OnInit {
       });
   }
 
-  revokeApiKey(subscriptionId, keyId) {
+  revokeApiKey(subscriptionId, apiKey) {
     this.subscriptionService
-      .revokeKeySubscription({ subscriptionId, keyId })
+      .revokeKeySubscription({ subscriptionId, apiKey })
       .toPromise()
       .then(() => {
         this.notificationService.success(i18n('application.subscriptions.apiKey.success.revoke'));

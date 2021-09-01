@@ -112,7 +112,7 @@
       </div>
 
       <div class="page__box-content" *ngFor="let apiKey of getValidApiKeys(selectedSubscription)">
-        <gv-input clipboard [value]="apiKey.id"></gv-input>
+        <gv-input clipboard [value]="apiKey.key"></gv-input>
 
         <div class="page__box-row">
           <span>{{ 'application.subscriptions.apiKey.created_at' | translate }}</span>
@@ -128,7 +128,7 @@
           <gv-confirm
             [message]="'application.subscriptions.apiKey.revoke.message' | translate"
             danger
-            (:gv-confirm:ok)="revokeApiKey(selectedSubscriptions[0], apiKey.id)"
+            (:gv-confirm:ok)="revokeApiKey(selectedSubscriptions[0], apiKey.key)"
             [cancelLabel]="'common.cancel' | translate"
             [okLabel]="'common.ok' | translate"
           >
@@ -148,7 +148,7 @@
 
       <div *ngIf="displayExpiredApiKeys" class="expired-keys">
         <div class="page__box-footer" *ngFor="let apiKey of getExpiredApiKeys(selectedSubscription)">
-          <gv-input [value]="apiKey.id" disabled></gv-input>
+          <gv-input [value]="apiKey.key" disabled></gv-input>
           <div class="page__box-row">
             <span>{{ 'application.subscriptions.apiKey.created_at' | translate }}</span
             >{{ apiKey.created_at | localizedDate }}

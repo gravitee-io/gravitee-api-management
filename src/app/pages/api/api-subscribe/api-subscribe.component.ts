@@ -353,7 +353,7 @@ export class ApiSubscribeComponent implements OnInit {
           const currentPlan = this.getCurrentPlan();
           if (currentPlan.security.toUpperCase() === Plan.SecurityEnum.APIKEY) {
             const apikeyHeader = this.configurationService.get('portal.apikeyHeader');
-            this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].id}"`;
+            this.apiSample += ` -H "${apikeyHeader}:${subscription.keys[0].key}"`;
           } else if (
             currentPlan.security.toUpperCase() === Plan.SecurityEnum.OAUTH2 ||
             currentPlan.security.toUpperCase() === Plan.SecurityEnum.JWT
@@ -438,7 +438,7 @@ export class ApiSubscribeComponent implements OnInit {
   }
 
   getSubscriptionKey() {
-    return this._subscription && this._subscription.keys && this._subscription.keys[0] ? this._subscription.keys[0].id : null;
+    return this._subscription && this._subscription.keys && this._subscription.keys[0] ? this._subscription.keys[0].key : null;
   }
 
   private updateApplications() {
