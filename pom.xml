@@ -95,6 +95,7 @@
             <exclude>**/*.adoc</exclude>
             <exclude>node_modules/**</exclude>
             <exclude>node/**</exclude>
+            <exclude>sonar-project.properties</exclude>
           </excludes>
         </configuration>
       </plugin>
