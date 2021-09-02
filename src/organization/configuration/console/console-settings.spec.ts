@@ -442,6 +442,143 @@ describe('ConsoleSettingsComponent', () => {
     });
   });
 
+  describe('email', () => {
+    it('should disable field when setting is readonly', async () => {
+      expectConsoleSettingsGetRequest({
+        metadata: {
+          readonly: [
+            'email.enabled',
+            'email.host',
+            'email.port',
+            'email.username',
+            'email.password',
+            'email.protocol',
+            'email.subject',
+            'email.from',
+            'email.properties.auth',
+            'email.properties.startTlsEnable',
+            'email.properties.sslTrust',
+          ],
+        },
+      });
+
+      const emailEnabledEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Emailing' }));
+      expect(await emailEnabledEnableCheckbox.isDisabled()).toEqual(true);
+
+      await Promise.all(
+        ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+          const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
+
+          expect(await emailFormField.isDisabled()).toEqual(true);
+        }),
+      );
+
+      const propertiesAuthCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Auth' }));
+      expect(await propertiesAuthCheckbox.isDisabled()).toEqual(true);
+
+      const propertiesStartTlsEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Start TLS' }));
+      expect(await propertiesStartTlsEnableCheckbox.isDisabled()).toEqual(true);
+    });
+
+    it('should save email settings', async () => {
+      expectConsoleSettingsGetRequest({
+        email: {
+          enabled: true,
+          host: 'Host',
+          port: 42,
+          username: 'Username',
+          password: 'Password',
+          protocol: 'Protocol',
+          subject: 'Subject',
+          from: 'From',
+          properties: { auth: true, startTlsEnable: false, sslTrust: undefined },
+        },
+      });
+
+      await Promise.all(
+        ['Host', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+          const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
+
+          await (await emailFormField.getControl(MatInputHarness)).setValue(`New ${floatingLabelText}`);
+        }),
+      );
+
+      const propertiesAuthCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Auth' }));
+      await propertiesAuthCheckbox.uncheck();
+
+      const propertiesStartTlsEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Start TLS' }));
+      await propertiesStartTlsEnableCheckbox.check();
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await saveButton.click();
+
+      expectConsoleSettingsSendRequest({
+        email: {
+          enabled: true,
+          host: 'New Host',
+          port: 42,
+          username: 'New Username',
+          password: 'New Password',
+          protocol: 'New Protocol',
+          subject: 'New Subject',
+          from: 'NewFrom',
+          properties: { auth: false, startTlsEnable: true, sslTrust: 'New SSL Trust' },
+        },
+      });
+    });
+
+    it('should disable all email settings when email.enabled is not checked', async () => {
+      expectConsoleSettingsGetRequest({
+        email: {
+          enabled: true,
+        },
+        metadata: {
+          readonly: ['email.host', 'email.port', 'email.properties.auth'],
+        },
+      });
+
+      const emailEnabledEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Emailing' }));
+      await emailEnabledEnableCheckbox.uncheck();
+
+      // expect all email settings to be disabled
+      await Promise.all(
+        ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+          const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
+
+          expect(await emailFormField.isDisabled()).toEqual(true);
+        }),
+      );
+
+      const propertiesAuthCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Auth' }));
+      expect(await propertiesAuthCheckbox.isDisabled()).toEqual(true);
+
+      const propertiesStartTlsEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Start TLS' }));
+      expect(await propertiesStartTlsEnableCheckbox.isDisabled()).toEqual(true);
+
+      await emailEnabledEnableCheckbox.check();
+
+      // Expect all email settings to be enabled except for read-only settings
+      await Promise.all(
+        ['Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
+          const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
+
+          expect(await emailFormField.isDisabled()).toEqual(false);
+        }),
+      );
+      await Promise.all(
+        ['Host', 'Port'].map(async (floatingLabelText) => {
+          const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
+
+          expect(await emailFormField.isDisabled()).toEqual(true);
+        }),
+      );
+
+      expect(await propertiesAuthCheckbox.isDisabled()).toEqual(true);
+
+      expect(await propertiesStartTlsEnableCheckbox.isDisabled()).toEqual(false);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
