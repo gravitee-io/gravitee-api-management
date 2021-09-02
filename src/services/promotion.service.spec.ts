@@ -19,6 +19,9 @@ import { IHttpBackendService } from 'angular';
 import { PromotionService } from './promotion.service';
 
 import { PromotionTarget, fakePromotion, fakePromotionTarget } from '../entities/promotion';
+import { setupAngularJsTesting } from '../../jest.setup.js';
+
+setupAngularJsTesting();
 
 describe('PromotionService', () => {
   let promotionService: PromotionService;

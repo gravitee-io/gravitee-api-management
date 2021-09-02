@@ -35,21 +35,22 @@ const mock = () => {
 Object.defineProperty(window, 'localStorage', { value: mock() });
 Object.defineProperty(window, 'sessionStorage', { value: mock() });
 
-require('./src/index');
 require('jest-preset-angular/setup-jest');
 
-angular.module('gravitee-management').constant('Constants', {
-  org: {
-    baseURL: 'https://url.test:3000/management/organizations/DEFAULT',
-    settings: {
-      reCaptcha: false,
-    },
-  },
-  env: {
-    baseURL: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT',
-  },
-});
-
-beforeEach(() => {
-  angular.mock.module('gravitee-management');
-});
+export function setupAngularJsTesting() {
+  require('./src/index');
+  beforeEach(() => {
+    angular.mock.module('gravitee-management');
+    angular.module('gravitee-management').constant('Constants', {
+      org: {
+        baseURL: 'https://url.test:3000/management/organizations/DEFAULT',
+        settings: {
+          reCaptcha: false,
+        },
+      },
+      env: {
+        baseURL: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT',
+      },
+    });
+  });
+}

@@ -19,6 +19,9 @@ import { IHttpBackendService } from 'angular';
 import QualityRuleService from './qualityRule.service';
 
 import { QualityRule } from '../entities/qualityRule';
+import { setupAngularJsTesting } from '../../jest.setup.js';
+
+setupAngularJsTesting();
 
 describe('QualityRuleService', () => {
   let QualityRuleService: QualityRuleService;

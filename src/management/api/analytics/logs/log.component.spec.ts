@@ -15,6 +15,10 @@
  */
 import { IComponentControllerService } from 'angular';
 
+import { setupAngularJsTesting } from '../../../../../jest.setup.js';
+
+setupAngularJsTesting();
+
 describe('LogComponent', () => {
   let $componentController: IComponentControllerService;
   let logComponent: any;

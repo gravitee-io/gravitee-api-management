@@ -18,6 +18,9 @@ import { IHttpBackendService } from 'angular';
 import { EventService } from './event.service';
 
 import { fakeEvent } from '../entities/event/event.fixture';
+import { setupAngularJsTesting } from '../../jest.setup.js';
+
+setupAngularJsTesting();
 
 describe('EventService', () => {
   let eventService: EventService;
