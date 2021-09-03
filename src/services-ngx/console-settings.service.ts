@@ -16,6 +16,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { merge } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import { ConsoleSettings } from '../entities/consoleSettings';
@@ -34,7 +36,13 @@ export class ConsoleSettingsService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   save(consoleSettings: ConsoleSettings) {
-    return this.http.post(`${this.constants.org.baseURL}/settings/`, consoleSettings);
+    return this.http.post(`${this.constants.org.baseURL}/settings/`, consoleSettings).pipe(
+      tap((consoleSettings) => {
+        // FIXME : It's not very nice to directly modify a provider like that. We should create a service or find another way to do it.
+        // To be seen at the end of the Angular migration
+        merge(this.constants.org.settings, consoleSettings);
+      }),
+    );
   }
 
   get(): Observable<ConsoleSettings> {
