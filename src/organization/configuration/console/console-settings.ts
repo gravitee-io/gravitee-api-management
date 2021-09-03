@@ -19,7 +19,7 @@ import { map, startWith, takeUntil, tap } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
-import { cloneDeep, isEmpty, set } from 'lodash';
+import { cloneDeep, get, isEmpty, set } from 'lodash';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
@@ -72,67 +72,43 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
 
         this.formSettings = this.fb.group({
           management: this.fb.group({
-            title: [{ value: this.settings?.management?.title, disabled: this.isReadonlySetting('management.title') }],
-            url: [{ value: this.settings?.management?.url, disabled: this.isReadonlySetting('management.url') }],
-            support: [
-              { value: this.settings?.management?.support?.enabled, disabled: this.isReadonlySetting('management.support.enabled') },
-            ],
-            userCreation: [
-              {
-                value: this.settings?.management?.userCreation?.enabled,
-                disabled: this.isReadonlySetting('management.userCreation.enabled'),
-              },
-            ],
-            automaticValidation: [
-              {
-                value: this.settings?.management?.automaticValidation?.enabled,
-                disabled: this.isReadonlySetting('management.automaticValidation.enabled'),
-              },
-            ],
+            title: [toFormState(this.settings, 'management.title')],
+            url: [toFormState(this.settings, 'management.url')],
+            support: [toFormState(this.settings, 'management.support.enabled')],
+            userCreation: [toFormState(this.settings, 'management.userCreation.enabled')],
+            automaticValidation: [toFormState(this.settings, 'management.automaticValidation.enabled')],
           }),
           theme: this.fb.group({
-            name: [{ value: this.settings?.theme?.name, disabled: this.isReadonlySetting('theme.name') }],
-            logo: [{ value: this.settings?.theme?.logo, disabled: this.isReadonlySetting('theme.logo') }],
-            loader: [{ value: this.settings?.theme?.loader, disabled: this.isReadonlySetting('theme.loader') }],
+            name: [toFormState(this.settings, 'theme.name')],
+            logo: [toFormState(this.settings, 'theme.logo')],
+            loader: [toFormState(this.settings, 'theme.loader')],
           }),
           scheduler: this.fb.group({
-            tasks: [{ value: this.settings?.scheduler?.tasks, disabled: this.isReadonlySetting('scheduler.tasks') }],
-            notifications: [
-              { value: this.settings?.scheduler?.notifications, disabled: this.isReadonlySetting('scheduler.notifications') },
-            ],
+            tasks: [toFormState(this.settings, 'scheduler.tasks')],
+            notifications: [toFormState(this.settings, 'scheduler.notifications')],
           }),
-          alert: [{ value: this.settings?.alert?.enabled, disabled: this.isReadonlySetting('alert.enabled') }],
+          alert: [toFormState(this.settings, 'alert.enabled')],
           cors: this.fb.group({
-            allowOrigin: [
-              { value: this.settings?.cors?.allowOrigin ?? [], disabled: this.isReadonlySetting('cors.allowOrigin') },
-              [CorsUtil.allowOriginValidator()],
-            ],
-            allowMethods: [{ value: this.settings?.cors?.allowMethods ?? [], disabled: this.isReadonlySetting('cors.allowMethods') }],
-            allowHeaders: [{ value: this.settings?.cors?.allowHeaders ?? [], disabled: this.isReadonlySetting('cors.allowHeaders') }],
-            exposedHeaders: [{ value: this.settings?.cors?.exposedHeaders ?? [], disabled: this.isReadonlySetting('cors.exposedHeaders') }],
-            maxAge: [{ value: this.settings?.cors?.maxAge, disabled: this.isReadonlySetting('cors.maxAge') }],
+            allowOrigin: [toFormState(this.settings, 'cors.allowOrigin', []), [CorsUtil.allowOriginValidator()]],
+            allowMethods: [toFormState(this.settings, 'cors.allowMethods', [])],
+            allowHeaders: [toFormState(this.settings, 'cors.allowHeaders', [])],
+            exposedHeaders: [toFormState(this.settings, 'cors.exposedHeaders', [])],
+            maxAge: [toFormState(this.settings, 'cors.maxAge')],
           }),
 
           email: this.fb.group({
-            enabled: [{ value: this.settings?.email?.enabled, disabled: this.isReadonlySetting('email.enabled') }],
-            host: [{ value: this.settings?.email?.host, disabled: this.isReadonlySetting('email.host') }],
-            port: [{ value: this.settings?.email?.port, disabled: this.isReadonlySetting('email.port') }],
-            username: [{ value: this.settings?.email?.username, disabled: this.isReadonlySetting('email.username') }],
-            password: [{ value: this.settings?.email?.password, disabled: this.isReadonlySetting('email.password') }],
-            protocol: [{ value: this.settings?.email?.protocol, disabled: this.isReadonlySetting('email.protocol') }],
-            subject: [{ value: this.settings?.email?.subject, disabled: this.isReadonlySetting('email.subject') }],
-            from: [{ value: this.settings?.email?.from, disabled: this.isReadonlySetting('email.from') }],
+            enabled: [toFormState(this.settings, 'email.enabled')],
+            host: [toFormState(this.settings, 'email.host')],
+            port: [toFormState(this.settings, 'email.port')],
+            username: [toFormState(this.settings, 'email.username')],
+            password: [toFormState(this.settings, 'email.password')],
+            protocol: [toFormState(this.settings, 'email.protocol')],
+            subject: [toFormState(this.settings, 'email.subject')],
+            from: [toFormState(this.settings, 'email.from')],
             properties: this.fb.group({
-              auth: [{ value: this.settings?.email?.properties?.auth, disabled: this.isReadonlySetting('email.properties.auth') }],
-              startTlsEnable: [
-                {
-                  value: this.settings?.email?.properties?.startTlsEnable,
-                  disabled: this.isReadonlySetting('email.properties.startTlsEnable'),
-                },
-              ],
-              sslTrust: [
-                { value: this.settings?.email?.properties?.sslTrust, disabled: this.isReadonlySetting('email.properties.sslTrust') },
-              ],
+              auth: [toFormState(this.settings, 'email.properties.auth')],
+              startTlsEnable: [toFormState(this.settings, 'email.properties.startTlsEnable')],
+              sslTrust: [toFormState(this.settings, 'email.properties.sslTrust')],
             }),
           }),
         });
@@ -150,25 +126,24 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
           });
 
         // Disable all `email` group if `email.enabled` is not checked without impacting the already readonly properties
+        const controlKeys = [
+          'host',
+          'port',
+          'username',
+          'password',
+          'protocol',
+          'subject',
+          'from',
+          'properties.auth',
+          'properties.startTlsEnable',
+          'properties.sslTrust',
+        ];
         this.formSettings.get('email.enabled').valueChanges.subscribe((checked) => {
-          const controlKey = [
-            'host',
-            'port',
-            'username',
-            'password',
-            'protocol',
-            'subject',
-            'from',
-            'properties.auth',
-            'properties.startTlsEnable',
-            'properties.sslTrust',
-          ];
-
-          if (checked) {
-            controlKey.filter((k) => !this.isReadonlySetting(`email.${k}`)).forEach((k) => this.formSettings.get(`email.${k}`).enable());
-            return;
-          }
-          controlKey.filter((k) => !this.isReadonlySetting(`email.${k}`)).forEach((k) => this.formSettings.get(`email.${k}`).disable());
+          controlKeys
+            .filter((k) => !isReadonlySetting(this.settings, `email.${k}`))
+            .forEach((k) => {
+              return checked ? this.formSettings.get(`email.${k}`).enable() : this.formSettings.get(`email.${k}`).disable();
+            });
         });
       });
 
@@ -190,10 +165,6 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  isReadonlySetting(property: string): boolean {
-    return ConsoleSettingsService.isReadonly(this.settings, property);
   }
 
   addChipToFormControl(event: MatChipInputEvent, formControlPath: string, matChipList: MatChipList): void {
@@ -326,3 +297,11 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
       .subscribe();
   }
 }
+
+const isReadonlySetting = (consoleSettings: ConsoleSettings, property: string): boolean => {
+  return ConsoleSettingsService.isReadonly(consoleSettings, property);
+};
+
+const toFormState = (consoleSettings: ConsoleSettings, path: string, defaultValue: unknown = undefined) => {
+  return { value: get(consoleSettings, path, defaultValue), disabled: isReadonlySetting(consoleSettings, path) };
+};
