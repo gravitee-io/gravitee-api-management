@@ -44,34 +44,40 @@
       </mat-form-field>
 
       <section class="console-settings__card__checkbox-section">
-        <mat-checkbox
-          #managementSupportCheckbox
-          formControlName="support"
-          aria-label="Support"
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!managementSupportCheckbox.disabled"
-          >Activate Support</mat-checkbox
-        >
+        <ng-container formGroupName="support">
+          <mat-checkbox
+            #managementSupportCheckbox
+            formControlName="enabled"
+            aria-label="Support"
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!managementSupportCheckbox.disabled"
+            >Activate Support</mat-checkbox
+          >
+        </ng-container>
       </section>
       <section class="console-settings__card__checkbox-section">
-        <mat-checkbox
-          #managementUserCreationCheckbox
-          formControlName="userCreation"
-          aria-label="Allow user creation"
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!managementUserCreationCheckbox.disabled"
-          >Allow User Registration</mat-checkbox
-        >
+        <ng-container formGroupName="userCreation">
+          <mat-checkbox
+            #managementUserCreationCheckbox
+            formControlName="enabled"
+            aria-label="Allow user creation"
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!managementUserCreationCheckbox.disabled"
+            >Allow User Registration</mat-checkbox
+          >
+        </ng-container>
         <ul>
           <li>
-            <mat-checkbox
-              #managementAutomaticValidationCheckbox
-              formControlName="automaticValidation"
-              aria-label="Enable auto validation of creation"
-              [matTooltip]="providedConfigurationMessage"
-              [matTooltipDisabled]="!managementAutomaticValidationCheckbox.disabled"
-              >Enable automatic validation of registration requests</mat-checkbox
-            >
+            <ng-container formGroupName="automaticValidation">
+              <mat-checkbox
+                #managementAutomaticValidationCheckbox
+                formControlName="enabled"
+                aria-label="Enable auto validation of creation"
+                [matTooltip]="providedConfigurationMessage"
+                [matTooltipDisabled]="!managementAutomaticValidationCheckbox.disabled"
+                >Enable automatic validation of registration requests</mat-checkbox
+              >
+            </ng-container>
           </li>
         </ul>
       </section>
@@ -122,7 +128,7 @@
     </mat-card-content>
   </mat-card>
 
-  <mat-card class="console-settings__card">
+  <mat-card class="console-settings__card" formGroupName="alert">
     <mat-card-header>
       <mat-card-title>Alerting</mat-card-title>
     </mat-card-header>
@@ -131,7 +137,7 @@
         <mat-checkbox
           #alertCheckbox
           aria-label="Alerting enabled"
-          formControlName="alert"
+          formControlName="enabled"
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!alertCheckbox.disabled"
           >Enable Alerting</mat-checkbox

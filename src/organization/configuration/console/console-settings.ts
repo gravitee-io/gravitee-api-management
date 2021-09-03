@@ -19,7 +19,7 @@ import { map, startWith, takeUntil, tap } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MatChipInputEvent, MatChipList } from '@angular/material/chips';
-import { cloneDeep, get, isEmpty, set } from 'lodash';
+import { cloneDeep, get, isEmpty, merge } from 'lodash';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
@@ -70,13 +70,15 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.settings = settings;
 
+        // As in Angular the forms are not typed :
+        // The object structure of this.formSettings matches that of ConsoleSettings to be able to send the form result directly
         this.formSettings = this.fb.group({
           management: this.fb.group({
             title: [toFormState(this.settings, 'management.title')],
             url: [toFormState(this.settings, 'management.url')],
-            support: [toFormState(this.settings, 'management.support.enabled')],
-            userCreation: [toFormState(this.settings, 'management.userCreation.enabled')],
-            automaticValidation: [toFormState(this.settings, 'management.automaticValidation.enabled')],
+            support: this.fb.group({ enabled: [toFormState(this.settings, 'management.support.enabled')] }),
+            userCreation: this.fb.group({ enabled: [toFormState(this.settings, 'management.userCreation.enabled')] }),
+            automaticValidation: this.fb.group({ enabled: [toFormState(this.settings, 'management.automaticValidation.enabled')] }),
           }),
           theme: this.fb.group({
             name: [toFormState(this.settings, 'theme.name')],
@@ -87,7 +89,7 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
             tasks: [toFormState(this.settings, 'scheduler.tasks')],
             notifications: [toFormState(this.settings, 'scheduler.notifications')],
           }),
-          alert: [toFormState(this.settings, 'alert.enabled')],
+          alert: this.fb.group({ enabled: [toFormState(this.settings, 'alert.enabled')] }),
           cors: this.fb.group({
             allowOrigin: [toFormState(this.settings, 'cors.allowOrigin', []), [CorsUtil.allowOriginValidator()]],
             allowMethods: [toFormState(this.settings, 'cors.allowMethods', [])],
@@ -113,16 +115,16 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
           }),
         });
 
-        // Disable `management.automaticValidation` if `management.userCreation` is not checked
+        // Disable `management.automaticValidation.enabled` if `management.userCreation.enabled` is not checked
         this.formSettings
-          .get('management.userCreation')
+          .get('management.userCreation.enabled')
           .valueChanges.pipe(takeUntil(this.unsubscribe$))
           .subscribe((checked) => {
             if (checked) {
-              this.formSettings.get('management.automaticValidation').enable();
+              this.formSettings.get('management.automaticValidation.enabled').enable();
               return;
             }
-            this.formSettings.get('management.automaticValidation').disable();
+            this.formSettings.get('management.automaticValidation.enabled').disable();
           });
 
         // Disable all `email` group if `email.enabled` is not checked without impacting the already readonly properties
@@ -247,46 +249,7 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
 
     const formSettingsValue = this.formSettings.getRawValue();
 
-    const settingsToSave = cloneDeep(this.settings);
-
-    set(settingsToSave, 'management.title', formSettingsValue.management.title);
-    set(settingsToSave, 'management.url', formSettingsValue.management.url);
-    set(settingsToSave, 'management.support', {
-      enabled: formSettingsValue.management.support,
-    });
-    set(settingsToSave, 'management.userCreation', {
-      enabled: formSettingsValue.management.userCreation,
-    });
-    set(settingsToSave, 'management.automaticValidation', {
-      enabled: formSettingsValue.management.automaticValidation,
-    });
-
-    set(settingsToSave, 'theme.name', formSettingsValue.theme.name);
-    set(settingsToSave, 'theme.logo', formSettingsValue.theme.logo);
-    set(settingsToSave, 'theme.loader', formSettingsValue.theme.loader);
-
-    set(settingsToSave, 'scheduler.tasks', formSettingsValue.scheduler.tasks);
-    set(settingsToSave, 'scheduler.notifications', formSettingsValue.scheduler.notifications);
-
-    set(settingsToSave, 'alert', { enabled: formSettingsValue.alert });
-
-    set(settingsToSave, 'cors.allowOrigin', formSettingsValue.cors.allowOrigin);
-    set(settingsToSave, 'cors.allowMethods', formSettingsValue.cors.allowMethods);
-    set(settingsToSave, 'cors.allowHeaders', formSettingsValue.cors.allowHeaders);
-    set(settingsToSave, 'cors.exposedHeaders', formSettingsValue.cors.exposedHeaders);
-    set(settingsToSave, 'cors.maxAge', formSettingsValue.cors.maxAge);
-
-    set(settingsToSave, 'email.enabled', formSettingsValue.email.enabled);
-    set(settingsToSave, 'email.host', formSettingsValue.email.host);
-    set(settingsToSave, 'email.port', formSettingsValue.email.port);
-    set(settingsToSave, 'email.username', formSettingsValue.email.username);
-    set(settingsToSave, 'email.password', formSettingsValue.email.password);
-    set(settingsToSave, 'email.protocol', formSettingsValue.email.protocol);
-    set(settingsToSave, 'email.subject', formSettingsValue.email.subject);
-    set(settingsToSave, 'email.from', formSettingsValue.email.from);
-    set(settingsToSave, 'email.properties.auth', formSettingsValue.email.properties.auth);
-    set(settingsToSave, 'email.properties.startTlsEnable', formSettingsValue.email.properties.startTlsEnable);
-    set(settingsToSave, 'email.properties.sslTrust', formSettingsValue.email.properties.sslTrust);
+    const settingsToSave = merge(cloneDeep(this.settings), formSettingsValue);
 
     this.consoleSettingsService
       .save(settingsToSave)
