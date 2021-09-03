@@ -255,6 +255,11 @@ public class SyncManager {
             apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
         }
 
+        // When event was created with APIM < 3.x, the api doesn't have environmentId, we must use default.
+        if (api.getEnvironmentId() == null) {
+            api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+        }
+
         // FIXME: Find a way to avoid this context override needed because the same thread synchronize all the apis
         //  (and they can be related to different organizations)
         EnvironmentEntity environmentEntity = this.environmentService.findById(api.getEnvironmentId());
