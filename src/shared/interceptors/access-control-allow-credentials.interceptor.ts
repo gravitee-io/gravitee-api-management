@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
-import { CsrfInterceptor } from './csrf.interceptor';
-import { AccessControlAllowCredentialsInterceptor } from './access-control-allow-credentials.interceptor';
+export class AccessControlAllowCredentialsInterceptor implements HttpInterceptor {
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    req = req.clone({
+      withCredentials: true,
+    });
 
-/** Http interceptor providers in outside-in order */
-export const httpInterceptorProviders = [
-  { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
-  { provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true },
-];
+    return next.handle(req);
+  }
+}
