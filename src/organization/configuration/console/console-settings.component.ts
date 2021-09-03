@@ -31,8 +31,8 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'gio-org-config-console-settings',
-  template: require('./console-settings.html'),
-  styles: [require('./console-settings.scss')],
+  template: require('./console-settings.component.html'),
+  styles: [require('./console-settings.component.scss')],
 })
 export class ConsoleSettingsComponent implements OnInit, OnDestroy {
   isLoading = true;

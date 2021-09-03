@@ -348,7 +348,7 @@ import AddTopApiDialogController from '../management/configuration/top-apis/dial
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import ApiProxyController from './api/proxy/apiProxy.controller';
 import CockpitComponent from '../organization/configuration/cockpit/cockpit.component';
-import { ConsoleSettingsComponent } from '../organization/configuration/console/console-settings';
+import { ConsoleSettingsComponent } from '../organization/configuration/console/console-settings.component';
 import ConsoleSettingsComponentAjs from '../organization/configuration/console/console.component';
 import PortalSettingsComponent from './configuration/portal/portal.component';
 import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
