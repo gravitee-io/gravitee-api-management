@@ -74,6 +74,10 @@ public class BridgeService extends AbstractService {
             super.doStart();
             LOGGER.info("Start HTTP server for bridge");
 
+            LOGGER.warn("------------------------------------------------------------------------");
+            LOGGER.warn("HTTP Bridge Service will be disabled by default starting in version 3.13");
+            LOGGER.warn("------------------------------------------------------------------------");
+
             // Start HTTP server
             Router mainRouter = Router.router(vertx);
             mainRouter.mountSubRouter(PATH, bridgeRouter);
