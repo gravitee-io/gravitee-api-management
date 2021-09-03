@@ -16,8 +16,10 @@
 package io.gravitee.repository.mongodb.management.internal.key;
 
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -31,4 +33,7 @@ public interface ApiKeyMongoRepository extends MongoRepository<ApiKeyMongo, Stri
     List<ApiKeyMongo> findByPlan(String plan);
 
     List<ApiKeyMongo> findByKey(String key);
+
+    @Query("{ 'key': ?0, 'api': ?1 }")
+    Collection<Object> findByKeyAndApi(String key, String api);
 }

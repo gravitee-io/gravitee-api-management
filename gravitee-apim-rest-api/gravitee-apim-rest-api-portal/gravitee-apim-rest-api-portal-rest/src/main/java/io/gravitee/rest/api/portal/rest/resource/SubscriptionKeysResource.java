@@ -74,7 +74,7 @@ public class SubscriptionKeysResource extends AbstractResource {
             hasPermission(RolePermission.APPLICATION_SUBSCRIPTION, subscriptionEntity.getApplication(), RolePermissionAction.UPDATE) ||
             hasPermission(RolePermission.API_SUBSCRIPTION, subscriptionEntity.getApi(), RolePermissionAction.UPDATE)
         ) {
-            ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
+            ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(apiKey, subscriptionEntity.getApi());
             if (apiKeyEntity.getSubscription() != null && !subscriptionId.equals(apiKeyEntity.getSubscription())) {
                 return Response
                     .status(Response.Status.BAD_REQUEST)
@@ -82,7 +82,7 @@ public class SubscriptionKeysResource extends AbstractResource {
                     .build();
             }
 
-            apiKeyService.revoke(apiKey, true);
+            apiKeyService.revoke(apiKeyEntity, true);
 
             return Response.noContent().build();
         }

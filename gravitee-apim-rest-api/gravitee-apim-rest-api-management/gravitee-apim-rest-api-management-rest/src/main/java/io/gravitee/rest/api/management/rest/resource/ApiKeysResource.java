@@ -36,7 +36,10 @@ import javax.ws.rs.core.Response;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
+ *
+ * @deprecated Use KeysResource instead
  */
+@Deprecated(forRemoval = true, since = "v3.12")
 @Api(tags = { "API Keys" })
 public class ApiKeysResource extends AbstractResource {
 
@@ -51,22 +54,30 @@ public class ApiKeysResource extends AbstractResource {
     @ApiParam(name = "api", hidden = true)
     private String api;
 
+    @Deprecated(forRemoval = true, since = "v3.12")
     @DELETE
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke an API key", notes = "User must have the API_SUBSCRIPTION:DELETE permission to use this service")
+    @ApiOperation(
+        value = "Deprecated, use DELETE /keys/{keyId} endpoint instead",
+        notes = "User must have the API_SUBSCRIPTION:DELETE permission to use this service"
+    )
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeApiKey(@PathParam("key") @ApiParam("The API key") String apiKey) {
-        apiKeyService.revoke(apiKey, true);
+        apiKeyService.revoke(apiKey, api, true);
 
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 
+    @Deprecated(forRemoval = true, since = "v3.12")
     @PUT
     @Path("{key}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Update an API Key", notes = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service")
+    @ApiOperation(
+        value = "Deprecated, use PUT /keys/{keyId} endpoint instead",
+        notes = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service"
+    )
     @ApiResponses(
         {
             @ApiResponse(code = 200, message = "API Key successfully updated", response = ApiKeyEntity.class),
@@ -90,12 +101,13 @@ public class ApiKeysResource extends AbstractResource {
         return Response.ok(keyEntity).build();
     }
 
+    @Deprecated(forRemoval = true, since = "v3.12")
     @POST
     @Path("_verify")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-        value = "Check if an API key is available",
+        value = "Deprecated, use GET /keys/_canCreate endpoint instead",
         notes = "User must have the API_SUBSCRIPTION:READ permission to use this service"
     )
     @ApiResponses(
@@ -109,6 +121,7 @@ public class ApiKeysResource extends AbstractResource {
     public Response verifyApiKeyAvailability(
         @ApiParam(name = "apiKey", required = true) @CustomApiKey @NotNull @QueryParam("apiKey") String apiKey
     ) {
-        return Response.ok(!apiKeyService.exists(apiKey)).build();
+        boolean available = apiKeyService.findByKey(apiKey).isEmpty();
+        return Response.ok(available).build();
     }
 }

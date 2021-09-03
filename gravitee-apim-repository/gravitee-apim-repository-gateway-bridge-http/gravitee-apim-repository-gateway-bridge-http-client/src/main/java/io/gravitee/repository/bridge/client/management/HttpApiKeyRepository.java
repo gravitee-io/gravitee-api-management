@@ -38,8 +38,13 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     }
 
     @Override
-    public Optional<ApiKey> findByKey(String apiKey) throws TechnicalException {
-        return blockingGet(get("/keys/" + apiKey, BodyCodecs.optional(ApiKey.class)).send()).payload();
+    public List<ApiKey> findByKey(String apiKey) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
+        return blockingGet(get(String.format("/apis/%s/keys/%s", api, key), BodyCodecs.optional(ApiKey.class)).send()).payload();
     }
 
     @Override

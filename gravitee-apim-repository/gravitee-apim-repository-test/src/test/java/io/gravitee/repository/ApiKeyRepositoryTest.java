@@ -95,21 +95,37 @@ public class ApiKeyRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
-    public void findByKey_should_find_first_matching_apikey() throws Exception {
-        Optional<ApiKey> optional = apiKeyRepository.findByKey("d449098d-8c31-4275-ad59-8dd707865a34");
+    public void findByKey_should_find_all_matching_apikeys() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByKey("d449098d-8c31-4275-ad59-8dd707865a34");
 
-        assertTrue("ApiKey not found", optional.isPresent());
+        assertFalse("ApiKeys not found", apiKeys.isEmpty());
 
-        ApiKey keyFound = optional.get();
-        assertNotNull("ApiKey not found", keyFound);
-        assertEquals("id-of-apikey-1", keyFound.getId());
+        assertNotNull("ApiKeys not found", apiKeys);
+        assertEquals(2, apiKeys.size());
+        assertTrue(apiKeys.stream().anyMatch(apiKey -> apiKey.getId().equals("id-of-apikey-1")));
+        assertTrue(apiKeys.stream().anyMatch(apiKey -> apiKey.getId().equals("id-of-apikey-2")));
     }
 
     @Test
-    public void findBykey_should_return_optional_if_key_not_found() throws Exception {
-        Optional<ApiKey> apiKey = apiKeyRepository.findById("unknown-api-key-d449098d-8c31-42");
+    public void findBykey_should_return_empty_list_if_key_not_found() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByKey("unknown-api-key-d449098d-8c31-42");
 
-        assertFalse("Invalid ApiKey found", apiKey.isPresent());
+        assertTrue("Invalid ApiKeys found", apiKeys.isEmpty());
+    }
+
+    @Test
+    public void findBykeyAndApi_should_return_key_if_found() throws Exception {
+        Optional<ApiKey> apiKey = apiKeyRepository.findByKeyAndApi("d449098d-8c31-4275-ad59-8dd707865a34", "api2");
+
+        assertTrue(apiKey.isPresent());
+        assertEquals("id-of-apikey-2", apiKey.get().getId());
+    }
+
+    @Test
+    public void findBykeyAndApi_should_return_empty_optional_if_not_found() throws Exception {
+        Optional<ApiKey> apiKey = apiKeyRepository.findByKeyAndApi("d449098d-8c31-4275-ad59-8dd707865a34", "api2255");
+
+        assertFalse(apiKey.isPresent());
     }
 
     @Test

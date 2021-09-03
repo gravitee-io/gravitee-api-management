@@ -160,20 +160,36 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
-    public Optional<ApiKey> findByKey(String key) throws TechnicalException {
+    public List<ApiKey> findByKey(String key) throws TechnicalException {
         LOGGER.debug("JdbcApiKeyRepository.findByKey({})", key);
         try {
-            List<ApiKey> items = jdbcTemplate.query(getOrm().getSelectAllSql() + " where key = ?", getOrm().getRowMapper(), key);
-            if (items.isEmpty()) {
-                return Optional.empty();
-            }
-            if (items.size() > 1) {
-                LOGGER.warn("Mutliple API keys found with key [{}]. Returning the first one", key);
-            }
-            return Optional.of(items.get(0));
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ?",
+                getOrm().getRowMapper(),
+                key
+            );
         } catch (final Exception ex) {
             LOGGER.error("Failed to find api key by key", ex);
             throw new TechnicalException("Failed to find api key by key", ex);
+        }
+    }
+
+    @Override
+    public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
+        LOGGER.debug("JdbcApiKeyRepository.findByKeyAndApi({}, {})", key, api);
+        try {
+            return jdbcTemplate
+                .query(
+                    getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ? and api = ?",
+                    getOrm().getRowMapper(),
+                    key,
+                    api
+                )
+                .stream()
+                .findFirst();
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find api key by key and api", ex);
+            throw new TechnicalException("Failed to find api key by key and api", ex);
         }
     }
 }

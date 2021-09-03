@@ -293,4 +293,9 @@ public class EnvironmentResource extends AbstractResource {
     public PromotionTargetsResource getPromotionTargetsResource() {
         return resourceContext.getResource(PromotionTargetsResource.class);
     }
+
+    @Path("keys")
+    public KeysResource getKeysResource() {
+        return resourceContext.getResource(KeysResource.class);
+    }
 }

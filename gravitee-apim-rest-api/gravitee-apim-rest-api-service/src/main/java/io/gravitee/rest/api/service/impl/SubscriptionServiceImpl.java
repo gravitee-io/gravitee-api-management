@@ -570,9 +570,6 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             if (plan.getSecurity() == PlanSecurityType.API_KEY && subscription.getStatus() == Subscription.Status.ACCEPTED) {
                 if (StringUtils.isNotEmpty(processSubscription.getCustomApiKey())) {
-                    if (apiKeyService.exists(processSubscription.getCustomApiKey())) {
-                        throw new ApiKeyAlreadyExistingException();
-                    }
                     apiKeyService.generate(subscription.getId(), processSubscription.getCustomApiKey());
                 } else {
                     apiKeyService.generate(subscription.getId());
@@ -655,7 +652,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                             apiKey.setExpireAt(now);
                             apiKey.setRevokedAt(now);
                             apiKey.setRevoked(true);
-                            apiKeyService.revoke(apiKey.getKey(), false);
+                            apiKeyService.revoke(apiKey, false);
                         }
                     }
 
@@ -946,25 +943,20 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             logger.debug("Search pageable subscriptions {}", query);
 
             if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
-                try {
-                    ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(query.getApiKey());
-                    SubscriptionEntity subscriptionEntity = findById(apiKeyEntity.getSubscription());
-                    if (query.getApis() != null && !query.getApis().contains(subscriptionEntity.getApi())) {
-                        return new Page<>(emptyList(), 1, 0, 0);
-                    }
-                    if (query.getApplications() != null && !query.getApplications().contains(subscriptionEntity.getApplication())) {
-                        return new Page<>(emptyList(), 1, 0, 0);
-                    }
-                    if (query.getPlans() != null && !query.getPlans().contains(subscriptionEntity.getPlan())) {
-                        return new Page<>(emptyList(), 1, 0, 0);
-                    }
-                    if (query.getStatuses() != null && !query.getStatuses().contains(subscriptionEntity.getStatus())) {
-                        return new Page<>(emptyList(), 1, 0, 0);
-                    }
-                    return new Page<>(Collections.singletonList(subscriptionEntity), 1, 1, 1);
-                } catch (ApiKeyNotFoundException | SubscriptionNotFoundException ex) {
-                    return new Page<>(emptyList(), 1, 0, 0);
-                }
+                List<SubscriptionEntity> filteredSubscriptions = apiKeyService
+                    .findByKey(query.getApiKey())
+                    .stream()
+                    .map(apiKey -> findById(apiKey.getSubscription()))
+                    .filter(
+                        subscription ->
+                            query.matchesApi(subscription.getApi()) &&
+                            query.matchesApplication(subscription.getApplication()) &&
+                            query.matchesPlan(subscription.getPlan()) &&
+                            query.matchesStatus(subscription.getStatus())
+                    )
+                    .collect(toList());
+
+                return new Page<>(filteredSubscriptions, 1, filteredSubscriptions.size(), filteredSubscriptions.size());
             } else {
                 SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
 

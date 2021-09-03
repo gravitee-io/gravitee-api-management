@@ -57,8 +57,8 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public ApiKey update(ApiKey apiKey) throws TechnicalException {
-        if (apiKey == null || apiKey.getKey() == null) {
-            throw new IllegalStateException("ApiKey to update must have an key");
+        if (apiKey == null || apiKey.getId() == null) {
+            throw new IllegalStateException("ApiKey to update must have an id");
         }
 
         ApiKeyMongo apiKeyMongo = internalApiKeyRepo.findById(apiKey.getId()).orElse(null);
@@ -94,21 +94,16 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public Optional<ApiKey> findById(String id) throws TechnicalException {
-        ApiKeyMongo apiKey = internalApiKeyRepo.findById(id).orElse(null);
-
-        return (apiKey != null) ? Optional.of(mapper.map(apiKey, ApiKey.class)) : Optional.empty();
+        return internalApiKeyRepo.findById(id).map(apiKey -> mapper.map(apiKey, ApiKey.class));
     }
 
     @Override
-    public Optional<ApiKey> findByKey(String key) throws TechnicalException {
-        List<ApiKeyMongo> apiKeys = internalApiKeyRepo.findByKey(key);
+    public List<ApiKey> findByKey(String key) throws TechnicalException {
+        return internalApiKeyRepo.findByKey(key).stream().map(apiKey -> mapper.map(apiKey, ApiKey.class)).collect(Collectors.toList());
+    }
 
-        if (apiKeys.isEmpty()) {
-            return Optional.empty();
-        }
-        if (apiKeys.size() > 1) {
-            LOGGER.warn("Mutliple API keys found with key [{}]. Returning the first one", key);
-        }
-        return Optional.of(mapper.map(apiKeys.get(0), ApiKey.class));
+    @Override
+    public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
+        return internalApiKeyRepo.findByKeyAndApi(key, api).stream().findFirst().map(apiKey -> mapper.map(apiKey, ApiKey.class));
     }
 }

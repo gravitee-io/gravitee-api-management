@@ -60,7 +60,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         apiKeyEntity.setSubscription(SUBSCRIPTION);
 
         doReturn(apiKeyEntity).when(apiKeyService).renew(SUBSCRIPTION);
-        doReturn(apiKeyEntity).when(apiKeyService).findByKey(KEY);
+        doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(KEY, API);
 
         doReturn(new Key().key(KEY)).when(keyMapper).convert(apiKeyEntity);
 
@@ -118,7 +118,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
-        Mockito.verify(apiKeyService).revoke(KEY, true);
+        Mockito.verify(apiKeyService).revoke(apiKeyEntity, true);
 
         assertFalse(response.hasEntity());
     }
@@ -128,12 +128,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         apiKeyEntity = new ApiKeyEntity();
         apiKeyEntity.setKey(KEY);
 
-        doReturn(apiKeyEntity).when(apiKeyService).findByKey(KEY);
+        doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(KEY, API);
 
         final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
 
-        Mockito.verify(apiKeyService).revoke(KEY, true);
+        Mockito.verify(apiKeyService).revoke(apiKeyEntity, true);
 
         assertFalse(response.hasEntity());
     }
@@ -144,7 +144,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
         apiKeyEntity.setKey(KEY);
         apiKeyEntity.setSubscription(ANOTHER_SUBSCRIPTION);
 
-        doReturn(apiKeyEntity).when(apiKeyService).findByKey(KEY);
+        doReturn(apiKeyEntity).when(apiKeyService).findByKeyAndApi(KEY, API);
 
         final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());

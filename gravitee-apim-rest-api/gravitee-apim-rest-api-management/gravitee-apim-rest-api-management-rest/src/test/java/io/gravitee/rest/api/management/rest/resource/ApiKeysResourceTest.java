@@ -15,12 +15,15 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import java.util.Collections;
+import java.util.List;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +33,8 @@ import org.junit.Test;
  * @author GraviteeSource Team
  */
 public class ApiKeysResourceTest extends AbstractResourceTest {
+
+    private static final String API_KEY = "atLeast10CharsButLessThan64";
 
     @Override
     protected String contextPath() {
@@ -42,20 +47,30 @@ public class ApiKeysResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldReturnApiKeyAvailability() {
-        when(apiKeyService.exists(anyString())).thenReturn(true);
+    public void shouldReturnApiKeyAvailabilityTrue_whenNoKeyFound() {
+        when(apiKeyService.findByKey(API_KEY)).thenReturn(Collections.emptyList());
 
-        Response response = envTarget("_verify").queryParam("apiKey", "atLeast10CharsButLessThan64").request().post(null);
+        Response response = envTarget("_verify").queryParam("apiKey", API_KEY).request().post(null);
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        assertEquals(false, response.readEntity(Boolean.class));
+        assertTrue(response.readEntity(Boolean.class));
+    }
+
+    @Test
+    public void shouldReturnApiKeyAvailabilityFalse_whenAtLeast1KeyFound() {
+        when(apiKeyService.findByKey(API_KEY)).thenReturn(List.of(new ApiKeyEntity()));
+
+        Response response = envTarget("_verify").queryParam("apiKey", API_KEY).request().post(null);
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertFalse(response.readEntity(Boolean.class));
     }
 
     @Test
     public void shouldReturn500IfInternalError() {
-        when(apiKeyService.exists(anyString())).thenThrow(new InternalError());
+        when(apiKeyService.findByKey(API_KEY)).thenThrow(new InternalError());
 
-        Response response = envTarget("_verify").queryParam("apiKey", "atLeast10CharsButLessThan64").request().post(null);
+        Response response = envTarget("_verify").queryParam("apiKey", API_KEY).request().post(null);
 
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }

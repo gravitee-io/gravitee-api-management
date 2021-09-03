@@ -376,7 +376,7 @@ public class LogsServiceImpl implements LogsService {
     private String getSubscription(io.gravitee.repository.log.model.ExtendedLog log) {
         if ("API_KEY".equals(log.getSecurityType())) {
             try {
-                ApiKeyEntity key = apiKeyService.findByKey(log.getSecurityToken());
+                ApiKeyEntity key = apiKeyService.findByKeyAndApi(log.getSecurityToken(), log.getApi());
                 if (key != null) {
                     return key.getSubscription();
                 }

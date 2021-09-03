@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.subscription;
 
+import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import java.util.Collection;
 import java.util.Collections;
@@ -151,5 +152,21 @@ public class SubscriptionQuery {
     @Override
     public int hashCode() {
         return Objects.hash(apis, plans, statuses, applications, apiKey, from, to, endingAtAfter, endingAtBefore);
+    }
+
+    public boolean matchesApi(String api) {
+        return apis == null || apis.contains(api);
+    }
+
+    public boolean matchesPlan(String plan) {
+        return plans == null || plans.contains(plan);
+    }
+
+    public boolean matchesApplication(String application) {
+        return applications == null || applications.contains(application);
+    }
+
+    public boolean matchesStatus(SubscriptionStatus status) {
+        return statuses == null || statuses.contains(status);
     }
 }

@@ -34,21 +34,31 @@ public interface ApiKeyService {
 
     ApiKeyEntity renew(String subscription, String customApiKey);
 
-    void revoke(String apiKey, boolean notify);
+    void revoke(String keyId, boolean notify);
 
-    ApiKeyEntity reactivate(String apiKey);
+    void revoke(ApiKeyEntity apiKeyEntity, boolean notify);
+
+    void revoke(String apiKey, String apiId, boolean notify);
+
+    ApiKeyEntity reactivate(ApiKeyEntity apiKeyEntity);
+
+    ApiKeyEntity reactivate(String apiKey, String apiId);
 
     List<ApiKeyEntity> findBySubscription(String subscription);
 
-    ApiKeyEntity findByKey(String apiKey);
+    List<ApiKeyEntity> findByKey(String apiKey);
+
+    ApiKeyEntity findByKeyAndApi(String apiKey, String apiId);
 
     void delete(String apiKey);
 
     ApiKeyEntity update(ApiKeyEntity apiKeyEntity);
 
-    ApiKeyEntity updateDaysToExpirationOnLastNotification(String apiKey, Integer value);
+    ApiKeyEntity updateDaysToExpirationOnLastNotification(ApiKeyEntity apiKeyEntity, Integer value);
 
-    boolean exists(String apiKey);
+    ApiKeyEntity updateDaysToExpirationOnLastNotification(String apiKey, String apiId, Integer value);
+
+    boolean canCreate(String apiKey, String apiId, String applicationId);
 
     Collection<ApiKeyEntity> search(ApiKeyQuery query);
 }

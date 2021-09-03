@@ -148,7 +148,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
         findEmailsToNotify(subscription, application)
             .forEach(email -> this.sendEmail(email, daysToExpiration, api, plan, application, apiKey));
 
-        return apiKeyService.updateDaysToExpirationOnLastNotification(apiKey.getKey(), daysToExpiration);
+        return apiKeyService.updateDaysToExpirationOnLastNotification(apiKey, daysToExpiration);
     }
 
     private SubscriptionEntity notifySubscription(Integer daysToExpiration, SubscriptionEntity subscription) {

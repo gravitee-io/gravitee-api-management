@@ -36,15 +36,21 @@ public interface ApiKeyRepository {
     Optional<ApiKey> findById(String id) throws TechnicalException;
 
     /**
-     * Give the API Key detail from the given key
-     *
-     * FIXME : While it isn't possible to have mutliple API keys with the same key, this function returns the first found
-     * TODO : Change this behavior with ticket https://github.com/gravitee-io/issues/issues/6006
+     * Give the API Keys from the given key
      *
      * @param key API key
-     * @return API Key Details
+     * @return API Keys
      */
-    Optional<ApiKey> findByKey(String key) throws TechnicalException;
+    List<ApiKey> findByKey(String key) throws TechnicalException;
+
+    /**
+     * Give the API Key from the given key and api
+     *
+     * @param key API key
+     * @param api Key api
+     * @return API Key
+     */
+    Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException;
 
     /**
      * Create a new API Key

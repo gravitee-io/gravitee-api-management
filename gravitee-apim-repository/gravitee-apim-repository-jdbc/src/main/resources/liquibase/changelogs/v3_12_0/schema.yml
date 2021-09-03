@@ -11,6 +11,10 @@ databaseChangeLog:
                   name: id
                   type: nvarchar(64)
         - sql:
+            dbms: mariadb, mysql
+            sql: update `${gravitee_prefix}keys` set `id` = `key`
+        - sql:
+            dbms: postgresql, mssql
             sql: update ${gravitee_prefix}keys set id = key
         - addNotNullConstraint:
             tableName: ${gravitee_prefix}keys
@@ -31,8 +35,29 @@ databaseChangeLog:
                   name: api
                   type: nvarchar(64)
         - sql:
+            dbms: mariadb, mysql
+            sql: update `${gravitee_prefix}keys` set api = ( select s.api from ${gravitee_prefix}subscriptions s where s.id = subscription)
+        - sql:
+            dbms: postgresql, mssql
             sql: update ${gravitee_prefix}keys set api = ( select s.api from ${gravitee_prefix}subscriptions s where s.id = subscription)
         - addNotNullConstraint:
             tableName: ${gravitee_prefix}keys
             columnDataType: nvarchar(64)
             columnName: api
+        - createIndex:
+            indexName: idx_${gravitee_prefix}keys_key
+            columns:
+              - column:
+                  name: key
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}keys
+        - createIndex:
+            indexName: idx_${gravitee_prefix}keys_key_and_api
+            columns:
+              - column:
+                  name: api
+                  type: nvarchar(64)
+              - column:
+                  name: key
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}keys

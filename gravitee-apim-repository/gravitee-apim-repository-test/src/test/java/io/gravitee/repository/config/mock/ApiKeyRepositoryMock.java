@@ -28,6 +28,7 @@ import static org.mockito.internal.util.collections.Sets.newSet;
 
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,20 +42,17 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
 
     @Override
     void prepare(ApiKeyRepository apiKeyRepository) throws Exception {
-        final ApiKey apiKey = mock(ApiKey.class);
-        when(apiKey.getId()).thenReturn("id-of-apikey-1");
-        when(apiKey.getKey()).thenReturn("apiKey");
-        when(apiKey.getExpireAt()).thenReturn(parse("11/02/2016"));
-        when(apiKey.getSubscription()).thenReturn("subscription1");
-        when(apiKey.getApi()).thenReturn("api1");
-        when(apiKey.isRevoked()).thenReturn(true);
-        when(apiKey.isPaused()).thenReturn(true);
-        when(apiKey.getDaysToExpirationOnLastNotification()).thenReturn(30);
+        final ApiKey apiKey1 = mockApiKey1();
+        final ApiKey apiKey2 = mockApiKey2();
+        final ApiKey apiKey3 = mockApiKey3();
+
+        when(apiKey1.getDaysToExpirationOnLastNotification()).thenReturn(30);
         when(apiKeyRepository.findById(anyString())).thenReturn(empty());
-        when(apiKeyRepository.findById("id-of-apikey-1")).thenReturn(of(apiKey));
-        when(apiKeyRepository.findById("id-of-new-apikey")).thenReturn(of(apiKey));
-        when(apiKeyRepository.findByKey("d449098d-8c31-4275-ad59-8dd707865a34")).thenReturn(of(apiKey));
-        when(apiKeyRepository.findBySubscription("subscription1")).thenReturn(newSet(apiKey, mock(ApiKey.class)));
+        when(apiKeyRepository.findById("id-of-apikey-1")).thenReturn(of(apiKey1));
+        when(apiKeyRepository.findById("id-of-new-apikey")).thenReturn(of(apiKey1));
+        when(apiKeyRepository.findByKey("d449098d-8c31-4275-ad59-8dd707865a34")).thenReturn(List.of(apiKey1, apiKey2));
+        when(apiKeyRepository.findBySubscription("subscription1")).thenReturn(newSet(apiKey1, mock(ApiKey.class)));
+        when(apiKeyRepository.findByKeyAndApi("d449098d-8c31-4275-ad59-8dd707865a34", "api2")).thenReturn(of(apiKey2));
 
         when(apiKeyRepository.update(argThat(o -> o == null || o.getId().equals("unknown_key_id")))).thenThrow(new IllegalStateException());
 
@@ -70,12 +68,6 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
         when(apiKeyRepository.findByCriteria(argThat(o -> o == null || o.isIncludeRevoked())))
             .thenReturn(asList(mockCriteria2, mockCriteria1Revoked, mockCriteria1));
 
-        ApiKey apiKey2 = mock(ApiKey.class);
-        when(apiKey2.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865a34");
-
-        ApiKey apiKey3 = mock(ApiKey.class);
-        when(apiKey3.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865a35");
-
         when(apiKeyRepository.findByCriteria(argThat(o -> o != null && o.getExpireAfter() == 30019401755L)))
             .thenReturn(asList(apiKey2, apiKey3));
         when(apiKeyRepository.findByCriteria(argThat(o -> o != null && o.getExpireBefore() == 30019401755L)))
@@ -86,5 +78,35 @@ public class ApiKeyRepositoryMock extends AbstractRepositoryMock<ApiKeyRepositor
             )
         )
             .thenReturn(asList(apiKey2, apiKey3));
+    }
+
+    private ApiKey mockApiKey1() {
+        ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getId()).thenReturn("id-of-apikey-1");
+        when(apiKey.getKey()).thenReturn("apiKey");
+        when(apiKey.getExpireAt()).thenReturn(parse("11/02/2016"));
+        when(apiKey.getSubscription()).thenReturn("subscription1");
+        when(apiKey.getApi()).thenReturn("api1");
+        when(apiKey.isRevoked()).thenReturn(true);
+        when(apiKey.isPaused()).thenReturn(true);
+        return apiKey;
+    }
+
+    private ApiKey mockApiKey2() {
+        ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getId()).thenReturn("id-of-apikey-2");
+        when(apiKey.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865a34");
+        when(apiKey.getExpireAt()).thenReturn(parse("11/02/2016"));
+        when(apiKey.getSubscription()).thenReturn("subscription2");
+        when(apiKey.getApi()).thenReturn("api2");
+        when(apiKey.isRevoked()).thenReturn(false);
+        when(apiKey.isPaused()).thenReturn(false);
+        return apiKey;
+    }
+
+    private ApiKey mockApiKey3() {
+        ApiKey apiKey = mock(ApiKey.class);
+        when(apiKey.getKey()).thenReturn("d449098d-8c31-4275-ad59-8dd707865a35");
+        return apiKey;
     }
 }

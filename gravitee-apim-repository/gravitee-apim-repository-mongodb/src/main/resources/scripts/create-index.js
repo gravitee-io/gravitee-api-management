@@ -39,6 +39,8 @@ db.getCollection(`${prefix}keys`).createIndex( { "application" : 1 } );
 db.getCollection(`${prefix}keys`).createIndex( { "updatedAt" : 1 } );
 db.getCollection(`${prefix}keys`).createIndex( { "revoked" : 1 } );
 db.getCollection(`${prefix}keys`).createIndex( { "plan" : 1 , "revoked" : 1, "updatedAt" : 1 } );
+db.getCollection(`${prefix}keys`).createIndex( { "key" : 1 } );
+db.getCollection(`${prefix}keys`).createIndex( { "key" : 1, "api" : 1 } );
 db.getCollection(`${prefix}keys`).reIndex();
 
 // "pages" collection

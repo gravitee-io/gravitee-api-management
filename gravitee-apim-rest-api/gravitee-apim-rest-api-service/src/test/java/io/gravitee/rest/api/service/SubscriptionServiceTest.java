@@ -19,36 +19,37 @@ import static io.gravitee.rest.api.service.impl.AbstractService.ENVIRONMENT_ADMI
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationSettings;
 import io.gravitee.rest.api.model.application.OAuthClientSettings;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.SubscriptionServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
@@ -794,7 +795,7 @@ public class SubscriptionServiceTest {
 
         subscriptionService.close(SUBSCRIPTION_ID);
 
-        verify(apiKeyService).revoke("api-key", false);
+        verify(apiKeyService).revoke(apiKey, false);
         verify(notifierService).trigger(eq(ApiHook.SUBSCRIPTION_CLOSED), anyString(), anyMap());
         verify(notifierService).trigger(eq(ApplicationHook.SUBSCRIPTION_CLOSED), nullable(String.class), anyMap());
     }
@@ -934,8 +935,6 @@ public class SubscriptionServiceTest {
         when(plan.getApi()).thenReturn(API_ID);
         when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
 
-        when(apiKeyService.exists(customApiKey)).thenReturn(false);
-
         // Stub
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(planService.findById(PLAN_ID)).thenReturn(plan);
@@ -953,40 +952,6 @@ public class SubscriptionServiceTest {
         assertEquals(SubscriptionStatus.ACCEPTED, subscriptionEntity.getStatus());
         assertEquals(USER_ID, subscriptionEntity.getProcessedBy());
         assertNotNull(subscriptionEntity.getProcessedAt());
-    }
-
-    @Test(expected = ApiKeyAlreadyExistingException.class)
-    public void shouldProcessWithExistingCustomApiKeyForAcceptedSubscription() throws Exception {
-        // Prepare data
-        final String customApiKey = "customApiKey";
-
-        ProcessSubscriptionEntity processSubscription = new ProcessSubscriptionEntity();
-        processSubscription.setId(SUBSCRIPTION_ID);
-        processSubscription.setAccepted(true);
-        processSubscription.setCustomApiKey(customApiKey);
-
-        Subscription subscription = new Subscription();
-        subscription.setApplication(APPLICATION_ID);
-        subscription.setPlan(PLAN_ID);
-        subscription.setStatus(Subscription.Status.PENDING);
-        subscription.setSubscribedBy(SUBSCRIBER_ID);
-
-        when(plan.getApi()).thenReturn(API_ID);
-        when(plan.getSecurity()).thenReturn(PlanSecurityType.API_KEY);
-
-        when(apiKeyService.exists(customApiKey)).thenReturn(true);
-
-        // Stub
-        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
-        when(planService.findById(PLAN_ID)).thenReturn(plan);
-        when(applicationService.findById(APPLICATION_ID)).thenReturn(application);
-        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
-        final UserEntity subscriberUser = new UserEntity();
-        subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
-        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
-
-        // Run
-        final SubscriptionEntity subscriptionEntity = subscriptionService.process(processSubscription, USER_ID);
     }
 
     @Test(expected = PlanAlreadyClosedException.class)
@@ -1152,5 +1117,59 @@ public class SubscriptionServiceTest {
         assertNotNull(subscriptionEntity.getId());
         assertNotNull(subscriptionEntity.getApplication());
         assertNotNull(subscriptionEntity.getCreatedAt());
+    }
+
+    @Test
+    public void search_pageable_with_apikey_should_find_api_keys_by_key_and_filter_results_according_to_query() throws TechnicalException {
+        SubscriptionQuery query = new SubscriptionQuery();
+        query.setApiKey("searched-api-key");
+        query.setApis(List.of("api-id-1", "api-id-3"));
+        query.setStatuses(List.of(SubscriptionStatus.PENDING, SubscriptionStatus.ACCEPTED));
+
+        when(apiKeyService.findByKey("searched-api-key"))
+            .thenReturn(
+                List.of(
+                    buildTestApiKeyForSubscription("subscription-1"),
+                    buildTestApiKeyForSubscription("subscription-2"),
+                    buildTestApiKeyForSubscription("subscription-3"),
+                    buildTestApiKeyForSubscription("subscription-4")
+                )
+            );
+
+        // subscription1 should be returned cause matches api and status query
+        Subscription subscription1 = buildTestSubscription("sub1", "api-id-1", Subscription.Status.ACCEPTED);
+        when(subscriptionRepository.findById("subscription-1")).thenReturn(Optional.of(subscription1));
+
+        // subscription2 should be filtered cause API id doesn't match
+        Subscription subscription2 = buildTestSubscription("sub2", "api-id-2", Subscription.Status.PENDING);
+        when(subscriptionRepository.findById("subscription-2")).thenReturn(Optional.of(subscription2));
+
+        // subscription3 should be returned cause matches api and status query
+        Subscription subscription3 = buildTestSubscription("sub3", "api-id-3", Subscription.Status.PENDING);
+        when(subscriptionRepository.findById("subscription-3")).thenReturn(Optional.of(subscription3));
+
+        // subscription4 should be filtered cause status doesn't match
+        Subscription subscription4 = buildTestSubscription("sub4", "api-id-4", Subscription.Status.PAUSED);
+        when(subscriptionRepository.findById("subscription-4")).thenReturn(Optional.of(subscription4));
+
+        Page<SubscriptionEntity> page = subscriptionService.search(query, Mockito.mock(Pageable.class));
+
+        assertEquals(2, page.getTotalElements());
+        assertEquals("sub1", page.getContent().get(0).getId());
+        assertEquals("sub3", page.getContent().get(1).getId());
+    }
+
+    private ApiKeyEntity buildTestApiKeyForSubscription(String subscription) {
+        ApiKeyEntity apikey = new ApiKeyEntity();
+        apikey.setSubscription(subscription);
+        return apikey;
+    }
+
+    private Subscription buildTestSubscription(String id, String api, Subscription.Status status) {
+        Subscription subscription = new Subscription();
+        subscription.setId(id);
+        subscription.setApi(api);
+        subscription.setStatus(status);
+        return subscription;
     }
 }

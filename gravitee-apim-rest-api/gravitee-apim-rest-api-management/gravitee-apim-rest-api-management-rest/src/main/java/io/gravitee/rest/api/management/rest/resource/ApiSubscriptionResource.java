@@ -236,12 +236,12 @@ public class ApiSubscriptionResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response revokeSubscriptionApiKey(@PathParam("subscription") String subscription, @PathParam("key") String apiKey) {
-        ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
+        ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(apiKey, api);
         if (apiKeyEntity.getSubscription() != null && !subscription.equals(apiKeyEntity.getSubscription())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the subscription").build();
         }
 
-        apiKeyService.revoke(apiKey, true);
+        apiKeyService.revoke(apiKeyEntity, true);
 
         return Response.status(Response.Status.NO_CONTENT).build();
     }
@@ -259,12 +259,12 @@ public class ApiSubscriptionResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response reactivateApiKey(@PathParam("subscription") String subscription, @PathParam("key") String apiKey) {
-        ApiKeyEntity apiKeyEntity = apiKeyService.findByKey(apiKey);
+        ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(apiKey, api);
         if (apiKeyEntity.getSubscription() != null && !subscription.equals(apiKeyEntity.getSubscription())) {
             return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the subscription").build();
         }
 
-        ApiKeyEntity reactivated = apiKeyService.reactivate(apiKey);
+        ApiKeyEntity reactivated = apiKeyService.reactivate(apiKeyEntity);
 
         return Response.ok().entity(reactivated).build();
     }

@@ -37,8 +37,13 @@ public class ApiKeyRepositoryProxy extends AbstractProxy<ApiKeyRepository> imple
     }
 
     @Override
-    public Optional<ApiKey> findByKey(String key) throws TechnicalException {
+    public List<ApiKey> findByKey(String key) throws TechnicalException {
         return target.findByKey(key);
+    }
+
+    @Override
+    public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
+        return target.findByKeyAndApi(key, api);
     }
 
     @Override
