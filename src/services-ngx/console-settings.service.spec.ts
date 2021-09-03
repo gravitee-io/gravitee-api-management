@@ -74,6 +74,25 @@ describe('ConsoleSettingsService', () => {
 
       req.flush(newConsoleSettings());
     });
+
+    it('should enable localLogin if no Idp defined', (done) => {
+      const consoleSettingsPayload: ConsoleSettings = {
+        authentication: {
+          localLogin: { enabled: false },
+        },
+      };
+
+      consoleSettingsService.save(consoleSettingsPayload).subscribe((consoleSettings) => {
+        expect(consoleSettings?.authentication?.localLogin?.enabled).toEqual(true);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual(consoleSettingsPayload);
+
+      req.flush(newConsoleSettings());
+    });
   });
 
   describe('get', () => {

@@ -53,14 +53,6 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  private hasIdpDefined = () => {
-    return (
-      this.settings.authentication?.google?.clientId ||
-      this.settings.authentication?.github?.clientId ||
-      this.settings.authentication?.oauth2?.clientId
-    );
-  };
-
   private allowAllOriginsConfirmDialog?: MatDialogRef<GioConfirmDialogComponent, boolean>;
 
   constructor(
@@ -77,11 +69,6 @@ export class ConsoleSettingsComponent implements OnInit, OnDestroy {
       .subscribe((settings) => {
         this.isLoading = false;
         this.settings = settings;
-
-        // FIXME: Rule kept after Angular migration
-        // The properties of this rule do not concern the editable forms of this component
-        // To see to move it on the backend or in service
-        set(this.settings, 'authentication.localLogin.enabled', this.settings.authentication?.localLogin?.enabled || !this.hasIdpDefined());
 
         this.formSettings = this.fb.group({
           management: this.fb.group({
