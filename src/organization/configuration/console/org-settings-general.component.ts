@@ -30,11 +30,11 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
-  selector: 'gio-org-config-console-settings',
-  template: require('./console-settings.component.html'),
-  styles: [require('./console-settings.component.scss')],
+  selector: 'org-settings-general',
+  template: require('./org-settings-general.component.html'),
+  styles: [require('./org-settings-general.component.scss')],
 })
-export class ConsoleSettingsComponent implements OnInit, OnDestroy {
+export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
   isLoading = true;
 
   formSettings: FormGroup;

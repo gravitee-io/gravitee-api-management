@@ -30,7 +30,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ConsoleSettingsComponent } from './console/console-settings.component';
+import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 @NgModule({
@@ -54,8 +54,8 @@ import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/c
 
     GioConfirmDialogModule,
   ],
-  declarations: [ConsoleSettingsComponent],
-  exports: [ConsoleSettingsComponent],
-  entryComponents: [ConsoleSettingsComponent],
+  declarations: [OrgSettingsGeneralComponent],
+  exports: [OrgSettingsGeneralComponent],
+  entryComponents: [OrgSettingsGeneralComponent],
 })
 export class OrganizationSettingsModule {}

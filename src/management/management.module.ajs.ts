@@ -348,7 +348,6 @@ import AddTopApiDialogController from '../management/configuration/top-apis/dial
 import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
 import ApiProxyController from './api/proxy/apiProxy.controller';
 import CockpitComponent from '../organization/configuration/cockpit/cockpit.component';
-import { ConsoleSettingsComponent } from '../organization/configuration/console/console-settings.component';
 import ConsoleSettingsComponentAjs from '../organization/configuration/console/console.component';
 import PortalSettingsComponent from './configuration/portal/portal.component';
 import DialogAddPathMappingController from './api/analytics/pathMappings/modal/add-pathMapping.dialog.controller';
@@ -563,6 +562,7 @@ Map(Highcharts);
 import '@highcharts/map-collection/custom/world';
 import { DebugApiService } from '../services/debugApi.service';
 import { downgradeComponent } from '@angular/upgrade/static';
+import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -865,7 +865,7 @@ graviteeManagementModule.component('theme', ThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.component('cockpit', CockpitComponent);
 graviteeManagementModule.component('consoleSettings', ConsoleSettingsComponentAjs);
-graviteeManagementModule.directive('ngConsoleSettings', downgradeComponent({ component: ConsoleSettingsComponent }));
+graviteeManagementModule.directive('ngConsoleSettings', downgradeComponent({ component: OrgSettingsGeneralComponent }));
 graviteeManagementModule.component('portalSettings', PortalSettingsComponent);
 graviteeManagementModule.component('analyticsSettings', AnalyticsSettingsComponent);
 graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);

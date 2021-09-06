@@ -28,14 +28,14 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
-import { ConsoleSettingsComponent } from './console-settings.component';
+import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 
 describe('ConsoleSettingsComponent', () => {
-  let fixture: ComponentFixture<ConsoleSettingsComponent>;
+  let fixture: ComponentFixture<OrgSettingsGeneralComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
 
@@ -54,7 +54,7 @@ describe('ConsoleSettingsComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ConsoleSettingsComponent);
+    fixture = TestBed.createComponent(OrgSettingsGeneralComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
