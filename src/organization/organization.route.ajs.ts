@@ -198,6 +198,30 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-users', {
+      url: '/ng-users?q&page',
+      component: 'ngOrgSettingsUsers',
+      resolve: {
+        usersPage: (UserService: UserService, $state, $stateParams) =>
+          UserService.list($stateParams.q, $stateParams.page).then((response) => response.data),
+      },
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-users',
+        },
+        perms: {
+          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+        },
+      },
+      params: {
+        page: {
+          value: '1',
+          dynamic: true,
+        },
+      },
+    })
     .state('organization.settings.user', {
       url: '/users/:userId',
       component: 'userDetail',

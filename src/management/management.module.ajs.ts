@@ -563,6 +563,7 @@ import '@highcharts/map-collection/custom/world';
 import { DebugApiService } from '../services/debugApi.service';
 import { downgradeComponent } from '@angular/upgrade/static';
 import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';
+import { OrgSettingsUsersComponent } from '../organization/configuration/users/org-settings-users.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -1006,6 +1007,7 @@ graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController
 
 // Users
 graviteeManagementModule.component('users', UsersComponent);
+graviteeManagementModule.directive('ngOrgSettingsUsers', downgradeComponent({ component: OrgSettingsUsersComponent }));
 graviteeManagementModule.component('userDetail', UserDetailComponent);
 graviteeManagementModule.component('newUser', NewUserComponent);
 graviteeManagementModule.controller('DialogAddUserGroupController', DialogAddUserGroupController);

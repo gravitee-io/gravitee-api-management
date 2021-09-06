@@ -31,6 +31,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
+import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 @NgModule({
@@ -54,8 +55,8 @@ import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/c
 
     GioConfirmDialogModule,
   ],
-  declarations: [OrgSettingsGeneralComponent],
-  exports: [OrgSettingsGeneralComponent],
-  entryComponents: [OrgSettingsGeneralComponent],
+  declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
+  exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
+  entryComponents: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
 })
 export class OrganizationSettingsModule {}
