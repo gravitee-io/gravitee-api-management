@@ -131,6 +131,24 @@ jobs:
           path: dist.zip
           destination: build-output
 
+  build-storybook:
+    executor:
+      name: node-lts
+      class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build
+          command: npm run build-storybook
+          environment:
+            NODE_OPTIONS: --max_old_space_size=3072
+      - persist_to_workspace:
+          root: .
+          paths:
+            - storybook-static
+
   deploy-on-azure-storage:
     docker:
       - image: mcr.microsoft.com/azure-cli:latest
@@ -170,6 +188,17 @@ jobs:
 
             _Notes_: The deployed app is linked to the management API of the Element Zero team's environment."
 
+  chromatic-deployment: 
+    executor:
+      class: small
+      name: node-lts
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - secrethub/exec:
+          step-name: Running Chromatic
+          command: npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static
 
 workflows:
   pull_requests:
@@ -197,6 +226,9 @@ workflows:
       - build:
           requires:
             - install
+      - build-storybook:
+          requires:
+            - install  
       - deploy-on-azure-storage:
           context: cicd-orchestrator
           pre-steps:
@@ -219,6 +251,9 @@ workflows:
                 var-name: GITHUB_TOKEN
           requires:
             - deploy-on-azure-storage
+      - chromatic-deployment:
+          requires:
+            - build-storybook
 
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to

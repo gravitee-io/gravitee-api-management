@@ -32,3 +32,4 @@ graviteebot.gpg.pub.key
 # which should not be commited
 .secrets.json
 storybook-static
+build-storybook.log
