@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.List;
@@ -85,6 +84,12 @@ public interface ApiService {
     ApiEntity deploy(String apiId, String userId, EventType eventType, ApiDeploymentEntity apiDeploymentEntity);
 
     ApiEntity rollback(String apiId, UpdateApiEntity api);
+
+    String exportAsJson(String apiId, String exportVersion, String... filteredFields);
+
+    ApiEntity createWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId);
+
+    ApiEntity updateWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId);
 
     InlinePictureEntity getPicture(String apiId);
 

@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 import static org.springframework.util.StringUtils.hasText;
+import static org.springframework.util.StringUtils.isEmpty;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;

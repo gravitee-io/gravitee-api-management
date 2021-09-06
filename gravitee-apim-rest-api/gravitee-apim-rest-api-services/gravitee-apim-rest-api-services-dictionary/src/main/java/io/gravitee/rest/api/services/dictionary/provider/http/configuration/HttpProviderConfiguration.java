@@ -27,6 +27,7 @@ public class HttpProviderConfiguration {
     private String url;
     private String specification;
     private List<HttpHeader> headers;
+    private boolean useSystemProxy;
     private HttpMethod method;
     private String body;
 
@@ -52,6 +53,14 @@ public class HttpProviderConfiguration {
 
     public void setHeaders(List<HttpHeader> headers) {
         this.headers = headers;
+    }
+
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
     }
 
     public HttpMethod getMethod() {

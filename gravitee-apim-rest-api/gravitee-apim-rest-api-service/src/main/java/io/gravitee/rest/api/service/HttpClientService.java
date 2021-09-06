@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.http.HttpMethod;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClient;
 import java.util.Map;
 
 /**
@@ -24,5 +25,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface HttpClientService {
+    HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy);
+
     Buffer request(HttpMethod method, final String uri, final Map<String, String> headers, String body, Boolean useSystemProxy);
 }

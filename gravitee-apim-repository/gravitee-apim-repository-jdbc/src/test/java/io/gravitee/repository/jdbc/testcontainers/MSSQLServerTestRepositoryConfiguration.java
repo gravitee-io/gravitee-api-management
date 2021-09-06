@@ -40,7 +40,9 @@ public class MSSQLServerTestRepositoryConfiguration extends AbstractJdbcTestRepo
 
     @Bean(destroyMethod = "stop")
     public MSSQLServerContainer embeddedMSSQLServer() {
-        final MSSQLServerContainer mssqlserver = new MSSQLServerContainer(DockerImageName.parse("2017-CU12"));
+        final MSSQLServerContainer mssqlserver = new MSSQLServerContainer(
+            DockerImageName.parse("mcr.microsoft.com/mssql/server:2017-CU12")
+        );
         mssqlserver.start();
         return mssqlserver;
     }

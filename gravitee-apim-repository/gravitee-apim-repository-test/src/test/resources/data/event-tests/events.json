@@ -74,7 +74,43 @@
     "type": "GATEWAY_STOPPED",
     "payload": "{}",
     "parentId": null,
-    "createdAt": 1464739200000,
-    "updatedAt": 1464939200000
+    "createdAt": 1467331200000,
+    "updatedAt": 1467331200000
+  },
+  {
+    "id": "event8",
+    "environments": ["DEFAULT"],
+    "type": "STOP_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-1"
+    },
+    "createdAt": 1470009600000,
+    "updatedAt": 1470009600000
+  },
+  {
+    "id": "event9",
+    "environments": ["DEFAULT"],
+    "type": "START_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-1"
+    },
+    "createdAt": 1472688000000,
+    "updatedAt": 1472688000000
+  },
+  {
+    "id": "event10",
+    "environments": ["OTHER"],
+    "type": "PUBLISH_DICTIONARY",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "dictionary_id": "dictionary-2"
+    },
+    "createdAt": 1475280000000,
+    "updatedAt": 1475280000000
   }
 ]
