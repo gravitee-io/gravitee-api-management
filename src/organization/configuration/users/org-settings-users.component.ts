@@ -13,11 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
+import { StateService } from '@uirouter/core';
+
+import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
 
 @Component({
   selector: 'org-settings-users',
   styles: [require('./org-settings-users.component.scss')],
   template: require('./org-settings-users.component.html'),
 })
-export class OrgSettingsUsersComponent {}
+export class OrgSettingsUsersComponent {
+  page = 0;
+  constructor(@Inject(UIRouterStateParams) private $stateParams, @Inject(UIRouterState) private $state: StateService) {}
+
+  ngOnInit() {
+    this.page = this.$stateParams?.page ?? 0;
+  }
+
+  nextPage() {
+    this.$state.go('organization.settings.ng-users', { page: this.page++ });
+  }
+}

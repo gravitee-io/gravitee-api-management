@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { OrganizationSettingsModule } from '../organization-settings.module';
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
+
+import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
+import { OrganizationSettingsModule } from '../organization-settings.module';
 
 describe('OrgSettingsUsersComponent', () => {
   let component: OrgSettingsUsersComponent;
@@ -26,6 +27,10 @@ describe('OrgSettingsUsersComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [OrganizationSettingsModule],
+      providers: [
+        { provide: UIRouterState, useValue: { go: jest.fn() } },
+        { provide: UIRouterStateParams, useValue: {} },
+      ],
     });
     fixture = TestBed.createComponent(OrgSettingsUsersComponent);
     component = fixture.componentInstance;
