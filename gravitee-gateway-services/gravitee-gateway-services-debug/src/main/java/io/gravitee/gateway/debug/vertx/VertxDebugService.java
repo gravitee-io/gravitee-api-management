@@ -17,11 +17,9 @@ package io.gravitee.gateway.debug.vertx;
 
 import io.gravitee.common.service.AbstractService;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -39,9 +37,6 @@ public class VertxDebugService extends AbstractService {
 
     private String deploymentId;
 
-    @Value("${http.instances:0}")
-    private int instances;
-
     @Override
     public VertxDebugService start() {
         doStart();
@@ -56,8 +51,7 @@ public class VertxDebugService extends AbstractService {
 
     @Override
     protected void doStart() {
-        instances = (instances < 1) ? VertxOptions.DEFAULT_EVENT_LOOP_POOL_SIZE : instances;
-        logger.info("Starting Vertx DEBUG container and deploy Gateway Verticles [{} instance(s)]", instances);
+        logger.info("Starting Vertx DEBUG container and deploy 1 Debug Reactor Verticle");
 
         final DebugReactorVerticle debugReactorVerticle = new DebugReactorVerticle();
         applicationContext.getAutowireCapableBeanFactory().autowireBean(debugReactorVerticle);
