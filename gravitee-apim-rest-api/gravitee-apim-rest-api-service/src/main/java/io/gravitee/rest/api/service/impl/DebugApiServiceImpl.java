@@ -151,6 +151,11 @@ public class DebugApiServiceImpl implements DebugApiService {
             debugApi.getProxy().getLogging().setScope(LoggingScope.NONE);
         }
 
+        // Disable health-check for the debugger API
+        if (debugApiEntity.getServices() != null && debugApi.getServices().getHealthCheckService() != null) {
+            debugApi.getServices().getHealthCheckService().setEnabled(false);
+        }
+
         return debugApi;
     }
 }
