@@ -36,7 +36,7 @@
 
   <groupId>io.gravitee.portal</groupId>
   <artifactId>gravitee-portal-webui</artifactId>
-    <version>3.13.0-SNAPSHOT</version>
+    <version>3.12.0</version>
   <packaging>pom</packaging>
   <name>Gravitee.io APIM - portal web UI</name>
 
