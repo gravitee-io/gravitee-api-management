@@ -57,7 +57,7 @@
       <gv-button
         *ngFor="let provider of providers"
         class="btn__provider"
-        [provider]="provider.type"
+        [provider]="provider.type.toLowerCase()"
         [style]="getProviderStyle(provider)"
         (:gv-button:click)="authenticate(provider)"
       >
