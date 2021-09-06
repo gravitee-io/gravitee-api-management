@@ -24,6 +24,7 @@ import PortalSettingsService from '../../../services/portalSettings.service';
 const ApiPortalHeaderComponent: ng.IComponentOptions = {
   bindings: {
     apiPortalHeaders: '<',
+    settings: '<',
   },
   template: require('./api-portal-header.html'),
   controller: function (
@@ -37,11 +38,8 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     'ngInject';
     this.$rootScope = $rootScope;
     this.$mdDialog = $mdDialog;
-    this.settings = _.cloneDeep(Constants.env.settings);
-    this.providedConfigurationMessage = 'Configuration provided by the system';
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    this.$onInit = () => {};
+    this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.upward = (header: ApiPortalHeader) => {
       header.order = header.order - 1;
@@ -113,34 +111,18 @@ const ApiPortalHeaderComponent: ng.IComponentOptions = {
     };
 
     this.saveShowCategories = () => {
-      PortalSettingsService.save({
-        portal: {
-          apis: {
-            apiHeaderShowCategories: {
-              enabled: this.settings.portal.apis.apiHeaderShowCategories.enabled,
-            },
-          },
-        },
-      }).then((response) => {
+      PortalSettingsService.save(this.settings).then((response) => {
         NotificationService.show(
           'Categories are now ' + (this.settings.portal.apis.apiHeaderShowCategories.enabled ? 'visible' : 'hidden'),
         );
-        Constants.env.settings.portal.apis.apiHeaderShowCategories = response.data.portal.apis.apiHeaderShowCategories;
+        this.settings = response.data;
       });
     };
 
     this.saveShowTags = () => {
-      PortalSettingsService.save({
-        portal: {
-          apis: {
-            apiHeaderShowTags: {
-              enabled: this.settings.portal.apis.apiHeaderShowTags.enabled,
-            },
-          },
-        },
-      }).then((response) => {
+      PortalSettingsService.save(this.settings).then((response) => {
         NotificationService.show('Tags are now ' + (this.settings.portal.apis.apiHeaderShowTags.enabled ? 'visible' : 'hidden'));
-        Constants.env.settings.portal.apis.apiHeaderShowTags = response.data.portal.apis.apiHeaderShowTags;
+        this.settings = response.data;
       });
     };
 

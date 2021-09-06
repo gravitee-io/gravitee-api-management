@@ -37,6 +37,7 @@ const PolicyStudioWrapperComponent: ng.IComponentOptions = {
     flowSchema: '<',
     withoutResource: '@',
     policies: '<',
+    dynamicPropertySchema: '<',
     debugResponse: '<',
   },
   template: require('./policy-studio-wrapper.html'),

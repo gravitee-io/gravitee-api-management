@@ -42,6 +42,11 @@ export const propertyProviders = [
           type: 'string',
           pattern: '^(http://|https://)',
         },
+        useSystemProxy: {
+          title: 'Use system proxy',
+          description: 'Use the system proxy configured by your administrator.',
+          type: 'boolean',
+        },
         headers: {
           type: 'array',
           title: 'Request Headers',
@@ -94,6 +99,51 @@ export const propertyProviders = [
       '= Custom (HTTP)\n\n=== How to ?\n\n 1. Set `Polling frequency interval` and `Time unit`\n2. Set the `HTTP service URL`\n 3. If the HTTP service doesn\'t return the expected output, add a JOLT `transformation` \n\n[source, json]\n----\n[\n  {\n    "key": 1,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 2,\n    "value": "https://north-europe.company.com/"\n  },\n  {\n    "key": 3,\n    "value": "https://south-asia.company.com/"\n  }\n]\n----\n',
   },
 ];
+
+export const configurationInformation =
+  'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
+
+export const providersTitleMap = propertyProviders.reduce((map, provider) => {
+  map[provider.id] = provider.name;
+  return map;
+}, {});
+
+export const providersEnum = Object.keys(providersTitleMap);
+
+export const dynamicPropertySchema = {
+  properties: {
+    enabled: {
+      type: 'boolean',
+      title: 'Enabled',
+      description: ' This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.',
+    },
+    trigger: {
+      type: 'object',
+      properties: {
+        rate: {
+          type: 'integer',
+          title: 'Polling frequency interval',
+        },
+        unit: {
+          type: 'string',
+          title: 'Time unit',
+          enum: ['SECONDS', 'MINUTES', 'HOURS'],
+        },
+      },
+      required: ['rate', 'unit'],
+    },
+    provider: {
+      type: 'string',
+      title: 'Provider type',
+      enum: providersEnum,
+      default: providersEnum[0],
+      'x-schema-form': {
+        titleMap: providersTitleMap,
+      },
+    },
+  },
+  required: ['trigger', 'provider'],
+};
 
 class ApiDesignController {
   private api: any;
