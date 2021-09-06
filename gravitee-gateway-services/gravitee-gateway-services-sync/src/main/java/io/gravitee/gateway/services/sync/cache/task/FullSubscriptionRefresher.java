@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler;
+package io.gravitee.gateway.services.sync.cache.task;
 
-import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.model.Subscription;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ReactorHandlerRegistry {
-    void create(Reactable reactable);
+public class FullSubscriptionRefresher extends SubscriptionRefresher {
 
-    void update(Reactable reactable);
+    private final Collection<String> plans;
 
-    void remove(Reactable reactable);
+    public FullSubscriptionRefresher(Collection<String> plans) {
+        this.plans = plans;
+    }
 
-    void clear();
-
-    boolean contains(Reactable reactable);
-
-    /**
-     * An ordered collection of registered entrypoints.
-     *
-     * @return
-     */
-    Collection<HandlerEntrypoint> getEntrypoints();
+    @Override
+    public Result<Boolean> call() {
+        return doRefresh(new SubscriptionCriteria.Builder().status(Subscription.Status.ACCEPTED).plans(plans).build());
+    }
 }

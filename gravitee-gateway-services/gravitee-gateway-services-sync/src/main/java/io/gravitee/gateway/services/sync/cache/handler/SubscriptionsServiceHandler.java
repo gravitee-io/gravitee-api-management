@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.apikeys.handler;
+package io.gravitee.gateway.services.sync.cache.handler;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,7 +25,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.jackson.DatabindCodec;
 import io.vertx.ext.web.RoutingContext;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,13 +33,13 @@ import org.slf4j.LoggerFactory;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiKeysServiceHandler implements Handler<RoutingContext> {
+public class SubscriptionsServiceHandler implements Handler<RoutingContext> {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ApiKeysServiceHandler.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(SubscriptionsServiceHandler.class);
 
-    private final ScheduledThreadPoolExecutor executorService;
+    private final ThreadPoolExecutor executorService;
 
-    public ApiKeysServiceHandler(ScheduledThreadPoolExecutor executorService) {
+    public SubscriptionsServiceHandler(ThreadPoolExecutor executorService) {
         this.executorService = executorService;
     }
 
@@ -65,31 +65,31 @@ public class ApiKeysServiceHandler implements Handler<RoutingContext> {
     private class ExecutorStatistics {
 
         public int getCorePoolSize() {
-            return ApiKeysServiceHandler.this.executorService.getCorePoolSize();
+            return SubscriptionsServiceHandler.this.executorService.getCorePoolSize();
         }
 
         public int getMaximumPoolSize() {
-            return ApiKeysServiceHandler.this.executorService.getMaximumPoolSize();
+            return SubscriptionsServiceHandler.this.executorService.getMaximumPoolSize();
         }
 
         public int getLargestPoolSize() {
-            return ApiKeysServiceHandler.this.executorService.getLargestPoolSize();
+            return SubscriptionsServiceHandler.this.executorService.getLargestPoolSize();
         }
 
         public int getPoolSize() {
-            return ApiKeysServiceHandler.this.executorService.getPoolSize();
+            return SubscriptionsServiceHandler.this.executorService.getPoolSize();
         }
 
         public int getActiveCount() {
-            return ApiKeysServiceHandler.this.executorService.getActiveCount();
+            return SubscriptionsServiceHandler.this.executorService.getActiveCount();
         }
 
         public long getTaskCount() {
-            return ApiKeysServiceHandler.this.executorService.getTaskCount();
+            return SubscriptionsServiceHandler.this.executorService.getTaskCount();
         }
 
         public long getCompletedTaskCount() {
-            return ApiKeysServiceHandler.this.executorService.getCompletedTaskCount();
+            return SubscriptionsServiceHandler.this.executorService.getCompletedTaskCount();
         }
     }
 }

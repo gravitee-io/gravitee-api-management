@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.apikeys.spring;
-
-import io.gravitee.gateway.services.sync.apikeys.ApiKeysCacheService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package io.gravitee.gateway.services.sync.cache.stats;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class ApiKeysConfiguration {
+public class Statistics {
 
-    @Bean
-    public ApiKeysCacheService apiKeysCacheService() {
-        return new ApiKeysCacheService();
-    }
+    private long minTime;
+
+    private long maxTime;
+
+    private long avgTime;
+
+    private long totalTime;
+
+    private long count;
+
+    private long errorsCount;
+
+    private Throwable lastException;
 }
