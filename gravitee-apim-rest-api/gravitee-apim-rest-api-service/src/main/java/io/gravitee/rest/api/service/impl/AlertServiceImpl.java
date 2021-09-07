@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ENVIRONMENT;
+import static io.gravitee.rest.api.service.common.GraviteeContext.ReferenceContextType.ORGANIZATION;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
@@ -45,6 +47,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.alert.EmailNotifierConfiguration;
 import java.io.IOException;
@@ -543,6 +546,29 @@ public class AlertServiceImpl extends TransactionalService implements AlertServi
             case API:
             case APPLICATION:
                 filters.add(StringCondition.equals(referenceType.name().toLowerCase(), referenceId).build());
+                break;
+            case PLATFORM:
+                // Add filters to make sure we will receive alert notifications only for events on the same organization / environment.
+                // For now, it seems that alerts are managed at organization level only. The behavior will change with https://github.com/gravitee-io/issues/issues/6079).
+                // It would be preferable to use a 'in' filter but this kind of filter does not exist yet. To keep backward compatibility we will rely on pattern matching.
+                filters.add(
+                    StringCondition
+                        .matches(
+                            ORGANIZATION.name().toLowerCase(),
+                            "(?:.*,|^)" + GraviteeContext.getCurrentOrganization() + "(?:,.*|$)|\\*",
+                            true
+                        )
+                        .build()
+                );
+                filters.add(
+                    StringCondition
+                        .matches(
+                            ENVIRONMENT.name().toLowerCase(),
+                            "(?:.*|^)" + GraviteeContext.getCurrentEnvironment() + "(?:,.*|$)|\\*",
+                            true
+                        )
+                        .build()
+                );
                 break;
         }
     }

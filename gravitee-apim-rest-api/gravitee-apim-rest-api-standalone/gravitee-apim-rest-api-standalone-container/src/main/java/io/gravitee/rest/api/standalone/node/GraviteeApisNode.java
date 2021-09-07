@@ -16,12 +16,15 @@
 package io.gravitee.rest.api.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.AbstractNode;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
 import io.gravitee.rest.api.service.InitializerService;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import java.util.List;
+import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -29,6 +32,11 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class GraviteeApisNode extends AbstractNode {
+
+    @Autowired
+    private NodeMetadataResolver nodeMetadataResolver;
+
+    private Map<String, Object> metadata = null;
 
     @Override
     public String name() {
@@ -38,6 +46,15 @@ public class GraviteeApisNode extends AbstractNode {
     @Override
     public String application() {
         return "gio-apim-apis";
+    }
+
+    @Override
+    public Map<String, Object> metadata() {
+        if (metadata == null) {
+            metadata = nodeMetadataResolver.resolve();
+        }
+
+        return metadata;
     }
 
     @Override

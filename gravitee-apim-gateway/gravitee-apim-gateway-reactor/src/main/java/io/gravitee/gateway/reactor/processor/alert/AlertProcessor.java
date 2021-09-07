@@ -43,6 +43,8 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
     private static final String CONTEXT_GATEWAY_PORT = "gateway.port";
 
     private static final String PROP_TENANT = "tenant";
+    private static final String PROP_ORGANIZATION = "organization";
+    private static final String PROP_ENVIRONMENT = "environment";
 
     private static final String PROP_REQUEST_ID = "request.id";
     private static final String PROP_REQUEST_USER_AGENT = "request.user_agent";
@@ -107,6 +109,8 @@ public class AlertProcessor extends AbstractProcessor<ExecutionContext> {
                     .property(PROP_QUOTA_COUNTER, context.getAttribute(ExecutionContext.ATTR_QUOTA_COUNT))
                     .property(PROP_QUOTA_LIMIT, context.getAttribute(ExecutionContext.ATTR_QUOTA_LIMIT))
                     .property(PROP_ERROR_KEY, context.request().metrics().getErrorKey())
+                    .organization((String) context.getAttribute(ExecutionContext.ATTR_ORGANIZATION))
+                    .environment((String) context.getAttribute(ExecutionContext.ATTR_ENVIRONMENT))
                     .build()
             );
         } catch (Exception ex) {

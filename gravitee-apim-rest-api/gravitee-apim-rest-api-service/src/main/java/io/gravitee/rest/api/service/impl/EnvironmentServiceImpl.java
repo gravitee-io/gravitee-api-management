@@ -23,6 +23,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -159,6 +160,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         Environment defaultEnvironment = new Environment();
         defaultEnvironment.setId(GraviteeContext.getDefaultEnvironment());
         defaultEnvironment.setName("Default environment");
+        defaultEnvironment.setHrids(Collections.singletonList("default"));
         defaultEnvironment.setDescription("Default environment");
         defaultEnvironment.setOrganizationId(GraviteeContext.getDefaultOrganization());
         try {

@@ -49,6 +49,11 @@ public class RepositoryApiBuilder {
         return this;
     }
 
+    public RepositoryApiBuilder environment(String environmentId) {
+        this.api.setEnvironmentId(environmentId);
+        return this;
+    }
+
     public Api build() {
         return this.api;
     }

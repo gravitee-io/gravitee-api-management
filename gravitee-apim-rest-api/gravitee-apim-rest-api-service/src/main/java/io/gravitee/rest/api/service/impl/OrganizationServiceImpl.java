@@ -193,6 +193,7 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         Organization defaultOrganization = new Organization();
         defaultOrganization.setId(GraviteeContext.getDefaultOrganization());
         defaultOrganization.setName("Default organization");
+        defaultOrganization.setHrids(Collections.singletonList("default"));
         defaultOrganization.setDescription("Default organization");
         try {
             organizationRepository.create(defaultOrganization);

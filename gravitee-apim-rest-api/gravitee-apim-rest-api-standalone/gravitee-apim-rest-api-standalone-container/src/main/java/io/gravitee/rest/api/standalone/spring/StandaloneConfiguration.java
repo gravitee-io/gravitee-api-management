@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.standalone.spring;
 
+import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.rest.api.management.rest.spring.RestManagementConfiguration;
@@ -24,6 +25,7 @@ import io.gravitee.rest.api.standalone.jetty.JettyConfiguration;
 import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import io.gravitee.rest.api.standalone.jetty.JettyServerFactory;
 import io.gravitee.rest.api.standalone.node.GraviteeApisNode;
+import io.gravitee.rest.api.standalone.node.GraviteeApisNodeMetadataResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -54,5 +56,10 @@ public class StandaloneConfiguration {
     @Bean
     public JettyEmbeddedContainer container() {
         return new JettyEmbeddedContainer();
+    }
+
+    @Bean
+    public NodeMetadataResolver nodeMetadataResolver() {
+        return new GraviteeApisNodeMetadataResolver();
     }
 }

@@ -33,8 +33,10 @@ import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -77,6 +79,8 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         context.setAttribute(ExecutionContext.ATTR_API, api.getId());
         context.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
         context.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
+        context.setAttribute(ExecutionContext.ATTR_ORGANIZATION, api.getOrganizationId());
+        context.setAttribute(ExecutionContext.ATTR_ENVIRONMENT, api.getEnvironmentId());
 
         // Prepare request metrics
         request.metrics().setApi(api.getId());
