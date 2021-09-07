@@ -15,35 +15,37 @@
     limitations under the License.
 
 -->
-<div class="gv-forms" layout="column">
-  <h1>Templates</h1>
+<div class="gv-sub-content">
+  <div class="gv-forms" layout="column">
+    <h1>Templates</h1>
 
-  <div class="gv-form" ng-repeat="(scope, notifs) in $ctrl.notifTemplatesMap">
-    <h2>{{scope.replaceAll('_', ' ')}}</h2>
-    <div class="gv-form-content" layout="column">
-      <md-table-container>
-        <table md-table class="gv-table-dense">
-          <thead md-head>
-            <tr md-row>
-              <th md-column width="30%">Name</th>
-              <th md-column>Description</th>
-            </tr>
-          </thead>
-          <tbody md-body>
-            <tr md-row ng-repeat="(notifLabel, notif) in notifs">
-              <td md-cell>
-                <a
-                  ui-sref="organization.settings.notificationTemplate({notifTemplateId: notif.id, scope: notif.scope, hook: notif.hook, })"
-                >
-                  {{notifLabel}}
-                </a>
-                <span ng-if="notif.overridden" flex class="badge" style="background-color: #039be5">Custom</span>
-              </td>
-              <td md-cell>{{notif.description}}</td>
-            </tr>
-          </tbody>
-        </table>
-      </md-table-container>
+    <div class="gv-form" ng-repeat="(scope, notifs) in $ctrl.notifTemplatesMap">
+      <h2>{{scope.replaceAll('_', ' ')}}</h2>
+      <div class="gv-form-content" layout="column">
+        <md-table-container>
+          <table md-table class="gv-table-dense">
+            <thead md-head>
+              <tr md-row>
+                <th md-column width="30%">Name</th>
+                <th md-column>Description</th>
+              </tr>
+            </thead>
+            <tbody md-body>
+              <tr md-row ng-repeat="(notifLabel, notif) in notifs">
+                <td md-cell>
+                  <a
+                    ui-sref="organization.settings.notificationTemplate({notifTemplateId: notif.id, scope: notif.scope, hook: notif.hook, })"
+                  >
+                    {{notifLabel}}
+                  </a>
+                  <span ng-if="notif.overridden" flex class="badge" style="background-color: #039be5">Custom</span>
+                </td>
+                <td md-cell>{{notif.description}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+      </div>
     </div>
   </div>
 </div>
