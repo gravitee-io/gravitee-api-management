@@ -37,3 +37,15 @@ export class PagedResult<T = any> {
     this.page = responseData.page;
   }
 }
+
+export const fakePagedResult = <T extends Array<any>>(
+  data: T,
+  page?: Page,
+  metadata?: Record<string, Record<string, any>>,
+): PagedResult<T> => {
+  const pr = new PagedResult<T[number]>();
+  pr.data = data;
+  pr.page = page ?? { current: 1, per_page: 10, size: 5, total_elements: 5, total_pages: 1 };
+  pr.metadata = metadata;
+  return pr;
+};
