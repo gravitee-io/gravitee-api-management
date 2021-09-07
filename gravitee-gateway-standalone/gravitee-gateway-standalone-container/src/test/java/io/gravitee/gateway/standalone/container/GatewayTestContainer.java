@@ -18,8 +18,12 @@ package io.gravitee.gateway.standalone.container;
 import io.gravitee.gateway.standalone.GatewayContainer;
 import io.gravitee.gateway.standalone.tracer.NoOpTracer;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.InstallationRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.tracing.api.Tracer;
 import java.util.List;
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -50,6 +54,21 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public Tracer tracer() {
             return new NoOpTracer();
+        }
+
+        @Bean
+        public InstallationRepository installationRepository() {
+            return Mockito.mock(InstallationRepository.class);
+        }
+
+        @Bean
+        public OrganizationRepository organizationRepository() {
+            return Mockito.mock(OrganizationRepository.class);
+        }
+
+        @Bean
+        public EnvironmentRepository environmentRepository() {
+            return Mockito.mock(EnvironmentRepository.class);
         }
     }
 }
