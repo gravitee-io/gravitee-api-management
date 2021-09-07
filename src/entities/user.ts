@@ -17,6 +17,12 @@ import _ = require('lodash');
 
 import { PagedResult } from './pagedResult';
 
+/**
+ * @deprecated No longer seems to reflect the real user type.
+ * With the Angular migration the User Type will be split in 2, one for the
+ * user management and one for the currently authenticated user.
+ * New type for user : "src/entities/user"
+ */
 export class User {
   public id: string;
   public username: string;
