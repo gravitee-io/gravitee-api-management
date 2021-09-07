@@ -15,6 +15,7 @@
  */
 import { Component, Inject } from '@angular/core';
 import { StateService } from '@uirouter/core';
+import { MatTableDataSource } from '@angular/material/table';
 
 import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
 
@@ -25,6 +26,11 @@ import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-provid
 })
 export class OrgSettingsUsersComponent {
   page = 0;
+
+  displayedColumns: string[] = ['userPicture', 'displayName', 'status', 'email', 'source', 'actions'];
+
+  dataSource = new MatTableDataSource([]);
+
   constructor(@Inject(UIRouterStateParams) private $stateParams, @Inject(UIRouterState) private $state: StateService) {}
 
   ngOnInit() {

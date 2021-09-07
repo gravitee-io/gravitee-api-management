@@ -29,6 +29,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -52,6 +53,7 @@ import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/c
     MatAutocompleteModule,
     MatDialogModule,
     MatSnackBarModule,
+    MatTableModule,
 
     GioConfirmDialogModule,
   ],

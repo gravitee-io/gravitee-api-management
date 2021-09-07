@@ -14,30 +14,53 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
-import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
 import { OrganizationSettingsModule } from '../organization-settings.module';
+import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
 
 describe('OrgSettingsUsersComponent', () => {
-  let component: OrgSettingsUsersComponent;
   let fixture: ComponentFixture<OrgSettingsUsersComponent>;
+  let loader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, OrganizationSettingsModule],
       providers: [
         { provide: UIRouterState, useValue: { go: jest.fn() } },
         { provide: UIRouterStateParams, useValue: {} },
       ],
     });
     fixture = TestBed.createComponent(OrgSettingsUsersComponent);
-    component = fixture.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+
     fixture.detectChanges();
   });
 
-  it('should init correctly', () => {
-    expect(component).toBeTruthy();
+  it('should display an empty table', async () => {
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#usersTable' }));
+
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByIndex()));
+
+    expect(headerCells).toEqual([
+      {
+        actions: '',
+        displayName: 'Display name',
+        email: 'Email',
+        source: 'Source',
+        status: 'Status',
+        userPicture: '',
+      },
+    ]);
+    expect(rowCells).toEqual([['No user']]);
   });
 });
