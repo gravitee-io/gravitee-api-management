@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Date;
@@ -29,7 +28,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonIgnoreProperties(value = { "displayName" }, allowGetters = true)
+
 public class UserEntity implements Indexable {
 
     /**
@@ -266,6 +265,7 @@ public class UserEntity implements Indexable {
         this.loginCount = loginCount;
     }
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getDisplayName() {
         String displayName;
 
