@@ -1064,49 +1064,43 @@ public class PageServiceImpl extends TransactionalService implements PageService
             // if order change, reorder all pages
             if (page.getOrder() != pageToUpdate.getOrder()) {
                 reorderAndSavePages(page);
-
-                if (createRevision) {
-                    createPageRevision(page);
-                }
-
-                return null;
-            } else {
-                List<String> messages = validateSafeContent(page);
-                Page updatedPage = pageRepository.update(page);
-
-                if (
-                    pageToUpdate.isPublished() != page.isPublished() &&
-                    !PageType.LINK.name().equalsIgnoreCase(pageType) &&
-                    !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)
-                ) {
-                    // update all the related links and translations publication status.
-                    this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished());
-                }
-
-                createAuditLog(
-                    PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
-                    PAGE_UPDATED,
-                    page.getUpdatedAt(),
-                    pageToUpdate,
-                    page
-                );
-
-                if (createRevision) {
-                    createPageRevision(updatedPage);
-                }
-
-                PageEntity pageEntity = convert(updatedPage);
-                pageEntity.setMessages(messages);
-
-                // update document in search engine
-                if (pageToUpdate.isPublished() && !page.isPublished()) {
-                    searchEngineService.delete(convert(pageToUpdate), false);
-                } else {
-                    index(pageEntity);
-                }
-
-                return pageEntity;
             }
+
+            List<String> messages = validateSafeContent(page);
+            Page updatedPage = pageRepository.update(page);
+
+            if (
+                pageToUpdate.isPublished() != page.isPublished() &&
+                !PageType.LINK.name().equalsIgnoreCase(pageType) &&
+                !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)
+            ) {
+                // update all the related links and translations publication status.
+                this.changeRelatedPagesPublicationStatus(pageId, updatePageEntity.isPublished());
+            }
+
+            createAuditLog(
+                PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
+                PAGE_UPDATED,
+                page.getUpdatedAt(),
+                pageToUpdate,
+                page
+            );
+
+            if (createRevision) {
+                createPageRevision(updatedPage);
+            }
+
+            PageEntity pageEntity = convert(updatedPage);
+            pageEntity.setMessages(messages);
+
+            // update document in search engine
+            if (pageToUpdate.isPublished() && !page.isPublished()) {
+                searchEngineService.delete(convert(pageToUpdate), false);
+            } else {
+                index(pageEntity);
+            }
+
+            return pageEntity;
         } catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
         }
