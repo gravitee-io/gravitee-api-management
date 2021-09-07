@@ -262,6 +262,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-newuser', {
+      url: '/ng-users/new',
+      component: 'ngOrgSettingsNewUser',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-create-user',
+        },
+        perms: {
+          only: ['organization-user-c'],
+        },
+      },
+    })
     .state('organization.settings.identityproviders', {
       abstract: true,
       url: '/identities',

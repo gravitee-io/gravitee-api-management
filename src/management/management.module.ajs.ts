@@ -564,6 +564,7 @@ import { DebugApiService } from '../services/debugApi.service';
 import { downgradeComponent } from '@angular/upgrade/static';
 import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from '../organization/configuration/users/org-settings-users.component';
+import { OrgSettingsNewUserComponent } from '../organization/configuration/user/new/org-settings-new-user.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -1009,6 +1010,7 @@ graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController
 graviteeManagementModule.component('users', UsersComponent);
 graviteeManagementModule.directive('ngOrgSettingsUsers', downgradeComponent({ component: OrgSettingsUsersComponent }));
 graviteeManagementModule.component('userDetail', UserDetailComponent);
+graviteeManagementModule.directive('ngOrgSettingsNewUser', downgradeComponent({ component: OrgSettingsNewUserComponent }));
 graviteeManagementModule.component('newUser', NewUserComponent);
 graviteeManagementModule.controller('DialogAddUserGroupController', DialogAddUserGroupController);
 

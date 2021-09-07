@@ -35,9 +35,11 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
+import { OrgSettingsNewUserComponent } from './user/new/org-settings-new-user.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
+
 @NgModule({
   imports: [
     BrowserAnimationsModule,
@@ -63,8 +65,8 @@ import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.m
     GioConfirmDialogModule,
     GioAvatarModule,
   ],
-  declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
+  declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent, OrgSettingsNewUserComponent],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
-  entryComponents: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
+  entryComponents: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent, OrgSettingsNewUserComponent],
 })
 export class OrganizationSettingsModule {}

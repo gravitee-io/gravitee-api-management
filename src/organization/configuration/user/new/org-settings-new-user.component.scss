@@ -1,0 +1,8 @@
+@import '../../../../scss/gio-layout';
+
+:host {
+  @include gio-responsive-margin-container;
+}
+
+.org-settings-new-user {
+}
