@@ -25,6 +25,8 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.*;
 import io.reactivex.Flowable;
@@ -34,7 +36,9 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +63,15 @@ public class ApiSynchronizer extends AbstractSynchronizer {
 
     @Autowired
     private ApiManager apiManager;
+
+    @Autowired
+    private EnvironmentRepository environmentRepository;
+
+    @Autowired
+    private OrganizationRepository organizationRepository;
+
+    private final Map<String, Environment> environmentMap = new ConcurrentHashMap<>();
+    private final Map<String, io.gravitee.repository.management.model.Organization> organizationMap = new ConcurrentHashMap<>();
 
     public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();
@@ -208,11 +221,57 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             apiDefinition.setEnabled(eventPayload.getLifecycleState() == LifecycleState.STARTED);
             apiDefinition.setDeployedAt(eventPayload.getDeployedAt());
 
+            enhanceWithOrgAndEnv(eventPayload.getEnvironmentId(), apiDefinition);
+
             return Maybe.just(apiDefinition);
         } catch (Exception e) {
             // Log the error and ignore this event.
             logger.error("Unable to extract api definition from event [{}].", apiEvent.getId());
             return Maybe.empty();
+        }
+    }
+
+    private void enhanceWithOrgAndEnv(String environmentId, io.gravitee.gateway.handlers.api.definition.Api definition) {
+        Environment apiEnv = null;
+
+        if (environmentId != null) {
+            apiEnv =
+                environmentMap.computeIfAbsent(
+                    environmentId,
+                    envId -> {
+                        try {
+                            final Environment environment = environmentRepository.findById(envId).get();
+
+                            organizationMap.computeIfAbsent(
+                                environment.getOrganizationId(),
+                                orgId -> {
+                                    try {
+                                        return organizationRepository.findById(orgId).get();
+                                    } catch (Exception e) {
+                                        return null;
+                                    }
+                                }
+                            );
+
+                            return environment;
+                        } catch (Exception e) {
+                            logger.warn("An error occurred fetching the environment {} and its organization.", envId);
+                            return null;
+                        }
+                    }
+                );
+        }
+
+        if (apiEnv != null) {
+            definition.setEnvironmentId(apiEnv.getId());
+            definition.setEnvironmentHrid(apiEnv.getHrids() != null ? apiEnv.getHrids().stream().findFirst().get() : null);
+
+            final io.gravitee.repository.management.model.Organization apiOrg = organizationMap.get(apiEnv.getOrganizationId());
+
+            if (apiOrg != null) {
+                definition.setOrganizationId(apiOrg.getId());
+                definition.setOrganizationHrid(apiOrg.getHrids() != null ? apiOrg.getHrids().stream().findFirst().get() : null);
+            }
         }
     }
 
