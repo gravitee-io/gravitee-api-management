@@ -1,0 +1,55 @@
+// Value extracted from https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+$small-desktop-width: 905px;
+$desktop-width: 1240px;
+$large-desktop-width: 1440px;
+
+@mixin small-desktop {
+  @media (min-width: #{$small-desktop-width}) and (max-width: #{$desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$desktop-width}) and (max-width: #{$large-desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin large-desktop {
+  @media (min-width: #{$large-desktop-width}) {
+    @content;
+  }
+}
+
+@mixin gio-responsive-margin-container {
+  overflow: auto;
+  height: calc(100vh - 54px);
+
+  @include small-desktop {
+    padding: 0 calc((100% - 840px) / 2);
+  }
+
+  @include desktop {
+    padding: 0 200px;
+  }
+
+  @include large-desktop {
+    padding: 0 calc((100% - 1040px) / 2);
+  }
+}
+
+@mixin gio-responsive-content-container {
+  padding: 0 8px;
+  overflow: auto;
+  height: calc(100vh - 54px);
+
+  @include large-desktop {
+    padding: 0 40px;
+  }
+}
+
+@mixin gio-full-width-content-container {
+  padding: 0;
+  overflow: auto;
+  height: calc(100vh - 54px);
+}

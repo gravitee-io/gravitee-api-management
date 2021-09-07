@@ -1,3 +1,9 @@
+@import '../../../scss/gio-layout';
+
+:host {
+  @include gio-responsive-margin-container;
+}
+
 .console-settings {
   &__info {
     display: flex;
