@@ -2057,14 +2057,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             );
 
                             rolesToImport.forEach(
-                                role ->
-                                    membershipService.addRoleToMemberOnReference(
-                                        MembershipReferenceType.API,
-                                        createdOrUpdatedApiEntity.getId(),
-                                        MembershipMemberType.USER,
-                                        userEntity.getId(),
-                                        role
-                                    )
+                                role -> {
+                                    try {
+                                        membershipService.addRoleToMemberOnReference(
+                                            MembershipReferenceType.API,
+                                            createdOrUpdatedApiEntity.getId(),
+                                            MembershipMemberType.USER,
+                                            userEntity.getId(),
+                                            role
+                                        );
+                                    } catch (Exception e) {
+                                        LOGGER.warn(
+                                            "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
+                                            role,
+                                            userEntity.getId(),
+                                            createdOrUpdatedApiEntity.getId(),
+                                            e.getMessage()
+                                        );
+                                    }
+                                }
                             );
                         } catch (UserNotFoundException unfe) {}
                     }
