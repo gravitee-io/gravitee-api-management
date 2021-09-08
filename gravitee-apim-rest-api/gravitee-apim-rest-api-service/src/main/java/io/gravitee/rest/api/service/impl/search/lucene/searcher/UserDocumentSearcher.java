@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -46,21 +47,26 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
         parser.setFuzzyMinSim(0.6f);
         parser.setAllowLeadingWildcard(true);
 
+        BooleanQuery.Builder userQuery = new BooleanQuery.Builder();
+        BooleanQuery.Builder userFieldsQuery = new BooleanQuery.Builder();
+
         try {
             parser.parse(QueryParserBase.escape(query.getQuery()));
-
-            BooleanQuery.Builder userQuery = new BooleanQuery.Builder();
-            BooleanQuery.Builder userFieldsQuery = new BooleanQuery.Builder();
-
             final String normalizedQuery = StringUtils.stripAccents(query.getQuery().toLowerCase());
 
-            userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(
-                new WildcardQuery(new Term("displayname_reverted", '*' + normalizedQuery + '*')),
-                BooleanClause.Occur.SHOULD
-            );
-            userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
-            userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+            if (isUserIdFormat(query)) {
+                userFieldsQuery.add(new WildcardQuery(new Term("id", normalizedQuery)), BooleanClause.Occur.MUST);
+            } else {
+                userFieldsQuery.add(new WildcardQuery(new Term("displayname", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+                userFieldsQuery.add(
+                    new WildcardQuery(new Term("displayname_reverted", '*' + normalizedQuery + '*')),
+                    BooleanClause.Occur.SHOULD
+                );
+
+                userFieldsQuery.add(new WildcardQuery(new Term("email", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+                userFieldsQuery.add(new WildcardQuery(new Term("reference", '*' + normalizedQuery + '*')), BooleanClause.Occur.SHOULD);
+            }
+
             userQuery.add(userFieldsQuery.build(), BooleanClause.Occur.MUST);
             userQuery.add(new TermQuery(new Term(FIELD_TYPE, FIELD_TYPE_VALUE)), BooleanClause.Occur.MUST);
 
@@ -68,6 +74,15 @@ public class UserDocumentSearcher extends AbstractDocumentSearcher {
         } catch (ParseException pe) {
             logger.error("Invalid query to search for user documents", pe);
             throw new TechnicalException("Invalid query to search for user documents", pe);
+        }
+    }
+
+    private boolean isUserIdFormat(io.gravitee.rest.api.service.search.query.Query query) {
+        try {
+            UUID.fromString(query.getQuery());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
         }
     }
 
