@@ -188,14 +188,14 @@ class ApplicationSubscriptionsController {
         template: require('../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
-          title: "Are you sure you want to revoke API Key '" + apiKey + "'?",
+          title: "Are you sure you want to revoke API Key '" + apiKey.key + "'?",
           confirmButton: 'Revoke',
         },
       })
       .then((response) => {
         if (response) {
-          this.ApplicationService.revokeApiKey(this.application.id, subscription.id, apiKey).then(() => {
-            this.NotificationService.show('API Key ' + apiKey + ' has been revoked !');
+          this.ApplicationService.revokeApiKey(this.application.id, subscription.id, apiKey.id).then(() => {
+            this.NotificationService.show('API Key ' + apiKey.key + ' has been revoked !');
             this.listApiKeys(subscription);
           });
         }
@@ -228,7 +228,7 @@ class ApplicationSubscriptionsController {
   }
   */
 
-  showExpirationModal(apiId, apiKey) {
+  showExpirationModal(apiId, subscriptionId, apiKey) {
     this.$mdDialog
       .show({
         controller: 'DialogApiKeyExpirationController',
@@ -239,7 +239,7 @@ class ApplicationSubscriptionsController {
       .then((expirationDate) => {
         apiKey.expire_at = expirationDate;
 
-        this.ApiService.updateApiKey(apiId, apiKey).then(() => {
+        this.ApiService.updateApiKey(apiId, subscriptionId, apiKey).then(() => {
           this.NotificationService.show('An expiration date has been settled for API Key');
         });
       });

@@ -204,7 +204,7 @@
                     permission-only="'api-subscription-u'"
                     style="top: 0"
                     icon="not_interested"
-                    ng-click="$ctrl.revokeApiKey(key.key)"
+                    ng-click="$ctrl.revokeApiKey(key)"
                   ></ng-md-icon>
                 </span>
                 <span ng-if="$ctrl.isValid(key) && $ctrl.subscription.status === 'ACCEPTED'">
@@ -224,7 +224,7 @@
                     permission-only="'api-subscription-u'"
                     style="top: 0"
                     icon="restore"
-                    ng-click="$ctrl.reactivateApiKey(key.key)"
+                    ng-click="$ctrl.reactivateApiKey(key)"
                   ></ng-md-icon>
                 </span>
               </td>

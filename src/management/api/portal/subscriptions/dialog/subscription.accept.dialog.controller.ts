@@ -21,6 +21,7 @@ function DialogSubscriptionAcceptController($scope, $mdDialog, locals) {
   $scope.now = moment().toDate();
   $scope.canUseCustomApiKey = locals.canUseCustomApiKey;
   $scope.apiId = locals.apiId;
+  $scope.applicationId = locals.applicationId;
 
   this.customApiKey = null;
 

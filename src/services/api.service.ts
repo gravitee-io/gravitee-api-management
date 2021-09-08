@@ -524,15 +524,18 @@ export class ApiService {
   }
 
   listApiKeys(apiId: string, subscriptionId: string): IHttpPromise<any> {
-    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/keys`);
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys`);
   }
 
-  revokeApiKey(apiId: string, subscriptionId: string, apiKey: string): IHttpPromise<any> {
-    return this.$http.delete(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/keys/${apiKey}`);
+  revokeApiKey(apiId: string, subscriptionId: string, apiKeyId: string): IHttpPromise<any> {
+    return this.$http.delete(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys/${apiKeyId}`);
   }
 
-  reactivateApiKey(apiId: string, subscriptionId: string, apiKey: string): IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/keys/${apiKey}/_reactivate`, '');
+  reactivateApiKey(apiId: string, subscriptionId: string, apiKeyId: string): IHttpPromise<any> {
+    return this.$http.post(
+      `${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys/${apiKeyId}/_reactivate`,
+      '',
+    );
   }
 
   renewApiKey(apiId: string, subscriptionId: string, customApiKey: any): IHttpPromise<any> {
@@ -541,11 +544,11 @@ export class ApiService {
         customApiKey: customApiKey,
       },
     };
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}`, null, params);
+    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys/_renew`, null, params);
   }
 
-  updateApiKey(apiId: string, apiKey: { key: string }): IHttpPromise<any> {
-    return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/keys/${apiKey.key}`, apiKey);
+  updateApiKey(apiId: string, subscriptionId: string, apiKey: { id: string }): IHttpPromise<any> {
+    return this.$http.put(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/${subscriptionId}/apikeys/${apiKey.id}`, apiKey);
   }
 
   listApiMetadata(apiId: string): IHttpPromise<any> {
@@ -721,8 +724,10 @@ export class ApiService {
   /*
    * Api Keys
    */
-  verifyApiKey(apiId: string, apiKey: string): IHttpPromise<any> {
-    return this.$http.post(`${this.Constants.env.baseURL}/apis/${apiId}/keys/_verify?apiKey=${apiKey}`, {});
+  verifyApiKey(apiId: string, applicationId: string, apiKey: string): IHttpPromise<any> {
+    return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/subscriptions/_canCreate`, {
+      params: { key: apiKey, application: applicationId },
+    });
   }
 
   getFlowSchemaForm(): IHttpPromise<any> {

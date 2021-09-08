@@ -91,14 +91,14 @@ const ApplicationSubscriptionComponent: ng.IComponentOptions = {
           template: require('../../../../components/dialog/confirmWarning.dialog.html'),
           clickOutsideToClose: true,
           locals: {
-            title: "Are you sure you want to revoke API Key '" + apiKey + "'?",
+            title: "Are you sure you want to revoke API Key '" + apiKey.key + "'?",
             confirmButton: 'Revoke',
           },
         })
         .then((response) => {
           if (response) {
-            this.ApplicationService.revokeApiKey(this.application.id, this.subscription.id, apiKey).then(() => {
-              this.NotificationService.show('API Key ' + apiKey + ' has been revoked!');
+            this.ApplicationService.revokeApiKey(this.application.id, this.subscription.id, apiKey.id).then(() => {
+              this.NotificationService.show('API Key ' + apiKey.key + ' has been revoked!');
               this.listApiKeys();
             });
           }

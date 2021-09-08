@@ -136,15 +136,15 @@ class ApplicationService {
   }
 
   listApiKeys(applicationId, subscriptionId): ng.IHttpPromise<any> {
-    return this.$http.get(this.subscriptionsURL(applicationId) + subscriptionId + '/keys');
+    return this.$http.get(this.subscriptionsURL(applicationId) + subscriptionId + '/apikeys');
   }
 
   renewApiKey(applicationId, subscriptionId) {
-    return this.$http.post(this.subscriptionsURL(applicationId) + subscriptionId, '');
+    return this.$http.post(this.subscriptionsURL(applicationId) + subscriptionId + '/apikeys/_renew', '');
   }
 
-  revokeApiKey(applicationId, subscriptionId, apiKey) {
-    return this.$http.delete(this.subscriptionsURL(applicationId) + subscriptionId + '/keys/' + apiKey);
+  revokeApiKey(applicationId, subscriptionId, apiKeyId) {
+    return this.$http.delete(this.subscriptionsURL(applicationId) + subscriptionId + '/apikeys/' + apiKeyId);
   }
 
   /*

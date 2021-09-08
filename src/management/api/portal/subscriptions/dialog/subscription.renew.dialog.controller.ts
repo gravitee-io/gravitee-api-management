@@ -23,6 +23,7 @@ function DialogSubscriptionRenewController($scope, $mdDialog, locals) {
   $scope.confirmButton = locals.confirmButton || 'OK';
   $scope.cancelButton = locals.cancelButton || 'Cancel';
   $scope.apiId = locals.apiId;
+  $scope.applicationId = locals.applicationId;
   this.selectedPlanCustomApiKey = null;
   this.customValue = '';
 

@@ -25,6 +25,7 @@ export enum CustomApiKeyInputState {
 const ApiKeyValidatedInput: ng.IComponentOptions = {
   bindings: {
     apiId: '<',
+    applicationId: '<',
     formReference: '<',
     label: '<',
     onChange: '<',
@@ -46,8 +47,8 @@ const ApiKeyValidatedInput: ng.IComponentOptions = {
     };
 
     this.checkApiKeyUnicity = (apiKey: string) => {
-      if (apiKey && apiKey.length > 0) {
-        ApiService.verifyApiKey(this.apiId, apiKey).then(
+      if (apiKey?.length > 0 && this.apiId && this.applicationId) {
+        ApiService.verifyApiKey(this.apiId, this.applicationId, apiKey).then(
           (response) => {
             if (response && response.data) {
               this.state = CustomApiKeyInputState.VALID;

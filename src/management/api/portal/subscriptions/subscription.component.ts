@@ -176,6 +176,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
           clickOutsideToClose: true,
           locals: {
             apiId: this.api.id,
+            applicationId: this.subscription.application.id,
             canUseCustomApiKey: this.canUseCustomApiKey,
           },
         })
@@ -217,6 +218,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
             customMessage: this.canUseCustomApiKey ? 'You can provide a custom API key here' : null,
             confirmButton: 'Renew',
             apiId: this.api.id,
+            applicationId: this.subscription.application.id,
           },
         })
         .then((response) => {
@@ -237,14 +239,14 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
           template: require('../../../../components/dialog/confirmWarning.dialog.html'),
           clickOutsideToClose: true,
           locals: {
-            title: "Are you sure you want to revoke API Key '" + apiKey + "'?",
+            title: "Are you sure you want to revoke API Key '" + apiKey.key + "'?",
             confirmButton: 'Revoke',
           },
         })
         .then((response) => {
           if (response) {
-            this.ApiService.revokeApiKey(this.api.id, this.subscription.id, apiKey).then(() => {
-              this.NotificationService.show('API Key ' + apiKey + ' has been revoked!');
+            this.ApiService.revokeApiKey(this.api.id, this.subscription.id, apiKey.id).then(() => {
+              this.NotificationService.show('API Key ' + apiKey.key + ' has been revoked!');
               this.listApiKeys();
             });
           }
@@ -265,7 +267,7 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
         .then((expirationDate) => {
           apiKey.expire_at = expirationDate;
 
-          this.ApiService.updateApiKey(this.api.id, apiKey).then(() => {
+          this.ApiService.updateApiKey(this.api.id, this.subscription.id, apiKey).then(() => {
             this.NotificationService.show('An expiration date has been defined for API Key.');
             this.listApiKeys();
           });
@@ -280,14 +282,14 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
           template: require('../../../../components/dialog/confirm.dialog.html'),
           clickOutsideToClose: true,
           locals: {
-            title: "Are you sure you want to reactivate API Key '" + apiKey + "'?",
+            title: "Are you sure you want to reactivate API Key '" + apiKey.key + "'?",
             confirmButton: 'Reactivate',
           },
         })
         .then((response) => {
           if (response) {
-            this.ApiService.reactivateApiKey(this.api.id, this.subscription.id, apiKey).then(() => {
-              this.NotificationService.show('API Key ' + apiKey + ' has been reactivated!');
+            this.ApiService.reactivateApiKey(this.api.id, this.subscription.id, apiKey.id).then(() => {
+              this.NotificationService.show('API Key ' + apiKey.key + ' has been reactivated!');
               this.listApiKeys();
             });
           }
