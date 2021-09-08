@@ -26,20 +26,25 @@ import io.gravitee.gateway.services.sync.builder.RepositoryApiBuilder;
 import io.gravitee.gateway.services.sync.cache.ApiKeysCacheService;
 import io.gravitee.gateway.services.sync.cache.SubscriptionsCacheService;
 import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.Plan;
+import io.reactivex.Flowable;
+import io.reactivex.Single;
+import io.reactivex.SingleSource;
+import io.reactivex.functions.Function;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -58,7 +63,7 @@ public class ApiSynchronizerTest extends TestCase {
     private ApiManager apiManager;
 
     @Mock
-    private PlanRepository planRepository;
+    private PlanFetcher planFetcher;
 
     @Mock
     private ApiKeysCacheService apiKeysCacheService;
@@ -73,6 +78,27 @@ public class ApiSynchronizerTest extends TestCase {
     private ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     static final List<String> ENVIRONMENTS = Arrays.asList("DEFAULT", "OTHER_ENV");
+
+    @Before
+    public void setup() {
+        when(planFetcher.fetchApiPlans(any()))
+            .thenAnswer(
+                (Answer) invocation -> {
+                    Flowable<Api> argument = (Flowable<Api>) invocation.getArguments()[0];
+                    return argument
+                        .groupBy(io.gravitee.definition.model.Api::getDefinitionVersion)
+                        .flatMap(
+                            apisByDefinitionVersion ->
+                                apisByDefinitionVersion.flatMapSingle(
+                                    (Function<Api, SingleSource<?>>) api -> {
+                                        api.setPlans(api.getPlans());
+                                        return Single.just(api);
+                                    }
+                                )
+                        );
+                }
+            );
+    }
 
     @Test
     public void initialSynchronize() throws Exception {
@@ -104,7 +130,7 @@ public class ApiSynchronizerTest extends TestCase {
 
         verify(apiManager).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
+        verify(planFetcher, times(1)).fetchApiPlans(any());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
         verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
     }
@@ -143,7 +169,7 @@ public class ApiSynchronizerTest extends TestCase {
 
         verify(apiManager).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
+        verify(planFetcher, times(1)).fetchApiPlans(any());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
         verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
     }
@@ -181,13 +207,12 @@ public class ApiSynchronizerTest extends TestCase {
 
         final Plan plan = new Plan();
         plan.setApi(mockApi.getId());
-        when(planRepository.findByApis(anyList())).thenReturn(singletonList(plan));
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
         verify(apiManager).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, times(1)).findByApis(anyList());
+        verify(planFetcher, times(1)).fetchApiPlans(any());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
         verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
     }
@@ -257,7 +282,7 @@ public class ApiSynchronizerTest extends TestCase {
         verify(apiManager, times(1)).register(new Api(mockApi));
         verify(apiManager, times(1)).register(new Api(mockApi2));
         verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, never()).findByApis(anyList());
+        verify(planFetcher, times(1)).fetchApiPlans(any());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi2)));
         verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
@@ -328,14 +353,13 @@ public class ApiSynchronizerTest extends TestCase {
 
         final Plan plan = new Plan();
         plan.setApi(mockApi.getId());
-        when(planRepository.findByApis(singletonList(plan.getApi()))).thenReturn(singletonList(plan));
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
         verify(apiManager, times(1)).register(new Api(mockApi));
         verify(apiManager, times(1)).register(new Api(mockApi2));
         verify(apiManager, never()).unregister(any(String.class));
-        verify(planRepository, times(1)).findByApis(singletonList(plan.getApi()));
+        verify(planFetcher, times(1)).fetchApiPlans(any());
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi)));
         verify(apiKeysCacheService).register(singletonList(new Api(mockApi2)));
         verify(subscriptionsCacheService).register(singletonList(new Api(mockApi)));
@@ -376,7 +400,7 @@ public class ApiSynchronizerTest extends TestCase {
 
         verify(apiManager, never()).register(new Api(mockApi));
         verify(apiManager).unregister(mockApi.getId());
-        verify(planRepository, never()).findByApis(anyList());
+        verify(planFetcher, never()).fetchApiPlans(any());
         verify(apiKeysCacheService, never()).register(singletonList(new Api(mockApi)));
         verify(subscriptionsCacheService, never()).register(singletonList(new Api(mockApi)));
     }
@@ -448,7 +472,7 @@ public class ApiSynchronizerTest extends TestCase {
         verify(apiManager, never()).register(new Api(mockApi));
         verify(apiManager).unregister(mockApi.getId());
         verify(apiManager).unregister(mockApi2.getId());
-        verify(planRepository, never()).findByApis(anyList());
+        verify(planFetcher, never()).fetchApiPlans(any());
         verify(apiKeysCacheService, never()).register(singletonList(new Api(mockApi)));
         verify(subscriptionsCacheService, never()).register(singletonList(new Api(mockApi)));
     }
@@ -506,7 +530,6 @@ public class ApiSynchronizerTest extends TestCase {
 
         apiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
 
-        verify(planRepository, times(3)).findByApis(anyList());
         verify(apiKeysCacheService, times(3)).register(anyList());
         verify(subscriptionsCacheService, times(3)).register(anyList());
         verify(apiManager, times(250)).register(any(Api.class));

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.debug;
 
+import io.gravitee.gateway.debug.sync.DebugApiSynchronizer;
 import io.gravitee.gateway.debug.sync.DebugSyncManager;
 import io.gravitee.gateway.debug.sync.DebugSyncService;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
@@ -22,14 +23,23 @@ import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
+import io.gravitee.gateway.services.sync.synchronizer.PlanFetcher;
+import io.gravitee.repository.management.model.Plan;
+import io.reactivex.annotations.NonNull;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 public class DebugConfiguration {
+
+    @Value("${services.debug.bulk_items:10}")
+    private int bulkItems;
 
     @Bean
     public VertxDebugService vertxDebugService() {
@@ -47,10 +57,43 @@ public class DebugConfiguration {
     }
 
     @Bean
-    public TaskScheduler taskScheduler() {
-        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("gio.debug-sync-");
-        return scheduler;
+    public DebugApiSynchronizer debugApiSynchronizer() {
+        return new DebugApiSynchronizer();
+    }
+
+    public static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
+
+    @Bean
+    public PlanFetcher planFetcher() {
+        return new PlanFetcher(
+            bulkItems > 0 ? bulkItems : DebugApiSynchronizer.DEFAULT_BULK_SIZE,
+            Plan.Status.STAGING,
+            Plan.Status.PUBLISHED,
+            Plan.Status.DEPRECATED
+        );
+    }
+
+    @Bean("syncExecutor")
+    public ThreadPoolExecutor syncExecutor() {
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+            PARALLELISM,
+            PARALLELISM,
+            60L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactory() {
+                private int counter = 0;
+
+                @Override
+                public Thread newThread(@NonNull Runnable r) {
+                    return new Thread(r, "gio.sync-debug" + counter++);
+                }
+            }
+        );
+
+        threadPoolExecutor.allowCoreThreadTimeOut(true);
+
+        return threadPoolExecutor;
     }
 
     @Bean

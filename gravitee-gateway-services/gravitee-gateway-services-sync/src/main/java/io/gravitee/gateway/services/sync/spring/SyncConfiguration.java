@@ -19,14 +19,15 @@ import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.cache.CacheManager;
 import io.gravitee.gateway.services.sync.cache.configuration.LocalCacheConfiguration;
 import io.gravitee.gateway.services.sync.healthcheck.ApiSyncProbe;
-import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
-import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
-import io.gravitee.gateway.services.sync.synchronizer.OrganizationSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.*;
+import io.gravitee.repository.management.model.Plan;
 import io.reactivex.annotations.NonNull;
+import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -46,6 +47,9 @@ public class SyncConfiguration {
     public SyncManager syncManager() {
         return new SyncManager();
     }
+
+    @Value("${services.sync.bulk_items:100}")
+    private int bulkItems;
 
     @Bean("syncExecutor")
     public ThreadPoolExecutor syncExecutor() {
@@ -78,6 +82,15 @@ public class SyncConfiguration {
     @Bean
     public ApiSynchronizer apiSynchronizer() {
         return new ApiSynchronizer();
+    }
+
+    @Bean
+    public PlanFetcher planFetcher() {
+        return new PlanFetcher(
+            bulkItems > 0 ? bulkItems : AbstractSynchronizer.DEFAULT_BULK_SIZE,
+            Plan.Status.PUBLISHED,
+            Plan.Status.DEPRECATED
+        );
     }
 
     @Bean

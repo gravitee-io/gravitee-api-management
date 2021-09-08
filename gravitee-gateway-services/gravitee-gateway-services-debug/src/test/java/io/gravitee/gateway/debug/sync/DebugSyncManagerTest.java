@@ -15,40 +15,16 @@
  */
 package io.gravitee.gateway.debug.sync;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.HttpRequest;
-import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.debug.handler.definition.DebugApi;
-import io.gravitee.gateway.debug.utils.RepositoryApiBuilder;
-import io.gravitee.gateway.debug.utils.Stubs;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.gravitee.node.api.Node;
-import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.repository.management.api.EventRepository;
-import io.gravitee.repository.management.api.search.ApiCriteria;
-import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
-import io.gravitee.repository.management.api.search.EventCriteria;
-import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.ApiDebugStatus;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,203 +40,29 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class DebugSyncManagerTest {
 
-    private static final String EVENT_ID = "evt-id";
-    private static final String GATEWAY_ID = "gateway-id";
-
     @InjectMocks
     private final DebugSyncManager syncManager = new DebugSyncManager();
-
-    @Mock
-    private ClusterManager clusterManager;
-
-    @Mock
-    private ApiRepository apiRepository;
-
-    @Mock
-    private EventRepository eventRepository;
-
-    @Mock
-    private ObjectMapper objectMapper;
 
     @Mock
     private EventManager eventManager;
 
     @Mock
-    private Node node;
+    private DebugApiSynchronizer debugApiSynchronizer;
 
     private List<String> environments;
 
     @Before
     public void setUp() {
-        when(clusterManager.isMasterNode()).thenReturn(true);
         environments = Arrays.asList("DEFAULT", "ENVIRONMENT_2");
-        when(node.id()).thenReturn(GATEWAY_ID);
     }
 
     @Test
-    public void shouldNotSync_notMasterNode() throws TechnicalException {
-        when(clusterManager.isMasterNode()).thenReturn(false);
-        syncManager.setDistributed(true);
-
-        syncManager.refresh(this.environments);
-
-        verify(apiRepository, never()).search(any(ApiCriteria.class), any(ApiFieldExclusionFilter.class));
-    }
-
-    @Test
-    public void shouldSync_notMasterNode_notDistributed() throws TechnicalException {
-        when(clusterManager.isMasterNode()).thenReturn(false);
-        syncManager.setDistributed(false);
-
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environments(environments).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-        )
-            .thenReturn(emptyList());
-
-        syncManager.refresh(this.environments);
-
-        verify(apiRepository, times(1)).search(any(ApiCriteria.class), any(ApiFieldExclusionFilter.class));
-    }
-
-    @Test
-    public void shouldSyncAndNotEmitDebugEventBecauseEmpty() throws TechnicalException {
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environments(environments).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-        )
-            .thenReturn(emptyList());
-
-        syncManager.refresh(this.environments);
+    public void shouldSync() throws TechnicalException {
+        syncManager.setEnvironments(this.environments);
+        syncManager.refresh();
 
         verify(eventManager, never()).publishEvent(eq(ReactorEvent.DEBUG), any(DebugApi.class));
-    }
 
-    @Test
-    public void shouldSyncAndPublishDebugEventStagingPlan() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id("api-test")
-            .updatedAt(new Date())
-            .definition("test")
-            .build();
-
-        final io.gravitee.definition.model.DebugApi mockApi = mockDebugApi();
-
-        final Plan plan = new Plan();
-        plan.setStatus("staging");
-
-        mockApi.setPlans(singletonList(plan));
-
-        final Event mockEvent = mockEvent(mockApi, EventType.DEBUG_API);
-        when(eventRepository.search(any(EventCriteria.class), any(Pageable.class)))
-            .thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environments(environments).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-        )
-            .thenReturn(singletonList(api));
-
-        syncManager.refresh(this.environments);
-
-        verify(eventManager, times(1)).publishEvent(eq(ReactorEvent.DEBUG), any(DebugApi.class));
-    }
-
-    @Test
-    public void shouldSyncAndPublishDebugEventPublishedPlan() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id("api-test")
-            .updatedAt(new Date())
-            .definition("test")
-            .build();
-
-        final io.gravitee.definition.model.DebugApi mockApi = mockDebugApi();
-
-        final Plan plan = new Plan();
-        plan.setStatus("published");
-
-        mockApi.setPlans(singletonList(plan));
-
-        final Event mockEvent = mockEvent(mockApi, EventType.DEBUG_API);
-        EventCriteria eventCriteria = argThat(
-            e ->
-                e.getProperties().get(Event.EventProperties.API_DEBUG_STATUS.getValue()).equals(ApiDebugStatus.TO_DEBUG.name()) &&
-                e.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue()).equals(GATEWAY_ID)
-        );
-        when(eventRepository.search(eventCriteria, any(Pageable.class))).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environments(environments).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-        )
-            .thenReturn(singletonList(api));
-
-        syncManager.refresh(this.environments);
-
-        verify(eventManager, times(1)).publishEvent(eq(ReactorEvent.DEBUG), any(DebugApi.class));
-    }
-
-    @Test
-    public void shouldNotSyncAndPublishDebugEventIfNoPlanInGoodStatus() throws Exception {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id("api-test")
-            .updatedAt(new Date())
-            .definition("test")
-            .build();
-
-        final io.gravitee.definition.model.DebugApi mockApi = mockDebugApi();
-
-        final Event mockEvent = mockEvent(mockApi, EventType.DEBUG_API);
-        EventCriteria eventCriteria = argThat(
-            e ->
-                e.getProperties().get(Event.EventProperties.API_DEBUG_STATUS.getValue()).equals(ApiDebugStatus.TO_DEBUG.name()) &&
-                e.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue()).equals(GATEWAY_ID)
-        );
-        when(eventRepository.search(eventCriteria, any(Pageable.class))).thenReturn(new Page<>(singletonList(mockEvent), 0, 0, 1));
-
-        when(
-            apiRepository.search(
-                new ApiCriteria.Builder().environments(environments).build(),
-                new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
-            )
-        )
-            .thenReturn(singletonList(api));
-
-        syncManager.refresh(this.environments);
-
-        verify(eventManager, never()).publishEvent(eq(ReactorEvent.DEBUG), any(DebugApi.class));
-    }
-
-    private io.gravitee.definition.model.DebugApi mockDebugApi() {
-        final io.gravitee.definition.model.DebugApi mockApi = Stubs.getADebugApiDefinition();
-
-        mockApi.setDefinitionVersion(DefinitionVersion.V2);
-
-        final HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setMethod("GET");
-        httpRequest.setPath("/path1");
-        httpRequest.setBody("request body");
-        mockApi.setRequest(httpRequest);
-        return mockApi;
-    }
-
-    private Event mockEvent(final io.gravitee.definition.model.DebugApi debugApi, EventType eventType) throws Exception {
-        final Event event = Stubs.getAnEvent();
-        event.setType(eventType);
-        event.setCreatedAt(new Date());
-        event.getProperties().put(Event.EventProperties.API_ID.getValue(), debugApi.getId());
-        event.setId(EVENT_ID);
-
-        when(objectMapper.readValue(event.getPayload(), io.gravitee.definition.model.DebugApi.class)).thenReturn(debugApi);
-
-        return event;
+        verify(debugApiSynchronizer, times(1)).synchronize(anyLong(), anyLong(), anyList());
     }
 }

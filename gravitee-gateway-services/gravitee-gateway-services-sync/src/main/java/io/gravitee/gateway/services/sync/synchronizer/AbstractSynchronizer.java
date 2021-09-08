@@ -36,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public abstract class AbstractSynchronizer extends AbstractService<AbstractSynchronizer> {
 
+    public static final int DEFAULT_BULK_SIZE = 100;
+
     @Autowired
     private EventRepository eventRepository;
 
@@ -75,26 +77,22 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
         return Flowable.create(
             emitter -> {
                 try {
+                    int size = bulkSize > 0 ? bulkSize : DEFAULT_BULK_SIZE;
                     long page = 0;
-                    EventCriteria criteria = new EventCriteria.Builder()
+                    EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
                         .types(eventTypes)
                         .from(from == null ? 0 : from - TIMEFRAME_BEFORE_DELAY)
                         .to(to == null ? 0 : to + TIMEFRAME_AFTER_DELAY)
-                        .environments(environments)
-                        .build();
+                        .environments(environments);
 
+                    EventCriteria criteria = appendCriteria(criteriaBuilder);
                     List<Event> events;
 
-                    if (bulkSize > 0) {
-                        do {
-                            events = eventRepository.searchLatest(criteria, group, page, (long) bulkSize);
-                            events.forEach(emitter::onNext);
-                            page++;
-                        } while (!events.isEmpty() && events.size() == bulkSize);
-                    } else {
-                        events = eventRepository.searchLatest(criteria, group, page, null);
+                    do {
+                        events = eventRepository.searchLatest(criteria, group, page, (long) size);
                         events.forEach(emitter::onNext);
-                    }
+                        page++;
+                    } while (!events.isEmpty() && events.size() == size);
 
                     emitter.onComplete();
                 } catch (Exception e) {
@@ -103,5 +101,9 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
             },
             BackpressureStrategy.BUFFER
         );
+    }
+
+    protected EventCriteria appendCriteria(EventCriteria.Builder criteriaBuilder) {
+        return criteriaBuilder.build();
     }
 }

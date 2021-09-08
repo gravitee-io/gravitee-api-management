@@ -26,24 +26,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
 
-public class DebugSyncService extends AbstractService implements Runnable {
+public class DebugSyncService extends AbstractService {
 
     private final Logger logger = LoggerFactory.getLogger(DebugSyncService.class);
 
-    @Autowired
-    private TaskScheduler scheduler;
+    @Value("${services.debug.delay:5000}")
+    private int delay;
 
-    @Value("${services.debug.cron:*/5 * * * * *}")
-    private String cronTrigger;
+    @Value("${services.debug.unit:MILLISECONDS}")
+    private TimeUnit unit;
 
     @Value("${services.debug.enabled:true}")
     private boolean enabled;
@@ -65,19 +63,24 @@ public class DebugSyncService extends AbstractService implements Runnable {
 
     private Set<Environment> environments;
 
-    private ScheduledFuture<?> schedule;
-
     @Override
     protected void doStart() throws Exception {
         if (!localRegistryEnabled) {
             if (enabled) {
                 super.doStart();
 
-                logger.info("Sync debug service has been initialized with cron [{}]", cronTrigger);
+                logger.info("Sync debug service has been initialized with delay [{}{}]", delay, unit.name());
 
                 this.environments = getTargetedEnvironments();
 
-                schedule = scheduler.schedule(this, new CronTrigger(cronTrigger));
+                List<String> environmentsIds = environments.stream().map(Environment::getId).collect(Collectors.toList());
+                debugSyncManager.setEnvironments(environmentsIds);
+
+                // Run a first refresh immediately.
+                debugSyncManager.refresh();
+
+                // Initial sync has been made, start schedulers.
+                debugSyncManager.startScheduler(delay, unit);
             } else {
                 logger.warn("Sync service is disabled");
             }
@@ -88,16 +91,8 @@ public class DebugSyncService extends AbstractService implements Runnable {
 
     @Override
     protected void doStop() throws Exception {
-        if (schedule != null) {
-            schedule.cancel(true);
-        }
+        debugSyncManager.stop();
         super.doStop();
-    }
-
-    @Override
-    public void run() {
-        List<String> environmentsIds = environments.stream().map(Environment::getId).collect(Collectors.toList());
-        debugSyncManager.refresh(environmentsIds);
     }
 
     @Override

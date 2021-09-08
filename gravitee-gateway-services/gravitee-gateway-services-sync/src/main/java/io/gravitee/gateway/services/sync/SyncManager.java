@@ -16,7 +16,6 @@
 package io.gravitee.gateway.services.sync;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.OrganizationSynchronizer;
@@ -41,9 +40,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class SyncManager extends AbstractService<SyncManager> {
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
-
-    @Autowired
-    private OrganizationManager organizationManager;
 
     /**
      * Add 30s delay before and after to avoid problem with out of sync clocks.
