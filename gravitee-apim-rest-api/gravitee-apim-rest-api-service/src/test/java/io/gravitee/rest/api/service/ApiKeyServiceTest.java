@@ -28,20 +28,18 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiKeyServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
+import io.swagger.annotations.ApiModel;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import io.swagger.annotations.ApiModel;
+import javax.swing.text.html.Option;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import javax.swing.text.html.Option;
 
 /**
  * @author Azize Elamrani (azize dot elamrani at gmail dot com)
@@ -195,7 +193,6 @@ public class ApiKeyServiceTest {
         // Prepare data
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(plan.getApi()).thenReturn(API_ID);
 
         // Stub
         when(apiKeyRepository.findByKeyAndApi(API_KEY, API_ID)).thenReturn(Optional.of(apiKey));
@@ -384,7 +381,6 @@ public class ApiKeyServiceTest {
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(plan.getApi()).thenReturn(API_ID);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -435,7 +431,6 @@ public class ApiKeyServiceTest {
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
-        when(plan.getApi()).thenReturn(API_ID);
 
         // Stub
         when(apiKeyGenerator.generate()).thenReturn(API_KEY);
@@ -512,7 +507,6 @@ public class ApiKeyServiceTest {
         //notification mocks
         when(applicationService.findById(any())).thenReturn(mock(ApplicationEntity.class));
         PlanEntity mockedPlan = mock(PlanEntity.class);
-        when(mockedPlan.getApi()).thenReturn("api");
         when(planService.findById(any())).thenReturn(mockedPlan);
         when(apiService.findByIdForTemplates(any())).thenReturn(mock(ApiModelEntity.class));
 

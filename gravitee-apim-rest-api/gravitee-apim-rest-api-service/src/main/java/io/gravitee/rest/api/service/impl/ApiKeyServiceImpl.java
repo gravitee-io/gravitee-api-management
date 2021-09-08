@@ -133,18 +133,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             createAuditLog(newApiKey, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
 
             // Notification
-            final PlanEntity plan = planService.findById(newApiKey.getPlan());
-            final ApplicationEntity application = applicationService.findById(newApiKey.getApplication());
-            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
-            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            final Map<String, Object> params = new NotificationParamsBuilder()
-                .application(application)
-                .plan(plan)
-                .api(api)
-                .owner(owner)
-                .apikey(newApiKey)
-                .build();
-            notifierService.trigger(ApiHook.APIKEY_RENEWED, plan.getApi(), params);
+            triggerNotifierService(ApiHook.APIKEY_RENEWED, newApiKey);
 
             return convert(newApiKey);
         } catch (TechnicalException ex) {
@@ -247,18 +236,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
         // notify
         if (notify) {
-            final PlanEntity plan = planService.findById(key.getPlan());
-            final ApplicationEntity application = applicationService.findById(key.getApplication());
-            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
-            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            final Map<String, Object> params = new NotificationParamsBuilder()
-                .application(application)
-                .plan(plan)
-                .api(api)
-                .owner(owner)
-                .apikey(key)
-                .build();
-            notifierService.trigger(ApiHook.APIKEY_REVOKED, api.getId(), params);
+            triggerNotifierService(ApiHook.APIKEY_REVOKED, key);
         }
     }
 
@@ -498,20 +476,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             apiKeyRepository.update(key);
 
             //notify
-            final ApplicationEntity application = applicationService.findById(key.getApplication());
-            final PlanEntity plan = planService.findById(key.getPlan());
-            final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
-            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-
             NotificationParamsBuilder paramsBuilder = new NotificationParamsBuilder();
-            paramsBuilder.api(api).application(application).apikey(key).plan(plan).owner(owner);
             if (key.getExpireAt() != null && now.before(key.getExpireAt())) {
                 paramsBuilder.expirationDate(key.getExpireAt());
             }
-
-            final Map<String, Object> params = paramsBuilder.build();
-
-            notifierService.trigger(ApiHook.APIKEY_EXPIRED, api.getId(), params);
+            triggerNotifierService(ApiHook.APIKEY_EXPIRED, key, paramsBuilder);
 
             // Audit
             createAuditLog(key, oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
@@ -557,5 +526,18 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         properties.put(APPLICATION, key.getApplication());
 
         auditService.createApiAuditLog(key.getApi(), properties, event, eventDate, previousApiKey, key);
+    }
+
+    private void triggerNotifierService(ApiHook apiHook, ApiKey key) {
+        triggerNotifierService(apiHook, key, new NotificationParamsBuilder());
+    }
+
+    private void triggerNotifierService(ApiHook apiHook, ApiKey key, NotificationParamsBuilder paramsBuilder) {
+        PlanEntity plan = planService.findById(key.getPlan());
+        ApplicationEntity application = applicationService.findById(key.getApplication());
+        ApiModelEntity api = apiService.findByIdForTemplates(key.getApi());
+        PrimaryOwnerEntity owner = application.getPrimaryOwner();
+        Map<String, Object> params = paramsBuilder.application(application).plan(plan).api(api).owner(owner).apikey(key).build();
+        notifierService.trigger(apiHook, api.getId(), params);
     }
 }
