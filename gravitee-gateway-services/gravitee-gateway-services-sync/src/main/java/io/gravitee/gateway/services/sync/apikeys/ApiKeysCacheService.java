@@ -30,6 +30,7 @@ import io.gravitee.gateway.services.sync.apikeys.task.ApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import io.vertx.ext.web.Router;
 import java.util.HashMap;
 import java.util.Map;
@@ -218,5 +219,13 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                 LOGGER.info("API-key refresher already shutdown");
             }
         }
+    }
+
+    public static String buildCacheKey(ApiKey apiKey) {
+        return buildCacheKey(apiKey.getApi(), apiKey.getKey());
+    }
+
+    public static String buildCacheKey(String api, String key) {
+        return String.format("%s.%s", api, key);
     }
 }
