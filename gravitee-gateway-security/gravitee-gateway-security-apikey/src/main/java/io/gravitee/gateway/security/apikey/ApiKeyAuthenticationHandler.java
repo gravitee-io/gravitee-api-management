@@ -18,6 +18,7 @@ package io.gravitee.gateway.security.apikey;
 import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
 
 import io.gravitee.common.http.GraviteeHttpHeader;
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
@@ -63,6 +64,9 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
     @Autowired
     private ApplicationContext applicationContext;
 
+    @Autowired
+    private Api api;
+
     private ApiKeyRepository apiKeyRepository;
 
     @Override
@@ -82,7 +86,7 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
             // Get the api-key from the repository if not present in the context
             if (context.get(APIKEY_CONTEXT_ATTRIBUTE) == null) {
                 try {
-                    final Optional<ApiKey> optApiKey = apiKeyRepository.findByKey(apiKey);
+                    final Optional<ApiKey> optApiKey = apiKeyRepository.findByKeyAndApi(apiKey, api.getId());
                     if (optApiKey.isPresent()) {
                         context.request().metrics().setSecurityType(API_KEY);
                         context.request().metrics().setSecurityToken(apiKey);

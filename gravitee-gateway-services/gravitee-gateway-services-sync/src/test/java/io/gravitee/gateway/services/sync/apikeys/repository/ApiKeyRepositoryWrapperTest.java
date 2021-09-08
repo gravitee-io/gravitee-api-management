@@ -83,11 +83,12 @@ public class ApiKeyRepositoryWrapperTest {
     }
 
     @Test
-    public void shouldFindByKey_empty() throws TechnicalException {
+    public void shouldFindByKeyAndApi_empty() throws TechnicalException {
         String apiKey = "1234-4567-7890";
+        String apiId = "my-Api-Id";
 
-        Mockito.when(cache.get(apiKey)).thenReturn(null);
-        Optional<ApiKey> optApiKey = repository.findByKey(apiKey);
+        Mockito.when(cache.get("my-Api-Id.1234-4567-7890")).thenReturn(null);
+        Optional<ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
         Assert.assertFalse(optApiKey.isPresent());
@@ -96,10 +97,11 @@ public class ApiKeyRepositoryWrapperTest {
     @Test
     public void shouldFindByKey_fromCache() throws TechnicalException {
         String apiKey = "1234-4567-7890";
+        String apiId = "my-Api-Id";
         ApiKey mockApiKey = Mockito.mock(ApiKey.class);
 
-        Mockito.when(cache.get(apiKey)).thenReturn(mockApiKey);
-        Optional<ApiKey> optApiKey = repository.findByKey(apiKey);
+        Mockito.when(cache.get("my-Api-Id.1234-4567-7890")).thenReturn(mockApiKey);
+        Optional<ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
         Assert.assertTrue(optApiKey.isPresent());

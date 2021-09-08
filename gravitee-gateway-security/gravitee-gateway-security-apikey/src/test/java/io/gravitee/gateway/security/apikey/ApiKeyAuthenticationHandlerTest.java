@@ -22,6 +22,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
+import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.security.core.AuthenticationContext;
@@ -70,6 +71,9 @@ public class ApiKeyAuthenticationHandlerTest {
     @Mock
     private ApiKeyRepository apiKeyRepository;
 
+    @Mock
+    private Api api;
+
     @Before
     public void init() {
         initMocks(this);
@@ -79,6 +83,7 @@ public class ApiKeyAuthenticationHandlerTest {
     public void shouldNotHandleRequest() {
         when(authenticationContext.request()).thenReturn(request);
         when(request.headers()).thenReturn(new HttpHeaders());
+        when(api.getId()).thenReturn("api-id");
 
         MultiValueMap<String, String> parameters = mock(MultiValueMap.class);
         when(request.parameters()).thenReturn(parameters);
@@ -91,10 +96,11 @@ public class ApiKeyAuthenticationHandlerTest {
     public void shouldHandleRequestUsingHeaders() throws TechnicalException {
         when(authenticationContext.request()).thenReturn(request);
         when(request.metrics()).thenReturn(metrics);
+        when(api.getId()).thenReturn("api-id");
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Gravitee-Api-Key", "xxxxx-xxxx-xxxxx");
         when(request.headers()).thenReturn(headers);
-        when(apiKeyRepository.findByKey("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
+        when(apiKeyRepository.findByKeyAndApi("xxxxx-xxxx-xxxxx", "api-id")).thenReturn(of(new ApiKey()));
 
         boolean handle = authenticationHandler.canHandle(authenticationContext);
         Assert.assertTrue(handle);
@@ -106,10 +112,11 @@ public class ApiKeyAuthenticationHandlerTest {
     public void shouldHandleRequestUsingQueryParameters() throws TechnicalException {
         when(authenticationContext.request()).thenReturn(request);
         when(request.metrics()).thenReturn(metrics);
+        when(api.getId()).thenReturn("api-id");
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
         parameters.put("api-key", Collections.singletonList("xxxxx-xxxx-xxxxx"));
         when(request.parameters()).thenReturn(parameters);
-        when(apiKeyRepository.findByKey("xxxxx-xxxx-xxxxx")).thenReturn(of(new ApiKey()));
+        when(apiKeyRepository.findByKeyAndApi("xxxxx-xxxx-xxxxx", "api-id")).thenReturn(of(new ApiKey()));
 
         HttpHeaders headers = new HttpHeaders();
         when(request.headers()).thenReturn(headers);
