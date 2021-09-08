@@ -1068,6 +1068,7 @@ public class SubscriptionServiceTest {
         subscriptionService.create(new NewSubscriptionEntity(PLAN_ID, APPLICATION_ID));
     }
 
+    @Test
     public void shouldCreateWithGroupRestriction_BecauseAdmin() throws Exception {
         // Prepare data
         when(plan.getExcludedGroups()).thenReturn(asList("excl1", "excl2"));
@@ -1081,10 +1082,6 @@ public class SubscriptionServiceTest {
         subscription.setPlan(PLAN_ID);
         subscription.setStatus(Subscription.Status.PENDING);
         subscription.setSubscribedBy(SUBSCRIBER_ID);
-
-        final UserEntity subscriberUser = new UserEntity();
-        subscriberUser.setEmail(SUBSCRIBER_ID + "@acme.net");
-        when(userService.findById(SUBSCRIBER_ID)).thenReturn(subscriberUser);
 
         // Stub
         when(planService.findById(PLAN_ID)).thenReturn(plan);
