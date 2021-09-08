@@ -92,14 +92,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             //TODO: Send a notification to the application owner
 
             // Audit
-            final PlanEntity plan = planService.findById(apiKey.getPlan());
+            createAuditLog(apiKey, null, APIKEY_CREATED, apiKey.getCreatedAt());
 
-            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-            properties.put(API_KEY, apiKey.getKey());
-            properties.put(API, plan.getApi());
-            properties.put(APPLICATION, apiKey.getApplication());
-
-            auditService.createApiAuditLog(plan.getApi(), properties, APIKEY_CREATED, apiKey.getCreatedAt(), null, apiKey);
             return convert(apiKey);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to generate an API Key for {} - {}", subscription, ex);
@@ -136,16 +130,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             }
 
             // Audit
-            final PlanEntity plan = planService.findById(newApiKey.getPlan());
-
-            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-            properties.put(API_KEY, newApiKey.getKey());
-            properties.put(API, plan.getApi());
-            properties.put(APPLICATION, newApiKey.getApplication());
-
-            auditService.createApiAuditLog(plan.getApi(), properties, APIKEY_RENEWED, newApiKey.getCreatedAt(), null, newApiKey);
+            createAuditLog(newApiKey, null, APIKEY_RENEWED, newApiKey.getCreatedAt());
 
             // Notification
+            final PlanEntity plan = planService.findById(newApiKey.getPlan());
             final ApplicationEntity application = applicationService.findById(newApiKey.getApplication());
             final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
@@ -254,18 +242,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
         apiKeyRepository.update(key);
 
-        final PlanEntity plan = planService.findById(key.getPlan());
-
         // Audit
-        Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-        properties.put(API_KEY, key.getKey());
-        properties.put(API, plan.getApi());
-        properties.put(APPLICATION, key.getApplication());
-
-        auditService.createApiAuditLog(plan.getApi(), properties, APIKEY_REVOKED, key.getUpdatedAt(), previousApiKey, key);
+        createAuditLog(key, previousApiKey, APIKEY_REVOKED, key.getUpdatedAt());
 
         // notify
         if (notify) {
+            final PlanEntity plan = planService.findById(key.getPlan());
             final ApplicationEntity application = applicationService.findById(key.getApplication());
             final ApiModelEntity api = apiService.findByIdForTemplates(plan.getApi());
             final PrimaryOwnerEntity owner = application.getPrimaryOwner();
@@ -310,12 +292,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey updated = apiKeyRepository.update(key);
 
             // Audit
-            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-            properties.put(API_KEY, key.getKey());
-            properties.put(API, subscription.getApi());
-            properties.put(APPLICATION, key.getApplication());
-
-            auditService.createApiAuditLog(subscription.getApi(), properties, APIKEY_REACTIVATED, key.getUpdatedAt(), previousApiKey, key);
+            createAuditLog(key, previousApiKey, APIKEY_REACTIVATED, key.getUpdatedAt());
 
             return convert(updated);
         } catch (TechnicalException ex) {
@@ -537,12 +514,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             notifierService.trigger(ApiHook.APIKEY_EXPIRED, api.getId(), params);
 
             // Audit
-            Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-            properties.put(API_KEY, key.getKey());
-            properties.put(API, api.getId());
-            properties.put(APPLICATION, application.getId());
-
-            auditService.createApiAuditLog(plan.getApi(), properties, APIKEY_EXPIRED, key.getUpdatedAt(), oldkey, key);
+            createAuditLog(key, oldkey, APIKEY_EXPIRED, key.getUpdatedAt());
         } else {
             apiKeyRepository.update(key);
         }
@@ -576,5 +548,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             .to(query.getTo())
             .expireAfter(query.getExpireAfter())
             .expireBefore(query.getExpireBefore());
+    }
+
+    private void createAuditLog(ApiKey key, ApiKey previousApiKey, ApiKey.AuditEvent event, Date eventDate) {
+        Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+        properties.put(API_KEY, key.getKey());
+        properties.put(API, key.getApi());
+        properties.put(APPLICATION, key.getApplication());
+
+        auditService.createApiAuditLog(key.getApi(), properties, event, eventDate, previousApiKey, key);
     }
 }

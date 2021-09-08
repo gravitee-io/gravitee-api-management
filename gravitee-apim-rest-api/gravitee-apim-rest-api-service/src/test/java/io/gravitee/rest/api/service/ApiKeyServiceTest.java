@@ -107,10 +107,6 @@ public class ApiKeyServiceTest {
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
 
-        PlanEntity planEntity = mock(PlanEntity.class);
-        when(planEntity.getApi()).thenReturn("apiId");
-        when(planService.findById(any())).thenReturn(planEntity);
-
         // Stub API Key creation
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
 
@@ -141,10 +137,6 @@ public class ApiKeyServiceTest {
         when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
-
-        PlanEntity planEntity = mock(PlanEntity.class);
-        when(planEntity.getApi()).thenReturn("apiId");
-        when(planService.findById(any())).thenReturn(planEntity);
 
         // Stub API Key creation
         when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
