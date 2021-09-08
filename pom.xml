@@ -275,7 +275,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-gateway-standalone-container -->
         <vertx.version>4.1.0</vertx.version>
         <gravitee-bom.version>1.2</gravitee-bom.version>
-        <gravitee-api-management.version>3.11.0</gravitee-api-management.version>
+        <gravitee-api-management.version>3.12.0-SNAPSHOT</gravitee-api-management.version>
         <gravitee-definition.version>1.29.0</gravitee-definition.version>
         <gravitee-common.version>1.21.0</gravitee-common.version>
         <gravitee-expression-language.version>1.6.1</gravitee-expression-language.version>

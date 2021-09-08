@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.apikeys.repository;
 
+import io.gravitee.gateway.services.sync.apikeys.ApiKeysCacheService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -39,39 +40,42 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     }
 
     @Override
-    public Optional<io.gravitee.repository.management.model.ApiKey> findById(String id) throws TechnicalException {
+    public Optional<ApiKey> findById(String id) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<io.gravitee.repository.management.model.ApiKey> findByKey(String apiKey) throws TechnicalException {
-        return Optional.ofNullable(cache.get(apiKey));
-    }
-
-    @Override
-    public io.gravitee.repository.management.model.ApiKey create(io.gravitee.repository.management.model.ApiKey apiKey)
-        throws TechnicalException {
+    public List<ApiKey> findByKey(String apiKey) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<io.gravitee.repository.management.model.ApiKey> findBySubscription(String subscription) throws TechnicalException {
+    public Optional<ApiKey> findByKeyAndApi(String apiKey, String api) throws TechnicalException {
+        return Optional.ofNullable(cache.get(ApiKeysCacheService.buildCacheKey(api, apiKey)));
+    }
+
+    @Override
+    public ApiKey create(io.gravitee.repository.management.model.ApiKey apiKey) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<io.gravitee.repository.management.model.ApiKey> findByPlan(String plan) throws TechnicalException {
+    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<io.gravitee.repository.management.model.ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
+    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
         return wrapped.findByCriteria(filter);
     }
 
     @Override
-    public io.gravitee.repository.management.model.ApiKey update(io.gravitee.repository.management.model.ApiKey apiKey)
-        throws TechnicalException {
+    public ApiKey update(ApiKey apiKey) throws TechnicalException {
         throw new IllegalStateException();
     }
 }
