@@ -39,7 +39,9 @@
     <!-- Display name Column -->
     <ng-container matColumnDef="displayName">
       <th mat-header-cell *matHeaderCellDef id="displayName">Display name</th>
-      <td mat-cell *matCellDef="let element">{{ element.displayName }}</td>
+      <td mat-cell *matCellDef="let element">
+        <a (click)="onDisplayNameClick(element.userId)">{{ element.displayName }}</a>
+      </td>
     </ng-container>
 
     <!-- Status Column -->

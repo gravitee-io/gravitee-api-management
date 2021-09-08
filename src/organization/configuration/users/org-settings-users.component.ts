@@ -18,7 +18,16 @@ import { StateService } from '@uirouter/core';
 import { MatTableDataSource } from '@angular/material/table';
 
 import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
+import { UsersService } from '../../../services-ngx/users.service';
 
+type TableData = {
+  userId: string;
+  userPicture: string;
+  displayName: string;
+  status: string;
+  email: string;
+  source: string;
+};
 @Component({
   selector: 'org-settings-users',
   styles: [require('./org-settings-users.component.scss')],
@@ -31,13 +40,33 @@ export class OrgSettingsUsersComponent {
 
   dataSource = new MatTableDataSource([]);
 
-  constructor(@Inject(UIRouterStateParams) private $stateParams, @Inject(UIRouterState) private $state: StateService) {}
+  constructor(
+    @Inject(UIRouterStateParams) private $stateParams,
+    @Inject(UIRouterState) private $state: StateService,
+    private readonly usersService: UsersService,
+  ) {}
 
   ngOnInit() {
     this.page = this.$stateParams?.page ?? 0;
+    this.usersService.list().subscribe((users) => {
+      this.dataSource = new MatTableDataSource<TableData>(
+        users.data.map((u) => ({
+          userId: u.id,
+          displayName: u.displayName,
+          email: u.email,
+          source: u.source,
+          status: u.source,
+          userPicture: '🦊',
+        })),
+      );
+    });
   }
 
   nextPage() {
     this.$state.go('organization.settings.ng-users', { page: this.page++ });
+  }
+
+  onDisplayNameClick(userId: string) {
+    this.$state.go('organization.settings.user', { userId });
   }
 }
