@@ -96,7 +96,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return convert(apiKey);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to generate an API Key for {} - {}", subscription, ex);
+            LOGGER.error("An error occurs while trying to generate an API Key for {}", subscription, ex);
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to generate an API Key for %s", subscription),
                 ex
@@ -213,14 +213,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             ApiKey key = apiKeyRepository.findByKeyAndApi(apiKey, apiId).orElseThrow(() -> new ApiKeyNotFoundException());
             revoke(key, notify);
         } catch (TechnicalException e) {
-            String message = String.format("An error occurs while trying to revoke a key [%s]", apiKey);
-            LOGGER.error(message, e);
-            throw new TechnicalManagementException(message, e);
+            LOGGER.error("An error occurs while trying to revoke an api key", e);
+            throw new TechnicalManagementException("An error occurs while trying to revoke an api key", e);
         }
     }
 
     private void revoke(ApiKey key, boolean notify) throws TechnicalException {
-        LOGGER.debug("Revoke API Key {}", key);
+        LOGGER.debug("Revoke API Key with id {}", key.getId());
 
         checkApiKeyExpired(key);
 
@@ -248,8 +247,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity reactivate(String apiKey, String apiId) {
         try {
-            LOGGER.debug("Reactivate API Key {} for API {}", apiKey, apiId);
             ApiKey key = apiKeyRepository.findByKeyAndApi(apiKey, apiId).orElseThrow(() -> new ApiKeyNotFoundException());
+
+            LOGGER.debug("Reactivate API Key id {} for API {}", key.getId(), apiId);
 
             if (!key.isRevoked() && !convert(key).isExpired()) {
                 throw new ApiKeyAlreadyActivatedException();
@@ -274,8 +274,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return convert(updated);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to reactivate a key {}", apiKey, ex);
-            throw new TechnicalManagementException("An error occurs while trying to reactivate a key " + apiKey, ex);
+            LOGGER.error("An error occurs while trying to reactivate an api key", ex);
+            throw new TechnicalManagementException("An error occurs while trying to reactivate an api key", ex);
         }
     }
 
@@ -288,11 +288,11 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public List<ApiKeyEntity> findByKey(String apiKey) {
         try {
-            LOGGER.debug("Find API Keys for apiKey {}", apiKey);
+            LOGGER.debug("Find API Keys by key");
             return apiKeyRepository.findByKey(apiKey).stream().map(ApiKeyServiceImpl::convert).collect(Collectors.toList());
         } catch (TechnicalException e) {
-            LOGGER.error("An error occurs while finding API keys with key {}", apiKey, e);
-            throw new TechnicalManagementException(String.format("An error occurs while finding API keys with key %s", apiKey), e);
+            LOGGER.error("An error occurs while finding API keys", e);
+            throw new TechnicalManagementException("An error occurs while finding API keys", e);
         }
     }
 
@@ -320,22 +320,19 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Override
     public ApiKeyEntity findByKeyAndApi(String apiKey, String apiId) {
         try {
-            LOGGER.debug("Find an API Key by key {} and API {}", apiKey, apiId);
+            LOGGER.debug("Find an API Key by key for API {}", apiId);
             ApiKey key = apiKeyRepository.findByKeyAndApi(apiKey, apiId).orElseThrow(() -> new ApiKeyNotFoundException());
             return convert(key);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find an API Key by key {} for API {}", apiKey, apiId, ex);
-            throw new TechnicalManagementException(
-                String.format("An error occurs while trying to find an API Key by key %s for API %s", apiKey, apiId),
-                ex
-            );
+            LOGGER.error("An error occurs while trying to find an API Key for API {}", apiId, ex);
+            throw new TechnicalManagementException(String.format("An error occurs while trying to find an API Key for API %s", apiId), ex);
         }
     }
 
     @Override
     public ApiKeyEntity update(ApiKeyEntity apiKeyEntity) {
         try {
-            LOGGER.debug("Update API Key {}", apiKeyEntity.getKey());
+            LOGGER.debug("Update API Key with id {}", apiKeyEntity.getId());
             ApiKey key = apiKeyRepository
                 .findByKeyAndApi(apiKeyEntity.getKey(), apiKeyEntity.getApi())
                 .orElseThrow(() -> new ApiKeyNotFoundException());
@@ -353,9 +350,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
 
             return convert(key);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while updating an API Key {}", apiKeyEntity.getKey(), ex);
+            LOGGER.error("An error occurs while updating an API Key with id {}", apiKeyEntity.getId(), ex);
             throw new TechnicalManagementException(
-                String.format("An error occurs while updating an API Key %s", apiKeyEntity.getKey()),
+                String.format("An error occurs while updating an API Key with id %s", apiKeyEntity.getId()),
                 ex
             );
         }
@@ -377,9 +374,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         try {
                             return apiKeyRepository.update(dbApiKey);
                         } catch (TechnicalException ex) {
-                            LOGGER.error("An error occurs while trying to update dbApiKey {}", apiKey, ex);
+                            LOGGER.error("An error occurs while trying to update ApiKey with id {}", dbApiKey.getId(), ex);
                             throw new TechnicalManagementException(
-                                String.format("An error occurs while trying to update dbApiKey %s", apiKey),
+                                String.format("An error occurs while trying to update ApiKey with id %s", dbApiKey.getId()),
                                 ex
                             );
                         }
@@ -388,14 +385,14 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 .map(ApiKeyServiceImpl::convert)
                 .orElseThrow(ApiKeyNotFoundException::new);
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to update apiKey {}", apiKey, ex);
-            throw new TechnicalManagementException(String.format("An error occurs while trying to update apiKey %s", apiKey), ex);
+            LOGGER.error("An error occurs while trying to update apiKey", ex);
+            throw new TechnicalManagementException("An error occurs while trying to update apiKey", ex);
         }
     }
 
     @Override
     public boolean canCreate(String apiKey, String apiId, String applicationId) {
-        LOGGER.debug("Check if an API Key can be created with key {}, for api {} and application {}", apiKey, apiId, applicationId);
+        LOGGER.debug("Check if an API Key can be created for api {} and application {}", apiId, applicationId);
         try {
             return apiKeyRepository
                 .findByKey(apiKey)
@@ -407,8 +404,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 );
         } catch (TechnicalException ex) {
             String message = String.format(
-                "An error occurs while checking if API Key %s can be created for api %s and application %s",
-                apiKey,
+                "An error occurs while checking if API Key can be created for api %s and application %s",
                 apiId,
                 applicationId
             );

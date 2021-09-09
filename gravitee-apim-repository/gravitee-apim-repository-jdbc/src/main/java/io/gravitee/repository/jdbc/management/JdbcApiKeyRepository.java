@@ -161,7 +161,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     @Override
     public List<ApiKey> findByKey(String key) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByKey({})", key);
+        LOGGER.debug("JdbcApiKeyRepository.findByKey(****)");
         try {
             return jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where " + escapeReservedWord("key") + " = ?",
@@ -176,7 +176,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
     @Override
     public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
-        LOGGER.debug("JdbcApiKeyRepository.findByKeyAndApi({}, {})", key, api);
+        LOGGER.debug("JdbcApiKeyRepository.findByKeyAndApi(****, {})", api);
         try {
             return jdbcTemplate
                 .query(

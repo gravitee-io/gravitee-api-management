@@ -831,7 +831,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                             try {
                                 apiKeyService.delete(apiKey.getKey());
                             } catch (TechnicalManagementException tme) {
-                                LOGGER.error("An error occurs while deleting API Key {}", apiKey.getKey(), tme);
+                                LOGGER.error("An error occurs while deleting API Key with id {}", apiKey.getId(), tme);
                             }
                         }
                     );
