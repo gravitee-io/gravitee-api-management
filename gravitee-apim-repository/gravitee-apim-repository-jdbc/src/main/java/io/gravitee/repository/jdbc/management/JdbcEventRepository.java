@@ -235,7 +235,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("e.id in(").append(joinLatest(group, args)).append(")");
         builder.append("    order by e.updated_at desc ");
 
-        if (page != null && size != null) {
+        if (page != null && size != null && size > 0) {
             final int limit = size.intValue();
             builder.append(createPagingClause(limit, (page.intValue() * limit)));
         } else {

@@ -66,7 +66,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt"));
 
         // Pagination
-        if (page != null) {
+        if (page != null && size != null && size > 0) {
             aggregationOperations.add(Aggregation.skip(page * size));
         }
 

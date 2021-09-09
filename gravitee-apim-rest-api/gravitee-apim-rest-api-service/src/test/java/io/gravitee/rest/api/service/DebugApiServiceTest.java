@@ -91,7 +91,7 @@ public class DebugApiServiceTest {
 
         assertThat(propertiesCaptor.getValue())
             .contains(
-                entry(Event.EventProperties.API_ID.getValue(), API_ID),
+                entry(Event.EventProperties.API_DEBUG_ID.getValue(), API_ID),
                 entry(Event.EventProperties.USER.getValue(), USER_ID),
                 entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
             );
