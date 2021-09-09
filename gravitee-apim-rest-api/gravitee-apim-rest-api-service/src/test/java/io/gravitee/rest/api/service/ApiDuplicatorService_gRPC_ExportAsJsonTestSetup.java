@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
@@ -29,8 +30,6 @@ import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.endpoint.GrpcEndpoint;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -121,7 +120,7 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
     }
 
     @Before
-    public void setUp() throws TechnicalException {
+    public void setUp() throws TechnicalException, JsonProcessingException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
@@ -186,12 +185,16 @@ public class ApiDuplicatorService_gRPC_ExportAsJsonTestSetup {
         proxy.setLogging(logging);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = new HttpEndpoint("default", "http://test");
-        HttpEndpoint endPointGrpc = new GrpcEndpoint("EndPoint GRPC", "grpc://localhost:8888");
+        Endpoint endpoint = new Endpoint("default", "http://test");
+        Endpoint endPointGrpc = new Endpoint("grpc", "EndPoint GRPC", "grpc://localhost:8888");
         HttpClientOptions httpClientOptions = new HttpClientOptions();
         httpClientOptions.setVersion(ProtocolVersion.HTTP_2);
         httpClientOptions.setClearTextUpgrade(true);
-        endPointGrpc.setHttpClientOptions(httpClientOptions);
+
+        Map<String, Object> configuration = new HashMap<>();
+        configuration.put("http", httpClientOptions);
+
+        endPointGrpc.setConfiguration(objectMapper.writeValueAsString(configuration));
 
         LinkedHashSet<Endpoint> endpoints = new LinkedHashSet<>();
         endpoints.add(endpoint);

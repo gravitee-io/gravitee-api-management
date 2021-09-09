@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
-import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
-import static io.gravitee.rest.api.service.validator.PolicyHelper.getScope;
+import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
+import static io.gravitee.rest.api.service.validator.JsonHelper.getScope;
 import static java.util.Collections.singleton;
 
 import io.gravitee.common.http.HttpMethod;

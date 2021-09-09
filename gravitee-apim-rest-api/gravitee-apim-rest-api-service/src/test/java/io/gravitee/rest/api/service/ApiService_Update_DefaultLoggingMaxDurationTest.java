@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
@@ -126,6 +125,9 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     private NotificationTemplateService notificationTemplateService;
 
     @Mock
+    private ConnectorService connectorService;
+
+    @Mock
     private NotifierService notifierService;
 
     @InjectMocks
@@ -169,7 +171,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new HttpEndpoint("endpointName", null);
+        Endpoint endpoint = new Endpoint("http", "endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         existingApi.setProxy(proxy);

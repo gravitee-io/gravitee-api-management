@@ -26,9 +26,9 @@ import org.slf4j.LoggerFactory;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class PolicyHelper {
+public class JsonHelper {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(PolicyHelper.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(JsonHelper.class);
 
     private static ObjectMapper objectMapper = new ObjectMapper();
 

@@ -15,7 +15,13 @@
     limitations under the License.
 
 -->
-<form name="formEndpoint" ng-submit="endpointCtrl.update(endpointCtrl.api)" novalidate autocomplete="false">
+<form
+  name="formEndpoint"
+  class="proxy_backend_endpoint_configuration"
+  ng-submit="endpointCtrl.update(endpointCtrl.api)"
+  novalidate
+  autocomplete="false"
+>
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
       <h1>Endpoint configuration</h1>
@@ -31,15 +37,15 @@
             <div layout="row" flex="100">
               <md-input-container flex="20">
                 <label>Type</label>
-                <md-select ng-model="endpointCtrl.endpoint.type" required>
-                  <md-option ng-repeat="type in endpointCtrl.types" ng-value="type"> {{type}} </md-option>
+                <md-select ng-model="endpoint.type" ng-change="endpointCtrl.changeType()" required>
+                  <md-option ng-repeat="type in endpointCtrl.supportedTypes" ng-value="type"> {{type}} </md-option>
                 </md-select>
               </md-input-container>
 
               <md-input-container flex="40">
                 <label>Name</label>
                 <input
-                  ng-model="endpointCtrl.endpoint.name"
+                  ng-model="endpoint.name"
                   type="text"
                   name="endpointName"
                   required
@@ -56,31 +62,31 @@
             </div>
             <md-input-container flex="30">
               <label>Target</label>
-              <input ng-model="endpointCtrl.endpoint.target" type="text" required />
+              <input ng-model="endpoint.target" type="text" required />
             </md-input-container>
             <md-input-container flex="30">
               <label>Weight</label>
-              <input ng-model="endpointCtrl.endpoint.weight" type="number" min="1" max="99" />
+              <input ng-model="endpoint.weight" type="number" min="1" max="99" />
             </md-input-container>
             <md-input-container class="flex">
               <label>Tenants</label>
-              <md-select ng-model="endpointCtrl.endpoint.tenants" multiple>
+              <md-select ng-model="endpoint.tenants" multiple>
                 <md-option ng-repeat="tenant in endpointCtrl.tenants" ng-value="tenant.id">
                   {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
                 </md-option>
               </md-select>
             </md-input-container>
           </div>
-          <section ng-if="endpointCtrl.creation === false">
+          <section ng-if="endpointCtrl.canHealthCheck()">
             <md-subheader>
               Health-check
               <ng-md-icon
                 icon="settings"
-                ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpointCtrl.endpoint.name})"
+                ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpoint.name})"
               ></ng-md-icon>
             </md-subheader>
           </section>
-          <md-checkbox ng-model="endpointCtrl.endpoint.backup" aria-label="Secondary endpoint" class="md-align-top-left" flex>
+          <md-checkbox ng-model="endpoint.backup" aria-label="Secondary endpoint" class="md-align-top-left" flex>
             Secondary endpoint<br />
             <span class="ipsum">
               A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all primary
@@ -93,12 +99,21 @@
       <md-tab>
         <md-tab-label>Configuration</md-tab-label>
         <md-tab-body>
-          <gv-http-configuration
-            http-configuration="endpointCtrl.endpoint"
-            inherit-http-configuration="endpointCtrl.group"
-            form="formEndpoint"
-            is-endpoint="true"
-          ></gv-http-configuration>
+          <md-input-container ng-if="endpoint" class="md-block">
+            <md-checkbox ng-model="endpoint.inherit" aria-label="Inherit configuration" class="md-align-top-left" flex>
+              <span>Inherit endpoint configuration from group</span>
+            </md-checkbox>
+          </md-input-container>
+
+          <div ng-show="!endpoint.inherit">
+            <gv-schema-form
+              ng-attr-schema="{{endpointCtrl.schema}}"
+              ng-attr-values="{{endpoint}}"
+              ng-on-gv-schema-form:change="endpointCtrl.updateEndpoint($event)"
+              validate-on-render
+            >
+            </gv-schema-form>
+          </div>
         </md-tab-body>
       </md-tab>
     </md-tabs>

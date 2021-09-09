@@ -17,14 +17,10 @@ package io.gravitee.rest.api.service.jackson.ser.api;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

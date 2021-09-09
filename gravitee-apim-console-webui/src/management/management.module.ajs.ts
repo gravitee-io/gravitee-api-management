@@ -42,7 +42,6 @@ import ApiTransferOwnershipController from '../management/api/portal/userGroupAc
 import ApiPoliciesController from '../management/api/design/policies/policies.controller';
 import ApiEndpointController from '../management/api/proxy/backend/endpoint/endpointConfiguration.controller';
 import ApiEndpointGroupController from '../management/api/proxy/backend/endpoint/group.controller';
-import HttpConfigurationComponent from '../management/api/proxy/backend/endpoint/httpConfiguration.component';
 import AddPoliciesPathController from '../management/api/design/policies/addPoliciesPath.controller';
 import ApiResourcesController from '../management/api/design/resources/resources.controller';
 import ApiPathMappingsController from '../management/api/analytics/pathMappings/pathMappings.controller';
@@ -60,6 +59,7 @@ import FileLoaderDirective from '../components/fileloader/fileloader.directive';
 import { DocumentationService } from '../services/documentation.service';
 import NotificationService from '../services/notification.service';
 
+import ConnectorService from '../services/connector.service';
 import PolicyService from '../services/policy.service';
 import PortalService from '../services/portal.service';
 import ResourceService from '../services/resource.service';
@@ -710,7 +710,6 @@ graviteeManagementModule.controller('ApiProxyController', ApiProxyController);
 graviteeManagementModule.controller('ApiHealthCheckController', ApiHealthCheckController);
 graviteeManagementModule.controller('ApiEndpointController', ApiEndpointController);
 graviteeManagementModule.controller('ApiEndpointGroupController', ApiEndpointGroupController);
-graviteeManagementModule.component('gvHttpConfiguration', HttpConfigurationComponent);
 graviteeManagementModule.controller('DialogAssertionInformationController', DialogAssertionInformationController);
 graviteeManagementModule.controller('ApiPropertiesController', ApiPropertiesController);
 graviteeManagementModule.controller('ApiDesignController', ApiDesignController);
@@ -829,6 +828,7 @@ graviteeManagementModule.service('OrganizationService', OrganizationService);
 graviteeManagementModule.service('InstallationService', InstallationService);
 graviteeManagementModule.service('FlowService', FlowService);
 graviteeManagementModule.service('SpelService', SpelService);
+graviteeManagementModule.service('ConnectorService', ConnectorService);
 graviteeManagementModule.controller('DialogGenerateTokenController', DialogGenerateTokenController);
 
 graviteeManagementModule.directive('filecontent', () => FileContentDirective);

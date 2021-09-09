@@ -46,6 +46,7 @@
     <properties>
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
+        <gravitee-connector-http.version>1.0.0-SNAPSHOT</gravitee-connector-http.version>
         <gravitee-cockpit-connectors-ws.version>2.0.0</gravitee-cockpit-connectors-ws.version>
         <gravitee-policy-apikey.version>2.3.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
@@ -132,6 +133,12 @@
                                         <groupId>io.gravitee.cockpit</groupId>
                                         <artifactId>gravitee-cockpit-connectors-ws</artifactId>
                                         <version>${gravitee-cockpit-connectors-ws.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.connector</groupId>
+                                        <artifactId>gravitee-connector-http</artifactId>
+                                        <version>${gravitee-connector-http.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                 </artifactItems>

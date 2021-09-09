@@ -19,15 +19,11 @@ import static java.util.Collections.emptyList;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)

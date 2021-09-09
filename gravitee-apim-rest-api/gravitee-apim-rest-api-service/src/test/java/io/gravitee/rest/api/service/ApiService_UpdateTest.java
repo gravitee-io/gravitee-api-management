@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -205,6 +204,9 @@ public class ApiService_UpdateTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @Mock
+    private ConnectorService connectorService;
+
     @InjectMocks
     private ApiConverter apiConverter;
 
@@ -285,7 +287,7 @@ public class ApiService_UpdateTest {
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new HttpEndpoint("endpointName", null);
+        Endpoint endpoint = new Endpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -387,7 +389,7 @@ public class ApiService_UpdateTest {
         final Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new HttpEndpoint("endpointName", null);
+        Endpoint endpoint = new Endpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         Cors cors = new Cors();
@@ -453,7 +455,7 @@ public class ApiService_UpdateTest {
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new HttpEndpoint("EndpointName", null);
+        Endpoint endpoint = new Endpoint("EndpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -480,7 +482,7 @@ public class ApiService_UpdateTest {
         Proxy proxy = new Proxy();
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("endpointGroupName");
-        Endpoint endpoint = new HttpEndpoint("endpointName", null);
+        Endpoint endpoint = new Endpoint("endpointName", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -606,7 +608,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(singleton("private"));
         final Proxy proxy = mock(Proxy.class);
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint("default", null);
+        Endpoint endpoint = new Endpoint("default", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -630,7 +632,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(singleton("private"));
         final Proxy proxy = mock(Proxy.class);
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint("default", null);
+        Endpoint endpoint = new Endpoint("default", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);
@@ -654,7 +656,7 @@ public class ApiService_UpdateTest {
         when(existingApi.getTags()).thenReturn(emptySet());
         final Proxy proxy = mock(Proxy.class);
         EndpointGroup endpointGroup = new EndpointGroup();
-        Endpoint endpoint = new HttpEndpoint("default", null);
+        Endpoint endpoint = new Endpoint("default", null);
         endpointGroup.setEndpoints(singleton(endpoint));
         when(proxy.getGroups()).thenReturn(singleton(endpointGroup));
         when(existingApi.getProxy()).thenReturn(proxy);

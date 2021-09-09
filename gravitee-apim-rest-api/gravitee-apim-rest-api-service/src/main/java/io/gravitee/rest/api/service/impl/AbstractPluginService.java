@@ -24,7 +24,6 @@ import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -46,12 +45,6 @@ public abstract class AbstractPluginService<T extends ConfigurablePlugin, E exte
 
     @Autowired
     protected ConfigurablePluginManager<T> pluginManager;
-
-    /*
-    protected AbstractPluginService(ConfigurablePluginManager<T> pluginManager) {
-        this.pluginManager = pluginManager;
-    }
-     */
 
     protected Set<T> list() {
         try {

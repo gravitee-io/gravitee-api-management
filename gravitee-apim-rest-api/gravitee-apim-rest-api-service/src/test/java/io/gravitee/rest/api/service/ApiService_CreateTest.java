@@ -135,6 +135,9 @@ public class ApiService_CreateTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @Mock
+    private ConnectorService connectorService;
+
     @Spy
     private ApiConverter apiConverter;
 

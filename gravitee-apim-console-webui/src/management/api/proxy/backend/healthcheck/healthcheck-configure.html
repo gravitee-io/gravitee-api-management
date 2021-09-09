@@ -21,9 +21,14 @@
     <a ng-if="healthCheckCtrl.endpoint !== undefined" ng-click="healthCheckCtrl.backToEndpointConfiguration()"
       >Back to endpoint configuration</a
     >
-    <a ng-if="healthCheckCtrl.endpoint === undefined" ng-click="healthCheckCtrl.backToHealthcheck()">Back to Health-check</a>
+    <a ng-if="healthCheckCtrl.endpoint === undefined && healthCheckCtrl.hasHealthCheck" ng-click="healthCheckCtrl.backToHealthcheck()"
+      >Back to Health-check</a
+    >
   </div>
-  <div class="gv-form">
+  <div ng-if="!healthCheckCtrl.hasHealthCheck">
+    <h3>The healtcheck is not yet available for "{{healthCheckCtrl.endpoint.type}}" endpoints</h3>
+  </div>
+  <div ng-if="healthCheckCtrl.hasHealthCheck" class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
       <div layout="row" flex>

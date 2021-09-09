@@ -15,7 +15,13 @@
     limitations under the License.
 
 -->
-<form name="formGroup" ng-submit="groupCtrl.update(groupCtrl.api)" novalidate autocomplete="false">
+<form
+  name="formGroup"
+  ng-submit="groupCtrl.update(groupCtrl.api)"
+  novalidate
+  autocomplete="false"
+  class="proxy_backend_group_configuration"
+>
   <div class="gv-forms" layout="column">
     <div class="gv-forms-header">
       <h1>Group configuration</h1>
@@ -56,7 +62,13 @@
       <md-tab>
         <md-tab-label>Configuration</md-tab-label>
         <md-tab-body>
-          <gv-http-configuration http-configuration="groupCtrl.group" form="formGroup"></gv-http-configuration>
+          <gv-schema-form
+            ng-attr-schema="{{groupCtrl.schema}}"
+            ng-attr-values="{{groupCtrl.group}}"
+            ng-on-gv-schema-form:change="groupCtrl.updateConfiguration($event)"
+            validate-on-render
+          >
+          </gv-schema-form>
         </md-tab-body>
       </md-tab>
 

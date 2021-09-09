@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.converter.api;
 
-import static io.gravitee.rest.api.service.validator.PolicyHelper.clearNullValues;
+import static io.gravitee.rest.api.service.validator.JsonHelper.clearNullValues;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toMap;
@@ -24,8 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.policy.api.swagger.Policy;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
@@ -146,15 +144,15 @@ public class OAIToAPIConverter implements SwaggerToApiConverter<OAIDescriptor>, 
             defaultGroup.setName("default-group");
 
             if (evaluatedServerUrl == null) {
-                defaultGroup.setEndpoints(singleton(new HttpEndpoint("default", defaultEndpoint)));
+                defaultGroup.setEndpoints(singleton(new Endpoint("default", defaultEndpoint)));
             } else if (evaluatedServerUrl.size() == 1) {
                 defaultEndpoint = evaluatedServerUrl.get(0);
-                defaultGroup.setEndpoints(singleton(new HttpEndpoint("default", defaultEndpoint)));
+                defaultGroup.setEndpoints(singleton(new Endpoint("default", defaultEndpoint)));
             } else {
                 defaultEndpoint = evaluatedServerUrl.get(0);
                 defaultGroup.setEndpoints(new HashSet<>());
                 for (int i = 0; i < evaluatedServerUrl.size(); i++) {
-                    defaultGroup.getEndpoints().add(new HttpEndpoint("server" + (i + 1), evaluatedServerUrl.get(i)));
+                    defaultGroup.getEndpoints().add(new Endpoint("server" + (i + 1), evaluatedServerUrl.get(i)));
                 }
             }
             proxy.setGroups(singleton(defaultGroup));

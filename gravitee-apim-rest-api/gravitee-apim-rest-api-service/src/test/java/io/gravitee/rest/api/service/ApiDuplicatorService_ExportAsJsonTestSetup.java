@@ -29,7 +29,6 @@ import com.google.common.io.Resources;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -184,7 +183,7 @@ public class ApiDuplicatorService_ExportAsJsonTestSetup {
         proxy.setLogging(logging);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = new HttpEndpoint("default", "http://test");
+        Endpoint endpoint = new Endpoint("default", "http://test");
         endpointGroup.setEndpoints(Collections.singleton(endpoint));
         LoadBalancer loadBalancer = new LoadBalancer();
         loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);

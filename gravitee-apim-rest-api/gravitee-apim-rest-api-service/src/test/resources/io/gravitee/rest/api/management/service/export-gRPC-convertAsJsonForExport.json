@@ -1,14 +1,9 @@
 {
   "description": "Gravitee.io",
   "gravitee": "1.0.0",
+  "flow_mode": "DEFAULT",
   "resources": [],
   "properties": [],
-  "primaryOwner": {
-    "id": "johndoe",
-    "displayName": "johndoe-sourceId",
-    "type": "USER"
-  },
-  "flow_mode": "DEFAULT",
   "groups": [
     "My Group"
   ],
@@ -21,82 +16,82 @@
       ]
     }
   ],
-  "pages" : [
+  "pages": [
     {
-      "name" : "My Folder",
-      "type" : "FOLDER",
-      "order" : 1,
+      "name": "My Folder",
+      "type": "FOLDER",
+      "order": 1,
+      "published": false,
       "visibility": "PUBLIC",
-      "published" : false,
-      "homepage" : false,
+      "homepage": false,
       "excludedAccessControls": false
     },
     {
-      "name" : "My Title",
-      "type" : "MARKDOWN",
-      "content" : "Read the doc",
-      "order" : 1,
+      "name": "My Title",
+      "type": "MARKDOWN",
+      "content": "Read the doc",
+      "order": 1,
+      "published": false,
       "visibility": "PUBLIC",
-      "published" : false,
-      "homepage" : false,
+      "homepage": false,
       "excludedAccessControls": false
     },
     {
-      "name" : "My Swagger",
-      "type" : "SWAGGER",
-      "content" : "Read the doc",
-      "order" : 1,
+      "name": "My Swagger",
+      "type": "SWAGGER",
+      "content": "Read the doc",
+      "order": 1,
+      "published": false,
       "visibility": "PUBLIC",
-      "published" : false,
-      "homepage" : false,
+      "homepage": false,
       "excludedAccessControls": false
     },
     {
       "name": "Aside",
       "type": "SYSTEM_FOLDER",
       "order": 1,
-      "visibility": "PUBLIC",
       "published": true,
+      "visibility": "PUBLIC",
       "homepage": false,
       "excludedAccessControls": false
     },
     {
       "name": "My Link",
       "type": "LINK",
-      "content" : "Read the doc",
+      "content": "Read the doc",
       "order": 1,
-      "visibility": "PUBLIC",
       "published": false,
+      "visibility": "PUBLIC",
       "homepage": false,
       "excludedAccessControls": false
     },
     {
       "name": "My Translation",
       "type": "TRANSLATION",
-      "content" : "Lire la documentation",
+      "content": "Lire la documentation",
       "order": 1,
-      "visibility": "PUBLIC",
       "published": false,
+      "visibility": "PUBLIC",
       "homepage": false,
       "excludedAccessControls": false
     },
     {
       "name": "My Template",
       "type": "MARKDOWN_TEMPLATE",
-      "content" : "Read the doc",
+      "content": "Read the doc",
       "order": 1,
-      "visibility": "PUBLIC",
       "published": false,
+      "visibility": "PUBLIC",
       "homepage": false,
       "excludedAccessControls": false
     },
     {
       "name": "My asciidoc",
       "type": "ASCIIDOC",
-      "content" : "Read the asciidoc",
+      "content": "Read the asciidoc",
       "order": 1,
-      "visibility": "PUBLIC",
       "published": false,
+      "visibility": "PUBLIC",
       "homepage": false,
       "excludedAccessControls": false
     }
@@ -154,9 +149,9 @@
     "preserve_host": false,
     "logging": {
       "mode": "CLIENT_PROXY",
-      "condition": "condition",
-      "content":"NONE",
-      "scope":"NONE"
+      "content": "NONE",
+      "scope": "NONE",
+      "condition": "condition"
     },
     "groups": [
       {
@@ -167,24 +162,14 @@
             "target": "http://test",
             "weight": 1,
             "backup": false,
-            "type": "HTTP",
-            "http": {
-              "connectTimeout": 5000,
-              "idleTimeout": 60000,
-              "keepAlive": true,
-              "readTimeout": 10000,
-              "pipelining": false,
-              "maxConcurrentConnections": 100,
-              "useCompression": true,
-              "followRedirects": false
-            }
+            "type": "http"
           },
           {
             "name": "EndPoint GRPC",
             "target": "grpc://localhost:8888",
             "weight": 1,
             "backup": false,
-            "type": "GRPC",
+            "type": "grpc",
             "http": {
               "connectTimeout": 5000,
               "idleTimeout": 60000,
@@ -222,5 +207,10 @@
         "body": "{\"bad\":\"news\"}"
       }
     }
+  },
+  "primaryOwner": {
+    "id": "johndoe",
+    "displayName": "johndoe-sourceId",
+    "type": "USER"
   }
 }

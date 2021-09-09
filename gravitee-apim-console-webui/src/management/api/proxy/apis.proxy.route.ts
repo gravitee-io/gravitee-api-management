@@ -18,6 +18,7 @@ import EnvironmentService from '../../../services/environment.service';
 import ServiceDiscoveryService from '../../../services/serviceDiscovery.service';
 import SpelService from '../../../services/spel.service';
 import TenantService from '../../../services/tenant.service';
+import ConnectorService from '../../../services/connector.service';
 
 export default apisProxyRouterConfig;
 
@@ -117,6 +118,7 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'endpointCtrl',
       resolve: {
         resolvedTenants: (TenantService: TenantService) => TenantService.list(),
+        resolvedConnectors: (ConnectorService: ConnectorService) => ConnectorService.list(true),
       },
       data: {
         perms: {
@@ -134,6 +136,7 @@ function apisProxyRouterConfig($stateProvider) {
       controllerAs: 'groupCtrl',
       resolve: {
         resolvedServicesDiscovery: (ServiceDiscoveryService: ServiceDiscoveryService) => ServiceDiscoveryService.list(),
+        resolvedConnectors: (ConnectorService: ConnectorService) => ConnectorService.list(true),
       },
       data: {
         perms: {

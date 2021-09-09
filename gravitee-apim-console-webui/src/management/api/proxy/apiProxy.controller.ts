@@ -299,7 +299,8 @@ class ApiProxyController {
   }
 
   hasHealthCheck(endpoint: any) {
-    if (endpoint.backup) {
+    // FIXME: https://github.com/gravitee-io/issues/issues/6437
+    if (endpoint.backup || (endpoint.type.toLowerCase() !== 'http' && endpoint.type.toLowerCase() !== 'grpc')) {
       return false;
     }
 

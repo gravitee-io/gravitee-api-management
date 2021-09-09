@@ -122,6 +122,11 @@
 			<artifactId>gravitee-plugin-cockpit</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.plugin</groupId>
+			<artifactId>gravitee-plugin-connector</artifactId>
+		</dependency>
+
 		<!-- Lucene -->
 		<dependency>
 			<groupId>org.apache.lucene</groupId>

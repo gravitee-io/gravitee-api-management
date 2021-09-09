@@ -30,7 +30,7 @@ class ApiEndpointGroupController {
   private serviceDiscoveryJsonSchemaForm: string[];
   private types: any[];
   private serviceDiscoveryJsonSchema: any;
-  private serviceDiscoveryConfigurationForm: any;
+  private schema: any;
 
   constructor(
     private ApiService: ApiService,
@@ -39,9 +39,9 @@ class ApiEndpointGroupController {
     private $scope,
     private $rootScope: ng.IRootScopeService,
     private resolvedServicesDiscovery,
+    private resolvedConnectors,
     private $state: StateService,
     private $stateParams: StateParams,
-    private $timeout,
   ) {
     'ngInject';
   }
@@ -50,9 +50,13 @@ class ApiEndpointGroupController {
     this.api = this.$scope.$parent.apiCtrl.api;
     this.group = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
     this.$scope.duplicateEndpointNames = false;
+    this.schema = this.resolvedConnectors.data.find((connector) => connector.supportedTypes.includes('http'))?.schema;
     // Creation mode
     if (!this.group) {
-      this.group = {};
+      this.group = {
+        type: 'http',
+      };
+      this.api.proxy.groups.push(this.group);
       this.creation = true;
     }
 
@@ -94,7 +98,6 @@ class ApiEndpointGroupController {
 
   onTypeChange() {
     this.discovery.configuration = {};
-
     this.retrievePluginSchema();
   }
 
@@ -119,33 +122,27 @@ class ApiEndpointGroupController {
     }
   }
 
+  updateConfiguration(event) {
+    const isValid = !event.detail?.validation?.errors?.length;
+    if (isValid) {
+      // Abstract endpoint properties to keep
+      const { name, load_balancing, discovery, endpoints } = this.group;
+      // Delete all properties, important if a property is deleted by the user with the form
+      for (const prop of Object.getOwnPropertyNames(this.group)) {
+        delete this.group[prop];
+      }
+      // Reassign all desired properties and keep reference
+      Object.assign(this.group, { name, load_balancing, discovery, endpoints }, event.detail.values);
+    }
+    this.$scope.formGroup.$setDirty();
+    this.$scope.formGroup.$setValidity('group', isValid);
+  }
+
   update(api) {
     // include discovery service
     this.group.services = {
       discovery: this.discovery,
     };
-
-    if (!_.includes(api.proxy.groups, this.group)) {
-      if (!api.proxy.groups) {
-        api.proxy.groups = [this.group];
-      } else {
-        api.proxy.groups.push(this.group);
-      }
-    }
-    if (this.group.ssl.trustAll) {
-      delete this.group.ssl.trustStore;
-    }
-    if (this.group.ssl.trustStore && (!this.group.ssl.trustStore.type || this.group.ssl.trustStore.type === '')) {
-      delete this.group.ssl.trustStore;
-    }
-    if (this.group.ssl.keyStore && (!this.group.ssl.keyStore.type || this.group.ssl.keyStore.type === '')) {
-      delete this.group.ssl.keyStore;
-    }
-    if (this.group.headers.length > 0) {
-      this.group.headers = _.mapValues(_.keyBy(this.group.headers, 'name'), 'value');
-    } else {
-      delete this.group.headers;
-    }
 
     this.ApiService.update(api).then((updatedApi) => {
       this.api = updatedApi.data;

@@ -15,14 +15,14 @@
  */
 package io.gravitee.rest.api.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
- * @author David BRASSELY (david at gravitee.io)
+ * @author David BRASSELY (david.brassely at graviteesource.com
  * @author GraviteeSource Team
  */
-public class ResourceEntity {
+public class ConnectorListItem {
 
     /**
      * The resource identifier
@@ -44,8 +44,11 @@ public class ResourceEntity {
      */
     private String version;
 
-    @JsonProperty("plugin")
-    private PluginEntity plugin;
+    private String schema;
+
+    private String icon;
+
+    private Collection<String> supportedTypes;
 
     public String getDescription() {
         return description;
@@ -71,14 +74,6 @@ public class ResourceEntity {
         this.name = name;
     }
 
-    public PluginEntity getPlugin() {
-        return plugin;
-    }
-
-    public void setPlugin(PluginEntity plugin) {
-        this.plugin = plugin;
-    }
-
     public String getVersion() {
         return version;
     }
@@ -87,11 +82,45 @@ public class ResourceEntity {
         this.version = version;
     }
 
+    public String getSchema() {
+        return schema;
+    }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
+
+    public String getIcon() {
+        return icon;
+    }
+
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    public Collection<String> getSupportedTypes() {
+        return supportedTypes;
+    }
+
+    public void setSupportedTypes(Collection<String> supportedTypes) {
+        this.supportedTypes = supportedTypes;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ConnectorListItem{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", version='").append(version).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ResourceEntity that = (ResourceEntity) o;
+        ConnectorListItem that = (ConnectorListItem) o;
         return Objects.equals(id, that.id);
     }
 

@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
@@ -177,7 +176,7 @@ public class ApiDuplicatorService_ExportAsJsonTest extends ApiDuplicatorService_
         proxy.setStripContextPath(false);
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("default-group");
-        Endpoint endpoint = new HttpEndpoint("default", "http://test");
+        Endpoint endpoint = new Endpoint("default", "http://test");
         endpointGroup.setEndpoints(Collections.singleton(endpoint));
         LoadBalancer loadBalancer = new LoadBalancer();
         loadBalancer.setType(LoadBalancerType.ROUND_ROBIN);
@@ -185,7 +184,7 @@ public class ApiDuplicatorService_ExportAsJsonTest extends ApiDuplicatorService_
 
         EndpointGroup endpointGroup2 = new EndpointGroup();
         endpointGroup2.setName("backup-group");
-        Endpoint endpoint2 = new HttpEndpoint("backup", "http://test2");
+        Endpoint endpoint2 = new Endpoint("backup", "http://test2");
         endpointGroup2.setEndpoints(Collections.singleton(endpoint2));
         proxy.setGroups(new HashSet<>(Arrays.asList(endpointGroup, endpointGroup2)));
 

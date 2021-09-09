@@ -18,7 +18,6 @@ package io.gravitee.rest.api.service.jackson.ser.api;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import io.gravitee.definition.model.EndpointGroup;
-import io.gravitee.definition.model.EndpointType;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.rest.api.model.*;
@@ -91,7 +90,7 @@ public class Api1_25VersionSerializer extends ApiSerializer {
                                         endpointGroup
                                             .getEndpoints()
                                             .stream()
-                                            .filter(endpoint -> endpoint.getType() == EndpointType.HTTP)
+                                            .filter(endpoint -> endpoint.getType().equalsIgnoreCase("http"))
                                             .collect(Collectors.toSet())
                                     );
                                 }

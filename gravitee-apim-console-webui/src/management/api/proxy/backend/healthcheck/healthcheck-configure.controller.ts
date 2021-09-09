@@ -29,6 +29,7 @@ class ApiHealthCheckConfigureController {
   private endpointToDisplay: any;
   private rootHealthcheckEnabled: boolean;
   private spelGrammar: { dictionaries: any; properties: any; _types: any; _enums: any };
+  private hasHealthCheck: boolean;
 
   constructor(
     private ApiService: ApiService,
@@ -49,7 +50,6 @@ class ApiHealthCheckConfigureController {
       _types: resolvedSpelGrammar.data._types,
       _enums: resolvedSpelGrammar.data._enums,
     };
-
     this.api = this.$scope.$parent.apiCtrl.api;
     this.$scope.$on('apiChangeSuccess', (event, args) => {
       this.api = args.api;
@@ -79,6 +79,9 @@ class ApiHealthCheckConfigureController {
     this.healthcheck = this.healthcheck || { enabled: false, inherit: false, schedule: '*/1 * * * * *' };
     const inherit = this.endpoint !== undefined && this.healthcheck.inherit;
     const enabled = this.healthcheck.enabled;
+
+    // FIXME: https://github.com/gravitee-io/issues/issues/6437
+    this.hasHealthCheck = this.endpoint.type === 'http' || this.endpoint.type === 'grpc';
 
     if (inherit) {
       this.healthcheck = _.cloneDeep((this.api.services && this.api.services['health-check']) || { enabled: false });

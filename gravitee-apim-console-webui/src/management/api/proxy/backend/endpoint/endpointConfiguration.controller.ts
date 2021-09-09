@@ -18,15 +18,17 @@ import _ = require('lodash');
 
 import { ApiService } from '../../../../../services/api.service';
 import NotificationService from '../../../../../services/notification.service';
+import '@gravitee/ui-components/wc/gv-schema-form';
 
 class ApiEndpointController {
-  private group: any;
   private api: any;
   private endpoint: any;
   private initialEndpoints: any;
   private tenants: any;
+  private connectors: any[];
   private creation = false;
-  private types: string[];
+  private supportedTypes: string[];
+  private schema: any;
 
   constructor(
     private ApiService: ApiService,
@@ -36,56 +38,56 @@ class ApiEndpointController {
     private $state: StateService,
     private $stateParams: StateParams,
     private resolvedTenants,
+    private resolvedConnectors,
   ) {
     'ngInject';
 
     this.api = this.$scope.$parent.apiCtrl.api;
     this.tenants = resolvedTenants.data;
-
+    this.connectors = resolvedConnectors.data;
     this.$scope.groupName = $stateParams.groupName;
     this.$scope.duplicateEndpointNames = false;
+  }
 
-    this.group = _.find(this.api.proxy.groups, { name: $stateParams.groupName });
-    this.endpoint = _.find(this.group.endpoints, { name: $stateParams.endpointName });
-    this.initialEndpoints = _.cloneDeep(this.group.endpoints);
+  $onInit() {
+    const group = this.findGroupByName(this.$stateParams.groupName);
+    this.$scope.endpoint = this.findEndpointByName(group, this.$stateParams.endpointName);
+    this.initialEndpoints = group ? _.cloneDeep(group.endpoints) : [];
+    this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
 
     // Creation mode
-    if (!this.endpoint) {
-      this.endpoint = {
+    if (!this.$scope.endpoint) {
+      this.$scope.endpoint = {
         weight: 1,
         inherit: true,
+        type: 'http',
       };
-
       this.creation = true;
     }
+    this.updateSchema();
+  }
 
-    this.types = ['HTTP', 'GRPC'];
+  changeType() {
+    this.updateSchema();
+  }
+
+  findGroupByName(groupName: string) {
+    return this.api.proxy.groups.find((group) => group.name === groupName);
+  }
+
+  findEndpointByName(group: any, endpointName: string) {
+    if (group && group.endpoints) {
+      return group.endpoints.find((endpoint) => endpoint.name === endpointName);
+    }
+    return null;
   }
 
   update(api) {
-    if (this.endpoint?.ssl?.trustAll) {
-      delete this.endpoint.ssl.trustStore;
-    }
+    const group: any = this.findGroupByName(this.$stateParams.groupName);
 
-    if (this.endpoint?.ssl?.trustStore && (!this.endpoint.ssl.trustStore.type || this.endpoint.ssl.trustStore.type === '')) {
-      delete this.endpoint.ssl.trustStore;
-    }
-
-    if (this.endpoint?.ssl?.keyStore && (!this.endpoint.ssl.keyStore.type || this.endpoint.ssl.keyStore.type === '')) {
-      delete this.endpoint.ssl.keyStore;
-    }
-
-    if (this.endpoint?.headers?.length > 0) {
-      this.endpoint.headers = _.mapValues(_.keyBy(this.endpoint.headers, 'name'), 'value');
-    } else {
-      delete this.endpoint.headers;
-    }
-
-    const group: any = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
-
-    if (!_.includes(group.endpoints, this.endpoint)) {
+    if (!_.includes(group.endpoints, this.$scope.endpoint)) {
       group.endpoints = group.endpoints || [];
-      group.endpoints.push(this.endpoint);
+      group.endpoints.push(this.$scope.endpoint);
     }
 
     this.ApiService.update(api).then((updatedApi) => {
@@ -114,7 +116,47 @@ class ApiEndpointController {
   }
 
   checkEndpointNameUniqueness() {
-    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.endpoint.name, this.creation);
+    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.$scope.endpoint.name, this.creation);
+  }
+
+  updateEndpoint(event) {
+    const isValid = !event.detail?.validation?.errors?.length;
+    if (isValid) {
+      // Abstract endpoint properties to keep
+      const { backup, inherit, name, target, type, weight } = this.$scope.endpoint;
+      // Delete all properties, important if a property is deleted by the user with the form
+      for (const prop of Object.getOwnPropertyNames(this.$scope.endpoint)) {
+        delete this.$scope.endpoint[prop];
+      }
+      // Reassign all desired properties and keep reference
+      Object.assign(this.$scope.endpoint, { backup, inherit, name, target, type, weight }, event.detail.values);
+    }
+    this.$scope.formEndpoint.$setDirty();
+    this.$scope.formEndpoint.$setValidity('endpoint', isValid);
+  }
+
+  findCurrentSchema() {
+    return this.connectors.find((connector) => connector.supportedTypes.includes(this.$scope.endpoint?.type?.toLowerCase()))?.schema;
+  }
+
+  updateSchema() {
+    const currentSchema = this.findCurrentSchema();
+    if (currentSchema) {
+      const schema = JSON.parse(currentSchema);
+      if (this.$scope.endpoint?.type?.toLowerCase() === 'grpc') {
+        schema.properties.http.disabled = ['version'];
+        this.$scope.endpoint.http = this.$scope.endpoint.http || {};
+        this.$scope.endpoint.http.version = 'HTTP_2';
+      }
+      this.schema = schema;
+    }
+  }
+
+  // FIXME: https://github.com/gravitee-io/issues/issues/6437
+  canHealthCheck() {
+    return (
+      this.creation === false && (this.$scope.endpoint.type.toLowerCase() === 'http' || this.$scope.endpoint.type.toLowerCase() === 'grpc')
+    );
   }
 }
 

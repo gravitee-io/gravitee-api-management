@@ -249,6 +249,11 @@ public class EnvironmentResource extends AbstractResource {
         return resourceContext.getResource(ServicesDiscoveryResource.class);
     }
 
+    @Path("connectors")
+    public ConnectorsResource getConnectorsResource() {
+        return resourceContext.getResource(ConnectorsResource.class);
+    }
+
     @Path("instances")
     public InstancesResource getInstancesResource() {
         return resourceContext.getResource(InstancesResource.class);

@@ -32,6 +32,7 @@ import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
+import io.gravitee.plugin.connector.spring.ConnectorPluginConfiguration;
 import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
 import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
 import io.gravitee.plugin.notifier.spring.NotifierPluginConfiguration;
@@ -78,6 +79,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         NotifierPluginConfiguration.class,
         AlertPluginConfiguration.class,
         ServiceDiscoveryPluginConfiguration.class,
+        ConnectorPluginConfiguration.class,
     }
 )
 public class ServiceConfiguration {

@@ -37,11 +37,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
@@ -78,7 +76,6 @@ import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
-import io.gravitee.rest.api.model.plan.PlanQuery;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
@@ -96,12 +93,10 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.processor.ApiSynchronizationProcessor;
-import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
-import io.vertx.core.buffer.Buffer;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
@@ -256,6 +251,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private DataEncryptor dataEncryptor;
 
     @Autowired
+    private ConnectorService connectorService;
+
+    @Autowired
     private ApiConverter apiConverter;
 
     @Value("${configuration.default-api-icon:}")
@@ -359,13 +357,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         if (endpoints == null) {
-            group.setEndpoints(singleton(new HttpEndpoint("default", null)));
+            group.setEndpoints(singleton(new Endpoint("default", null)));
         } else if (endpoints.length == 1) {
-            group.setEndpoints(singleton(new HttpEndpoint("default", endpoints[0])));
+            group.setEndpoints(singleton(new Endpoint("default", endpoints[0])));
         } else {
             group.setEndpoints(new HashSet<>());
             for (int i = 0; i < endpoints.length; i++) {
-                group.getEndpoints().add(new HttpEndpoint("server" + (i + 1), endpoints[i]));
+                group.getEndpoints().add(new Endpoint("server" + (i + 1), endpoints[i]));
             }
         }
         proxy.setGroups(singleton(group));
@@ -401,8 +399,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             final Collection<VirtualHost> sanitizedVirtualHosts = virtualHostService.sanitizeAndValidate(api.getProxy().getVirtualHosts());
             api.getProxy().setVirtualHosts(new ArrayList<>(sanitizedVirtualHosts));
 
-            // check endpoints name
-            checkEndpointsName(api);
+            // check endpoints configuration
+            checkEndpointsConfiguration(api);
 
             // check HC inheritance
             checkHealthcheckInheritance(api);
@@ -677,13 +675,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         pageService.createPage(apiId, asideSystemFolder, GraviteeContext.getCurrentEnvironment());
     }
 
-    private void checkEndpointsName(UpdateApiEntity api) {
+    private void checkEndpointsConfiguration(UpdateApiEntity api) {
         if (api.getProxy() != null && api.getProxy().getGroups() != null) {
             for (EndpointGroup group : api.getProxy().getGroups()) {
                 assertEndpointNameNotContainsInvalidCharacters(group.getName());
                 if (group.getEndpoints() != null) {
                     for (Endpoint endpoint : group.getEndpoints()) {
                         assertEndpointNameNotContainsInvalidCharacters(endpoint.getName());
+                        endpoint.setConfiguration(
+                            connectorService.validateConnectorConfiguration(endpoint.getType(), endpoint.getConfiguration())
+                        );
                     }
                 }
             }
@@ -731,12 +732,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             for (EndpointGroup group : api.getProxy().getGroups()) {
                 if (group.getEndpoints() != null) {
                     for (Endpoint endpoint : group.getEndpoints()) {
-                        if (endpoint instanceof HttpEndpoint) {
-                            HttpEndpoint httpEndpoint = (HttpEndpoint) endpoint;
-                            if (httpEndpoint.getHealthCheck() != null && httpEndpoint.getHealthCheck().isInherit()) {
-                                inherit = true;
-                                break;
-                            }
+                        if (isHttpEndpoint(endpoint) && endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isInherit()) {
+                            inherit = true;
+                            break;
                         }
                     }
                 }
@@ -755,6 +753,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 throw new HealthcheckInheritanceException();
             }
         }
+    }
+
+    // FIXME: https://github.com/gravitee-io/issues/issues/6437
+    private boolean isHttpEndpoint(Endpoint endpoint) {
+        return "grpc".equalsIgnoreCase(endpoint.getType()) || "http".equalsIgnoreCase(endpoint.getType());
     }
 
     private void assertEndpointNameNotContainsInvalidCharacters(String name) {
@@ -1345,8 +1348,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check endpoints presence
             checkEndpointsExists(updateApiEntity);
 
-            // check endpoints name
-            checkEndpointsName(updateApiEntity);
+            // check endpoints configuration
+            checkEndpointsConfiguration(updateApiEntity);
 
             // check HC inheritance
             checkHealthcheckInheritance(updateApiEntity);
@@ -2417,8 +2420,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             return true;
         } else {
             final Predicate<Endpoint> endpointHealthCheckEnabledPredicate = endpoint -> {
-                if (endpoint instanceof HttpEndpoint) {
-                    return ((HttpEndpoint) endpoint).getHealthCheck() != null && ((HttpEndpoint) endpoint).getHealthCheck().isEnabled();
+                if (isHttpEndpoint(endpoint)) {
+                    return endpoint.getHealthCheck() != null && endpoint.getHealthCheck().isEnabled();
                 } else {
                     return false;
                 }

@@ -184,15 +184,6 @@ export class ApiService {
   }
 
   update(api): IHttpPromise<any> {
-    // clean endpoint http proxy
-    if (api.proxy && api.proxy.endpoints) {
-      api.proxy.endpoints.forEach((endpoint) => {
-        if (endpoint.proxy && !endpoint.proxy.useSystemProxy && (!endpoint.proxy.host || !endpoint.proxy.port)) {
-          delete endpoint.proxy;
-        }
-      });
-    }
-
     return this.$http.put(
       `${this.Constants.env.baseURL}/apis/` + api.id,
       {
@@ -689,7 +680,7 @@ export class ApiService {
     const endpointsName: string[] = [];
     api.proxy.groups.forEach((group) => {
       endpointsName.push(group.name);
-      group.endpoints.forEach((endpoint) => {
+      group.endpoints?.forEach((endpoint) => {
         endpointsName.push(endpoint.name);
       });
     });
