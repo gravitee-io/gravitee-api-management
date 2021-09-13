@@ -178,8 +178,8 @@ public class DebugReactor extends DefaultReactor {
                     .setHost(HOST)
                     .setMethod(HttpMethod.valueOf(req.getMethod()))
                     .setPort(port)
-                    .setHeaders(convertHeaders(req.getHeaders()))
-                    // FIXME: is it enough to get only first virtual host ?
+                    .setHeaders(buildHeaders(debugApi, req))
+                    // FIXME: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
                     .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + req.getPath())
                     .setTimeout(5000)
             )
@@ -190,6 +190,19 @@ public class DebugReactor extends DefaultReactor {
                 }
             );
         return future;
+    }
+
+    private MultiMap buildHeaders(DebugApi debugApi, HttpRequest req) {
+        final HeadersMultiMap headers = new HeadersMultiMap();
+        // If API is configured in virtual hosts mode, we force the Host header
+        if (debugApi.getProxy().getVirtualHosts().size() > 1) {
+            String host = debugApi.getProxy().getVirtualHosts().get(0).getHost();
+            if (host != null) {
+                // FIXME: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
+                headers.add(io.gravitee.common.http.HttpHeaders.HOST, host);
+            }
+        }
+        return headers.addAll(convertHeaders(req.getHeaders()));
     }
 
     private void failEvent(io.gravitee.repository.management.model.Event debugEvent) {
