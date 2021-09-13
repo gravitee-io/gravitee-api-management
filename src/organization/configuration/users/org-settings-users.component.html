@@ -49,7 +49,11 @@
     <!-- Status Column -->
     <ng-container matColumnDef="status">
       <th mat-header-cell *matHeaderCellDef id="status" width="15%">Status</th>
-      <td mat-cell *matCellDef="let element">{{ element.status }}</td>
+      <td mat-cell *matCellDef="let element">
+        <span *ngIf="element.status === 'ACTIVE'" style="color: green">{{ element.status }}</span>
+        <span *ngIf="element.status === 'PENDING'" style="color: orange">{{ element.status }}</span>
+        <span *ngIf="element.status === 'REJECTED'" style="color: red">{{ element.status }}</span>
+      </td>
     </ng-container>
 
     <!-- Email Column -->

@@ -55,7 +55,7 @@ export class OrgSettingsUsersComponent {
           displayName: u.displayName,
           email: u.email,
           source: u.source,
-          status: u.source,
+          status: u.status,
           userPicture: u.picture,
         })),
       );

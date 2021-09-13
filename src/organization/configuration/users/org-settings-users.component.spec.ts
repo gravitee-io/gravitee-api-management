@@ -103,8 +103,8 @@ describe('OrgSettingsUsersComponent', () => {
         displayName: 'admin',
         email: '',
         source: 'memory',
-        status: 'memory',
-        userPicture: '🦊',
+        status: 'ACTIVE',
+        userPicture: '',
       },
     ]);
   });
