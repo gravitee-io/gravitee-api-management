@@ -100,7 +100,7 @@ describe('OrgSettingsUsersComponent', () => {
     expect(rowCells).toEqual([
       {
         actions: 'delete',
-        displayName: 'admin',
+        displayName: 'adminPrimary Owner Active Token',
         email: '',
         source: 'memory',
         status: 'ACTIVE',

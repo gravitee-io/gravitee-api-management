@@ -27,6 +27,8 @@ type TableData = {
   status: string;
   email: string;
   source: string;
+  primary_owner: boolean;
+  number_of_active_tokens: number;
 };
 @Component({
   selector: 'org-settings-users',
@@ -57,6 +59,8 @@ export class OrgSettingsUsersComponent {
           source: u.source,
           status: u.status,
           userPicture: u.picture,
+          primary_owner: u.primary_owner,
+          number_of_active_tokens: u.number_of_active_tokens,
         })),
       );
     });
