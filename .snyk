@@ -1,0 +1,7 @@
+# Snyk (https://snyk.io) policy file
+version: v1.14.0
+
+exclude:
+  code:
+    - "**/src/test/**"
+
