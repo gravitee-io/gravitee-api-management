@@ -17,6 +17,9 @@ package io.gravitee.rest.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
@@ -163,4 +166,6 @@ public interface ApiService {
 
     void addGroup(String api, String group);
     void removeGroup(String api, String group);
+
+    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
 }

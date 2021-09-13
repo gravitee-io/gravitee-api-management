@@ -1614,12 +1614,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void checkPolicyConfigurations(final UpdateApiEntity updateApiEntity) {
-        checkPathsPolicyConfiguration(updateApiEntity.getPaths());
-        checkFlowsPolicyConfiguration(updateApiEntity.getFlows());
+        checkPolicyConfigurations(updateApiEntity.getPaths(), updateApiEntity.getFlows(), updateApiEntity.getPlans());
+    }
 
-        if (updateApiEntity.getPlans() != null) {
-            updateApiEntity
-                .getPlans()
+    public void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans) {
+        checkPathsPolicyConfiguration(paths);
+        checkFlowsPolicyConfiguration(flows);
+
+        if (plans != null) {
+            plans
                 .stream()
                 .forEach(
                     plan -> {

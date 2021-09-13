@@ -30,10 +30,7 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.DebugApiService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.InstanceService;
-import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
-import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
-import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.*;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +63,9 @@ public class DebugApiServiceImpl implements DebugApiService {
     public EventEntity debug(String apiId, String userId, DebugApiEntity debugApiEntity) {
         try {
             LOGGER.debug("Debug API : {}", apiId);
+
+            apiService.checkPolicyConfigurations(debugApiEntity.getPaths(), debugApiEntity.getFlows(), debugApiEntity.getPlans());
+
             final ApiEntity api = apiService.findById(apiId);
 
             final InstanceEntity instanceEntity = selectTargetGateway(api);
