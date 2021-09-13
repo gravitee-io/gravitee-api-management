@@ -56,7 +56,7 @@ export class OrgSettingsUsersComponent {
           email: u.email,
           source: u.source,
           status: u.source,
-          userPicture: '🦊',
+          userPicture: u.picture,
         })),
       );
     });

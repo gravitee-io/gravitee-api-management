@@ -29,11 +29,13 @@
 </div>
 
 <div>
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z2" id="usersTable" aria-label="User table">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z2 users-table" id="usersTable" aria-label="User table">
     <!-- Position Column -->
     <ng-container matColumnDef="userPicture">
       <th mat-header-cell *matHeaderCellDef id="userPicture" width="1%"></th>
-      <td mat-cell *matCellDef="let element">{{ element.userPicture }}</td>
+      <td mat-cell *matCellDef="let element">
+        <gio-avatar [src]="element.userPicture" [name]="element.displayName" width="32" [roundedBorder]="true"></gio-avatar>
+      </td>
     </ng-container>
 
     <!-- Display name Column -->

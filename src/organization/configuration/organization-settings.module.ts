@@ -35,6 +35,7 @@ import { OrgSettingsGeneralComponent } from './console/org-settings-general.comp
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
+import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 @NgModule({
   imports: [
     BrowserAnimationsModule,
@@ -56,6 +57,7 @@ import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/c
     MatTableModule,
 
     GioConfirmDialogModule,
+    GioAvatarModule,
   ],
   declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
