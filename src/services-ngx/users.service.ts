@@ -20,6 +20,7 @@ import { Observable } from 'rxjs';
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { User } from '../entities/user/user';
+import { NewExternalUser } from '../entities/user/newExternalUser';
 
 @Injectable({
   providedIn: 'root',
@@ -35,6 +36,10 @@ export class UsersService {
         ...(query ? { q: query } : {}),
       },
     });
+  }
+
+  create(user: NewExternalUser): Observable<User> {
+    return this.http.post<User>(`${this.constants.org.baseURL}/users`, user);
   }
 
   remove(userId: string): Observable<void> {

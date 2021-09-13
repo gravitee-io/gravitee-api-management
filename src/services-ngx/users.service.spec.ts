@@ -19,8 +19,9 @@ import { TestBed } from '@angular/core/testing';
 import { UsersService } from './users.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeAdminUser } from '../entities/user/user.fixture';
+import { fakeAdminUser, fakeUser } from '../entities/user/user.fixture';
 import { fakePagedResult } from '../entities/pagedResult';
+import { fakeNewExternalUser } from '../entities/user/newExternalUser.fixture';
 
 describe('UsersService', () => {
   let httpTestingController: HttpTestingController;
@@ -66,6 +67,31 @@ describe('UsersService', () => {
       expect(req.request.method).toEqual('GET');
 
       req.flush(expectedUsersResult);
+    });
+  });
+
+  describe('create', () => {
+    it('should call the API', (done) => {
+      const userToCreate = fakeNewExternalUser();
+      const createdUser = fakeUser();
+
+      usersService.create(userToCreate).subscribe((user) => {
+        expect(user).toMatchObject({
+          firstname: userToCreate.firstname,
+          lastname: userToCreate.lastname,
+          email: userToCreate.email,
+          source: userToCreate.source,
+          picture: userToCreate.picture,
+          sourceId: userToCreate.sourceId,
+          customFields: userToCreate.customFields,
+        });
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users`);
+      expect(req.request.method).toEqual('POST');
+
+      req.flush(createdUser);
     });
   });
 
