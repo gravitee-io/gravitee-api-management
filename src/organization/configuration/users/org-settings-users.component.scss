@@ -1,3 +1,9 @@
+@import '../../../scss/gio-layout';
+
+:host {
+  @include gio-responsive-content-container;
+}
+
 .search-bar {
   &__form-field {
     width: 100%;
