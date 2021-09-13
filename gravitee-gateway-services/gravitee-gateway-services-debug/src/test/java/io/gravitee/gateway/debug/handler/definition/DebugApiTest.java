@@ -18,6 +18,9 @@ package io.gravitee.gateway.debug.handler.definition;
 import static io.gravitee.gateway.debug.utils.Stubs.getADebugApiDefinition;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.VirtualHost;
+import java.util.function.Predicate;
 import org.junit.Test;
 
 /**
@@ -39,5 +42,7 @@ public class DebugApiTest {
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path1"))
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path2"))
             .anyMatch(item -> item.getPath().equals("/" + EVENT_ID + "-path3"));
+
+        assertThat(result.getRequest().getVirtualHost()).matches(virtualHost -> virtualHost.getPath().equals("/" + EVENT_ID + "-path1"));
     }
 }

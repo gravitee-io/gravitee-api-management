@@ -31,10 +31,13 @@ public class DebugApi extends Api implements Reactable, Serializable {
 
     public DebugApi(String eventId, io.gravitee.definition.model.DebugApi debugApi) {
         super(debugApi);
-        this.setResponse(debugApi.getResponse());
-        this.setRequest(debugApi.getRequest());
         this.setEventId(eventId);
-
+        this.setResponse(debugApi.getResponse());
+        HttpRequest request = debugApi.getRequest();
+        if (request != null && request.getVirtualHost() != null) {
+            request.getVirtualHost().setPath(computeNewPath(request.getVirtualHost().getPath()));
+        }
+        this.setRequest(request);
         // Instead of doing it here, we could implement a custom DebugHandlerEntrypointFactory which allows to override
         // path(), create a new virtual host with this new path to accept an overriden request targeting this path.
         if (getProxy() != null && getProxy().getVirtualHosts() != null) {

@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpRequest;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.gateway.debug.handler.definition.DebugApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -93,6 +94,9 @@ public class DebugReactorTest {
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
+        VirtualHost vHost = new VirtualHost();
+        vHost.setPath("/");
+        httpRequest.setVirtualHost(vHost);
         reactable.setRequest(httpRequest);
 
         when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
@@ -140,6 +144,9 @@ public class DebugReactorTest {
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody(null);
+        VirtualHost vHost = new VirtualHost();
+        vHost.setPath("/");
+        httpRequest.setVirtualHost(vHost);
         reactable.setRequest(httpRequest);
 
         when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
@@ -187,6 +194,9 @@ public class DebugReactorTest {
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
+        VirtualHost vHost = new VirtualHost();
+        vHost.setPath("/");
+        httpRequest.setVirtualHost(vHost);
         reactable.setRequest(httpRequest);
 
         when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
@@ -231,6 +241,9 @@ public class DebugReactorTest {
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
+        VirtualHost vHost = new VirtualHost();
+        vHost.setPath("/");
+        httpRequest.setVirtualHost(vHost);
         reactable.setRequest(httpRequest);
 
         when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
@@ -267,6 +280,9 @@ public class DebugReactorTest {
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
+        VirtualHost vHost = new VirtualHost();
+        vHost.setPath("/");
+        httpRequest.setVirtualHost(vHost);
         reactable.setRequest(httpRequest);
 
         when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);

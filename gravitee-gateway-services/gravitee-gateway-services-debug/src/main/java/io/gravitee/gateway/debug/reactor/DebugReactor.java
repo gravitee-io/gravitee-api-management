@@ -178,9 +178,8 @@ public class DebugReactor extends DefaultReactor {
                     .setHost(HOST)
                     .setMethod(HttpMethod.valueOf(req.getMethod()))
                     .setPort(port)
-                    .setHeaders(convertHeaders(req.getHeaders()))
-                    // FIXME: is it enough to get only first virtual host ?
-                    .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + req.getPath())
+                    .setHeaders(buildHeaders(req))
+                    .setURI(buildUri(debugApi, req))
                     .setTimeout(5000)
             )
             .map(
@@ -190,6 +189,21 @@ public class DebugReactor extends DefaultReactor {
                 }
             );
         return future;
+    }
+
+    private String buildUri(DebugApi debugApi, HttpRequest req) {
+        if (req.getVirtualHost() != null && req.getVirtualHost().getPath() != null) {
+            return req.getVirtualHost().getPath() + req.getPath();
+        }
+        return debugApi.getProxy().getVirtualHosts().get(0).getPath();
+    }
+
+    private MultiMap buildHeaders(HttpRequest req) {
+        final HeadersMultiMap headers = new HeadersMultiMap();
+        if (req.getVirtualHost() != null && req.getVirtualHost().getHost() != null) {
+            headers.add(io.gravitee.common.http.HttpHeaders.HOST, req.getVirtualHost().getHost());
+        }
+        return headers.addAll(convertHeaders(req.getHeaders()));
     }
 
     private void failEvent(io.gravitee.repository.management.model.Event debugEvent) {

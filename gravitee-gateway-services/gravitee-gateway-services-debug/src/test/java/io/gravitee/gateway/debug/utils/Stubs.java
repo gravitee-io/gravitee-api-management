@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.debug.utils;
 
+import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.gateway.debug.handler.definition.DebugApi;
@@ -32,6 +33,13 @@ public class Stubs {
 
     public static io.gravitee.definition.model.DebugApi getADebugApiDefinition() {
         final io.gravitee.definition.model.DebugApi debugApi = new io.gravitee.definition.model.DebugApi();
+
+        HttpRequest request = new HttpRequest();
+        VirtualHost vHost = new VirtualHost();
+        vHost.setPath("/path1");
+        vHost.setHost("test.gravitee.io");
+        request.setVirtualHost(vHost);
+        debugApi.setRequest(request);
 
         final Proxy proxy = new Proxy();
         proxy.setVirtualHosts(new ArrayList<>());
