@@ -200,28 +200,28 @@
       </div>
     </div>
   </div>
+
+  <md-fab-speed-dial
+    class="md-scale"
+    ng-if="$ctrl.target === 'ORGANIZATION'"
+    md-direction="{{$ctrl.identityProviders.length > 0 ? 'left' : 'down'}}"
+    md-open="false"
+    ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.identityProviders.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+    permission
+    permission-only="'organization-identity_provider-c'"
+  >
+    <md-fab-trigger>
+      <md-button aria-label="menu" class="md-fab md-success">
+        <md-tooltip md-direction="top" md-visible="false" ng-if="$ctrl.identityProviders.length > 0">New identity provider</md-tooltip>
+        <ng-md-icon icon="add"></ng-md-icon>
+      </md-button>
+    </md-fab-trigger>
+
+    <md-fab-actions>
+      <md-button class="md-fab md-raised md-mini" ng-click="$ctrl.create(provider.type)" ng-repeat="provider in $ctrl.availableProviders">
+        <md-tooltip md-direction="{{$ctrl.availableProviders.length > 0 ? 'top' : 'right'}}">{{provider.name}}</md-tooltip>
+        <md-icon md-svg-icon="assets/logo_{{provider.type | lowercase}}-idp.svg" style="fill: black"></md-icon>
+      </md-button>
+    </md-fab-actions>
+  </md-fab-speed-dial>
 </div>
-
-<md-fab-speed-dial
-  class="md-scale"
-  ng-if="$ctrl.target === 'ORGANIZATION'"
-  md-direction="{{$ctrl.identityProviders.length > 0 ? 'left' : 'down'}}"
-  md-open="false"
-  ng-class="{'md-fab-bottom-right md-fab-scrollable' : $ctrl.identityProviders.length > 0, 'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
-  permission
-  permission-only="'organization-identity_provider-c'"
->
-  <md-fab-trigger>
-    <md-button aria-label="menu" class="md-fab md-success">
-      <md-tooltip md-direction="top" md-visible="false" ng-if="$ctrl.identityProviders.length > 0">New identity provider</md-tooltip>
-      <ng-md-icon icon="add"></ng-md-icon>
-    </md-button>
-  </md-fab-trigger>
-
-  <md-fab-actions>
-    <md-button class="md-fab md-raised md-mini" ng-click="$ctrl.create(provider.type)" ng-repeat="provider in $ctrl.availableProviders">
-      <md-tooltip md-direction="{{$ctrl.availableProviders.length > 0 ? 'top' : 'right'}}">{{provider.name}}</md-tooltip>
-      <md-icon md-svg-icon="assets/logo_{{provider.type | lowercase}}-idp.svg" style="fill: black"></md-icon>
-    </md-button>
-  </md-fab-actions>
-</md-fab-speed-dial>
