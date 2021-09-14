@@ -5,4 +5,22 @@
 }
 
 .org-settings-new-user {
+  &__title {
+    margin-top: 36px;
+  }
+  &__description {
+    margin: 12px 0;
+  }
+  &__card {
+    &__form-field {
+      width: 100%;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    margin-top: 16px;
+  }
 }
