@@ -72,6 +72,8 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
             }
         }
 
+        long total = mongoTemplate.count(query, TicketMongo.class);
+
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
@@ -80,7 +82,6 @@ public class TicketMongoRepositoryImpl implements TicketMongoRepositoryCustom {
         query.collation(Collation.of(Locale.ENGLISH).strength(Collation.ComparisonLevel.secondary()));
 
         List<TicketMongo> tickets = mongoTemplate.find(query, TicketMongo.class);
-        long total = mongoTemplate.count(query, TicketMongo.class);
 
         return new Page<>(tickets, (pageable != null) ? pageable.pageNumber() : 0, tickets.size(), total);
     }

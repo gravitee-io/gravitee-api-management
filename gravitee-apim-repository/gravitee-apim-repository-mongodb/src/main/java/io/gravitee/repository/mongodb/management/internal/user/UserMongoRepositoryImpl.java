@@ -57,12 +57,14 @@ public class UserMongoRepositoryImpl implements UserMongoRepositoryCustom {
             }
         }
         query.with(Sort.by(Sort.Direction.ASC, "lastname", "firstname"));
+
+        long total = mongoTemplate.count(query, UserMongo.class);
+
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
 
         List<UserMongo> users = mongoTemplate.find(query, UserMongo.class);
-        long total = mongoTemplate.count(query, UserMongo.class);
 
         return new Page<>(users, (pageable != null) ? pageable.pageNumber() : 0, users.size(), total);
     }
