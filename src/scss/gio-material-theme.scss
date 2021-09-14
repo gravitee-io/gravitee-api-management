@@ -7,8 +7,6 @@
 // Wrap mat with `.mat` class without increasing the css specificity
 // Allows you to disable it on some routes
 :where(.mat) {
-  @include mat.core();
-
   $gio-primary: mat.define-palette($gio-sky-blue-palette, medium, light, dark);
   $gio-accent: mat.define-palette($gio-sky-cyan-palette, medium, light, dark);
   $gio-warn: mat.define-palette($gio-error-palette, medium, light, dark);
@@ -41,6 +39,7 @@
     )
   );
 
+  @include mat.core($gio-typography);
   @include mat.all-component-themes($gio-theme);
 
   @include material-layout-compatibility();

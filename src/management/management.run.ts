@@ -219,9 +219,11 @@ function runBlock(
     Object.entries(htmlClass).forEach(([key, toAdd]) => {
       if (toAdd) {
         angular.element(document.querySelector('html')).addClass(key);
+        angular.element(document.querySelector('body')).addClass(key);
         return;
       }
       angular.element(document.querySelector('html')).removeClass(key);
+      angular.element(document.querySelector('body')).removeClass(key);
     });
 
     return true;
