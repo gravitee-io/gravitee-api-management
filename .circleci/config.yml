@@ -47,8 +47,8 @@ parameters:
 jobs:
     build:
         docker:
-            - image: circleci/openjdk:11-jdk-stretch
-        resource_class: small
+            - image: cimg/openjdk:11.0
+        resource_class: medium
         steps:
             - checkout
             - attach_workspace:
@@ -58,6 +58,8 @@ jobs:
                   name: "Build project"
                   command: |
                       mvn -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
+                      cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/*.zip ./
+                      mv ./gravitee-apim-rest-api-standalone-*.zip ./gravitee-apim-rest-api-standalone.zip
             - save_cache:
                   paths:
                       - ~/.m2
@@ -67,6 +69,7 @@ jobs:
                   root: ./
                   paths:
                       - ./gravitee-*/*/target/*
+                      - ./gravitee-apim-rest-api-standalone.zip
 
     test-repository:
         machine:
@@ -150,6 +153,102 @@ jobs:
                   command: |
                       mvn deploy --no-transfer-progress -DskipTests -T 2C -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
 
+    publish-images-azure-registry:
+        docker:
+            - image: cimg/openjdk:11.0
+        resource_class: small
+        steps:
+            - checkout
+            - attach_workspace:
+                  at: .
+            - setup_remote_docker
+            - run:
+                  name: Compute Tag for Docker images
+                  command: |
+                      # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+                      export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+                      # Workaround for sharing this variable to the next steps
+                      echo "export TAG=$TAG" >> $BASH_ENV
+                      echo "Docker images will be tagged with: ${TAG}"
+                      echo $TAG > docker-tag.txt
+            - run:
+                  name: Build & Publish Management API Docker Image to Azure Registry
+                  command: |
+                      export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+                      echo "Gravitee APIM version: ${APIM_VERSION}"
+                      export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
+
+                      docker build -f docker/management-api/Dockerfile-dev \
+                      --build-arg GRAVITEE_PLUGIN_APIM_VERSION=${APIM_VERSION} \
+                      -t ${IMAGE_TAG} .
+
+                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+                      docker push ${IMAGE_TAG}
+            - persist_to_workspace:
+                  root: .
+                  paths:
+                      - ./docker-tag.txt
+
+    deploy-on-element-zero-aks:
+        docker:
+            - image: mcr.microsoft.com/azure-cli:latest
+        resource_class: small
+        steps:
+            - attach_workspace:
+                  at: .
+            - run:
+                  name: Read tag of Docker images to deploy
+                  command: |
+                      export TAG=$(cat ./docker-tag.txt)
+                      # Workaround for sharing this variable to the next steps
+                      echo "export TAG=$TAG" >> $BASH_ENV
+                      echo "Will deploy Docker images with tag: ${TAG}"
+            - run:
+                  name: Install Helm
+                  command: |
+                      curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+                      helm version
+            - run:
+                  name: Install Kubectl
+                  command: |
+                      curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+                      chmod +x ./kubectl
+                      mv ./kubectl /usr/local/bin/kubectl
+                      kubectl version --client=true
+            - run:
+                  name: Helm upgrade and 🚀
+                  command: |
+                      az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                      az aks get-credentials --resource-group element-zero --name element-zero
+
+                      helm upgrade --repo https://helm.gravitee.io \
+                                   --install apim \
+                                   -n apim \
+                                   apim3 \
+                                   --reuse-values \
+                                   --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                                   --set "api.image.tag=${TAG}"
+
+    publish-to-bintray:
+        docker:
+            - image: graviteeio/python:3
+        resource_class: small
+        steps:
+            - add_ssh_keys:
+                  fingerprints:
+                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+            - run:
+                  name: Setup Git config and clone jenkins-scripts repo
+                  command: |
+                      # For details see https://circleci.com/docs/2.0/gh-bb-integration/#establishing-the-authenticity-of-an-ssh-host
+                      ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+                      git clone --branch ci2 git@github.com:gravitee-io/jenkins-scripts.git jenkins-scripts
+            - run:
+                  name: Run magic package_bundle_and_publish
+                  command: |
+                      RELEASE_VERSION=master python ./jenkins-scripts/src/main/python/package_bundles.py
+
 workflows:
     pull_requests:
         when:
@@ -177,6 +276,42 @@ workflows:
                   requires:
                       - test-repository
                       - test-rest-api
+            - publish-images-azure-registry:
+                  context: cicd-orchestrator
+                  requires:
+                      - build
+                  pre-steps:
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - 6048-add-auto-deployment
+            - deploy-on-element-zero-aks:
+                  context: cicd-orchestrator
+                  pre-steps:
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/application-id
+                            var-name: AZURE_APPLICATION_ID
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/tenant
+                            var-name: AZURE_TENANT
+                      - secrethub/env-export:
+                            secret-path: graviteeio/cicd/azure/application-secret
+                            var-name: AZURE_APPLICATION_SECRET
+                  requires:
+                      - publish-images-azure-registry
+                  filters:
+                      branches:
+                          only:
+                              - master
+                              - 6048-add-auto-deployment
+
     # ---
     # The 2 Workflows Below are there for the CICD Orchestrator to be able to
     # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
@@ -492,3 +627,14 @@ workflows:
                           only:
                               - master
                               - /^[0-999].[0-999].x/
+
+    publish-to-bintray:
+        triggers:
+            - schedule:
+                  cron: "0 2 * * *"
+                  filters:
+                      branches:
+                          only:
+                              - master
+        jobs:
+            - publish-to-bintray
