@@ -171,7 +171,7 @@ describe('OrgSettingsUsersComponent', () => {
   });
 
   function expectUsersListRequest(usersResponse: User[] = [], q?: string) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=1&size=10${q ? `&q=${q}` : ''}`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=1&size=25${q ? `&q=${q}` : ''}`);
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(usersResponse));
   }

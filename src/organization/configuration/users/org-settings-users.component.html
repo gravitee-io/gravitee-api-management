@@ -28,8 +28,8 @@
   </mat-form-field>
 </div>
 
-<div>
-  <table mat-table [dataSource]="dataSource" class="mat-elevation-z2 users-table" id="usersTable" aria-label="User table">
+<div class="mat-elevation-z2">
+  <table mat-table [dataSource]="dataSource" class="users-table" id="usersTable" aria-label="User table">
     <!-- Position Column -->
     <ng-container matColumnDef="userPicture">
       <th mat-header-cell *matHeaderCellDef id="userPicture" width="1%"></th>
@@ -97,4 +97,11 @@
       <td class="mat-cell" colspan="4">No user</td>
     </tr>
   </table>
+
+  <mat-paginator
+    [length]="resultsLength"
+    [pageSizeOptions]="pageSizeOptions"
+    (page)="onPageChange($event)"
+    aria-label="Select page of user list"
+  ></mat-paginator>
 </div>

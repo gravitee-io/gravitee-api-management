@@ -31,6 +31,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -57,6 +58,7 @@ import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.m
     MatSnackBarModule,
     MatTableModule,
     MatBadgeModule,
+    MatPaginatorModule,
 
     GioConfirmDialogModule,
     GioAvatarModule,

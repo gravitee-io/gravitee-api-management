@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { of, Subject } from 'rxjs';
+import { BehaviorSubject, combineLatest, of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, filter, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 import { isEmpty, size } from 'lodash';
+import { PageEvent } from '@angular/material/paginator';
 
 import { UsersService } from '../../../services-ngx/users.service';
 import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
@@ -44,16 +45,20 @@ type TableData = {
   styles: [require('./org-settings-users.component.scss')],
   template: require('./org-settings-users.component.html'),
 })
-export class OrgSettingsUsersComponent implements OnDestroy {
-  page = 0;
-
+export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['userPicture', 'displayName', 'status', 'email', 'source', 'actions'];
 
   dataSource = new MatTableDataSource([]);
 
   searchFormControl = new FormControl();
 
+  resultsLength = 0;
+  pageSizeOptions = [25, 50, 100];
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  // Create page stream
+  private pageStream = new BehaviorSubject<{ pageNumber: number; pageSize: number }>({ pageNumber: 1, pageSize: this.pageSizeOptions[0] });
 
   constructor(
     @Inject(UIRouterStateParams) private $stateParams,
@@ -64,18 +69,20 @@ export class OrgSettingsUsersComponent implements OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.page = this.$stateParams?.page ?? 0;
+    // Create search stream when entering a search term
+    const searchStream = this.searchFormControl.valueChanges.pipe(
+      takeUntil(this.unsubscribe$),
+      debounceTime(400),
+      startWith(''),
+      filter<string | null>((searchTerm) => size(searchTerm) >= 2 || isEmpty(searchTerm)),
+      distinctUntilChanged(),
+    );
 
-    // Init page with data and dynamic Search when entering a search term
-    this.searchFormControl.valueChanges
+    // Combines paging and search stream and fetch user list
+    combineLatest([searchStream, this.pageStream])
       .pipe(
-        takeUntil(this.unsubscribe$),
-        debounceTime(400),
-        startWith(''),
-        filter<string | null>((searchTerm) => size(searchTerm) >= 2 || isEmpty(searchTerm)),
-        distinctUntilChanged(),
-        switchMap((searchTerm) =>
-          this.usersService.list(searchTerm).pipe(
+        switchMap(([searchTerm, { pageNumber, pageSize }]) =>
+          this.usersService.list(searchTerm, pageNumber, pageSize).pipe(
             // Return empty page result in case of error and does not interrupt the research observable
             catchError(() => of(new PagedResult<User>())),
           ),
@@ -87,10 +94,6 @@ export class OrgSettingsUsersComponent implements OnDestroy {
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  nextPage() {
-    this.$state.go('organization.settings.ng-users', { page: this.page++ });
   }
 
   onDisplayNameClick(userId: string) {
@@ -118,6 +121,10 @@ export class OrgSettingsUsersComponent implements OnDestroy {
       .subscribe(() => this.ngOnInit());
   }
 
+  onPageChange(pageEvent: PageEvent) {
+    this.pageStream.next({ pageNumber: pageEvent.pageIndex + 1, pageSize: pageEvent.pageSize });
+  }
+
   private setDataSourceFromUsersList(users: PagedResult<User>) {
     this.dataSource = new MatTableDataSource<TableData>(
       users.data.map((u) => ({
@@ -131,5 +138,6 @@ export class OrgSettingsUsersComponent implements OnDestroy {
         number_of_active_tokens: u.number_of_active_tokens,
       })),
     );
+    this.resultsLength = users.page.total_elements;
   }
 }
