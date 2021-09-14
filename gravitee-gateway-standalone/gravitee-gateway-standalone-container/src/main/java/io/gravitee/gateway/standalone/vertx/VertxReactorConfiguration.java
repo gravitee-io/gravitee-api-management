@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import io.gravitee.gateway.http.vertx.VertxHttpServerConfiguration;
+import io.gravitee.gateway.http.vertx.VertxHttpServerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

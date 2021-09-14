@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
@@ -85,6 +86,9 @@ public class DebugReactorTest {
     @Mock
     private Vertx vertx;
 
+    @Mock
+    private VertxDebugHttpClientConfiguration httpClientConfiguration;
+
     @Captor
     ArgumentCaptor<io.gravitee.repository.management.model.Event> eventCaptor;
 
@@ -104,7 +108,7 @@ public class DebugReactorTest {
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -154,7 +158,7 @@ public class DebugReactorTest {
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -204,7 +208,7 @@ public class DebugReactorTest {
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock failing Buffer body in HttpClientResponse future
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -251,7 +255,7 @@ public class DebugReactorTest {
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock failing HttpClientResponse future
         final Future<HttpClientResponse> responseFuture = Future.failedFuture("");
@@ -293,7 +297,7 @@ public class DebugReactorTest {
 
         // Mock failing HttpClientRequest future
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
         final Future<HttpClientRequest> requestFuture = Future.failedFuture("");
         when(mockHttpClient.request(any())).thenReturn(requestFuture);
 

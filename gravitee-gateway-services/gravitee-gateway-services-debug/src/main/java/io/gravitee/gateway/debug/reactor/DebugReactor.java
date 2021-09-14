@@ -21,6 +21,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -34,33 +35,28 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import io.vertx.core.net.*;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 
 public class DebugReactor extends DefaultReactor {
-
-    private static final String HOST = "localhost";
 
     private final Logger logger = LoggerFactory.getLogger(DebugReactor.class);
 
     @Autowired
     private EventRepository eventRepository;
 
-    @Value("${debug.http.port:8482}")
-    private int port;
-
-    @Value("${debug.http.secured:false}")
-    private boolean secured;
-
     @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private Vertx vertx;
+
+    @Autowired
+    private VertxDebugHttpClientConfiguration httpClientConfiguration;
 
     @Autowired
     @Qualifier("debugReactorHandlerRegistry")
@@ -89,7 +85,8 @@ public class DebugReactor extends DefaultReactor {
                     updateEvent(debugEvent, ApiDebugStatus.DEBUGGING);
 
                     logger.info("Sending request to debug...");
-                    HttpClient httpClient = vertx.createHttpClient();
+                    HttpClient httpClient = vertx.createHttpClient(buildClientOptions());
+
                     Future<HttpClientRequest> requestFuture = prepareRequest(reactableDebugApi, req, httpClient);
 
                     requestFuture
@@ -176,6 +173,22 @@ public class DebugReactor extends DefaultReactor {
         reactorHandlerRegistry.clear();
     }
 
+    private HttpClientOptions buildClientOptions() {
+        HttpClientOptions options = new HttpClientOptions();
+        options.setDefaultHost(httpClientConfiguration.getHost());
+        options.setDefaultPort(httpClientConfiguration.getPort());
+        options.setTryUseCompression(httpClientConfiguration.isCompressionSupported());
+        options.setUseAlpn(httpClientConfiguration.isAlpn());
+        if (httpClientConfiguration.isSecured()) {
+            options.setSsl(httpClientConfiguration.isSecured());
+            options.setTrustAll(true);
+            if (httpClientConfiguration.isOpenssl()) {
+                options.setSslEngineOptions(new OpenSSLEngineOptions());
+            }
+        }
+        return options;
+    }
+
     private Future<HttpClientRequest> prepareRequest(
         DebugApi debugApi,
         io.gravitee.definition.model.HttpRequest req,
@@ -184,9 +197,7 @@ public class DebugReactor extends DefaultReactor {
         Future<HttpClientRequest> future = httpClient
             .request(
                 new RequestOptions()
-                    .setHost(HOST)
                     .setMethod(HttpMethod.valueOf(req.getMethod()))
-                    .setPort(port)
                     .setHeaders(buildHeaders(debugApi, req))
                     // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
                     .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + req.getPath())
