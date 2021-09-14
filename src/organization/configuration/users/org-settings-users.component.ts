@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnDestroy } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
 import { UsersService } from '../../../services-ngx/users.service';
+import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 type TableData = {
   userId: string;
@@ -35,17 +40,21 @@ type TableData = {
   styles: [require('./org-settings-users.component.scss')],
   template: require('./org-settings-users.component.html'),
 })
-export class OrgSettingsUsersComponent {
+export class OrgSettingsUsersComponent implements OnDestroy {
   page = 0;
 
   displayedColumns: string[] = ['userPicture', 'displayName', 'status', 'email', 'source', 'actions'];
 
   dataSource = new MatTableDataSource([]);
 
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
   constructor(
     @Inject(UIRouterStateParams) private $stateParams,
     @Inject(UIRouterState) private $state: StateService,
     private readonly usersService: UsersService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
@@ -66,11 +75,37 @@ export class OrgSettingsUsersComponent {
     });
   }
 
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
   nextPage() {
     this.$state.go('organization.settings.ng-users', { page: this.page++ });
   }
 
   onDisplayNameClick(userId: string) {
     this.$state.go('organization.settings.user', { userId });
+  }
+
+  onDeleteUserClick({ userId, displayName }: TableData) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '450px',
+        data: {
+          title: `Are you sure you want to remove the user "${displayName}"?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'removeUserConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.usersService.remove(userId)),
+        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 }

@@ -19,6 +19,9 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
@@ -32,6 +35,7 @@ import { fakeAdminUser } from '../../../entities/user/user.fixture';
 describe('OrgSettingsUsersComponent', () => {
   let fixture: ComponentFixture<OrgSettingsUsersComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
@@ -41,9 +45,15 @@ describe('OrgSettingsUsersComponent', () => {
         { provide: UIRouterState, useValue: { go: jest.fn() } },
         { provide: UIRouterStateParams, useValue: {} },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+      },
     });
+
     fixture = TestBed.createComponent(OrgSettingsUsersComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -99,7 +109,7 @@ describe('OrgSettingsUsersComponent', () => {
     ]);
     expect(rowCells).toEqual([
       {
-        actions: 'delete',
+        actions: '',
         displayName: 'adminPrimary Owner Active Token',
         email: '',
         source: 'memory',
@@ -107,6 +117,46 @@ describe('OrgSettingsUsersComponent', () => {
         userPicture: '',
       },
     ]);
+  });
+
+  it('should confirm and remove user', async () => {
+    expectUsersListRequest([
+      {
+        id: 'c0716036-5ed0-46ef-b160-365ed026ef07',
+        firstname: 'Joe',
+        lastname: 'Bar',
+        email: 'joe.bar@noop.com',
+        source: 'gravitee',
+        sourceId: 'joe.bar@noop.com',
+        status: 'ACTIVE',
+        loginCount: 0,
+        displayName: 'Joe Bar',
+        created_at: 1631603626469,
+        updated_at: 1631603626469,
+        primary_owner: false,
+        number_of_active_tokens: 0,
+      },
+    ]);
+
+    fixture.componentInstance.onDeleteUserClick({
+      userId: '42',
+      displayName: 'Joo',
+      email: '',
+      userPicture: '',
+      status: '',
+      source: '',
+      number_of_active_tokens: 0,
+      primary_owner: true,
+    });
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getHarness(MatButtonHarness.with({ text: /^Remove/ }))).click();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/42`);
+    expect(req.request.method).toEqual('DELETE');
+    req.flush({});
+
+    expectUsersListRequest();
   });
 
   function expectUsersListRequest(usersResponse: User[] = []) {

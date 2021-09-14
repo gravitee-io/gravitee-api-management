@@ -36,4 +36,8 @@ export class UsersService {
       },
     });
   }
+
+  remove(userId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.org.baseURL}/users/${userId}`);
+  }
 }
