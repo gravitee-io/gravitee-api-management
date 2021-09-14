@@ -18,7 +18,7 @@ import { IHttpResponse } from 'angular';
 import * as _ from 'lodash';
 
 import { EnvironmentPermissions } from '../entities/environment/environmentPermissions';
-import { IdentityProviderActivation } from '../entities/identityProvider';
+import { IdentityProviderActivation } from '../entities/identity-provider/identityProvider';
 
 class EnvironmentService {
   constructor(private $http, private Constants, private $q) {

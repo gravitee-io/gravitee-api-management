@@ -16,7 +16,7 @@
 
 import { IHttpPromise, IPromise } from 'angular';
 
-import { IdentityProvider } from '../entities/identityProvider';
+import { IdentityProvider } from '../entities/identity-provider/identityProvider';
 
 class IdentityProviderService {
   constructor(private $http, private Constants) {

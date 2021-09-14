@@ -18,7 +18,7 @@ import { StateService } from '@uirouter/core';
 import angular = require('angular');
 import _ = require('lodash');
 
-import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identityProvider';
+import { IdentityProvider } from '../../../entities/identity-provider/identityProvider';
 import IdentityProviderService from '../../../services/identityProvider.service';
 import NotificationService from '../../../services/notification.service';
 
@@ -48,12 +48,13 @@ class IdentityProviderController {
     this.updateMode = this.identityProvider !== undefined && this.identityProvider.id !== undefined;
     if (!this.updateMode) {
       // Initialize the identity provider
-      this.identityProvider = new IdentityProvider();
-      this.identityProvider.enabled = true;
-      this.identityProvider.type = this.$state.params.type as string;
-      this.identityProvider.emailRequired = true;
-      this.identityProvider.syncMappings = false;
-
+      this.identityProvider = {
+        enabled: true,
+        configuration: { scopes: [] },
+        type: this.$state.params.type,
+        emailRequired: true,
+        syncMappings: false,
+      };
       // Default user mapping configuration for OIDC or Gravitee.io AM providers
 
       if (this.identityProvider.type === 'OIDC' || this.identityProvider.type === 'GRAVITEEIO_AM') {
@@ -72,12 +73,12 @@ class IdentityProviderController {
   }
 
   addGroupMapping() {
-    this.identityProvider.groupMappings.push(new GroupMapping());
+    this.identityProvider.groupMappings.push({});
     this.$scope.formIdentityProvider.$setDirty();
   }
 
   addRoleMapping() {
-    this.identityProvider.roleMappings.push(new RoleMapping());
+    this.identityProvider.roleMappings.push({});
     this.$scope.formIdentityProvider.$setDirty();
   }
 

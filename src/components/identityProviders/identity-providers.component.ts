@@ -17,7 +17,7 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import _ = require('lodash');
 
-import { IdentityProvider, IdentityProviderActivation } from '../../entities/identityProvider';
+import { IdentityProvider, IdentityProviderActivation } from '../../entities/identity-provider/identityProvider';
 import ConsoleSettingsService from '../../services/consoleSettings.service';
 import EnvironmentService from '../../services/environment.service';
 import IdentityProviderService from '../../services/identityProvider.service';

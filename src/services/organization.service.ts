@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IdentityProviderActivation } from '../entities/identityProvider';
+import { IdentityProviderActivation } from '../entities/identity-provider/identityProvider';
 
 export class Organization {
   hrids: string[];

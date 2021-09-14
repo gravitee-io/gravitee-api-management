@@ -22,7 +22,7 @@ import { AuthProvider, SatellizerConfig } from 'satellizer';
 import RouterService from './router.service';
 import UserService from './user.service';
 
-import { IdentityProvider } from '../entities/identityProvider';
+import { IdentityProvider } from '../entities/identity-provider/identityProvider';
 
 class AuthenticationService {
   constructor(

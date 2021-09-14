@@ -17,7 +17,7 @@ import { StateParams, StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
 
-import { IdentityProvider } from '../../entities/identityProvider';
+import { IdentityProvider } from '../../entities/identity-provider/identityProvider';
 import { User } from '../../entities/user';
 import AuthenticationService from '../../services/authentication.service';
 import ReCaptchaService from '../../services/reCaptcha.service';
