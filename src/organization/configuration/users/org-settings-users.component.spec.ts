@@ -22,6 +22,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
@@ -159,8 +160,18 @@ describe('OrgSettingsUsersComponent', () => {
     expectUsersListRequest();
   });
 
-  function expectUsersListRequest(usersResponse: User[] = []) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=1&size=10`);
+  it('should search users', async () => {
+    expectUsersListRequest();
+    const searchInput = await loader.getHarness(MatInputHarness.with({ placeholder: 'Search users' }));
+    await searchInput.setValue('a');
+    httpTestingController.verify();
+
+    await searchInput.setValue('ad');
+    expectUsersListRequest([fakeAdminUser()], 'ad');
+  });
+
+  function expectUsersListRequest(usersResponse: User[] = [], q?: string) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=1&size=10${q ? `&q=${q}` : ''}`);
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(usersResponse));
   }

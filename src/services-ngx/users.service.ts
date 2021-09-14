@@ -32,7 +32,7 @@ export class UsersService {
       params: {
         page,
         size,
-        ...(query ? { query } : {}),
+        ...(query ? { q: query } : {}),
       },
     });
   }

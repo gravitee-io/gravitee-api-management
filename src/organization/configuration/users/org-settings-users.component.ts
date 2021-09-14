@@ -17,13 +17,17 @@ import { Component, Inject, OnDestroy } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { FormControl } from '@angular/forms';
+import { isEmpty, size } from 'lodash';
 
 import { UsersService } from '../../../services-ngx/users.service';
 import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { PagedResult } from '../../../entities/pagedResult';
+import { User } from '../../../entities/user/user';
 
 type TableData = {
   userId: string;
@@ -47,6 +51,8 @@ export class OrgSettingsUsersComponent implements OnDestroy {
 
   dataSource = new MatTableDataSource([]);
 
+  searchFormControl = new FormControl();
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
@@ -59,20 +65,23 @@ export class OrgSettingsUsersComponent implements OnDestroy {
 
   ngOnInit() {
     this.page = this.$stateParams?.page ?? 0;
-    this.usersService.list().subscribe((users) => {
-      this.dataSource = new MatTableDataSource<TableData>(
-        users.data.map((u) => ({
-          userId: u.id,
-          displayName: u.displayName,
-          email: u.email,
-          source: u.source,
-          status: u.status,
-          userPicture: u.picture,
-          primary_owner: u.primary_owner,
-          number_of_active_tokens: u.number_of_active_tokens,
-        })),
-      );
-    });
+
+    // Init page with data and dynamic Search when entering a search term
+    this.searchFormControl.valueChanges
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        debounceTime(400),
+        startWith(''),
+        filter<string | null>((searchTerm) => size(searchTerm) >= 2 || isEmpty(searchTerm)),
+        distinctUntilChanged(),
+        switchMap((searchTerm) =>
+          this.usersService.list(searchTerm).pipe(
+            // Return empty page result in case of error and does not interrupt the research observable
+            catchError(() => of(new PagedResult<User>())),
+          ),
+        ),
+      )
+      .subscribe((users) => this.setDataSourceFromUsersList(users));
   }
 
   ngOnDestroy() {
@@ -107,5 +116,20 @@ export class OrgSettingsUsersComponent implements OnDestroy {
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
       )
       .subscribe(() => this.ngOnInit());
+  }
+
+  private setDataSourceFromUsersList(users: PagedResult<User>) {
+    this.dataSource = new MatTableDataSource<TableData>(
+      users.data.map((u) => ({
+        userId: u.id,
+        displayName: u.displayName,
+        email: u.email,
+        source: u.source,
+        status: u.status,
+        userPicture: u.picture,
+        primary_owner: u.primary_owner,
+        number_of_active_tokens: u.number_of_active_tokens,
+      })),
+    );
   }
 }

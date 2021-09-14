@@ -62,7 +62,7 @@ describe('UsersService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=${page}&size=${size}&query=Joe`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users?page=${page}&size=${size}&q=Joe`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(expectedUsersResult);

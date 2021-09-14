@@ -20,7 +20,7 @@
 <div class="search-bar">
   <mat-form-field class="search-bar__form-field" appearance="outline">
     <mat-icon matPrefix>search</mat-icon>
-    <input matInput type="search" placeholder="Search users" #input />
+    <input matInput type="search" placeholder="Search users" [formControl]="searchFormControl" />
     <mat-label>Search users</mat-label>
     <button *ngIf="value" matSuffix mat-icon-button aria-label="Clear" (click)="value = ''">
       <mat-icon>close</mat-icon>
