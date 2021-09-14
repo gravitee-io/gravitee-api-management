@@ -13,23 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.debug.vertx;
+package io.gravitee.gateway.http.vertx;
 
 import io.vertx.core.http.HttpServerOptions;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.ConfigurableEnvironment;
 
-public class VertxDebugHttpServerConfiguration implements InitializingBean {
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class VertxHttpServerConfiguration implements InitializingBean {
+
+    public static final String CERTIFICATE_FORMAT_JKS = "JKS";
+    public static final String CERTIFICATE_FORMAT_PEM = "PEM";
+    public static final String CERTIFICATE_FORMAT_PKCS12 = "PKCS12";
+    public static final String CERTIFICATE_FORMAT_SELF_SIGNED = "SELF-SIGNED";
 
     @Autowired
     private ConfigurableEnvironment environment;
 
-    @Value("${http.port:8482}")
+    @Value("${http.port:8082}")
     private int port;
 
-    private String host = "localhost";
+    @Value("${http.host:0.0.0.0}")
+    private String host;
 
     @Value("${http.secured:false}")
     private boolean secured;
@@ -39,6 +51,9 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
 
     @Value("${http.ssl.sni:false}")
     private boolean sni;
+
+    @Value("${http.ssl.openssl:false}")
+    private boolean openssl;
 
     @Value("${http.ssl.tlsProtocols:#{null}}")
     private String tlsProtocols;
@@ -54,14 +69,15 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
     @Value("${http.ssl.keystore.path:#{null}}")
     private String keyStorePath;
 
+    private List<Certificate> keyStoreCertificates;
+
     @Value("${http.ssl.keystore.password:#{null}}")
     private String keyStorePassword;
 
     @Value("${http.ssl.truststore.type:#{null}}")
     private String trustStoreType;
 
-    @Value("${http.ssl.truststore.path:#{null}}")
-    private String trustStorePath;
+    private List<String> trustStorePaths;
 
     @Value("${http.ssl.truststore.password:#{null}}")
     private String trustStorePassword;
@@ -96,6 +112,12 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
     @Value("${http.websocket.perFrameWebSocketCompressionSupported:true}")
     private boolean perFrameWebSocketCompressionSupported;
 
+    @Value("${http.haproxy.proxyProtocol:false}")
+    private boolean proxyProtocol;
+
+    @Value("${http.haproxy.proxyProtocolTimeout:10000}")
+    private long proxyProtocolTimeout;
+
     public int getPort() {
         return port;
     }
@@ -120,14 +142,6 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
         this.secured = secured;
     }
 
-    public String getKeyStorePath() {
-        return keyStorePath;
-    }
-
-    public void setKeyStorePath(String keyStorePath) {
-        this.keyStorePath = keyStorePath;
-    }
-
     public String getKeyStorePassword() {
         return keyStorePassword;
     }
@@ -142,14 +156,6 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
 
     public void setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword;
-    }
-
-    public String getTrustStorePath() {
-        return trustStorePath;
-    }
-
-    public void setTrustStorePath(String trustStorePath) {
-        this.trustStorePath = trustStorePath;
     }
 
     public ClientAuthMode isClientAuth() {
@@ -288,8 +294,58 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
         this.sni = sni;
     }
 
+    public boolean isProxyProtocol() {
+        return proxyProtocol;
+    }
+
+    public void setProxyProtocol(boolean proxyProtocol) {
+        this.proxyProtocol = proxyProtocol;
+    }
+
+    public long getProxyProtocolTimeout() {
+        return proxyProtocolTimeout;
+    }
+
+    public void setProxyProtocolTimeout(long proxyProtocolTimeout) {
+        this.proxyProtocolTimeout = proxyProtocolTimeout;
+    }
+
+    public boolean isOpenssl() {
+        return openssl;
+    }
+
+    public void setOpenssl(boolean openssl) {
+        this.openssl = openssl;
+    }
+
+    public List<Certificate> getKeyStoreCertificates() {
+        return keyStoreCertificates;
+    }
+
+    public String getKeyStorePath() {
+        return keyStorePath;
+    }
+
+    public List<String> getTrustStorePaths() {
+        return trustStorePaths;
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
+        computeClientMode();
+        computeKeyStoreCertificates();
+        computeTrustStores();
+    }
+
+    private void computeKeyStoreCertificates() {
+        keyStoreCertificates = getCertificateValues("http.ssl.keystore.certificates");
+    }
+
+    private void computeTrustStores() {
+        trustStorePaths = getArrayValues("http.ssl.truststore.path");
+    }
+
+    private void computeClientMode() {
         String sClientAuthMode = environment.getProperty("http.ssl.clientAuth", ClientAuthMode.NONE.name());
 
         if (sClientAuthMode.equalsIgnoreCase(Boolean.TRUE.toString())) {
@@ -299,6 +355,52 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
         } else {
             clientAuth = ClientAuthMode.valueOf(sClientAuthMode.toUpperCase());
         }
+    }
+
+    private List<String> getArrayValues(String prefix) {
+        final List<String> values = new ArrayList<>();
+
+        boolean found = true;
+        int idx = 0;
+
+        while (found) {
+            String value = environment.getProperty(prefix + '[' + idx++ + ']');
+            found = (value != null && !value.isEmpty());
+
+            if (found) {
+                values.add(value);
+            }
+        }
+
+        if (values.isEmpty()) {
+            // Check for a single value
+            final String single = environment.getProperty(prefix);
+            if (single != null && !single.isEmpty()) {
+                values.add(single);
+            }
+        }
+
+        return values;
+    }
+
+    private List<Certificate> getCertificateValues(String prefix) {
+        final List<Certificate> certificates = new ArrayList<>();
+
+        boolean found = true;
+        int idx = 0;
+
+        while (found) {
+            final String cert = environment.getProperty(prefix + '[' + idx + "].cert");
+            found = (cert != null && !cert.isEmpty());
+
+            if (found) {
+                certificates.add(new Certificate(cert, environment.getProperty(prefix + '[' + idx + "].key")));
+            }
+
+            idx++;
+        }
+
+        return certificates;
     }
 
     public enum ClientAuthMode {
@@ -317,5 +419,24 @@ public class VertxDebugHttpServerConfiguration implements InitializingBean {
          * Require client to present authentication, if not presented then negotiations will be declined.
          */
         REQUIRED,
+    }
+
+    public static class Certificate {
+
+        private final String certificate;
+        private final String privateKey;
+
+        public Certificate(String certificate, String privateKey) {
+            this.certificate = certificate;
+            this.privateKey = privateKey;
+        }
+
+        public String getCertificate() {
+            return certificate;
+        }
+
+        public String getPrivateKey() {
+            return privateKey;
+        }
     }
 }

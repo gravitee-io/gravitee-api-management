@@ -45,7 +45,7 @@ public class DebugReactorVerticle extends AbstractVerticle {
     private Reactor reactor;
 
     @Autowired
-    private VertxDebugHttpServerConfiguration httpServerConfiguration;
+    private VertxDebugHttpClientConfiguration httpClientConfiguration;
 
     @Autowired
     private Vertx vertx;
@@ -84,7 +84,7 @@ public class DebugReactorVerticle extends AbstractVerticle {
         httpServer.listen(
             res -> {
                 if (res.succeeded()) {
-                    logger.info("Debug HTTP listener ready to accept requests on port {}", httpServerConfiguration.getPort());
+                    logger.info("Debug HTTP listener ready to accept requests on port {}", httpClientConfiguration.getPort());
                     startPromise.complete();
                 } else {
                     logger.error("Unable to start Debug HTTP Server", res.cause());
