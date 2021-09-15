@@ -216,6 +216,9 @@ function organizationRouterConfig($stateProvider) {
           value: '1',
           dynamic: true,
         },
+        q: {
+          dynamic: true,
+        },
       },
     })
     .state('organization.settings.user', {

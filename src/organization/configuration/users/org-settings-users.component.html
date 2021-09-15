@@ -101,6 +101,7 @@
   <mat-paginator
     [length]="resultsLength"
     [pageSizeOptions]="pageSizeOptions"
+    [pageIndex]="matPaginatorPageIndex"
     (page)="onPageChange($event)"
     aria-label="Select page of user list"
   ></mat-paginator>

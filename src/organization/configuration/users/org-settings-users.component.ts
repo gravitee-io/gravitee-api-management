@@ -40,6 +40,7 @@ type TableData = {
   primary_owner: boolean;
   number_of_active_tokens: number;
 };
+
 @Component({
   selector: 'org-settings-users',
   styles: [require('./org-settings-users.component.scss')],
@@ -53,6 +54,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   searchFormControl = new FormControl();
 
   resultsLength = 0;
+  matPaginatorPageIndex = 0;
   pageSizeOptions = [25, 50, 100];
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -69,18 +71,41 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Create search stream when entering a search term
-    const searchStream = this.searchFormControl.valueChanges.pipe(
-      takeUntil(this.unsubscribe$),
-      debounceTime(400),
-      startWith(''),
-      filter<string | null>((searchTerm) => size(searchTerm) >= 2 || isEmpty(searchTerm)),
-      distinctUntilChanged(),
-    );
+    // Init search value
+    const initialSearchValue = this.$stateParams.q ?? '';
+    this.searchFormControl.setValue(initialSearchValue, { emitEvent: false });
 
-    // Combines paging and search stream and fetch user list
-    combineLatest([searchStream, this.pageStream])
+    if (this.$stateParams.page) {
+      const pageNumber = Number(this.$stateParams.page);
+
+      this.pageStream.next({ ...this.pageStream.value, pageNumber });
+    }
+
+    // Create search stream when entering a search term
+    this.searchFormControl.valueChanges
       .pipe(
+        takeUntil(this.unsubscribe$),
+        // if the search is longer than 2 characters or is empty. And wait 200 ms before new search event
+        filter<string | null>((searchTerm) => size(searchTerm) >= 2 || isEmpty(searchTerm)),
+        debounceTime(300),
+        distinctUntilChanged(),
+        // If the user changes search, reset back to the first page.
+        tap(
+          () =>
+            (this.pageStream = new BehaviorSubject({
+              ...this.pageStream.value,
+              pageNumber: 1,
+            })),
+        ),
+        // Init first search with initial search value
+        startWith(initialSearchValue),
+        switchMap((searchTerm) => combineLatest([of(searchTerm), this.pageStream])),
+        tap(([searchTerm, { pageNumber }]) => {
+          // Change mat paginator index with pageStream value
+          this.matPaginatorPageIndex = pageNumber - 1;
+          // Change url params
+          this.$state.go('.', { q: searchTerm, page: pageNumber }, { notify: false });
+        }),
         switchMap(([searchTerm, { pageNumber, pageSize }]) =>
           this.usersService.list(searchTerm, pageNumber, pageSize).pipe(
             // Return empty page result in case of error and does not interrupt the research observable
@@ -122,7 +147,10 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   onPageChange(pageEvent: PageEvent) {
-    this.pageStream.next({ pageNumber: pageEvent.pageIndex + 1, pageSize: pageEvent.pageSize });
+    const pageNumber = pageEvent.pageIndex + 1;
+    if (this.pageStream.value.pageNumber !== pageNumber || this.pageStream.value.pageSize !== pageEvent.pageSize) {
+      this.pageStream.next({ pageNumber, pageSize: pageEvent.pageSize });
+    }
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {
