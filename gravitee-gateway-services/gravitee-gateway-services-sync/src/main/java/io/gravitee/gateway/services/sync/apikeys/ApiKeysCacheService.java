@@ -112,7 +112,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             LOGGER.debug("Register API key repository implementation {}", ApiKeyRepositoryWrapper.class.getName());
             beanFactory.registerSingleton(
                 ApiKeyRepository.class.getName(),
-                new ApiKeyRepositoryWrapper(this.apiKeyRepository, cacheManager.getCache(API_KEY_CACHE_NAME))
+                new ApiKeyRepositoryWrapper(this.apiKeyRepository, new ApiKeysCache(cacheManager.getCache(API_KEY_CACHE_NAME)))
             );
 
             eventManager.subscribeForEvents(this, ReactorEvent.class);
@@ -186,7 +186,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private void startRefresher(Api api) {
         if (api.isEnabled()) {
             ApiKeyRefresher refresher = new ApiKeyRefresher(api);
-            refresher.setCache(cacheManager.getCache(API_KEY_CACHE_NAME));
+            refresher.setCache(new ApiKeysCache(cacheManager.getCache(API_KEY_CACHE_NAME)));
             refresher.setApiKeyRepository(apiKeyRepository);
             refresher.setClusterManager(clusterManager);
             refresher.setDistributed(distributed);
@@ -219,13 +219,5 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
                 LOGGER.info("API-key refresher already shutdown");
             }
         }
-    }
-
-    public static String buildCacheKey(ApiKey apiKey) {
-        return buildCacheKey(apiKey.getApi(), apiKey.getKey());
-    }
-
-    public static String buildCacheKey(String api, String key) {
-        return String.format("%s.%s", api, key);
     }
 }

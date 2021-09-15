@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.services.sync.apikeys.repository;
 
+import io.gravitee.gateway.services.sync.apikeys.ApiKeysCache;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,7 +44,7 @@ public class ApiKeyRepositoryWrapperTest {
     private ApiKeyRepository wrappedRepository;
 
     @Mock
-    private Map<String, ApiKey> cache;
+    private ApiKeysCache cache;
 
     @Before
     public void setUp() {
@@ -87,7 +87,7 @@ public class ApiKeyRepositoryWrapperTest {
         String apiKey = "1234-4567-7890";
         String apiId = "my-Api-Id";
 
-        Mockito.when(cache.get("my-Api-Id.1234-4567-7890")).thenReturn(null);
+        Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(null);
         Optional<ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
@@ -100,7 +100,7 @@ public class ApiKeyRepositoryWrapperTest {
         String apiId = "my-Api-Id";
         ApiKey mockApiKey = Mockito.mock(ApiKey.class);
 
-        Mockito.when(cache.get("my-Api-Id.1234-4567-7890")).thenReturn(mockApiKey);
+        Mockito.when(cache.get("my-Api-Id", "1234-4567-7890")).thenReturn(mockApiKey);
         Optional<ApiKey> optApiKey = repository.findByKeyAndApi(apiKey, apiId);
 
         Assert.assertNotNull(optApiKey);
