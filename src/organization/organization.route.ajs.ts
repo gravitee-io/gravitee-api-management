@@ -201,10 +201,6 @@ function organizationRouterConfig($stateProvider) {
     .state('organization.settings.ng-users', {
       url: '/ng-users?q&page',
       component: 'ngOrgSettingsUsers',
-      resolve: {
-        usersPage: (UserService: UserService, $state, $stateParams) =>
-          UserService.list($stateParams.q, $stateParams.page).then((response) => response.data),
-      },
       data: {
         useAngularMaterial: true,
         menu: null,
