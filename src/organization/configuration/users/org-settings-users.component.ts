@@ -153,6 +153,10 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
     }
   }
 
+  onAddUserClick() {
+    this.$state.go('organization.settings.newuser');
+  }
+
   private setDataSourceFromUsersList(users: PagedResult<User>) {
     this.dataSource = new MatTableDataSource<TableData>(
       users.data.map((u) => ({

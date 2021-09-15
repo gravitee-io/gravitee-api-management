@@ -22,10 +22,13 @@
     <mat-icon matPrefix>search</mat-icon>
     <input matInput type="search" placeholder="Search users" [formControl]="searchFormControl" />
     <mat-label>Search users</mat-label>
-    <button *ngIf="value" matSuffix mat-icon-button aria-label="Clear" (click)="value = ''">
+    <button *ngIf="searchFormControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="searchFormControl.setValue('')">
       <mat-icon>close</mat-icon>
     </button>
   </mat-form-field>
+  <div class="search-bar__add-btn">
+    <button (click)="onAddUserClick()" mat-raised-button color="primary"><mat-icon>person_add</mat-icon> Add user</button>
+  </div>
 </div>
 
 <div class="mat-elevation-z2">
