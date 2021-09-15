@@ -49,7 +49,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.container.ResourceContext;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import net.minidev.json.JSONObject;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
