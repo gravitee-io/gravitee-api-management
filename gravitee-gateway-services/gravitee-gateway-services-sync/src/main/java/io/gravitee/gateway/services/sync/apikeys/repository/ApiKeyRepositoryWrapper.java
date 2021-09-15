@@ -15,13 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.apikeys.repository;
 
-import io.gravitee.gateway.services.sync.apikeys.ApiKeysCacheService;
+import io.gravitee.gateway.services.sync.apikeys.ApiKeysCache;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,9 +31,9 @@ import java.util.Set;
 public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
 
     private final ApiKeyRepository wrapped;
-    private final Map<String, ApiKey> cache;
+    private final ApiKeysCache cache;
 
-    public ApiKeyRepositoryWrapper(ApiKeyRepository wrapped, Map<String, ApiKey> cache) {
+    public ApiKeyRepositoryWrapper(ApiKeyRepository wrapped, ApiKeysCache cache) {
         this.wrapped = wrapped;
         this.cache = cache;
     }
@@ -51,7 +50,7 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
 
     @Override
     public Optional<ApiKey> findByKeyAndApi(String apiKey, String api) throws TechnicalException {
-        return Optional.ofNullable(cache.get(ApiKeysCacheService.buildCacheKey(api, apiKey)));
+        return Optional.ofNullable(cache.get(api, apiKey));
     }
 
     @Override

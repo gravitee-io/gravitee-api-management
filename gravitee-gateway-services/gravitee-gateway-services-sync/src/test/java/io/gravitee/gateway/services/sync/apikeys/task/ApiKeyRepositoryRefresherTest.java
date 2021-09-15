@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.services.sync.apikeys.ApiKeysCache;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -28,7 +29,6 @@ import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +54,7 @@ public class ApiKeyRepositoryRefresherTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Mock
-    private Map<String, ApiKey> cache;
+    private ApiKeysCache cache;
 
     @Mock
     private Api api;
@@ -219,8 +219,6 @@ public class ApiKeyRepositoryRefresherTest {
         when(api.getPlans()).thenReturn(plans);
 
         ApiKey apiKey1 = mock(ApiKey.class);
-        when(apiKey1.getApi()).thenReturn("my-api");
-        when(apiKey1.getKey()).thenReturn("my-key");
         when(apiKey1.isRevoked()).thenReturn(false);
 
         when(apiKeyRepository.findByCriteria(any(ApiKeyCriteria.class))).thenReturn(Collections.singletonList(apiKey1));
@@ -249,25 +247,19 @@ public class ApiKeyRepositoryRefresherTest {
                 )
             );
 
-        verify(cache, Mockito.times(2)).put(eq("my-api.my-key"), any(ApiKey.class));
+        verify(cache, Mockito.times(2)).put(any(ApiKey.class));
     }
 
     @Test
     public void shouldRefreshWithRevokedApiKeyAndRemoveFromCache() throws TechnicalException {
-        String apiKey = "1234-4567-7890";
-
         when(plan.getSecurity()).thenReturn(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY.name());
         List<Plan> plans = Collections.singletonList(plan);
         when(api.getPlans()).thenReturn(plans);
 
         ApiKey apiKey1 = mock(ApiKey.class);
-        when(apiKey1.getApi()).thenReturn("api-1");
-        when(apiKey1.getKey()).thenReturn(apiKey);
         when(apiKey1.isRevoked()).thenReturn(false);
 
         ApiKey apiKey2 = mock(ApiKey.class);
-        when(apiKey2.getApi()).thenReturn("api-2");
-        when(apiKey2.getKey()).thenReturn(apiKey);
         when(apiKey2.isRevoked()).thenReturn(true);
 
         when(apiKeyRepository.findByCriteria(any(ApiKeyCriteria.class)))
@@ -300,7 +292,7 @@ public class ApiKeyRepositoryRefresherTest {
 
         InOrder inOrderCache = Mockito.inOrder(cache, cache);
 
-        inOrderCache.verify(cache).put(eq("api-1.1234-4567-7890"), any(ApiKey.class));
-        inOrderCache.verify(cache).remove("api-2.1234-4567-7890");
+        inOrderCache.verify(cache).put(any(ApiKey.class));
+        inOrderCache.verify(cache).remove(any(ApiKey.class));
     }
 }
