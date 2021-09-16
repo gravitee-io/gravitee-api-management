@@ -36,10 +36,10 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
     private static final String FIELD_TYPE = "type";
     private static final String FIELD_API = "api";
     private static final String FIELD_TYPE_VALUE = "page";
-    private static final String FIELD_NAME = "name";
-    private static final String FIELD_NAME_LOWERCASE = "name_lowercase";
-    private static final String FIELD_NAME_SPLIT = "name_split";
-    private static final String FIELD_CONTENT = "content";
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_NAME_LOWERCASE = "name_lowercase";
+    public static final String FIELD_NAME_SPLIT = "name_split";
+    public static final String FIELD_CONTENT = "content";
 
     @Override
     public Document transform(PageEntity page) {

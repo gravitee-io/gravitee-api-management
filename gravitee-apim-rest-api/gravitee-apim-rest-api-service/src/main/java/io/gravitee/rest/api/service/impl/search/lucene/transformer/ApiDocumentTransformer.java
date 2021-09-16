@@ -17,9 +17,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
-import javax.lang.model.type.ReferenceType;
 import org.apache.lucene.document.*;
 import org.springframework.stereotype.Component;
 
@@ -30,29 +28,29 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
 
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_TYPE = "type";
-    private static final String FIELD_TYPE_VALUE = "api";
-    private static final String FIELD_NAME = "name";
-    private static final String FIELD_NAME_LOWERCASE = "name_lowercase";
-    private static final String FIELD_NAME_SPLIT = "name_split";
-    private static final String FIELD_DESCRIPTION = "description";
-    private static final String FIELD_OWNER = "ownerName";
-    private static final String FIELD_OWNER_MAIL = "ownerMail";
-    private static final String FIELD_LABELS = "labels";
-    private static final String FIELD_LABELS_SPLIT = "labels_split";
-    private static final String FIELD_CATEGORIES = "categories";
-    private static final String FIELD_CATEGORIES_SPLIT = "categories_split";
-    private static final String FIELD_CREATED_AT = "createdAt";
-    private static final String FIELD_UPDATED_AT = "updatedAt";
-    private static final String FIELD_PATHS = "paths";
-    private static final String FIELD_HOSTS = "hosts";
-    private static final String FIELD_PATHS_SPLIT = "paths_split";
-    private static final String FIELD_HOSTS_SPLIT = "hosts_split";
-    private static final String FIELD_TAGS = "tags";
-    private static final String FIELD_TAGS_SPLIT = "tags_split";
-    private static final String FIELD_METADATA = "metadata";
-    private static final String FIELD_METADATA_SPLIT = "metadata_split";
+    public static final String FIELD_ID = "id";
+    public static final String FIELD_TYPE = "type";
+    public static final String FIELD_TYPE_VALUE = "api";
+    public static final String FIELD_NAME = "name";
+    public static final String FIELD_NAME_LOWERCASE = "name_lowercase";
+    public static final String FIELD_NAME_SPLIT = "name_split";
+    public static final String FIELD_DESCRIPTION = "description";
+    public static final String FIELD_OWNER = "ownerName";
+    public static final String FIELD_OWNER_MAIL = "ownerMail";
+    public static final String FIELD_LABELS = "labels";
+    public static final String FIELD_LABELS_SPLIT = "labels_split";
+    public static final String FIELD_CATEGORIES = "categories";
+    public static final String FIELD_CATEGORIES_SPLIT = "categories_split";
+    public static final String FIELD_CREATED_AT = "createdAt";
+    public static final String FIELD_UPDATED_AT = "updatedAt";
+    public static final String FIELD_PATHS = "paths";
+    public static final String FIELD_HOSTS = "hosts";
+    public static final String FIELD_PATHS_SPLIT = "paths_split";
+    public static final String FIELD_HOSTS_SPLIT = "hosts_split";
+    public static final String FIELD_TAGS = "tags";
+    public static final String FIELD_TAGS_SPLIT = "tags_split";
+    public static final String FIELD_METADATA = "metadata";
+    public static final String FIELD_METADATA_SPLIT = "metadata_split";
 
     @Override
     public Document transform(io.gravitee.rest.api.model.api.ApiEntity api) {
