@@ -31,14 +31,14 @@ export class SnackBarService {
   success(message: string, undoAction?: string) {
     return this.matSnackBar.open(message, undoAction, {
       ...this.defaultSnackBarOptions,
-      panelClass: 'snack-bar-success',
+      panelClass: 'gio-snack-bar-success',
     });
   }
 
   error(message: string, undoAction?: string) {
     return this.matSnackBar.open(message, undoAction, {
       ...this.defaultSnackBarOptions,
-      panelClass: 'snack-bar-error',
+      panelClass: 'gio-snack-bar-error',
     });
   }
 }

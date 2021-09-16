@@ -1,87 +1,103 @@
+@use '../../node_modules/@angular/material' as mat;
+
 // Sky Blue - Primary
-$gio-sky-blue-palette: (
-  dark: hsl(236, 50%, 7%),
-  medium: hsl(236, 38%, 17%),
-  light: hsl(220, 38%, 27%),
-  contrast: (
-    dark: #fff,
-    medium: #fff,
-    light: #fff,
+$gio-sky-blue-palette: mat.define-palette(
+  (
+    dark: hsl(236, 50%, 7%),
+    medium: hsl(236, 38%, 17%),
+    light: hsl(220, 38%, 27%),
+    contrast: (
+      dark: #fff,
+      medium: #fff,
+      light: #fff,
+    ),
   ),
+  medium,
+  light,
+  dark
 );
 
 // Cyan - Primary
-$gio-sky-cyan-palette: (
-  dark: hsl(183, 75%, 37%),
-  medium: hsl(183, 75%, 47%),
-  light: hsl(183, 75%, 57%),
-  contrast: (
-    dark: #000,
-    medium: #000,
-    light: #000,
+$gio-sky-cyan-palette: mat.define-palette(
+  (
+    dark: hsl(183, 75%, 37%),
+    medium: hsl(183, 75%, 47%),
+    light: hsl(183, 75%, 57%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
   ),
+  medium,
+  light,
+  dark
 );
 
 // Info color
-$gio-info-palette: (
-  darker: hsl(218, 80%, 25%),
-  dark: hsl(222, 80%, 40%),
-  medium: hsl(226, 80%, 50%),
-  light: hsl(210, 70%, 60%),
-  lighter: hsl(210, 80%, 75%),
-  contrast: (
-    darker: #000,
-    dark: #000,
-    medium: #000,
-    light: #000,
-    lighter: #000,
+$gio-info-palette: mat.define-palette(
+  (
+    dark: hsl(222, 80%, 40%),
+    medium: hsl(226, 80%, 50%),
+    light: hsl(210, 70%, 60%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
   ),
+  medium,
+  light,
+  dark
 );
 
 // Success color
-$gio-success-palette: (
-  darker: hsl(114, 39%, 25%),
-  dark: hsl(118, 39%, 40%),
-  medium: hsl(122, 39%, 50%),
-  light: hsl(126, 39%, 65%),
-  lighter: hsl(130, 39%, 75%),
-  contrast: (
-    darker: #000,
-    dark: #000,
-    medium: #000,
-    light: #000,
-    lighter: #000,
+$gio-success-palette: mat.define-palette(
+  (
+    dark: hsl(118, 39%, 40%),
+    medium: hsl(122, 39%, 50%),
+    light: hsl(126, 39%, 65%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
   ),
+  medium,
+  light,
+  dark
 );
 
 // Warning color
-$gio-warning-palette: (
-  darker: hsl(26, 100%, 40%),
-  dark: hsl(30, 100%, 48%),
-  medium: hsl(34, 100%, 50%),
-  light: hsl(38, 100%, 65%),
-  lighter: hsl(42, 100%, 75%),
-  contrast: (
-    darker: #000,
-    dark: #000,
-    medium: #000,
-    light: #000,
-    lighter: #000,
+$gio-warning-palette: mat.define-palette(
+  (
+    dark: hsl(30, 100%, 48%),
+    medium: hsl(34, 100%, 50%),
+    light: hsl(38, 100%, 65%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
   ),
+  medium,
+  light,
+  dark
 );
 
 // Error color
-$gio-error-palette: (
-  darker: hsl(352, 80%, 25%),
-  dark: hsl(356, 80%, 40%),
-  medium: hsl(360, 80%, 50%),
-  light: hsl(4, 80%, 65%),
-  lighter: hsl(8, 80%, 75%),
-  contrast: (
-    darker: #000,
-    dark: #000,
-    medium: #000,
-    light: #000,
-    lighter: #000,
+$gio-error-palette: mat.define-palette(
+  (
+    dark: hsl(356, 80%, 40%),
+    medium: hsl(360, 80%, 50%),
+    light: hsl(4, 80%, 65%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
   ),
+  medium,
+  light,
+  dark
 );

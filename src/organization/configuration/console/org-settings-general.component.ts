@@ -198,9 +198,10 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
     // Confirm allow all origins
     if ('*' === chipToAdd && !this.allowAllOriginsConfirmDialog) {
       this.allowAllOriginsConfirmDialog = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '300px',
+        width: '450px',
         data: {
-          title: 'Are you sure you want to remove all cross-origin restrictions?',
+          title: 'Are you sure?',
+          content: 'Do you want to remove all cross-origin restrictions?',
           confirmButton: 'Yes, I want to allow all origins.',
         },
         role: 'alertdialog',

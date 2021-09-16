@@ -33,7 +33,19 @@ module.exports = {
         test: /\.(scss)$/,
         use: ExtractTextPlugin.extract({
           fallback: 'style-loader',
-          use: 'css-loader!postcss-loader!sass-loader',
+          use: [
+            'style-loader',
+            'css-loader',
+            {
+              loader: 'sass-loader',
+              options: {
+                webpackImporter: false,
+                sassOptions: {
+                  includePaths: ['node_modules'],
+                },
+              },
+            },
+          ],
         }),
         include: path.resolve(__dirname, '..', 'src', 'index.scss'),
       },

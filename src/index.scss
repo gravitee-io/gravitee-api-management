@@ -1,22 +1,24 @@
-@import '~angular-gridster/dist/angular-gridster.css';
-@import '~angular-loading-bar/build/loading-bar.css';
-@import '~angular-material/modules/scss/angular-material';
-@import '~angular-material-data-table/dist/md-data-table.css';
-@import '~angular-moment-picker/dist/angular-moment-picker.css';
-@import '~angular-timeline/dist/angular-timeline.css';
-@import './scss/bootstrap';
-@import '~codemirror/addon/dialog/dialog.css';
-@import '~codemirror/addon/lint/lint.css';
-@import '~codemirror/lib/codemirror.css';
-@import '~dragular/dist/dragular.css';
-@import '~highlight.js/styles/a11y-light.css';
-@import '~md-color-picker/dist/mdColorPicker.css';
-@import '~md-steppers/dist/md-steppers.min.css';
-@import '~@toast-ui/editor/dist/toastui-editor.css';
-@import '~@toast-ui/editor/dist/toastui-editor-viewer.css';
-@import '~@gravitee/ui-components/assets/css/gravitee-console-theme.css';
+@use '../node_modules/@angular/material' as mat;
 
-@import '~v-accordion/dist/v-accordion.css';
+@import '../node_modules/angular-gridster/dist/angular-gridster.css';
+@import '../node_modules/angular-loading-bar/build/loading-bar.css';
+@import '../node_modules/angular-material/modules/scss/angular-material';
+@import '../node_modules/angular-material-data-table/dist/md-data-table.css';
+@import '../node_modules/angular-moment-picker/dist/angular-moment-picker.css';
+@import '../node_modules/angular-timeline/dist/angular-timeline.css';
+@import './scss/bootstrap';
+@import '../node_modules/codemirror/addon/dialog/dialog.css';
+@import '../node_modules/codemirror/addon/lint/lint.css';
+@import '../node_modules/codemirror/lib/codemirror.css';
+@import '../node_modules/dragular/dist/dragular.css';
+@import '../node_modules/highlight.js/styles/a11y-light.css';
+@import '../node_modules/md-color-picker/dist/mdColorPicker.css';
+@import '../node_modules/md-steppers/dist/md-steppers.min.css';
+@import '../node_modules/@toast-ui/editor/dist/toastui-editor.css';
+@import '../node_modules/@toast-ui/editor/dist/toastui-editor-viewer.css';
+@import '../node_modules/@gravitee/ui-components/assets/css/gravitee-console-theme.css';
+
+@import '../node_modules/v-accordion/dist/v-accordion.css';
 
 @import 'constants';
 
@@ -65,10 +67,10 @@
 @import 'user/newsletter/newsletter-subscription';
 @import 'user/login/login';
 
-@import '~@fontsource/libre-franklin/scss/mixins';
+@import '../node_modules/@fontsource/libre-franklin/scss/mixins';
 
 // Angular Material
-@import 'scss/gio-material-theme.scss';
+@import 'scss/gio-material-theme';
 
 $fontName: 'Libre Franklin';
 $fontId: 'libre-franklin';
@@ -123,6 +125,16 @@ body {
   top: 0px !important;
   background-color: lightgrey;
   position: inherit !important;
+}
+
+// Wrap mat with `.mat` class without increasing the css specificity
+// Allows you to disable it on some routes
+:where(.mat) {
+  @include mat.core($gio-typography);
+  @include mat.all-component-themes($gio-theme);
+
+  @include material-layout-compatibility();
+  @import './scss/gio-global-style';
 }
 
 :where(.bootstrap) {
@@ -321,19 +333,6 @@ body {
     display: table-row-group;
     vertical-align: middle;
     border-color: inherit;
-  }
-
-  .snack-bar-success {
-    background-color: var(--gv-theme-color-success);
-
-    // FIXME: Set the color to dark for a better contrast
-    // color: var(--gv-theme-font-color-dark);
-  }
-
-  .snack-bar-error {
-    background-color: var(--gv-theme-color-error);
-    // FIXME: Set the color to dark for a better contrast
-    // color: var(--gv-theme-font-color-dark);
   }
 
   md-toast {

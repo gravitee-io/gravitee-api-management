@@ -113,7 +113,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap(() => {
           this.snackBarService.success('New user successfully registered!');
-          this.$state.go('organization.settings.users');
+          this.$state.go('organization.settings.ng-users');
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

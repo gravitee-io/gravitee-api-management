@@ -20,12 +20,21 @@
   }
 }
 
-.mat-column-userPicture {
-  padding: 0px 8px;
+.mat-column-userPicture,
+.mat-column-displayName,
+.mat-column-status,
+.mat-column-email,
+.mat-column-source,
+.mat-column-actions {
+  padding: 0 4px;
+}
+
+.mat-column-displayName {
+  cursor: pointer;
 }
 
 .badge {
-  display: inline-block;
+  margin-left: 8px;
   min-width: 10px;
   padding: 3px 7px;
   font-size: 12px;

@@ -130,7 +130,8 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '450px',
         data: {
-          title: `Are you sure you want to remove the user "${displayName}"?`,
+          title: 'Delete a user',
+          content: `Are you sure you want to remove the user <strong>${displayName}</strong>?`,
           confirmButton: 'Remove',
         },
         role: 'alertdialog',
@@ -141,7 +142,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         filter((confirm) => confirm === true),
         switchMap(() => this.usersService.remove(userId)),
-        tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        tap(() => this.snackBarService.success(`User ${displayName} successfully deleted!`)),
       )
       .subscribe(() => this.ngOnInit());
   }
@@ -154,7 +155,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   onAddUserClick() {
-    this.$state.go('organization.settings.newuser');
+    this.$state.go('organization.settings.ng-newuser');
   }
 
   private setDataSourceFromUsersList(users: PagedResult<User>) {

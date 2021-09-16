@@ -19,7 +19,19 @@ module.exports = {
       {
         test: /\.(scss)$/,
         include: [path.resolve(__dirname, '../src/index.scss')],
-        use: ['style-loader', 'css-loader', 'sass-loader'],
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              webpackImporter: false,
+              sassOptions: {
+                includePaths: ['node_modules'],
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.(scss)$/,
