@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 
-import io.gravitee.rest.api.model.ApiPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
@@ -34,8 +33,7 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
 
     private static final String FIELD_ID = "id";
     private static final String FIELD_TYPE = "type";
-    private static final String FIELD_API = "api";
-    private static final String FIELD_TYPE_VALUE = "page";
+    public static final String FIELD_TYPE_VALUE = "page";
     public static final String FIELD_NAME = "name";
     public static final String FIELD_NAME_LOWERCASE = "name_lowercase";
     public static final String FIELD_NAME_SPLIT = "name_split";
@@ -45,8 +43,8 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
     public Document transform(PageEntity page) {
         Document doc = new Document();
 
-        doc.add(new StringField(FIELD_REFERENCE_TYPE, page.getReferenceType(), Field.Store.NO));
-        doc.add(new StringField(FIELD_REFERENCE_ID, page.getReferenceId(), Field.Store.NO));
+        doc.add(new StringField(FIELD_REFERENCE_TYPE, page.getReferenceType().toLowerCase(), Field.Store.NO));
+        doc.add(new StringField(FIELD_REFERENCE_ID, page.getReferenceId(), Field.Store.YES));
         doc.add(new StringField(FIELD_ID, page.getId(), Field.Store.YES));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
         if (page.getName() != null) {
@@ -57,10 +55,6 @@ public class PageDocumentTransformer implements DocumentTransformer<PageEntity> 
 
         if (page.getContent() != null) {
             doc.add(new TextField(FIELD_CONTENT, page.getContent(), Field.Store.NO));
-        }
-
-        if (page instanceof ApiPageEntity && ((ApiPageEntity) page).getApi() != null) {
-            doc.add(new StringField(FIELD_API, ((ApiPageEntity) page).getApi(), Field.Store.YES));
         }
 
         return doc;

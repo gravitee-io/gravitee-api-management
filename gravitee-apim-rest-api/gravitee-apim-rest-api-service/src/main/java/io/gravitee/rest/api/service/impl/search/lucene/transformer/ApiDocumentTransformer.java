@@ -67,9 +67,11 @@ public class ApiDocumentTransformer implements DocumentTransformer<ApiEntity> {
         }
         if (api.getDescription() != null) {
             doc.add(new TextField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
+            doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
         }
         if (api.getPrimaryOwner() != null) {
             doc.add(new TextField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
+            doc.add(new StringField(FIELD_OWNER, api.getPrimaryOwner().getDisplayName(), Field.Store.NO));
             if (api.getPrimaryOwner().getEmail() != null) {
                 doc.add(new TextField(FIELD_OWNER_MAIL, api.getPrimaryOwner().getEmail(), Field.Store.NO));
             }

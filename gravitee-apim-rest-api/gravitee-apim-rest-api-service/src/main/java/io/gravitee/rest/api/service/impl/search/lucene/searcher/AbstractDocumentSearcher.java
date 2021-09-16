@@ -29,7 +29,10 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopScoreDocCollector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +77,6 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                 topDocs = searcher.search(query, Integer.MAX_VALUE);
             }
 
-            final ScoreDoc[] hits = topDocs.scoreDocs;
             final List<String> results = new ArrayList<>();
 
             final List<Integer> orderdedDocsId = Arrays

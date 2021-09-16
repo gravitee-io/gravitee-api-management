@@ -15,7 +15,15 @@
  */
 package io.gravitee.rest.api.service;
 
+import static io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher.FIELD_API_TYPE_VALUE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+
+import io.gravitee.rest.api.model.ApiPageEntity;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.search.SearchEngineServiceImpl;
@@ -25,12 +33,15 @@ import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
 import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
+import io.gravitee.rest.api.service.impl.search.lucene.transformer.PageDocumentTransformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +51,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
@@ -69,8 +72,22 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("My api 1").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 5);
+        assertEquals(matches.getHits(), 7);
         assertEquals(matches.getDocuments(), Arrays.asList("api-1", "api-2", "api-3", "api-4", "api-0"));
+    }
+
+    @Test
+    public void shouldNotFoundWithOwnerEmail() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("foobar-3@gravitee.io").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 0);
+
+        matches = searchEngineService.search(QueryBuilder.create(ApiEntity.class).setQuery("*@*").setFilters(filters).build());
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 0);
     }
 
     @Test
@@ -80,7 +97,7 @@ public class SearchEngineServiceTest {
             QueryBuilder.create(ApiEntity.class).setQuery("My api *").setFilters(filters).build()
         );
         assertNotNull(matches);
-        assertEquals(matches.getHits(), 5);
+        assertEquals(matches.getHits(), 7);
         assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-1", "api-2", "api-3", "api-4"));
     }
 
@@ -88,7 +105,7 @@ public class SearchEngineServiceTest {
     public void shouldFindBestResultsWithOwnerName() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("Owner 1").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("Owner 3").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(matches.getHits(), 5);
@@ -221,16 +238,66 @@ public class SearchEngineServiceTest {
     }
 
     @Test
-    @Ignore
-    // FIXME: should work ?
     public void shouldFindWithPageContent() {
         Map<String, Object> filters = new HashMap<>();
+        filters.put(FIELD_API_TYPE_VALUE, Arrays.asList("api-1", "api-2"));
         SearchResult matches = searchEngineService.search(
             QueryBuilder.create(ApiEntity.class).setQuery("documentation").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(matches.getHits(), 1);
         assertEquals(matches.getDocuments(), Arrays.asList("api-1"));
+    }
+
+    @Before
+    public void initIndexer() {
+        // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
+        if (!isIndexed) {
+            List<String> labels = new ArrayList();
+            for (int i = 0; i < 5; i++) {
+                String apiName = "My api " + i;
+                ApiEntity apiEntity = new ApiEntity();
+                apiEntity.setId("api-" + i);
+                labels.add("Label " + i);
+                apiEntity.setReferenceId(GraviteeContext.getCurrentEnvironmentOrDefault());
+                apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+                apiEntity.setName(apiName);
+                apiEntity.setUpdatedAt(new Date());
+                apiEntity.setLabels(labels);
+                apiEntity.setDescription(DESCRIPTIONS[i]);
+                PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
+                owner.setId("user-" + i);
+                owner.setDisplayName("Owner " + i);
+                owner.setEmail("foobar-" + i + "@gravitee.io");
+                apiEntity.setPrimaryOwner(owner);
+                if (i % 2 == 0) {
+                    apiEntity.setCategories(Set.of("Sports", "Game"));
+                }
+                searchEngineService.index(apiEntity, false);
+            }
+            searchEngineService.index(completePage(new ApiPageEntity(), 1, true), false);
+            searchEngineService.index(completePage(new PageEntity(), 2, true), false);
+            searchEngineService.index(completePage(new ApiPageEntity(), 3, false), false);
+
+            isIndexed = true;
+        }
+    }
+
+    public PageEntity completePage(PageEntity pageEntity, int i, boolean published) {
+        pageEntity.setId("page-" + i);
+        pageEntity.setName("Gravitee documentation");
+        pageEntity.setContent("documentation");
+        if (pageEntity instanceof ApiPageEntity) {
+            pageEntity.setReferenceType("API");
+            pageEntity.setReferenceId("api-" + i);
+        } else {
+            pageEntity.setReferenceId(GraviteeContext.getCurrentEnvironmentOrDefault());
+            pageEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
+        }
+
+        pageEntity.setVisibility(Visibility.PUBLIC);
+        pageEntity.setPublished(published);
+        return pageEntity;
     }
 
     @Configuration
@@ -258,7 +325,7 @@ public class SearchEngineServiceTest {
 
         @Bean
         public Collection<DocumentTransformer> transformers() {
-            return Arrays.asList(new ApiDocumentTransformer());
+            return Arrays.asList(new ApiDocumentTransformer(), new PageDocumentTransformer());
         }
 
         @Bean
@@ -272,31 +339,5 @@ public class SearchEngineServiceTest {
         }
     }
 
-    @Before
-    public void initIndexer() {
-        // TODO: Remove this hack and use @BeforeAll when move to junit 5.x
-        if (!isIndexed) {
-            List<String> labels = new ArrayList();
-            for (int i = 0; i < 5; i++) {
-                ApiEntity apiEntity = new ApiEntity();
-                apiEntity.setId("api-" + i);
-                labels.add("Label " + i);
-                apiEntity.setReferenceId(GraviteeContext.getCurrentEnvironmentOrDefault());
-                apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
-                apiEntity.setName("My api " + i);
-                apiEntity.setUpdatedAt(new Date());
-                apiEntity.setLabels(labels);
-                PrimaryOwnerEntity owner = new PrimaryOwnerEntity();
-                owner.setId("user-" + i);
-                owner.setDisplayName("Owner " + i);
-                owner.setEmail("foobar-" + i + "@gravitee.io");
-                apiEntity.setPrimaryOwner(owner);
-                if (i % 2 == 0) {
-                    apiEntity.setCategories(Set.of("Sports", "Hiking"));
-                }
-                searchEngineService.index(apiEntity, false);
-            }
-            isIndexed = true;
-        }
-    }
+    private static final String[] DESCRIPTIONS = { "Hiking", "Biking", "Running", "", "Field Hockey" };
 }
