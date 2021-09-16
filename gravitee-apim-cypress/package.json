@@ -5,6 +5,7 @@
     "description": "Cypress tests for Gravitee.io API Management",
     "scripts": {
         "test": "cypress open",
+        "test:bulk": "cypress run --config-file cypress/bulk/cypress-config.json",
         "test:ci": "cypress run"
     },
     "license": "MIT License",

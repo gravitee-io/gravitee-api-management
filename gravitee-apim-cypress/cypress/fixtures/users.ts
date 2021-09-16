@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Api1User} from "../fixtures/users";
-import {Apis} from "../fixtures/apis";
-import {createFakeAPI} from "../fixtures/test-data";
+export interface User {
+  username: string;
+  password: string;
+}
 
-const fakeApi = createFakeAPI();
-
-describe("create API", () => {
-
-  it("should create API", () => {
-    Apis.create(Api1User, fakeApi)
-      .should((response) => {
-        const apiId = response.body.id;
-        expect(apiId).not.undefined;
-        expect(response.status).to.eq(201);
-        expect(response.body.state).to.eq("STOPPED");
-      });
-  });
-
-});
+export const Api1User: User = {username: 'api1', password: 'api1'};

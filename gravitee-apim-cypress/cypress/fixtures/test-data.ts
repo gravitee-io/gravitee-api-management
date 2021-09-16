@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as faker from "faker";
+import {Api} from "./apis";
 
 const username = "api1";
 const password = "api1";
@@ -23,11 +24,21 @@ export const fakeUserData = {
     password,
 };
 
+export function version() {
+    const major = faker.datatype.number({min: 1, max: 5});
+    const minor = faker.datatype.number({min: 1, max: 10});
+    const patch = faker.datatype.number({min: 1, max: 30});
+    return `${major}.${minor}.${patch}`;
+}
+
 export function createFakeAPI(attributes?: any) {
+    const name = faker.commerce.productName();
     return {
         ...attributes,
-        contextPath: faker.random.word() + faker.datatype.uuid(),
-        apiName: faker.random.words(),
+        contextPath: `/${faker.random.word()}-${faker.datatype.uuid()}`,
+        name,
+        description: faker.commerce.productDescription(),
+        version: version(),
         endpoint: "https://api.gravitee.io/echo",
-    };
+    } ;
 }

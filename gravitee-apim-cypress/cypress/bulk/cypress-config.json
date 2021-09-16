@@ -1,0 +1,6 @@
+{
+  "baseUrl": "http://localhost:8083",
+  "integrationFolder": "cypress/bulk",
+  "testFiles": "**/*.ts",
+  "video": false
+}
