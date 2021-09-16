@@ -11,8 +11,7 @@ commands:
         steps:
             - restore_cache:
                   keys:
-                      - gravitee-api-management-{{ .Branch }}-{{ checksum "pom.xml" }}
-                      - gravitee-api-management
+                      - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
 
 parameters:
     gio_action:
@@ -63,7 +62,7 @@ jobs:
             - save_cache:
                   paths:
                       - ~/.m2
-                  key: gravitee-api-management-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  key: gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
                   when: always
             - persist_to_workspace:
                   root: ./
@@ -71,46 +70,20 @@ jobs:
                       - ./gravitee-*/*/target/*
                       - ./gravitee-apim-rest-api-standalone.zip
 
-    test-repository:
+    test:
         machine:
             image: ubuntu-2004:202107-02
-        resource_class: large
+        resource_class: xlarge
         steps:
             - checkout
             - attach_workspace:
                   at: .
             - restore-maven-cache
             - run:
-                  name: Test `gravitee-apim-repository`
+                  name: Run tests
                   command: |
-                      cd gravitee-apim-repository
                       # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -s ../.artifactory.settings.xml package --no-transfer-progress -T 1C
-            - run:
-                  name: Save test results
-                  command: |
-                      mkdir -p ~/test-results/junit/
-                      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-                  when: always
-            - store_test_results:
-                  path: ~/test-results
-            - store_artifacts:
-                  path: ~/test-results/junit
-
-    test-rest-api:
-        docker:
-            - image: circleci/openjdk:11-jdk-stretch
-        resource_class: large
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore-maven-cache
-            - run:
-                  name: Test `gravitee-apim-rest-api`
-                  command: |
-                      cd gravitee-apim-rest-api
-                      mvn -s ../.artifactory.settings.xml test --no-transfer-progress -T 1C
+                      mvn -s .artifactory.settings.xml package --no-transfer-progress -T 2C
             - run:
                   name: Save test results
                   command: |
@@ -262,24 +235,19 @@ workflows:
                   context: gravitee-qa
                   requires:
                       - pr_secrets_resolution
-            - test-rest-api:
-                  requires:
-                      - build
-            - test-repository:
+            - test:
                   requires:
                       - build
             - publish-on-artifactory:
                   requires:
-                      - test-repository
-                      - test-rest-api
+                      - test
             - publish-on-nexus:
                   requires:
-                      - test-repository
-                      - test-rest-api
+                      - test
             - publish-images-azure-registry:
                   context: cicd-orchestrator
                   requires:
-                      - build
+                      - test
                   pre-steps:
                       - secrethub/env-export:
                             secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
