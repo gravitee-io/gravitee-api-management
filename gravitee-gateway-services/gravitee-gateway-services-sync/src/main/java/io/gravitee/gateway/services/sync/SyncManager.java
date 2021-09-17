@@ -16,8 +16,8 @@
 package io.gravitee.gateway.services.sync;
 
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.gateway.platform.manager.OrganizationManager;
 import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
+import io.gravitee.gateway.services.sync.synchronizer.DebugApiSynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.OrganizationSynchronizer;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -42,9 +42,6 @@ public class SyncManager extends AbstractService<SyncManager> {
 
     private final Logger logger = LoggerFactory.getLogger(SyncManager.class);
 
-    @Autowired
-    private OrganizationManager organizationManager;
-
     /**
      * Add 30s delay before and after to avoid problem with out of sync clocks.
      */
@@ -59,6 +56,9 @@ public class SyncManager extends AbstractService<SyncManager> {
 
     @Autowired
     private OrganizationSynchronizer organizationSynchronizer;
+
+    @Autowired
+    private DebugApiSynchronizer debugApiSynchronizer;
 
     @Autowired
     private ClusterManager clusterManager;
@@ -90,6 +90,7 @@ public class SyncManager extends AbstractService<SyncManager> {
         apiSynchronizer.start();
         dictionarySynchronizer.start();
         organizationSynchronizer.start();
+        debugApiSynchronizer.start();
     }
 
     @Override
@@ -97,6 +98,7 @@ public class SyncManager extends AbstractService<SyncManager> {
         apiSynchronizer.stop();
         dictionarySynchronizer.stop();
         organizationSynchronizer.stop();
+        debugApiSynchronizer.stop();
 
         if (scheduledFuture != null) {
             scheduledFuture.cancel(false);
@@ -143,6 +145,14 @@ public class SyncManager extends AbstractService<SyncManager> {
                 error = true;
                 lastErrorMessage = ex.getMessage();
                 logger.error("An error occurs while synchronizing dictionaries", ex);
+            }
+
+            try {
+                debugApiSynchronizer.synchronize(lastRefreshAt, nextLastRefreshAt, environments);
+            } catch (Exception ex) {
+                error = true;
+                lastErrorMessage = ex.getMessage();
+                logger.error("An error occurs while synchronizing debug APIs", ex);
             }
 
             if (error) {

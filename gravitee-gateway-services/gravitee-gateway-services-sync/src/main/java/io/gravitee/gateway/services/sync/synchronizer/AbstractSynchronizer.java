@@ -29,12 +29,15 @@ import io.reactivex.Flowable;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class AbstractSynchronizer extends AbstractService<AbstractSynchronizer> {
+
+    public static final int DEFAULT_BULK_SIZE = 100;
 
     @Autowired
     private EventRepository eventRepository;
@@ -44,6 +47,9 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
 
     @Autowired
     protected ExecutorService executor;
+
+    @Value("${services.sync.bulk_items:100}")
+    protected int bulkItems;
 
     @Override
     protected void doStart() throws Exception {
@@ -65,7 +71,6 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
     public abstract void synchronize(long lastRefreshAt, long nextLastRefreshAt, List<String> environments);
 
     protected Flowable<Event> searchLatestEvents(
-        int bulkSize,
         Long from,
         Long to,
         Event.EventProperties group,
@@ -75,26 +80,22 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
         return Flowable.create(
             emitter -> {
                 try {
+                    int size = getBulkSize();
                     long page = 0;
-                    EventCriteria criteria = new EventCriteria.Builder()
+                    EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
                         .types(eventTypes)
                         .from(from == null ? 0 : from - TIMEFRAME_BEFORE_DELAY)
                         .to(to == null ? 0 : to + TIMEFRAME_AFTER_DELAY)
-                        .environments(environments)
-                        .build();
+                        .environments(environments);
 
+                    EventCriteria criteria = appendCriteria(criteriaBuilder);
                     List<Event> events;
 
-                    if (bulkSize > 0) {
-                        do {
-                            events = eventRepository.searchLatest(criteria, group, page, (long) bulkSize);
-                            events.forEach(emitter::onNext);
-                            page++;
-                        } while (!events.isEmpty() && events.size() == bulkSize);
-                    } else {
-                        events = eventRepository.searchLatest(criteria, group, page, null);
+                    do {
+                        events = eventRepository.searchLatest(criteria, group, page, (long) size);
                         events.forEach(emitter::onNext);
-                    }
+                        page++;
+                    } while (!events.isEmpty() && events.size() == size);
 
                     emitter.onComplete();
                 } catch (Exception e) {
@@ -103,5 +104,13 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
             },
             BackpressureStrategy.BUFFER
         );
+    }
+
+    protected EventCriteria appendCriteria(EventCriteria.Builder criteriaBuilder) {
+        return criteriaBuilder.build();
+    }
+
+    public int getBulkSize() {
+        return bulkItems > 0 ? bulkItems : DEFAULT_BULK_SIZE;
     }
 }

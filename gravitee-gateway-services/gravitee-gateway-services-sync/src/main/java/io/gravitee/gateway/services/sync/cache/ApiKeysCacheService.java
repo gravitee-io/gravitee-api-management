@@ -223,18 +223,16 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        final Api api = (Api) event.content();
-
         switch (event.type()) {
             case DEPLOY:
-                register(api);
+                register((Api) event.content());
                 break;
             case UNDEPLOY:
-                unregister(api);
+                unregister((Api) event.content());
                 break;
             case UPDATE:
-                unregister(api);
-                register(api);
+                unregister((Api) event.content());
+                register((Api) event.content());
                 break;
             default:
                 // Nothing to do with unknown event type

@@ -78,18 +78,16 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
 
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> event) {
-        final Api api = (Api) event.content();
-
         switch (event.type()) {
             case DEPLOY:
-                startHealthCheck(api);
+                startHealthCheck((Api) event.content());
                 break;
             case UNDEPLOY:
-                stopHealthCheck(api);
+                stopHealthCheck((Api) event.content());
                 break;
             case UPDATE:
-                stopHealthCheck(api);
-                startHealthCheck(api);
+                stopHealthCheck((Api) event.content());
+                startHealthCheck((Api) event.content());
                 break;
         }
     }

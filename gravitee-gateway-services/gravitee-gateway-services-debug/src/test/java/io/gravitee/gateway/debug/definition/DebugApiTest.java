@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.debug.handler.definition;
+package io.gravitee.gateway.debug.definition;
 
-import static io.gravitee.gateway.debug.utils.Stubs.getADebugApiDefinition;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.gateway.debug.utils.Stubs;
 import org.junit.Test;
 
 /**
@@ -30,7 +30,7 @@ public class DebugApiTest {
 
     @Test
     public void shouldConstructAndComputeNewPath() throws Exception {
-        final io.gravitee.definition.model.DebugApi debugApi = getADebugApiDefinition();
+        final io.gravitee.definition.model.DebugApi debugApi = Stubs.getADebugApiDefinition();
 
         final DebugApi result = new DebugApi(EVENT_ID, debugApi);
 
