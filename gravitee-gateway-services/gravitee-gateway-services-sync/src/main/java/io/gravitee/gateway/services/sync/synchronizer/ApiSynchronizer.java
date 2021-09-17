@@ -33,10 +33,7 @@ import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.schedulers.Schedulers;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,9 +60,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
     @Autowired
     private ApiManager apiManager;
 
-    @Value("${services.sync.bulk_items:100}")
-    protected int bulkItems = 100;
-
     public void synchronize(long lastRefreshAt, long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();
         final Long count;
@@ -75,7 +69,6 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         } else {
             count =
                 this.searchLatestEvents(
-                        bulkItems,
                         lastRefreshAt,
                         nextLastRefreshAt,
                         API_ID,
@@ -102,7 +95,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
      */
     private long initialSynchronizeApis(long nextLastRefreshAt, List<String> environments) {
         final Long count =
-            this.searchLatestEvents(bulkItems, null, nextLastRefreshAt, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
+            this.searchLatestEvents(null, nextLastRefreshAt, API_ID, environments, EventType.PUBLISH_API, EventType.START_API)
                 .compose(this::processApiRegisterEvents)
                 .count()
                 .blockingGet();
@@ -243,7 +236,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
         Flowable<io.gravitee.gateway.handlers.api.definition.Api> upstream
     ) {
         return upstream
-            .buffer(bulkItems)
+            .buffer(getBulkSize())
             .doOnNext(
                 apis -> {
                     apiKeysCacheService.register(apis);
@@ -267,7 +260,7 @@ public class ApiSynchronizer extends AbstractSynchronizer {
             .flatMap(
                 apisByDefinitionVersion -> {
                     if (apisByDefinitionVersion.getKey() == DefinitionVersion.V1) {
-                        return apisByDefinitionVersion.buffer(bulkItems).flatMap(this::fetchV1ApiPlans);
+                        return apisByDefinitionVersion.buffer(getBulkSize()).flatMap(this::fetchV1ApiPlans);
                     } else {
                         return apisByDefinitionVersion.flatMapSingle(this::fetchV2ApiPlans);
                     }

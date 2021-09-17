@@ -47,9 +47,6 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Value("${services.sync.bulk_items:100}")
-    protected int bulkItems = 100;
-
     public void synchronize(long lastRefreshAt, long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();
         final Long count;
@@ -59,7 +56,6 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         } else {
             count =
                 this.searchLatestEvents(
-                        bulkItems,
                         lastRefreshAt,
                         nextLastRefreshAt,
                         DICTIONARY_ID,
@@ -83,7 +79,6 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
 
     private long initialSynchronizeDictionaries(long nextLastRefreshAt, List<String> environments) {
         return this.searchLatestEvents(
-                bulkItems,
                 null,
                 nextLastRefreshAt,
                 DICTIONARY_ID,

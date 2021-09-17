@@ -20,11 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.Event;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
-import io.gravitee.gateway.debug.handler.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApi;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.DefaultReactor;
+import io.gravitee.gateway.reactor.impl.ReactableWrapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
@@ -33,10 +34,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,86 +70,97 @@ public class DebugReactor extends DefaultReactor {
     public void onEvent(Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
             logger.info("Deploy api for debug...");
+            ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = (ReactableWrapper<io.gravitee.repository.management.model.Event>) reactorEvent.content();
+            io.gravitee.repository.management.model.Event debugEvent = reactableWrapper.getContent();
+            DebugApi reactableDebugApi = toReactableDebugApi(reactableWrapper.getContent());
+            if (reactableDebugApi != null) {
+                if (reactorHandlerRegistry.contains(reactableDebugApi)) {
+                    logger.debug("Reactable already deployed. No need to do it again.");
+                    return;
+                }
 
-            if (reactorHandlerRegistry.contains(reactorEvent.content())) {
-                logger.debug("Reactable already deployed. No need to do it again.");
-                return;
-            }
+                logger.debug("Creating ReactorHandler");
+                reactorHandlerRegistry.create(reactableDebugApi);
 
-            logger.debug("Creating ReactorHandler");
-            reactorHandlerRegistry.create(reactorEvent.content());
+                try {
+                    HttpRequest req = reactableDebugApi.getRequest();
+                    HttpResponse response = new HttpResponse();
 
-            DebugApi debugApi = (DebugApi) reactorEvent.content();
-            Optional<io.gravitee.repository.management.model.Event> eventOptional;
-            try {
-                eventOptional = eventRepository.findById(debugApi.getEventId());
-            } catch (TechnicalException e) {
-                logger.error("An error occurred when searching event {}, removing the handler.", debugApi.getEventId(), e);
-                reactorHandlerRegistry.remove(reactorEvent.content());
-                return;
-            }
+                    updateEvent(debugEvent, ApiDebugStatus.DEBUGGING);
 
-            if (eventOptional.isEmpty()) {
-                logger.error("No event found for id {}, removing the handler.", debugApi.getEventId());
-                reactorHandlerRegistry.remove(reactorEvent.content());
-                return;
-            }
+                    logger.info("Sending request to debug...");
+                    HttpClient httpClient = vertx.createHttpClient();
+                    Future<HttpClientRequest> requestFuture = prepareRequest(reactableDebugApi, req, httpClient);
 
-            io.gravitee.repository.management.model.Event debugEvent = eventOptional.get();
-            try {
-                HttpRequest req = debugApi.getRequest();
-                HttpResponse response = new HttpResponse();
+                    requestFuture
+                        .flatMap(reqEvent -> req.getBody() == null ? reqEvent.send() : reqEvent.send(req.getBody()))
+                        .flatMap(
+                            result -> {
+                                Map<String, List<String>> headers = convertHeaders(result.headers());
 
-                updateEvent(debugEvent, ApiDebugStatus.DEBUGGING);
+                                response.setHeaders(headers);
+                                response.statusCode(result.statusCode());
 
-                logger.info("Sending request to debug...");
-                HttpClient httpClient = vertx.createHttpClient();
-                Future<HttpClientRequest> requestFuture = prepareRequest(debugApi, req, httpClient);
+                                logger.debug("Response status: {}", result.statusCode());
 
-                requestFuture
-                    .flatMap(reqEvent -> req.getBody() == null ? reqEvent.send() : reqEvent.send(req.getBody()))
-                    .flatMap(
-                        result -> {
-                            Map<String, List<String>> headers = convertHeaders(result.headers());
-
-                            response.setHeaders(headers);
-                            response.statusCode(result.statusCode());
-
-                            logger.debug("Response status: {}", result.statusCode());
-
-                            return result.body();
-                        }
-                    )
-                    .onSuccess(
-                        bodyEvent -> {
-                            try {
-                                response.setBody(bodyEvent.toString());
-                                logger.debug("Response body: {}", bodyEvent);
-                                debugApi.setResponse(response);
-                                debugEvent.setPayload(objectMapper.writeValueAsString(convert(debugApi)));
-                                updateEvent(debugEvent, ApiDebugStatus.SUCCESS);
-                            } catch (TechnicalException | JsonProcessingException e) {
-                                logger.error("Error when saving debug response...");
-                                failEvent(debugEvent);
-                            } finally {
-                                logger.info("Debugging successful, removing the handler.");
-                                reactorHandlerRegistry.remove(reactorEvent.content());
-                                logger.info("The debug handler has been removed");
+                                return result.body();
                             }
-                        }
-                    )
-                    .onFailure(
-                        throwable -> {
-                            logger.error("Debugging API has failed, removing the handler.", throwable);
-                            reactorHandlerRegistry.remove(reactorEvent.content());
-                            failEvent(debugEvent);
-                        }
+                        )
+                        .onSuccess(
+                            bodyEvent -> {
+                                try {
+                                    response.setBody(bodyEvent.toString());
+                                    logger.debug("Response body: {}", bodyEvent);
+                                    reactableDebugApi.setResponse(response);
+                                    debugEvent.setPayload(objectMapper.writeValueAsString(convert(reactableDebugApi)));
+                                    updateEvent(debugEvent, ApiDebugStatus.SUCCESS);
+                                } catch (TechnicalException | JsonProcessingException e) {
+                                    logger.error("Error when saving debug response...");
+                                    failEvent(debugEvent);
+                                } finally {
+                                    logger.info("Debugging successful, removing the handler.");
+                                    reactorHandlerRegistry.remove(reactableDebugApi);
+                                    logger.info("The debug handler has been removed");
+                                }
+                            }
+                        )
+                        .onFailure(
+                            throwable -> {
+                                logger.error("Debugging API has failed, removing the handler.", throwable);
+                                reactorHandlerRegistry.remove(reactableDebugApi);
+                                failEvent(debugEvent);
+                            }
+                        );
+                } catch (TechnicalException e) {
+                    logger.error(
+                        "An error occurred when debugging api for event {}, removing the handler.",
+                        reactableDebugApi.getEventId(),
+                        e
                     );
-            } catch (TechnicalException e) {
-                logger.error("An error occurred when debugging api for event {}, removing the handler.", debugApi.getEventId(), e);
-                reactorHandlerRegistry.remove(reactorEvent.content());
-                failEvent(debugEvent);
+                    reactorHandlerRegistry.remove(reactableDebugApi);
+                    failEvent(debugEvent);
+                }
             }
+        }
+    }
+
+    private DebugApi toReactableDebugApi(io.gravitee.repository.management.model.Event event) {
+        try {
+            // Read API definition from event
+            io.gravitee.definition.model.DebugApi eventPayload = objectMapper.readValue(
+                event.getPayload(),
+                io.gravitee.definition.model.DebugApi.class
+            );
+
+            DebugApi debugApi = new DebugApi(event.getId(), eventPayload);
+            debugApi.setEnabled(true);
+            debugApi.setDeployedAt(new Date());
+
+            return debugApi;
+        } catch (Exception e) {
+            // Log the error and ignore this event.
+            logger.error("Unable to extract api definition from event [{}].", event.getId());
+            return null;
         }
     }
 
@@ -179,7 +188,7 @@ public class DebugReactor extends DefaultReactor {
                     .setMethod(HttpMethod.valueOf(req.getMethod()))
                     .setPort(port)
                     .setHeaders(buildHeaders(debugApi, req))
-                    // FIXME: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
+                    // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
                     .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + req.getPath())
                     .setTimeout(5000)
             )
@@ -198,7 +207,7 @@ public class DebugReactor extends DefaultReactor {
         if (debugApi.getProxy().getVirtualHosts().size() > 1) {
             String host = debugApi.getProxy().getVirtualHosts().get(0).getHost();
             if (host != null) {
-                // FIXME: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
+                // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
                 headers.add(io.gravitee.common.http.HttpHeaders.HOST, host);
             }
         }
