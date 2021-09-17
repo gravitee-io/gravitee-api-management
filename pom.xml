@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.gateway</groupId>
     <artifactId>gravitee-gateway</artifactId>
-    <version>3.10.2-SNAPSHOT</version>
+    <version>3.10.2</version>
     <packaging>pom</packaging>
     <name>Gravitee.io APIM - Gateway</name>
 
@@ -253,7 +253,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-gateway-standalone-container -->
         <vertx.version>4.1.3</vertx.version>
         <gravitee-bom.version>1.4</gravitee-bom.version>
-        <gravitee-api-management.version>3.10.1</gravitee-api-management.version>
+        <gravitee-api-management.version>3.10.2</gravitee-api-management.version>
         <gravitee-node.version>1.14.1</gravitee-node.version>
         <gravitee-definition.version>1.28.1</gravitee-definition.version>
         <gravitee-common.version>1.19.3</gravitee-common.version>
