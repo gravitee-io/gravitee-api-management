@@ -36,7 +36,15 @@ module.exports = {
       {
         test: /\.(scss)$/,
         exclude: [path.resolve(__dirname, '../src/index.scss')],
-        use: ['to-string-loader', 'css-loader', 'sass-loader'],
+        use: ['to-string-loader', 'css-loader', {
+          loader: 'sass-loader',
+            options: {
+              webpackImporter: false,
+              sassOptions: {
+                includePaths: ['node_modules'],
+              },
+          },
+        }],
       },
       { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       {
