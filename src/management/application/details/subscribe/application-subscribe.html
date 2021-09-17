@@ -16,13 +16,13 @@
 
 -->
 
-<div class="gv-forms" layout="column">
+<div class="application-subscribe gv-forms" layout="column">
   <application-header application="$ctrl.application" hide-subscribe-link="true"></application-header>
-  <div layout="column" layout-align="space-around center" class="layout-padding">
-    <div layout="row" layout-align="space-around center" class="layout-padding" style="width: 100%">
+  <div class="layout-padding application-subscribe__content">
+    <div class="application-subscribe__content__api-selector-container">
       <md-autocomplete
+        class="application-subscribe__content__api-selector-container__selector"
         md-input-id="new-view-apis-autocomplete-id"
-        flex="70"
         md-search-text="$ctrl.filterAPI"
         md-selected-item-change="$ctrl.onSelectAPI(api)"
         md-items="api in $ctrl.apis | filter:$ctrl.filterAPI"
@@ -43,8 +43,7 @@
         <md-not-found> No API matching "{{$ctrl.filterAPI}}" were found. </md-not-found>
       </md-autocomplete>
     </div>
-
-    <div class="gv-forms" style="width: 100%">
+    <div class="gv-forms application-subscribe__content__subscribed-api">
       <div class="gv-form">
         <div class="gv-form-content">
           <gravitee-empty-state
