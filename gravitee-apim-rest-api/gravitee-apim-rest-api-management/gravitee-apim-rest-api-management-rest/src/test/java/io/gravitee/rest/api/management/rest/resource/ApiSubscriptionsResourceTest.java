@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -24,6 +24,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import javax.ws.rs.core.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +40,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     private static final String APP_NAME = "my-app";
     private static final String PLAN_NAME = "my-plan";
     private static final String FAKE_SUBSCRIPTION_ID = "subscriptionId";
+    private final String API_KEY = "my-api-key-123546";
 
     private SubscriptionEntity fakeSubscriptionEntity;
     private UserEntity fakeUserEntity;
@@ -57,6 +59,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         reset(planService);
         reset(applicationService);
         reset(parameterService);
+        reset(apiKeyService);
 
         fakeSubscriptionEntity = new SubscriptionEntity();
         fakeSubscriptionEntity.setId(FAKE_SUBSCRIPTION_ID);
@@ -145,5 +148,58 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         assertEquals(customApiKeyCaptor.getValue(), customApiKey);
         assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
         assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+    }
+
+    @Test
+    public void get_canCreate_should_return_http_400_if_key_query_param_omitted() {
+        Response response = envTarget("/_canCreate").queryParam("application", APP_NAME).request().get();
+
+        verifyNoInteractions(apiKeyService);
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void get_canCreate_should_return_http_400_if_key_query_param_is_invalid_format() {
+        Response response = envTarget("/_canCreate").queryParam("key", "short").queryParam("application", APP_NAME).request().get();
+
+        verifyNoInteractions(apiKeyService);
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void get_canCreate_should_return_http_400_if_application_query_param_omitted() {
+        Response response = envTarget("/_canCreate").queryParam("key", API_KEY).request().get();
+
+        verifyNoInteractions(apiKeyService);
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void get_canCreate_should_call_service_and_return_http_200_containing_true() {
+        when(apiKeyService.canCreate(API_KEY, API_NAME, APP_NAME)).thenReturn(true);
+
+        Response response = envTarget("/_canCreate").queryParam("key", API_KEY).queryParam("application", APP_NAME).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertTrue(response.readEntity(Boolean.class));
+    }
+
+    @Test
+    public void get_canCreate_should_call_service_and_return_http_200_containing_false() {
+        when(apiKeyService.canCreate(API_KEY, API_NAME, APP_NAME)).thenReturn(false);
+
+        Response response = envTarget("/_canCreate").queryParam("key", API_KEY).queryParam("application", APP_NAME).request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertFalse(response.readEntity(Boolean.class));
+    }
+
+    @Test
+    public void get_canCreate_should_return_http_500_on_exception() {
+        when(apiKeyService.canCreate(API_KEY, API_NAME, APP_NAME)).thenThrow(TechnicalManagementException.class);
+
+        Response response = envTarget("/_canCreate").queryParam("key", API_KEY).queryParam("application", APP_NAME).request().get();
+
+        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatus());
     }
 }

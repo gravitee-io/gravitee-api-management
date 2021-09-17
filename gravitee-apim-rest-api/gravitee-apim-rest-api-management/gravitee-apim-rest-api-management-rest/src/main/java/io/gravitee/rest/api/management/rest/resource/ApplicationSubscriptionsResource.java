@@ -40,6 +40,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
 /**
@@ -49,6 +51,9 @@ import javax.ws.rs.core.Response;
  */
 @Api(tags = { "Application Subscriptions" })
 public class ApplicationSubscriptionsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -160,105 +165,9 @@ public class ApplicationSubscriptionsResource extends AbstractResource {
         return result;
     }
 
-    @GET
     @Path("{subscription}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get subscription information", notes = "User must have the READ permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Subscription information", response = Subscription.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
-    public Subscription getApplicationSubscription(@PathParam("subscription") String subscription) {
-        return convert(subscriptionService.findById(subscription));
-    }
-
-    @DELETE
-    @Path("{subscription}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(
-        value = "Close the subscription",
-        notes = "User must have the APPLICATION_SUBSCRIPTION[DELETE] permission to use this service"
-    )
-    @ApiResponses(
-        {
-            @ApiResponse(code = 200, message = "Subscription has been closed successfully", response = Subscription.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
-    public Response closeApplicationSubscription(@PathParam("subscription") String subscriptionId) {
-        SubscriptionEntity subscription = subscriptionService.findById(subscriptionId);
-        if (subscription.getApplication().equals(application)) {
-            return Response.ok(convert(subscriptionService.close(subscriptionId))).build();
-        }
-
-        return Response.status(Response.Status.FORBIDDEN).build();
-    }
-
-    @GET
-    @Path("{subscription}/keys")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List all API Keys for a subscription", notes = "User must have the READ permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(
-                code = 200,
-                message = "List of API Keys for a subscription",
-                response = ApiKeyEntity.class,
-                responseContainer = "Set"
-            ),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
-    public List<ApiKeyEntity> getApiKeysForApplicationSubscription(@PathParam("subscription") String subscription) {
-        return apiKeyService.findBySubscription(subscription);
-    }
-
-    @POST
-    @Path("{subscription}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Renew an API key", notes = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 201, message = "A new API Key", response = ApiKeyEntity.class),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
-    public Response renewApiKeyForApplicationSubscription(@PathParam("subscription") String subscription) {
-        ApiKeyEntity apiKeyEntity = apiKeyService.renew(subscription);
-        return Response.created(this.getLocationHeader("keys", apiKeyEntity.getKey())).entity(apiKeyEntity).build();
-    }
-
-    @DELETE
-    @Path("{subscription}/keys/{key}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke an API key", notes = "User must have the MANAGE_API_KEYS permission to use this service")
-    @ApiResponses(
-        {
-            @ApiResponse(code = 204, message = "API key successfully revoked"),
-            @ApiResponse(code = 400, message = "API Key does not correspond to the subscription"),
-            @ApiResponse(code = 500, message = "Internal server error"),
-        }
-    )
-    @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
-    public Response revokeApiKeyForApplicationSubscription(
-        @PathParam("subscription") String subscription,
-        @PathParam("key") String apiKey
-    ) {
-        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
-        ApiKeyEntity apiKeyEntity = apiKeyService.findByKeyAndApi(apiKey, subscriptionEntity.getApi());
-        if (apiKeyEntity.getSubscription() != null && !subscription.equals(apiKeyEntity.getSubscription())) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("'key' parameter does not correspond to the subscription").build();
-        }
-
-        apiKeyService.revoke(apiKeyEntity, true);
-
-        return Response.status(Response.Status.NO_CONTENT).build();
+    public ApplicationSubscriptionResource getApplicationSubscriptionResource() {
+        return resourceContext.getResource(ApplicationSubscriptionResource.class);
     }
 
     private Subscription convert(SubscriptionEntity subscriptionEntity) {

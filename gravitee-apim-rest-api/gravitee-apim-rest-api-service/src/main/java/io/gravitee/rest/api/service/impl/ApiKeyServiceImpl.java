@@ -286,6 +286,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     }
 
     @Override
+    public ApiKeyEntity findById(String keyId) {
+        try {
+            return apiKeyRepository.findById(keyId).map(ApiKeyServiceImpl::convert).orElseThrow(() -> new ApiKeyNotFoundException());
+        } catch (TechnicalException e) {
+            String message = String.format("An error occurs while trying to find a key with id %s", keyId);
+            LOGGER.error(message, e);
+            throw new TechnicalManagementException(message, e);
+        }
+    }
+
+    @Override
     public List<ApiKeyEntity> findByKey(String apiKey) {
         try {
             LOGGER.debug("Find API Keys by key");

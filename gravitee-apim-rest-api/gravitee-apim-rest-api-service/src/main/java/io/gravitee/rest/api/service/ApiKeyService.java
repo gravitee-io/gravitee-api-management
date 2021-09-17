@@ -48,6 +48,8 @@ public interface ApiKeyService {
 
     List<ApiKeyEntity> findByKey(String apiKey);
 
+    ApiKeyEntity findById(String keyId);
+
     ApiKeyEntity findByKeyAndApi(String apiKey, String apiId);
 
     void delete(String apiKey);

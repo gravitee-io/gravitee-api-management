@@ -197,6 +197,30 @@ public class ApiSubscriptionsResource extends AbstractResource {
             .build();
     }
 
+    @GET
+    @Path("_canCreate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiOperation(
+        value = "Check a subscription can be created with given api key, and application",
+        notes = "User must have the API_SUBSCRIPTION:READ permission to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(code = 200, message = "API Key creation successfully checked", response = Boolean.class),
+            @ApiResponse(code = 400, message = "Bad API Key parameter"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
+    @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
+    public Response verifyApiKeyCreation(
+        @ApiParam(name = "key", required = true) @CustomApiKey @NotNull @QueryParam("key") String key,
+        @ApiParam(name = "application", required = true) @NotNull @QueryParam("application") String application
+    ) {
+        boolean canCreate = apiKeyService.canCreate(key, api, application);
+        return Response.ok(canCreate).build();
+    }
+
     @Path("{subscription}")
     public ApiSubscriptionResource getApiSubscriptionResource() {
         return resourceContext.getResource(ApiSubscriptionResource.class);

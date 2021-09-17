@@ -37,7 +37,7 @@ import javax.ws.rs.core.Response;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  *
- * @deprecated Use KeysResource instead
+ * @deprecated Use ApiSubscriptionKeysResource instead
  */
 @Deprecated(forRemoval = true, since = "v3.12")
 @Api(tags = { "API Keys" })
@@ -59,7 +59,7 @@ public class ApiKeysResource extends AbstractResource {
     @Path("{key}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-        value = "Deprecated, use DELETE /keys/{keyId} endpoint instead",
+        value = "Deprecated, use DELETE /apis/{apiId}/subscriptions/{subscriptionId}/apikeys/{keyId} endpoint instead",
         notes = "User must have the API_SUBSCRIPTION:DELETE permission to use this service"
     )
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
@@ -75,7 +75,7 @@ public class ApiKeysResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-        value = "Deprecated, use PUT /keys/{keyId} endpoint instead",
+        value = "Deprecated, use PUT /apis/{apiId}/subscriptions/{subscriptionId}/apikeys/{keyId} endpoint instead",
         notes = "User must have the API_SUBSCRIPTION:UPDATE permission to use this service"
     )
     @ApiResponses(
@@ -107,7 +107,7 @@ public class ApiKeysResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-        value = "Deprecated, use GET /keys/_canCreate endpoint instead",
+        value = "Deprecated, use GET /apis/{apiId}/subscriptions/_canCreate endpoint instead",
         notes = "User must have the API_SUBSCRIPTION:READ permission to use this service"
     )
     @ApiResponses(

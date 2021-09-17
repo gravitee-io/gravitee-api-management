@@ -35,6 +35,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
+import javax.ws.rs.container.ResourceContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,6 +46,9 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Api(tags = { "API Subscriptions" })
 public class ApiSubscriptionResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -174,11 +179,12 @@ public class ApiSubscriptionResource extends AbstractResource {
         }
     }
 
+    @Deprecated(forRemoval = true, since = "v3.12")
     @GET
     @Path("/keys")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(
-        value = "List all API Keys for a subscription",
+        value = "Deprecated, use GET /apis/{apiId}/subscriptions/{subscriptionId}/apikeys instead",
         notes = "User must have the MANAGE_API_KEYS permission to use this service"
     )
     @ApiResponses(
@@ -197,9 +203,13 @@ public class ApiSubscriptionResource extends AbstractResource {
         return apiKeyService.findBySubscription(subscription);
     }
 
+    @Deprecated(forRemoval = true, since = "v3.12")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Renew an API key", notes = "User must have the MANAGE_API_KEYS permission to use this service")
+    @ApiOperation(
+        value = "Deprecated, use POST /apis/{apiId}/subscriptions/{subscriptionId}/apikeys/_renew instead",
+        notes = "User must have the MANAGE_API_KEYS permission to use this service"
+    )
     @ApiResponses(
         {
             @ApiResponse(code = 201, message = "A new API Key", response = ApiKeyEntity.class),
@@ -223,10 +233,14 @@ public class ApiSubscriptionResource extends AbstractResource {
         return Response.created(this.getLocationHeader("keys", apiKeyEntity.getKey())).entity(apiKeyEntity).build();
     }
 
+    @Deprecated(forRemoval = true, since = "v3.12")
     @DELETE
     @Path("/keys/{key}")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Revoke an API key", notes = "User must have the API_SUBSCRIPTION permission to use this service")
+    @ApiOperation(
+        value = "Deprecated, use DELETE /apis/{apiId}/subscriptions/{subscriptionId}/apikeys/{apiKeyId} instead",
+        notes = "User must have the API_SUBSCRIPTION permission to use this service"
+    )
     @ApiResponses(
         {
             @ApiResponse(code = 204, message = "API key successfully revoked"),
@@ -246,10 +260,14 @@ public class ApiSubscriptionResource extends AbstractResource {
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 
+    @Deprecated(forRemoval = true, since = "v3.12")
     @POST
     @Path("/keys/{key}/_reactivate")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Reactivate an API key", notes = "User must have the API_SUBSCRIPTION permission to use this service")
+    @ApiOperation(
+        value = "Deprecated, use POST /apis/{apiId}/subscriptions/{subscriptionId}/apikeys/{apiKeyId}/_reactivate instead",
+        notes = "User must have the API_SUBSCRIPTION permission to use this service"
+    )
     @ApiResponses(
         {
             @ApiResponse(code = 204, message = "API key successfully reactivated"),
@@ -340,5 +358,10 @@ public class ApiSubscriptionResource extends AbstractResource {
         subscription.setPausedAt(subscriptionEntity.getPausedAt());
 
         return subscription;
+    }
+
+    @Path("apikeys")
+    public ApiSubscriptionApiKeysResource getApiSubscriptionApiKeysResourceResource() {
+        return resourceContext.getResource(ApiSubscriptionApiKeysResource.class);
     }
 }

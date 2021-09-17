@@ -24,16 +24,13 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.rest.api.model.*;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiKeyServiceImpl;
 import io.gravitee.rest.api.service.notification.ApiHook;
-import io.swagger.annotations.ApiModel;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.swing.text.html.Option;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -682,6 +679,31 @@ public class ApiKeyServiceTest {
         assertEquals(2, apiKeyEntities.size());
         assertEquals("api-key-1-id", apiKeyEntities.get(0).getId());
         assertEquals("api-key-2-id", apiKeyEntities.get(1).getId());
+    }
+
+    @Test(expected = TechnicalManagementException.class)
+    public void findById_should_throw_technicalManagementException_when_exception_thrown() throws TechnicalException {
+        when(apiKeyRepository.findById("apiKey")).thenThrow(TechnicalException.class);
+
+        apiKeyService.findById("apiKey");
+    }
+
+    @Test(expected = ApiKeyNotFoundException.class)
+    public void findById_should_throw_ApiKeyNotFoundException_when_not_found() throws TechnicalException {
+        when(apiKeyRepository.findById("apiKey")).thenReturn(Optional.empty());
+
+        apiKeyService.findById("apiKey");
+    }
+
+    @Test
+    public void findById_should_convert_to_entity_and_return() throws TechnicalException {
+        ApiKey apiKey1 = new ApiKey();
+        apiKey1.setId("api-key-1-id");
+        when(apiKeyRepository.findById("apiKey")).thenReturn(Optional.of(apiKey1));
+
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById("apiKey");
+
+        assertEquals("api-key-1-id", apiKeyEntity.getId());
     }
 
     @Test(expected = TechnicalManagementException.class)
