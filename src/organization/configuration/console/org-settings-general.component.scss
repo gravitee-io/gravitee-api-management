@@ -4,31 +4,37 @@
   @include gio-responsive-margin-container;
 }
 
-.console-settings {
-  &__info {
-    display: flex;
-    align-items: center;
-  }
+.settings-general {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
 
-  &__card {
-    margin-bottom: 16px;
-
-    &__form-field {
-      width: 100%;
+  &__form {
+    &__info {
+      display: flex;
+      align-items: center;
     }
 
-    &__checkbox-section {
-      ul {
-        list-style-type: none;
-        margin-top: 4px;
+    &__card {
+      margin-bottom: 16px;
+
+      &__form-field {
+        width: 100%;
+      }
+
+      &__checkbox-section {
+        ul {
+          list-style-type: none;
+          margin-top: 4px;
+        }
       }
     }
-  }
 
-  &__actions {
-    display: flex;
-    flex-direction: row;
-    justify-content: right;
-    margin-top: 16px;
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: right;
+      margin-top: 16px;
+    }
   }
 }

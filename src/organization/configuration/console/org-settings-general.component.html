@@ -15,352 +15,360 @@
     limitations under the License.
 
 -->
-<form *ngIf="!isLoading" [formGroup]="formSettings" (ngSubmit)="onSubmit()">
-  <h1>Settings</h1>
-  <h4>
-    Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
-    information.
-  </h4>
+<div class="settings-general" #container>
+  <form *ngIf="!isLoading" class="settings-general__form" [formGroup]="formSettings" (ngSubmit)="onSubmit()">
+    <h1>Settings</h1>
+    <h4>
+      Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
+      information.
+    </h4>
 
-  <mat-card class="console-settings__card" formGroupName="management">
-    <h2>Management</h2>
+    <mat-card class="settings-general__form__card" formGroupName="management">
+      <h2 tableOfContents>Management</h2>
 
-    <mat-card-content>
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Title</mat-label>
-        <input #managementTitleInput matInput formControlName="title" />
-        <mat-icon *ngIf="managementTitleInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Management URL</mat-label>
-        <input #managementUrlInput matInput formControlName="url" />
-        <mat-icon *ngIf="managementUrlInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <section class="console-settings__card__checkbox-section">
-        <ng-container formGroupName="support">
-          <mat-checkbox
-            #managementSupportCheckbox
-            formControlName="enabled"
-            aria-label="Support"
-            [matTooltip]="providedConfigurationMessage"
-            [matTooltipDisabled]="!managementSupportCheckbox.disabled"
-            >Activate Support</mat-checkbox
-          >
-        </ng-container>
-      </section>
-      <section class="console-settings__card__checkbox-section">
-        <ng-container formGroupName="userCreation">
-          <mat-checkbox
-            #managementUserCreationCheckbox
-            formControlName="enabled"
-            aria-label="Allow user creation"
-            [matTooltip]="providedConfigurationMessage"
-            [matTooltipDisabled]="!managementUserCreationCheckbox.disabled"
-            >Allow User Registration</mat-checkbox
-          >
-        </ng-container>
-        <ul>
-          <li>
-            <ng-container formGroupName="automaticValidation">
-              <mat-checkbox
-                #managementAutomaticValidationCheckbox
-                formControlName="enabled"
-                aria-label="Enable auto validation of creation"
-                [matTooltip]="providedConfigurationMessage"
-                [matTooltipDisabled]="!managementAutomaticValidationCheckbox.disabled"
-                >Enable automatic validation of registration requests</mat-checkbox
-              >
-            </ng-container>
-          </li>
-        </ul>
-      </section>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="console-settings__card" formGroupName="theme">
-    <h2>Theme</h2>
-    <mat-card-content>
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Name</mat-label>
-        <input #themeNameInput matInput formControlName="name" />
-        <mat-icon *ngIf="themeNameInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Logo</mat-label>
-        <input #themeLogoInput matInput formControlName="logo" />
-        <mat-icon *ngIf="themeLogoInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Loader</mat-label>
-        <input #themeLoaderInput matInput formControlName="loader" />
-        <mat-icon *ngIf="themeLoaderInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="console-settings__card" formGroupName="scheduler">
-    <h2>Schedulers</h2>
-    <mat-card-content>
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Tasks (in seconds)</mat-label>
-        <input #schedulerTasksInput matInput formControlName="tasks" type="number" min="0" />
-        <mat-icon *ngIf="schedulerTasksInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Notifications (in seconds)</mat-label>
-        <input #schedulerNotificationsInput matInput formControlName="notifications" type="number" min="0" />
-        <mat-icon *ngIf="schedulerNotificationsInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="console-settings__card" formGroupName="alert">
-    <h2>Alerting</h2>
-    <mat-card-content>
-      <section class="console-settings__card__checkbox-section">
-        <mat-checkbox
-          #alertCheckbox
-          aria-label="Alerting enabled"
-          formControlName="enabled"
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!alertCheckbox.disabled"
-          >Enable Alerting</mat-checkbox
-        >
-      </section>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="console-settings__card" formGroupName="cors">
-    <h2>CORS</h2>
-    <mat-card-content>
-      <mat-form-field
-        *ngIf="formSettings.get('cors.allowOrigin'); let allowOriginFormControl"
-        class="console-settings__card__form-field"
-        appearance="fill"
-      >
-        <mat-label>Allow-Origin</mat-label>
-        <mat-chip-list #allowOriginChipList aria-label="Allow-Origin selection" multiple [disabled]="allowOriginFormControl.disabled">
-          <mat-chip
-            *ngFor="let origin of allowOriginFormControl.value"
-            [selectable]="false"
-            [removable]="!allowOriginFormControl.disabled"
-            (removed)="removeChipToFormControl(origin, 'cors.allowOrigin', allowOriginChipList)"
-          >
-            {{ origin }}
-            <mat-icon *ngIf="!allowOriginFormControl.disabled" matChipRemove>cancel</mat-icon>
-          </mat-chip>
-          <input
-            *ngIf="!allowOriginFormControl.disabled"
-            #allowOriginInput
-            placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
-            [matChipInputFor]="allowOriginChipList"
-            [matChipInputAddOnBlur]="true"
-            (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowOrigin', allowOriginChipList); confirmAllowAllOrigins($event)"
-          />
-        </mat-chip-list>
-        <mat-error *ngIf="allowOriginFormControl.errors?.allowOrigin">{{ allowOriginFormControl.errors?.allowOrigin }}</mat-error>
-        <mat-hint>
-          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
-          <em>same-origin</em> definition.<br />
-          If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
-        </mat-hint>
-        <mat-icon *ngIf="allowOriginFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field class="console-settings__card__form-field" appearance="fill">
-        <mat-label>Access-Control-Allow-Methods</mat-label>
-        <mat-select #allowMethodsSelect formControlName="allowMethods" multiple>
-          <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
-        </mat-select>
-        <mat-hint>
-          Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
-        </mat-hint>
-        <mat-icon *ngIf="allowMethodsSelect.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field
-        *ngIf="formSettings.get('cors.allowHeaders'); let allowHeadersFormControl"
-        class="console-settings__card__form-field"
-        appearance="fill"
-      >
-        <mat-label>Allow-Headers</mat-label>
-        <mat-chip-list #allowHeadersChipList aria-label="Allow-Headers selection" multiple [disabled]="allowHeadersFormControl.disabled">
-          <mat-chip
-            *ngFor="let header of allowHeadersFormControl.value"
-            [selectable]="false"
-            [removable]="!allowHeadersFormControl.disabled"
-            (removed)="removeChipToFormControl(header, 'cors.allowHeaders', allowHeadersChipList)"
-          >
-            {{ header }}
-            <mat-icon *ngIf="!allowHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
-          </mat-chip>
-          <input
-            *ngIf="!allowHeadersFormControl.disabled"
-            placeholder="Content-Type, ..."
-            [formControl]="allowHeadersInputFormControl"
-            [matAutocomplete]="auto"
-            [matChipInputFor]="allowHeadersChipList"
-            [matChipInputAddOnBlur]="true"
-            (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowHeaders', allowHeadersChipList)"
-          />
-        </mat-chip-list>
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.allowHeaders')">
-          <mat-option *ngFor="let defaultHeader of allowHeadersFilteredOptions$ | async" [value]="defaultHeader">
-            {{ defaultHeader }}
-          </mat-option>
-        </mat-autocomplete>
-        <mat-hint>
-          Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
-        </mat-hint>
-        <mat-icon *ngIf="allowHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field
-        *ngIf="formSettings.get('cors.exposedHeaders'); let exposedHeadersFormControl"
-        class="console-settings__card__form-field"
-        appearance="fill"
-      >
-        <mat-label>Exposed-Headers</mat-label>
-        <mat-chip-list
-          #exposedHeadersChipList
-          aria-label="Exposed-Headers selection"
-          multiple
-          [disabled]="exposedHeadersFormControl.disabled"
-        >
-          <mat-chip
-            *ngFor="let header of exposedHeadersFormControl.value"
-            [selectable]="false"
-            [removable]="!exposedHeadersFormControl.disabled"
-            (removed)="removeChipToFormControl(header, 'cors.exposedHeaders', exposedHeadersChipList)"
-          >
-            {{ header }}
-            <mat-icon *ngIf="!exposedHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
-          </mat-chip>
-          <input
-            *ngIf="!exposedHeadersFormControl.disabled"
-            placeholder="Content-Type, ..."
-            [formControl]="exposedHeadersInputFormControl"
-            [matAutocomplete]="auto"
-            [matChipInputFor]="exposedHeadersChipList"
-            [matChipInputAddOnBlur]="true"
-            (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.exposedHeaders', exposedHeadersChipList)"
-          />
-        </mat-chip-list>
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.exposedHeaders')">
-          <mat-option *ngFor="let defaultHeader of exposedHeadersFilteredOptions$ | async" [value]="defaultHeader">
-            {{ defaultHeader }}
-          </mat-option>
-        </mat-autocomplete>
-        <mat-hint>
-          Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
-        </mat-hint>
-        <mat-icon *ngIf="exposedHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></mat-label>
-        <input #maxAgeInput matInput formControlName="maxAge" type="number" min="0" />
-        <mat-icon *ngIf="maxAgeInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="console-settings__card" formGroupName="email">
-    <h2>SMTP</h2>
-    <mat-card-content>
-      <section class="console-settings__card__checkbox-section">
-        <mat-checkbox
-          #emailEnabledCheckbox
-          formControlName="enabled"
-          aria-label="Email enabled"
-          [matTooltip]="providedConfigurationMessage"
-          [matTooltipDisabled]="!emailEnabledCheckbox.disabled"
-          >Enable Emailing</mat-checkbox
-        >
-      </section>
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Host</mat-label>
-        <input #emailHostInput matInput formControlName="host" />
-        <mat-icon *ngIf="emailHostInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Port</mat-label>
-        <input #emailPortInput matInput formControlName="port" type="number" min="0" />
-        <mat-icon *ngIf="emailPortInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Username</mat-label>
-        <input #emailUsernameInput matInput formControlName="username" />
-        <mat-icon *ngIf="emailUsernameInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Password</mat-label>
-        <input #emailPasswordInput matInput formControlName="password" type="password" />
-        <mat-icon *ngIf="emailPasswordInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Protocol</mat-label>
-        <input #emailProtocolInput matInput formControlName="protocol" />
-        <mat-icon *ngIf="emailProtocolInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>Subject</mat-label>
-        <input #emailSubjectInput matInput formControlName="subject" />
-        <mat-icon *ngIf="emailSubjectInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="fill" class="console-settings__card__form-field">
-        <mat-label>From</mat-label>
-        <input #emailFromInput matInput formControlName="from" type="email" />
-        <mat-icon *ngIf="emailFromInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
-      </mat-form-field>
-
-      <mat-divider [inset]="true"></mat-divider>
-
-      <h3>Mail properties</h3>
-      <ng-container formGroupName="properties">
-        <section class="console-settings__card__checkbox-section">
-          <mat-checkbox
-            #emailPropertiesAuthCheckbox
-            formControlName="auth"
-            aria-label="Alerting enabled"
-            [matTooltip]="providedConfigurationMessage"
-            [matTooltipDisabled]="!emailPropertiesAuthCheckbox.disabled"
-            >Enable Auth</mat-checkbox
-          >
-        </section>
-
-        <section class="console-settings__card__checkbox-section">
-          <mat-checkbox
-            #emailPropertiesStartTlsEnableCheckbox
-            formControlName="startTlsEnable"
-            aria-label="Start TLS enabled"
-            [matTooltip]="providedConfigurationMessage"
-            [matTooltipDisabled]="!emailPropertiesStartTlsEnableCheckbox.disabled"
-            >Enable Start TLS</mat-checkbox
-          >
-        </section>
-
-        <mat-form-field appearance="fill" class="console-settings__card__form-field">
-          <mat-label>SSL Trust</mat-label>
-          <input #emailPropertiesSslTrustInput matInput formControlName="sslTrust" />
-          <mat-icon *ngIf="emailPropertiesSslTrustInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+      <mat-card-content>
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Title</mat-label>
+          <input #managementTitleInput matInput formControlName="title" />
+          <mat-icon *ngIf="managementTitleInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
-      </ng-container>
-    </mat-card-content>
-  </mat-card>
 
-  <div class="console-settings__actions">
-    <button mat-raised-button color="primary" type="submit" [disabled]="formSettings.invalid">Save</button>
-  </div>
-</form>
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Management URL</mat-label>
+          <input #managementUrlInput matInput formControlName="url" />
+          <mat-icon *ngIf="managementUrlInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <section class="settings-general__form__card__checkbox-section">
+          <ng-container formGroupName="support">
+            <mat-checkbox
+              #managementSupportCheckbox
+              formControlName="enabled"
+              aria-label="Support"
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!managementSupportCheckbox.disabled"
+              >Activate Support</mat-checkbox
+            >
+          </ng-container>
+        </section>
+        <section class="settings-general__form__card__checkbox-section">
+          <ng-container formGroupName="userCreation">
+            <mat-checkbox
+              #managementUserCreationCheckbox
+              formControlName="enabled"
+              aria-label="Allow user creation"
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!managementUserCreationCheckbox.disabled"
+              >Allow User Registration</mat-checkbox
+            >
+          </ng-container>
+          <ul>
+            <li>
+              <ng-container formGroupName="automaticValidation">
+                <mat-checkbox
+                  #managementAutomaticValidationCheckbox
+                  formControlName="enabled"
+                  aria-label="Enable auto validation of creation"
+                  [matTooltip]="providedConfigurationMessage"
+                  [matTooltipDisabled]="!managementAutomaticValidationCheckbox.disabled"
+                  >Enable automatic validation of registration requests</mat-checkbox
+                >
+              </ng-container>
+            </li>
+          </ul>
+        </section>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="theme">
+      <h2 tableOfContents>Theme</h2>
+      <mat-card-content>
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Name</mat-label>
+          <input #themeNameInput matInput formControlName="name" />
+          <mat-icon *ngIf="themeNameInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Logo</mat-label>
+          <input #themeLogoInput matInput formControlName="logo" />
+          <mat-icon *ngIf="themeLogoInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Loader</mat-label>
+          <input #themeLoaderInput matInput formControlName="loader" />
+          <mat-icon *ngIf="themeLoaderInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="scheduler">
+      <h2 tableOfContents>Schedulers</h2>
+      <mat-card-content>
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Tasks (in seconds)</mat-label>
+          <input #schedulerTasksInput matInput formControlName="tasks" type="number" min="0" />
+          <mat-icon *ngIf="schedulerTasksInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Notifications (in seconds)</mat-label>
+          <input #schedulerNotificationsInput matInput formControlName="notifications" type="number" min="0" />
+          <mat-icon *ngIf="schedulerNotificationsInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="alert">
+      <h2 tableOfContents>Alerting</h2>
+      <mat-card-content>
+        <section class="settings-general__form__card__checkbox-section">
+          <mat-checkbox
+            #alertCheckbox
+            aria-label="Alerting enabled"
+            formControlName="enabled"
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!alertCheckbox.disabled"
+            >Enable Alerting</mat-checkbox
+          >
+        </section>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="cors">
+      <h2 tableOfContents>CORS</h2>
+      <mat-card-content>
+        <mat-form-field
+          *ngIf="formSettings.get('cors.allowOrigin'); let allowOriginFormControl"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-label>Allow-Origin</mat-label>
+          <mat-chip-list #allowOriginChipList aria-label="Allow-Origin selection" multiple [disabled]="allowOriginFormControl.disabled">
+            <mat-chip
+              *ngFor="let origin of allowOriginFormControl.value"
+              [selectable]="false"
+              [removable]="!allowOriginFormControl.disabled"
+              (removed)="removeChipToFormControl(origin, 'cors.allowOrigin', allowOriginChipList)"
+            >
+              {{ origin }}
+              <mat-icon *ngIf="!allowOriginFormControl.disabled" matChipRemove>cancel</mat-icon>
+            </mat-chip>
+            <input
+              *ngIf="!allowOriginFormControl.disabled"
+              #allowOriginInput
+              placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
+              [matChipInputFor]="allowOriginChipList"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowOrigin', allowOriginChipList); confirmAllowAllOrigins($event)"
+            />
+          </mat-chip-list>
+          <mat-error *ngIf="allowOriginFormControl.errors?.allowOrigin">{{ allowOriginFormControl.errors?.allowOrigin }}</mat-error>
+          <mat-hint>
+            The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
+            <em>same-origin</em> definition.<br />
+            If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
+          </mat-hint>
+          <mat-icon *ngIf="allowOriginFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field class="settings-general__form__card__form-field" appearance="fill">
+          <mat-label>Access-Control-Allow-Methods</mat-label>
+          <mat-select #allowMethodsSelect formControlName="allowMethods" multiple>
+            <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+          </mat-select>
+          <mat-hint>
+            Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
+          </mat-hint>
+          <mat-icon *ngIf="allowMethodsSelect.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field
+          *ngIf="formSettings.get('cors.allowHeaders'); let allowHeadersFormControl"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-label>Allow-Headers</mat-label>
+          <mat-chip-list #allowHeadersChipList aria-label="Allow-Headers selection" multiple [disabled]="allowHeadersFormControl.disabled">
+            <mat-chip
+              *ngFor="let header of allowHeadersFormControl.value"
+              [selectable]="false"
+              [removable]="!allowHeadersFormControl.disabled"
+              (removed)="removeChipToFormControl(header, 'cors.allowHeaders', allowHeadersChipList)"
+            >
+              {{ header }}
+              <mat-icon *ngIf="!allowHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
+            </mat-chip>
+            <input
+              *ngIf="!allowHeadersFormControl.disabled"
+              placeholder="Content-Type, ..."
+              [formControl]="allowHeadersInputFormControl"
+              [matAutocomplete]="auto"
+              [matChipInputFor]="allowHeadersChipList"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowHeaders', allowHeadersChipList)"
+            />
+          </mat-chip-list>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.allowHeaders')">
+            <mat-option *ngFor="let defaultHeader of allowHeadersFilteredOptions$ | async" [value]="defaultHeader">
+              {{ defaultHeader }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-hint>
+            Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+          </mat-hint>
+          <mat-icon *ngIf="allowHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field
+          *ngIf="formSettings.get('cors.exposedHeaders'); let exposedHeadersFormControl"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-label>Exposed-Headers</mat-label>
+          <mat-chip-list
+            #exposedHeadersChipList
+            aria-label="Exposed-Headers selection"
+            multiple
+            [disabled]="exposedHeadersFormControl.disabled"
+          >
+            <mat-chip
+              *ngFor="let header of exposedHeadersFormControl.value"
+              [selectable]="false"
+              [removable]="!exposedHeadersFormControl.disabled"
+              (removed)="removeChipToFormControl(header, 'cors.exposedHeaders', exposedHeadersChipList)"
+            >
+              {{ header }}
+              <mat-icon *ngIf="!exposedHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
+            </mat-chip>
+            <input
+              *ngIf="!exposedHeadersFormControl.disabled"
+              placeholder="Content-Type, ..."
+              [formControl]="exposedHeadersInputFormControl"
+              [matAutocomplete]="auto"
+              [matChipInputFor]="exposedHeadersChipList"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.exposedHeaders', exposedHeadersChipList)"
+            />
+          </mat-chip-list>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.exposedHeaders')">
+            <mat-option *ngFor="let defaultHeader of exposedHeadersFilteredOptions$ | async" [value]="defaultHeader">
+              {{ defaultHeader }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-hint>
+            Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+          </mat-hint>
+          <mat-icon *ngIf="exposedHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></mat-label>
+          <input #maxAgeInput matInput formControlName="maxAge" type="number" min="0" />
+          <mat-icon *ngIf="maxAgeInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="email">
+      <h2 tableOfContents>SMTP</h2>
+      <mat-card-content>
+        <section class="settings-general__form__card__checkbox-section">
+          <mat-checkbox
+            #emailEnabledCheckbox
+            formControlName="enabled"
+            aria-label="Email enabled"
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!emailEnabledCheckbox.disabled"
+            >Enable Emailing</mat-checkbox
+          >
+        </section>
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Host</mat-label>
+          <input #emailHostInput matInput formControlName="host" />
+          <mat-icon *ngIf="emailHostInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Port</mat-label>
+          <input #emailPortInput matInput formControlName="port" type="number" min="0" />
+          <mat-icon *ngIf="emailPortInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Username</mat-label>
+          <input #emailUsernameInput matInput formControlName="username" />
+          <mat-icon *ngIf="emailUsernameInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Password</mat-label>
+          <input #emailPasswordInput matInput formControlName="password" type="password" />
+          <mat-icon *ngIf="emailPasswordInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Protocol</mat-label>
+          <input #emailProtocolInput matInput formControlName="protocol" />
+          <mat-icon *ngIf="emailProtocolInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>Subject</mat-label>
+          <input #emailSubjectInput matInput formControlName="subject" />
+          <mat-icon *ngIf="emailSubjectInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-label>From</mat-label>
+          <input #emailFromInput matInput formControlName="from" type="email" />
+          <mat-icon *ngIf="emailFromInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+        </mat-form-field>
+
+        <mat-divider [inset]="true"></mat-divider>
+
+        <h3>Mail properties</h3>
+        <ng-container formGroupName="properties">
+          <section class="settings-general__form__card__checkbox-section">
+            <mat-checkbox
+              #emailPropertiesAuthCheckbox
+              formControlName="auth"
+              aria-label="Alerting enabled"
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!emailPropertiesAuthCheckbox.disabled"
+              >Enable Auth</mat-checkbox
+            >
+          </section>
+
+          <section class="settings-general__form__card__checkbox-section">
+            <mat-checkbox
+              #emailPropertiesStartTlsEnableCheckbox
+              formControlName="startTlsEnable"
+              aria-label="Start TLS enabled"
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!emailPropertiesStartTlsEnableCheckbox.disabled"
+              >Enable Start TLS</mat-checkbox
+            >
+          </section>
+
+          <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+            <mat-label>SSL Trust</mat-label>
+            <input #emailPropertiesSslTrustInput matInput formControlName="sslTrust" />
+            <mat-icon *ngIf="emailPropertiesSslTrustInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          </mat-form-field>
+        </ng-container>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="settings-general__form__actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="formSettings.invalid">Save</button>
+    </div>
+  </form>
+
+  <table-of-contents
+    class="settings-general__toc"
+    [sectionNames]="{ '': 'Settings' }"
+    scrollingContainer="ng-console-settings"
+  ></table-of-contents>
+</div>

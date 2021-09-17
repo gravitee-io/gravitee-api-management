@@ -32,6 +32,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { CommonModule } from '@angular/common';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -39,9 +40,10 @@ import { OrgSettingsNewUserComponent } from './user/new/org-settings-new-user.co
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
-
+import { TableOfContentsModule } from '../../shared/components/table-of-contents/table-of-contents.module';
 @NgModule({
   imports: [
+    CommonModule,
     BrowserAnimationsModule,
     ReactiveFormsModule,
 
@@ -64,6 +66,7 @@ import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.m
 
     GioConfirmDialogModule,
     GioAvatarModule,
+    TableOfContentsModule,
   ],
   declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent, OrgSettingsNewUserComponent],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],

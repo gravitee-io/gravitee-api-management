@@ -53,9 +53,11 @@ $typography: map.get($gio-theme, typography);
     overflow: hidden;
     border-left: solid 2px #cccccc;
     padding: 6px 0 6px 10px;
+    font-weight: 400;
 
     &:hover,
     &.active {
+      font-weight: 500;
       border-left: solid 2px mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
       color: mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
     }
