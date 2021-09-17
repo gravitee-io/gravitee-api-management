@@ -19,18 +19,28 @@ export interface TocSection {
 }
 
 export interface TocSectionLink {
-  /* id of the section*/
+  /**
+   * Id of the section
+   */
   id: string;
 
-  /* header type h3/h4 */
+  /**
+   * Header type h3/h4
+   */
   type: string;
 
-  /* If the anchor is in view of the page */
+  /**
+   * If the anchor is in view of the page
+   */
   active: boolean;
 
-  /* name of the anchor */
+  /**
+   * Name of the anchor
+   */
   name: string;
 
-  /* top offset px of the anchor */
+  /**
+   * Top offset of the anchor in px
+   */
   top: number;
 }

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { LocationStrategy } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { camelCase } from 'lodash';
+import { MockLocationStrategy } from '@angular/common/testing';
 
-import { TocSectionLink } from './LinkSection';
+import { TocSectionLink } from './TocSection';
 import { TableOfContentsComponent } from './table-of-contents.component';
 import { TableOfContentsModule } from './table-of-contents.module';
 import { TableOfContentsService } from './table-of-contents.service';
@@ -25,16 +27,18 @@ describe('GioConfirmDialogComponent', () => {
   let component: TableOfContentsComponent;
   let fixture: ComponentFixture<TableOfContentsComponent>;
   let tableOfContentsService: TableOfContentsService;
+  let locationStrategy: MockLocationStrategy;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TableOfContentsModule],
-      // providers: [{ provide: DOCUMENT, useValue: 'aa' }],
+      providers: [{ provide: LocationStrategy, useClass: MockLocationStrategy }],
     });
     fixture = TestBed.createComponent(TableOfContentsComponent);
     component = fixture.componentInstance;
 
     tableOfContentsService = TestBed.inject(TableOfContentsService);
+    locationStrategy = TestBed.inject(LocationStrategy) as MockLocationStrategy;
     fixture.nativeElement.getBoundingClientRect = jest.fn();
   });
 
@@ -117,6 +121,47 @@ describe('GioConfirmDialogComponent', () => {
 
     fixture.detectChanges();
     expect(getSectionsName()).toEqual(['Fox section']);
+  });
+
+  it('should update location by clicking on link', async () => {
+    fixture.detectChanges();
+
+    tableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
+    tableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
+    fixture.detectChanges();
+
+    component.onClick(({ stopPropagation: jest.fn() } as unknown) as PointerEvent, '1');
+
+    expect(locationStrategy.path()).toBe('#1');
+  });
+
+  it('should update scroll position', async () => {
+    component.scrollingContainer = document.body;
+
+    // Init Dom with elements
+    const element_1 = document.createElement('h2');
+    element_1.id = 'toc-1';
+    element_1.scrollIntoView = jest.fn();
+    const element_2 = document.createElement('h2');
+    element_2.id = 'toc-2';
+    element_2.scrollIntoView = jest.fn();
+    document.body.appendChild(element_1);
+    document.body.appendChild(element_2);
+    fixture.detectChanges();
+
+    // Init links
+    tableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
+    tableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
+    fixture.detectChanges();
+
+    // Simulate location change to link 2️⃣
+    locationStrategy.simulatePopState('#2');
+    locationStrategy.simulatePopState('#2');
+    expect(element_2.scrollIntoView).toHaveBeenCalledTimes(1);
+
+    locationStrategy.simulatePopState('#1');
+
+    expect(element_1.scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
   const getLinksText = () => [...fixture.nativeElement.querySelectorAll('.toc__link')].map((el) => el.innerHTML);

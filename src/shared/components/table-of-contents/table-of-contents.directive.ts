@@ -30,9 +30,12 @@ export class TableOfContentsDirective implements OnInit, OnDestroy {
   ngOnInit(): void {
     const name = this.el.nativeElement.innerText?.trim();
     const type = String(this.el.nativeElement.tagName).toLowerCase();
+    const id = kebabCase(name);
     const { top } = this.el.nativeElement.getBoundingClientRect();
 
-    this.tableOfContentsService.addLink(this.sectionId, { active: false, id: kebabCase(name), name, top, type });
+    this.el.nativeElement.id = `toc-${id}`;
+
+    this.tableOfContentsService.addLink(this.sectionId, { active: false, id, name, top, type });
   }
 
   ngOnDestroy(): void {

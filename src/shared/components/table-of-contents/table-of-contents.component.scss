@@ -25,15 +25,14 @@ $typography: map.get($gio-theme, typography);
 
 .toc {
   width: 100%;
-  padding: 5px 0 10px 10px;
-  border-left: solid 4px mat.get-color-from-palette($accent);
+  padding: 0 10px;
 
   & + .toc {
     padding-top: 8px;
   }
 
   &__section-name {
-    margin: 0;
+    margin: 0 0 10px 0;
     padding: 0;
     font-size: 13px;
     font-weight: bold;
@@ -44,30 +43,33 @@ $typography: map.get($gio-theme, typography);
     @include mat.typography-level($typography, body-1);
 
     color: mat.get-color-from-palette($foreground, secondary-text);
-    transition: color 100ms;
+    transition: color 300ms;
     line-height: 16px;
-    margin: 8px 0 0;
     position: relative;
     text-decoration: none;
     display: block;
     text-overflow: ellipsis;
     width: 100%;
     overflow: hidden;
+    border-left: solid 2px #cccccc;
+    padding: 6px 0 6px 10px;
 
     &:hover,
     &.active {
-      font-weight: mat.font-weight($typography, body-2);
-      line-height: 16px;
-
+      border-left: solid 2px mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
       color: mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
     }
 
+    &--level-h2 {
+      padding-left: 12px;
+    }
+
     &--level-h3 {
-      margin-left: 12px;
+      padding-left: 24px;
     }
 
     &--level-h4 {
-      margin-left: 24px;
+      padding-left: 36px;
     }
   }
 }

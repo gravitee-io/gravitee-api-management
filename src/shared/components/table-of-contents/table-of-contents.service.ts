@@ -19,7 +19,7 @@ import { isEmpty, remove } from 'lodash';
 import { Subject } from 'rxjs';
 import { mapTo, startWith } from 'rxjs/operators';
 
-import { TocSection, TocSectionLink } from './LinkSection';
+import { TocSection, TocSectionLink } from './TocSection';
 
 @Injectable({ providedIn: 'root' })
 export class TableOfContentsService {
