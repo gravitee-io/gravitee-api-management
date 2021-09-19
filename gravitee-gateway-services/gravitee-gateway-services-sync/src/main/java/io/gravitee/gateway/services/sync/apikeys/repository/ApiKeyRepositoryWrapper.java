@@ -44,6 +44,16 @@ public class ApiKeyRepositoryWrapper implements ApiKeyRepository {
     }
 
     @Override
+    public List<ApiKey> findByKey(String s) throws TechnicalException {
+        return null;
+    }
+
+    @Override
+    public Optional<ApiKey> findByKeyAndApi(String s, String s1) throws TechnicalException {
+        return Optional.empty();
+    }
+
+    @Override
     public io.gravitee.repository.management.model.ApiKey create(io.gravitee.repository.management.model.ApiKey apiKey)
         throws TechnicalException {
         throw new IllegalStateException();
