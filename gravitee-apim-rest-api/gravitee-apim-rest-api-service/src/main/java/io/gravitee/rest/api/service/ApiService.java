@@ -59,6 +59,7 @@ public interface ApiService {
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
     ApiEntity create(NewApiEntity api, String userId);
+    ApiEntity createFromCockpit(String apiId, String userId, String swaggerDefinition);
     ApiEntity createFromSwagger(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
     ApiEntity createWithApiDefinition(UpdateApiEntity api, String userId, JsonNode apiDefinition);
 

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import io.gravitee.common.component.Lifecycle;
@@ -264,6 +265,28 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final String LOGGING_MAX_DURATION_CONDITION = "#request.timestamp <= %dl";
     private static final String LOGGING_DELIMITER_BASE = "\\s+(\\|\\||\\&\\&)\\s+";
     private static final String ENDPOINTS_DELIMITER = "\n";
+
+    @Override
+    public ApiEntity createFromCockpit(String apiId, String userId, String swaggerDefinition) {
+        ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
+        swaggerDescriptor.setPayload(swaggerDefinition);
+        swaggerDescriptor.setWithDocumentation(true);
+        swaggerDescriptor.setWithPolicyPaths(true);
+        swaggerDescriptor.setWithPolicies(List.of("mock"));
+
+        final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
+        api.setPaths(null);
+
+        final ObjectNode apiDefinition = objectMapper.valueToTree(api);
+        apiDefinition.put("id", apiId);
+
+        final ApiEntity createdApi = this.createWithApiDefinition(api, userId, apiDefinition);
+        createSystemFolder(createdApi.getId());
+        createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
+        createMetadata(api.getMetadata(), createdApi.getId());
+
+        return createdApi;
+    }
 
     @Override
     public ApiEntity createFromSwagger(
