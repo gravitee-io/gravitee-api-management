@@ -26,7 +26,7 @@ RUN apt-get update \
     && apt-get --yes install wget unzip htop \
 	&& wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
     && unzip /tmp/graviteeio-full-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
-    && mv /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-rest-api* ${GRAVITEEIO_HOME} \
+    && mv /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-apim-rest-api* ${GRAVITEEIO_HOME} \
     && rm -rf /tmp/* \
     && rm -rf /var/lib/apt/lists/* \
 	&& chgrp -R 0 ${GRAVITEEIO_HOME} \
