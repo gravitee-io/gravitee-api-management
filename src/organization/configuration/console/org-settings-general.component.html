@@ -27,28 +27,38 @@
       <h2 gioTableOfContents>Management</h2>
 
       <mat-card-content>
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('management.title')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('management.title')" matPrefix>lock</mat-icon>
           <mat-label>Title</mat-label>
-          <input #managementTitleInput matInput formControlName="title" />
-          <mat-icon *ngIf="managementTitleInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="title" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('management.url')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('management.url')" matPrefix>lock</mat-icon>
           <mat-label>Management URL</mat-label>
-          <input #managementUrlInput matInput formControlName="url" />
-          <mat-icon *ngIf="managementUrlInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="url" />
         </mat-form-field>
 
         <mat-divider></mat-divider>
 
-        <gio-form-slide-toggle appearance="fill" class="console-settings__card__form-field" formGroupName="support">
+        <gio-form-slide-toggle appearance="fill" class="settings-general__form__card__form-field" formGroupName="support">
           <gio-form-label>Activate Support</gio-form-label>
           <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Activate Support" name="support"></mat-slide-toggle>
         </gio-form-slide-toggle>
 
         <mat-divider></mat-divider>
 
-        <gio-form-slide-toggle appearance="fill" class="console-settings__card__form-field" formGroupName="userCreation">
+        <gio-form-slide-toggle appearance="fill" class="settings-general__form__card__form-field" formGroupName="userCreation">
           <gio-form-label>Allow User Registration</gio-form-label>
           <mat-slide-toggle
             #managementUserCreationSlideToggle
@@ -62,7 +72,7 @@
         <ng-container *ngIf="managementUserCreationSlideToggle.checked">
           <mat-divider></mat-divider>
 
-          <gio-form-slide-toggle appearance="fill" class="console-settings__card__form-field" formGroupName="automaticValidation">
+          <gio-form-slide-toggle appearance="fill" class="settings-general__form__card__form-field" formGroupName="automaticValidation">
             <gio-form-label>Enable automatic validation of registration requests</gio-form-label>
             <mat-slide-toggle
               gioFormSlideToggle
@@ -78,22 +88,37 @@
     <mat-card class="settings-general__form__card" formGroupName="theme">
       <h2 gioTableOfContents>Theme</h2>
       <mat-card-content>
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('theme.name')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('theme.name')" matPrefix>lock</mat-icon>
           <mat-label>Name</mat-label>
-          <input #themeNameInput matInput formControlName="name" />
-          <mat-icon *ngIf="themeNameInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="name" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('theme.logo')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('theme.logo')" matPrefix>lock</mat-icon>
           <mat-label>Logo</mat-label>
-          <input #themeLogoInput matInput formControlName="logo" />
-          <mat-icon *ngIf="themeLogoInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="logo" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('theme.loader')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('theme.loader')" matPrefix>lock</mat-icon>
           <mat-label>Loader</mat-label>
-          <input #themeLoaderInput matInput formControlName="loader" />
-          <mat-icon *ngIf="themeLoaderInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="loader" />
         </mat-form-field>
       </mat-card-content>
     </mat-card>
@@ -101,16 +126,26 @@
     <mat-card class="settings-general__form__card" formGroupName="scheduler">
       <h2 gioTableOfContents>Schedulers</h2>
       <mat-card-content>
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('scheduler.tasks')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('scheduler.tasks')" matPrefix>lock</mat-icon>
           <mat-label>Tasks (in seconds)</mat-label>
-          <input #schedulerTasksInput matInput formControlName="tasks" type="number" min="0" />
-          <mat-icon *ngIf="schedulerTasksInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="tasks" type="number" min="0" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('scheduler.notifications')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('scheduler.notifications')" matPrefix>lock</mat-icon>
           <mat-label>Notifications (in seconds)</mat-label>
           <input #schedulerNotificationsInput matInput formControlName="notifications" type="number" min="0" />
-          <mat-icon *ngIf="schedulerNotificationsInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
       </mat-card-content>
     </mat-card>
@@ -136,9 +171,12 @@
       <mat-card-content>
         <mat-form-field
           *ngIf="formSettings.get('cors.allowOrigin'); let allowOriginFormControl"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.allowOrigin')"
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
+          <mat-icon *ngIf="isReadonlySetting('cors.allowOrigin')" matPrefix>lock</mat-icon>
           <mat-label>Allow-Origin</mat-label>
           <mat-chip-list #allowOriginChipList aria-label="Allow-Origin selection" multiple [disabled]="allowOriginFormControl.disabled">
             <mat-chip
@@ -152,7 +190,6 @@
             </mat-chip>
             <input
               *ngIf="!allowOriginFormControl.disabled"
-              #allowOriginInput
               placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
               [matChipInputFor]="allowOriginChipList"
               [matChipInputAddOnBlur]="true"
@@ -165,25 +202,32 @@
             <em>same-origin</em> definition.<br />
             If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
           </mat-hint>
-          <mat-icon *ngIf="allowOriginFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
 
-        <mat-form-field class="settings-general__form__card__form-field" appearance="fill">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.allowMethods')"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-icon *ngIf="isReadonlySetting('cors.allowMethods')" matPrefix>lock</mat-icon>
           <mat-label>Access-Control-Allow-Methods</mat-label>
-          <mat-select #allowMethodsSelect formControlName="allowMethods" multiple>
+          <mat-select formControlName="allowMethods" multiple>
             <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
           </mat-select>
           <mat-hint>
             Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
           </mat-hint>
-          <mat-icon *ngIf="allowMethodsSelect.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
 
         <mat-form-field
           *ngIf="formSettings.get('cors.allowHeaders'); let allowHeadersFormControl"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.allowHeaders')"
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
+          <mat-icon *ngIf="isReadonlySetting('cors.allowHeaders')" matPrefix>lock</mat-icon>
           <mat-label>Allow-Headers</mat-label>
           <mat-chip-list #allowHeadersChipList aria-label="Allow-Headers selection" multiple [disabled]="allowHeadersFormControl.disabled">
             <mat-chip
@@ -213,14 +257,16 @@
           <mat-hint>
             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
           </mat-hint>
-          <mat-icon *ngIf="allowHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
 
         <mat-form-field
           *ngIf="formSettings.get('cors.exposedHeaders'); let exposedHeadersFormControl"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.exposedHeaders')"
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
+          <mat-icon *ngIf="isReadonlySetting('cors.exposedHeaders')" matPrefix>lock</mat-icon>
           <mat-label>Exposed-Headers</mat-label>
           <mat-chip-list
             #exposedHeadersChipList
@@ -255,13 +301,17 @@
           <mat-hint>
             Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
           </mat-hint>
-          <mat-icon *ngIf="exposedHeadersFormControl.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.maxAge')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('cors.maxAge')" matPrefix>lock</mat-icon>
           <mat-label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></mat-label>
           <input #maxAgeInput matInput formControlName="maxAge" type="number" min="0" />
-          <mat-icon *ngIf="maxAgeInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
       </mat-card-content>
     </mat-card>
@@ -279,46 +329,81 @@
             >Enable Emailing</mat-checkbox
           >
         </section>
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.host')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.host')" matPrefix>lock</mat-icon>
           <mat-label>Host</mat-label>
-          <input #emailHostInput matInput formControlName="host" />
-          <mat-icon *ngIf="emailHostInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="host" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.port')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.port')" matPrefix>lock</mat-icon>
           <mat-label>Port</mat-label>
-          <input #emailPortInput matInput formControlName="port" type="number" min="0" />
-          <mat-icon *ngIf="emailPortInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="port" type="number" min="0" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.username')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.username')" matPrefix>lock</mat-icon>
           <mat-label>Username</mat-label>
-          <input #emailUsernameInput matInput formControlName="username" />
-          <mat-icon *ngIf="emailUsernameInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="username" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.password')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.password')" matPrefix>lock</mat-icon>
           <mat-label>Password</mat-label>
-          <input #emailPasswordInput matInput formControlName="password" type="password" />
-          <mat-icon *ngIf="emailPasswordInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="password" type="password" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.protocol')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.protocol')" matPrefix>lock</mat-icon>
           <mat-label>Protocol</mat-label>
-          <input #emailProtocolInput matInput formControlName="protocol" />
-          <mat-icon *ngIf="emailProtocolInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="protocol" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.subject')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.subject')" matPrefix>lock</mat-icon>
           <mat-label>Subject</mat-label>
-          <input #emailSubjectInput matInput formControlName="subject" />
-          <mat-icon *ngIf="emailSubjectInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="subject" />
         </mat-form-field>
 
-        <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.from')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.from')" matPrefix>lock</mat-icon>
           <mat-label>From</mat-label>
-          <input #emailFromInput matInput formControlName="from" type="email" />
-          <mat-icon *ngIf="emailFromInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
+          <input matInput formControlName="from" type="email" />
         </mat-form-field>
 
         <mat-divider [inset]="true"></mat-divider>
@@ -347,10 +432,15 @@
             >
           </section>
 
-          <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.sslTrust')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.sslTrust')" matPrefix>lock</mat-icon>
             <mat-label>SSL Trust</mat-label>
             <input #emailPropertiesSslTrustInput matInput formControlName="sslTrust" />
-            <mat-icon *ngIf="emailPropertiesSslTrustInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
           </mat-form-field>
         </ng-container>
       </mat-card-content>

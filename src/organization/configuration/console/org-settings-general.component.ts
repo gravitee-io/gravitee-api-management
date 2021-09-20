@@ -260,6 +260,10 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
       )
       .subscribe();
   }
+
+  isReadonlySetting(property: string): boolean {
+    return isReadonlySetting(this.settings, property);
+  }
 }
 
 const isReadonlySetting = (consoleSettings: ConsoleSettings, property: string): boolean => {
