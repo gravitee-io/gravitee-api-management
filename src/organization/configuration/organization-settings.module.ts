@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatButtonModule } from '@angular/material/button';
@@ -32,7 +33,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { CommonModule } from '@angular/common';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -41,6 +42,7 @@ import { OrgSettingsNewUserComponent } from './user/new/org-settings-new-user.co
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
+import { GioFormSlideToggleModule } from '../../shared/components/form-slide-toogle/gio-form-slide-toggle.module';
 
 @NgModule({
   imports: [
@@ -64,10 +66,13 @@ import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-c
     MatTableModule,
     MatBadgeModule,
     MatPaginatorModule,
+    MatSlideToggleModule,
+    MatDividerModule,
 
     GioConfirmDialogModule,
     GioAvatarModule,
     GioTableOfContentsModule,
+    GioFormSlideToggleModule,
   ],
   declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent, OrgSettingsNewUserComponent],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],

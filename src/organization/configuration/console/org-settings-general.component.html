@@ -39,44 +39,39 @@
           <mat-icon *ngIf="managementUrlInput.disabled" matSuffix [matTooltip]="providedConfigurationMessage">lock</mat-icon>
         </mat-form-field>
 
-        <section class="settings-general__form__card__checkbox-section">
-          <ng-container formGroupName="support">
-            <mat-checkbox
-              #managementSupportCheckbox
+        <mat-divider></mat-divider>
+
+        <gio-form-slide-toggle appearance="fill" class="console-settings__card__form-field" formGroupName="support">
+          <gio-form-label>Activate Support</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Activate Support" name="support"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <mat-divider></mat-divider>
+
+        <gio-form-slide-toggle appearance="fill" class="console-settings__card__form-field" formGroupName="userCreation">
+          <gio-form-label>Allow User Registration</gio-form-label>
+          <mat-slide-toggle
+            #managementUserCreationSlideToggle
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Allow user creation"
+            name="userCreation"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <ng-container *ngIf="managementUserCreationSlideToggle.checked">
+          <mat-divider></mat-divider>
+
+          <gio-form-slide-toggle appearance="fill" class="console-settings__card__form-field" formGroupName="automaticValidation">
+            <gio-form-label>Enable automatic validation of registration requests</gio-form-label>
+            <mat-slide-toggle
+              gioFormSlideToggle
               formControlName="enabled"
-              aria-label="Support"
-              [matTooltip]="providedConfigurationMessage"
-              [matTooltipDisabled]="!managementSupportCheckbox.disabled"
-              >Activate Support</mat-checkbox
-            >
-          </ng-container>
-        </section>
-        <section class="settings-general__form__card__checkbox-section">
-          <ng-container formGroupName="userCreation">
-            <mat-checkbox
-              #managementUserCreationCheckbox
-              formControlName="enabled"
-              aria-label="Allow user creation"
-              [matTooltip]="providedConfigurationMessage"
-              [matTooltipDisabled]="!managementUserCreationCheckbox.disabled"
-              >Allow User Registration</mat-checkbox
-            >
-          </ng-container>
-          <ul>
-            <li>
-              <ng-container formGroupName="automaticValidation">
-                <mat-checkbox
-                  #managementAutomaticValidationCheckbox
-                  formControlName="enabled"
-                  aria-label="Enable auto validation of creation"
-                  [matTooltip]="providedConfigurationMessage"
-                  [matTooltipDisabled]="!managementAutomaticValidationCheckbox.disabled"
-                  >Enable automatic validation of registration requests</mat-checkbox
-                >
-              </ng-container>
-            </li>
-          </ul>
-        </section>
+              aria-label="Enable auto validation of creation"
+              name="automaticValidation"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </ng-container>
       </mat-card-content>
     </mat-card>
 

@@ -27,6 +27,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 
@@ -85,8 +86,8 @@ describe('ConsoleSettingsComponent', () => {
       const titleFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Title' }));
       expect(await titleFormField.isDisabled()).toEqual(true);
 
-      const activateSupportCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Activate Support' }));
-      expect(await activateSupportCheckbox.isDisabled()).toEqual(false);
+      const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'support' }));
+      expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
     });
 
     it('should save management settings', async () => {
@@ -106,8 +107,8 @@ describe('ConsoleSettingsComponent', () => {
       const titleInput = await titleFormField.getControl(MatInputHarness);
       await titleInput?.setValue('New Title');
 
-      const activateSupportCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Activate Support' }));
-      await activateSupportCheckbox.check();
+      const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'support' }));
+      await activateSupportSlideToggle.check();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await saveButton.click();
@@ -141,12 +142,14 @@ describe('ConsoleSettingsComponent', () => {
       const titleInput = await titleFormField.getControl(MatInputHarness);
       await titleInput?.setValue('New Title');
 
-      const userCreationCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Allow User Registration' }));
-      const automaticValidationCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: /^Enable automatic validation/ }));
+      const userCreationSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'userCreation' }));
+      const automaticValidationSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'automaticValidation' }));
 
-      expect(await automaticValidationCheckbox.isDisabled()).toEqual(false);
-      await userCreationCheckbox.uncheck();
-      expect(await automaticValidationCheckbox.isDisabled()).toEqual(true);
+      expect(await automaticValidationSlideToggle.isDisabled()).toEqual(false);
+      await userCreationSlideToggle.toggle();
+
+      // expect automaticValidation SlideToggle not to be visible
+      expect(await loader.getAllHarnesses(MatSlideToggleHarness.with({ name: 'automaticValidation' }))).toEqual([]);
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await saveButton.click();
