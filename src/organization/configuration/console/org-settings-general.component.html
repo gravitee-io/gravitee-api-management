@@ -33,7 +33,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('management.title')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('management.title')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Title</mat-label>
           <input matInput formControlName="title" />
         </mat-form-field>
@@ -44,7 +46,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('management.url')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('management.url')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Management URL</mat-label>
           <input matInput formControlName="url" />
         </mat-form-field>
@@ -115,7 +119,7 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('theme.name')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('theme.name')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
           <mat-label>Name</mat-label>
           <input matInput formControlName="name" />
         </mat-form-field>
@@ -126,7 +130,7 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('theme.logo')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('theme.logo')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
           <mat-label>Logo</mat-label>
           <input matInput formControlName="logo" />
         </mat-form-field>
@@ -137,7 +141,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('theme.loader')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('theme.loader')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Loader</mat-label>
           <input matInput formControlName="loader" />
         </mat-form-field>
@@ -153,7 +159,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('scheduler.tasks')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('scheduler.tasks')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Tasks (in seconds)</mat-label>
           <input matInput formControlName="tasks" type="number" min="0" />
         </mat-form-field>
@@ -164,7 +172,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('scheduler.notifications')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('scheduler.notifications')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Notifications (in seconds)</mat-label>
           <input #schedulerNotificationsInput matInput formControlName="notifications" type="number" min="0" />
         </mat-form-field>
@@ -197,7 +207,9 @@
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.allowOrigin')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('cors.allowOrigin')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Allow-Origin</mat-label>
           <mat-chip-list #allowOriginChipList aria-label="Allow-Origin selection" multiple [disabled]="allowOriginFormControl.disabled">
             <mat-chip
@@ -231,7 +243,9 @@
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.allowMethods')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('cors.allowMethods')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Access-Control-Allow-Methods</mat-label>
           <mat-select formControlName="allowMethods" multiple>
             <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
@@ -248,7 +262,9 @@
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.allowHeaders')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('cors.allowHeaders')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Allow-Headers</mat-label>
           <mat-chip-list #allowHeadersChipList aria-label="Allow-Headers selection" multiple [disabled]="allowHeadersFormControl.disabled">
             <mat-chip
@@ -287,7 +303,9 @@
           class="settings-general__form__card__form-field"
           appearance="fill"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.exposedHeaders')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('cors.exposedHeaders')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Exposed-Headers</mat-label>
           <mat-chip-list
             #exposedHeadersChipList
@@ -330,7 +348,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('cors.maxAge')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('cors.maxAge')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></mat-label>
           <input #maxAgeInput matInput formControlName="maxAge" type="number" min="0" />
         </mat-form-field>
@@ -356,7 +376,7 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('email.host')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('email.host')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
           <mat-label>Host</mat-label>
           <input matInput formControlName="host" />
         </mat-form-field>
@@ -367,7 +387,7 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('email.port')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('email.port')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
           <mat-label>Port</mat-label>
           <input matInput formControlName="port" type="number" min="0" />
         </mat-form-field>
@@ -378,7 +398,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('email.username')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('email.username')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Username</mat-label>
           <input matInput formControlName="username" />
         </mat-form-field>
@@ -389,7 +411,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('email.password')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('email.password')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Password</mat-label>
           <input matInput formControlName="password" type="password" />
         </mat-form-field>
@@ -400,7 +424,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('email.protocol')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('email.protocol')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Protocol</mat-label>
           <input matInput formControlName="protocol" />
         </mat-form-field>
@@ -411,7 +437,9 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('email.subject')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('email.subject')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
           <mat-label>Subject</mat-label>
           <input matInput formControlName="subject" />
         </mat-form-field>
@@ -422,7 +450,7 @@
           appearance="fill"
           class="settings-general__form__card__form-field"
         >
-          <mat-icon *ngIf="isReadonlySetting('email.from')" matPrefix>lock</mat-icon>
+          <mat-icon *ngIf="isReadonlySetting('email.from')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
           <mat-label>From</mat-label>
           <input matInput formControlName="from" type="email" />
         </mat-form-field>
@@ -459,7 +487,9 @@
             appearance="fill"
             class="settings-general__form__card__form-field"
           >
-            <mat-icon *ngIf="isReadonlySetting('email.sslTrust')" matPrefix>lock</mat-icon>
+            <mat-icon *ngIf="isReadonlySetting('email.sslTrust')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
             <mat-label>SSL Trust</mat-label>
             <input #emailPropertiesSslTrustInput matInput formControlName="sslTrust" />
           </mat-form-field>
