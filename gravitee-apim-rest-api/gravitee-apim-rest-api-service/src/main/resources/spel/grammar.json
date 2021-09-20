@@ -41,6 +41,9 @@
     },
     "ssl": {
       "client": {
+        "attributes": {
+          "_type": "MultiValueMap"
+        },
         "businessCategory": {
           "_type": "String"
         },
@@ -61,6 +64,9 @@
         },
         "dc": {
           "_type": "String"
+        },
+        "defined": {
+          "_type": "boolean"
         },
         "description": {
           "_type": "String"
@@ -86,20 +92,11 @@
         "generation": {
           "_type": "String"
         },
-        "get(String attributeName)": {
-          "_type": "String"
-        },
-        "getAll(String attributeName)": {
-          "_type": "String[]"
-        },
         "givenname": {
           "_type": "String"
         },
         "initials": {
           "_type": "String"
-        },
-        "isDefined()": {
-          "_type": "boolean"
         },
         "l": {
           "_type": "String"
@@ -169,6 +166,9 @@
         "_type": "Integer"
       },
       "server": {
+        "attributes": {
+          "_type": "MultiValueMap"
+        },
         "businessCategory": {
           "_type": "String"
         },
@@ -189,6 +189,9 @@
         },
         "dc": {
           "_type": "String"
+        },
+        "defined": {
+          "_type": "boolean"
         },
         "description": {
           "_type": "String"
@@ -214,20 +217,11 @@
         "generation": {
           "_type": "String"
         },
-        "get(String attributeName)": {
-          "_type": "String"
-        },
-        "getAll(String attributeName)": {
-          "_type": "String[]"
-        },
         "givenname": {
           "_type": "String"
         },
         "initials": {
           "_type": "String"
-        },
-        "isDefined()": {
-          "_type": "boolean"
         },
         "l": {
           "_type": "String"
@@ -413,7 +407,9 @@
       "X-Forwarded-For",
       "X-Forwarded-Proto",
       "X-Forwarded-Server",
-      "X-Forwarded-Host"
+      "X-Forwarded-Host",
+      "X-Forwarded-Port",
+      "X-Forwarded-Prefix"
     ]
   },
   "properties": {
