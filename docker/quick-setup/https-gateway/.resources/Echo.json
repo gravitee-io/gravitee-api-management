@@ -1,0 +1,142 @@
+{
+  "name": "Echo",
+  "version": "1",
+  "description": "echo API to test access to SSL attributes",
+  "visibility": "PRIVATE",
+  "gravitee": "2.0.0",
+  "flow_mode": "DEFAULT",
+  "resources": [],
+  "properties": [],
+  "members": [
+    {
+      "source": "memory",
+      "sourceId": "admin",
+      "roles": [
+        "2966ba68-d822-441f-a6ba-68d822641f27"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "id": "0c0fe1da-0fad-3f6f-88b4-42d752bcfabb",
+      "name": "Aside",
+      "type": "SYSTEM_FOLDER",
+      "order": 0,
+      "published": true,
+      "visibility": "PUBLIC",
+      "lastModificationDate": 1632174822948,
+      "contentType": "application/json",
+      "homepage": false,
+      "parentPath": "",
+      "excludedAccessControls": false,
+      "accessControls": [],
+      "api": "96ef10eb-2179-4919-af10-eb2179d91921"
+    }
+  ],
+  "plans": [
+    {
+      "id": "723a5a1f-7c3c-3e15-8a61-759dc97df280",
+      "name": "Free",
+      "description": "free",
+      "validation": "AUTO",
+      "security": "KEY_LESS",
+      "type": "API",
+      "status": "PUBLISHED",
+      "api": "96ef10eb-2179-4919-af10-eb2179d91921",
+      "order": 0,
+      "characteristics": [],
+      "created_at": 1632174823154,
+      "updated_at": 1632174823154,
+      "paths": {},
+      "flows": [
+        {
+          "name": "",
+          "path-operator": {
+            "path": "/",
+            "operator": "STARTS_WITH"
+          },
+          "condition": "",
+          "consumers": [],
+          "methods": [],
+          "pre": [
+            {
+              "name": "Mock",
+              "description": "",
+              "enabled": true,
+              "policy": "mock",
+              "configuration": {
+                "status": "200",
+                "content": "{\n  \"#request.ssl.client.attributes['oU']\": \"{#request.ssl.client.attributes['ou']}\",\n  \"#request.ssl.client.dn\": \"{#request.ssl.client.dn}\",\n  \"#request.ssl.server.attributes['Ou']\": \"{#request.ssl.server.attributes['ou']}\",\n  \"#request.ssl.server.dn\": \"{#request.ssl.server.dn}\"\n}"
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        }
+      ],
+      "comment_required": false
+    }
+  ],
+  "metadata": [
+    {
+      "key": "team",
+      "name": "team",
+      "format": "STRING",
+      "value": "",
+      "apiId": "96ef10eb-2179-4919-af10-eb2179d91921"
+    },
+    {
+      "key": "email-support",
+      "name": "email-support",
+      "format": "MAIL",
+      "value": "${(api.primaryOwner.email)!''}",
+      "defaultValue": "support@change.me",
+      "apiId": "96ef10eb-2179-4919-af10-eb2179d91921"
+    }
+  ],
+  "id": "96ef10eb-2179-4919-af10-eb2179d91921",
+  "path_mappings": [],
+  "proxy": {
+    "virtual_hosts": [
+      {
+        "path": "/echo"
+      }
+    ],
+    "strip_context_path": false,
+    "preserve_host": false,
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "default",
+            "target": "https://api.gravitee.io/echo",
+            "weight": 1,
+            "backup": false,
+            "type": "HTTP",
+            "inherit": true
+          }
+        ],
+        "load_balancing": {
+          "type": "ROUND_ROBIN"
+        },
+        "http": {
+          "connectTimeout": 5000,
+          "idleTimeout": 60000,
+          "keepAlive": true,
+          "readTimeout": 10000,
+          "pipelining": false,
+          "maxConcurrentConnections": 100,
+          "useCompression": true,
+          "followRedirects": false
+        }
+      }
+    ]
+  },
+  "response_templates": {},
+  "primaryOwner": {
+    "id": "3d281201-ccc8-4168-a812-01ccc8016868",
+    "displayName": "admin",
+    "type": "USER"
+  }
+}

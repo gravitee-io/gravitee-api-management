@@ -38,6 +38,9 @@ opentracing-jaeger: ## Run API Management with opentracing service activated and
 prometheus: ## Run API Management with Prometheus support enabled.
 	cd ./quick-setup/prometheus && docker-compose down -v && docker-compose pull && docker-compose up -d
 
+https-gateway: ## Run API Management with HTTPS enabled.
+	cd ./quick-setup/https-gateway && docker-compose down -v && docker-compose pull && docker-compose up -d
+
 start: ## Start a docker-compose based on target. Example: make start TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to start. Example: make start TARGET=tags-internal-external SERVICES=elasticsearch
 ifeq ($(TARGET),)
 	@echo "\033[0;31m ⚠️ Please provide the target you want to start \033[0m"
@@ -63,4 +66,4 @@ else
 endif
 
 .DEFAULT_GOAL := help
-.PHONY: http-bridge, tags-internal-external, redis-rate-limit, opentracing, prometheus
+.PHONY: http-bridge, tags-internal-external, redis-rate-limit, opentracing, prometheus, https-gateway
