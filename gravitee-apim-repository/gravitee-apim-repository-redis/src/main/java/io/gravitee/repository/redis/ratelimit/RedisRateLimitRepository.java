@@ -20,6 +20,7 @@ import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.reactivex.Single;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,7 +57,8 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
         );
 
         // It may happen when the rate has been expired while running the script
-        if (!values.isEmpty()) {
+        // expired values return a list of 'null'
+        if (!values.isEmpty() && !values.stream().filter(Objects::nonNull).findFirst().isEmpty()) {
             RateLimit rateLimit = new RateLimit(key);
             rateLimit.setCounter(Long.parseLong((String) values.get(0)));
             rateLimit.setLimit(Long.parseLong((String) values.get(1)));
