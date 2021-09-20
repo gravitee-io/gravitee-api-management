@@ -24,7 +24,7 @@
     </h4>
 
     <mat-card class="settings-general__form__card" formGroupName="management">
-      <h2 tableOfContents>Management</h2>
+      <h2 gioTableOfContents>Management</h2>
 
       <mat-card-content>
         <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
@@ -81,7 +81,7 @@
     </mat-card>
 
     <mat-card class="settings-general__form__card" formGroupName="theme">
-      <h2 tableOfContents>Theme</h2>
+      <h2 gioTableOfContents>Theme</h2>
       <mat-card-content>
         <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
           <mat-label>Name</mat-label>
@@ -104,7 +104,7 @@
     </mat-card>
 
     <mat-card class="settings-general__form__card" formGroupName="scheduler">
-      <h2 tableOfContents>Schedulers</h2>
+      <h2 gioTableOfContents>Schedulers</h2>
       <mat-card-content>
         <mat-form-field appearance="fill" class="settings-general__form__card__form-field">
           <mat-label>Tasks (in seconds)</mat-label>
@@ -121,7 +121,7 @@
     </mat-card>
 
     <mat-card class="settings-general__form__card" formGroupName="alert">
-      <h2 tableOfContents>Alerting</h2>
+      <h2 gioTableOfContents>Alerting</h2>
       <mat-card-content>
         <section class="settings-general__form__card__checkbox-section">
           <mat-checkbox
@@ -137,7 +137,7 @@
     </mat-card>
 
     <mat-card class="settings-general__form__card" formGroupName="cors">
-      <h2 tableOfContents>CORS</h2>
+      <h2 gioTableOfContents>CORS</h2>
       <mat-card-content>
         <mat-form-field
           *ngIf="formSettings.get('cors.allowOrigin'); let allowOriginFormControl"
@@ -272,7 +272,7 @@
     </mat-card>
 
     <mat-card class="settings-general__form__card" formGroupName="email">
-      <h2 tableOfContents>SMTP</h2>
+      <h2 gioTableOfContents>SMTP</h2>
       <mat-card-content>
         <section class="settings-general__form__card__checkbox-section">
           <mat-checkbox
@@ -366,9 +366,9 @@
     </div>
   </form>
 
-  <table-of-contents
+  <gio-table-of-contents
     class="settings-general__toc"
     [sectionNames]="{ '': 'Settings' }"
     scrollingContainer="ng-console-settings"
-  ></table-of-contents>
+  ></gio-table-of-contents>
 </div>

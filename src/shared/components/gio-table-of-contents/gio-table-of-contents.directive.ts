@@ -17,15 +17,15 @@
 import { Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { kebabCase } from 'lodash';
 
-import { TableOfContentsService } from './table-of-contents.service';
+import { GioTableOfContentsService } from './gio-table-of-contents.service';
 
 @Directive({
-  selector: 'h2[tableOfContents], h3[tableOfContents], h4[tableOfContents]',
+  selector: 'h2[gioTableOfContents], h3[gioTableOfContents], h4[gioTableOfContents]',
 })
-export class TableOfContentsDirective implements OnInit, OnDestroy {
-  constructor(private readonly el: ElementRef, private readonly tableOfContentsService: TableOfContentsService) {}
+export class GioTableOfContentsDirective implements OnInit, OnDestroy {
+  constructor(private readonly el: ElementRef, private readonly tableOfContentsService: GioTableOfContentsService) {}
 
-  @Input('tableOfContentsSectionId') sectionId = '';
+  @Input('gioTableOfContentsSectionId') sectionId = '';
 
   ngOnInit(): void {
     const name = this.el.nativeElement.innerText?.trim();

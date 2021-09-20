@@ -19,25 +19,25 @@ import { camelCase } from 'lodash';
 import { MockLocationStrategy } from '@angular/common/testing';
 
 import { TocSectionLink } from './TocSection';
-import { TableOfContentsComponent } from './table-of-contents.component';
-import { TableOfContentsModule } from './table-of-contents.module';
-import { TableOfContentsService } from './table-of-contents.service';
+import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
+import { GioTableOfContentsModule } from './gio-table-of-contents.module';
+import { GioTableOfContentsService } from './gio-table-of-contents.service';
 
 describe('GioConfirmDialogComponent', () => {
-  let component: TableOfContentsComponent;
-  let fixture: ComponentFixture<TableOfContentsComponent>;
-  let tableOfContentsService: TableOfContentsService;
+  let component: GioTableOfContentsComponent;
+  let fixture: ComponentFixture<GioTableOfContentsComponent>;
+  let gioTableOfContentsService: GioTableOfContentsService;
   let locationStrategy: MockLocationStrategy;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TableOfContentsModule],
+      imports: [GioTableOfContentsModule],
       providers: [{ provide: LocationStrategy, useClass: MockLocationStrategy }],
     });
-    fixture = TestBed.createComponent(TableOfContentsComponent);
+    fixture = TestBed.createComponent(GioTableOfContentsComponent);
     component = fixture.componentInstance;
 
-    tableOfContentsService = TestBed.inject(TableOfContentsService);
+    gioTableOfContentsService = TestBed.inject(GioTableOfContentsService);
     locationStrategy = TestBed.inject(LocationStrategy) as MockLocationStrategy;
     fixture.nativeElement.getBoundingClientRect = jest.fn();
   });
@@ -48,19 +48,19 @@ describe('GioConfirmDialogComponent', () => {
 
   it('should display section with links dynamically', () => {
     fixture.detectChanges();
-    tableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
-    tableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
     fixture.detectChanges();
 
     expect(getLinksText()).toEqual(['1️⃣', '2️⃣']);
 
-    tableOfContentsService.addLink('', fakeLink({ name: '3️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '3️⃣' }));
     fixture.detectChanges();
 
     expect(getLinksText()).toEqual(['1️⃣', '2️⃣', '3️⃣']);
     expect(getSectionName()).toEqual(undefined);
 
-    tableOfContentsService.addSection('', 'Section 🔢');
+    gioTableOfContentsService.addSection('', 'Section 🔢');
     fixture.detectChanges();
 
     expect(getSectionName()).toEqual('Section 🔢');
@@ -70,8 +70,8 @@ describe('GioConfirmDialogComponent', () => {
     component.scrollingContainer = document.body;
     fixture.detectChanges();
 
-    tableOfContentsService.addLink('', fakeLink({ name: '1️⃣', top: 42 }));
-    tableOfContentsService.addLink('', fakeLink({ name: '2️⃣', top: 666 }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣', top: 42 }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣', top: 666 }));
     fixture.detectChanges();
 
     // Simulate scroll to link 1
@@ -94,9 +94,9 @@ describe('GioConfirmDialogComponent', () => {
   it('should set section name', async () => {
     fixture.detectChanges();
 
-    tableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
-    tableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
-    tableOfContentsService.addLink('🦊', fakeLink({ name: '🦊' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
+    gioTableOfContentsService.addLink('🦊', fakeLink({ name: '🦊' }));
 
     component.sectionNames = { '': 'Section name', '🦊': 'Fox section' };
     fixture.detectChanges();
@@ -107,17 +107,17 @@ describe('GioConfirmDialogComponent', () => {
   it('should remove section if links become empty', async () => {
     fixture.detectChanges();
 
-    tableOfContentsService.addLink('', fakeLink({ name: '1' }));
-    tableOfContentsService.addLink('', fakeLink({ name: '2' }));
-    tableOfContentsService.addLink('🦊', fakeLink({ name: '🦊' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '1' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '2' }));
+    gioTableOfContentsService.addLink('🦊', fakeLink({ name: '🦊' }));
 
     component.sectionNames = { '': 'Section name', '🦊': 'Fox section' };
     fixture.detectChanges();
 
     expect(getSectionsName()).toEqual(['Section name', 'Fox section']);
 
-    tableOfContentsService.removeLink('', '1️');
-    tableOfContentsService.removeLink('', '2');
+    gioTableOfContentsService.removeLink('', '1️');
+    gioTableOfContentsService.removeLink('', '2');
 
     fixture.detectChanges();
     expect(getSectionsName()).toEqual(['Fox section']);
@@ -126,8 +126,8 @@ describe('GioConfirmDialogComponent', () => {
   it('should update location by clicking on link', async () => {
     fixture.detectChanges();
 
-    tableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
-    tableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
     fixture.detectChanges();
 
     component.onClick(({ stopPropagation: jest.fn() } as unknown) as PointerEvent, '1');
@@ -150,8 +150,8 @@ describe('GioConfirmDialogComponent', () => {
     fixture.detectChanges();
 
     // Init links
-    tableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
-    tableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
     fixture.detectChanges();
 
     // Simulate location change to link 2️⃣

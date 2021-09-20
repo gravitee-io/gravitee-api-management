@@ -16,13 +16,13 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 
-import { TableOfContentsComponent } from './table-of-contents.component';
-import { TableOfContentsDirective } from './table-of-contents.directive';
+import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
+import { GioTableOfContentsDirective } from './gio-table-of-contents.directive';
 
 @NgModule({
   imports: [CommonModule],
-  declarations: [TableOfContentsComponent, TableOfContentsDirective],
-  exports: [TableOfContentsComponent, TableOfContentsDirective],
-  entryComponents: [TableOfContentsComponent],
+  declarations: [GioTableOfContentsComponent, GioTableOfContentsDirective],
+  exports: [GioTableOfContentsComponent, GioTableOfContentsDirective],
+  entryComponents: [GioTableOfContentsComponent],
 })
-export class TableOfContentsModule {}
+export class GioTableOfContentsModule {}

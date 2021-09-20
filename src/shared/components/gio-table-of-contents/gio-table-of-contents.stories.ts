@@ -16,16 +16,16 @@
 import { APP_INITIALIZER } from '@angular/core';
 import { Meta, moduleMetadata, Story } from '@storybook/angular';
 
-import { TableOfContentsComponent } from './table-of-contents.component';
-import { TableOfContentsModule } from './table-of-contents.module';
-import { TableOfContentsService } from './table-of-contents.service';
+import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
+import { GioTableOfContentsModule } from './gio-table-of-contents.module';
+import { GioTableOfContentsService } from './gio-table-of-contents.service';
 
 export default {
   title: 'Shared / Table of contents',
-  component: TableOfContentsComponent,
+  component: GioTableOfContentsComponent,
   decorators: [
     moduleMetadata({
-      imports: [TableOfContentsModule],
+      imports: [GioTableOfContentsModule],
     }),
   ],
 } as Meta;
@@ -35,34 +35,34 @@ export const Default: Story = {
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
       <div style="width: 60%;">
-        <h1 tableOfContents>Link 1</h1>
+        <h1 >Link 1</h1>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h2 tableOfContents>Link 1.1</h2>
+        <h2 gioTableOfContents>Link 1.1</h2>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.1</h3>
+        <h3 gioTableOfContents>Link 1.1.1</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.2</h3>
+        <h3 gioTableOfContents>Link 1.1.2</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h4 tableOfContents>Link 1.1.2.a</h4>
+        <h4 gioTableOfContents>Link 1.1.2.a</h4>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h4 tableOfContents>Link 1.1.2.b</h4>
+        <h4 gioTableOfContents>Link 1.1.2.b</h4>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h2 tableOfContents>Link 1.2</h2>
+        <h2 gioTableOfContents>Link 1.2</h2>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.2.1</h3>
+        <h3 gioTableOfContents>Link 1.2.1</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.2.1</h3>
+        <h3 gioTableOfContents>Link 1.2.1</h3>
       </div>
 
-      <table-of-contents></table-of-contents>
+      <gio-table-of-contents></gio-table-of-contents>
     </div>
     `,
   }),
@@ -73,25 +73,25 @@ export const Multiple: Story = {
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
       <div style="width: 60%;">
-        <h2 tableOfContents>Link 1.1</h2>
+        <h2 gioTableOfContents>Link 1.1</h2>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.1</h3>
+        <h3 gioTableOfContents>Link 1.1.1</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.2</h3>
+        <h3 gioTableOfContents>Link 1.1.2</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h2 tableOfContents tableOfContentsSectionId="second">Link 1.2</h2>
+        <h2 gioTableOfContents gioTableOfContentsSectionId="second">Link 1.2</h2>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents tableOfContentsSectionId="second">Link 1.2.1</h3>
+        <h3 gioTableOfContents gioTableOfContentsSectionId="second">Link 1.2.1</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents tableOfContentsSectionId="second">Link 1.2.1</h3>
+        <h3 gioTableOfContents gioTableOfContentsSectionId="second">Link 1.2.1</h3>
       </div>
 
-      <table-of-contents></table-of-contents>
+      <gio-table-of-contents></gio-table-of-contents>
     </div>
     `,
     moduleMetadata: {
@@ -102,7 +102,7 @@ export const Multiple: Story = {
             toc.addSection('', 'First section');
             toc.addSection('second', 'Second section');
           },
-          deps: [TableOfContentsService],
+          deps: [GioTableOfContentsService],
           multi: true,
         },
       ],
@@ -115,34 +115,34 @@ export const AddAndRemoveDynamically: Story = {
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
       <div style="width: 60%;">
-        <h2 tableOfContents>Link 1.1</h2>
+        <h2 gioTableOfContents>Link 1.1</h2>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.1</h3>
+        <h3 gioTableOfContents>Link 1.1.1</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.2</h3>
+        <h3 gioTableOfContents>Link 1.1.2</h3>
         <br *ngFor="let item of [].constructor(10)">
 
         <button *ngIf="!moreLinks" (click)="moreLinks = true">+ Add</button>
         <ng-container *ngIf="moreLinks">
-          <h2 tableOfContents>Link 1.2</h2>
+          <h2 gioTableOfContents>Link 1.2</h2>
           <br *ngFor="let item of [].constructor(10)">
 
-          <h3 tableOfContents>Link 1.2.1</h3>
+          <h3 gioTableOfContents>Link 1.2.1</h3>
           <br *ngFor="let item of [].constructor(10)">
 
-          <h3 tableOfContents>Link 1.2.1</h3>
+          <h3 gioTableOfContents>Link 1.2.1</h3>
           <br *ngFor="let item of [].constructor(10)">
 
-          <h2 tableOfContents tableOfContentsSectionId="second">Link in new section</h2>
+          <h2 gioTableOfContents gioTableOfContentsSectionId="second">Link in new section</h2>
           <br *ngFor="let item of [].constructor(10)">
 
           <button (click)="moreLinks = false">- Remove</button>
         </ng-container>
       </div>
 
-      <table-of-contents></table-of-contents>
+      <gio-table-of-contents></gio-table-of-contents>
     </div>
     `,
     moduleMetadata: {
@@ -152,7 +152,7 @@ export const AddAndRemoveDynamically: Story = {
           useFactory: (toc) => () => {
             toc.addSection('', 'First section');
           },
-          deps: [TableOfContentsService],
+          deps: [GioTableOfContentsService],
           multi: true,
         },
       ],
@@ -169,33 +169,33 @@ export const scrollingContainer: Story = {
          style="display: flex; justify-content: space-between; align-items: flex-start; overflow: auto; height: calc(100vh - 24px);"
     >
       <div style="width: 60%;">
-        <h2 tableOfContents>Link 1.1</h2>
+        <h2 gioTableOfContents>Link 1.1</h2>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.1</h3>
+        <h3 gioTableOfContents>Link 1.1.1</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        <h3 tableOfContents>Link 1.1.2</h3>
+        <h3 gioTableOfContents>Link 1.1.2</h3>
         <br *ngFor="let item of [].constructor(10)">
 
-        
+
         <ng-container *ngIf="moreLinks">
-          <h2 tableOfContents>Link 1.2</h2>
+          <h2 gioTableOfContents>Link 1.2</h2>
           <br *ngFor="let item of [].constructor(10)">
 
-          <h3 tableOfContents>Link 1.2.1</h3>
+          <h3 gioTableOfContents>Link 1.2.1</h3>
           <br *ngFor="let item of [].constructor(10)">
 
-          <h3 tableOfContents>Link 1.2.1</h3>
+          <h3 gioTableOfContents>Link 1.2.1</h3>
           <br *ngFor="let item of [].constructor(10)">
 
-          <h2 tableOfContents tableOfContentsSectionId="second">Link in new section</h2>
+          <h2 gioTableOfContents gioTableOfContentsSectionId="second">Link in new section</h2>
           <br *ngFor="let item of [].constructor(10)">
 
         </ng-container>
       </div>
 
-      <table-of-contents scrollingContainer="#scrollingContainer"></table-of-contents>
+      <gio-table-of-contents scrollingContainer="#scrollingContainer"></gio-table-of-contents>
     </div>
     `,
     moduleMetadata: {
@@ -205,7 +205,7 @@ export const scrollingContainer: Story = {
           useFactory: (toc) => () => {
             toc.addSection('', 'First section');
           },
-          deps: [TableOfContentsService],
+          deps: [GioTableOfContentsService],
           multi: true,
         },
       ],

@@ -40,7 +40,8 @@ import { OrgSettingsNewUserComponent } from './user/new/org-settings-new-user.co
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
-import { TableOfContentsModule } from '../../shared/components/table-of-contents/table-of-contents.module';
+import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -66,7 +67,7 @@ import { TableOfContentsModule } from '../../shared/components/table-of-contents
 
     GioConfirmDialogModule,
     GioAvatarModule,
-    TableOfContentsModule,
+    GioTableOfContentsModule,
   ],
   declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent, OrgSettingsNewUserComponent],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],

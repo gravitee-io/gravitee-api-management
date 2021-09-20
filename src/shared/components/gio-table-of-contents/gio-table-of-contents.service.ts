@@ -22,7 +22,7 @@ import { mapTo, startWith } from 'rxjs/operators';
 import { TocSection, TocSectionLink } from './TocSection';
 
 @Injectable({ providedIn: 'root' })
-export class TableOfContentsService {
+export class GioTableOfContentsService {
   private sectionsLinks: Record<string, TocSection> = {};
   private sectionsLinksChanges$ = new Subject<void>();
 

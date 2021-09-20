@@ -20,14 +20,14 @@ import { fromEvent, Observable, Subscription } from 'rxjs';
 import { debounceTime, map } from 'rxjs/operators';
 
 import { TocSection, TocSectionLink } from './TocSection';
-import { TableOfContentsService } from './table-of-contents.service';
+import { GioTableOfContentsService } from './gio-table-of-contents.service';
 
 @Component({
-  selector: 'table-of-contents',
-  template: require('./table-of-contents.component.html'),
-  styles: [require('./table-of-contents.component.scss')],
+  selector: 'gio-table-of-contents',
+  template: require('./gio-table-of-contents.component.html'),
+  styles: [require('./gio-table-of-contents.component.scss')],
 })
-export class TableOfContentsComponent implements OnInit, AfterViewInit, OnDestroy {
+export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input()
   public scrollingContainer: string | HTMLElement;
 
@@ -51,7 +51,7 @@ export class TableOfContentsComponent implements OnInit, AfterViewInit, OnDestro
   private fragment?: string;
 
   constructor(
-    private readonly tableOfContentsService: TableOfContentsService,
+    private readonly tableOfContentsService: GioTableOfContentsService,
     @Inject(DOCUMENT) private readonly document: Document,
     private readonly elementRef: ElementRef,
     private readonly location: Location,
