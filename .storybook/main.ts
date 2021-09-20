@@ -72,4 +72,7 @@ module.exports = {
 
     return config;
   },
+  previewHead :(head) => (
+    `${head}
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">`)
 };
