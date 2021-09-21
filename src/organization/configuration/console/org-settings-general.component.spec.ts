@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
+import { HarnessLoader, TestKey } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
@@ -373,7 +373,7 @@ describe('ConsoleSettingsComponent', () => {
       const allowHeadersChipListInput = await allowHeadersChipList.getInput();
       // Add new custom header
       await allowHeadersChipListInput.setValue('x-ray');
-      await allowHeadersChipListInput.blur();
+      await allowHeadersChipListInput.sendSeparatorKey(TestKey.ENTER);
       // Remove x-foo header
       await (await allowHeadersChipList.getChips({ text: 'x-foo' }))[0].remove();
       // Check headers

@@ -284,7 +284,6 @@
               [formControl]="allowHeadersInputFormControl"
               [matAutocomplete]="auto"
               [matChipInputFor]="allowHeadersChipList"
-              [matChipInputAddOnBlur]="true"
               (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowHeaders', allowHeadersChipList)"
             />
           </mat-chip-list>
@@ -330,7 +329,6 @@
               [formControl]="exposedHeadersInputFormControl"
               [matAutocomplete]="auto"
               [matChipInputFor]="exposedHeadersChipList"
-              [matChipInputAddOnBlur]="true"
               (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.exposedHeaders', exposedHeadersChipList)"
             />
           </mat-chip-list>
