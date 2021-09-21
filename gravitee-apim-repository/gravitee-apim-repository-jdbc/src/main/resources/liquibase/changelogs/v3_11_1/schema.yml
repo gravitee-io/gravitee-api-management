@@ -6,8 +6,8 @@ databaseChangeLog:
         # dbms: mariadb, mysql
         - sql:
             dbms: mariadb, mysql
-            sql: update ${gravitee_prefix}event_properties` set property_key = 'api_debug_id' where `property_key` = 'api_id';
+            sql: delete from `${gravitee_prefix}event_properties` where `property_key` = 'api_id';
         # dbms: postgresql, mssql
         - sql:
             dbms: postgresql, mssql
-            sql: update ${gravitee_prefix}event_properties set property_key = 'api_debug_id' where property_key = 'api_id';
+            sql: delete from ${gravitee_prefix}event_properties where property_key = 'api_id';

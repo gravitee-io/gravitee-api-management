@@ -32,13 +32,13 @@ public interface EventRepository extends CrudRepository<Event, String> {
     /**
      * Search for latest {@link Event} matching the corresponding criteria for each event related to the specified group criteria (ex: 'api_id, 'dictionary_id').
      *
-     * @param criteria the criteria to apply.
+     * @param criteria Event criteria to search for {@link Event}.
      * @param group the property to group on in order to retrieve the latest event. Can be {@link io.gravitee.repository.management.model.Event.EventProperties#API_ID} to retrieve latest event for each api
      *              or {@link io.gravitee.repository.management.model.Event.EventProperties#DICTIONARY_ID} to retrieve latest event for each dictionary.
      * @param page optional page number starting from 0, <code>null</code> means no paging.
      * @param size optional number of events to retrieve, <code>null</code> means no limit.
      *
-     * @returnthe list of latest events.
+     * @return the list of latest events.
      */
     List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size);
 
@@ -51,7 +51,7 @@ public interface EventRepository extends CrudRepository<Event, String> {
      *
      * @param filter Event criteria to search for {@link Event}.
      * @param pageable If user wants a paginable result. Can be <code>null</code>.
-     * @return
+     * @return the list of events.
      */
     Page<Event> search(EventCriteria filter, Pageable pageable);
 
@@ -62,7 +62,7 @@ public interface EventRepository extends CrudRepository<Event, String> {
      *  Note that events must be ordered by update date in DESC mode.
      * </p>
      * @param filter Event criteria to search for {@link Event}.
-     * @return
+     * @return the list of events.
      */
     List<Event> search(EventCriteria filter);
 }

@@ -139,7 +139,6 @@ public class Event implements Serializable {
         DEPLOYMENT_LABEL("deployment_label"),
         DEPLOYMENT_NUMBER("deployment_number"),
         ORGANIZATION_ID("organization_id"),
-        API_DEBUG_ID("api_debug_id"),
         API_DEBUG_STATUS("api_debug_status"),
         GATEWAY_ID("gateway_id"),
         ENVIRONMENTS_HRIDS_PROPERTY("environments_hrids"),

@@ -71,7 +71,6 @@ public class DebugApiServiceImpl implements DebugApiService {
             final InstanceEntity instanceEntity = selectTargetGateway(api);
 
             Map<String, String> properties = Map.ofEntries(
-                entry(Event.EventProperties.API_DEBUG_ID.getValue(), apiId),
                 entry(Event.EventProperties.USER.getValue(), userId),
                 entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name()),
                 entry(Event.EventProperties.GATEWAY_ID.getValue(), instanceEntity.getId())
