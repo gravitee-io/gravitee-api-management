@@ -279,8 +279,8 @@ describe('ConsoleSettingsComponent', () => {
         },
       });
 
-      const enableAlertingCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Alerting' }));
-      expect(await enableAlertingCheckbox.isDisabled()).toEqual(true);
+      const enableAlertingSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'alert' }));
+      expect(await enableAlertingSlideToggle.isDisabled()).toEqual(true);
     });
 
     it('should save alert settings', async () => {
@@ -290,8 +290,8 @@ describe('ConsoleSettingsComponent', () => {
         },
       });
 
-      const enableAlertingCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Alerting' }));
-      await enableAlertingCheckbox.check();
+      const enableAlertingSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'alert' }));
+      await enableAlertingSlideToggle.check();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await saveButton.click();
@@ -465,8 +465,8 @@ describe('ConsoleSettingsComponent', () => {
         },
       });
 
-      const emailEnabledEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Emailing' }));
-      expect(await emailEnabledEnableCheckbox.isDisabled()).toEqual(true);
+      const emailEnabledEnableSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailEnabled' }));
+      expect(await emailEnabledEnableSlideToggle.isDisabled()).toEqual(true);
 
       await Promise.all(
         ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
@@ -476,11 +476,13 @@ describe('ConsoleSettingsComponent', () => {
         }),
       );
 
-      const propertiesAuthCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Auth' }));
-      expect(await propertiesAuthCheckbox.isDisabled()).toEqual(true);
+      const propertiesAuthSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailPropertiesAuth' }));
+      expect(await propertiesAuthSlideToggle.isDisabled()).toEqual(true);
 
-      const propertiesStartTlsEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Start TLS' }));
-      expect(await propertiesStartTlsEnableCheckbox.isDisabled()).toEqual(true);
+      const propertiesStartTlsEnableSlideToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ name: 'emailPropertiesStartTlsEnable' }),
+      );
+      expect(await propertiesStartTlsEnableSlideToggle.isDisabled()).toEqual(true);
     });
 
     it('should save email settings', async () => {
@@ -506,11 +508,13 @@ describe('ConsoleSettingsComponent', () => {
         }),
       );
 
-      const propertiesAuthCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Auth' }));
-      await propertiesAuthCheckbox.uncheck();
+      const propertiesAuthSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailPropertiesAuth' }));
+      await propertiesAuthSlideToggle.uncheck();
 
-      const propertiesStartTlsEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Start TLS' }));
-      await propertiesStartTlsEnableCheckbox.check();
+      const propertiesStartTlsEnableSlideToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ name: 'emailPropertiesStartTlsEnable' }),
+      );
+      await propertiesStartTlsEnableSlideToggle.check();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await saveButton.click();
@@ -540,8 +544,8 @@ describe('ConsoleSettingsComponent', () => {
         },
       });
 
-      const emailEnabledEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Emailing' }));
-      await emailEnabledEnableCheckbox.uncheck();
+      const emailEnabledEnableSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailEnabled' }));
+      await emailEnabledEnableSlideToggle.uncheck();
 
       // expect all email settings to be disabled
       await Promise.all(
@@ -552,13 +556,15 @@ describe('ConsoleSettingsComponent', () => {
         }),
       );
 
-      const propertiesAuthCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Auth' }));
-      expect(await propertiesAuthCheckbox.isDisabled()).toEqual(true);
+      const propertiesAuthSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailPropertiesAuth' }));
+      expect(await propertiesAuthSlideToggle.isDisabled()).toEqual(true);
 
-      const propertiesStartTlsEnableCheckbox = await loader.getHarness(MatCheckboxHarness.with({ label: 'Enable Start TLS' }));
-      expect(await propertiesStartTlsEnableCheckbox.isDisabled()).toEqual(true);
+      const propertiesStartTlsEnableSlideToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ name: 'emailPropertiesStartTlsEnable' }),
+      );
+      expect(await propertiesStartTlsEnableSlideToggle.isDisabled()).toEqual(true);
 
-      await emailEnabledEnableCheckbox.check();
+      await emailEnabledEnableSlideToggle.check();
 
       // Expect all email settings to be enabled except for read-only settings
       await Promise.all(
@@ -576,9 +582,9 @@ describe('ConsoleSettingsComponent', () => {
         }),
       );
 
-      expect(await propertiesAuthCheckbox.isDisabled()).toEqual(true);
+      expect(await propertiesAuthSlideToggle.isDisabled()).toEqual(true);
 
-      expect(await propertiesStartTlsEnableCheckbox.isDisabled()).toEqual(false);
+      expect(await propertiesStartTlsEnableSlideToggle.isDisabled()).toEqual(false);
     });
   });
 

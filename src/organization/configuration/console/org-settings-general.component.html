@@ -184,16 +184,18 @@
     <mat-card class="settings-general__form__card" formGroupName="alert">
       <h2 gioTableOfContents>Alerting</h2>
       <mat-card-content>
-        <section class="settings-general__form__card__checkbox-section">
-          <mat-checkbox
-            #alertCheckbox
-            aria-label="Alerting enabled"
-            formControlName="enabled"
-            [matTooltip]="providedConfigurationMessage"
-            [matTooltipDisabled]="!alertCheckbox.disabled"
-            >Enable Alerting</mat-checkbox
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('alert.enabled')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('alert.enabled')" class="settings-general__form__card__form-field__icon" gioFormPrefix
+            >lock</mat-icon
           >
-        </section>
+          <gio-form-label>Enable Alerting</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Alerting enabled " name="alert"></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </mat-card-content>
     </mat-card>
 
@@ -360,21 +362,26 @@
     <mat-card class="settings-general__form__card" formGroupName="email">
       <h2 gioTableOfContents>SMTP</h2>
       <mat-card-content>
-        <section class="settings-general__form__card__checkbox-section">
-          <mat-checkbox
-            #emailEnabledCheckbox
-            formControlName="enabled"
-            aria-label="Email enabled"
-            [matTooltip]="providedConfigurationMessage"
-            [matTooltipDisabled]="!emailEnabledCheckbox.disabled"
-            >Enable Emailing</mat-checkbox
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.enabled')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.enabled')" class="settings-general__form__card__form-field__icon" gioFormPrefix
+            >lock</mat-icon
           >
-        </section>
+          <gio-form-label>Enable Emailing</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Email enabled" name="emailEnabled"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <mat-divider></mat-divider>
+
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('email.host')"
           appearance="fill"
-          class="settings-general__form__card__form-field"
+          class="settings-general__form__card__form-field margin-top"
         >
           <mat-icon *ngIf="isReadonlySetting('email.host')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
           <mat-label>Host</mat-label>
@@ -455,37 +462,61 @@
           <input matInput formControlName="from" type="email" />
         </mat-form-field>
 
-        <mat-divider [inset]="true"></mat-divider>
+        <mat-divider></mat-divider>
 
-        <h3>Mail properties</h3>
+        <h3 class="settings-general__form__card__h3">Mail properties</h3>
         <ng-container formGroupName="properties">
-          <section class="settings-general__form__card__checkbox-section">
-            <mat-checkbox
-              #emailPropertiesAuthCheckbox
+          <gio-form-slide-toggle
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.properties.auth')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon
+              *ngIf="isReadonlySetting('email.properties.auth')"
+              class="settings-general__form__card__form-field__icon"
+              gioFormPrefix
+              >lock</mat-icon
+            >
+            <gio-form-label>Enable Auth</gio-form-label>
+            <mat-slide-toggle
+              gioFormSlideToggle
               formControlName="auth"
               aria-label="Alerting enabled"
-              [matTooltip]="providedConfigurationMessage"
-              [matTooltipDisabled]="!emailPropertiesAuthCheckbox.disabled"
-              >Enable Auth</mat-checkbox
-            >
-          </section>
+              name="emailPropertiesAuth"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
 
-          <section class="settings-general__form__card__checkbox-section">
-            <mat-checkbox
-              #emailPropertiesStartTlsEnableCheckbox
+          <mat-divider></mat-divider>
+
+          <gio-form-slide-toggle
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.properties.startTlsEnable')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon
+              *ngIf="isReadonlySetting('email.properties.startTlsEnable')"
+              class="settings-general__form__card__form-field__icon"
+              gioFormPrefix
+              >lock</mat-icon
+            >
+            <gio-form-label>Enable Start TLS</gio-form-label>
+            <mat-slide-toggle
+              gioFormSlideToggle
               formControlName="startTlsEnable"
               aria-label="Start TLS enabled"
-              [matTooltip]="providedConfigurationMessage"
-              [matTooltipDisabled]="!emailPropertiesStartTlsEnableCheckbox.disabled"
-              >Enable Start TLS</mat-checkbox
-            >
-          </section>
+              name="emailPropertiesStartTlsEnable"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+
+          <mat-divider></mat-divider>
 
           <mat-form-field
             [matTooltip]="providedConfigurationMessage"
             [matTooltipDisabled]="!isReadonlySetting('email.sslTrust')"
             appearance="fill"
-            class="settings-general__form__card__form-field"
+            class="settings-general__form__card__form-field margin-top"
           >
             <mat-icon *ngIf="isReadonlySetting('email.sslTrust')" class="settings-general__form__card__form-field__icon" matPrefix
               >lock</mat-icon

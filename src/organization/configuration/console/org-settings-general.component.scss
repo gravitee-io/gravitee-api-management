@@ -30,13 +30,14 @@ $foreground: map.get($gio-theme, foreground);
         &__icon {
           color: mat.get-color-from-palette($foreground, disabled);
         }
+
+        &.margin-top {
+          margin-top: 16px;
+        }
       }
 
-      &__checkbox-section {
-        ul {
-          list-style-type: none;
-          margin-top: 4px;
-        }
+      &__h3 {
+        margin-top: 16px;
       }
     }
 
