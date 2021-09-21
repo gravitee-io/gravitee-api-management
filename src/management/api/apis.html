@@ -73,23 +73,30 @@
                     <a ui-sref="management.apis.detail.portal.general({apiId: api.id})"> {{api.name}} ({{api.version}}) </a>
                   </td>
                   <td md-cell nowrap>
-                    <i ng-if="api.state == 'STARTED'" class="icon-play-circled2" style="color: #43a047; font-size: 16px">
+                    <gv-icon ng-if="api.state === 'STARTED'" shape="av:play_circle_fill" style="--gv-icon--c: #43a047; --gv-icon--s: 22px">
                       <md-tooltip>Started</md-tooltip>
-                    </i>
-                    <i ng-if="api.state !== 'STARTED'" class="icon-stop-circle-o" style="color: #e53935; font-size: 16px">
+                    </gv-icon>
+
+                    <gv-icon
+                      ng-if="api.state !== 'STARTED'"
+                      shape="av:stop_circle_filled"
+                      style="--gv-icon--c: #e53935; --gv-icon--s: 22px"
+                    >
                       <md-tooltip>Stopped</md-tooltip>
-                    </i>
-                    <i
-                      ng-if="$ctrl.syncStatus[api.id] === undefined?false:!$ctrl.syncStatus[api.id]"
-                      class="icon-arrows-cw"
-                      style="color: #e8ac3c; font-size: 14px"
+                    </gv-icon>
+
+                    <gv-icon
+                      ng-if="$ctrl.syncStatus[api.id] === undefined ? false : !$ctrl.syncStatus[api.id]"
+                      shape="notification:sync_problem"
+                      style="--gv-icon--c: #e8ac3c; --gv-icon--s: 22px"
                     >
                       <md-tooltip>API out of sync</md-tooltip>
-                    </i>
-                    <ng-md-icon ng-if="api.lifecycle_state === 'PUBLISHED'" icon="cloud_done" size="17" style="top: 3px">
+                    </gv-icon>
+
+                    <ng-md-icon ng-if="api.lifecycle_state === 'PUBLISHED'" icon="cloud_done" size="20" style="top: 3px">
                       <md-tooltip>Published</md-tooltip>
                     </ng-md-icon>
-                    <ng-md-icon ng-if="api.lifecycle_state !== 'PUBLISHED'" icon="cloud_queue" size="17" style="top: 3px">
+                    <ng-md-icon ng-if="api.lifecycle_state !== 'PUBLISHED'" icon="cloud_queue" size="20" style="top: 3px">
                       <md-tooltip>Unpublished</md-tooltip>
                     </ng-md-icon>
                     <span

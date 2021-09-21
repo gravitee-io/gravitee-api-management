@@ -15,32 +15,58 @@
     limitations under the License.
 
 -->
-<div flex>
+<div flex class="apis-portal">
   <div layout="row" flex>
     <div class="gv-sub-menu menu">
-      <div class="md-headline">
-        <span>
-          <i ng-if="apiCtrl.api.state == 'STARTED'" class="icon-play-circled2" style="color: #43a047; font-size: 16px">
-            <md-tooltip>Started</md-tooltip>
-          </i>
-          <i ng-if="apiCtrl.api.state !== 'STARTED'" class="icon-stop-circle-o" style="color: #e53935; font-size: 16px">
-            <md-tooltip>Stopped</md-tooltip>
-          </i>
-          <i
-            ng-if="apiCtrl.apiIsSynchronized === undefined?false:!apiCtrl.apiIsSynchronized"
-            class="icon-arrows-cw"
-            style="color: #e8ac3c; font-size: 14px"
-          >
-            <md-tooltip>API out of sync</md-tooltip>
-          </i>
-          <ng-md-icon ng-if="apiCtrl.api.lifecycle_state === 'PUBLISHED'" icon="cloud_done" size="17" style="top: 3px">
-            <md-tooltip>Published</md-tooltip>
-          </ng-md-icon>
-          <ng-md-icon ng-if="apiCtrl.api.lifecycle_state !== 'PUBLISHED'" icon="cloud_queue" size="17" style="top: 3px">
-            <md-tooltip>Unpublished</md-tooltip>
-          </ng-md-icon>
+      <div class="md-headline apis-portal__headline">
+        <gv-icon
+          class="apis-portal__headline__icon"
+          ng-if="apiCtrl.api.state === 'STARTED'"
+          shape="av:play_circle_fill"
+          style="--gv-icon--c: #43a047; --gv-icon--s: 22px"
+        >
+          <md-tooltip>Started</md-tooltip>
+        </gv-icon>
+
+        <gv-icon
+          class="apis-portal__headline__icon"
+          ng-if="apiCtrl.api.state !== 'STARTED'"
+          shape="av:stop_circle_filled"
+          style="--gv-icon--c: #e53935; --gv-icon--s: 22px"
+        >
+          <md-tooltip>Stopped</md-tooltip>
+        </gv-icon>
+
+        <gv-icon
+          class="apis-portal__headline__icon"
+          ng-if="apiCtrl.apiIsSynchronized === undefined ? false : !apiCtrl.apiIsSynchronized"
+          shape="notification:sync_problem"
+          style="--gv-icon--c: #e8ac3c; --gv-icon--s: 22px"
+        >
+          <md-tooltip>API out of sync</md-tooltip>
+        </gv-icon>
+
+        <ng-md-icon
+          class="apis-portal__headline__icon"
+          ng-if="apiCtrl.api.lifecycle_state === 'PUBLISHED'"
+          icon="cloud_done"
+          size="20"
+          style="top: 3px"
+        >
+          <md-tooltip>Published</md-tooltip>
+        </ng-md-icon>
+        <ng-md-icon
+          class="apis-portal__headline__icon"
+          ng-if="apiCtrl.api.lifecycle_state !== 'PUBLISHED'"
+          icon="cloud_queue"
+          size="20"
+          style="top: 3px"
+        >
+          <md-tooltip>Unpublished</md-tooltip>
+        </ng-md-icon>
+        <div class="apis-portal__headline__api-name" title="{{apiCtrl.api.name}} ({{apiCtrl.api.version}})">
           {{apiCtrl.api.name}} ({{apiCtrl.api.version}})
-        </span>
+        </div>
       </div>
 
       <div class="aui-nav-heading">

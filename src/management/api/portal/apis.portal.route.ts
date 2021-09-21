@@ -26,6 +26,7 @@ import QualityRuleService from '../../../services/qualityRule.service';
 import ResourceService from '../../../services/resource.service';
 import TagService from '../../../services/tag.service';
 import UserService from '../../../services/user.service';
+import '@gravitee/ui-components/wc/gv-icon';
 
 export default apisPortalRouterConfig;
 
