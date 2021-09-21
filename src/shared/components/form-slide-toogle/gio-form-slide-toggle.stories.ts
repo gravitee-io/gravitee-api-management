@@ -108,7 +108,7 @@ export const SimilarToMatFormField: Story = {
 export const SimilarToMatFormFieldWithIcon: Story = {
   render: ({ appearance }) => ({
     template: `
-      <p>
+      <p class="mat-body">
         <mat-form-field [appearance]="appearance">
           <mat-icon matPrefix>lock</mat-icon>
           <mat-label>Standard form field</mat-label>
@@ -116,7 +116,7 @@ export const SimilarToMatFormFieldWithIcon: Story = {
           <mat-hint>Hint</mat-hint>
         </mat-form-field>
       </p>
-      <p>
+      <p class="mat-body">
         <gio-form-slide-toggle [appearance]="appearance">
           <mat-icon gioFormPrefix>lock</mat-icon>
           <gio-form-label>Label 1</gio-form-label>

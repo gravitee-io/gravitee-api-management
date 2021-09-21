@@ -63,3 +63,11 @@ $foreground: map.get($gio-theme, foreground);
     }
   }
 }
+
+// to change style in component provide by ng-content
+::ng-deep .form-slide-toggle__icon {
+  .mat-icon {
+    font-size: 150%;
+    line-height: 1.125;
+  }
+}
