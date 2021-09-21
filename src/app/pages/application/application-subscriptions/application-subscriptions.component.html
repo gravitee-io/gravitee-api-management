@@ -128,7 +128,7 @@
           <gv-confirm
             [message]="'application.subscriptions.apiKey.revoke.message' | translate"
             danger
-            (:gv-confirm:ok)="revokeApiKey(selectedSubscriptions[0], apiKey.key)"
+            (:gv-confirm:ok)="revokeApiKey(selectedSubscription.id, apiKey.key)"
             [cancelLabel]="'common.cancel' | translate"
             [okLabel]="'common.ok' | translate"
           >
