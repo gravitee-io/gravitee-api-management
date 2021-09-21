@@ -15,7 +15,8 @@
  */
 package io.gravitee.gateway.services.sync.synchronizer;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.API_DEBUG_ID;
+import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_AFTER_DELAY;
+import static io.gravitee.gateway.services.sync.SyncManager.TIMEFRAME_BEFORE_DELAY;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.gateway.reactor.ReactorEvent;
@@ -25,9 +26,8 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.reactivex.Flowable;
-import io.reactivex.annotations.NonNull;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,34 +46,29 @@ public class DebugApiSynchronizer extends AbstractSynchronizer {
     @Autowired
     private Node node;
 
-    public void synchronize(long lastRefreshAt, long nextLastRefreshAt, List<String> environments) {
+    @Override
+    public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();
         if (lastRefreshAt != -1) {
-            Long count =
-                this.searchLatestEvents(lastRefreshAt, nextLastRefreshAt, API_DEBUG_ID, environments, EventType.DEBUG_API)
-                    .compose(this::processApiEvents)
-                    .count()
-                    .blockingGet();
-            logger.debug("{} debug apis synchronized in {}ms", count, (System.currentTimeMillis() - start));
+            EventCriteria.Builder criteriaBuilder = new EventCriteria.Builder()
+                .types(EventType.DEBUG_API)
+                .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
+                .from(lastRefreshAt == null ? 0 : lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+                .to(nextLastRefreshAt == null ? 0 : nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+                .environments(environments);
+
+            List<String> events = eventRepository
+                .search(criteriaBuilder.build())
+                .stream()
+                .filter(event -> node.id().equals(event.getProperties().get(Event.EventProperties.GATEWAY_ID.getValue())))
+                .map(
+                    event -> {
+                        eventManager.publishEvent(ReactorEvent.DEBUG, new ReactableWrapper(event));
+                        return event.getId();
+                    }
+                )
+                .collect(Collectors.toList());
+            logger.debug("{} debug apis synchronized in {}ms", events.size(), (System.currentTimeMillis() - start));
         }
-    }
-
-    @Override
-    protected EventCriteria appendCriteria(EventCriteria.Builder builder) {
-        return builder
-            .property(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
-            .property(Event.EventProperties.GATEWAY_ID.getValue(), node.id())
-            .build();
-    }
-
-    @NonNull
-    private Flowable<String> processApiEvents(Flowable<Event> upstream) {
-        return upstream
-            .doOnNext(
-                debugEvent -> {
-                    eventManager.publishEvent(ReactorEvent.DEBUG, new ReactableWrapper(debugEvent));
-                }
-            )
-            .map(io.gravitee.repository.management.model.Event::getId);
     }
 }

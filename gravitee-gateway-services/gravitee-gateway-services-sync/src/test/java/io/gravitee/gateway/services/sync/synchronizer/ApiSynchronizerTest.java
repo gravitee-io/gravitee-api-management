@@ -100,7 +100,7 @@ public class ApiSynchronizerTest extends TestCase {
         )
             .thenReturn(singletonList(mockEvent));
 
-        apiSynchronizer.synchronize(-1, System.currentTimeMillis(), ENVIRONMENTS);
+        apiSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
 
         verify(apiManager).register(new Api(mockApi));
         verify(apiManager, never()).unregister(any(String.class));

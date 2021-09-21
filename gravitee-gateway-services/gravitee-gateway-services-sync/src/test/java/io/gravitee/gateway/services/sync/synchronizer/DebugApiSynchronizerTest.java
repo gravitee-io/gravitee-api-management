@@ -80,7 +80,7 @@ public class DebugApiSynchronizerTest extends TestCase {
         final Event mockEvent = mockEvent(api, EventType.DEBUG_API);
 
         when(
-            eventRepository.searchLatest(
+            eventRepository.search(
                 argThat(
                     criteria ->
                         criteria != null &&
@@ -90,12 +90,8 @@ public class DebugApiSynchronizerTest extends TestCase {
                         criteria
                             .getProperties()
                             .get(Event.EventProperties.API_DEBUG_STATUS.name().toLowerCase())
-                            .equals(ApiDebugStatus.TO_DEBUG.name()) &&
-                        criteria.getProperties().get(Event.EventProperties.GATEWAY_ID.name().toLowerCase()).equals(node.id())
-                ),
-                eq(Event.EventProperties.API_DEBUG_ID),
-                anyLong(),
-                anyLong()
+                            .equals(ApiDebugStatus.TO_DEBUG.name())
+                )
             )
         )
             .thenReturn(singletonList(mockEvent));
@@ -105,118 +101,8 @@ public class DebugApiSynchronizerTest extends TestCase {
         verify(eventManager, times(1)).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
     }
 
-    @Test
-    public void shouldSynchronizeDebugEventsWithPagination() {
-        io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-            .id("api-test")
-            .updatedAt(new Date())
-            .definition("api-test")
-            .build();
-
-        io.gravitee.repository.management.model.Api api2 = new RepositoryApiBuilder()
-            .id("api2-test")
-            .updatedAt(new Date())
-            .definition("api2-test")
-            .build();
-
-        // Force bulk size to 1.
-        debugApiSynchronizer.bulkItems = 1;
-
-        final Event mockEvent = mockEvent(api, EventType.DEBUG_API);
-        final Event mockEvent2 = mockEvent(api2, EventType.DEBUG_API);
-        when(
-            eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().size() == 1 &&
-                        criteria.getTypes().contains(EventType.DEBUG_API) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS) &&
-                        criteria
-                            .getProperties()
-                            .get(Event.EventProperties.API_DEBUG_STATUS.name().toLowerCase())
-                            .equals(ApiDebugStatus.TO_DEBUG.name()) &&
-                        criteria.getProperties().get(Event.EventProperties.GATEWAY_ID.name().toLowerCase()).equals(node.id())
-                ),
-                eq(Event.EventProperties.API_DEBUG_ID),
-                eq(0L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent));
-
-        when(
-            eventRepository.searchLatest(
-                argThat(
-                    criteria ->
-                        criteria != null &&
-                        criteria.getTypes().size() == 1 &&
-                        criteria.getTypes().contains(EventType.DEBUG_API) &&
-                        criteria.getEnvironments().containsAll(ENVIRONMENTS) &&
-                        criteria
-                            .getProperties()
-                            .get(Event.EventProperties.API_DEBUG_STATUS.name().toLowerCase())
-                            .equals(ApiDebugStatus.TO_DEBUG.name()) &&
-                        criteria.getProperties().get(Event.EventProperties.GATEWAY_ID.name().toLowerCase()).equals(node.id())
-                ),
-                eq(Event.EventProperties.API_DEBUG_ID),
-                eq(1L),
-                eq(1L)
-            )
-        )
-            .thenReturn(singletonList(mockEvent2));
-
-        debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(eventManager, times(2)).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
-        verify(eventManager, times(2)).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
-    }
-
-    @Test
-    public void shouldSynchronizeALotOfDebugEvents() throws Exception {
-        long page = 0;
-        List<Event> eventAccumulator = new ArrayList<>(100);
-
-        for (int i = 1; i <= 500; i++) {
-            io.gravitee.repository.management.model.Api api = new RepositoryApiBuilder()
-                .id("api" + i + "-test")
-                .updatedAt(new Date())
-                .definition("api" + i + "-test")
-                .build();
-
-            eventAccumulator.add(mockEvent(api, EventType.DEBUG_API));
-
-            debugApiSynchronizer.bulkItems = 100;
-
-            if (i % 100 == 0) {
-                when(
-                    eventRepository.searchLatest(
-                        argThat(
-                            criteria ->
-                                criteria != null &&
-                                criteria.getTypes().containsAll(Arrays.asList(EventType.DEBUG_API)) &&
-                                criteria.getEnvironments().containsAll(ENVIRONMENTS)
-                        ),
-                        eq(Event.EventProperties.API_DEBUG_ID),
-                        eq(page),
-                        eq(100L)
-                    )
-                )
-                    .thenReturn(eventAccumulator);
-
-                page++;
-                eventAccumulator = new ArrayList<>();
-            }
-        }
-
-        debugApiSynchronizer.synchronize(System.currentTimeMillis() - 5000, System.currentTimeMillis(), ENVIRONMENTS);
-
-        verify(eventManager, times(500)).publishEvent(eq(ReactorEvent.DEBUG), any(ReactableWrapper.class));
-    }
-
     private Event mockEvent(final Api api, EventType eventType) {
         Map<String, String> properties = new HashMap<>();
-        properties.put(Event.EventProperties.API_DEBUG_ID.getValue(), api.getId());
         properties.put(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name());
         properties.put(Event.EventProperties.GATEWAY_ID.getValue(), node.id());
         Event event = new Event();

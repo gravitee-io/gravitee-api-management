@@ -21,7 +21,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
-import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
+import io.gravitee.gateway.debug.vertx.VertxDebugHttpConfiguration;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -56,7 +56,7 @@ public class DebugReactor extends DefaultReactor {
     private Vertx vertx;
 
     @Autowired
-    private VertxDebugHttpClientConfiguration httpClientConfiguration;
+    private VertxDebugHttpConfiguration debugHttpConfiguration;
 
     @Autowired
     @Qualifier("debugReactorHandlerRegistry")
@@ -65,7 +65,7 @@ public class DebugReactor extends DefaultReactor {
     @Override
     public void onEvent(Event<ReactorEvent, Reactable> reactorEvent) {
         if (reactorEvent.type() == ReactorEvent.DEBUG) {
-            logger.info("Deploy api for debug...");
+            logger.debug("Try to deploy api for debug...");
             ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = (ReactableWrapper<io.gravitee.repository.management.model.Event>) reactorEvent.content();
             io.gravitee.repository.management.model.Event debugEvent = reactableWrapper.getContent();
             DebugApi reactableDebugApi = toReactableDebugApi(reactableWrapper.getContent());
@@ -74,6 +74,7 @@ public class DebugReactor extends DefaultReactor {
                     logger.debug("Reactable already deployed. No need to do it again.");
                     return;
                 }
+                logger.info("Deploy api for debug...");
 
                 logger.debug("Creating ReactorHandler");
                 reactorHandlerRegistry.create(reactableDebugApi);
@@ -111,11 +112,11 @@ public class DebugReactor extends DefaultReactor {
                                     reactableDebugApi.setResponse(response);
                                     debugEvent.setPayload(objectMapper.writeValueAsString(convert(reactableDebugApi)));
                                     updateEvent(debugEvent, ApiDebugStatus.SUCCESS);
+                                    logger.info("Debugging successful, removing the handler.");
                                 } catch (TechnicalException | JsonProcessingException e) {
                                     logger.error("Error when saving debug response...");
                                     failEvent(debugEvent);
                                 } finally {
-                                    logger.info("Debugging successful, removing the handler.");
                                     reactorHandlerRegistry.remove(reactableDebugApi);
                                     logger.info("The debug handler has been removed");
                                 }
@@ -157,6 +158,7 @@ public class DebugReactor extends DefaultReactor {
         } catch (Exception e) {
             // Log the error and ignore this event.
             logger.error("Unable to extract api definition from event [{}].", event.getId());
+            failEvent(event);
             return null;
         }
     }
@@ -175,14 +177,15 @@ public class DebugReactor extends DefaultReactor {
 
     private HttpClientOptions buildClientOptions() {
         HttpClientOptions options = new HttpClientOptions();
-        options.setDefaultHost(httpClientConfiguration.getHost());
-        options.setDefaultPort(httpClientConfiguration.getPort());
-        options.setTryUseCompression(httpClientConfiguration.isCompressionSupported());
-        options.setUseAlpn(httpClientConfiguration.isAlpn());
-        if (httpClientConfiguration.isSecured()) {
-            options.setSsl(httpClientConfiguration.isSecured());
+        options.setDefaultHost(debugHttpConfiguration.getHost());
+        options.setDefaultPort(debugHttpConfiguration.getPort());
+        options.setConnectTimeout(debugHttpConfiguration.getConnectTimeout());
+        options.setTryUseCompression(debugHttpConfiguration.isCompressionSupported());
+        options.setUseAlpn(debugHttpConfiguration.isAlpn());
+        if (debugHttpConfiguration.isSecured()) {
+            options.setSsl(debugHttpConfiguration.isSecured());
             options.setTrustAll(true);
-            if (httpClientConfiguration.isOpenssl()) {
+            if (debugHttpConfiguration.isOpenssl()) {
                 options.setSslEngineOptions(new OpenSSLEngineOptions());
             }
         }
@@ -201,7 +204,7 @@ public class DebugReactor extends DefaultReactor {
                     .setHeaders(buildHeaders(debugApi, req))
                     // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
                     .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + req.getPath())
-                    .setTimeout(5000)
+                    .setTimeout(debugHttpConfiguration.getRequestTimeout())
             )
             .map(
                 httpClientRequest -> {

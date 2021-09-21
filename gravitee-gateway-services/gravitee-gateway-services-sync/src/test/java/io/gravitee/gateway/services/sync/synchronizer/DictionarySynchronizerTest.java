@@ -80,7 +80,7 @@ public class DictionarySynchronizerTest extends TestCase {
         )
             .thenReturn(singletonList(mockEvent));
 
-        dictionarySynchronizer.synchronize(-1, System.currentTimeMillis(), ENVIRONMENTS);
+        dictionarySynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
 
         verify(dictionaryManager).deploy((dictionary));
         verify(dictionaryManager, never()).undeploy(any(String.class));
