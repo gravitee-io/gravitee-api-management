@@ -15,4 +15,13 @@
   .timeline li timeline-panel {
     padding: 7px;
   }
+
+  &__timeline-icon {
+    --gv-icon--c: white;
+    --gv-icon--s: 28px;
+  }
+
+  &__timeline-date-icon {
+    --gv-icon--s: 14px;
+  }
 }

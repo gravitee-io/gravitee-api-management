@@ -190,12 +190,12 @@ class ApiCreationController {
     // change api step state
     if (this.skippedStep) {
       this.apiSteps[stepIndex].badgeClass = 'disable';
-      this.apiSteps[stepIndex].badgeIconClass = 'glyphicon-remove-circle';
+      this.apiSteps[stepIndex].badgeIconClass = 'content:remove_circle';
       this.apiSteps[stepIndex].title = this.steps()[this.vm.selectedStep].title + ' <em>skipped</em>';
       this.skippedStep = false;
     } else {
       this.apiSteps[stepIndex].badgeClass = 'info';
-      this.apiSteps[stepIndex].badgeIconClass = 'glyphicon-ok-circle';
+      this.apiSteps[stepIndex].badgeIconClass = 'action:check_circle';
     }
     if (!this.apiSteps[stepIndex + 1]) {
       this.apiSteps.push(this.steps()[stepIndex + 1]);
@@ -555,31 +555,31 @@ class ApiCreationController {
     return [
       {
         badgeClass: 'info',
-        badgeIconClass: 'glyphicon-ok-circle',
+        badgeIconClass: 'action:check_circle',
         title: getDefinitionVersionTitle(this.api.gravitee),
         content: getDefinitionVersionDescription(this.api.gravitee),
       },
       {
         badgeClass: 'disable',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'General',
         content: 'Name, version and context-path',
       },
       {
         badgeClass: 'disable',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'Gateway',
         content: 'Endpoint',
       },
       {
         badgeClass: 'disable',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'Plan',
         content: 'Name, security type and validation mode',
       },
       {
         badgeClass: 'disable',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'Documentation',
         content: 'Pages name',
       },

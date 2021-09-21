@@ -19,6 +19,7 @@ import { ApplicationType } from '../../../../entities/application';
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
+import '@gravitee/ui-components/wc/gv-icon';
 
 class ApplicationCreationController {
   application: any;
@@ -44,21 +45,21 @@ class ApplicationCreationController {
     this.steps = [
       {
         badgeClass: 'disable',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'General',
         content: 'Name and description',
         completed: false,
       },
       {
         badgeClass: 'disable',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'Security',
         content: this.clientRegistrationEnabled() ? 'OIDC configuration' : 'Type and client id',
         completed: false,
       },
       {
         badgeClass: 'disable',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'Subscriptions',
         content: 'Subscribe to APIs',
         completed: false,
@@ -73,7 +74,7 @@ class ApplicationCreationController {
   next() {
     this.steps[this.selectedStep].completed = true;
     this.steps[this.selectedStep].badgeClass = 'info';
-    this.steps[this.selectedStep].badgeIconClass = 'glyphicon-ok-circle';
+    this.steps[this.selectedStep].badgeIconClass = 'action:check_circle';
     this.steps[0].title = this.application.name;
     if (this.selectedStep > 0) {
       this.applicationType = this.ApplicationService.getType(this.application);

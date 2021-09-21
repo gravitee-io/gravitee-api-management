@@ -137,7 +137,7 @@ class ApiHistoryController {
     this.eventsTimeline = events.map((event) => ({
       event: event,
       badgeClass: 'info',
-      badgeIconClass: 'glyphicon-check',
+      badgeIconClass: 'action:check_circle',
       title: event.type,
       when: event.created_at,
       user: event.user,
@@ -375,7 +375,7 @@ class ApiHistoryController {
           payload: this.stringifyCurrentApi(),
         },
         badgeClass: 'warning',
-        badgeIconClass: 'glyphicon-refresh',
+        badgeIconClass: 'notification:sync',
         title: 'TO_DEPLOY',
         isCurrentAPI: true,
       });

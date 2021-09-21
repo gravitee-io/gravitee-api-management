@@ -35,7 +35,9 @@
         <timeline>
           <timeline-event ng-repeat="step in $ctrl.steps" side="right" ng-show="$ctrl.selectedStep == $index || step.completed">
             <timeline-badge class="{{step.badgeClass}}">
-              <i class="glyphicon {{step.badgeIconClass}}"></i>
+              <div class="application-creation__timeline-badge-container">
+                <gv-icon shape="{{step.badgeIconClass}}" class="application-creation__timeline-badge-container__icon"> </gv-icon>
+              </div>
             </timeline-badge>
             <timeline-panel class="{{step.badgeClass}}">
               <timeline-heading>

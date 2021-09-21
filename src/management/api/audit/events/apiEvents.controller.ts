@@ -50,15 +50,15 @@ class ApiEventsController {
     const eventTypeTimeline: any = {};
     switch (eventType) {
       case 'START_API':
-        eventTypeTimeline.icon = 'glyphicon-play';
+        eventTypeTimeline.icon = 'av:play_arrow';
         eventTypeTimeline.badgeClass = 'info';
         break;
       case 'STOP_API':
-        eventTypeTimeline.icon = 'glyphicon-stop';
+        eventTypeTimeline.icon = 'av:stop';
         eventTypeTimeline.badgeClass = 'danger';
         break;
       default:
-        eventTypeTimeline.icon = 'glyphicon-check';
+        eventTypeTimeline.icon = 'action:check_circle';
         eventTypeTimeline.badgeClass = 'info';
     }
     return eventTypeTimeline;

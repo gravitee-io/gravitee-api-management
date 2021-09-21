@@ -2,6 +2,23 @@
   overflow-y: auto;
   height: calc(100vh - 75px);
   padding-left: 8px;
+
+  &__timeline-badge-container {
+    height: 20px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &__icon {
+      --gv-icon--c: white;
+      --gv-icon--s: 14px;
+    }
+  }
+
+  &__timeline-small-icon {
+    --gv-icon--s: 14px;
+  }
 }
 
 .api-history-timeline .timeline li timeline-badge {

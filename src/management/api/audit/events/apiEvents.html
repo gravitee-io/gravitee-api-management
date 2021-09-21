@@ -21,15 +21,15 @@
       <div ng-repeat="eventTimeline in apiEventsCtrl.eventsTimeline">
         <timeline-event>
           <timeline-badge class="{{eventTimeline.badgeClass}}">
-            <i class="glyphicon {{eventTimeline.badgeIconClass}}"></i>
+            <gv-icon class="api-events-timeline__timeline-icon" shape="{{eventTimeline.badgeIconClass}}"> </gv-icon>
           </timeline-badge>
           <timeline-panel class="{{eventTimeline.badgeClass}}">
             <timeline-heading>
               <h5>{{eventTimeline.title | uppercase}}</h5>
               <p ng-if="eventTimeline.when">
-                <small class="text-muted ng-binding"
-                  ><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by
-                  {{eventTimeline.user.displayName}}</small
+                <small class="text-muted ng-binding">
+                  <gv-icon class="api-events-timeline__timeline-date-icon" shape="home:clock"> </gv-icon>
+                  {{eventTimeline.when | date : 'medium'}} by {{eventTimeline.user.displayName}}</small
                 >
               </p>
             </timeline-heading>

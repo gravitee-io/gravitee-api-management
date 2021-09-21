@@ -254,7 +254,7 @@
             <timeline ng-if="!healthCheckCtrl.healthcheck.enabled">
               <timeline-event side="right">
                 <timeline-badge>
-                  <i class="glyphicon glyphicon-play-circle"></i>
+                  <gv-icon class="healthcheck-timeline-icon" shape="av:play_arrow"> </gv-icon>
                 </timeline-badge>
                 <timeline-panel class="disable">
                   <timeline-heading>
@@ -267,7 +267,7 @@
             <timeline ng-if="healthCheckCtrl.healthcheck.enabled">
               <timeline-event side="right">
                 <timeline-badge ng-class="{'disable': formApiHealthCheckTrigger.$invalid, 'info': formApiHealthCheckTrigger.$valid}">
-                  <i class="glyphicon glyphicon-play-circle"></i>
+                  <gv-icon class="healthcheck-timeline-icon" shape="av:play_arrow"> </gv-icon>
                 </timeline-badge>
                 <timeline-panel ng-class="{'disable': formApiHealthCheckTrigger.$invalid, 'info': formApiHealthCheckTrigger.$valid}">
                   <timeline-heading>
@@ -278,7 +278,7 @@
               </timeline-event>
               <timeline-event side="right">
                 <timeline-badge ng-class="{'disable': formApiHealthCheckRequest.$invalid, 'info': formApiHealthCheckRequest.$valid}">
-                  <i class="glyphicon glyphicon-screenshot"></i>
+                  <gv-icon class="healthcheck-timeline-icon" shape="action:http"> </gv-icon>
                 </timeline-badge>
                 <timeline-panel ng-class="{'disable': formApiHealthCheckRequest.$invalid, 'info': formApiHealthCheckRequest.$valid}">
                   <timeline-heading>
@@ -293,7 +293,7 @@
               </timeline-event>
               <timeline-event side="right">
                 <timeline-badge ng-class="{'disable': formApiHealthCheckResponse.$invalid, 'info': formApiHealthCheckResponse.$valid}">
-                  <i class="glyphicon glyphicon-ok-circle"></i>
+                  <gv-icon class="healthcheck-timeline-icon" shape="navigation:check"> </gv-icon>
                 </timeline-badge>
                 <timeline-panel ng-class="{'disable': formApiHealthCheckResponse.$invalid, 'info': formApiHealthCheckResponse.$valid}">
                   <timeline-heading>

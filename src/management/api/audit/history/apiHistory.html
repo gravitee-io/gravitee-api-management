@@ -21,7 +21,9 @@
       <div ng-repeat="eventTimeline in apiHistoryCtrl.eventsTimeline">
         <timeline-event side="right">
           <timeline-badge class="{{eventTimeline.badgeClass}}">
-            <i class="glyphicon {{eventTimeline.badgeIconClass}}"></i>
+            <div class="api-history-timeline__timeline-badge-container">
+              <gv-icon shape="{{eventTimeline.badgeIconClass}}" class="api-history-timeline__timeline-badge-container__icon"> </gv-icon>
+            </div>
           </timeline-badge>
           <a class="timeline-link" ng-click="apiHistoryCtrl.selectEvent(eventTimeline)">
             <timeline-panel ng-class="{active : apiHistoryCtrl.isEventSelected(eventTimeline)}" class="{{eventTimeline.badgeClass}}">
@@ -42,18 +44,22 @@
                   ></gv-icon>
                 </div>
                 <p ng-if="eventTimeline.deploymentLabel">
-                  <small class="text-muted ng-binding"
-                    ><i class="glyphicon glyphicon-info-sign"></i>{{eventTimeline.deploymentLabel}}</small
+                  <small class="text-muted ng-binding">
+                    <gv-icon shape="action:info" class="api-history-timeline__timeline-small-icon"> </gv-icon>
+                    {{eventTimeline.deploymentLabel}}</small
                   >
                 </p>
                 <p ng-if="eventTimeline.when">
-                  <small class="text-muted ng-binding"
-                    ><i class="glyphicon glyphicon-time"></i>{{eventTimeline.when | date : 'medium'}} by
-                    {{eventTimeline.user.displayName}}</small
-                  >
+                  <small class="text-muted ng-binding">
+                    <gv-icon shape="home:clock" class="api-history-timeline__timeline-small-icon"> </gv-icon>
+                    {{eventTimeline.when | date : 'medium'}} by {{eventTimeline.user.displayName}}
+                  </small>
                 </p>
                 <p ng-if="eventTimeline.isCurrentAPI">
-                  <small class="text-muted ng-binding"><i class="glyphicon glyphicon-info-sign"></i>In progress API definition</small>
+                  <small class="text-muted ng-binding">
+                    <gv-icon shape="action:info" class="api-history-timeline__timeline-small-icon"> </gv-icon>
+                    In progress API definition</small
+                  >
                 </p>
               </timeline-heading>
             </timeline-panel>
