@@ -19,7 +19,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatChipInputHarness, MatChipListHarness } from '@angular/material/chips/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
@@ -448,6 +447,9 @@ describe('ConsoleSettingsComponent', () => {
   describe('email', () => {
     it('should disable field when setting is readonly', async () => {
       expectConsoleSettingsGetRequest({
+        email: {
+          enabled: true,
+        },
         metadata: {
           readonly: [
             'email.enabled',
@@ -547,22 +549,29 @@ describe('ConsoleSettingsComponent', () => {
       const emailEnabledEnableSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailEnabled' }));
       await emailEnabledEnableSlideToggle.uncheck();
 
-      // expect all email settings to be disabled
+      // expect all email settings to be not visible
       await Promise.all(
         ['Host', 'Port', 'Username', 'Password', 'Protocol', 'Subject', 'From', 'SSL Trust'].map(async (floatingLabelText) => {
-          const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText }));
+          const isEmailFormFieldVisible = await loader
+            .getHarness(MatFormFieldHarness.with({ floatingLabelText }))
+            .then(() => true)
+            .catch(() => false);
 
-          expect(await emailFormField.isDisabled()).toEqual(true);
+          expect(isEmailFormFieldVisible).toEqual(false);
         }),
       );
 
-      const propertiesAuthSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailPropertiesAuth' }));
-      expect(await propertiesAuthSlideToggle.isDisabled()).toEqual(true);
+      const isPropertiesAuthSlideToggleVisible = await loader
+        .getHarness(MatSlideToggleHarness.with({ name: 'emailPropertiesAuth' }))
+        .then(() => true)
+        .catch(() => false);
+      expect(await isPropertiesAuthSlideToggleVisible).toEqual(false);
 
-      const propertiesStartTlsEnableSlideToggle = await loader.getHarness(
-        MatSlideToggleHarness.with({ name: 'emailPropertiesStartTlsEnable' }),
-      );
-      expect(await propertiesStartTlsEnableSlideToggle.isDisabled()).toEqual(true);
+      const isPropertiesStartTlsEnableSlideToggleVisible = await loader
+        .getHarness(MatSlideToggleHarness.with({ name: 'emailPropertiesStartTlsEnable' }))
+        .then(() => true)
+        .catch(() => false);
+      expect(await isPropertiesStartTlsEnableSlideToggleVisible).toEqual(false);
 
       await emailEnabledEnableSlideToggle.check();
 
@@ -582,8 +591,12 @@ describe('ConsoleSettingsComponent', () => {
         }),
       );
 
+      const propertiesAuthSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailPropertiesAuth' }));
       expect(await propertiesAuthSlideToggle.isDisabled()).toEqual(true);
 
+      const propertiesStartTlsEnableSlideToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ name: 'emailPropertiesStartTlsEnable' }),
+      );
       expect(await propertiesStartTlsEnableSlideToggle.isDisabled()).toEqual(false);
     });
   });
