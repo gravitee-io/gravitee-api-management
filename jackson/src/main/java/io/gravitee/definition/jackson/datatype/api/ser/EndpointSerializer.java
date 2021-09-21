@@ -26,32 +26,52 @@ import java.io.IOException;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class EndpointSerializer<T extends Endpoint> extends StdScalarSerializer<T> {
+public class EndpointSerializer extends StdScalarSerializer<Endpoint> {
 
-    public EndpointSerializer(Class<T> t) {
+    public EndpointSerializer(Class<Endpoint> t) {
         super(t);
     }
 
     @Override
-    public void serialize(T endpoint, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+    public void serialize(Endpoint endpoint, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeStartObject();
         doSerialize(endpoint, jgen, provider);
         jgen.writeEndObject();
     }
 
     @Override
-    public void serializeWithType(T value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer) throws IOException {
+    public void serializeWithType(Endpoint value, JsonGenerator g, SerializerProvider provider, TypeSerializer typeSer) throws IOException {
         serialize(value, g, provider);
     }
 
-    protected void doSerialize(T endpoint, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
+    protected void doSerialize(Endpoint endpoint, JsonGenerator jgen, SerializerProvider serializerProvider) throws IOException {
         jgen.writeStringField("name", endpoint.getName());
         jgen.writeStringField("target", endpoint.getTarget());
         jgen.writeNumberField("weight", endpoint.getWeight());
         jgen.writeBooleanField("backup", endpoint.isBackup());
-        jgen.writeStringField("type", endpoint.getType().name());
+        jgen.writeStringField("type", endpoint.getType());
         if (endpoint.getInherit() != null) {
             jgen.writeObjectField("inherit", endpoint.getInherit());
+        }
+        if (endpoint.getHealthCheck() != null) {
+            jgen.writeObjectField("healthcheck", endpoint.getHealthCheck());
+        }
+
+        if (endpoint.getTenants() != null && !endpoint.getTenants().isEmpty()) {
+            jgen.writeArrayFieldStart("tenants");
+            endpoint
+                .getTenants()
+                .forEach(
+                    tenant -> {
+                        try {
+                            jgen.writeString(tenant);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                );
+
+            jgen.writeEndArray();
         }
     }
 }

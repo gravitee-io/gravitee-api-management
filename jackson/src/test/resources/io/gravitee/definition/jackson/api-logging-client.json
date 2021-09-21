@@ -8,7 +8,9 @@
       {
         "name": "default",
         "target": "http://host1:8083/myapi",
-        "hostHeader": "host"
+        "headers" : [
+          {"name": "Host", "value": "host"}
+        ]
       }
     ],
     "strip_context_path": false,

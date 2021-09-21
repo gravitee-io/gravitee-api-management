@@ -15,11 +15,8 @@
  */
 package io.gravitee.definition.model.services.healthcheck;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

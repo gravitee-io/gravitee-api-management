@@ -17,9 +17,6 @@ package io.gravitee.definition.jackson.datatype.api.ser.ssl;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import io.gravitee.definition.jackson.datatype.api.ser.EndpointSerializer;
-import io.gravitee.definition.model.HttpClientOptions;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
 import java.io.IOException;
 

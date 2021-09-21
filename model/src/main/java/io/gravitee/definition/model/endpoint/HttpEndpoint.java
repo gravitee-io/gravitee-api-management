@@ -15,15 +15,21 @@
  */
 package io.gravitee.definition.model.endpoint;
 
-import com.fasterxml.jackson.annotation.*;
-import io.gravitee.definition.model.*;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.common.http.HttpHeader;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpClientSslOptions;
+import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Deprecated(since = "3.13", forRemoval = true)
 public class HttpEndpoint extends Endpoint {
 
     @JsonProperty("proxy")
@@ -36,17 +42,18 @@ public class HttpEndpoint extends Endpoint {
     private HttpClientSslOptions httpClientSslOptions;
 
     @JsonProperty("headers")
-    private Map<String, String> headers;
+    private List<HttpHeader> headers;
 
     @JsonProperty("healthcheck")
     private EndpointHealthCheckService healthCheck;
 
-    public HttpEndpoint(String name, String target) {
-        this(EndpointType.HTTP, name, target);
+    public HttpEndpoint(String type, String name, String target) {
+        super(type, name, target);
     }
 
-    HttpEndpoint(EndpointType type, String name, String target) {
-        super(type, name, target);
+    @JsonCreator
+    public HttpEndpoint(@JsonProperty("name") String name, @JsonProperty("target") String target) {
+        super("http", name, target);
     }
 
     public HttpProxy getHttpProxy() {
@@ -73,12 +80,12 @@ public class HttpEndpoint extends Endpoint {
         this.httpClientSslOptions = httpClientSslOptions;
     }
 
-    public Map<String, String> getHeaders() {
-        return headers;
+    public void setHeaders(List<HttpHeader> headers) {
+        this.headers = headers;
     }
 
-    public void setHeaders(Map<String, String> headers) {
-        this.headers = headers;
+    public List<HttpHeader> getHeaders() {
+        return headers;
     }
 
     public EndpointHealthCheckService getHealthCheck() {

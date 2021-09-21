@@ -17,14 +17,14 @@
         "target" : "http://host1:8083/myapi",
         "weight" : 1,
         "backup" : false,
-        "type" : "HTTP",
+        "type" : "http",
         "inherit" : true
       }, {
         "name" : "endpoint_1",
         "target" : "http://host2:8083/myapi",
         "weight" : 1,
         "backup" : false,
-        "type" : "HTTP",
+        "type" : "http",
         "http" : {
           "connectTimeout" : 4000,
           "idleTimeout" : 50000,

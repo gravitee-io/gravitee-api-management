@@ -21,16 +21,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.definition.model.*;
-import io.gravitee.definition.model.endpoint.GrpcEndpoint;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.Services;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,20 +56,7 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
         if (nodeEndpoints != null) {
             final Set<Endpoint> endpoints = new LinkedHashSet<>(nodeEndpoints.size());
             for (JsonNode jsonNode : nodeEndpoints) {
-                EndpointType type = EndpointType.valueOf(jsonNode.path("type").asText(EndpointType.HTTP.name()).toUpperCase());
-
-                Endpoint endpoint;
-                switch (type) {
-                    case HTTP:
-                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);
-                        break;
-                    case GRPC:
-                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(GrpcEndpoint.class);
-                        break;
-                    default:
-                        endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(HttpEndpoint.class);
-                        break;
-                }
+                Endpoint endpoint = jsonNode.traverse(jp.getCodec()).readValueAs(Endpoint.class);
 
                 if (endpoint != null) {
                     boolean added = endpoints.add(endpoint);
@@ -119,24 +103,40 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
             group.setHttpClientSslOptions(httpClientSslOptions);
         }
 
+        JsonNode headersNode = node.get("headers");
+        if (headersNode != null && !headersNode.isEmpty(null)) {
+            if (headersNode.isArray()) {
+                List<HttpHeader> headers = headersNode
+                    .traverse(ctxt.getParser().getCodec())
+                    .readValueAs(new TypeReference<ArrayList<HttpHeader>>() {});
+                group.setHeaders(headers);
+            } else {
+                Map<String, String> headers = headersNode
+                    .traverse(ctxt.getParser().getCodec())
+                    .readValueAs(new TypeReference<HashMap<String, String>>() {});
+                group.setHeaders(
+                    headers.entrySet().stream().map(entry -> new HttpHeader(entry.getKey(), entry.getValue())).collect(Collectors.toList())
+                );
+            }
+        }
+
         JsonNode hostHeaderNode = node.get("hostHeader");
         if (hostHeaderNode != null) {
             String hostHeader = hostHeaderNode.asText();
             if (!hostHeader.trim().isEmpty()) {
-                Map<String, String> headers = new HashMap<>();
-                headers.put(HttpHeaders.HOST, hostHeader);
-                group.setHeaders(headers);
-            }
-        }
-
-        JsonNode headersNode = node.get("headers");
-        if (headersNode != null && !headersNode.isEmpty(null)) {
-            Map<String, String> headers = headersNode.traverse(jp.getCodec()).readValueAs(new TypeReference<HashMap<String, String>>() {});
-            if (headers != null && !headers.isEmpty()) {
                 if (group.getHeaders() == null) {
-                    group.setHeaders(headers);
+                    group.setHeaders(Collections.singletonList(new HttpHeader(HttpHeaders.HOST, hostHeader)));
                 } else {
-                    headers.forEach(group.getHeaders()::putIfAbsent);
+                    Optional<HttpHeader> first = group
+                        .getHeaders()
+                        .stream()
+                        .filter(httpHeader -> HttpHeaders.HOST.equals(httpHeader.getName()))
+                        .findFirst();
+                    if (first.isPresent()) {
+                        first.get().setValue(hostHeader);
+                    } else {
+                        group.getHeaders().add(new HttpHeader(HttpHeaders.HOST, hostHeader));
+                    }
                 }
             }
         }

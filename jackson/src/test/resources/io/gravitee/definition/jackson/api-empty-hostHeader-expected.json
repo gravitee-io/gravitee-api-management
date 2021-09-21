@@ -17,7 +17,7 @@
         "target" : "http://host1:8083/myapi",
         "weight" : 1,
         "backup" : false,
-        "type" : "HTTP",
+        "type" : "http",
         "http" : {
           "connectTimeout" : 5000,
           "idleTimeout" : 60000,

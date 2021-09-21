@@ -8,15 +8,13 @@
       {
         "name": "default",
         "target": "http://host1:8083/myapi",
-        "headers": [
-          { "name":  "Host", "value":  "host"}
-        ]
+        "hostHeader": "host",
+        "headers" : {
+          "x-header-1": "header-1"
+        }
       }
     ],
-    "strip_context_path": false,
-    "cors": {
-      "enabled": true
-    }
+    "strip_context_path": false
   },
 
   "paths": {

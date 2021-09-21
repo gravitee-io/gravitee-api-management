@@ -17,7 +17,6 @@ package io.gravitee.definition.jackson.api;
 
 import static org.junit.Assert.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.AbstractTest;
 import io.gravitee.definition.model.Api;
@@ -388,21 +387,6 @@ public class ApiSerializerTest extends AbstractTest {
     }
 
     @Test
-    public void definition_hostHeader_empty() throws Exception {
-        Api api = load("/io/gravitee/definition/jackson/api-empty-hostHeader.json", Api.class);
-        String expectedDefinition = "/io/gravitee/definition/jackson/api-empty-hostHeader-expected.json";
-
-        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
-        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
-
-        Assert.assertNotNull(generatedJsonDefinition);
-        Assert.assertEquals(
-            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
-            objectMapper().readTree(generatedJsonDefinition.getBytes())
-        );
-    }
-
-    @Test
     public void definition_hostHeader() throws Exception {
         Api api = load("/io/gravitee/definition/jackson/api-hostHeader.json", Api.class);
         String expectedDefinition = "/io/gravitee/definition/jackson/api-hostHeader-expected.json";
@@ -661,6 +645,21 @@ public class ApiSerializerTest extends AbstractTest {
             "}",
             generatedJsonDefinition,
             JSONCompareMode.STRICT
+        );
+    }
+
+    @Test
+    public void definition_kafka_endpoint() throws Exception {
+        Api api = load("/io/gravitee/definition/jackson/api-kafka-endpoint.json", Api.class);
+        String expectedDefinition = "/io/gravitee/definition/jackson/api-kafka-endpoint-expected.json";
+
+        String generatedJsonDefinition = objectMapper().writeValueAsString(api);
+        String expectedGeneratedJsonDefinition = IOUtils.toString(read(expectedDefinition));
+
+        Assert.assertNotNull(generatedJsonDefinition);
+        Assert.assertEquals(
+            objectMapper().readTree(expectedGeneratedJsonDefinition.getBytes()),
+            objectMapper().readTree(generatedJsonDefinition.getBytes())
         );
     }
 }

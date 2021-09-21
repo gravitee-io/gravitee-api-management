@@ -17,23 +17,19 @@
         "target" : "http://localhost:8083/myapi",
         "weight" : 1,
         "backup" : false,
-        "type" : "HTTP",
-        "http" : {
-          "connectTimeout" : 5000,
-          "idleTimeout" : 5000,
-          "keepAlive" : true,
-          "readTimeout" : 10000,
-          "pipelining" : false,
-          "maxConcurrentConnections" : 100,
-          "useCompression" : true,
-          "followRedirects" : true
+        "type" : "http",
+        "http": {
+          "idleTimeout": 5000,
+          "connectTimeout": 5000,
+          "keepAlive": true,
+          "followRedirects": true
         },
-        "ssl" : {
-          "trustAll" : true,
-          "hostnameVerifier" : false,
-          "trustStore" : {
-            "type" : "PEM",
-            "content" : "sdfsdfsdfsdfsdfsdfsdfsdf"
+        "ssl": {
+          "trustAll": true,
+          "hostnameVerifier": false,
+          "trustStore": {
+            "type": "PEM",
+            "content": "sdfsdfsdfsdfsdfsdfsdfsdf"
           }
         }
       } ],

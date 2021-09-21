@@ -15,8 +15,11 @@
  */
 package io.gravitee.definition.jackson.datatype.api.ser;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
@@ -28,6 +31,12 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public class EndpointGroupSerializer extends StdScalarSerializer<EndpointGroup> {
+
+    static ObjectMapper mapper = new ObjectMapper();
+
+    {
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
 
     public EndpointGroupSerializer(Class<EndpointGroup> vc) {
         super(vc);
@@ -43,7 +52,13 @@ public class EndpointGroupSerializer extends StdScalarSerializer<EndpointGroup> 
             endpoints.forEach(
                 endpoint -> {
                     try {
-                        jgen.writeObject(endpoint);
+                        if (endpoint.getConfiguration() != null) {
+                            ObjectNode jsonNode = (ObjectNode) mapper.readTree(endpoint.getConfiguration());
+                            jsonNode.setAll((ObjectNode) mapper.readTree(mapper.writeValueAsString(endpoint)));
+                            jgen.writeObject(jsonNode);
+                        } else {
+                            jgen.writeObject(endpoint);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

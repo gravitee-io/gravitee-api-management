@@ -16,28 +16,33 @@
 package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalarDeserializer<T> {
+public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
 
-    public EndpointDeserializer(Class<T> vc) {
+    ObjectMapper mapper = new ObjectMapper();
+
+    public EndpointDeserializer(Class<Endpoint> vc) {
         super(vc);
     }
 
     @Override
-    public T deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
+    public Endpoint deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
         JsonNode node = parser.getCodec().readTree(parser);
 
         String name, target;
@@ -56,7 +61,8 @@ public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalar
             throw ctxt.mappingException("Endpoint target is required");
         }
 
-        T endpoint = createEndpoint(name, target);
+        JsonNode typeNode = node.get("type");
+        Endpoint endpoint = new Endpoint(typeNode != null ? typeNode.asText() : null, name, target);
 
         final JsonNode weightNode = node.get("weight");
         if (weightNode != null) {
@@ -95,19 +101,72 @@ public abstract class EndpointDeserializer<T extends Endpoint> extends StdScalar
             endpoint.setTenants(tenants);
         }
 
+        // Manage retro compatibility before SME...
+        JsonNode headersNode = node.get("headers");
+        if (headersNode != null && !headersNode.isEmpty(null)) {
+            if (headersNode.isObject()) {
+                Map<String, String> headers = headersNode
+                    .traverse(ctxt.getParser().getCodec())
+                    .readValueAs(new TypeReference<HashMap<String, String>>() {});
+                ArrayNode headersUpdated = mapper.createArrayNode();
+                headers
+                    .keySet()
+                    .forEach(
+                        key -> {
+                            ObjectNode objectNode = mapper.createObjectNode();
+                            objectNode.put("name", key);
+                            objectNode.put("value", headers.get(key));
+                            headersUpdated.add(objectNode);
+                        }
+                    );
+
+                ((ObjectNode) node).set("headers", headersUpdated);
+            }
+        }
+
+        JsonNode hostHeaderNode = node.get("hostHeader");
+        if (hostHeaderNode != null) {
+            String hostHeader = hostHeaderNode.asText();
+            if (!hostHeader.trim().isEmpty()) {
+                headersNode = node.get("headers");
+                if (headersNode == null) {
+                    headersNode = mapper.createArrayNode();
+                    ((ObjectNode) node).set("headers", headersNode);
+                }
+                ObjectNode hh = mapper.createObjectNode();
+                hh.put("name", "Host");
+                hh.put("value", hostHeader);
+                ((ArrayNode) headersNode).add(hh);
+            }
+            ((ObjectNode) node).remove("hostHeader");
+        }
+
+        // Ensure backward compatibility with Gravitee.io < 1.20
+        JsonNode sslNode = node.get("ssl");
+        if (sslNode != null) {
+            JsonNode pemNode = sslNode.get("pem");
+            if (pemNode != null) {
+                String pemValue = pemNode.asText();
+                if (pemValue != null && !pemValue.equals("null")) {
+                    ObjectNode truststoreNode = mapper.createObjectNode();
+                    truststoreNode.put("type", "PEM");
+                    truststoreNode.put("content", pemValue);
+                    ((ObjectNode) sslNode).set("trustStore", truststoreNode);
+                    ((ObjectNode) sslNode).remove("pem");
+                }
+            }
+        }
+
         JsonNode inheritNode = node.get("inherit");
         if (inheritNode != null) {
             endpoint.setInherit(inheritNode.asBoolean());
         }
 
-        deserialize(endpoint, node, ctxt);
+        // For extendable connector architecture, preserve the whole endpoint's configuration inlined
+        endpoint.setConfiguration(node.toString());
 
         return endpoint;
     }
-
-    protected abstract T createEndpoint(String name, String target);
-
-    protected abstract T deserialize(T endpoint, JsonNode node, DeserializationContext ctxt) throws IOException;
 
     @Override
     public Object deserializeWithType(JsonParser p, DeserializationContext ctxt, TypeDeserializer typeDeserializer) throws IOException {

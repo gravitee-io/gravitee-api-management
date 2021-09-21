@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>19.2.4</version>
+        <version>20.0</version>
     </parent>
 
     <groupId>io.gravitee.definition</groupId>
@@ -40,6 +40,15 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Import bom to properly inherit all dependencies -->
+            <dependency>
+                <groupId>io.gravitee</groupId>
+                <artifactId>gravitee-bom</artifactId>
+                <version>${gravitee-bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
             <dependency>
                 <groupId>io.gravitee.common</groupId>
                 <artifactId>gravitee-common</artifactId>
@@ -52,13 +61,13 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <properties>
-        <gravitee-common.version>1.16.2</gravitee-common.version>
+        <gravitee-bom.version>1.4</gravitee-bom.version>
+        <gravitee-common.version>1.23.0-SNAPSHOT</gravitee-common.version>
     </properties>
 
     <build>

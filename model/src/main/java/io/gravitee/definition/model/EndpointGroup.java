@@ -16,6 +16,7 @@
 package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.common.http.HttpHeader;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
 import java.util.*;
@@ -48,7 +49,7 @@ public class EndpointGroup implements Serializable {
     private HttpClientSslOptions httpClientSslOptions;
 
     @JsonProperty("headers")
-    private Map<String, String> headers;
+    private List<HttpHeader> headers;
 
     public Set<Endpoint> getEndpoints() {
         return endpoints;
@@ -106,11 +107,11 @@ public class EndpointGroup implements Serializable {
         this.httpClientSslOptions = httpClientSslOptions;
     }
 
-    public Map<String, String> getHeaders() {
+    public List<HttpHeader> getHeaders() {
         return headers;
     }
 
-    public void setHeaders(Map<String, String> headers) {
+    public void setHeaders(List<HttpHeader> headers) {
         this.headers = headers;
     }
 

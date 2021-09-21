@@ -15,12 +15,10 @@
  */
 package io.gravitee.definition.model;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.endpoint.EndpointStatusListener;
-import io.gravitee.definition.model.endpoint.GrpcEndpoint;
-import io.gravitee.definition.model.endpoint.HttpEndpoint;
-import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.gravitee.definition.model.services.healthcheck.EndpointHealthCheckService;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
@@ -30,25 +28,9 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Schema(
-    discriminatorProperty = "type",
-    discriminatorMapping = {
-        @DiscriminatorMapping(value = "HTTP", schema = HttpEndpoint.class),
-        @DiscriminatorMapping(value = "GRPC", schema = GrpcEndpoint.class),
-    },
-    defaultValue = "HTTP"
-)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = HttpEndpoint.class, include = JsonTypeInfo.As.EXISTING_PROPERTY)
-@JsonSubTypes(
-    {
-        @JsonSubTypes.Type(name = "HTTP", value = HttpEndpoint.class),
-        @JsonSubTypes.Type(name = "GRPC", value = GrpcEndpoint.class),
-        // For legacy support
-        @JsonSubTypes.Type(name = "http", value = HttpEndpoint.class),
-        @JsonSubTypes.Type(name = "grpc", value = GrpcEndpoint.class),
-    }
-)
-public abstract class Endpoint implements Serializable {
+public class Endpoint implements Serializable {
+
+    private static final String DEFAULT_TYPE = "http";
 
     private final Set<EndpointStatusListener> listeners = new HashSet<>();
 
@@ -73,13 +55,23 @@ public abstract class Endpoint implements Serializable {
     private List<String> tenants; // TODO was not serialized
 
     @JsonProperty("type")
-    private final EndpointType type;
+    private final String type;
 
     @JsonProperty("inherit")
     private Boolean inherit;
 
-    public Endpoint(EndpointType type, String name, String target) {
-        this.type = type;
+    @JsonProperty("healthcheck")
+    private EndpointHealthCheckService healthCheck;
+
+    @JsonIgnore
+    private transient String configuration;
+
+    public Endpoint(String name, String target) {
+        this(null, name, target);
+    }
+
+    public Endpoint(String type, String name, String target) {
+        this.type = type != null ? type : DEFAULT_TYPE;
         this.name = name;
         this.target = target;
     }
@@ -133,7 +125,7 @@ public abstract class Endpoint implements Serializable {
         this.tenants = tenants;
     }
 
-    public EndpointType getType() {
+    public String getType() {
         return type;
     }
 
@@ -147,6 +139,22 @@ public abstract class Endpoint implements Serializable {
 
     public void addEndpointAvailabilityListener(EndpointStatusListener listener) {
         listeners.add(listener);
+    }
+
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public EndpointHealthCheckService getHealthCheck() {
+        return healthCheck;
+    }
+
+    public void setHealthCheck(EndpointHealthCheckService healthCheck) {
+        this.healthCheck = healthCheck;
     }
 
     @Override

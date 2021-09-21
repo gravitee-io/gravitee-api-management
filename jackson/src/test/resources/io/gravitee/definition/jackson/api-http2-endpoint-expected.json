@@ -17,18 +17,10 @@
         "target" : "http://host1:8083/myapi",
         "weight" : 1,
         "backup" : false,
-        "type" : "HTTP",
-        "http" : {
-          "connectTimeout" : 5000,
-          "idleTimeout" : 60000,
-          "keepAlive" : true,
-          "readTimeout" : 10000,
-          "pipelining" : false,
-          "maxConcurrentConnections" : 100,
-          "useCompression" : true,
-          "followRedirects" : false,
-          "version" : "HTTP_2",
-          "clearTextUpgrade" : true
+        "type" : "http",
+        "http":{
+          "clearTextUpgrade":true,
+          "version":"HTTP_2"
         }
       } ],
       "load_balancing" : {
