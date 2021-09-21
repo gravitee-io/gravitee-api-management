@@ -32,8 +32,8 @@ import org.springframework.context.annotation.Scope;
 public class VertxDebugConfiguration {
 
     @Bean
-    public VertxDebugHttpClientConfiguration httpServerConfiguration() {
-        return new VertxDebugHttpClientConfiguration();
+    public VertxDebugHttpConfiguration httpServerConfiguration() {
+        return new VertxDebugHttpConfiguration();
     }
 
     @Bean

@@ -40,7 +40,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
     public static final int DEFAULT_BULK_SIZE = 100;
 
     @Autowired
-    private EventRepository eventRepository;
+    protected EventRepository eventRepository;
 
     @Autowired
     protected ObjectMapper objectMapper;
@@ -68,7 +68,7 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
      * @param nextLastRefreshAt the timestamp of the next synchronization planed.
      * @param environments the list of environments to filter events
      */
-    public abstract void synchronize(long lastRefreshAt, long nextLastRefreshAt, List<String> environments);
+    public abstract void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments);
 
     protected Flowable<Event> searchLatestEvents(
         Long from,
@@ -88,11 +88,10 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
                         .to(to == null ? 0 : to + TIMEFRAME_AFTER_DELAY)
                         .environments(environments);
 
-                    EventCriteria criteria = appendCriteria(criteriaBuilder);
                     List<Event> events;
 
                     do {
-                        events = eventRepository.searchLatest(criteria, group, page, (long) size);
+                        events = eventRepository.searchLatest(criteriaBuilder.build(), group, page, (long) size);
                         events.forEach(emitter::onNext);
                         page++;
                     } while (!events.isEmpty() && events.size() == size);
@@ -104,10 +103,6 @@ public abstract class AbstractSynchronizer extends AbstractService<AbstractSynch
             },
             BackpressureStrategy.BUFFER
         );
-    }
-
-    protected EventCriteria appendCriteria(EventCriteria.Builder criteriaBuilder) {
-        return criteriaBuilder.build();
     }
 
     public int getBulkSize() {

@@ -32,7 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.gateway.debug.definition.DebugApi;
-import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
+import io.gravitee.gateway.debug.vertx.VertxDebugHttpConfiguration;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
@@ -51,7 +51,6 @@ import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -87,7 +86,7 @@ public class DebugReactorTest {
     private Vertx vertx;
 
     @Mock
-    private VertxDebugHttpClientConfiguration httpClientConfiguration;
+    private VertxDebugHttpConfiguration debugHttpConfiguration;
 
     @Captor
     ArgumentCaptor<io.gravitee.repository.management.model.Event> eventCaptor;

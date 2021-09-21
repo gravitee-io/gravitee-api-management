@@ -88,7 +88,7 @@ public class OrganizationSynchronizerTest extends TestCase {
         )
             .thenReturn(singletonList(mockEvent));
 
-        organizationSynchronizer.synchronize(-1, System.currentTimeMillis(), ENVIRONMENTS);
+        organizationSynchronizer.synchronize(-1L, System.currentTimeMillis(), ENVIRONMENTS);
 
         verify(organizationManager).register(argThat(organizationPlatform -> organizationPlatform.getId().equals(ORGANISATION_TEST)));
         verify(organizationManager, never()).unregister(anyString());

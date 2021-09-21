@@ -57,7 +57,7 @@ public class OrganizationSynchronizer extends AbstractSynchronizer {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public void synchronize(long lastRefreshAt, long nextLastRefreshAt, List<String> environments) {
+    public void synchronize(Long lastRefreshAt, Long nextLastRefreshAt, List<String> environments) {
         final long start = System.currentTimeMillis();
         final Long count;
 
