@@ -1,15 +1,15 @@
 @use 'sass:map';
 @use 'node_modules/@angular/material' as mat;
 
-@import '../../../scss/gio-material-theme';
+@use '../../../scss/gio-material-theme' as gio;
 
-$primary: map.get($gio-theme, primary);
-$accent: map.get($gio-theme, accent);
-$warn: map.get($gio-theme, warn);
-$background: map.get($gio-theme, background);
-$foreground: map.get($gio-theme, foreground);
-$is-dark-theme: map.get($gio-theme, is-dark);
-$typography: map.get($gio-theme, typography);
+$primary: map.get(gio.$gio-theme, primary);
+$accent: map.get(gio.$gio-theme, accent);
+$warn: map.get(gio.$gio-theme, warn);
+$background: map.get(gio.$gio-theme, background);
+$foreground: map.get(gio.$gio-theme, foreground);
+$is-dark-theme: map.get(gio.$gio-theme, is-dark);
+$typography: map.get(gio.$gio-theme, typography);
 
 :host {
   font-size: 13px;

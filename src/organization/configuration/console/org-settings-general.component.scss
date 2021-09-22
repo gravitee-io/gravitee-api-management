@@ -1,10 +1,10 @@
 @use 'sass:map';
 @use 'node_modules/@angular/material' as mat;
+@use '../../../scss/gio-material-theme' as gio;
 
 @import '../../../scss/gio-layout';
-@import '../../../scss/gio-material-theme';
 
-$foreground: map.get($gio-theme, foreground);
+$foreground: map.get(gio.$gio-theme, foreground);
 
 :host {
   @include gio-responsive-margin-container;

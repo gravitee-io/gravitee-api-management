@@ -1,7 +1,7 @@
 @use '../../node_modules/@angular/material' as mat;
 
-// Sky Blue - Primary
-$gio-sky-blue-palette: mat.define-palette(
+// Primary
+$gio-primary-palette: mat.define-palette(
   (
     dark: hsl(236, 50%, 7%),
     medium: hsl(236, 38%, 17%),
@@ -17,29 +17,12 @@ $gio-sky-blue-palette: mat.define-palette(
   dark
 );
 
-// Cyan - Primary
-$gio-cyan-palette: mat.define-palette(
+// Accent
+$gio-accent-palette: mat.define-palette(
   (
     dark: hsl(183, 75%, 37%),
     medium: hsl(183, 75%, 47%),
     light: hsl(183, 75%, 57%),
-    contrast: (
-      dark: #000,
-      medium: #000,
-      light: #000,
-    ),
-  ),
-  medium,
-  light,
-  dark
-);
-
-// Info color
-$gio-info-palette: mat.define-palette(
-  (
-    dark: hsl(222, 80%, 40%),
-    medium: hsl(226, 80%, 50%),
-    light: hsl(210, 70%, 60%),
     contrast: (
       dark: #000,
       medium: #000,

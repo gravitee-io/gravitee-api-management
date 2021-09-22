@@ -1,6 +1,6 @@
-@use '../../node_modules/@angular/material' as mat;
+@use 'node_modules/@angular/material' as mat;
 
-@import './gio-palettes';
+@use './gio-palettes' as gio;
 
 @import './material-layout-compatibility';
 
@@ -24,9 +24,9 @@ $gio-typography: mat.define-typography-config(
 $gio-theme: mat.define-light-theme(
   (
     color: (
-      primary: $gio-sky-blue-palette,
-      accent: $gio-cyan-palette,
-      warn: $gio-error-palette,
+      primary: gio.$gio-primary-palette,
+      accent: gio.$gio-accent-palette,
+      warn: gio.$gio-error-palette,
     ),
     typography: $gio-typography,
   )
