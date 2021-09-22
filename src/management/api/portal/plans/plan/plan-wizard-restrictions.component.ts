@@ -107,7 +107,9 @@ const ApiPlanWizardRestrictionsComponent: ng.IComponentOptions = {
       this.parent.vm.stepData[2].data = this.parent.plan;
       if (!this.parent.hasPoliciesStep()) {
         const pre = this.parent.restrictionsPolicies.map((restriction) => {
-          const { enabled, ...rest } = restriction;
+          // extract methods from `rest` var to preserve good order when using Object.keys()
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { enabled, methods, ...rest } = restriction;
           const policyId = Object.keys(rest)[0];
           const policy = this.policies.find((policy) => policy.id === policyId);
           const name = policy.title;
