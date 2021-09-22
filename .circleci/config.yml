@@ -198,7 +198,24 @@ jobs:
           at: .
       - secrethub/exec:
           step-name: Running Chromatic
-          command: npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static
+          command: |
+            SB_URL=$(npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
+            echo "export SB_URL=$SB_URL" >> $BASH_ENV
+      - gh/setup
+      - run:
+          name: Comment Pull Request
+          command: |
+            # First check there is an associated pull request, otherwise just stop the job here
+            if ! gh pr view --json title;
+            then
+              echo "No PR found for this branch, stopping the job here."
+              exit 0
+            fi
+
+            gh pr comment --body "**Gravitee.io Automatic Deployment**
+
+            📚 View the storybook of this branch [here](${SB_URL}) 
+            "
 
   publish-images-azure-registry:
     docker:
@@ -336,8 +353,13 @@ workflows:
           requires:
             - deploy-on-azure-storage
       - chromatic-deployment:
+          context: cicd-orchestrator
           requires:
             - build-storybook
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
+                var-name: GITHUB_TOKEN
       - publish-images-azure-registry:
           context: cicd-orchestrator
           pre-steps:
