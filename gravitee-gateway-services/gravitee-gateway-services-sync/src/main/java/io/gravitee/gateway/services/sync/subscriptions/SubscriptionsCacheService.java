@@ -121,7 +121,7 @@ public class SubscriptionsCacheService extends AbstractService implements EventL
                     threads,
                     new ThreadFactory() {
                         private int counter = 0;
-                        private String prefix = "gio.sync-apikeys";
+                        private String prefix = "gio.sync-subscriptions";
 
                         @Override
                         public Thread newThread(Runnable r) {

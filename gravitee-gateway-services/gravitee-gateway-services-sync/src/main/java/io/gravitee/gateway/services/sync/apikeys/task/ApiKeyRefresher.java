@@ -17,12 +17,12 @@ package io.gravitee.gateway.services.sync.apikeys.task;
 
 import io.gravitee.definition.model.Plan;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.services.sync.apikeys.ApiKeysCache;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.Collection;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class ApiKeyRefresher implements Runnable {
 
     private ClusterManager clusterManager;
 
-    private Map<String, ApiKey> cache;
+    private ApiKeysCache cache;
 
     private final Api api;
 
@@ -138,16 +138,9 @@ public class ApiKeyRefresher implements Runnable {
 
     private void saveOrUpdate(ApiKey apiKey) {
         if (apiKey.isRevoked() || apiKey.isPaused()) {
-            logger.debug(
-                "Remove a paused / revoked api-key from cache [key: {}] [plan: {}] [app: {}]",
-                apiKey.getKey(),
-                apiKey.getPlan(),
-                apiKey.getApplication()
-            );
-            cache.remove(apiKey.getKey());
+            cache.remove(apiKey);
         } else {
-            logger.debug("Cache an api-key [key: {}] [plan: {}] [app: {}]", apiKey.getKey(), apiKey.getPlan(), apiKey.getApplication());
-            cache.put(apiKey.getKey(), new ApiKey(apiKey));
+            cache.put(apiKey);
         }
     }
 
@@ -191,7 +184,7 @@ public class ApiKeyRefresher implements Runnable {
         this.apiKeyRepository = apiKeyRepository;
     }
 
-    public void setCache(Map<String, ApiKey> cache) {
+    public void setCache(ApiKeysCache cache) {
         this.cache = cache;
     }
 

@@ -30,6 +30,7 @@ import io.gravitee.gateway.services.sync.apikeys.task.ApiKeyRefresher;
 import io.gravitee.gateway.services.sync.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import io.vertx.ext.web.Router;
 import java.util.HashMap;
 import java.util.Map;
@@ -111,7 +112,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
             LOGGER.debug("Register API key repository implementation {}", ApiKeyRepositoryWrapper.class.getName());
             beanFactory.registerSingleton(
                 ApiKeyRepository.class.getName(),
-                new ApiKeyRepositoryWrapper(this.apiKeyRepository, cacheManager.getCache(API_KEY_CACHE_NAME))
+                new ApiKeyRepositoryWrapper(this.apiKeyRepository, new ApiKeysCache(cacheManager.getCache(API_KEY_CACHE_NAME)))
             );
 
             eventManager.subscribeForEvents(this, ReactorEvent.class);
@@ -185,7 +186,7 @@ public class ApiKeysCacheService extends AbstractService implements EventListene
     private void startRefresher(Api api) {
         if (api.isEnabled()) {
             ApiKeyRefresher refresher = new ApiKeyRefresher(api);
-            refresher.setCache(cacheManager.getCache(API_KEY_CACHE_NAME));
+            refresher.setCache(new ApiKeysCache(cacheManager.getCache(API_KEY_CACHE_NAME)));
             refresher.setApiKeyRepository(apiKeyRepository);
             refresher.setClusterManager(clusterManager);
             refresher.setDistributed(distributed);
