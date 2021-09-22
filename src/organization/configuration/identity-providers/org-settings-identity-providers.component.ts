@@ -14,6 +14,22 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { MatTableDataSource } from '@angular/material/table';
+
+import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
+import { IdentityProvider } from '../../../entities/identity-provider/identityProvider';
+import { IdentityProviderListItem } from '../../../entities/identity-provider/identityProviderListItem';
+
+type TableData = {
+  logo: string;
+  id: string;
+  name: string;
+  description: string;
+  availableOnPortal: boolean;
+  activated: boolean;
+  sync: boolean;
+  updatedAt: number;
+};
 
 @Component({
   selector: 'org-settings-identity-providers',
@@ -21,9 +37,51 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
   template: require('./org-settings-identity-providers.component.html'),
 })
 export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy {
-  constructor() {}
+  displayedColumns: string[] = ['logo', 'id', 'name', 'description', 'activated', 'sync', 'availableOnPortal', 'updatedAt', 'actions'];
+  dataSource = new MatTableDataSource([]);
 
-  ngOnInit() {}
+  constructor(private readonly identityProviderService: IdentityProviderService) {}
+
+  ngOnInit() {
+    this.identityProviderService.list().subscribe((identityProviders) => {
+      this.setDataSourceFromIdentityProviders(identityProviders);
+    });
+  }
 
   ngOnDestroy(): void {}
+
+  onIdClicked(identityProvider: IdentityProvider) {
+    // eslint-disable-next-line angular/log,no-console
+    console.log('Id clicked:', identityProvider);
+  }
+
+  onDeleteActionClicked(identityProvider: IdentityProvider) {
+    // eslint-disable-next-line angular/log,no-console
+    console.log('Delete clicked:', identityProvider);
+  }
+
+  onEditActionClicked(identityProvider: IdentityProvider) {
+    // eslint-disable-next-line angular/log,no-console
+    console.log('Edit clicked:', identityProvider);
+  }
+
+  onActivationToggleActionClicked(identityProvider: IdentityProvider) {
+    // eslint-disable-next-line angular/log,no-console
+    console.log('Activation Toggle clicked:', identityProvider);
+  }
+
+  private setDataSourceFromIdentityProviders(identityProviders: IdentityProviderListItem[]) {
+    this.dataSource = new MatTableDataSource<TableData>(
+      identityProviders.map((idp, index) => ({
+        logo: `assets/logo_${idp.type.toLowerCase()}-idp.svg`,
+        id: idp.id,
+        name: idp.name,
+        description: idp.description,
+        availableOnPortal: idp.enabled,
+        activated: index % 2 === 0,
+        sync: idp.sync,
+        updatedAt: idp.updated_at,
+      })),
+    );
+  }
 }

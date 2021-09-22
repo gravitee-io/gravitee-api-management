@@ -15,6 +15,145 @@
     limitations under the License.
 
 -->
-<h1>Identity Providers</h1>
+<h1>Authentication</h1>
 
-<div class="mat-elevation-z2">It works</div>
+<h4>
+  By creating identity provider, you are providing capabilities to users to login into the portal / management-ui using external user
+  accounts from GitHub, Google, OpenID Connect server or Gravitee.io AM.
+</h4>
+
+<h2>Configuration</h2>
+<div class="org-settings-identity-providers__card">
+  <mat-slide-toggle>Show login form on management console</mat-slide-toggle>
+</div>
+
+<h2>Identity Providers</h2>
+<div class="mat-elevation-z2">
+  <table
+    mat-table
+    [dataSource]="dataSource"
+    class="org-settings-identity-providers__table"
+    id="identityProvidersTable"
+    aria-label="Identity Providers table"
+  >
+    <!-- Logo Column -->
+    <ng-container matColumnDef="logo">
+      <th mat-header-cell *matHeaderCellDef id="logo"></th>
+      <td mat-cell *matCellDef="let element">
+        <img class="org-settings-identity-providers__table__logo" [src]="element.logo" alt="Logo of {{ element.name }}" />
+      </td>
+    </ng-container>
+
+    <!-- Id Column -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef id="id">Id</th>
+      <td mat-cell *matCellDef="let element" (click)="onIdClicked(element)">
+        <a>{{ element.id }}</a>
+      </td>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.name }}
+      </td>
+    </ng-container>
+
+    <!-- Description Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef id="description">Description</th>
+      <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+    </ng-container>
+
+    <!-- Activated Column -->
+    <ng-container matColumnDef="activated">
+      <th mat-header-cell *matHeaderCellDef id="activated">
+        <div class="org-settings-identity-providers__table__centered-cell">Activated</div>
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="org-settings-identity-providers__table__centered-cell">
+          <mat-checkbox [checked]="element.activated" disabled></mat-checkbox>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Sync Column -->
+    <ng-container matColumnDef="sync">
+      <th mat-header-cell *matHeaderCellDef id="sync">
+        <div class="org-settings-identity-providers__table__centered-cell">Sync</div>
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="org-settings-identity-providers__table__centered-cell">
+          <mat-checkbox [checked]="element.sync" disabled></mat-checkbox>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Available on the Portal Column -->
+    <ng-container matColumnDef="availableOnPortal">
+      <th mat-header-cell *matHeaderCellDef id="availableOnPortal">
+        <div class="org-settings-identity-providers__table__centered-cell">Available on dev portal</div>
+      </th>
+      <td mat-cell *matCellDef="let element">
+        <div class="org-settings-identity-providers__table__centered-cell">
+          <mat-checkbox [checked]="element.availableOnPortal" disabled></mat-checkbox>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Updated at Column -->
+    <ng-container matColumnDef="updatedAt">
+      <th mat-header-cell *matHeaderCellDef id="updatedAt">Updated at</th>
+      <td mat-cell *matCellDef="let element">
+        {{ element.updatedAt | date: 'medium' }}
+      </td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef id="actions"></th>
+      <td mat-cell *matCellDef="let element">
+        <div class="org-settings-identity-providers__table__centered-cell">
+          <button
+            (click)="onActivationToggleActionClicked(element)"
+            mat-icon-button
+            color="primary"
+            aria-label="Switch to toggle an identity provider activation"
+            matTooltip="
+            {{ element.activated ? 'Deactivate identity provider' : 'Activate identity provider' }}
+            "
+          >
+            <mat-icon>{{ element.activated ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+          </button>
+          <button
+            (click)="onEditActionClicked(element)"
+            mat-icon-button
+            color="primary"
+            aria-label="Button to edit an identity provider"
+            matTooltip="Edit identity provider"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button
+            (click)="onDeleteActionClicked(element)"
+            mat-icon-button
+            color="primary"
+            aria-label="Button to delete an identity provider"
+            matTooltip="Delete identity provider"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <!-- Row shown when there is no data -->
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="4">No Identity Provider</td>
+    </tr>
+  </table>
+</div>

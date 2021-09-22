@@ -3,3 +3,85 @@
 :host {
   @include gio-responsive-content-container;
 }
+
+.mat-column-id,
+.mat-column-name,
+.mat-column-description,
+.mat-column-availableOnPortal,
+.mat-column-activated,
+.mat-column-updatedAt,
+.mat-column-actions {
+  padding: 0 4px;
+}
+
+.mat-column-logo {
+  width: 4%;
+}
+
+.mat-column-id {
+  width: 10%;
+}
+
+.mat-column-name {
+  width: 14%;
+}
+
+.mat-column-description {
+  width: 28%;
+}
+
+.mat-column-availableOnPortal {
+  width: 12%;
+}
+.mat-column-activated {
+  width: 8%;
+}
+
+.mat-column-sync {
+  width: 6%;
+}
+
+.mat-column-updatedAt {
+  width: 15%;
+}
+
+.mat-column-actions {
+  width: 5%;
+}
+
+.mat-column-displayName {
+  cursor: pointer;
+}
+
+.org-settings-identity-providers {
+  &__card {
+    margin-bottom: 16px;
+  }
+
+  &__configuration {
+    width: 30%;
+    min-width: 400px;
+    margin-bottom: 16px;
+
+    &__actions {
+      display: flex;
+      flex-direction: row;
+      justify-content: right;
+      margin-top: 16px;
+    }
+  }
+
+  &__table {
+    width: 100%;
+
+    &__centered-cell {
+      display: flex;
+      justify-content: center;
+    }
+
+    &__logo {
+      height: 24px;
+      width: 24px;
+    }
+  }
+}
