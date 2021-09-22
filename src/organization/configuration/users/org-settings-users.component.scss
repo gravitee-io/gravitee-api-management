@@ -1,7 +1,7 @@
-@import '../../../scss/gio-layout';
+@use '../../../scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-responsive-content-container;
+  @include gio-layout.gio-responsive-content-container;
 }
 
 .search-bar {

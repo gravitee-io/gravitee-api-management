@@ -1,7 +1,7 @@
-@import '../../../../scss/gio-layout';
+@use '../../../../scss/gio-layout' as gio-layout;
 
 :host {
-  @include gio-responsive-margin-container;
+  @include gio-layout.gio-responsive-margin-container;
 }
 
 .org-settings-new-user {
