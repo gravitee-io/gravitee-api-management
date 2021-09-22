@@ -38,6 +38,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
 import { OrgSettingsNewUserComponent } from './user/new/org-settings-new-user.component';
+import { OrgSettingsIdentityProvidersComponent } from './identity-providers/org-settings-identity-providers.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -76,8 +77,18 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioTableOfContentsModule,
     GioFormSlideToggleModule,
   ],
-  declarations: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent, OrgSettingsNewUserComponent],
+  declarations: [
+    OrgSettingsGeneralComponent,
+    OrgSettingsUsersComponent,
+    OrgSettingsNewUserComponent,
+    OrgSettingsIdentityProvidersComponent,
+  ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
-  entryComponents: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent, OrgSettingsNewUserComponent],
+  entryComponents: [
+    OrgSettingsGeneralComponent,
+    OrgSettingsUsersComponent,
+    OrgSettingsNewUserComponent,
+    OrgSettingsIdentityProvidersComponent,
+  ],
 })
 export class OrganizationSettingsModule {}

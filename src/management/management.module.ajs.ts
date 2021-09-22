@@ -565,6 +565,7 @@ import { downgradeComponent } from '@angular/upgrade/static';
 import { OrgSettingsGeneralComponent } from '../organization/configuration/console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from '../organization/configuration/users/org-settings-users.component';
 import { OrgSettingsNewUserComponent } from '../organization/configuration/user/new/org-settings-new-user.component';
+import { OrgSettingsIdentityProvidersComponent } from '../organization/configuration/identity-providers/org-settings-identity-providers.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -1041,6 +1042,11 @@ graviteeManagementModule.service('QualityRuleService', QualityRuleService);
 
 // Settings: Identity provider
 graviteeManagementModule.component('identityProviders', IdentityProvidersComponent);
+graviteeManagementModule.directive(
+  'ngOrgSettingsIdentityProviders',
+  downgradeComponent({ component: OrgSettingsIdentityProvidersComponent }),
+);
+
 graviteeManagementModule.component('identityProvider', IdentityProviderComponent);
 graviteeManagementModule.component('gvIdentityproviderGraviteeioAm', IdentityProviderGraviteeioAmComponent);
 graviteeManagementModule.component('gvIdentityproviderGoogle', IdentityProviderGoogleComponent);

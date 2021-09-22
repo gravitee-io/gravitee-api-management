@@ -302,6 +302,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.identityproviders.ng-list', {
+      url: '/ng',
+      component: 'ngOrgSettingsIdentityProviders',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-identityproviders',
+        },
+        perms: {
+          only: ['organization-identity_provider-r'],
+        },
+      },
+    })
     .state('organization.settings.identityproviders.new', {
       url: '/new?:type',
       component: 'identityProvider',
