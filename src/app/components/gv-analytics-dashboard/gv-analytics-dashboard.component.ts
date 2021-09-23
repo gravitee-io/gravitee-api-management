@@ -135,13 +135,18 @@ export class GvAnalyticsDashboardComponent implements OnInit, OnDestroy {
             if (widget.chart.type === 'table') {
               const style = () => 'justify-content: flex-end; text-align: right;';
               widget.chart.data[0].field = 'key';
+              widget.chart.data[0].width = 'fit-content(90%)';
+              widget.chart.data[0].style = () =>
+                '--gv-table-cell--d: block; height: auto; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;';
               widget.chart.data[1].field = 'value';
               widget.chart.data[1].headerStyle = style;
               widget.chart.data[1].style = style;
+              widget.chart.data[1].width = 'auto';
               if (itemsPercent) {
                 widget.chart.data[2].field = 'percent';
                 widget.chart.data[2].headerStyle = style;
                 widget.chart.data[2].style = style;
+                widget.chart.data[2].width = 'auto';
               }
 
               const keys = Object.keys(items.values);
