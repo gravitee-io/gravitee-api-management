@@ -27,6 +27,7 @@
 		<groupId>io.gravitee.apim.rest.api.standalone.distribution</groupId>
         <artifactId>gravitee-apim-rest-api-standalone-distribution</artifactId>
     	<version>3.13.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
     </parent>
 
 	<artifactId>gravitee-apim-rest-api-standalone-distribution-zip</artifactId>

@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.apim</groupId>
         <artifactId>gravitee-api-management</artifactId>
-        <version>3.11.0-SNAPSHOT</version>
+        <version>3.12.0-SNAPSHOT</version>
     </parent>
 
     <groupId>io.gravitee.apim.distribution</groupId>
@@ -32,20 +32,32 @@
 
     <name>Gravitee.io APIM - Distribution</name>
 
+    <!--
+        This pom.xml is used to prepare the full distribution of Management API & Gateway.
+        It defines all dependencies that have to be bundled by default in each component.
+        To add a new plugin in the bundle:
+         1. add the version in the <properties> section.
+            please respect alphabetic order and the separation between Gateway only, Management only and both
+         2. update the maven-dependency-plugin so the new plugin can be copied in the right temp folder (used in the packaging).
+            It can be apim-plugins, connectors, fetchers, policies, ... or a new kind of plugins.
+         3. update the Gateway and/or the management API assembly.xml files if necessary
+    -->
+
     <properties>
         <!-- Versions of the plugins for the full distribution -->
         <!-- Management API & Gateway -->
         <gravitee-cockpit-connectors-ws.version>2.0.0</gravitee-cockpit-connectors-ws.version>
-        <gravitee-policy-apikey.version>2.2.0</gravitee-policy-apikey.version>
+        <gravitee-policy-apikey.version>2.3.0-SNAPSHOT</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>1.5.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>1.6.0</gravitee-policy-assign-content.version>
         <gravitee-policy-cache.version>1.13.0</gravitee-policy-cache.version>
-        <gravitee-policy-callout-http.version>1.13.0</gravitee-policy-callout-http.version>
+        <gravitee-policy-callout-http.version>1.14.0</gravitee-policy-callout-http.version>
         <gravitee-policy-dynamic-routing.version>1.11.0</gravitee-policy-dynamic-routing.version>
+        <gravitee-policy-generate-http-signature.version>1.0.0-SNAPSHOT</gravitee-policy-generate-http-signature.version>
         <gravitee-policy-generate-jwt.version>1.5.0</gravitee-policy-generate-jwt.version>
-        <gravitee-policy-groovy.version>1.15.0</gravitee-policy-groovy.version>
+        <gravitee-policy-groovy.version>1.16.0</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.0</gravitee-policy-html-json.version>
-        <gravitee-policy-http-signature.version>1.3.0</gravitee-policy-http-signature.version>
+        <gravitee-policy-http-signature.version>1.4.0-SNAPSHOT</gravitee-policy-http-signature.version>
         <gravitee-policy-ipfiltering.version>1.8.0</gravitee-policy-ipfiltering.version>
         <gravitee-policy-json-threat-protection.version>1.2.0</gravitee-policy-json-threat-protection.version>
         <gravitee-policy-json-to-json.version>1.6.0</gravitee-policy-json-to-json.version>
@@ -55,7 +67,7 @@
         <gravitee-policy-jwt.version>1.20.0</gravitee-policy-jwt.version>
         <gravitee-policy-keyless.version>1.4.0</gravitee-policy-keyless.version>
         <gravitee-policy-latency.version>1.4.0</gravitee-policy-latency.version>
-        <gravitee-policy-metrics-reporter.version>1.0.0</gravitee-policy-metrics-reporter.version>
+        <gravitee-policy-metrics-reporter.version>1.1.0</gravitee-policy-metrics-reporter.version>
         <gravitee-policy-mock.version>1.12.0</gravitee-policy-mock.version>
         <gravitee-policy-oauth2.version>1.18.0</gravitee-policy-oauth2.version>
         <gravitee-policy-openid-connect-userinfo.version>1.4.0</gravitee-policy-openid-connect-userinfo.version>
@@ -282,6 +294,12 @@
                                         <groupId>io.gravitee.policy</groupId>
                                         <artifactId>gravitee-policy-dynamic-routing</artifactId>
                                         <version>${gravitee-policy-dynamic-routing.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.policy</groupId>
+                                        <artifactId>gravitee-policy-generate-http-signature</artifactId>
+                                        <version>${gravitee-policy-generate-http-signature.version}</version>
                                         <type>zip</type>
                                     </artifactItem>
                                     <artifactItem>
@@ -548,6 +566,18 @@
                             <configuration>
                                 <outputDirectory>${basedir}/target/staging/repositories</outputDirectory>
                                 <artifactItems>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
+                                        <artifactId>gravitee-apim-repository-gateway-bridge-http-server</artifactId>
+                                        <version>${project.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
+                                    <artifactItem>
+                                        <groupId>io.gravitee.apim.repository.gateway.bridge.http</groupId>
+                                        <artifactId>gravitee-apim-repository-gateway-bridge-http-client</artifactId>
+                                        <version>${project.version}</version>
+                                        <type>zip</type>
+                                    </artifactItem>
                                     <artifactItem>
                                         <groupId>io.gravitee.apim.repository</groupId>
                                         <artifactId>gravitee-apim-repository-jdbc</artifactId>
