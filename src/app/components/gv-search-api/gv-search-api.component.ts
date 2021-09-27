@@ -62,6 +62,12 @@ export class GvSearchApiComponent implements OnInit {
         } else {
           this.options = [];
         }
+      })
+      .catch((err) => {
+        if (err && err.interceptorFuture) {
+          // avoid a duplicated notification with the same error
+          err.interceptorFuture.cancel();
+        }
       });
   }
 

@@ -90,12 +90,18 @@ export class CatalogSearchComponent implements OnInit {
         apisResponse.data.forEach((api) => {
           deferredList.shift().resolve(api);
         });
-        deferredList.forEach((row) => row.resolve(undefined));
       })
       .catch((err) => {
+        if (err && err.interceptorFuture) {
+          // avoid a duplicated notification with the same error
+          err.interceptorFuture.cancel();
+        }
         // @ts-ignore
         this.totalElements = 0;
         return [];
+      })
+      .finally(() => {
+        deferredList.forEach((row) => row.resolve(undefined));
       });
   }
 
