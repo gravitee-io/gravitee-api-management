@@ -22,7 +22,15 @@
         <div class="catalog-search__header">
           <form class="catalog-search__form" [formGroup]="searchForm" (ngSubmit)="onSubmitSearch()">
             <div class="catalog-search__bar">
-              <gv-input type="search" autofocus icon-left="general:search" formControlName="query" name="query" ngDefaultControl></gv-input>
+              <gv-input
+                type="search"
+                autofocus
+                icon-left="general:search"
+                formControlName="query"
+                name="query"
+                ngDefaultControl
+                [attr.placeholder]="'catalog.searchAdvanced' | translate"
+              ></gv-input>
             </div>
             <gv-select
               *ngIf="totalElements"

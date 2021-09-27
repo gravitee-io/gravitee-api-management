@@ -607,7 +607,8 @@
       "subTitle": "Objevte různá API v titulcích tento měsíc",
       "title": "Ostatní APIs"
     },
-    "search": "Vyhledat API..."
+    "search": "Vyhledat API...",
+    "searchAdvanced": "name:\"My api *\" ownerName:admin"
   },
   "categories": {
     "empty": "Nejsou žádné kategorie",

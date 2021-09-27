@@ -607,7 +607,8 @@
       "subTitle": "Découvrez les différentes APIs à la une ce mois-ci",
       "title": "Les autres API's"
     },
-    "search": "Rechercher une API"
+    "search": "Rechercher une API",
+    "searchAdvanced": "name:\"My api *\" ownerName:admin"
   },
   "categories": {
     "empty": "Il n'y a pas de catégories",
