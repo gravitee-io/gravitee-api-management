@@ -109,62 +109,60 @@
   },
   "application": {
     "alerts": {
-      "disabled": "Než budete moci definovat pravidla výstrah, kontaktujte svého správce.",
-      "maximum": "Dosáhli jste maximálně 10 upozornění",
-      "update": {
-        "success": "Upozornění aktualizováno"
+      "add": {
+        "reset": "Resetovat",
+        "success": "Výstraha vytvořena",
+        "title": "Přidejte upozornění",
+        "type": {
+          "placeholder": "Vyberte typ",
+          "status": {
+            "http_status": {
+              "placeholder": "Postavení"
+            },
+            "percent": {
+              "placeholder": "0..100"
+            }
+          }
+        }
       },
       "delete": {
         "success": "Upozornění smazáno\n"
       },
+      "disabled": "Než budete moci definovat pravidla výstrah, kontaktujte svého správce.",
       "information": "Každý člen aplikace, který nakonfiguroval svou e-mailovou adresu, obdrží oznámení",
       "list": {
         "empty": "Žádný výsledek k zobrazení\n",
         "title": "Seznam výstrah"
       },
-      "type": {
-        "status": "Stav HTTP",
-        "response_time": "průměrná doba odezvy (v ms)"
-      },
-      "timeUnits": {
-        "seconds": "sekundy",
-        "minutes": "minut",
-        "hours": "hodin"
-      },
+      "maximum": "Dosáhli jste maximálně 10 upozornění",
       "phrase": {
         "first": "Upozornit, když",
-        "status": {
-          "second": "je konec",
-          "third": "%"
-        },
+        "last": "během posledního\n",
         "response_time": {
           "second": "je konec",
           "third": "ms"
         },
-        "last": "během posledního\n"
-      },
-      "add": {
-        "title": "Přidejte upozornění",
-        "reset": "Resetovat",
-        "success": "Výstraha vytvořena",
-        "type": {
-          "placeholder": "Vyberte typ",
-          "status": {
-            "name": "Stav HTTP",
-            "percent": {
-              "placeholder": "0..100"
-            },
-            "http_status": {
-              "placeholder": "Postavení"
-            }
-          }
+        "status": {
+          "second": "je konec",
+          "third": "%"
         }
+      },
+      "timeUnits": {
+        "hours": "hodin",
+        "minutes": "minut",
+        "seconds": "sekundy"
+      },
+      "type": {
+        "response_time": "průměrná doba odezvy (v ms)",
+        "status": "Stav HTTP"
+      },
+      "update": {
+        "success": "Upozornění aktualizováno"
       }
     },
     "analytics": {
       "displayLogs": "Zobrazit protokoly",
       "exportCSV": "Export ve formátu CSV",
-      "goToAlerts": "Vytvářejte upozornění\n",
       "filters": {
         "advanced": {
           "hide": "Skrýt pokročilé filtry",
@@ -203,6 +201,7 @@
           "title": "Vyberte ID transakce"
         }
       },
+      "goToAlerts": "Vytvářejte upozornění\n",
       "search": "vyhledávat"
     },
     "change_background": "Změnit pozadí",
@@ -899,8 +898,7 @@
   "homepage": {
     "apis": "Doporučená rozhraní API",
     "explore": "Prozkoumejte API",
-    "signup": "Zaregistrujte se",
-    "title": "Uvolněte sílu vašich API."
+    "signup": "Zaregistrujte se"
   },
   "login": {
     "button": "Přihlásit",

@@ -109,62 +109,60 @@
   },
   "application": {
     "alerts": {
-      "disabled": "Veuillez contacter votre administrateur avant de pouvoir définir des règles d'alerte.",
-      "maximum": "Vous avez atteint le maximum de 10 alertes",
-      "update": {
-        "success": "Alerte mise à jour"
+      "add": {
+        "reset": "Réinitialiser",
+        "success": "Alerte ajoutée",
+        "title": "Ajouter une alerte",
+        "type": {
+          "placeholder": "Selectionner un type",
+          "status": {
+            "http_status": {
+              "placeholder": "Status"
+            },
+            "percent": {
+              "placeholder": "0..100"
+            }
+          }
+        }
       },
       "delete": {
         "success": "Alerte supprimée"
       },
+      "disabled": "Veuillez contacter votre administrateur avant de pouvoir définir des règles d'alerte.",
       "information": "Chaque membre de l'application qui a une addresse email configurée recevra une notification",
       "list": {
         "empty": "Aucun résultat à afficher",
         "title": "Liste des alertes"
       },
-      "type": {
-        "status": "HTTP Status",
-        "response_time": "le temps de réponse moyen (en ms)"
-      },
-      "timeUnits": {
-        "seconds": "secondes",
-        "minutes": "minutes",
-        "hours": "heures"
-      },
+      "maximum": "Vous avez atteint le maximum de 10 alertes",
       "phrase": {
         "first": "Alerte quand",
-        "status": {
-          "second": "est supérieur à",
-          "third": "%"
-        },
+        "last": "pendant les dernières",
         "response_time": {
           "second": "est supérieur à",
           "third": "ms"
         },
-        "last": "pendant les dernières"
-      },
-      "add": {
-        "title": "Ajouter une alerte",
-        "reset": "Réinitialiser",
-        "success": "Alerte ajoutée",
-        "type": {
-          "placeholder": "Selectionner un type",
-          "status": {
-            "name": "HTTP Status",
-            "percent": {
-              "placeholder": "0..100"
-            },
-            "http_status": {
-              "placeholder": "Status"
-            }
-          }
+        "status": {
+          "second": "est supérieur à",
+          "third": "%"
         }
+      },
+      "timeUnits": {
+        "hours": "heures",
+        "minutes": "minutes",
+        "seconds": "secondes"
+      },
+      "type": {
+        "response_time": "le temps de réponse moyen (en ms)",
+        "status": "HTTP Status"
+      },
+      "update": {
+        "success": "Alerte mise à jour"
       }
     },
     "analytics": {
       "displayLogs": "Afficher les logs",
       "exportCSV": "Exporter au format CSV",
-      "goToAlerts": "Créer des alertes",
       "filters": {
         "advanced": {
           "hide": "Cacher les filtres avancés",
@@ -203,6 +201,7 @@
           "title": "Sélectionner un identifiant de transaction"
         }
       },
+      "goToAlerts": "Créer des alertes",
       "search": "Rechercher"
     },
     "change_background": "Changer l'image de fond",
@@ -899,8 +898,7 @@
   "homepage": {
     "apis": "Les APIs à la une",
     "explore": "Explorez les APIs",
-    "signup": "Créez un compte",
-    "title": "Libérez la puissance de vos APIs."
+    "signup": "Créez un compte"
   },
   "login": {
     "button": "Se connecter",
