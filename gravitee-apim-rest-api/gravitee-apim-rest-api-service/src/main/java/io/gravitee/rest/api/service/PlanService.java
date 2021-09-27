@@ -38,6 +38,7 @@ public interface PlanService {
     PlanEntity create(NewPlanEntity plan);
 
     PlanEntity update(UpdatePlanEntity plan);
+    PlanEntity update(UpdatePlanEntity plan, boolean fromImport);
 
     PlanEntity close(String plan, String username);
 

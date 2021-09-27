@@ -17,13 +17,15 @@ package io.gravitee.rest.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.Plan;
+import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.api.header.ApiHeaderEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collection;
 import java.util.List;
@@ -85,6 +87,12 @@ public interface ApiService {
     ApiEntity deploy(String apiId, String userId, EventType eventType, ApiDeploymentEntity apiDeploymentEntity);
 
     ApiEntity rollback(String apiId, UpdateApiEntity api);
+
+    String exportAsJson(String apiId, String exportVersion, String... filteredFields);
+
+    ApiEntity createWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId);
+
+    ApiEntity updateWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId);
 
     InlinePictureEntity getPicture(String apiId);
 
@@ -158,4 +166,6 @@ public interface ApiService {
 
     void addGroup(String api, String group);
     void removeGroup(String api, String group);
+
+    void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
 }

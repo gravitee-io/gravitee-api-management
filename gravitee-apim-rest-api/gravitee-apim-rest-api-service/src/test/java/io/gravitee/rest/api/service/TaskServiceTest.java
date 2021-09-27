@@ -17,28 +17,32 @@ package io.gravitee.rest.api.service;
 
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.UserStatus;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.impl.TaskServiceImpl;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -81,8 +85,8 @@ public class TaskServiceTest {
     @Mock
     private PromotionTasksService promotionTasksService;
 
-    @Test
-    public void shouldFindAll() throws TechnicalException {
+    @Before
+    public void setUp() {
         MembershipEntity m1 = new MembershipEntity();
         m1.setId("1");
         m1.setReferenceId("api1");
@@ -122,10 +126,40 @@ public class TaskServiceTest {
         when(membershipService.getMembershipsByMemberAndReference(any(), any(), any())).thenReturn(memberships);
 
         when(userService.search(any(UserCriteria.class), any())).thenReturn(new Page<>(emptyList(), 1, 0, 0));
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        // Clean up Spring security context.
+        SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_THREADLOCAL);
+    }
+
+    @Test
+    public void shouldFindAll() throws TechnicalException {
+        final Authentication authentication = mock(Authentication.class);
+
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
 
         taskService.findAll("user");
 
         verify(subscriptionService, times(1)).search(any());
         verify(promotionTasksService, times(1)).getPromotionTasks(any());
+        verify(userService, times(0)).search(any(UserCriteria.class), any());
+    }
+
+    @Test
+    public void shouldFindAllAsAdmin() throws TechnicalException {
+        final Authentication authentication = mock(Authentication.class);
+        Collection authorities = new ArrayList<>();
+        GrantedAuthority admin = (GrantedAuthority) () -> "ENVIRONMENT:ADMIN";
+        authorities.add(admin);
+        when(authentication.getAuthorities()).thenReturn(authorities);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+
+        taskService.findAll("admin");
+
+        verify(subscriptionService, times(1)).search(any());
+        verify(promotionTasksService, times(1)).getPromotionTasks(any());
+        verify(userService, times(1)).search(any(UserCriteria.class), any());
     }
 }

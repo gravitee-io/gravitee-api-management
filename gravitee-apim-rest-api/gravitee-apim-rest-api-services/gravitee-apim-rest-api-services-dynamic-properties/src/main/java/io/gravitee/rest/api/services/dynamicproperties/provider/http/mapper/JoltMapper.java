@@ -65,6 +65,9 @@ public class JoltMapper {
         }
         jsonProperties = JsonUtils.toJsonString(transformed);
 
+        //Now ensure current json properties is well formatted.
+        //    if (validateJson(jsonProperties)) {
+
         List<Object> items = JsonUtils.jsonToList(jsonProperties);
         Object collect = items
             .stream()

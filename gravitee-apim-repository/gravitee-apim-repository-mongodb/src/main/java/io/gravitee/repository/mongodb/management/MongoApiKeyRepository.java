@@ -87,9 +87,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) {
-        Page<ApiKeyMongo> apiKeysMongo = internalApiKeyRepo.search(filter);
-
-        return mapper.collection2list(apiKeysMongo.getContent(), ApiKeyMongo.class, ApiKey.class);
+        return mapper.collection2list(internalApiKeyRepo.search(filter), ApiKeyMongo.class, ApiKey.class);
     }
 
     @Override

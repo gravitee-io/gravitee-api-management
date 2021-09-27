@@ -83,7 +83,8 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     @Autowired
     private Vertx vertx;
 
-    private HttpClient getHttpClient(String uriScheme, Boolean useSystemProxy) {
+    @Override
+    public HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy) {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(uriScheme);
 
         final HttpClientOptions options = new HttpClientOptions()
@@ -126,7 +127,7 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
 
         URI requestUri = URI.create(uri);
 
-        final HttpClient httpClient = this.getHttpClient(requestUri.getScheme(), useSystemProxy);
+        final HttpClient httpClient = this.createHttpClient(requestUri.getScheme(), useSystemProxy);
 
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 

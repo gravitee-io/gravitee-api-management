@@ -91,5 +91,81 @@
         "body": "{\"bad\":\"news\"}"
       }
     }
-  }
+  },
+  "plans" : [
+    {
+      "id" : "plan-id",
+      "name": "free plan",
+      "description" : "free plan",
+      "validation" : "AUTO",
+      "security" : "API_KEY",
+      "type" : "API",
+      "status" : "PUBLISHED",
+      "api" : "id-api",
+      "order" : 0,
+      "flows": [
+        {
+          "name": "",
+          "path-operator": {
+            "operator": "STARTS_WITH",
+            "path": "/"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [
+            {
+              "name": "JSON Validation",
+              "description": "",
+              "enabled": true,
+              "policy": "json-validation",
+              "configuration": {
+                "scope": "REQUEST",
+                "schema": "{\n\t\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"\n}",
+                "errorMessage": "ERROR FROM VALIDATION"
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        }
+      ]
+    } ,
+    {
+      "id" : "plan-id2",
+      "name": "keyless plan",
+      "description" : "keyless plan",
+      "validation" : "AUTO",
+      "security" : "KEY_LESS",
+      "type" : "API",
+      "status" : "PUBLISHED",
+      "api" : "id-api",
+      "order" : 0,
+      "flows": [
+        {
+          "name": "",
+          "path-operator": {
+            "operator": "STARTS_WITH",
+            "path": "/"
+          },
+          "condition": "",
+          "methods": [],
+          "pre": [
+            {
+              "name": "JSON Validation",
+              "description": "",
+              "enabled": true,
+              "policy": "json-validation",
+              "configuration": {
+                "scope": "REQUEST",
+                "schema": "{\n\t\"$schema\": \"https://json-schema.org/draft/2019-09/schema\"\n}",
+                "errorMessage": "ERROR FROM VALIDATION"
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        }
+      ]
+    }
+  ]
 }

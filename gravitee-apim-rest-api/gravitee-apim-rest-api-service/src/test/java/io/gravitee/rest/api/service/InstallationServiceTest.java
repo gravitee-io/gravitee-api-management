@@ -189,6 +189,15 @@ public class InstallationServiceTest {
         assertEquals(InstallationStatus.ACCEPTED, installationStatus);
     }
 
+    @Test
+    public void shouldGetNotLinkedInstallationStatus() {
+        installation.setAdditionalInformation(new HashMap<>());
+        final InstallationStatus installationStatus = installationService.getInstallationStatus();
+
+        assertNotNull(installationStatus);
+        assertEquals(InstallationStatus.NOT_LINKED, installationStatus);
+    }
+
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotFindByIdBecauseTechnicalException() throws TechnicalException {
         when(installationRepository.find()).thenThrow(TechnicalException.class);

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (brasseld at gmail.com)
@@ -26,6 +27,9 @@ public class ErrorEntity {
 
     @JsonProperty("http_status")
     private int httpCode;
+
+    private Map<String, String> parameters;
+    private String technicalCode;
 
     public ErrorEntity() {}
 
@@ -48,5 +52,21 @@ public class ErrorEntity {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+    }
+
+    public String getTechnicalCode() {
+        return technicalCode;
+    }
+
+    public void setTechnicalCode(String technicalCode) {
+        this.technicalCode = technicalCode;
     }
 }

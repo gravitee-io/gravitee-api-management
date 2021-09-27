@@ -15,25 +15,20 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.EnvironmentPermissionsEntity;
 import io.gravitee.rest.api.model.InstallationStatus;
-import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InstallationNotAcceptedException;
 import io.gravitee.rest.api.service.promotion.PromotionService;
-import io.swagger.annotations.*;
-import java.util.Collection;
-import java.util.HashMap;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.GET;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -66,7 +61,8 @@ public class PromotionTargetsResource extends AbstractResource {
         }
     )
     public Response getPromotionTargets() {
-        if (InstallationStatus.ACCEPTED == this.installationService.getInstallationStatus()) {
+        InstallationStatus status = this.installationService.getInstallationStatus();
+        if (InstallationStatus.ACCEPTED == status) {
             final List<PromotionTargetEntity> promotionTargetEntities =
                 this.promotionService.listPromotionTargets(
                         GraviteeContext.getCurrentOrganization(),
@@ -74,6 +70,6 @@ public class PromotionTargetsResource extends AbstractResource {
                     );
             return Response.ok(promotionTargetEntities).build();
         }
-        return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+        throw new InstallationNotAcceptedException(this.installationService.get(), status);
     }
 }

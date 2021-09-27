@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(plan.getDescription()).thenReturn("Description for the new plan");
         when(plan.getValidation()).thenReturn(Plan.PlanValidationType.AUTO);
         when(plan.getType()).thenReturn(Plan.PlanType.API);
-        when(plan.getApi()).thenReturn("my-api");
+        when(plan.getApi()).thenReturn("api1");
         when(plan.getCreatedAt()).thenReturn(parse("11/02/2016"));
         when(plan.getUpdatedAt()).thenReturn(parse("12/02/2016"));
         when(plan.getPublishedAt()).thenReturn(parse("13/02/2016"));
@@ -142,6 +143,9 @@ public class PlanRepositoryMock extends AbstractRepositoryMock<PlanRepository> {
         when(planRepository.findById("stores")).thenReturn(Optional.empty());
 
         when(planRepository.findByApi("api1")).thenReturn(new HashSet<>(asList(plan, plan2)));
+
+        when(planRepository.findByApis(Arrays.asList("api1", "4e0db366-f772-4489-8db3-66f772b48989")))
+            .thenReturn(asList(plan, plan2, createdPlanOAuth2));
 
         when(planRepository.findById("unknown")).thenReturn(empty());
 

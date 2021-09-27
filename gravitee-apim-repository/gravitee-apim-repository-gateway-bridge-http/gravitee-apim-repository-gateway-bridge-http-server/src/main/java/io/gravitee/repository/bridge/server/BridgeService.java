@@ -128,6 +128,11 @@ public class BridgeService extends AbstractService {
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apiPlansHandler);
             bridgeRouter.get("/apis/:apiId/plans").handler(apiPlansHandler::handle);
 
+            // Plans handler
+            PlansHandler plansHandler = new PlansHandler();
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(plansHandler);
+            bridgeRouter.post("/plans").handler(plansHandler::handle);
+
             // API Keys handler
             ApiKeysHandler apiKeysHandler = new ApiKeysHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(apiKeysHandler);
@@ -143,6 +148,7 @@ public class BridgeService extends AbstractService {
             EventsHandler eventsHandler = new EventsHandler();
             applicationContext.getAutowireCapableBeanFactory().autowireBean(eventsHandler);
             bridgeRouter.post("/events/_search").handler(eventsHandler::search);
+            bridgeRouter.post("/events/_searchLatest").handler(eventsHandler::searchLatest);
             bridgeRouter.post("/events").handler(eventsHandler::create);
             bridgeRouter.put("/events/:eventId").handler(eventsHandler::update);
 

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.exceptions.DebugApiInvalidDefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoCompatibleInstanceException;
 import io.gravitee.rest.api.service.exceptions.DebugApiNoValidPlanException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.DebugApiServiceImpl;
 import java.util.Date;
 import java.util.List;
@@ -85,10 +87,10 @@ public class DebugApiServiceTest {
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
         verify(eventService).create(eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue())
             .contains(
-                entry(Event.EventProperties.API_ID.getValue(), API_ID),
                 entry(Event.EventProperties.USER.getValue(), USER_ID),
                 entry(Event.EventProperties.API_DEBUG_STATUS.getValue(), ApiDebugStatus.TO_DEBUG.name())
             );
@@ -111,6 +113,7 @@ public class DebugApiServiceTest {
 
         ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
         verify(eventService).create(eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
 
         assertThat(propertiesCaptor.getValue()).contains(entry(Event.EventProperties.GATEWAY_ID.getValue(), "instance#young"));
     }
@@ -153,6 +156,31 @@ public class DebugApiServiceTest {
 
         DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
         debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+    }
+
+    @Test
+    public void debug_shouldNotCreateDebugEventIfPoliciesConfigurationAreInvalid() {
+        InstanceEntity youngInstance = getAnInstanceEntity();
+        youngInstance.setId("instance#young");
+        youngInstance.setStartedAt(new Date(5000));
+
+        InstanceEntity oldInstance = getAnInstanceEntity();
+        oldInstance.setId("instance#old");
+        oldInstance.setStartedAt(new Date(1000));
+
+        doThrow(new InvalidDataException("Unable to validate policy configuration"))
+            .when(apiService)
+            .checkPolicyConfigurations(anyMap(), anyList(), anyList());
+
+        DebugApiEntity debugApiEntity = prepareDebugApiEntity(PlanStatus.PUBLISHED, DefinitionVersion.V2);
+        try {
+            debugApiService.debug(API_ID, USER_ID, debugApiEntity);
+        } catch (InvalidDataException e) {
+            assertNotNull(e);
+        }
+        ArgumentCaptor<Map<String, String>> propertiesCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(eventService, times(0)).create(eq(EventType.DEBUG_API), anyString(), propertiesCaptor.capture());
+        verify(apiService, times(1)).checkPolicyConfigurations(anyMap(), anyList(), anyList());
     }
 
     private DebugApiEntity prepareDebugApiEntity(PlanStatus planStatus, DefinitionVersion definitionVersion) {

@@ -86,9 +86,9 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
             new EventCriteria.Builder().from(1451606400000L).to(1470157767000L).types(EventType.START_API).build(),
             new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
-        assertTrue(2L == eventPage.getTotalElements());
+        assertEquals(2L, eventPage.getTotalElements());
         Event event = eventPage.getContent().iterator().next();
-        assertTrue("event6".equals(event.getId()));
+        assertEquals("event6", event.getId());
     }
 
     @Test
@@ -136,9 +136,9 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
             new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
 
-        assertTrue(2L == eventPage.getTotalElements());
+        assertEquals(2L, eventPage.getTotalElements());
         Event event = eventPage.getContent().iterator().next();
-        assertTrue("event2".equals(event.getId()));
+        assertEquals("event2", event.getId());
     }
 
     @Test
@@ -152,9 +152,9 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
             null
         );
 
-        assertTrue(2L == eventPage.getTotalElements());
+        assertEquals(2L, eventPage.getTotalElements());
         Event event = eventPage.getContent().iterator().next();
-        assertTrue("event2".equals(event.getId()));
+        assertEquals("event2", event.getId());
     }
 
     @Test
@@ -169,9 +169,9 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
             new PageableBuilder().pageNumber(0).pageSize(10).build()
         );
 
-        assertTrue(1L == eventPage.getTotalElements());
+        assertEquals(1L, eventPage.getTotalElements());
         Event event = eventPage.getContent().iterator().next();
-        assertTrue("event4".equals(event.getId()));
+        assertEquals("event4", event.getId());
     }
 
     @Test
@@ -185,9 +185,9 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
             null
         );
 
-        assertTrue(3L == eventPage.getTotalElements());
+        assertEquals(3L, eventPage.getTotalElements());
         Event event = eventPage.getContent().iterator().next();
-        assertTrue("event4".equals(event.getId()));
+        assertEquals("event4", event.getId());
     }
 
     @Test
@@ -200,9 +200,9 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
                 .build()
         );
 
-        assertTrue(3L == events.size());
+        assertEquals(3L, events.size());
         Event event = events.iterator().next();
-        assertTrue("event4".equals(event.getId()));
+        assertEquals("event4", event.getId());
     }
 
     @Test
@@ -211,25 +211,81 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
             new EventCriteria.Builder().property(Event.EventProperties.API_ID.getValue(), Arrays.asList("api-1", "api-3")).build()
         );
 
-        assertTrue(3L == events.size());
+        assertEquals(3L, events.size());
         final Iterator<Event> iterator = events.iterator();
-        assertTrue("event4".equals(iterator.next().getId()));
-        assertTrue("event2".equals(iterator.next().getId()));
-        assertTrue("event1".equals(iterator.next().getId()));
+        assertEquals("event4", iterator.next().getId());
+        assertEquals("event2", iterator.next().getId());
+        assertEquals("event1", iterator.next().getId());
     }
 
     @Test
     public void searchByEnvironmentDefault() throws Exception {
         List<Event> events = eventRepository.search(new EventCriteria.Builder().environments(singletonList("DEFAULT")).build());
 
-        assertTrue(6L == events.size());
+        assertEquals(8L, events.size());
         final Iterator<Event> iterator = events.iterator();
-        assertTrue("event6".equals(iterator.next().getId()));
-        assertTrue("event5".equals(iterator.next().getId()));
-        assertTrue("event4".equals(iterator.next().getId()));
-        assertTrue("event3".equals(iterator.next().getId()));
-        assertTrue("event2".equals(iterator.next().getId()));
-        assertTrue("event1".equals(iterator.next().getId()));
+        assertEquals("event9", iterator.next().getId());
+        assertEquals("event8", iterator.next().getId());
+        assertEquals("event6", iterator.next().getId());
+        assertEquals("event5", iterator.next().getId());
+        assertEquals("event4", iterator.next().getId());
+        assertEquals("event3", iterator.next().getId());
+        assertEquals("event2", iterator.next().getId());
+        assertEquals("event1", iterator.next().getId());
+    }
+
+    @Test
+    public void searchLatestApiEventsWithoutPagingAndSize() {
+        List<Event> events = eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, null, null);
+
+        assertEquals(3L, events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertEquals("event6", iterator.next().getId());
+        assertEquals("event4", iterator.next().getId());
+        assertEquals("event2", iterator.next().getId());
+    }
+
+    @Test
+    public void searchLatestApiEventsPage2Size2() {
+        List<Event> events = eventRepository.searchLatest(new EventCriteria.Builder().build(), Event.EventProperties.API_ID, 2L, 1L);
+
+        assertEquals(1L, events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertEquals("event2", iterator.next().getId());
+    }
+
+    @Test
+    public void searchLatestApiEventsByMixProperties() throws Exception {
+        List<Event> events = eventRepository.searchLatest(
+            new EventCriteria.Builder()
+                .from(1451606400000L)
+                .to(1470157767000L)
+                .property(Event.EventProperties.API_ID.getValue(), "api-3")
+                .types(EventType.START_API, EventType.STOP_API)
+                .build(),
+            Event.EventProperties.API_ID,
+            0L,
+            10L
+        );
+
+        assertEquals(1L, events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertEquals("event4", iterator.next().getId());
+    }
+
+    @Test
+    public void searchLatestDictionaryEventsWithoutPagingAndSize() {
+        List<Event> events = eventRepository.searchLatest(
+            new EventCriteria.Builder().build(),
+            Event.EventProperties.DICTIONARY_ID,
+            null,
+            null
+        );
+
+        assertEquals(2L, events.size());
+        final Iterator<Event> iterator = events.iterator();
+        assertEquals("event10", iterator.next().getId());
+        assertEquals("event9", iterator.next().getId());
     }
 
     @Test
@@ -238,8 +294,10 @@ public class EventRepositoryTest extends AbstractRepositoryTest {
             new EventCriteria.Builder().environments(Arrays.asList("DEFAULT", "OTHER_ENV")).build()
         );
 
-        assertEquals(7, events.size());
+        assertEquals(9, events.size());
         final Iterator<Event> iterator = events.iterator();
+        assertTrue("event9".equals(iterator.next().getId()));
+        assertTrue("event8".equals(iterator.next().getId()));
         assertTrue("event7".equals(iterator.next().getId()));
         assertTrue("event6".equals(iterator.next().getId()));
         assertTrue("event5".equals(iterator.next().getId()));

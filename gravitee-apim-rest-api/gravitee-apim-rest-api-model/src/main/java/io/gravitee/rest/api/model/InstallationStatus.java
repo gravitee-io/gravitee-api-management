@@ -20,4 +20,5 @@ public enum InstallationStatus {
     ACCEPTED,
     REJECTED,
     DELETED,
+    NOT_LINKED,
 }

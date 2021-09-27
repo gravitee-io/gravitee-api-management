@@ -25,11 +25,13 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
 import io.vertx.core.Vertx;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +53,15 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     private ApiService apiService;
 
     @Autowired
+    private HttpClientService httpClientService;
+
+    @Autowired
     private Vertx vertx;
 
     @Autowired
     private Node node;
 
-    private final Map<ApiEntity, CronHandler> handlers = new HashMap<>();
+    final Map<ApiEntity, CronHandler> handlers = new HashMap<>();
 
     @Override
     protected String name() {
@@ -87,9 +92,31 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
                 stopDynamicProperties(api);
                 break;
             case UPDATE:
-                stopDynamicProperties(api);
-                startDynamicProperties(api);
+                update(api);
                 break;
+        }
+    }
+
+    private void update(ApiEntity api) {
+        final ApiEntity currentApi = handlers.keySet().stream().filter(entity -> entity.equals(api)).findFirst().orElse(null);
+
+        if (currentApi == null) {
+            // There is no dynamic properties handler for this api, start the dynamic properties.
+            startDynamicProperties(api);
+        } else {
+            // We need to check if the dynamic properties has changed. If that is the case, stop en start the dynamic properties handler.
+            DynamicPropertyService currentDynamicPropertyService = currentApi.getServices().get(DynamicPropertyService.class);
+            DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
+
+            if (currentDynamicPropertyService != null) {
+                if (!Objects.equals(currentDynamicPropertyService, dynamicPropertyService)) {
+                    // Configuration has changed. Need to stop the current timer before restarting it.
+                    stopDynamicProperties(api);
+                    startDynamicProperties(api);
+                }
+            } else {
+                startDynamicProperties(api);
+            }
         }
     }
 
@@ -101,7 +128,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
                 if (dynamicPropertyService.getProvider() == DynamicPropertyProvider.HTTP) {
                     HttpProvider provider = new HttpProvider(dynamicPropertyService);
-                    provider.setVertx(vertx);
+                    provider.setHttpClientService(httpClientService);
                     provider.setNode(node);
 
                     updater.setProvider(provider);

@@ -104,13 +104,15 @@ public class TaskServiceImpl extends AbstractService implements TaskService {
                 tasks = subscriptionService.search(query).stream().map(this::convert).collect(toList());
             }
 
-            // search for PENDING user registration
-            final Page<UserEntity> pendingUsers = userService.search(
-                new UserCriteria.Builder().statuses(UserStatus.PENDING).build(),
-                new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH)
-            );
-            if (pendingUsers.getContent() != null && !pendingUsers.getContent().isEmpty()) {
-                tasks.addAll(pendingUsers.getContent().stream().map(this::convert).collect(toList()));
+            if (isAdmin()) {
+                // search for PENDING user registration
+                final Page<UserEntity> pendingUsers = userService.search(
+                    new UserCriteria.Builder().statuses(UserStatus.PENDING).build(),
+                    new PageableImpl(1, NUMBER_OF_PENDING_USERS_TO_SEARCH)
+                );
+                if (pendingUsers.getContent() != null && !pendingUsers.getContent().isEmpty()) {
+                    tasks.addAll(pendingUsers.getContent().stream().map(this::convert).collect(toList()));
+                }
             }
 
             // search for IN_REVIEW apis

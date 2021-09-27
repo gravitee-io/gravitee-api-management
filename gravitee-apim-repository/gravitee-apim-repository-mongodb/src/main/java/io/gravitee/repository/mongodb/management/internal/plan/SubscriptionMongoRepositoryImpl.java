@@ -110,15 +110,21 @@ public class SubscriptionMongoRepositoryImpl implements SubscriptionMongoReposit
         // set sort by created at
         query.with(Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        long total = mongoTemplate.count(query, SubscriptionMongo.class);
+        Long total = null;
 
         // set pageable
         if (pageable != null) {
+            total = mongoTemplate.count(query, SubscriptionMongo.class);
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
 
         List<SubscriptionMongo> subscriptions = mongoTemplate.find(query, SubscriptionMongo.class);
 
-        return new Page<>(subscriptions, (pageable != null) ? pageable.pageNumber() : 0, subscriptions.size(), total);
+        return new Page<>(
+            subscriptions,
+            (pageable != null) ? pageable.pageNumber() : 0,
+            subscriptions.size(),
+            total == null ? subscriptions.size() : total
+        );
     }
 }
