@@ -27,11 +27,12 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { UIRouterStateParams, UIRouterState } from '../../../ajs-upgraded-providers';
+import { UIRouterStateParams, UIRouterState, CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { User } from '../../../entities/user/user';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { fakeAdminUser } from '../../../entities/user/user.fixture';
+import { User as DeprecatedUser } from '../../../entities/user';
 
 describe('OrgSettingsUsersComponent', () => {
   let fixture: ComponentFixture<OrgSettingsUsersComponent>;
@@ -45,6 +46,7 @@ describe('OrgSettingsUsersComponent', () => {
       providers: [
         { provide: UIRouterState, useValue: { go: jest.fn() } },
         { provide: UIRouterStateParams, useValue: {} },
+        { provide: CurrentUserService, useValue: { currentUser: new DeprecatedUser() } },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

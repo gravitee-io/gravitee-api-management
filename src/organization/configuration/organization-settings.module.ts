@@ -43,6 +43,7 @@ import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/c
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioFormSlideToggleModule } from '../../shared/components/form-slide-toogle/gio-form-slide-toggle.module';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   imports: [
@@ -69,6 +70,7 @@ import { GioFormSlideToggleModule } from '../../shared/components/form-slide-too
     MatSlideToggleModule,
     MatDividerModule,
 
+    GioPermissionModule,
     GioConfirmDialogModule,
     GioAvatarModule,
     GioTableOfContentsModule,

@@ -79,16 +79,18 @@
     <ng-container matColumnDef="actions">
       <th mat-header-cell *matHeaderCellDef id="actions" width="1%"></th>
       <td mat-cell *matCellDef="let element">
-        <button
-          *ngIf="!element.primary_owner"
-          (click)="onDeleteUserClick(element)"
-          mat-icon-button
-          color="primary"
-          aria-label="Button to delete user"
-          matTooltip="Delete user"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
+        <ng-container *gioPermission="{ anyOf: ['organization-user-d'] }">
+          <button
+            *ngIf="!element.primary_owner"
+            (click)="onDeleteUserClick(element)"
+            mat-icon-button
+            color="primary"
+            aria-label="Button to delete user"
+            matTooltip="Delete user"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-container>
       </td>
     </ng-container>
 
