@@ -15,17 +15,15 @@
  */
 package io.gravitee.gateway.services.sync.cache;
 
-import io.gravitee.gateway.services.sync.apikeys.ApiKeysCache;
+import static org.junit.Assert.*;
+
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.HashMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.util.HashMap;
-
-import static org.junit.Assert.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ApiKeysCacheTest {

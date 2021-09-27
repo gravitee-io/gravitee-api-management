@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.apikeys;
+package io.gravitee.gateway.services.sync.cache;
 
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.Map;
