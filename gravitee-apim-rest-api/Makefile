@@ -4,8 +4,8 @@
 define prepare
 	echo "preparing working $(1) directory version $(2) \n"
 	mkdir -p .working/$(1)
-	cp gravitee-$(1)-standalone/gravitee-$(1)-standalone-distribution/gravitee-$(1)-standalone-distribution-zip/target/gravitee-$(1)-standalone-$(2).zip .working/$(1)
-	unzip -uj .working/$(1)/gravitee-$(1)-standalone-$(2).zip '*/config/*' -d .working/$(1)/config
+	cp gravitee-$(1)-standalone/gravitee-$(1)-standalone-distribution/gravitee-$(1)-standalone-distribution-zip/target/graviteeio-$(1)-distribution-$(2).zip .working/$(1)
+	unzip -uj .working/$(1)/graviteeio-$(1)-distribution-$(2).zip '*/config/*' -d .working/$(1)/config
 	cp docker/Dockerfile-dev .working/$(1)/Dockerfile
 	sed -i.bkp 's/<appender-ref ref=\"async-file\" \/>/<appender-ref ref=\"async-console\" \/>/' .working/$(1)/config/logback.xml
 	sed -i.bkp 's/<appender-ref ref=\"FILE\" \/>/<appender-ref ref=\"STDOUT\" \/>/' .working/$(1)/config/logback.xml
@@ -58,7 +58,7 @@ endif
 	@make run
 
 clean: # remove .working directory
-	@rm -rf .working/rest-api
+	@rm -rf .working/apim-rest-api
 
 version: # Get version and save it into a file
 	@mkdir -p .working
@@ -74,11 +74,11 @@ ifeq ($(GIO_APIM_VERSION),)
 else
 	@echo "Current build version is : $(GIO_APIM_VERSION)"
 	@mvn clean install $(OPTIONS)
-	@$(foreach project,rest-api, $(call prepare,$(project),$(GIO_APIM_VERSION)))
+	@$(foreach project,apim-rest-api, $(call prepare,$(project),$(GIO_APIM_VERSION)))
 endif
 
 build: # Build docker images (require install to be run before)
-	cd .working/rest-api && docker build --build-arg GRAVITEEAPIM_VERSION=$(GIO_APIM_VERSION) -t $(GIO_APIM_MANAGEMENT_API_IMAGE):$(GIO_APIM_VERSION) .
+	cd .working/apim-rest-api && docker build --build-arg GRAVITEEIO_VERSION=$(GIO_APIM_VERSION) -t $(GIO_APIM_MANAGEMENT_API_IMAGE):$(GIO_APIM_VERSION) .
 
 env: # Set up .env file for gravitee docker-compose
 	@mkdir -p .working/compose

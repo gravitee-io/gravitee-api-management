@@ -1,608 +1,632 @@
 version: 2.1
 
 orbs:
-    slack: circleci/slack@4.4
-    gravitee: gravitee-io/gravitee@1.0
-    secrethub: secrethub/cli@1.1
+  slack: circleci/slack@4.4
+  gravitee: gravitee-io/gravitee@1.0
+  secrethub: secrethub/cli@1.1
 
 commands:
-    restore-maven-cache:
-        description: "Restore Maven cache"
-        steps:
-            - restore_cache:
-                  keys:
-                      - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+  restore-maven-cache:
+    description: "Restore Maven cache"
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
 
 parameters:
-    gio_action:
-        type: enum
-        enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests]
-        default: pull_requests
-    dry_run:
-        type: boolean
-        default: true
-        description: "Run in dry run mode?"
-    maven_profile_id:
-        type: string
-        default: "gravitee-dry-run"
-        description: "Maven ID of the Maven profile to use for a dry run ?"
-    secrethub_org:
-        type: string
-        default: "graviteeio"
-        description: "SecretHub Org to use to fetch secrets ?"
-    secrethub_repo:
-        type: string
-        default: "cicd"
-        description: "SecretHub Repo to use to fetch secrets ?"
-    s3_bucket_name:
-        type: string
-        default: ""
-        description: "Name of the S3 Bucket used to store and retrieve the state of the maven project, to perform the nexus staging ?"
-    replayed_release:
-        type: string
-        default: ""
-        description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
+  gio_action:
+    type: enum
+    enum: [ release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests ]
+    default: pull_requests
+  dry_run:
+    type: boolean
+    default: true
+    description: "Run in dry run mode?"
+  maven_profile_id:
+    type: string
+    default: "gravitee-dry-run"
+    description: "Maven ID of the Maven profile to use for a dry run ?"
+  secrethub_org:
+    type: string
+    default: "graviteeio"
+    description: "SecretHub Org to use to fetch secrets ?"
+  secrethub_repo:
+    type: string
+    default: "cicd"
+    description: "SecretHub Repo to use to fetch secrets ?"
+  s3_bucket_name:
+    type: string
+    default: ""
+    description: "Name of the S3 Bucket used to store and retrieve the state of the maven project, to perform the nexus staging ?"
+  replayed_release:
+    type: string
+    default: ""
+    description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 
 jobs:
-    build:
-        docker:
-            - image: cimg/openjdk:11.0
-        resource_class: medium
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore-maven-cache
-            - run:
-                  name: "Build project"
-                  command: |
-                      mvn -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
-                      cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/*.zip ./
-                      mv ./gravitee-apim-rest-api-standalone-*.zip ./gravitee-apim-rest-api-standalone.zip
-            - save_cache:
-                  paths:
-                      - ~/.m2
-                  key: gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
-                  when: always
-            - persist_to_workspace:
-                  root: ./
-                  paths:
-                      - ./gravitee-*/*/target/*
-                      - ./gravitee-apim-rest-api-standalone.zip
+  build:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: "Build project"
+          command: |
+            mvn -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
+            cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/graviteeio-apim-rest-api-distribution-*.zip ./
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+          when: always
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./gravitee-*/*/target/*
+            - ./graviteeio-apim-rest-api-distribution-*.zip
 
-    test:
-        machine:
-            image: ubuntu-2004:202107-02
-        resource_class: xlarge
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore-maven-cache
-            - run:
-                  name: Run tests
-                  command: |
-                      # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-                      mvn -s .artifactory.settings.xml package --no-transfer-progress -T 2C
-            - run:
-                  name: Save test results
-                  command: |
-                      mkdir -p ~/test-results/junit/
-                      find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-                  when: always
-            - store_test_results:
-                  path: ~/test-results
-            - store_artifacts:
-                  path: ~/test-results/junit
+  test:
+    machine:
+      image: ubuntu-2004:202107-02
+    resource_class: xlarge
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: Run tests
+          command: |
+            # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
+            mvn -s .artifactory.settings.xml package --no-transfer-progress -T 2C
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
 
-    publish-on-artifactory:
-        docker:
-            - image: circleci/openjdk:11-jdk-stretch
-        resource_class: medium
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore-maven-cache
-            - run:
-                  name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
-                  command: |
-                      mvn deploy --no-transfer-progress -DskipTests -T 2C -s .artifactory.settings.xml -P gio-dev
+  publish-on-artifactory:
+    docker:
+      - image: circleci/openjdk:11-jdk-stretch
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
+          command: |
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .artifactory.settings.xml -P gio-dev
 
-    publish-on-nexus:
-        docker:
-            - image: circleci/openjdk:11-jdk-stretch
-        resource_class: medium
-        environment:
-            NEXUS_SNAPSHOTS_URL: "https://oss.sonatype.org/content/repositories/snapshots"
-            NEXUS_SNAPSHOTS_SERVER_ID: "sonatype-nexus-snapshots"
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - restore-maven-cache
-            - run:
-                  name: "Maven Package and deploy to Nexus Snapshots"
-                  command: |
-                      mvn deploy --no-transfer-progress -DskipTests -T 2C -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
+  publish-on-nexus:
+    docker:
+      - image: circleci/openjdk:11-jdk-stretch
+    resource_class: medium
+    environment:
+      NEXUS_SNAPSHOTS_URL: "https://oss.sonatype.org/content/repositories/snapshots"
+      NEXUS_SNAPSHOTS_SERVER_ID: "sonatype-nexus-snapshots"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: "Maven Package and deploy to Nexus Snapshots"
+          command: |
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
 
-    publish-images-azure-registry:
-        docker:
-            - image: cimg/openjdk:11.0
-        resource_class: small
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - setup_remote_docker
-            - run:
-                  name: Compute Tag for Docker images
-                  command: |
-                      # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-                      export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
-                      # Workaround for sharing this variable to the next steps
-                      echo "export TAG=$TAG" >> $BASH_ENV
-                      echo "Docker images will be tagged with: ${TAG}"
-                      echo $TAG > docker-tag.txt
-            - run:
-                  name: Build & Publish Management API Docker Image to Azure Registry
-                  command: |
-                      export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-                      echo "Gravitee APIM version: ${APIM_VERSION}"
-                      export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
+  publish-images-azure-registry:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker
+      - run:
+          name: Compute Tag for Docker images
+          command: |
+            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+            export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Docker images will be tagged with: ${TAG}"
+            echo $TAG > docker-tag.txt
+      - run:
+          name: Build & Publish Management API Docker Image to Azure Registry
+          command: |
+            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+            echo "Gravitee APIM version: ${APIM_VERSION}"
+            export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
 
-                      docker build -f docker/management-api/Dockerfile-dev \
-                      --build-arg GRAVITEE_PLUGIN_APIM_VERSION=${APIM_VERSION} \
-                      -t ${IMAGE_TAG} .
+            docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
+            --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
+            -t ${IMAGE_TAG} .
 
-                      echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
-                      docker push ${IMAGE_TAG}
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - ./docker-tag.txt
+            echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+            docker push ${IMAGE_TAG}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./docker-tag.txt
 
-    deploy-on-element-zero-aks:
-        docker:
-            - image: mcr.microsoft.com/azure-cli:latest
-        resource_class: small
-        steps:
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Read tag of Docker images to deploy
-                  command: |
-                      export TAG=$(cat ./docker-tag.txt)
-                      # Workaround for sharing this variable to the next steps
-                      echo "export TAG=$TAG" >> $BASH_ENV
-                      echo "Will deploy Docker images with tag: ${TAG}"
-            - run:
-                  name: Install Helm
-                  command: |
-                      curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-                      helm version
-            - run:
-                  name: Install Kubectl
-                  command: |
-                      curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-                      chmod +x ./kubectl
-                      mv ./kubectl /usr/local/bin/kubectl
-                      kubectl version --client=true
-            - run:
-                  name: Helm upgrade and 🚀
-                  command: |
-                      az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                      az aks get-credentials --resource-group element-zero --name element-zero
+  deploy-on-element-zero-aks:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:latest
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Read tag of Docker images to deploy
+          command: |
+            export TAG=$(cat ./docker-tag.txt)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Will deploy Docker images with tag: ${TAG}"
+      - run:
+          name: Install Helm
+          command: |
+            curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+            helm version
+      - run:
+          name: Install Kubectl
+          command: |
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client=true
+      - run:
+          name: Helm upgrade and 🚀 to Element Zero cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group element-zero --name element-zero
 
-                      helm upgrade --repo https://helm.gravitee.io \
-                                   --install apim \
-                                   -n apim \
-                                   apim3 \
-                                   --reuse-values \
-                                   --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                                   --set "api.image.tag=${TAG}"
+            helm upgrade --repo https://helm.gravitee.io \
+                         --install apim \
+                         -n apim \
+                         apim3 \
+                         --reuse-values \
+                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                         --set "api.image.tag=${TAG}"
+      - run:
+          name: Helm upgrade and 🚀 to APIM cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
-    publish-to-bintray:
-        docker:
-            - image: graviteeio/python:3
-        resource_class: small
-        steps:
-            - add_ssh_keys:
-                  fingerprints:
-                      - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
-            - run:
-                  name: Setup Git config and clone jenkins-scripts repo
-                  command: |
-                      # For details see https://circleci.com/docs/2.0/gh-bb-integration/#establishing-the-authenticity-of-an-ssh-host
-                      ssh-keyscan github.com >> ~/.ssh/known_hosts
+            helm upgrade --repo https://helm.gravitee.io \
+                         --install apim \
+                         -n apim \
+                         apim3 \
+                         --reuse-values \
+                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                         --set "api.image.tag=${TAG}"
 
-                      git clone --branch ci2 git@github.com:gravitee-io/jenkins-scripts.git jenkins-scripts
-            - run:
-                  name: Run magic package_bundle_and_publish
-                  command: |
-                      RELEASE_VERSION=master python ./jenkins-scripts/src/main/python/package_bundles.py
+  publish-to-bintray:
+    docker:
+      - image: graviteeio/python:3
+    resource_class: small
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
+      - run:
+          name: Setup Git config and clone jenkins-scripts repo
+          command: |
+            # For details see https://circleci.com/docs/2.0/gh-bb-integration/#establishing-the-authenticity-of-an-ssh-host
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+            git clone --branch ci2 git@github.com:gravitee-io/jenkins-scripts.git jenkins-scripts
+      - run:
+          name: Run magic package_bundle_and_publish
+          command: |
+            RELEASE_VERSION=master python ./jenkins-scripts/src/main/python/package_bundles.py
 
 workflows:
-    pull_requests:
-        when:
-            and:
-                - equal: [pull_requests, << pipeline.parameters.gio_action >>]
-        jobs:
-            - gravitee/d_pull_requests_secrets:
-                  context: cicd-orchestrator
-                  name: pr_secrets_resolution
-            - build:
-                  context: gravitee-qa
-                  requires:
-                      - pr_secrets_resolution
-            - test:
-                  requires:
-                      - build
-            - publish-on-artifactory:
-                  requires:
-                      - test
-            - publish-on-nexus:
-                  requires:
-                      - test
-            - publish-images-azure-registry:
-                  context: cicd-orchestrator
-                  requires:
-                      - test
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
-                            var-name: AZURE_DOCKER_REGISTRY_USERNAME
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
-                            var-name: AZURE_DOCKER_REGISTRY_PASSWORD
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - 6048-add-auto-deployment
-            - deploy-on-element-zero-aks:
-                  context: cicd-orchestrator
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-id
-                            var-name: AZURE_APPLICATION_ID
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/tenant
-                            var-name: AZURE_TENANT
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/azure/application-secret
-                            var-name: AZURE_APPLICATION_SECRET
-                  requires:
-                      - publish-images-azure-registry
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - 6048-add-auto-deployment
+  pull_requests:
+    when:
+      and:
+        - equal: [ pull_requests, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/d_pull_requests_secrets:
+          context: cicd-orchestrator
+          name: pr_secrets_resolution
+      - build:
+          context: gravitee-qa
+          requires:
+            - pr_secrets_resolution
+      - test:
+          requires:
+            - build
+      - publish-on-artifactory:
+          filters:
+            branches:
+              only:
+                - master
+                - /^\d+\.\d+\.x$/
+          requires:
+            - test
+      - publish-on-nexus:
+          filters:
+            branches:
+              only:
+                - master
+                - /^\d+\.\d+\.x$/
+          requires:
+            - test
+      - publish-images-azure-registry:
+          context: cicd-orchestrator
+          requires:
+            - test
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+          filters:
+            branches:
+              only:
+                - master
+                - /^\d+\.\d+\.x$/
+                - apim-zip-with-policies
+      - deploy-on-element-zero-aks:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-id
+                var-name: AZURE_APPLICATION_ID
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/tenant
+                var-name: AZURE_TENANT
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-secret
+                var-name: AZURE_APPLICATION_SECRET
+          requires:
+            - publish-images-azure-registry
+          filters:
+            branches:
+              only:
+                - master
+                - /^\d+\.\d+\.x$/
+                - apim-zip-with-policies
 
+  # ---
+  # The 2 Workflows Below are there for the CICD Orchestrator to be able to
+  # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
+  release:
+    when:
+      and:
+        - equal: [ release, << pipeline.parameters.gio_action >> ]
+        - not: << pipeline.parameters.dry_run >>
+    jobs:
+      - gravitee/d_release_secrets:
+          context: cicd-orchestrator
+          name: release_secrets_resolution
+      - gravitee/d_release:
+          name: maven_n_git_release
+          requires:
+            - release_secrets_resolution
+          dry_run: false
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+
+  release_dry_run:
+    when:
+      and:
+        - equal: [ release, << pipeline.parameters.gio_action >> ]
+        - << pipeline.parameters.dry_run >>
+    jobs:
+      - gravitee/d_release_secrets:
+          context: cicd-orchestrator
+          name: release_secrets_resolution
+      - gravitee/d_release:
+          name: maven_n_git_release
+          requires:
+            - release_secrets_resolution
+          dry_run: true
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+  # ---
+  # CICD Workflow For APIM Orchestrated Nexus Staging, Container-based : Circle CI Docker Executor
+  nexus_staging:
+    when:
+      equal: [ nexus_staging, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/d_nexus_staging_secrets:
+          context: cicd-orchestrator
+          name: nexus_staging_secrets_resolution
+      - gravitee/d_nexus_staging:
+          name: nexus_staging
+          requires:
+            - nexus_staging_secrets_resolution
+          dry_run: << pipeline.parameters.dry_run >>
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          # => If you are running a standalone release, your S3 Bucket name
+          #    is 'prepared-standalone-nexus-staging-${GRAVITEE_REPO_NAME}-${RELEASE_VERSION_NUMBER}'
+          # => If you are running an Orchestrated release, The Orchestrator knows how to compute the S3 Bucket name
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+  # ---
+  # The 6 Workflows Below are there to perform a "Standalone Release" and "replay" a "Standalone Release" :
+  # => independently of any APIM release Process, with Docker executors instead of VMs
+  # => with chained nexus staging : only when release with dry run mode off
+  standalone_release:
+    when:
+      and:
+        - equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
+        - not: << pipeline.parameters.dry_run >>
+    jobs:
+      - gravitee/d_release_secrets:
+          context: cicd-orchestrator
+          name: release_secrets_resolution
+      - gravitee/d_standalone_release:
+          name: maven_n_git_release
+          requires:
+            - release_secrets_resolution
+          dry_run: false
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+
+  standalone_release_dry_run:
+    when:
+      and:
+        - equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
+        - << pipeline.parameters.dry_run >>
+    jobs:
+      - gravitee/d_release_secrets:
+          context: cicd-orchestrator
+          name: release_secrets_resolution
+      - gravitee/d_standalone_release:
+          name: maven_n_git_release
+          requires:
+            - release_secrets_resolution
+          dry_run: true
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+
+  standalone_nexus_staging:
     # ---
-    # The 2 Workflows Below are there for the CICD Orchestrator to be able to
-    # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
-    release:
-        when:
-            and:
-                - equal: [release, << pipeline.parameters.gio_action >>]
-                - not: << pipeline.parameters.dry_run >>
-        jobs:
-            - gravitee/d_release_secrets:
-                  context: cicd-orchestrator
-                  name: release_secrets_resolution
-            - gravitee/d_release:
-                  name: maven_n_git_release
-                  requires:
-                      - release_secrets_resolution
-                  dry_run: false
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
-    release_dry_run:
-        when:
-            and:
-                - equal: [release, << pipeline.parameters.gio_action >>]
-                - << pipeline.parameters.dry_run >>
-        jobs:
-            - gravitee/d_release_secrets:
-                  context: cicd-orchestrator
-                  name: release_secrets_resolution
-            - gravitee/d_release:
-                  name: maven_n_git_release
-                  requires:
-                      - release_secrets_resolution
-                  dry_run: true
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
+    # Running the nexus staging makes sense only when the
+    # standalone release is being performed with dry run mode off
+    # That is to say, when the maven project is ready to be release to maven Staging
     # ---
-    # CICD Workflow For APIM Orchestrated Nexus Staging, Container-based : Circle CI Docker Executor
-    nexus_staging:
-        when:
-            equal: [nexus_staging, << pipeline.parameters.gio_action >>]
-        jobs:
-            - gravitee/d_nexus_staging_secrets:
-                  context: cicd-orchestrator
-                  name: nexus_staging_secrets_resolution
-            - gravitee/d_nexus_staging:
-                  name: nexus_staging
-                  requires:
-                      - nexus_staging_secrets_resolution
-                  dry_run: << pipeline.parameters.dry_run >>
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  # => If you are running a standalone release, your S3 Bucket name
-                  #    is 'prepared-standalone-nexus-staging-${GRAVITEE_REPO_NAME}-${RELEASE_VERSION_NUMBER}'
-                  # => If you are running an Orchestrated release, The Orchestrator knows how to compute the S3 Bucket name
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
+    when:
+      and:
+        - equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
+        - not: << pipeline.parameters.dry_run >>
+      # ---
+      # Running the nexus staging makes sense only when the
+      # standalone release is being performed with dry run mode off
+      # That is to say, when the maven project is ready to be release to mmaven Staging
+      # Never the less, to test the CICD system, I temporarily git pushed a different configuration
+      # ---
+      # when:
+      # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/d_nexus_staging_secrets:
+          context: cicd-orchestrator
+          name: nexus_staging_secrets_resolution
+      - nexus_staging_dry_run_approval:
+          type: approval
+          requires:
+            - nexus_staging_secrets_resolution
+      - gravitee/d_standalone_nexus_staging:
+          name: standalone_nexus_staging_dry_run
+          requires:
+            - nexus_staging_dry_run_approval
+            # - nexus_staging_secrets_resolution
+          dry_run: true
+          # maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          maven_profile_id: "gravitee-release"
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+      - gravitee/d_standalone_nexus_staging:
+          name: standalone_nexus_staging
+          requires:
+            - standalone_nexus_staging_dry_run
+            # - nexus_staging_secrets_resolution
+          dry_run: false
+          # maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          maven_profile_id: "gravitee-release"
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+
+  standalone_release_replay:
+    when:
+      and:
+        - equal: [ standalone_release_replay, << pipeline.parameters.gio_action >> ]
+        - not: << pipeline.parameters.dry_run >>
+    jobs:
+      - gravitee/d_release_secrets:
+          context: cicd-orchestrator
+          name: release_secrets_resolution
+      - gravitee/d_standalone_release_replay:
+          name: maven_n_git_release
+          requires:
+            - release_secrets_resolution
+          dry_run: false
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          gio_release_version: << pipeline.parameters.replayed_release >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+
+  standalone_release_replay_dry_run:
+    when:
+      and:
+        - equal: [ standalone_release_replay, << pipeline.parameters.gio_action >> ]
+        - << pipeline.parameters.dry_run >>
+    jobs:
+      - gravitee/d_release_secrets:
+          context: cicd-orchestrator
+          name: release_secrets_resolution
+      - gravitee/d_standalone_release_replay:
+          name: maven_n_git_release
+          requires:
+            - release_secrets_resolution
+          dry_run: true
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          gio_release_version: << pipeline.parameters.replayed_release >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+
+  standalone_nexus_staging_replay:
     # ---
-    # The 6 Workflows Below are there to perform a "Standalone Release" and "replay" a "Standalone Release" :
-    # => independently of any APIM release Process, with Docker executors instead of VMs
-    # => with chained nexus staging : only when release with dry run mode off
-    standalone_release:
-        when:
-            and:
-                - equal: [standalone_release, << pipeline.parameters.gio_action >>]
-                - not: << pipeline.parameters.dry_run >>
-        jobs:
-            - gravitee/d_release_secrets:
-                  context: cicd-orchestrator
-                  name: release_secrets_resolution
-            - gravitee/d_standalone_release:
-                  name: maven_n_git_release
-                  requires:
-                      - release_secrets_resolution
-                  dry_run: false
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
-    standalone_release_dry_run:
-        when:
-            and:
-                - equal: [standalone_release, << pipeline.parameters.gio_action >>]
-                - << pipeline.parameters.dry_run >>
-        jobs:
-            - gravitee/d_release_secrets:
-                  context: cicd-orchestrator
-                  name: release_secrets_resolution
-            - gravitee/d_standalone_release:
-                  name: maven_n_git_release
-                  requires:
-                      - release_secrets_resolution
-                  dry_run: true
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
-    standalone_nexus_staging:
-        # ---
-        # Running the nexus staging makes sense only when the
-        # standalone release is being performed with dry run mode off
-        # That is to say, when the maven project is ready to be release to maven Staging
-        # ---
-        when:
-            and:
-                - equal: [standalone_release, << pipeline.parameters.gio_action >>]
-                - not: << pipeline.parameters.dry_run >>
-            # ---
-            # Running the nexus staging makes sense only when the
-            # standalone release is being performed with dry run mode off
-            # That is to say, when the maven project is ready to be release to mmaven Staging
-            # Never the less, to test the CICD system, I temporarily git pushed a different configuration
-            # ---
-            # when:
-            # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
-        jobs:
-            - gravitee/d_nexus_staging_secrets:
-                  context: cicd-orchestrator
-                  name: nexus_staging_secrets_resolution
-            - nexus_staging_dry_run_approval:
-                  type: approval
-                  requires:
-                      - nexus_staging_secrets_resolution
-            - gravitee/d_standalone_nexus_staging:
-                  name: standalone_nexus_staging_dry_run
-                  requires:
-                      - nexus_staging_dry_run_approval
-                      # - nexus_staging_secrets_resolution
-                  dry_run: true
-                  # maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  maven_profile_id: "gravitee-release"
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-            - gravitee/d_standalone_nexus_staging:
-                  name: standalone_nexus_staging
-                  requires:
-                      - standalone_nexus_staging_dry_run
-                      # - nexus_staging_secrets_resolution
-                  dry_run: false
-                  # maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  maven_profile_id: "gravitee-release"
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
-    standalone_release_replay:
-        when:
-            and:
-                - equal: [standalone_release_replay, << pipeline.parameters.gio_action >>]
-                - not: << pipeline.parameters.dry_run >>
-        jobs:
-            - gravitee/d_release_secrets:
-                  context: cicd-orchestrator
-                  name: release_secrets_resolution
-            - gravitee/d_standalone_release_replay:
-                  name: maven_n_git_release
-                  requires:
-                      - release_secrets_resolution
-                  dry_run: false
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  gio_release_version: << pipeline.parameters.replayed_release >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
-    standalone_release_replay_dry_run:
-        when:
-            and:
-                - equal: [standalone_release_replay, << pipeline.parameters.gio_action >>]
-                - << pipeline.parameters.dry_run >>
-        jobs:
-            - gravitee/d_release_secrets:
-                  context: cicd-orchestrator
-                  name: release_secrets_resolution
-            - gravitee/d_standalone_release_replay:
-                  name: maven_n_git_release
-                  requires:
-                      - release_secrets_resolution
-                  dry_run: true
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  gio_release_version: << pipeline.parameters.replayed_release >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
-    standalone_nexus_staging_replay:
-        # ---
-        # Running the nexus staging makes sense only when the
-        # standalone release is being performed with dry run mode off
-        # That is to say, when the maven project is ready to be release to maven Staging
-        # ---
-        when:
-            and:
-                - equal: [standalone_release_replay, << pipeline.parameters.gio_action >>]
-                - not: << pipeline.parameters.dry_run >>
-            # ---
-            # Running the nexus staging makes sense only when the
-            # standalone release is being performed with dry run mode off
-            # That is to say, when the maven project is ready to be release to mmaven Staging
-            # Never the less, to test the CICD system, I temporarily git pushed a different configuration
-            # ---
-            # when:
-            # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
-        jobs:
-            - gravitee/d_nexus_staging_secrets:
-                  context: cicd-orchestrator
-                  name: nexus_staging_secrets_resolution
-            - nexus_staging_replay_dry_run_approval:
-                  type: approval
-                  requires:
-                      - nexus_staging_secrets_resolution
-            - gravitee/d_standalone_nexus_staging_replay:
-                  name: standalone_nexus_staging_replay_dry_run
-                  requires:
-                      - nexus_staging_replay_dry_run_approval
-                      # - nexus_staging_secrets_resolution
-                  dry_run: true
-                  # maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  maven_profile_id: "gravitee-release"
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  gio_release_version: << pipeline.parameters.replayed_release >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-            - gravitee/d_standalone_nexus_staging_replay:
-                  name: standalone_nexus_staging_replay
-                  requires:
-                      - standalone_nexus_staging_replay_dry_run
-                      # - nexus_staging_secrets_resolution
-                  dry_run: false
-                  # maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  maven_profile_id: "gravitee-release"
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
-                  gio_release_version: << pipeline.parameters.replayed_release >>
-                  # container_gun_image_org: 'circleci'
-                  # container_gun_image_name: 'openjdk'
-                  # container_gun_image_tag: '11.0.3-jdk-stretch'
-                  container_size: "large"
-
+    # Running the nexus staging makes sense only when the
+    # standalone release is being performed with dry run mode off
+    # That is to say, when the maven project is ready to be release to maven Staging
     # ---
-    # CICD Workflow For APIM Orchestrated Nexus Staging, VM-based
-    vm_nexus_staging:
-        when:
-            equal: [vm_nexus_staging, << pipeline.parameters.gio_action >>]
-        jobs:
-            - gravitee/nexus_staging:
-                  context: cicd-orchestrator
-                  secrethub_org: << pipeline.parameters.secrethub_org >>
-                  secrethub_repo: << pipeline.parameters.secrethub_repo >>
-                  maven_profile_id: << pipeline.parameters.maven_profile_id >>
-                  s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+    when:
+      and:
+        - equal: [ standalone_release_replay, << pipeline.parameters.gio_action >> ]
+        - not: << pipeline.parameters.dry_run >>
+      # ---
+      # Running the nexus staging makes sense only when the
+      # standalone release is being performed with dry run mode off
+      # That is to say, when the maven project is ready to be release to mmaven Staging
+      # Never the less, to test the CICD system, I temporarily git pushed a different configuration
+      # ---
+      # when:
+      # equal: [ standalone_release, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/d_nexus_staging_secrets:
+          context: cicd-orchestrator
+          name: nexus_staging_secrets_resolution
+      - nexus_staging_replay_dry_run_approval:
+          type: approval
+          requires:
+            - nexus_staging_secrets_resolution
+      - gravitee/d_standalone_nexus_staging_replay:
+          name: standalone_nexus_staging_replay_dry_run
+          requires:
+            - nexus_staging_replay_dry_run_approval
+            # - nexus_staging_secrets_resolution
+          dry_run: true
+          # maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          maven_profile_id: "gravitee-release"
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          gio_release_version: << pipeline.parameters.replayed_release >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
+      - gravitee/d_standalone_nexus_staging_replay:
+          name: standalone_nexus_staging_replay
+          requires:
+            - standalone_nexus_staging_replay_dry_run
+            # - nexus_staging_secrets_resolution
+          dry_run: false
+          # maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          maven_profile_id: "gravitee-release"
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
+          gio_release_version: << pipeline.parameters.replayed_release >>
+          # container_gun_image_org: 'circleci'
+          # container_gun_image_name: 'openjdk'
+          # container_gun_image_tag: '11.0.3-jdk-stretch'
+          container_size: "large"
 
-    # ---
-    # Nighlty for all CE repositories :
-    # builds the SNAPSHOT, and deploys
-    # it into Gravitee Private Artifactory
-    # --
-    # No Nexus deployment
-    # ---
-    nightly:
-        when:
-            equal:
-                [nightly, << pipeline.parameters.gio_action >>]
-                # triggers:
-                # - schedule:
-                # cron: "0 0 * * *"
-                # filters:
-                # branches:
-                # only:
-                # - master
-            # - /^[0-999].[0-999].x/
-        jobs:
-            - gravitee/d_all_nightly_secrets:
-                  context: cicd-orchestrator
-                  name: nightly_secrets_resolution
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^[0-999].[0-999].x/
-            - gravitee/d_all_nightly_ce:
-                  name: process_pull_request
-                  requires:
-                      - nightly_secrets_resolution
-                  filters:
-                      branches:
-                          only:
-                              - master
-                              - /^[0-999].[0-999].x/
+  # ---
+  # CICD Workflow For APIM Orchestrated Nexus Staging, VM-based
+  vm_nexus_staging:
+    when:
+      equal: [ vm_nexus_staging, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/nexus_staging:
+          context: cicd-orchestrator
+          secrethub_org: << pipeline.parameters.secrethub_org >>
+          secrethub_repo: << pipeline.parameters.secrethub_repo >>
+          maven_profile_id: << pipeline.parameters.maven_profile_id >>
+          s3_bucket_name: << pipeline.parameters.s3_bucket_name >>
 
-    publish-to-bintray:
-        triggers:
-            - schedule:
-                  cron: "0 2 * * *"
-                  filters:
-                      branches:
-                          only:
-                              - master
-        jobs:
-            - publish-to-bintray
+  # ---
+  # Nighlty for all CE repositories :
+  # builds the SNAPSHOT, and deploys
+  # it into Gravitee Private Artifactory
+  # --
+  # No Nexus deployment
+  # ---
+  nightly:
+    when:
+      equal:
+        [ nightly, << pipeline.parameters.gio_action >> ]
+        # triggers:
+        # - schedule:
+        # cron: "0 0 * * *"
+        # filters:
+        # branches:
+        # only:
+      # - master
+      # - /^[0-999].[0-999].x/
+    jobs:
+      - gravitee/d_all_nightly_secrets:
+          context: cicd-orchestrator
+          name: nightly_secrets_resolution
+          filters:
+            branches:
+              only:
+                - master
+                - /^[0-999].[0-999].x/
+      - gravitee/d_all_nightly_ce:
+          name: process_pull_request
+          requires:
+            - nightly_secrets_resolution
+          filters:
+            branches:
+              only:
+                - master
+                - /^[0-999].[0-999].x/
+
+  publish-to-bintray:
+    triggers:
+      - schedule:
+          cron: "0 2 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - publish-to-bintray
