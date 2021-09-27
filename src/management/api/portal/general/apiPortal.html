@@ -204,21 +204,9 @@
           <md-button
             permission
             permission-only="'api-definition-u'"
-            ng-if="portalCtrl.linkedToCockpit"
             aria-label="Promote API"
             ng-click="portalCtrl.showPromoteDialog()"
             ng-disabled="!portalCtrl.canPromote()"
-          >
-            <gv-icon shape="maps:rocket"></gv-icon>
-            Promote
-          </md-button>
-          <md-button
-            permission
-            permission-only="'api-definition-u'"
-            ng-if="!portalCtrl.linkedToCockpit"
-            class="meet-cockpit"
-            aria-label="Promote API"
-            ng-click="portalCtrl.showMeetCockpitDialog()"
           >
             <gv-icon shape="maps:rocket"></gv-icon>
             Promote

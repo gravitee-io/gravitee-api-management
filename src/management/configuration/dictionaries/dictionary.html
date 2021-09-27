@@ -155,6 +155,10 @@
               <input ng-model="$ctrl.dictionary.provider.configuration.url" type="url" ng-required="true" />
             </md-input-container>
 
+            <md-checkbox ng-model="$ctrl.dictionary.provider.configuration.useSystemProxy" aria-label="Use system proxy"
+              >Use system proxy</md-checkbox
+            >
+
             <md-input-container class="md-block" flex-gt-sm>
               <label>HTTP Method</label>
               <md-select ng-model="$ctrl.dictionary.provider.configuration.method" placeholder="HTTP Methods" required ng-required="true">
