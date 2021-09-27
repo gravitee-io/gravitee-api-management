@@ -40,3 +40,14 @@ export const uiRouterStateParamsProvider = {
   useFactory: uiRouterStateParamsServiceFactory,
   deps: ['$injector'],
 };
+
+export const CurrentUserService = new InjectionToken('CurrentUserService');
+
+function currentUserServiceFactory(i: any) {
+  return i.get('UserService');
+}
+export const currentUserProvider = {
+  provide: CurrentUserService,
+  useFactory: currentUserServiceFactory,
+  deps: ['$injector'],
+};

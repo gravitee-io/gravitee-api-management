@@ -20,7 +20,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { UpgradeModule } from '@angular/upgrade/static';
 
-import { uiRouterStateProvider, uiRouterStateParamsProvider } from './ajs-upgraded-providers';
+import { uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider } from './ajs-upgraded-providers';
 import { OrganizationSettingsModule } from './organization/configuration/organization-settings.module';
 import { httpInterceptorProviders } from './shared/interceptors/http-interceptors';
 
@@ -38,7 +38,7 @@ import { httpInterceptorProviders } from './shared/interceptors/http-interceptor
     UpgradeModule,
     OrganizationSettingsModule,
   ],
-  providers: [httpInterceptorProviders, uiRouterStateProvider, uiRouterStateParamsProvider],
+  providers: [httpInterceptorProviders, uiRouterStateProvider, uiRouterStateParamsProvider, currentUserProvider],
 })
 export class AppModule {
   constructor(private upgrade: UpgradeModule) {}
