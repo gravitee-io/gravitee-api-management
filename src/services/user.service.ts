@@ -26,6 +26,7 @@ import StringService from './string.service';
 
 import { PagedResult } from '../entities/pagedResult';
 import { User } from '../entities/user';
+import { UserDetails } from '../entities/user/userDetails';
 
 class UserService {
   /**
@@ -127,8 +128,8 @@ class UserService {
 
   current(): ng.IPromise<User> {
     if (!this.currentUser || !this.currentUser.authenticated) {
-      const promises: ng.IPromise<IHttpResponse<any>>[] = [
-        this.$http.get(`${this.Constants.org.baseURL}/user/`, {
+      const promises: ng.IPromise<IHttpResponse<unknown>>[] = [
+        this.$http.get<UserDetails>(`${this.Constants.org.baseURL}/user/`, {
           silentCall: true,
           forceSessionExpired: true,
         } as ng.IRequestShortcutConfig),
@@ -155,7 +156,7 @@ class UserService {
       return this.$q
         .all(promises)
         .then((response) => {
-          this.currentUser = Object.assign(new User(), response[0].data);
+          this.currentUser = Object.assign(new User(), response[0].data as UserDetails);
 
           this.currentUser.userPermissions = [];
           _.forEach(this.currentUser.roles, (role) => {
