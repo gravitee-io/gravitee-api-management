@@ -100,11 +100,18 @@ export class ApisController {
     const promOpts = { timeout: this.canceler.promise };
     this.$state.transitionTo(this.$state.current, { q: this.query }, { notify: false });
 
-    this.ApiService.searchApis(query, 1, this.currentOrder, promOpts).then((response) => {
-      this.currentApisResponse = response.data;
-      this.apis = this.currentApisResponse.data;
-      this.loadMore();
-    });
+    this.ApiService.searchApis(query, 1, this.currentOrder, promOpts)
+      .then((response) => {
+        this.currentApisResponse = response.data;
+        this.apis = this.currentApisResponse.data;
+        this.loadMore();
+      })
+      .catch((err) => {
+        if (err && err.interceptorFuture) {
+          // avoid a duplicated notification with the same error
+          err.interceptorFuture.cancel();
+        }
+      });
   }
 
   sort(order: string, field: string) {
