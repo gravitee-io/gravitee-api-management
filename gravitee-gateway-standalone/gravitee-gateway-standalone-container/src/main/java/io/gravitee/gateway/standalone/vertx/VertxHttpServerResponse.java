@@ -129,8 +129,24 @@ public class VertxHttpServerResponse implements Response {
 
             writeTrailers();
 
-            serverResponse.end();
+            serverResponse
+                .end()
+                .onComplete(
+                    event -> {
+                        if (this.endHandler != null) {
+                            this.endHandler.handle(null);
+                        }
+                    }
+                );
         }
+    }
+
+    Handler<Void> endHandler = null;
+
+    @Override
+    public Response endHandler(Handler<Void> endHandler) {
+        this.endHandler = endHandler;
+        return this;
     }
 
     protected void writeTrailers() {
