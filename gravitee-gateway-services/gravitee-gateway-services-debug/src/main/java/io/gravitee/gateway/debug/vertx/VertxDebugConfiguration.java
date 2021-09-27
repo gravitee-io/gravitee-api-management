@@ -22,18 +22,18 @@ import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.node.vertx.VertxHttpServerFactory;
+import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
+import io.gravitee.node.vertx.configuration.HttpServerConfiguration.HttpServerConfigurationBuilder;
+import io.vertx.core.Vertx;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 
 @Configuration
 public class VertxDebugConfiguration {
-
-    @Bean
-    public VertxDebugHttpServerConfiguration httpServerConfiguration() {
-        return new VertxDebugHttpServerConfiguration();
-    }
 
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -71,9 +71,18 @@ public class VertxDebugConfiguration {
         return new NotFoundProcessorChainFactory();
     }
 
+    @Bean("debugHttpServerConfiguration")
+    public HttpServerConfiguration gatewayDebugHttpServerConfiguration(Environment environment) {
+        return new HttpServerConfigurationBuilder()
+                .withEnvironment(environment)
+                .withDefaultPort(8482)
+                .withDefaultHost("localhost")
+                .defaultConfig();
+    }
+
     @Bean("gatewayDebugHttpServer")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public VertxDebugHttpServerFactory vertxHttpServerFactory() {
-        return new VertxDebugHttpServerFactory();
+    public VertxHttpServerFactory vertxHttpServerFactory(Vertx vertx, HttpServerConfiguration gatewayDebugHttpServerConfiguration) {
+        return new VertxHttpServerFactory(vertx, gatewayDebugHttpServerConfiguration);
     }
 }
