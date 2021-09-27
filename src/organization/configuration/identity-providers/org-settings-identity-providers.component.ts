@@ -15,10 +15,15 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
+import { combineLatest, Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
 
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { IdentityProvider } from '../../../entities/identity-provider/identityProvider';
 import { IdentityProviderListItem } from '../../../entities/identity-provider/identityProviderListItem';
+import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
+import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 type TableData = {
   logo: string;
@@ -37,18 +42,34 @@ type TableData = {
   template: require('./org-settings-identity-providers.component.html'),
 })
 export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['logo', 'id', 'name', 'description', 'activated', 'sync', 'availableOnPortal', 'updatedAt', 'actions'];
-  dataSource = new MatTableDataSource([]);
+  providedConfigurationMessage = 'Configuration provided by the system';
 
-  constructor(private readonly identityProviderService: IdentityProviderService) {}
+  displayedColumns: string[] = ['logo', 'id', 'name', 'description', 'activated', 'sync', 'availableOnPortal', 'updatedAt', 'actions'];
+  dataSource = new MatTableDataSource<TableData>([]);
+
+  consoleSettings: ConsoleSettings;
+
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  constructor(
+    private readonly identityProviderService: IdentityProviderService,
+    private readonly consoleSettingsService: ConsoleSettingsService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit() {
-    this.identityProviderService.list().subscribe((identityProviders) => {
-      this.setDataSourceFromIdentityProviders(identityProviders);
-    });
+    combineLatest([this.identityProviderService.list(), this.consoleSettingsService.get()]).subscribe(
+      ([identityProviders, consoleSettings]) => {
+        this.setDataSourceFromIdentityProviders(identityProviders);
+        this.consoleSettings = consoleSettings;
+      },
+    );
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
 
   onIdClicked(identityProvider: IdentityProvider) {
     // eslint-disable-next-line angular/log,no-console
@@ -70,6 +91,34 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     console.log('Activation Toggle clicked:', identityProvider);
   }
 
+  updateLocalLogin(shouldActivateLoginForm: boolean): void {
+    this.consoleSettingsService
+      .save({
+        ...this.consoleSettings,
+        authentication: {
+          ...this.consoleSettings.authentication,
+          localLogin: {
+            enabled: shouldActivateLoginForm,
+          },
+        },
+      })
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(() => this.snackBarService.success('Configuration successfully updated!')),
+      )
+      .subscribe((updatedConsoleSettings) => {
+        this.consoleSettings = updatedConsoleSettings;
+      });
+  }
+
+  isReadonlySetting(property: string): boolean {
+    return ConsoleSettingsService.isReadonly(this.consoleSettings, property);
+  }
+
+  hasActivatedIdp(): boolean {
+    return this.dataSource.data.some((idp) => idp.activated);
+  }
+
   private setDataSourceFromIdentityProviders(identityProviders: IdentityProviderListItem[]) {
     this.dataSource = new MatTableDataSource<TableData>(
       identityProviders.map((idp, index) => ({
@@ -83,5 +132,15 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         updatedAt: idp.updated_at,
       })),
     );
+  }
+
+  getLocalLoginTooltipMessage(): string | null {
+    if (this.isReadonlySetting('console.authentication.localLogin.enabled')) {
+      return this.providedConfigurationMessage;
+    }
+    if (!this.hasActivatedIdp()) {
+      return 'You must create an identity provider to be able to update this setting';
+    }
+    return null;
   }
 }

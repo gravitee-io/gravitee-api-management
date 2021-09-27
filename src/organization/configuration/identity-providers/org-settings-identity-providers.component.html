@@ -24,7 +24,14 @@
 
 <h2>Configuration</h2>
 <div class="org-settings-identity-providers__card">
-  <mat-slide-toggle>Show login form on management console</mat-slide-toggle>
+  <mat-slide-toggle
+    [checked]="consoleSettings?.authentication?.localLogin?.enabled"
+    [disabled]="isReadonlySetting('console.authentication.localLogin.enabled') || !hasActivatedIdp()"
+    [matTooltip]="getLocalLoginTooltipMessage()"
+    [matTooltipDisabled]="getLocalLoginTooltipMessage() === null"
+    (change)="updateLocalLogin($event.checked)"
+    >Show login form on management console
+  </mat-slide-toggle>
 </div>
 
 <h2>Identity Providers</h2>

@@ -48,7 +48,7 @@ describe('ConsoleSettingsService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual(consoleSettingsPayload);
 
@@ -68,7 +68,7 @@ describe('ConsoleSettingsService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual(consoleSettingsPayload);
 
@@ -87,7 +87,7 @@ describe('ConsoleSettingsService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual(consoleSettingsPayload);
 
@@ -102,7 +102,7 @@ describe('ConsoleSettingsService', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(newConsoleSettings());

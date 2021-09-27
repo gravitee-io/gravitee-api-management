@@ -63,7 +63,7 @@ describe('ConsoleSettingsComponent', () => {
   });
 
   it('should loading when no setting is provided', async () => {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
 
     expect(fixture.componentInstance.isLoading).toBeTruthy();
   });
@@ -606,13 +606,13 @@ describe('ConsoleSettingsComponent', () => {
   });
 
   function expectConsoleSettingsSendRequest(consoleSettingsPayload: ConsoleSettings) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
     expect(req.request.method).toEqual('POST');
     expect(req.request.body).toMatchObject(consoleSettingsPayload);
   }
 
   function expectConsoleSettingsGetRequest(consoleSettingsResponse: ConsoleSettings) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings/`);
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
     expect(req.request.method).toEqual('GET');
     req.flush(consoleSettingsResponse);
   }

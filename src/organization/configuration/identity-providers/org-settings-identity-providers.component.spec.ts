@@ -19,11 +19,14 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { OrgSettingsIdentityProvidersComponent } from './org-settings-identity-providers.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { fakeIdentityProviderListItem } from '../../../entities/identity-provider/identityProviderListItem.fixture';
 
 describe('OrgSettingsIdentityProvidersComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProvidersComponent>;
@@ -43,12 +46,54 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
     fixture = TestBed.createComponent(OrgSettingsIdentityProvidersComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
+    fixture.detectChanges();
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
+
   it('should createComponent', () => {
+    const consoleSettings: ConsoleSettings = {
+      authentication: {
+        localLogin: { enabled: true },
+      },
+    };
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`).flush(consoleSettings);
+
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([]);
+
     expect(fixture.componentInstance).toBeDefined();
+  });
+
+  it('update console settings with toggling the input', async () => {
+    const consoleSettings: ConsoleSettings = {
+      authentication: {
+        localLogin: { enabled: true },
+      },
+    };
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`).flush(consoleSettings);
+
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([
+      fakeIdentityProviderListItem({
+        enabled: true,
+      }),
+    ]);
+
+    const activateLoginSlideToggle = await loader.getHarness(
+      MatSlideToggleHarness.with({ label: 'Show login form on management console' }),
+    );
+    await activateLoginSlideToggle.toggle();
+
+    const expectedConsoleSettings = {
+      authentication: {
+        localLogin: { enabled: false },
+      },
+    };
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toMatchObject(expectedConsoleSettings);
+    req.flush(expectedConsoleSettings);
   });
 });
