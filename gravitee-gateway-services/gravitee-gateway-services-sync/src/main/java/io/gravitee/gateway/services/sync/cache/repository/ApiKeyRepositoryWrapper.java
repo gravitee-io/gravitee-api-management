@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.cache.repository;
 
-import io.gravitee.gateway.services.sync.apikeys.ApiKeysCache;
+import io.gravitee.gateway.services.sync.cache.ApiKeysCache;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
