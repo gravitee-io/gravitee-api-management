@@ -214,7 +214,7 @@ jobs:
 
             gh pr comment --body "**Gravitee.io Automatic Deployment**
 
-            📚 View the storybook of this branch [here](${SB_URL}) 
+            📚 View the storybook of this branch [here](${SB_URL})
             "
 
   publish-images-azure-registry:
@@ -715,8 +715,8 @@ workflows:
                 - master
                 - /^[0-999].[0-999].x/
 
-  # Purge master azure registry
-  daily-purge-azure-registry:
+  # Purge master azure registry every monday
+  weekly-purge-azure-registry:
     triggers:
       - schedule:
           cron: "0 1 * * 1"
@@ -725,4 +725,16 @@ workflows:
               only:
                 - master
     jobs:
-      - purge-master-azure-registry
+      - purge-master-azure-registry:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-id
+                var-name: AZURE_APPLICATION_ID
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/tenant
+                var-name: AZURE_TENANT
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-secret
+                var-name: AZURE_APPLICATION_SECRET
+
