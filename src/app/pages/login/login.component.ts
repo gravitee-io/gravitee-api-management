@@ -112,7 +112,7 @@ export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
 
   getProviderStyle(provider) {
     if (provider.color) {
-      return `--gv-button-${provider.type}--bgc:${provider.color};`;
+      return `--gv-button-${provider.type.toLowerCase()}--bgc:${provider.color};`;
     }
     return '';
   }
