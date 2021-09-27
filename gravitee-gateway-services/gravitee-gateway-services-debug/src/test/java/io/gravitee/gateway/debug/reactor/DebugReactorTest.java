@@ -15,7 +15,6 @@
  */
 package io.gravitee.gateway.debug.reactor;
 
-import static io.gravitee.gateway.debug.utils.Stubs.getADebugApi;
 import static io.gravitee.gateway.debug.utils.Stubs.getADebugApiDefinition;
 import static io.gravitee.gateway.debug.utils.Stubs.getAReactorEvent;
 import static io.gravitee.gateway.debug.utils.Stubs.getAnEvent;
@@ -23,6 +22,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -31,12 +31,15 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpRequest;
-import io.gravitee.gateway.debug.handler.definition.DebugApi;
+import io.gravitee.gateway.debug.definition.DebugApi;
+import io.gravitee.gateway.debug.vertx.VertxDebugHttpConfiguration;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.gateway.reactor.impl.ReactableWrapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.model.ApiDebugStatus;
+import io.gravitee.repository.management.model.Event;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -48,7 +51,6 @@ import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -83,22 +85,29 @@ public class DebugReactorTest {
     @Mock
     private Vertx vertx;
 
+    @Mock
+    private VertxDebugHttpConfiguration debugHttpConfiguration;
+
     @Captor
     ArgumentCaptor<io.gravitee.repository.management.model.Event> eventCaptor;
 
     @Test
     public void shouldDebugApiSuccessfully() throws TechnicalException, JsonProcessingException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
+        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
-        reactable.setRequest(httpRequest);
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(getAnEvent()));
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
+
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -120,11 +129,11 @@ public class DebugReactorTest {
         final Future<HttpClientRequest> requestFuture = Future.succeededFuture(httpClientRequest);
         when(mockHttpClient.request(any())).thenReturn(requestFuture);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
@@ -135,17 +144,20 @@ public class DebugReactorTest {
 
     @Test
     public void shouldDebugApiSuccessfullyNullBody() throws TechnicalException, JsonProcessingException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
+        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody(null);
-        reactable.setRequest(httpRequest);
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(getAnEvent()));
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -167,11 +179,11 @@ public class DebugReactorTest {
         final Future<HttpClientRequest> requestFuture = Future.succeededFuture(httpClientRequest);
         when(mockHttpClient.request(any())).thenReturn(requestFuture);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
@@ -181,18 +193,21 @@ public class DebugReactorTest {
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfBodyDoNotCompleteSuccessfully() throws TechnicalException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
+    public void shouldRemoveReactorHandlerIfBodyDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
+        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
-        reactable.setRequest(httpRequest);
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(getAnEvent()));
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock failing Buffer body in HttpClientResponse future
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -211,11 +226,11 @@ public class DebugReactorTest {
         final Future<HttpClientRequest> requestFuture = Future.succeededFuture(httpClientRequest);
         when(mockHttpClient.request(any())).thenReturn(requestFuture);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -225,18 +240,21 @@ public class DebugReactorTest {
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfResponseDoNotCompleteSuccessfully() throws TechnicalException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
+    public void shouldRemoveReactorHandlerIfResponseDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
+        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
         httpRequest.setBody("request body");
-        reactable.setRequest(httpRequest);
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(getAnEvent()));
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
 
         // Mock failing HttpClientResponse future
         final Future<HttpClientResponse> responseFuture = Future.failedFuture("");
@@ -248,11 +266,11 @@ public class DebugReactorTest {
         final Future<HttpClientRequest> requestFuture = Future.succeededFuture(httpClientRequest);
         when(mockHttpClient.request(any())).thenReturn(requestFuture);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -262,27 +280,31 @@ public class DebugReactorTest {
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfRequestDoNotCompleteSuccessfully() throws TechnicalException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
+    public void shouldRemoveReactorHandlerIfRequestDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
+        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
         httpRequest.setPath("/path1");
-        reactable.setRequest(httpRequest);
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(getAnEvent()));
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
+
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 
         // Mock failing HttpClientRequest future
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient()).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
         final Future<HttpClientRequest> requestFuture = Future.failedFuture("");
         when(mockHttpClient.request(any())).thenReturn(requestFuture);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -292,32 +314,26 @@ public class DebugReactorTest {
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfTechnicalExceptionDuringEventFinding() throws TechnicalException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
+    public void shouldRemoveReactorHandlerIfTechnicalExceptionDuringEventUpdating() throws TechnicalException, JsonProcessingException {
+        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        final HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setMethod("GET");
+        httpRequest.setPath("/path1");
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenThrow(TechnicalException.class);
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
-
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
-    }
-
-    @Test
-    public void shouldRemoveReactorHandlerIfTechnicalExceptionDuringEventUpdating() throws TechnicalException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
-
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.of(getAnEvent()));
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         when(eventRepository.update(any())).thenThrow(TechnicalException.class);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
+        verify(reactorHandlerRegistry, times(1)).create(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).contains(any(DebugApi.class));
+        verify(reactorHandlerRegistry, times(1)).remove(any(DebugApi.class));
 
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
@@ -327,30 +343,25 @@ public class DebugReactorTest {
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfNoEventFound() throws TechnicalException {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
+    public void shouldDoNothingWhenReactableAlreadyDebugging() throws JsonProcessingException, TechnicalException {
+        io.gravitee.definition.model.DebugApi debugApiModel = getADebugApiDefinition();
+        final HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setMethod("GET");
+        httpRequest.setPath("/path1");
+        httpRequest.setBody("request body");
+        debugApiModel.setRequest(httpRequest);
+        when(objectMapper.readValue(anyString(), any(DebugApi.class.getClass()))).thenReturn(debugApiModel);
 
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(false);
-        when(eventRepository.findById(EVENT_ID)).thenReturn(Optional.empty());
+        Event anEvent = getAnEvent(EVENT_ID, PAYLOAD);
+        final ReactableWrapper<io.gravitee.repository.management.model.Event> reactableWrapper = new ReactableWrapper(anEvent);
 
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(true);
 
-        verify(reactorHandlerRegistry, times(1)).create(reactable);
-        verify(reactorHandlerRegistry, times(1)).contains(reactable);
-        verify(reactorHandlerRegistry, times(1)).remove(reactable);
-    }
-
-    @Test
-    public void shouldDoNothingWhenReactableAlreadyDebugging() {
-        final DebugApi reactable = getADebugApi(EVENT_ID, getADebugApiDefinition());
-
-        when(reactorHandlerRegistry.contains(reactable)).thenReturn(true);
-
-        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactable));
+        debugReactor.onEvent(getAReactorEvent(ReactorEvent.DEBUG, reactableWrapper));
 
         verify(reactorHandlerRegistry, times(0)).create(any());
         verify(reactorHandlerRegistry, times(1)).contains(any());
-        verify(reactorHandlerRegistry, times(0)).remove(reactable);
+        verify(reactorHandlerRegistry, times(0)).remove(any());
     }
 
     @Test

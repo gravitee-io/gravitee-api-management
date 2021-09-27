@@ -16,6 +16,7 @@
 package io.gravitee.gateway.debug.vertx;
 
 import io.gravitee.gateway.debug.reactor.DebugReactor;
+import io.gravitee.gateway.http.vertx.VertxHttpServerFactory;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.processor.NotFoundProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
@@ -31,8 +32,8 @@ import org.springframework.context.annotation.Scope;
 public class VertxDebugConfiguration {
 
     @Bean
-    public VertxDebugHttpServerConfiguration httpServerConfiguration() {
-        return new VertxDebugHttpServerConfiguration();
+    public VertxDebugHttpConfiguration httpServerConfiguration() {
+        return new VertxDebugHttpConfiguration();
     }
 
     @Bean
@@ -73,7 +74,7 @@ public class VertxDebugConfiguration {
 
     @Bean("gatewayDebugHttpServer")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public VertxDebugHttpServerFactory vertxHttpServerFactory() {
-        return new VertxDebugHttpServerFactory();
+    public VertxHttpServerFactory vertxHttpServerFactory() {
+        return new VertxHttpServerFactory();
     }
 }

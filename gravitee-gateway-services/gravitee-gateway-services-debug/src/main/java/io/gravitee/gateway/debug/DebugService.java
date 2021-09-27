@@ -20,10 +20,8 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.util.ListReverser;
 import io.gravitee.gateway.debug.reactor.DebugReactor;
-import io.gravitee.gateway.debug.sync.DebugSyncService;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +57,6 @@ public class DebugService extends AbstractService {
     private List<Class<? extends LifecycleComponent>> components() {
         List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
         components.add(VertxDebugService.class);
-        components.add(DebugSyncService.class);
         components.add(DebugReactor.class);
         return components;
     }

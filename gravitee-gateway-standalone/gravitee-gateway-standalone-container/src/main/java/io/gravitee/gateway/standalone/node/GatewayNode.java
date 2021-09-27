@@ -22,9 +22,6 @@ import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.node.cluster.ClusterService;
 import io.gravitee.node.container.AbstractNode;
-import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
-import io.gravitee.node.monitoring.infos.NodeInfosService;
-import io.gravitee.node.monitoring.monitor.NodeMonitorService;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,6 +69,7 @@ public class GatewayNode extends AbstractNode {
     public List<Class<? extends LifecycleComponent>> components() {
         final List<Class<? extends LifecycleComponent>> components = new ArrayList<>();
 
+        components.add(NodeMonitoringReporterService.class);
         components.add(Reactor.class);
         components.add(VertxEmbeddedContainer.class);
         components.add(ClusterService.class);

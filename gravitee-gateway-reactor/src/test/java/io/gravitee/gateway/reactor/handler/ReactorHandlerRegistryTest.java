@@ -15,12 +15,14 @@
  */
 package io.gravitee.gateway.reactor.handler;
 
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import org.junit.Assert;
@@ -81,7 +83,10 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.create(reactable);
 
         Assert.assertEquals(2, reactorHandlerRegistry.getEntrypoints().size());
-        Assert.assertEquals("/products/v2/", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
+        // Paths are sorted in natural order so "/products/v1/" takes priority over "/products/v2/".
+        final Iterator<HandlerEntrypoint> iterator = reactorHandlerRegistry.getEntrypoints().iterator();
+        Assert.assertEquals("/products/v1/", iterator.next().path());
+        Assert.assertEquals("/products/v2/", iterator.next().path());
     }
 
     @Test
@@ -91,7 +96,7 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        Reactable reactable2 = createReactable("reactable1", "/");
+        Reactable reactable2 = createReactable("reactable2", "/");
         ReactorHandler handler2 = createReactorHandler(reactable2);
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
 
@@ -107,13 +112,17 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        Reactable reactable2 = createReactable("reactable1", "/products");
+        Reactable reactable2 = createReactable("reactable2", "/products");
         ReactorHandler handler2 = createReactorHandler(reactable2);
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
         reactorHandlerRegistry.create(reactable2);
 
         Assert.assertEquals(2, reactorHandlerRegistry.getEntrypoints().size());
-        Assert.assertEquals("/products/", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
+
+        // Paths are sorted in natural order so "/" takes priority over "/products".
+        final Iterator<HandlerEntrypoint> iterator = reactorHandlerRegistry.getEntrypoints().iterator();
+        Assert.assertEquals("/", iterator.next().path());
+        Assert.assertEquals("/products/", iterator.next().path());
     }
 
     @Test
@@ -123,13 +132,17 @@ public class ReactorHandlerRegistryTest {
         when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
         reactorHandlerRegistry.create(reactable);
 
-        Reactable reactable2 = createReactable("reactable1", "api.gravitee.io", "/");
+        Reactable reactable2 = createReactable("reactable2", "api.gravitee.io", "/");
         ReactorHandler handler2 = createReactorHandler(reactable2);
         when(reactorHandlerFactoryManager.create(reactable2)).thenReturn(handler2);
         reactorHandlerRegistry.create(reactable2);
 
         Assert.assertEquals(2, reactorHandlerRegistry.getEntrypoints().size());
-        Assert.assertEquals("/", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
+        final HandlerEntrypoint entrypoint = reactorHandlerRegistry.getEntrypoints().iterator().next();
+
+        // Paths "/" are equivalent but virtualhost takes priority over simple path.
+        Assert.assertEquals("/", entrypoint.path());
+        Assert.assertEquals(1001, entrypoint.priority());
     }
 
     @Test
@@ -160,7 +173,7 @@ public class ReactorHandlerRegistryTest {
         reactorHandlerRegistry.update(updateReactable);
 
         Assert.assertEquals(1, reactorHandlerRegistry.getEntrypoints().size());
-        Assert.assertEquals("/new-path/", reactorHandlerRegistry.getEntrypoints().get(0).path());
+        Assert.assertEquals("/new-path/", reactorHandlerRegistry.getEntrypoints().iterator().next().path());
     }
 
     @Test
