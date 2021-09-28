@@ -75,6 +75,8 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_NAME_LOWERCASE,
         FIELD_NAME_SPLIT,
         FIELD_DESCRIPTION,
+        FIELD_DESCRIPTION_LOWERCASE,
+        FIELD_DESCRIPTION_SPLIT,
         FIELD_OWNER,
         FIELD_LABELS,
         FIELD_LABELS_SPLIT,
@@ -233,7 +235,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             TermQuery tQuery = (TermQuery) query;
             Term term = tQuery.getTerm();
             if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
-                mainQuery.add(tQuery, currentOccur);
+                mainQuery.add(new TermQuery(buildTermFilter(term)), currentOccur);
             } else if (clause != null) {
                 restQuery.add(buildApiFields(term.text(), BooleanClause.Occur.SHOULD), clause.getOccur());
             } else {
@@ -269,6 +271,19 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         return rest;
     }
 
+    private Term buildTermFilter(Term term) {
+        if (FIELD_CATEGORIES.equals(term.field())) {
+            return new Term(term.field(), formatCategoryField(term.text()));
+        } else {
+            return new Term(term.field() + "_lowercase", term.text().toLowerCase());
+        }
+    }
+
+    public static String formatCategoryField(String category) {
+        // Actually we index hrid categories...
+        return category.toLowerCase().replaceAll(" ", "-");
+    }
+
     private Query toWildcard(String field, String query) {
         return new WildcardQuery(new Term(field, '*' + query + '*'));
     }
@@ -288,6 +303,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             .add(toWildcard(FIELD_NAME_LOWERCASE, query.toLowerCase()), occur)
             .add(toWildcard(FIELD_PATHS, query), occur)
             .add(toWildcard(FIELD_DESCRIPTION, query), occur)
+            .add(toWildcard(FIELD_DESCRIPTION_LOWERCASE, query.toLowerCase()), occur)
             .add(toWildcard(FIELD_HOSTS, query), occur)
             .add(toWildcard(FIELD_LABELS, query), occur)
             .add(toWildcard(FIELD_CATEGORIES, query), occur)

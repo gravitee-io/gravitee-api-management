@@ -39,7 +39,7 @@ public class ApiDocumentSearcherTest {
         Query query = QueryBuilder.create(ApiEntity.class).setQuery("name: Foobar AND name: \"Foo Foo\"").build();
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
         assertEquals("", searcher.completeQueryWithFilters(query, builder));
-        assertEquals(builder.build().toString(), "#(+name:Foobar +name:Foo Foo)");
+        assertEquals(builder.build().toString(), "#(+name_lowercase:foobar +name_lowercase:foo foo)");
     }
 
     @Test
@@ -57,7 +57,7 @@ public class ApiDocumentSearcherTest {
         assertEquals("", searcher.completeQueryWithFilters(query, builder));
         assertEquals(
             builder.build().toString(),
-            "#(+categories:Sports) +(+(name:*Cycling* name_lowercase:*cycling* paths:*Cycling* description:*Cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))"
+            "#(+categories:sports) +(+(name:*Cycling* name_lowercase:*cycling* paths:*Cycling* description:*Cycling* description_lowercase:*cycling* hosts:*Cycling* labels:*Cycling* categories:*Cycling* tags:*Cycling* metadata:*Cycling*))"
         );
     }
 }

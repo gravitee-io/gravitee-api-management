@@ -77,6 +77,28 @@ public class SearchEngineServiceTest {
     }
 
     @Test
+    public void shouldFindBestResultsWithDescription() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("field").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 1);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-4"));
+    }
+
+    @Test
+    public void shouldFindBestResultsWithCategory() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("machine learning").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 3);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-0", "api-2", "api-4"));
+    }
+
+    @Test
     public void shouldNotFoundWithOwnerEmail() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
@@ -124,6 +146,17 @@ public class SearchEngineServiceTest {
     }
 
     @Test
+    public void shouldFindWithExplicitNameUnSensitiveFilter() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"my api 1\"").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 1);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-1"));
+    }
+
+    @Test
     public void shouldNotFindWithExplicitWrongNameFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
@@ -134,10 +167,21 @@ public class SearchEngineServiceTest {
     }
 
     @Test
+    public void shouldFindWithExplicitDescriptionFilter() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            QueryBuilder.create(ApiEntity.class).setQuery("description:\"Field Hockey\"").setFilters(filters).build()
+        );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 1);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-4"));
+    }
+
+    @Test
     public void shouldFindWithLabelsFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("labels: \"Label 1\"").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("labels: \"In Review 1\"").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(matches.getHits(), 4);
@@ -145,7 +189,11 @@ public class SearchEngineServiceTest {
 
         matches =
             searchEngineService.search(
-                QueryBuilder.create(ApiEntity.class).setQuery("labels: \"Label 1\" AND labels: \"Label 4\"").setFilters(filters).build()
+                QueryBuilder
+                    .create(ApiEntity.class)
+                    .setQuery("labels: \"In Review 1\" AND labels: \"In Review 4\"")
+                    .setFilters(filters)
+                    .build()
             );
         assertNotNull(matches);
         assertEquals(matches.getHits(), 1);
@@ -153,7 +201,23 @@ public class SearchEngineServiceTest {
 
         matches =
             searchEngineService.search(
-                QueryBuilder.create(ApiEntity.class).setQuery("labels: \"Label 3\" OR labels: \"Label 4\"").setFilters(filters).build()
+                QueryBuilder
+                    .create(ApiEntity.class)
+                    .setQuery("labels: \"In Review 3\" OR labels: \"In Review 4\"")
+                    .setFilters(filters)
+                    .build()
+            );
+        assertNotNull(matches);
+        assertEquals(matches.getHits(), 2);
+        assertEquals(matches.getDocuments(), Arrays.asList("api-3", "api-4"));
+
+        matches =
+            searchEngineService.search(
+                QueryBuilder
+                    .create(ApiEntity.class)
+                    .setQuery("labels: \"in review 3\" OR labels: \"in review 4\"")
+                    .setFilters(filters)
+                    .build()
             );
         assertNotNull(matches);
         assertEquals(matches.getHits(), 2);
@@ -164,7 +228,7 @@ public class SearchEngineServiceTest {
     public void shouldFindWithLabelsAndPhraseFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("labels: \"Label 4\" foobar-3@gravitee.io").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("labels: \"in review 4\" foobar-3@gravitee.io").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(matches.getHits(), 1);
@@ -175,7 +239,7 @@ public class SearchEngineServiceTest {
     public void shouldFindWithCategoriesFilter() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
-            QueryBuilder.create(ApiEntity.class).setQuery("categories: Sports").setFilters(filters).build()
+            QueryBuilder.create(ApiEntity.class).setQuery("categories:\"Machine Learning\"").setFilters(filters).build()
         );
         assertNotNull(matches);
         assertEquals(matches.getHits(), 3);
@@ -258,7 +322,7 @@ public class SearchEngineServiceTest {
                 String apiName = "My api " + i;
                 ApiEntity apiEntity = new ApiEntity();
                 apiEntity.setId("api-" + i);
-                labels.add("Label " + i);
+                labels.add("In Review " + i);
                 apiEntity.setReferenceId(GraviteeContext.getCurrentEnvironmentOrDefault());
                 apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
                 apiEntity.setName(apiName);
@@ -271,7 +335,8 @@ public class SearchEngineServiceTest {
                 owner.setEmail("foobar-" + i + "@gravitee.io");
                 apiEntity.setPrimaryOwner(owner);
                 if (i % 2 == 0) {
-                    apiEntity.setCategories(Set.of("Sports", "Game"));
+                    // Actually we index hrid categories...
+                    apiEntity.setCategories(Set.of("sports", "game", "machine-learning"));
                 }
                 searchEngineService.index(apiEntity, false);
             }
