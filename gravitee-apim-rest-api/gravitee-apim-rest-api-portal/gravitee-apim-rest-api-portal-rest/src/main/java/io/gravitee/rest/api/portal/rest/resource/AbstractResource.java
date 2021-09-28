@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.twelvemonkeys.imageio.stream.ByteArrayImageInputStream;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.MediaEntity;
@@ -153,7 +154,13 @@ public abstract class AbstractResource {
             }
 
             try {
-                ImageInputStream imageInputStream = ImageIO.createImageInputStream(decodedPicture);
+                /*
+                 * For an unknown reason, when running APIM from jar/zip instead of sourcecode, com.twelvemonkeys.imageio.stream.ByteArrayImageInputStreamSpi
+                 *  is not registered in the IIORegistry used by ImageIO to manage stream.
+                 * So basically the hack is to directly instantiate a ByteArrayImageInputStream
+                 */
+                //ImageInputStream imageInputStream = ImageIO.createImageInputStream(decodedPicture);
+                ImageInputStream imageInputStream = new ByteArrayImageInputStream(decodedPicture);
                 Iterator<ImageReader> imageReaders = ImageIO.getImageReaders(imageInputStream);
 
                 while (imageReaders.hasNext()) {
