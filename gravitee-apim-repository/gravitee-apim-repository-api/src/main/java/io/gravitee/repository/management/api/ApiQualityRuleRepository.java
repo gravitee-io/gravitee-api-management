@@ -25,7 +25,7 @@ import java.util.Optional;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiQualityRuleRepository {
+public interface ApiQualityRuleRepository extends FindAllRepository<ApiQualityRule> {
     Optional<ApiQualityRule> findById(String api, String qualityRule) throws TechnicalException;
     ApiQualityRule create(ApiQualityRule apiQualityRule) throws TechnicalException;
     ApiQualityRule update(ApiQualityRule apiQualityRule) throws TechnicalException;

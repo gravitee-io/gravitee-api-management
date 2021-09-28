@@ -60,4 +60,9 @@ public class HttpPlanRepository extends AbstractRepository implements PlanReposi
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         return blockingGet(get("/apis/" + apiId + "/plans", BodyCodecs.set(Plan.class)).send());
     }
+
+    @Override
+    public Set<Plan> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

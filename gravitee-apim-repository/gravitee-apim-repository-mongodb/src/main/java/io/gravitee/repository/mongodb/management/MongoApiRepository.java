@@ -27,6 +27,8 @@ import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -106,5 +108,10 @@ public class MongoApiRepository implements ApiRepository {
 
     private Api mapApi(ApiMongo apiMongo) {
         return (apiMongo == null) ? null : mapper.map(apiMongo, Api.class);
+    }
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        return internalApiRepo.findAll().stream().map(this::mapApi).collect(Collectors.toSet());
     }
 }

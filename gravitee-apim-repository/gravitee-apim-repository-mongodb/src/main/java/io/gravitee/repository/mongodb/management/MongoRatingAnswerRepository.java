@@ -25,6 +25,8 @@ import io.gravitee.repository.mongodb.management.internal.api.RatingAnswerMongoR
 import io.gravitee.repository.mongodb.management.internal.model.RatingAnswerMongo;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,5 +121,10 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
         ratingAnswerMongo.setComment(ratingAnswer.getComment());
         ratingAnswerMongo.setCreatedAt(ratingAnswer.getCreatedAt());
         return ratingAnswerMongo;
+    }
+
+    @Override
+    public Set<RatingAnswer> findAll() throws TechnicalException {
+        return internalRatingAnswerRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

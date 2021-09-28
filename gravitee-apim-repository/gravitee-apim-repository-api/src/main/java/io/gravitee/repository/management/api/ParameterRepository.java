@@ -26,7 +26,7 @@ import java.util.Optional;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ParameterRepository {
+public interface ParameterRepository extends FindAllRepository<Parameter> {
     Optional<Parameter> findById(String key, String referenceId, ParameterReferenceType referenceType) throws TechnicalException;
 
     Parameter create(Parameter item) throws TechnicalException;

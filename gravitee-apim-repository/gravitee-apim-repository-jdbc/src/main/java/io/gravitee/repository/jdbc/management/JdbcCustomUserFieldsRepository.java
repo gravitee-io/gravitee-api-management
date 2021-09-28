@@ -44,7 +44,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcCustomUserFieldsRepository extends TransactionalRepository implements CustomUserFieldsRepository {
+public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepository<CustomUserField> implements CustomUserFieldsRepository {
 
     public static final String TABLE_NAME = "custom_user_fields";
 
@@ -53,34 +53,41 @@ public class JdbcCustomUserFieldsRepository extends TransactionalRepository impl
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper
-        .builder(CustomUserField.class, TABLE_NAME, "key")
-        .addColumn("key", Types.NVARCHAR, String.class)
-        .addColumn("reference_id", Types.NVARCHAR, String.class)
-        .addColumn("reference_type", Types.NVARCHAR, CustomUserFieldReferenceType.class)
-        .addColumn("label", Types.NVARCHAR, String.class)
-        .addColumn("format", Types.NVARCHAR, MetadataFormat.class) // use MetadataFormat because the value will be stored into the Metadata table
-        .addColumn("required", Types.BOOLEAN, boolean.class)
-        .addColumn("created_at", Types.TIMESTAMP, Date.class)
-        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-        .updateSql(
-            "UPDATE  " +
-            TABLE_NAME +
-            " set " +
-            escapeReservedWord("key") +
-            " = ?, " +
-            " reference_id = ?, " +
-            " reference_type = ?, " +
-            " label = ?, " +
-            " format = ?, " +
-            " required = ?, " +
-            " created_at = ?, " +
-            " updated_at = ? " +
-            " WHERE " +
-            escapeReservedWord("key") +
-            " = ? AND reference_id = ?  AND reference_type = ? "
-        )
-        .build();
+    JdbcCustomUserFieldsRepository() {
+        super("custom_user_fields");
+    }
+
+    @Override
+    protected JdbcObjectMapper<CustomUserField> buildOrm() {
+        return JdbcObjectMapper
+            .builder(CustomUserField.class, this.tableName, "key")
+            .addColumn("key", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, CustomUserFieldReferenceType.class)
+            .addColumn("label", Types.NVARCHAR, String.class)
+            .addColumn("format", Types.NVARCHAR, MetadataFormat.class) // use MetadataFormat because the value will be stored into the Metadata table
+            .addColumn("required", Types.BOOLEAN, boolean.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .updateSql(
+                "UPDATE  " +
+                this.tableName +
+                " set " +
+                escapeReservedWord("key") +
+                " = ?, " +
+                " reference_id = ?, " +
+                " reference_type = ?, " +
+                " label = ?, " +
+                " format = ?, " +
+                " required = ?, " +
+                " created_at = ?, " +
+                " updated_at = ? " +
+                " WHERE " +
+                escapeReservedWord("key") +
+                " = ? AND reference_id = ?  AND reference_type = ? "
+            )
+            .build();
+    }
 
     private static final JdbcHelper.ChildAdder<CustomUserField> CHILD_ADDER = (CustomUserField field, ResultSet rs) -> {
         List<String> values = field.getValues();
@@ -136,7 +143,7 @@ public class JdbcCustomUserFieldsRepository extends TransactionalRepository impl
         LOGGER.debug("JdbcCustomUserFieldsRepository.findById({}, {})", key, refId);
         try {
             JdbcHelper.CollatingRowMapper<CustomUserField> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                ORM.getRowMapper(),
+                getOrm().getRowMapper(),
                 CHILD_ADDER,
                 "key"
             );
@@ -172,7 +179,7 @@ public class JdbcCustomUserFieldsRepository extends TransactionalRepository impl
         LOGGER.debug("JdbcCustomUserFieldsRepository.findByReferenceIdAndReferenceType({}, {})", refId, refType);
         try {
             JdbcHelper.CollatingRowMapper<CustomUserField> rowMapper = new JdbcHelper.CollatingRowMapper<>(
-                ORM.getRowMapper(),
+                getOrm().getRowMapper(),
                 CHILD_ADDER,
                 "key"
             );
@@ -226,7 +233,7 @@ public class JdbcCustomUserFieldsRepository extends TransactionalRepository impl
     public CustomUserField create(CustomUserField field) throws TechnicalException {
         LOGGER.debug("JdbcCustomUserFieldsRepository.create({})", field);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(field));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(field));
             storeValues(field, true);
             return findById(field.getKey(), field.getReferenceId(), field.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
@@ -240,7 +247,7 @@ public class JdbcCustomUserFieldsRepository extends TransactionalRepository impl
         LOGGER.debug("JdbcCustomUserFieldsRepository.update({})", field);
         try {
             jdbcTemplate.update(
-                ORM.buildUpdatePreparedStatementCreator(field, field.getKey(), field.getReferenceId(), field.getReferenceType().name())
+                getOrm().buildUpdatePreparedStatementCreator(field, field.getKey(), field.getReferenceId(), field.getReferenceType().name())
             );
             storeValues(field, true);
             return findById(field.getKey(), field.getReferenceId(), field.getReferenceType())

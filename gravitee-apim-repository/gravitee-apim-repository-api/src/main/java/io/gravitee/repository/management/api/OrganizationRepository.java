@@ -15,14 +15,10 @@
  */
 package io.gravitee.repository.management.api;
 
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Organization;
-import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface OrganizationRepository extends CrudRepository<Organization, String> {
-    Set<Organization> findAll() throws TechnicalException;
-}
+public interface OrganizationRepository extends CrudRepository<Organization, String> {}

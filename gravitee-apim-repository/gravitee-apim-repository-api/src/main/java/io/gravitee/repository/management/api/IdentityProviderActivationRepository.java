@@ -25,14 +25,12 @@ import java.util.Set;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IdentityProviderActivationRepository {
+public interface IdentityProviderActivationRepository extends FindAllRepository<IdentityProviderActivation> {
     Optional<IdentityProviderActivation> findById(
         String identityProviderId,
         String referenceId,
         IdentityProviderActivationReferenceType referenceType
     ) throws TechnicalException;
-
-    Set<IdentityProviderActivation> findAll() throws TechnicalException;
 
     Set<IdentityProviderActivation> findAllByIdentityProviderId(String identityProviderId) throws TechnicalException;
 

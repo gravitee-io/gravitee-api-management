@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.Event;
 import io.vertx.ext.web.codec.BodyCodec;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -92,5 +93,10 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);
         }
+    }
+
+    @Override
+    public Set<Event> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 }

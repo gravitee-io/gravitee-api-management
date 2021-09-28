@@ -25,7 +25,7 @@ import java.util.Set;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MembershipRepository {
+public interface MembershipRepository extends FindAllRepository<Membership> {
     Membership create(Membership membership) throws TechnicalException;
     Membership update(Membership membership) throws TechnicalException;
     void delete(String membershipId) throws TechnicalException;

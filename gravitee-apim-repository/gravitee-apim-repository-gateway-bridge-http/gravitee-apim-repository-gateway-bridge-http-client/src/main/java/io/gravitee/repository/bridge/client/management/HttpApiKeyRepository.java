@@ -61,4 +61,9 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
         return blockingGet(post("/keys/_search", BodyCodecs.list(ApiKey.class)).send(filter));
     }
+
+    @Override
+    public Set<ApiKey> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

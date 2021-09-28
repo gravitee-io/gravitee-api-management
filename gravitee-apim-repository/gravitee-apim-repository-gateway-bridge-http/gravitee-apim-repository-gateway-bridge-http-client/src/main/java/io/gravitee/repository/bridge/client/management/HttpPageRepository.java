@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,13 +59,17 @@ public class HttpPageRepository extends AbstractRepository implements PageReposi
     }
 
     @Override
-    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType)
-        throws TechnicalException {
+    public Integer findMaxPageReferenceIdAndReferenceTypeOrder(String referenceId, PageReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
     public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Page> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

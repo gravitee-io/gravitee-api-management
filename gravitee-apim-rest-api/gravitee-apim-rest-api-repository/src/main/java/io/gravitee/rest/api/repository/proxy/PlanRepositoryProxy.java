@@ -35,23 +35,33 @@ public class PlanRepositoryProxy extends AbstractProxy<PlanRepository> implement
         return target.findByApis(apiIds);
     }
 
+    @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         return target.findByApi(apiId);
     }
 
+    @Override
     public Optional<Plan> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
 
+    @Override
     public Plan create(Plan item) throws TechnicalException {
         return target.create(item);
     }
 
+    @Override
     public Plan update(Plan item) throws TechnicalException {
         return target.update(item);
     }
 
+    @Override
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public Set<Plan> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

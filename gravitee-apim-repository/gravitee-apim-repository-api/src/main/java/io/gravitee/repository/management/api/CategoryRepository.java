@@ -26,7 +26,7 @@ import java.util.Set;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface CategoryRepository {
+public interface CategoryRepository extends FindAllRepository<Category> {
     Optional<Category> findById(String id) throws TechnicalException;
 
     Category create(Category item) throws TechnicalException;
@@ -34,8 +34,6 @@ public interface CategoryRepository {
     Category update(Category item) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
-
-    Set<Category> findAll() throws TechnicalException;
 
     Optional<Category> findByKey(String key, String environment) throws TechnicalException;
 

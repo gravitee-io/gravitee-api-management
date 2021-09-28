@@ -141,4 +141,9 @@ public class HttpMembershipRepository extends AbstractRepository implements Memb
     ) throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Set<Membership> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

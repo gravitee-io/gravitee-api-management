@@ -38,36 +38,43 @@ import org.springframework.stereotype.Repository;
  * @author njt
  */
 @Repository
-public class JdbcPlanRepository extends TransactionalRepository implements PlanRepository {
+public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> implements PlanRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPlanRepository.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper
-        .builder(Plan.class, "plans", "id")
-        .addColumn("id", Types.NVARCHAR, String.class)
-        .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
-        .addColumn("name", Types.NVARCHAR, String.class)
-        .addColumn("description", Types.NVARCHAR, String.class)
-        .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)
-        .addColumn("definition", Types.NVARCHAR, String.class)
-        .addColumn("security_definition", Types.NVARCHAR, String.class)
-        .addColumn("order", Types.INTEGER, int.class)
-        .addColumn("api", Types.NVARCHAR, String.class)
-        .addColumn("status", Types.NVARCHAR, Plan.Status.class)
-        .addColumn("security", Types.NVARCHAR, Plan.PlanSecurityType.class)
-        .addColumn("created_at", Types.TIMESTAMP, Date.class)
-        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-        .addColumn("published_at", Types.TIMESTAMP, Date.class)
-        .addColumn("closed_at", Types.TIMESTAMP, Date.class)
-        .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
-        .addColumn("comment_required", Types.BOOLEAN, boolean.class)
-        .addColumn("comment_message", Types.NVARCHAR, String.class)
-        .addColumn("selection_rule", Types.NVARCHAR, String.class)
-        .addColumn("general_conditions", Types.NVARCHAR, String.class)
-        .build();
+    JdbcPlanRepository() {
+        super("plans");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Plan> buildOrm() {
+        return JdbcObjectMapper
+            .builder(Plan.class, this.tableName, "id")
+            .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, Plan.PlanType.class)
+            .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("description", Types.NVARCHAR, String.class)
+            .addColumn("validation", Types.NVARCHAR, Plan.PlanValidationType.class)
+            .addColumn("definition", Types.NVARCHAR, String.class)
+            .addColumn("security_definition", Types.NVARCHAR, String.class)
+            .addColumn("order", Types.INTEGER, int.class)
+            .addColumn("api", Types.NVARCHAR, String.class)
+            .addColumn("status", Types.NVARCHAR, Plan.Status.class)
+            .addColumn("security", Types.NVARCHAR, Plan.PlanSecurityType.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn("published_at", Types.TIMESTAMP, Date.class)
+            .addColumn("closed_at", Types.TIMESTAMP, Date.class)
+            .addColumn("need_redeploy_at", Types.TIMESTAMP, Date.class)
+            .addColumn("comment_required", Types.BOOLEAN, boolean.class)
+            .addColumn("comment_message", Types.NVARCHAR, String.class)
+            .addColumn("selection_rule", Types.NVARCHAR, String.class)
+            .addColumn("general_conditions", Types.NVARCHAR, String.class)
+            .build();
+    }
 
     private void addTags(Plan parent) {
         List<String> tags = getTags(parent.getId());
@@ -88,7 +95,7 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
     public Optional<Plan> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.findById({})", id);
         try {
-            List<Plan> plans = jdbcTemplate.query("select * from plans p where p.id = ?", ORM.getRowMapper(), id);
+            List<Plan> plans = jdbcTemplate.query("select * from plans p where p.id = ?", getOrm().getRowMapper(), id);
             Optional<Plan> result = plans.stream().findFirst();
             if (result.isPresent()) {
                 addCharacteristics(result.get());
@@ -106,7 +113,7 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
     public Plan create(Plan item) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.create({})", item);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(item));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
             storeCharacteristics(item, false);
             storeExcludedGroups(item, false);
             storeTags(item, false);
@@ -124,7 +131,7 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
             throw new IllegalStateException();
         }
         try {
-            jdbcTemplate.update(ORM.buildUpdatePreparedStatementCreator(plan, plan.getId()));
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(plan, plan.getId()));
             storeCharacteristics(plan, true);
             storeExcludedGroups(plan, true);
             storeTags(plan, true);
@@ -144,7 +151,7 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
             jdbcTemplate.update("delete from plan_tags where plan_id = ?", id);
             jdbcTemplate.update("delete from plan_characteristics where plan_id = ?", id);
             jdbcTemplate.update("delete from plan_excluded_groups where plan_id = ?", id);
-            jdbcTemplate.update(ORM.getDeleteSql(), id);
+            jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete plan:", ex);
             throw new TechnicalException("Failed to delete plan", ex);
@@ -175,11 +182,11 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
             if (deleteFirst) {
                 jdbcTemplate.update("delete from plan_characteristics where plan_id = ?", plan.getId());
             }
-            List<String> filteredCharacteristics = ORM.filterStrings(plan.getCharacteristics());
+            List<String> filteredCharacteristics = getOrm().filterStrings(plan.getCharacteristics());
             if (!filteredCharacteristics.isEmpty()) {
                 jdbcTemplate.batchUpdate(
                     "insert into plan_characteristics ( plan_id, characteristic ) values ( ?, ? )",
-                    ORM.getBatchStringSetter(plan.getId(), filteredCharacteristics)
+                    getOrm().getBatchStringSetter(plan.getId(), filteredCharacteristics)
                 );
             }
         } catch (final Exception ex) {
@@ -218,11 +225,11 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
             if (deleteFirst) {
                 jdbcTemplate.update("delete from plan_tags where plan_id = ?", plan.getId());
             }
-            List<String> filteredTags = ORM.filterStrings(plan.getTags());
+            List<String> filteredTags = getOrm().filterStrings(plan.getTags());
             if (!filteredTags.isEmpty()) {
                 jdbcTemplate.batchUpdate(
                     "insert into plan_tags ( plan_id, tag ) values ( ?, ? )",
-                    ORM.getBatchStringSetter(plan.getId(), filteredTags)
+                    getOrm().getBatchStringSetter(plan.getId(), filteredTags)
                 );
             }
         } catch (final Exception ex) {
@@ -236,9 +243,9 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
         LOGGER.debug("JdbcPlanRepository.findByApis({})", apiIds);
         try {
             List<Plan> plans = jdbcTemplate.query(
-                "select * from plans where api in (" + ORM.buildInClause(apiIds) + ")",
-                (PreparedStatement ps) -> ORM.setArguments(ps, apiIds, 1),
-                ORM.getRowMapper()
+                "select * from plans where api in (" + getOrm().buildInClause(apiIds) + ")",
+                (PreparedStatement ps) -> getOrm().setArguments(ps, apiIds, 1),
+                getOrm().getRowMapper()
             );
             for (Plan plan : plans) {
                 addCharacteristics(plan);
@@ -256,7 +263,7 @@ public class JdbcPlanRepository extends TransactionalRepository implements PlanR
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {
-            List<Plan> plans = jdbcTemplate.query("select * from plans where api = ?", ORM.getRowMapper(), apiId);
+            List<Plan> plans = jdbcTemplate.query("select * from plans where api = ?", getOrm().getRowMapper(), apiId);
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);

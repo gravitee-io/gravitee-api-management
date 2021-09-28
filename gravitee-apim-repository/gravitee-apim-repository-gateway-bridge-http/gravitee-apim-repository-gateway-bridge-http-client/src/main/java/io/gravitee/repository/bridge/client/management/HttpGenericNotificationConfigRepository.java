@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,19 +52,26 @@ public class HttpGenericNotificationConfigRepository extends AbstractRepository 
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public List<GenericNotificationConfig> findByReferenceAndHook(
+        String hook,
+        NotificationReferenceType referenceType,
+        String referenceId
+    ) {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public List<GenericNotificationConfig> findByReference(NotificationReferenceType referenceType, String referenceId) {
         throw new IllegalStateException();
     }
 
     @Override
-    public void deleteByConfig(String config) throws TechnicalException {
+    public void deleteByConfig(String config) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<GenericNotificationConfig> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

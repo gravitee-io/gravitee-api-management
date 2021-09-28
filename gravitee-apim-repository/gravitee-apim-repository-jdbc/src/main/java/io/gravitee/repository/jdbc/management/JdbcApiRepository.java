@@ -348,4 +348,16 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
         return apis;
     }
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.findAll()");
+        try {
+            return new HashSet<>(jdbcTemplate.query(ORM.getSelectAllSql(), ORM.getRowMapper()));
+        } catch (final Exception ex) {
+            final String error = "Failed to find all api";
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
 }

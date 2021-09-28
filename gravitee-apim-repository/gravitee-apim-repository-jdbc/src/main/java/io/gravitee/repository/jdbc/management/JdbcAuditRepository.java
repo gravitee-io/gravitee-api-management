@@ -266,4 +266,9 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         }
         return started;
     }
+
+    @Override
+    public Set<Audit> findAll() throws TechnicalException {
+        throw new IllegalStateException("not implemented cause of high amount of data. Use pageable search instead");
+    }
 }

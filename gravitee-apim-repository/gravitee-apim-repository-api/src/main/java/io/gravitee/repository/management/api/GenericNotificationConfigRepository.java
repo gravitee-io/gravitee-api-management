@@ -26,7 +26,7 @@ import java.util.Optional;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface GenericNotificationConfigRepository {
+public interface GenericNotificationConfigRepository extends FindAllRepository<GenericNotificationConfig> {
     GenericNotificationConfig create(GenericNotificationConfig genericNotificationConfig) throws TechnicalException;
     GenericNotificationConfig update(GenericNotificationConfig genericNotificationConfig) throws TechnicalException;
     void delete(String id) throws TechnicalException;

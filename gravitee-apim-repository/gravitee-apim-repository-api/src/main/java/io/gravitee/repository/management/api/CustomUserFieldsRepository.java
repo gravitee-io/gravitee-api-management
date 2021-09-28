@@ -25,7 +25,7 @@ import java.util.Optional;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface CustomUserFieldsRepository {
+public interface CustomUserFieldsRepository extends FindAllRepository<CustomUserField> {
     CustomUserField create(CustomUserField field) throws TechnicalException;
 
     CustomUserField update(CustomUserField field) throws TechnicalException;

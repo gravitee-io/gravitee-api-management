@@ -56,4 +56,9 @@ public class ApiKeyRepositoryProxy extends AbstractProxy<ApiKeyRepository> imple
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
         return target.findByCriteria(filter);
     }
+
+    @Override
+    public Set<ApiKey> findAll() throws TechnicalException {
+        return target.findAll();
+    }
 }

@@ -25,13 +25,6 @@ import java.util.Set;
  */
 public interface DictionaryRepository extends CrudRepository<Dictionary, String> {
     /**
-     * List all dictionaries
-     * @return all dictionaries
-     * @throws TechnicalException if something goes wrong
-     */
-    Set<Dictionary> findAll() throws TechnicalException;
-
-    /**
      * List all dictionaries by environment
      * @param environmentId
      * @return all dictionaries for a given environment

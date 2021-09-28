@@ -44,29 +44,39 @@ import org.springframework.stereotype.Repository;
  *
  */
 @Repository
-public class JdbcParameterRepository extends TransactionalRepository implements ParameterRepository {
+public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Parameter> implements ParameterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcParameterRepository.class);
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper
-        .builder(Parameter.class, "parameters")
-        .updateSql(
-            "update parameters set " +
-            escapeReservedWord("key") +
-            " = ?" +
-            " , reference_type = ?" +
-            " , reference_id = ?" +
-            " , value = ?" +
-            " where " +
-            escapeReservedWord("key") +
-            " = ? " +
-            "and reference_type = ? " +
-            "and reference_id = ? "
-        )
-        .addColumn("key", Types.NVARCHAR, String.class)
-        .addColumn("reference_type", Types.NVARCHAR, ParameterReferenceType.class)
-        .addColumn("reference_id", Types.NVARCHAR, String.class)
-        .addColumn("value", Types.NVARCHAR, String.class)
-        .build();
+
+    JdbcParameterRepository() {
+        super("parameters");
+    }
+
+    @Override
+    protected JdbcObjectMapper<Parameter> buildOrm() {
+        return JdbcObjectMapper
+            .builder(Parameter.class, this.tableName)
+            .updateSql(
+                "update " +
+                this.tableName +
+                " set " +
+                escapeReservedWord("key") +
+                " = ?" +
+                " , reference_type = ?" +
+                " , reference_id = ?" +
+                " , value = ?" +
+                " where " +
+                escapeReservedWord("key") +
+                " = ? " +
+                "and reference_type = ? " +
+                "and reference_id = ? "
+            )
+            .addColumn("key", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, ParameterReferenceType.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("value", Types.NVARCHAR, String.class)
+            .build();
+    }
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -75,7 +85,7 @@ public class JdbcParameterRepository extends TransactionalRepository implements 
     public Parameter create(Parameter parameter) throws TechnicalException {
         LOGGER.debug("JdbcParameterRepository.create({})", parameter);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(parameter));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(parameter));
             return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType()).orElse(null);
         } catch (final Exception ex) {
             LOGGER.error("Failed to create parameter", ex);
@@ -90,12 +100,13 @@ public class JdbcParameterRepository extends TransactionalRepository implements 
             throw new IllegalStateException("Failed to update null");
         }
         try {
-            final PreparedStatementCreator psc = ORM.buildUpdatePreparedStatementCreator(
-                parameter,
-                parameter.getKey(),
-                parameter.getReferenceType().name(),
-                parameter.getReferenceId()
-            );
+            final PreparedStatementCreator psc = getOrm()
+                .buildUpdatePreparedStatementCreator(
+                    parameter,
+                    parameter.getKey(),
+                    parameter.getReferenceType().name(),
+                    parameter.getReferenceId()
+                );
             jdbcTemplate.update(psc);
 
             return findById(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType())
@@ -140,7 +151,7 @@ public class JdbcParameterRepository extends TransactionalRepository implements 
         try {
             final List<Parameter> items = jdbcTemplate.query(
                 "select * from parameters where " + escapeReservedWord("key") + " = ? and reference_type = ? and reference_id = ?",
-                ORM.getRowMapper(),
+                getOrm().getRowMapper(),
                 key,
                 referenceType.name(),
                 referenceId
@@ -164,14 +175,14 @@ public class JdbcParameterRepository extends TransactionalRepository implements 
                 "select * from parameters where reference_id = ? and reference_type = ? and " +
                 escapeReservedWord("key") +
                 " in ( " +
-                ORM.buildInClause(keys) +
+                getOrm().buildInClause(keys) +
                 " )",
                 (PreparedStatement ps) -> {
                     ps.setString(1, referenceId);
                     ps.setString(2, referenceType.name());
-                    ORM.setArguments(ps, keys, 3);
+                    getOrm().setArguments(ps, keys, 3);
                 },
-                ORM.getRowMapper()
+                getOrm().getRowMapper()
             );
             return new ArrayList<>(parameters);
         } catch (final Exception ex) {
@@ -186,7 +197,7 @@ public class JdbcParameterRepository extends TransactionalRepository implements 
         try {
             List<Parameter> parameters = jdbcTemplate.query(
                 "select * from parameters where reference_id = ? and reference_type = ?",
-                ORM.getRowMapper(),
+                getOrm().getRowMapper(),
                 referenceId,
                 referenceType.name()
             );

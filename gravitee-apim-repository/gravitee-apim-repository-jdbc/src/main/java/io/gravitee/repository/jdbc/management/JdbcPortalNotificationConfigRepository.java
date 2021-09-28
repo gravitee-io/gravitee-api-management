@@ -39,41 +39,52 @@ import org.springframework.stereotype.Repository;
  * @author njt
  */
 @Repository
-public class JdbcPortalNotificationConfigRepository extends TransactionalRepository implements PortalNotificationConfigRepository {
+public class JdbcPortalNotificationConfigRepository
+    extends JdbcAbstractFindAllRepository<PortalNotificationConfig>
+    implements PortalNotificationConfigRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationConfigRepository.class);
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private static final JdbcObjectMapper ORM = JdbcObjectMapper
-        .builder(PortalNotificationConfig.class, "portal_notification_configs")
-        .updateSql(
-            "update portal_notification_configs set " +
-            escapeReservedWord("user") +
-            " = ?" +
-            " , reference_type = ?" +
-            " , reference_id = ?" +
-            " , created_at = ? " +
-            " , updated_at = ? " +
-            " where " +
-            escapeReservedWord("user") +
-            " = ? " +
-            " and reference_type = ? " +
-            " and reference_id = ? "
-        )
-        .addColumn("user", Types.NVARCHAR, String.class)
-        .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
-        .addColumn("reference_id", Types.NVARCHAR, String.class)
-        .addColumn("created_at", Types.TIMESTAMP, Date.class)
-        .addColumn("updated_at", Types.TIMESTAMP, Date.class)
-        .build();
+    JdbcPortalNotificationConfigRepository() {
+        super("portal_notification_configs");
+    }
+
+    @Override
+    protected JdbcObjectMapper<PortalNotificationConfig> buildOrm() {
+        return JdbcObjectMapper
+            .builder(PortalNotificationConfig.class, this.tableName)
+            .updateSql(
+                "update " +
+                this.tableName +
+                " set " +
+                escapeReservedWord("user") +
+                " = ?" +
+                " , reference_type = ?" +
+                " , reference_id = ?" +
+                " , created_at = ? " +
+                " , updated_at = ? " +
+                " where " +
+                escapeReservedWord("user") +
+                " = ? " +
+                " and reference_type = ? " +
+                " and reference_id = ? "
+            )
+            .addColumn("user", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, NotificationReferenceType.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
+            .addColumn("created_at", Types.TIMESTAMP, Date.class)
+            .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .build();
+    }
 
     @Override
     public PortalNotificationConfig create(final PortalNotificationConfig portalNotificationConfig) throws TechnicalException {
         LOGGER.debug("JdbcPortalNotificationConfigRepository.create({})", portalNotificationConfig);
         try {
-            jdbcTemplate.update(ORM.buildInsertPreparedStatementCreator(portalNotificationConfig));
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(portalNotificationConfig));
             storeHooks(portalNotificationConfig, false);
             return findById(
                 portalNotificationConfig.getUser(),
@@ -115,7 +126,7 @@ public class JdbcPortalNotificationConfigRepository extends TransactionalReposit
                     ps.setString(2, referenceId);
                     ps.setString(3, hook);
                 },
-                ORM.getRowMapper()
+                getOrm().getRowMapper()
             );
 
             return items;
@@ -134,12 +145,13 @@ public class JdbcPortalNotificationConfigRepository extends TransactionalReposit
         }
         try {
             jdbcTemplate.update(
-                ORM.buildUpdatePreparedStatementCreator(
-                    portalNotificationConfig,
-                    portalNotificationConfig.getUser(),
-                    portalNotificationConfig.getReferenceType().name(),
-                    portalNotificationConfig.getReferenceId()
-                )
+                getOrm()
+                    .buildUpdatePreparedStatementCreator(
+                        portalNotificationConfig,
+                        portalNotificationConfig.getUser(),
+                        portalNotificationConfig.getReferenceType().name(),
+                        portalNotificationConfig.getReferenceId()
+                    )
             );
             storeHooks(portalNotificationConfig, true);
             return findById(
@@ -181,7 +193,7 @@ public class JdbcPortalNotificationConfigRepository extends TransactionalReposit
                 " = ?" +
                 " and reference_type = ?" +
                 " and reference_id = ?",
-                ORM.getRowMapper(),
+                getOrm().getRowMapper(),
                 user,
                 referenceType.name(),
                 referenceId

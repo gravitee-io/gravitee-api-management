@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -77,5 +78,10 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);
         }
+    }
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 }

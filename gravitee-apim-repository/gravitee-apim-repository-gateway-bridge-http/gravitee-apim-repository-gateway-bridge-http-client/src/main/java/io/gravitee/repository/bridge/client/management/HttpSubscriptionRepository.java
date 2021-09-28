@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -66,5 +67,10 @@ public class HttpSubscriptionRepository extends AbstractRepository implements Su
     @Override
     public List<Subscription> search(SubscriptionCriteria criteria) throws TechnicalException {
         return blockingGet(post("/subscriptions/_search", BodyCodecs.list(Subscription.class)).send(criteria));
+    }
+
+    @Override
+    public Set<Subscription> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 }

@@ -92,4 +92,9 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
         return (apiKey != null) ? Optional.of(mapper.map(apiKey, ApiKey.class)) : Optional.empty();
     }
+
+    @Override
+    public Set<ApiKey> findAll() throws TechnicalException {
+        return internalApiKeyRepo.findAll().stream().map(apiKeyMongo -> mapper.map(apiKeyMongo, ApiKey.class)).collect(Collectors.toSet());
+    }
 }

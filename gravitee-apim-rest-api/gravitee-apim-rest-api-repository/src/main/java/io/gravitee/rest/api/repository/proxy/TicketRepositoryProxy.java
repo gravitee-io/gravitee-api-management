@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,5 +46,10 @@ public class TicketRepositoryProxy extends AbstractProxy<TicketRepository> imple
     @Override
     public Optional<Ticket> findById(String ticketId) throws TechnicalException {
         return target.findById(ticketId);
+    }
+
+    @Override
+    public Set<Ticket> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

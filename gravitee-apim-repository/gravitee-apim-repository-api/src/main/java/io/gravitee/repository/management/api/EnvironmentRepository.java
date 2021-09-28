@@ -24,7 +24,5 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface EnvironmentRepository extends CrudRepository<Environment, String> {
-    Set<Environment> findAll() throws TechnicalException;
-
     Set<Environment> findByOrganization(String organizationId) throws TechnicalException;
 }
