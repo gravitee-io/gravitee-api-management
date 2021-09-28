@@ -95,3 +95,19 @@ If you want to test the deliverable in production mode :
 npm run build:prod
 npm run serve:prod
 ```
+
+== Tips
+
+If you want to test with other backend like nightly :
+
+Edit `src/proxy.conf.json`
+```json
+{
+  "/portal/environments/DEFAULT": {
+    "target": "https://nightly.gravitee.io/api/",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "logLevel": "debug"
+}
+```
