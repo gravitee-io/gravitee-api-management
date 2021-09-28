@@ -158,6 +158,7 @@
     "build-storybook": "build-storybook",
     "serve": "webpack serve -c ./conf/webpack.conf.js --progress --hot",
     "serve:nightly": "BACKEND_ENV=nightly npm run serve",
+    "serve:element-zero": "BACKEND_ENV=element-zero-apim-api.cloud npm run serve",
     "serve:prod": "node scripts/serve.js",
     "test": "jest --detectOpenHandles",
     "test:auto": "jest --watch",
