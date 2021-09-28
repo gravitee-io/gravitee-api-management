@@ -18,7 +18,7 @@ import { IHttpResponse } from 'angular';
 import * as _ from 'lodash';
 
 import { EnvironmentPermissions } from '../entities/environment/environmentPermissions';
-import { IdentityProviderActivation } from '../entities/identity-provider/identityProvider';
+import { IdentityProviderActivation } from '../entities/identity-provider';
 
 class EnvironmentService {
   constructor(private $http, private Constants, private $q) {
@@ -57,7 +57,7 @@ class EnvironmentService {
     return this.$http.get(`${this.Constants.org.baseURL}/environments/${envId}/identities`);
   }
 
-  updateEnvironmentIdentities(envId: string, updatedIPA: IdentityProviderActivation[]) {
+  updateEnvironmentIdentities(envId: string, updatedIPA: Partial<IdentityProviderActivation>[]) {
     return this.$http.put(`${this.Constants.org.baseURL}/environments/${envId}/identities`, updatedIPA);
   }
 

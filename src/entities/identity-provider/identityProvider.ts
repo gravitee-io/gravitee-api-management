@@ -42,9 +42,3 @@ export interface IdentityProvider {
   scope?: any;
   userLogoutEndpoint?: any;
 }
-
-export interface IdentityProviderActivation {
-  identityProvider: string;
-  referenceId?: string;
-  referenceType?: string;
-}

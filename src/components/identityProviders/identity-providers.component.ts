@@ -17,7 +17,7 @@ import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import _ = require('lodash');
 
-import { IdentityProvider, IdentityProviderActivation } from '../../entities/identity-provider/identityProvider';
+import { IdentityProvider, IdentityProviderActivation } from '../../entities/identity-provider';
 import ConsoleSettingsService from '../../services/consoleSettings.service';
 import EnvironmentService from '../../services/environment.service';
 import IdentityProviderService from '../../services/identityProvider.service';
@@ -146,7 +146,7 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this.toggleActivatedIdp = (identityProviderId: string) => {
-      const updatedIPA: IdentityProviderActivation[] = _.filter(
+      const updatedIPA: Partial<IdentityProviderActivation>[] = _.filter(
         Object.keys(this.activatedIdps),
         (idpId) => this.activatedIdps[idpId] === true,
       ).map((idpId) => ({ identityProvider: idpId }));

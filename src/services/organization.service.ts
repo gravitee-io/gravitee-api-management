@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { IdentityProviderActivation } from '../entities/identity-provider/identityProvider';
+import { IdentityProviderActivation } from '../entities/identity-provider';
 
 export class Organization {
   hrids: string[];
@@ -38,7 +38,7 @@ class OrganizationService {
     return this.$http.get(`${this.Constants.org.baseURL}/identities`);
   }
 
-  updateOrganizationIdentities(updatedIPA: IdentityProviderActivation[]) {
+  updateOrganizationIdentities(updatedIPA: Partial<IdentityProviderActivation>[]) {
     return this.$http.put(`${this.Constants.org.baseURL}/identities`, updatedIPA);
   }
 
