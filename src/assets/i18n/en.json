@@ -899,7 +899,8 @@
   "homepage": {
     "apis": "Featured APIs",
     "explore": "Explore APIs",
-    "signup": "Sign up"
+    "signup": "Sign up",
+    "title": "Unleash the power of your APIs."
   },
   "login": {
     "button": "Sign in",

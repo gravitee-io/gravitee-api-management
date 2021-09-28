@@ -21,7 +21,7 @@
 <div class="layout" [ngClass]="{ sticky: this.isSticky, 'sticky-homepage': this.isStickyHomepage, layout__homepage: isHomepage }">
   <div #homepageBackground class="layout__header__homepage__background">
     <div *ngIf="isHomepage" class="layout__header__homepage__title">
-      <h1>{{ this.homepageTitle == null ? ('homepage.title' | translate) : this.homepageTitle }}</h1>
+      <h1>{{ this.homepageTitle }}</h1>
       <gv-button (:gv-button:click)="goTo('/catalog')" outlined>{{ 'homepage.explore' | translate }}</gv-button>
       <gv-button (:gv-button:click)="goTo('/user/registration')" *ngIf="displaySignUp()" outlined>{{
         'homepage.signup' | translate

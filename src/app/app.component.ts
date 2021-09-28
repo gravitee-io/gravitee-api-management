@@ -106,8 +106,6 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     private googleAnalyticsService: GoogleAnalyticsService,
     private previewService: PreviewService,
   ) {
-    this.homepageTitle = this.configurationService.get('portal.homepageTitle');
-
     this.activatedRoute.queryParamMap.subscribe((params) => {
       if (params.has('preview') && params.get('preview') === 'on') {
         this.previewService.activate();
@@ -130,7 +128,9 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    this.homepageTitle =
+      this.configurationService.get('portal.homepageTitle') || (await this.translateService.get(i18n('homepage.title')).toPromise());
     this.googleAnalyticsService.load();
     this.currentUserService.get().subscribe((newCurrentUser) => {
       this.currentUser = newCurrentUser;

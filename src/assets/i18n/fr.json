@@ -899,7 +899,8 @@
   "homepage": {
     "apis": "Les APIs à la une",
     "explore": "Explorez les APIs",
-    "signup": "Créez un compte"
+    "signup": "Créez un compte",
+    "title": "Libérez la puissance de vos APIs."
   },
   "login": {
     "button": "Se connecter",

@@ -899,7 +899,8 @@
   "homepage": {
     "apis": "Doporučená rozhraní API",
     "explore": "Prozkoumejte API",
-    "signup": "Zaregistrujte se"
+    "signup": "Zaregistrujte se",
+    "title": "Uvolněte sílu vašich API."
   },
   "login": {
     "button": "Přihlásit",
