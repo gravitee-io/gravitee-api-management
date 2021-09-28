@@ -34,17 +34,25 @@ import { MatTableModule } from '@angular/material/table';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatRippleModule } from '@angular/material/core';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
 import { OrgSettingsNewUserComponent } from './user/new/org-settings-new-user.component';
 import { OrgSettingsIdentityProvidersComponent } from './identity-providers/org-settings-identity-providers.component';
+import { OrgSettingsIdentityProviderComponent } from './identity-provider/org-settings-identity-provider.component';
+import { OrgSettingsIdentityProviderGithubComponent } from './identity-provider/org-settings-identity-provider-github/org-settings-identity-provider-github.component';
+import { OrgSettingsIdentityProviderGoogleComponent } from './identity-provider/org-settings-identity-provider-google/org-settings-identity-provider-google.component';
+import { OrgSettingsIdentityProviderGraviteeioAmComponent } from './identity-provider/org-settings-identity-provider-graviteeio-am/org-settings-identity-provider-graviteeio-am.component';
+import { OrgSettingsIdentityProviderOidcComponent } from './identity-provider/org-settings-identity-provider-oidc/org-settings-identity-provider-oidc.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioFormSlideToggleModule } from '../../shared/components/form-slide-toogle/gio-form-slide-toggle.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { GioFormCardGroupModule } from '../../shared/components/form-card-group/gio-form-card-group.module';
 
 @NgModule({
   imports: [
@@ -70,18 +78,26 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatPaginatorModule,
     MatSlideToggleModule,
     MatDividerModule,
+    MatRadioModule,
+    MatRippleModule,
 
     GioPermissionModule,
     GioConfirmDialogModule,
     GioAvatarModule,
     GioTableOfContentsModule,
     GioFormSlideToggleModule,
+    GioFormCardGroupModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,
     OrgSettingsUsersComponent,
     OrgSettingsNewUserComponent,
     OrgSettingsIdentityProvidersComponent,
+    OrgSettingsIdentityProviderComponent,
+    OrgSettingsIdentityProviderGoogleComponent,
+    OrgSettingsIdentityProviderOidcComponent,
+    OrgSettingsIdentityProviderGraviteeioAmComponent,
+    OrgSettingsIdentityProviderGithubComponent,
   ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
   entryComponents: [
@@ -89,6 +105,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     OrgSettingsUsersComponent,
     OrgSettingsNewUserComponent,
     OrgSettingsIdentityProvidersComponent,
+    OrgSettingsIdentityProviderComponent,
   ],
 })
 export class OrganizationSettingsModule {}

@@ -566,6 +566,7 @@ import { OrgSettingsGeneralComponent } from '../organization/configuration/conso
 import { OrgSettingsUsersComponent } from '../organization/configuration/users/org-settings-users.component';
 import { OrgSettingsNewUserComponent } from '../organization/configuration/user/new/org-settings-new-user.component';
 import { OrgSettingsIdentityProvidersComponent } from '../organization/configuration/identity-providers/org-settings-identity-providers.component';
+import { OrgSettingsIdentityProviderComponent } from '../organization/configuration/identity-provider/org-settings-identity-provider.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -1045,6 +1046,10 @@ graviteeManagementModule.component('identityProviders', IdentityProvidersCompone
 graviteeManagementModule.directive(
   'ngOrgSettingsIdentityProviders',
   downgradeComponent({ component: OrgSettingsIdentityProvidersComponent }),
+);
+graviteeManagementModule.directive(
+  'ngOrgSettingsIdentityProvider',
+  downgradeComponent({ component: OrgSettingsIdentityProviderComponent }),
 );
 
 graviteeManagementModule.component('identityProvider', IdentityProviderComponent);
