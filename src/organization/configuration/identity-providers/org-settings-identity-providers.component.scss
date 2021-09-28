@@ -1,3 +1,6 @@
+@use 'node_modules/@angular/material' as mat;
+@use '../../../scss/gio-palettes' as gio;
+
 @import '../../../scss/gio-layout';
 
 :host {
@@ -82,6 +85,16 @@
     &__logo {
       height: 24px;
       width: 24px;
+    }
+
+    &__status {
+      &__activated {
+        color: mat.get-color-from-palette(gio.$gio-success-palette, 'medium');
+      }
+
+      &__deactivated {
+        color: mat.get-color-from-palette(gio.$gio-warning-palette, 'medium');
+      }
     }
   }
 }

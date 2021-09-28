@@ -19,11 +19,11 @@ import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
-import { IdentityProvider } from '../../../entities/identity-provider/identityProvider';
-import { IdentityProviderListItem } from '../../../entities/identity-provider/identityProviderListItem';
+import { IdentityProvider, IdentityProviderListItem, IdentityProviderActivation } from '../../../entities/identity-provider';
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { OrganizationService } from '../../../services-ngx/organization.service';
 
 type TableData = {
   logo: string;
@@ -54,16 +54,19 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   constructor(
     private readonly identityProviderService: IdentityProviderService,
     private readonly consoleSettingsService: ConsoleSettingsService,
+    private readonly organizationService: OrganizationService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit() {
-    combineLatest([this.identityProviderService.list(), this.consoleSettingsService.get()]).subscribe(
-      ([identityProviders, consoleSettings]) => {
-        this.setDataSourceFromIdentityProviders(identityProviders);
-        this.consoleSettings = consoleSettings;
-      },
-    );
+    combineLatest([
+      this.identityProviderService.list(),
+      this.consoleSettingsService.get(),
+      this.organizationService.listActivatedIdentityProviders(),
+    ]).subscribe(([identityProviders, consoleSettings, activatedIdentityProviders]) => {
+      this.setDataSourceFromIdentityProviders(identityProviders, activatedIdentityProviders);
+      this.consoleSettings = consoleSettings;
+    });
   }
 
   ngOnDestroy() {
@@ -119,15 +122,18 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     return this.dataSource.data.some((idp) => idp.activated);
   }
 
-  private setDataSourceFromIdentityProviders(identityProviders: IdentityProviderListItem[]) {
+  private setDataSourceFromIdentityProviders(
+    identityProviders: IdentityProviderListItem[],
+    activatedIdentityProviders: IdentityProviderActivation[],
+  ) {
     this.dataSource = new MatTableDataSource<TableData>(
-      identityProviders.map((idp, index) => ({
+      identityProviders.map((idp) => ({
         logo: `assets/logo_${idp.type.toLowerCase()}-idp.svg`,
         id: idp.id,
         name: idp.name,
         description: idp.description,
         availableOnPortal: idp.enabled,
-        activated: index % 2 === 0,
+        activated: activatedIdentityProviders.some((activatedIdp) => activatedIdp.identityProvider === idp.id),
         sync: idp.sync,
         updatedAt: idp.updated_at,
       })),
@@ -139,7 +145,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       return this.providedConfigurationMessage;
     }
     if (!this.hasActivatedIdp()) {
-      return 'You must create an identity provider to be able to update this setting';
+      return 'You must create and activate an identity provider to be able to update this setting';
     }
     return null;
   }

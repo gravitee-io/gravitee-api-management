@@ -27,6 +27,7 @@ import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { fakeIdentityProviderListItem } from '../../../entities/identity-provider/identityProviderListItem.fixture';
+import { fakeIdentityProviderActivation } from '../../../entities/identity-provider';
 
 describe('OrgSettingsIdentityProvidersComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProvidersComponent>;
@@ -60,7 +61,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       },
     };
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`).flush(consoleSettings);
-
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/identities`).flush([fakeIdentityProviderActivation()]);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([]);
 
     expect(fixture.componentInstance).toBeDefined();
@@ -74,6 +75,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
     };
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`).flush(consoleSettings);
 
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/identities`).flush([fakeIdentityProviderActivation()]);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([
       fakeIdentityProviderListItem({
         enabled: true,
