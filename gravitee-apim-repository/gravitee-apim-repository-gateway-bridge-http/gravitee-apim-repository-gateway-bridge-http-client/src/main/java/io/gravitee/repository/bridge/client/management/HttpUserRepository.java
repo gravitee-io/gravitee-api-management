@@ -21,10 +21,11 @@ import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -54,7 +55,7 @@ public class HttpUserRepository extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Set<User> findByIds(List<String> ids) throws TechnicalException {
+    public Set<User> findByIds(List<String> ids) {
         throw new IllegalStateException();
     }
 
@@ -64,12 +65,17 @@ public class HttpUserRepository extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String organizationId) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
+    public Optional<User> findByEmail(String email, String organizationId) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<User> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

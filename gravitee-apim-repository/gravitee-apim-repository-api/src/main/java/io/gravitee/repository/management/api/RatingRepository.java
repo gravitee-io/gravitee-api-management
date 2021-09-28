@@ -27,7 +27,7 @@ import java.util.Optional;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface RatingRepository {
+public interface RatingRepository extends FindAllRepository<Rating> {
     Rating create(Rating rating) throws TechnicalException;
 
     Optional<Rating> findById(String id) throws TechnicalException;

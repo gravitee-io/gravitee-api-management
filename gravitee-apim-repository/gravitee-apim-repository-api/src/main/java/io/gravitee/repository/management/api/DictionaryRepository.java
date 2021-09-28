@@ -24,12 +24,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface DictionaryRepository extends CrudRepository<Dictionary, String> {
-    /**
-     * List all dictionaries
-     * @return all dictionaries
-     * @throws TechnicalException if something goes wrong
-     */
-    Set<Dictionary> findAll() throws TechnicalException;
 
     /**
      * List all dictionaries for requested environments

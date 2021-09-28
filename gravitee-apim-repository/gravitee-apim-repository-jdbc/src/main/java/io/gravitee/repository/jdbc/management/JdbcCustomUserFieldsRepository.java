@@ -43,7 +43,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcCustomUserFieldsRepository extends JdbcAbstractRepository<CustomUserField> implements CustomUserFieldsRepository {
+public class JdbcCustomUserFieldsRepository extends JdbcAbstractFindAllRepository<CustomUserField> implements CustomUserFieldsRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcCustomUserFieldsRepository.class);
 

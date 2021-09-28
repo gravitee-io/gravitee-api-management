@@ -18,9 +18,11 @@ package io.gravitee.repository.bridge.client.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,7 +37,7 @@ public class HttpRatingAnswerRepository extends AbstractRepository implements Ra
     }
 
     @Override
-    public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
+    public List<RatingAnswer> findByRating(String rating) {
         throw new IllegalStateException();
     }
 
@@ -51,6 +53,11 @@ public class HttpRatingAnswerRepository extends AbstractRepository implements Ra
 
     @Override
     public void delete(String id) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<RatingAnswer> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

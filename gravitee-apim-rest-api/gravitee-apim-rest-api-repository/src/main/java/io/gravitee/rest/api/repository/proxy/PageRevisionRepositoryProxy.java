@@ -17,15 +17,14 @@ package io.gravitee.rest.api.repository.proxy;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PageRevisionRepository;
-import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.repository.management.model.PageRevision;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -57,5 +56,10 @@ public class PageRevisionRepositoryProxy extends AbstractProxy<PageRevisionRepos
     @Override
     public Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException {
         return target.findById(pageId, revision);
+    }
+
+    @Override
+    public Set<PageRevision> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

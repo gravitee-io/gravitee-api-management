@@ -22,12 +22,15 @@ import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.mongodb.management.internal.membership.MembershipMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
-import java.util.*;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -110,7 +113,7 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) throws TechnicalException {
+    public void deleteMembers(MembershipReferenceType referenceType, String referenceId) {
         logger.debug("Delete memberships [{}, {}]", referenceType, referenceId);
         internalMembershipRepo.deleteByRef(referenceType.name(), referenceId);
         logger.debug("Delete memberships [{}, {}] - Done", referenceType, referenceId);
@@ -127,7 +130,7 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public Set<Membership> findByIds(Set<String> membershipIds) throws TechnicalException {
+    public Set<Membership> findByIds(Set<String> membershipIds) {
         logger.debug("Find membership by IDs [{}]", membershipIds);
 
         Set<Membership> memberships = internalMembershipRepo.findByIds(membershipIds).stream().map(this::map).collect(Collectors.toSet());
@@ -137,8 +140,7 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId)
-        throws TechnicalException {
+    public Set<Membership> findByReferenceAndRoleId(MembershipReferenceType referenceType, String referenceId, String roleId) {
         logger.debug("Find membership by reference and roleId [{}, {}, {}]", referenceType, referenceId, roleId);
         Set<MembershipMongo> membershipMongos;
         if (roleId == null) {
@@ -152,8 +154,7 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId)
-        throws TechnicalException {
+    public Set<Membership> findByReferencesAndRoleId(MembershipReferenceType referenceType, List<String> referenceIds, String roleId) {
         logger.debug("Find membership by references and roleId [{}, {}, {}]", referenceType, referenceIds, roleId);
         Set<MembershipMongo> membershipMongos;
         if (roleId == null) {
@@ -171,7 +172,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         String memberId,
         MembershipMemberType memberType,
         MembershipReferenceType referenceType
-    ) throws TechnicalException {
+    ) {
         logger.debug("Find membership by user and referenceType [{}, {}, {}]", memberId, memberType, referenceType);
         Set<Membership> memberships = internalMembershipRepo
             .findByMemberIdAndMemberTypeAndReferenceType(memberId, memberType.name(), referenceType.name())
@@ -183,7 +184,7 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public Set<Membership> findByRoleId(String roleId) throws TechnicalException {
+    public Set<Membership> findByRoleId(String roleId) {
         logger.debug("Find membership by roleId [{}]", roleId);
         Set<Membership> memberships = internalMembershipRepo.findByRoleId(roleId).stream().map(this::map).collect(Collectors.toSet());
         logger.debug("Find membership by roleId [{}] = {}", roleId, memberships);
@@ -196,7 +197,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
         String roleId
-    ) throws TechnicalException {
+    ) {
         logger.debug("Find membership by user and referenceType and roleId [{}, {}, {}, {}]", memberId, memberType, referenceType, roleId);
         Set<Membership> memberships = internalMembershipRepo
             .findByMemberIdAndMemberTypeAndReferenceTypeAndRoleId(memberId, memberType.name(), referenceType.name(), roleId)
@@ -220,7 +221,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
         String sourceId
-    ) throws TechnicalException {
+    ) {
         logger.debug(
             "Find membership by user and referenceType and sourceId [{}, {}, {}, {}]",
             memberId,
@@ -251,7 +252,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         MembershipReferenceType referenceType,
         String referenceId,
         String roleId
-    ) throws TechnicalException {
+    ) {
         logger.debug(
             "Find membership by user and referenceType and referenceId and roleId [{}, {}, {}, {}, {}]",
             memberId,
@@ -284,7 +285,7 @@ public class MongoMembershipRepository implements MembershipRepository {
     }
 
     @Override
-    public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) throws TechnicalException {
+    public Set<Membership> findByMemberIdAndMemberType(String memberId, MembershipMemberType memberType) {
         logger.debug("Find membership by user [{}, {}]", memberId, memberType);
         Set<Membership> memberships = internalMembershipRepo
             .findByMemberIdAndMemberType(memberId, memberType.name())
@@ -300,7 +301,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         List<String> memberIds,
         MembershipMemberType memberType,
         MembershipReferenceType referenceType
-    ) throws TechnicalException {
+    ) {
         logger.debug("Find membership by members and reference type [{}, {}, {}]", memberIds, memberType, referenceType);
         Set<Membership> memberships = internalMembershipRepo
             .findByMemberIdsAndMemberTypeAndReferenceType(memberIds, memberType.name(), referenceType.name())
@@ -317,7 +318,7 @@ public class MongoMembershipRepository implements MembershipRepository {
         MembershipMemberType memberType,
         MembershipReferenceType referenceType,
         String referenceId
-    ) throws TechnicalException {
+    ) {
         logger.debug("Find membership by member and reference [{}, {}, {}, {}]", memberId, memberType, referenceId, referenceType);
         Set<Membership> memberships = internalMembershipRepo
             .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(memberId, memberType.name(), referenceType.name(), referenceId)
@@ -360,5 +361,12 @@ public class MongoMembershipRepository implements MembershipRepository {
         membershipMongo.setCreatedAt(membership.getCreatedAt());
         membershipMongo.setUpdatedAt(membership.getUpdatedAt());
         return membershipMongo;
+    }
+
+    @Override
+    public Set<Membership> findAll() throws TechnicalException {
+        return internalMembershipRepo.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

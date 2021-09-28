@@ -19,10 +19,10 @@ import io.gravitee.repository.bridge.client.utils.BodyCodecs;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
-import java.util.Collection;
+import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -52,12 +52,12 @@ public class HttpOrganizationRepository extends AbstractRepository implements Or
     }
 
     @Override
-    public Long count() throws TechnicalException {
+    public Long count() {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
+    public Set<Organization> findByHrids(Set<String> hrids) {
         try {
             return blockingGet(
                 get("/organizations/_byHrids", BodyCodecs.set(Organization.class)).addQueryParam("hrids", String.join(",", hrids)).send()
@@ -70,7 +70,7 @@ public class HttpOrganizationRepository extends AbstractRepository implements Or
     }
 
     @Override
-    public Collection<Organization> findAll() throws TechnicalException {
+    public Set<Organization> findAll() throws TechnicalException {
         try {
             return blockingGet(get("/organizations", BodyCodecs.set(Organization.class)).send()).payload();
         } catch (TechnicalException te) {

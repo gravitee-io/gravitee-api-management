@@ -21,8 +21,10 @@ import io.gravitee.repository.management.api.AlertEventRepository;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AlertEvent;
-import java.util.Optional;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,27 +33,38 @@ import org.springframework.stereotype.Component;
 @Component
 public class AlertEventRepositoryProxy extends AbstractProxy<AlertEventRepository> implements AlertEventRepository {
 
+    @Override
     public Page<AlertEvent> search(AlertEventCriteria criteria, Pageable pageable) {
         return target.search(criteria, pageable);
     }
 
+    @Override
     public void deleteAll(String alertId) {
         target.deleteAll(alertId);
     }
 
+    @Override
     public Optional<AlertEvent> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
 
+    @Override
     public AlertEvent create(AlertEvent item) throws TechnicalException {
         return target.create(item);
     }
 
+    @Override
     public AlertEvent update(AlertEvent item) throws TechnicalException {
         return target.update(item);
     }
 
+    @Override
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public Set<AlertEvent> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

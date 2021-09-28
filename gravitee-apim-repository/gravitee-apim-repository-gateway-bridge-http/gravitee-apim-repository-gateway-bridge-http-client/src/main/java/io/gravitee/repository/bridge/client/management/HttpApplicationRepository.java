@@ -22,10 +22,11 @@ import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -60,17 +61,17 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids) throws TechnicalException {
+    public Set<Application> findByIds(List<String> ids) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) throws TechnicalException {
+    public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) throws TechnicalException {
+    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) {
         throw new IllegalStateException();
     }
 
@@ -82,5 +83,10 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     @Override
     public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException {
         throw new TechnicalException();
+    }
+
+    @Override
+    public Set<Application> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 }

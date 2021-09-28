@@ -23,13 +23,15 @@ import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.MetadataMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataMongo;
 import io.gravitee.repository.mongodb.management.internal.model.MetadataPkMongo;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -103,7 +105,7 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
-    public List<Metadata> findByReferenceType(MetadataReferenceType referenceType) throws TechnicalException {
+    public List<Metadata> findByReferenceType(MetadataReferenceType referenceType) {
         LOGGER.debug("Find metadata by ref type '{}'", referenceType);
 
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceType(referenceType);
@@ -113,8 +115,7 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
-    public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) {
         LOGGER.debug("Find metadata by ref type '{}'", referenceType);
 
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdReferenceTypeAndIdReferenceId(referenceType, referenceId);
@@ -124,7 +125,7 @@ public class MongoMetadataRepository implements MetadataRepository {
     }
 
     @Override
-    public List<Metadata> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) throws TechnicalException {
+    public List<Metadata> findByKeyAndReferenceType(final String key, final MetadataReferenceType referenceType) {
         LOGGER.debug("Find metadata by key '{}' and ref type '{}'", key, referenceType);
 
         final List<MetadataMongo> metadata = internalMetadataRepository.findByIdKeyAndIdReferenceType(key, referenceType);
@@ -158,5 +159,12 @@ public class MongoMetadataRepository implements MetadataRepository {
         metadataMongo.setCreatedAt(metadata.getCreatedAt());
         metadataMongo.setUpdatedAt(metadata.getUpdatedAt());
         return metadataMongo;
+    }
+
+    @Override
+    public Set<Metadata> findAll() throws TechnicalException {
+        return internalMetadataRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

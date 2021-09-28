@@ -19,9 +19,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.repository.management.model.EntrypointReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -59,5 +60,10 @@ public class EntrypointRepositoryProxy extends AbstractProxy<EntrypointRepositor
     @Override
     public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException {
         return target.findByReference(referenceId, referenceType);
+    }
+
+    @Override
+    public Set<Entrypoint> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

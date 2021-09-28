@@ -26,7 +26,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface AlertTriggerRepository extends CrudRepository<AlertTrigger, String> {
-    Set<AlertTrigger> findAll() throws TechnicalException;
 
     default List<AlertTrigger> findByReference(String referenceType, String referenceId) throws TechnicalException {
         return findByReferenceAndReferenceIds(referenceType, Arrays.asList(referenceId));

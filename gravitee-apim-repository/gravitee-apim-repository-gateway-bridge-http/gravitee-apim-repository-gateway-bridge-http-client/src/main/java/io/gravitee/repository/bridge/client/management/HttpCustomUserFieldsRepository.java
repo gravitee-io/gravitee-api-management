@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.model.CustomUserField;
 import io.gravitee.repository.management.model.CustomUserFieldReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -51,8 +53,12 @@ public class HttpCustomUserFieldsRepository extends AbstractRepository implement
     }
 
     @Override
-    public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType refType)
-        throws TechnicalException {
+    public List<CustomUserField> findByReferenceIdAndReferenceType(String refId, CustomUserFieldReferenceType refType) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<CustomUserField> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

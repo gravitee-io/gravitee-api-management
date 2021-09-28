@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -51,18 +53,22 @@ public class HttpMetadataRepository extends AbstractRepository implements Metada
     }
 
     @Override
-    public List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType) throws TechnicalException {
+    public List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<Metadata> findByReferenceType(MetadataReferenceType referenceType) throws TechnicalException {
+    public List<Metadata> findByReferenceType(MetadataReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
-    public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public List<Metadata> findByReferenceTypeAndReferenceId(MetadataReferenceType referenceType, String referenceId) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Metadata> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

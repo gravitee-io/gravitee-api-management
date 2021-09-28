@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -67,5 +69,10 @@ public class GenericNotificationConfigRepositoryProxy
     @Override
     public void deleteByConfig(String config) throws TechnicalException {
         target.deleteByConfig(config);
+    }
+
+    @Override
+    public Set<GenericNotificationConfig> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

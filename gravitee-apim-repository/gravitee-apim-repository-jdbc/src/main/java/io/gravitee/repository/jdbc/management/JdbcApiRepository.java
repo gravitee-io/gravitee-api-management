@@ -15,11 +15,6 @@
  */
 package io.gravitee.repository.jdbc.management;
 
-import static java.lang.String.format;
-import static org.springframework.util.CollectionUtils.isEmpty;
-import static org.springframework.util.StringUtils.hasText;
-import static org.springframework.util.StringUtils.isEmpty;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -30,17 +25,25 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
-import io.gravitee.repository.management.model.*;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Types;
-import java.util.*;
-import java.util.stream.Collectors;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Types;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static org.springframework.util.CollectionUtils.isEmpty;
+import static org.springframework.util.StringUtils.hasText;
 
 /**
  * @author njt
@@ -374,5 +377,17 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             addGroups(api);
         }
         return apis;
+    }
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        LOGGER.debug("JdbcApiRepository.findAll()");
+        try {
+            return new HashSet<>(jdbcTemplate.query(getOrm().getSelectAllSql(), getRowMapper()));
+        } catch (final Exception ex) {
+            final String error = "Failed to find all api";
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
     }
 }

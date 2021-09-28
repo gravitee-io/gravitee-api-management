@@ -20,10 +20,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -38,7 +39,7 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     }
 
     @Override
-    public List<ApiKey> findByKey(String apiKey) throws TechnicalException {
+    public List<ApiKey> findByKey(String apiKey) {
         throw new IllegalStateException();
     }
 
@@ -58,17 +59,22 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     }
 
     @Override
-    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+    public Set<ApiKey> findBySubscription(String subscription) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Set<ApiKey> findByPlan(String plan) throws TechnicalException {
+    public Set<ApiKey> findByPlan(String plan) {
         throw new IllegalStateException();
     }
 
     @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
         return blockingGet(post("/keys/_search", BodyCodecs.list(ApiKey.class)).send(filter)).payload();
+    }
+
+    @Override
+    public Set<ApiKey> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 }

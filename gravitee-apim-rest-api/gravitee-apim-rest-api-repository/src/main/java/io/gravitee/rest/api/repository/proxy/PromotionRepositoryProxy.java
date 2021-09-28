@@ -22,8 +22,10 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.PromotionCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.Promotion;
-import java.util.Optional;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class PromotionRepositoryProxy extends AbstractProxy<PromotionRepository> implements PromotionRepository {
@@ -51,5 +53,10 @@ public class PromotionRepositoryProxy extends AbstractProxy<PromotionRepository>
     @Override
     public Page<Promotion> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException {
         return target.search(criteria, sortable, pageable);
+    }
+
+    @Override
+    public Set<Promotion> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

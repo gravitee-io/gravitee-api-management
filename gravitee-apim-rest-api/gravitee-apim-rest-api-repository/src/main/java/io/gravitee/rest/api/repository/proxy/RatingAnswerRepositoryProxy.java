@@ -18,9 +18,11 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -52,5 +54,10 @@ public class RatingAnswerRepositoryProxy extends AbstractProxy<RatingAnswerRepos
     @Override
     public void delete(String id) throws TechnicalException {
         target.delete(id);
+    }
+
+    @Override
+    public Set<RatingAnswer> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

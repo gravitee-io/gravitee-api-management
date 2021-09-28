@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -58,5 +60,10 @@ public class FlowRepositoryProxy extends AbstractProxy<FlowRepository> implement
     @Override
     public void delete(String id) throws TechnicalException {
         target.delete(id);
+    }
+
+    @Override
+    public Set<Flow> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

@@ -26,6 +26,7 @@ import io.gravitee.repository.mongodb.management.internal.page.revision.PageRevi
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,5 +109,12 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
             logger.error("An error occurred when querying last revision for page [{}]", pageId, e);
             throw new TechnicalException("An error occurred when querying the last page revision");
         }
+    }
+
+    @Override
+    public Set<PageRevision> findAll() throws TechnicalException {
+        return internalPageRevisionRepo.findAll().stream()
+                .map(pageRevisionMongo -> mapper.map(pageRevisionMongo, PageRevision.class))
+                .collect(Collectors.toSet());
     }
 }

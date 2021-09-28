@@ -19,10 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.model.ApiKey;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -69,5 +70,10 @@ public class ApiKeyRepositoryProxy extends AbstractProxy<ApiKeyRepository> imple
     @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException {
         return target.findByCriteria(filter);
+    }
+
+    @Override
+    public Set<ApiKey> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

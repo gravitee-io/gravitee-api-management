@@ -25,10 +25,11 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.*;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -97,12 +98,12 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
-    public Set<Application> findByIds(List<String> ids) throws TechnicalException {
+    public Set<Application> findByIds(List<String> ids) {
         return mapApplications(internalApplicationRepo.findByIds(ids));
     }
 
     @Override
-    public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) throws TechnicalException {
+    public Set<Application> findByGroups(List<String> groupIds, ApplicationStatus... statuses) {
         if (statuses != null && statuses.length > 0) {
             return mapApplications(internalApplicationRepo.findByGroups(groupIds, Arrays.asList(statuses)));
         } else {
@@ -111,7 +112,7 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
-    public Set<Application> findByNameAndStatuses(String partialName, ApplicationStatus... statuses) throws TechnicalException {
+    public Set<Application> findByNameAndStatuses(String partialName, ApplicationStatus... statuses) {
         if (statuses != null && statuses.length > 0) {
             return mapApplications(internalApplicationRepo.findByNameAndStatuses(partialName, Arrays.asList(statuses)));
         } else {
@@ -149,11 +150,18 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
-    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) throws TechnicalException {
+    public Set<Application> findAllByEnvironment(String environmentId, ApplicationStatus... statuses) {
         if (statuses != null && statuses.length > 0) {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId, Arrays.asList(statuses)));
         } else {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId));
         }
+    }
+
+    @Override
+    public Set<Application> findAll() throws TechnicalException {
+        return internalApplicationRepo.findAll().stream()
+                .map(this::mapApplication)
+                .collect(Collectors.toSet());
     }
 }

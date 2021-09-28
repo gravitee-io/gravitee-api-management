@@ -25,6 +25,7 @@ import io.gravitee.repository.management.model.Organization;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -82,7 +83,7 @@ public class OrganizationRepositoryMock extends AbstractRepositoryMock<Organizat
         when(organizationRepository.findById("DEFAULT-ORG-findById")).thenReturn(of(orgFindById));
 
         when(organizationRepository.count()).thenReturn(4L);
-        when(organizationRepository.findAll()).thenReturn(Arrays.asList(orgCreate, orgUpdated, orgFindById, orgDefault));
+        when(organizationRepository.findAll()).thenReturn(Set.of(orgCreate, orgUpdated, orgFindById, orgDefault));
 
         when(organizationRepository.findByHrids(newSet("def", "ate"))).thenReturn(newSet(orgFindById, orgUpdated));
     }

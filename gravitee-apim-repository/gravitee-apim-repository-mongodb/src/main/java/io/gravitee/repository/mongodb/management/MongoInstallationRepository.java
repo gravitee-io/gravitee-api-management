@@ -21,11 +21,14 @@ import io.gravitee.repository.management.model.Installation;
 import io.gravitee.repository.mongodb.management.internal.installation.InstallationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.InstallationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -34,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MongoInstallationRepository implements InstallationRepository {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private InstallationMongoRepository internalRepository;
@@ -96,5 +99,12 @@ public class MongoInstallationRepository implements InstallationRepository {
 
     private Installation map(InstallationMongo installationMongoMongo) {
         return mapper.map(installationMongoMongo, Installation.class);
+    }
+
+    @Override
+    public Set<Installation> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

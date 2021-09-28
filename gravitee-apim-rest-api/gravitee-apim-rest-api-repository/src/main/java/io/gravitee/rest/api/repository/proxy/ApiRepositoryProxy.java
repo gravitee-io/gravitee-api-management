@@ -24,6 +24,9 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
+import io.gravitee.repository.management.model.ApiQualityRule;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,5 +70,10 @@ public class ApiRepositoryProxy extends AbstractProxy<ApiRepository> implements 
     @Override
     public List<Api> search(ApiCriteria apiCriteria, ApiFieldExclusionFilter apiFieldExclusionFilter) {
         return target.search(apiCriteria, apiFieldExclusionFilter);
+    }
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

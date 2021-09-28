@@ -17,19 +17,19 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.PortalNotification;
-import io.gravitee.repository.mongodb.management.internal.model.ApiMongo;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNotificationMongo;
 import io.gravitee.repository.mongodb.management.internal.notification.PortalNotificationMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -47,7 +47,7 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     private GraviteeMapper mapper;
 
     @Override
-    public List<PortalNotification> findByUser(String user) throws TechnicalException {
+    public List<PortalNotification> findByUser(String user) {
         LOGGER.debug("Find notifications by user: {}", user);
         return internalRepo.findByUser(user).stream().map(n -> mapper.map(n, PortalNotification.class)).collect(Collectors.toList());
     }
@@ -86,8 +86,15 @@ public class MongoPortalNotificationRepository implements PortalNotificationRepo
     }
 
     @Override
-    public void deleteAll(String user) throws TechnicalException {
+    public void deleteAll(String user) {
         LOGGER.debug("Delete notification for user : {}", user);
         internalRepo.deleteAll(user);
+    }
+
+    @Override
+    public Set<PortalNotification> findAll() throws TechnicalException {
+        return internalRepo.findAll().stream()
+                .map(this::mapPortalNotification)
+                .collect(Collectors.toSet());
     }
 }

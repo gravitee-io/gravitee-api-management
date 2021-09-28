@@ -22,10 +22,11 @@ import io.gravitee.repository.management.api.search.ApplicationCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.ApplicationStatus;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -83,5 +84,10 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     @Override
     public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... statuses) throws TechnicalException {
         return target.findAllByEnvironment(environment, statuses);
+    }
+
+    @Override
+    public Set<Application> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

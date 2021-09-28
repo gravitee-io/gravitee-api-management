@@ -22,14 +22,16 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.ParameterMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterPkMongo;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -55,8 +57,7 @@ public class MongoParameterRepository implements ParameterRepository {
     }
 
     @Override
-    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType)
-        throws TechnicalException {
+    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) {
         LOGGER.debug("Find parameters by keys [{}]", keys);
         List<ParameterPkMongo> pkList = keys
             .stream()
@@ -64,7 +65,7 @@ public class MongoParameterRepository implements ParameterRepository {
             .collect(Collectors.toList());
         Iterable<ParameterMongo> all = internalParameterRepo.findAllById(pkList);
         LOGGER.debug("Find parameters by keys [{}] - Done", keys);
-        return StreamSupport.stream(all.spliterator(), false).map(parameter -> map(parameter)).collect(Collectors.toList());
+        return StreamSupport.stream(all.spliterator(), false).map(this::map).collect(Collectors.toList());
     }
 
     @Override
@@ -93,8 +94,8 @@ public class MongoParameterRepository implements ParameterRepository {
             ParameterMongo parameterMongoUpdated = internalParameterRepo.save(parameterMongo);
             return map(parameterMongoUpdated);
         } catch (Exception e) {
-            LOGGER.error("An error occured when updating parameter", e);
-            throw new TechnicalException("An error occured when updating parameter");
+            LOGGER.error("An error occurred when updating parameter", e);
+            throw new TechnicalException("An error occurred when updating parameter");
         }
     }
 
@@ -103,8 +104,8 @@ public class MongoParameterRepository implements ParameterRepository {
         try {
             internalParameterRepo.deleteById(new ParameterPkMongo(parameterKey, referenceId, referenceType.name()));
         } catch (Exception e) {
-            LOGGER.error("An error occured when deleting parameter [{}]", parameterKey, e);
-            throw new TechnicalException("An error occured when deleting parameter");
+            LOGGER.error("An error occurred when deleting parameter [{}]", parameterKey, e);
+            throw new TechnicalException("An error occurred when deleting parameter");
         }
     }
 
@@ -114,7 +115,7 @@ public class MongoParameterRepository implements ParameterRepository {
         Iterable<ParameterMongo> all = internalParameterRepo.findAll(referenceId, referenceType.name());
 
         LOGGER.debug("Find parameters by keys and env - Done");
-        return StreamSupport.stream(all.spliterator(), false).map(parameter -> map(parameter)).collect(Collectors.toList());
+        return StreamSupport.stream(all.spliterator(), false).map(this::map).collect(Collectors.toList());
     }
 
     private Parameter map(final ParameterMongo parameterMongo) {
@@ -134,5 +135,12 @@ public class MongoParameterRepository implements ParameterRepository {
         parameterMongo.setId(new ParameterPkMongo(parameter.getKey(), parameter.getReferenceId(), parameter.getReferenceType().name()));
         parameterMongo.setValue(parameter.getValue());
         return parameterMongo;
+    }
+
+    @Override
+    public Set<Parameter> findAll() throws TechnicalException {
+        return internalParameterRepo.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

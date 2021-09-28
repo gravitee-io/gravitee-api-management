@@ -16,16 +16,15 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-import io.gravitee.repository.management.model.*;
+import io.gravitee.repository.management.model.Token;
+
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface TokenRepository extends CrudRepository<Token, String> {
+
     List<Token> findByReference(String referenceType, String referenceId) throws TechnicalException;
-    Set<Token> findAll() throws TechnicalException;
 }

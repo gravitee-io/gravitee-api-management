@@ -15,9 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
-
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingRepository;
@@ -26,14 +23,20 @@ import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.RatingMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.RatingMongo;
-import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -60,7 +63,7 @@ public class MongoRatingRepository implements RatingRepository {
         final String referenceId,
         final RatingReferenceType referenceType,
         final String user
-    ) throws TechnicalException {
+    ) {
         LOGGER.debug("Find rating by ref [{}] and user [{}]", referenceId, user);
         final RatingMongo rating = internalRatingRepository.findByReferenceIdAndReferenceTypeAndUser(
             referenceId,
@@ -84,7 +87,7 @@ public class MongoRatingRepository implements RatingRepository {
         final String referenceId,
         final RatingReferenceType referenceType,
         final Pageable pageable
-    ) throws TechnicalException {
+    ) {
         LOGGER.debug("Find rating by ref [{}] with pagination", referenceId);
         final org.springframework.data.domain.Page<RatingMongo> ratingPageMongo = internalRatingRepository.findByReferenceIdAndReferenceType(
             referenceId,
@@ -173,5 +176,12 @@ public class MongoRatingRepository implements RatingRepository {
         ratingMongo.setCreatedAt(rating.getCreatedAt());
         ratingMongo.setUpdatedAt(rating.getUpdatedAt());
         return ratingMongo;
+    }
+
+    @Override
+    public Set<Rating> findAll() throws TechnicalException {
+        return internalRatingRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

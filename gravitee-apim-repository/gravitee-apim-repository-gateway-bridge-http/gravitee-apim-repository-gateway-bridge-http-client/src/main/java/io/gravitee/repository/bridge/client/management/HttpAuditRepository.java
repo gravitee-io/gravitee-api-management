@@ -21,8 +21,10 @@ import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Audit;
-import java.util.Optional;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -43,6 +45,11 @@ public class HttpAuditRepository extends AbstractRepository implements AuditRepo
 
     @Override
     public Page<Audit> search(AuditCriteria filter, Pageable pageable) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Audit> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

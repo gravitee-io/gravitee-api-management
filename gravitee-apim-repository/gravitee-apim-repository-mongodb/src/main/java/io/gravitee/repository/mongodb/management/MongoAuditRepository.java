@@ -24,12 +24,14 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.mongodb.management.internal.audit.AuditMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AuditMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -73,8 +75,13 @@ public class MongoAuditRepository implements AuditRepository {
 
         Audit res = mapper.map(createdAuditMongo, Audit.class);
 
-        LOGGER.debug("Create audit [{}] - Done", audit.toString());
+        LOGGER.debug("Create audit [{}] - Done", audit);
 
         return res;
+    }
+
+    @Override
+    public Set<Audit> findAll() throws TechnicalException {
+        throw new IllegalStateException("not implemented cause of high amount of data. Use pageable search instead");
     }
 }

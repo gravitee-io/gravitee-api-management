@@ -21,13 +21,14 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
+
 import java.util.Optional;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface TicketRepository {
+public interface TicketRepository extends FindAllRepository<Ticket> {
     Ticket create(Ticket item) throws TechnicalException;
 
     Page<Ticket> search(TicketCriteria criteria, Sortable sortable, Pageable pageable) throws TechnicalException;

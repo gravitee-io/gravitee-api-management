@@ -23,9 +23,11 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,5 +80,10 @@ public class HttpApiRepository extends AbstractRepository implements ApiReposito
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);
         }
+    }
+
+    @Override
+    public Set<Api> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 }

@@ -37,7 +37,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcPageRevisionRepository extends JdbcAbstractRepository<PageRevision> implements PageRevisionRepository {
+public class JdbcPageRevisionRepository extends JdbcAbstractFindAllRepository<PageRevision> implements PageRevisionRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPageRevisionRepository.class);
 

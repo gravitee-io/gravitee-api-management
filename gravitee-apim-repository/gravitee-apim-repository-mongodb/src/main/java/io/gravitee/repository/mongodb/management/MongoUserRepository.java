@@ -24,14 +24,16 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -41,8 +43,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class MongoUserRepository implements UserRepository {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
-    private Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Pattern escaper = Pattern.compile("([^a-zA-z0-9])");
 
     @Autowired
     private UserMongoRepository internalUserRepo;
@@ -51,7 +53,7 @@ public class MongoUserRepository implements UserRepository {
     private GraviteeMapper mapper;
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String organizationId) {
         logger.debug("Find user by name source[{}] user[{}]", source, sourceId);
 
         String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
@@ -62,7 +64,7 @@ public class MongoUserRepository implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
+    public Optional<User> findByEmail(String email, String organizationId) {
         logger.debug("Find user by email [{}]", email);
 
         UserMongo user = internalUserRepo.findByEmail(email, organizationId);
@@ -72,7 +74,7 @@ public class MongoUserRepository implements UserRepository {
     }
 
     @Override
-    public Set<User> findByIds(List<String> ids) throws TechnicalException {
+    public Set<User> findByIds(List<String> ids) {
         logger.debug("Find user by identifiers user [{}]", ids);
 
         Set<UserMongo> usersMongo = internalUserRepo.findByIds(ids);
@@ -155,5 +157,12 @@ public class MongoUserRepository implements UserRepository {
     public void delete(String id) throws TechnicalException {
         logger.debug("Delete user [{}]", id);
         internalUserRepo.deleteById(id);
+    }
+
+    @Override
+    public Set<User> findAll() throws TechnicalException {
+        return internalUserRepo.findAll().stream()
+                .map(userMongo -> mapper.map(userMongo, User.class))
+                .collect(Collectors.toSet());
     }
 }

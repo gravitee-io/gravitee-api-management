@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -64,5 +66,10 @@ public class MetadataRepositoryProxy extends AbstractProxy<MetadataRepository> i
     @Override
     public List<Metadata> findByKeyAndReferenceType(String key, MetadataReferenceType referenceType) throws TechnicalException {
         return target.findByKeyAndReferenceType(key, referenceType);
+    }
+
+    @Override
+    public Set<Metadata> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

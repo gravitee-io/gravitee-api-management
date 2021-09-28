@@ -21,12 +21,13 @@ import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.mongodb.management.internal.model.PlanMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.PlanMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -42,12 +43,12 @@ public class MongoPlanRepository implements PlanRepository {
     private PlanMongoRepository internalPlanRepository;
 
     @Override
-    public List<Plan> findByApis(List<String> apiIds) throws TechnicalException {
+    public List<Plan> findByApis(List<String> apiIds) {
         return internalPlanRepository.findByApiIn(apiIds).stream().map(this::map).collect(Collectors.toList());
     }
 
     @Override
-    public Set<Plan> findByApi(String apiId) throws TechnicalException {
+    public Set<Plan> findByApi(String apiId) {
         return internalPlanRepository.findByApi(apiId).stream().map(this::map).collect(Collectors.toSet());
     }
 
@@ -92,5 +93,12 @@ public class MongoPlanRepository implements PlanRepository {
 
     private Plan map(PlanMongo planMongo) {
         return (planMongo == null) ? null : mapper.map(planMongo, Plan.class);
+    }
+
+    @Override
+    public Set<Plan> findAll() throws TechnicalException {
+        return internalPlanRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

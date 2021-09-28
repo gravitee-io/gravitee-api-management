@@ -22,13 +22,15 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.mongodb.management.internal.flow.FlowMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.FlowMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -37,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MongoFlowRepository implements FlowRepository {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private FlowMongoRepository internalRepository;
@@ -70,13 +72,12 @@ public class MongoFlowRepository implements FlowRepository {
             throw new IllegalStateException("Group must not be null");
         }
 
-        final FlowMongo flowMongo = internalRepository
+        internalRepository
             .findById(flow.getId())
             .orElseThrow(() -> new IllegalStateException(String.format("No flow found with id [%s]", flow.getId())));
 
         logger.debug("Update flow [{}]", flow.getName());
-        Flow updatedFlow = map(internalRepository.save(map(flow)));
-        return updatedFlow;
+        return map(internalRepository.save(map(flow)));
     }
 
     @Override
@@ -103,5 +104,12 @@ public class MongoFlowRepository implements FlowRepository {
 
     private Flow map(FlowMongo flow) {
         return mapper.map(flow, Flow.class);
+    }
+
+    @Override
+    public Set<Flow> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

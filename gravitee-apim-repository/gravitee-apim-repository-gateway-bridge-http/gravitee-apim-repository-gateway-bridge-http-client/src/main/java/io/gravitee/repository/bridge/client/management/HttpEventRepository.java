@@ -23,9 +23,11 @@ import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
 import io.vertx.ext.web.codec.BodyCodec;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -94,5 +96,10 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
             // Ensure that an exception is thrown and managed by the caller
             throw new IllegalStateException(te);
         }
+    }
+
+    @Override
+    public Set<Event> findAll() throws TechnicalException {
+        throw new IllegalStateException();
     }
 }

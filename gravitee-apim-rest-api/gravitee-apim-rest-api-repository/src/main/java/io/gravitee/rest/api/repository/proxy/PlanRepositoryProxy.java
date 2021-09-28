@@ -18,10 +18,11 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,23 +36,33 @@ public class PlanRepositoryProxy extends AbstractProxy<PlanRepository> implement
         return target.findByApis(apiIds);
     }
 
+    @Override
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         return target.findByApi(apiId);
     }
 
+    @Override
     public Optional<Plan> findById(String s) throws TechnicalException {
         return target.findById(s);
     }
 
+    @Override
     public Plan create(Plan item) throws TechnicalException {
         return target.create(item);
     }
 
+    @Override
     public Plan update(Plan item) throws TechnicalException {
         return target.update(item);
     }
 
+    @Override
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public Set<Plan> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

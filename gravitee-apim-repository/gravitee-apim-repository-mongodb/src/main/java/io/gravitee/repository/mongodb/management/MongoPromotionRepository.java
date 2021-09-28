@@ -25,12 +25,15 @@ import io.gravitee.repository.management.model.Promotion;
 import io.gravitee.repository.mongodb.management.internal.model.PromotionMongo;
 import io.gravitee.repository.mongodb.management.internal.promotion.PromotionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class MongoPromotionRepository implements PromotionRepository {
@@ -107,5 +110,12 @@ public class MongoPromotionRepository implements PromotionRepository {
 
         logger.debug("Searching promotions - Done");
         return new Page<>(content, promotions.getPageNumber(), (int) promotions.getPageElements(), promotions.getTotalElements());
+    }
+
+    @Override
+    public Set<Promotion> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

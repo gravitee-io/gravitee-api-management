@@ -20,10 +20,11 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.model.Membership;
 import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -147,5 +148,10 @@ public class MembershipRepositoryProxy extends AbstractProxy<MembershipRepositor
         String referenceId
     ) throws TechnicalException {
         return target.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(memberId, memberType, referenceType, referenceId);
+    }
+
+    @Override
+    public Set<Membership> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

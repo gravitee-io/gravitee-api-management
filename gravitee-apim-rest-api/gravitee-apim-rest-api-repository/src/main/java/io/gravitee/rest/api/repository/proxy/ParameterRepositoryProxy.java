@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -59,5 +61,10 @@ public class ParameterRepositoryProxy extends AbstractProxy<ParameterRepository>
     @Override
     public List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
         return target.findAll(referenceId, referenceType);
+    }
+
+    @Override
+    public Set<Parameter> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

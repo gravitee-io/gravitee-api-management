@@ -19,9 +19,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.TenantRepository;
 import io.gravitee.repository.management.model.Tenant;
 import io.gravitee.repository.management.model.TenantReferenceType;
+import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,5 +60,10 @@ public class TenantRepositoryProxy extends AbstractProxy<TenantRepository> imple
     @Override
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public Set<Tenant> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

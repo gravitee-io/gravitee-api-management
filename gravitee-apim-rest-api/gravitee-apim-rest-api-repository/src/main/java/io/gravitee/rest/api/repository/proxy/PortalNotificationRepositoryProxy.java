@@ -18,9 +18,11 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.model.PortalNotification;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -62,5 +64,10 @@ public class PortalNotificationRepositoryProxy extends AbstractProxy<PortalNotif
     @Override
     public void deleteAll(String s) throws TechnicalException {
         target.deleteAll(s);
+    }
+
+    @Override
+    public Set<PortalNotification> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

@@ -21,13 +21,15 @@ import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.GenericNotificationConfigMongo;
 import io.gravitee.repository.mongodb.management.internal.notification.GenericNotificationConfigMongoRepository;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -85,8 +87,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
     }
 
     @Override
-    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public List<GenericNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) {
         LOGGER.debug("Find GenericNotificationConfig [{}, {}, {}]", hook, referenceType, referenceId);
         return internalRepo
             .findByReferenceAndHook(hook, referenceType.name(), referenceId)
@@ -103,7 +104,7 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
     }
 
     @Override
-    public void deleteByConfig(String config) throws TechnicalException {
+    public void deleteByConfig(String config) {
         LOGGER.debug("Delete GenericNotificationConfig by config [{}]", config);
         internalRepo.deleteByConfig(config);
     }
@@ -138,5 +139,12 @@ public class MongoGenericNotificationConfigRepository implements GenericNotifica
         cfg.setUpdatedAt(mongo.getUpdatedAt());
 
         return cfg;
+    }
+
+    @Override
+    public Set<GenericNotificationConfig> findAll() throws TechnicalException {
+        return internalRepo.findAll().stream()
+                .map(this::map)
+                .collect(Collectors.toSet());
     }
 }

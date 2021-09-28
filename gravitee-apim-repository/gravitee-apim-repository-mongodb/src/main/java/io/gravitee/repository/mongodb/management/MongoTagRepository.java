@@ -22,14 +22,15 @@ import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.TagMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.TagMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -57,7 +58,7 @@ public class MongoTagRepository implements TagRepository {
     }
 
     @Override
-    public Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) throws TechnicalException {
+    public Optional<Tag> findByIdAndReference(String tagId, String referenceId, TagReferenceType referenceType) {
         LOGGER.debug("Find tag by ID and reference [{}, {}, {}]", tagId, referenceId, referenceType);
 
         final TagMongo tag = internalTagRepo.findByIdAndReferenceIdAndReferenceType(tagId, referenceId, referenceType).orElse(null);
@@ -122,5 +123,12 @@ public class MongoTagRepository implements TagRepository {
     public Set<Tag> findByReference(String referenceId, TagReferenceType referenceType) throws TechnicalException {
         final List<TagMongo> tags = internalTagRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
         return tags.stream().map(tagMongo -> mapper.map(tagMongo, Tag.class)).collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Tag> findAll() throws TechnicalException {
+        return internalTagRepo.findAll().stream()
+                .map(tagMongo -> mapper.map(tagMongo, Tag.class))
+                .collect(Collectors.toSet());
     }
 }

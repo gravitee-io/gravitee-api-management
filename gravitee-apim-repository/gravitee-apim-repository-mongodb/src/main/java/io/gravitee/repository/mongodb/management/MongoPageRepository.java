@@ -130,8 +130,8 @@ public class MongoPageRepository implements PageRepository {
             PageMongo pageMongoUpdated = internalPageRepo.save(pageMongo);
             return mapper.map(pageMongoUpdated, Page.class);
         } catch (Exception e) {
-            logger.error("An error occured when updating page", e);
-            throw new TechnicalException("An error occured when updating page");
+            logger.error("An error occurred when updating page", e);
+            throw new TechnicalException("An error occurred when updating page");
         }
     }
 
@@ -154,8 +154,8 @@ public class MongoPageRepository implements PageRepository {
         try {
             internalPageRepo.deleteById(pageId);
         } catch (Exception e) {
-            logger.error("An error occured when deleting page [{}]", pageId, e);
-            throw new TechnicalException("An error occured when deleting page");
+            logger.error("An error occurred when deleting page [{}]", pageId, e);
+            throw new TechnicalException("An error occurred when deleting page");
         }
     }
 
@@ -165,8 +165,8 @@ public class MongoPageRepository implements PageRepository {
         try {
             return internalPageRepo.findMaxPageReferenceIdAndReferenceTypeOrder(referenceId, referenceType.name());
         } catch (Exception e) {
-            logger.error("An error occured when searching max order page for reference [{}, {}]", referenceId, referenceType, e);
-            throw new TechnicalException("An error occured when searching max order page for reference");
+            logger.error("An error occurred when searching max order page for reference [{}, {}]", referenceId, referenceType, e);
+            throw new TechnicalException("An error occurred when searching max order page for reference");
         }
     }
 
@@ -175,7 +175,7 @@ public class MongoPageRepository implements PageRepository {
         try {
             io.gravitee.common.data.domain.Page<PageMongo> page = internalPageRepo.findAll(pageable);
             List<Page> pageItems = mapper.collection2list(page.getContent(), PageMongo.class, Page.class);
-            return new io.gravitee.common.data.domain.Page<Page>(
+            return new io.gravitee.common.data.domain.Page<>(
                 pageItems,
                 page.getPageNumber(),
                 pageItems.size(),
@@ -207,5 +207,12 @@ public class MongoPageRepository implements PageRepository {
                 }
             )
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public Set<Page> findAll() throws TechnicalException {
+        return internalPageRepo.findAll().stream()
+                .map(pageMongo -> mapper.map(pageMongo, Page.class))
+                .collect(Collectors.toSet());
     }
 }

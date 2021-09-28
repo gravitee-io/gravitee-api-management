@@ -15,27 +15,26 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
-import io.gravitee.repository.management.api.QualityRuleRepository;
-import io.gravitee.repository.management.model.Api;
-import io.gravitee.repository.management.model.ApiQualityRule;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.ApiQualityRule;
 import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRulePkMongo;
-import io.gravitee.repository.mongodb.management.internal.model.QualityRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.quality.ApiQualityRuleMongoRepository;
-import io.gravitee.repository.mongodb.management.internal.quality.QualityRuleMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -125,13 +124,13 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
     }
 
     @Override
-    public List<ApiQualityRule> findByApi(String api) throws TechnicalException {
+    public List<ApiQualityRule> findByApi(String api) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdApi(api);
         return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class)).collect(toList());
     }
 
     @Override
-    public List<ApiQualityRule> findByQualityRule(String qualityRule) throws TechnicalException {
+    public List<ApiQualityRule> findByQualityRule(String qualityRule) {
         final List<ApiQualityRuleMongo> apiQualityRules = internalApiQualityRuleRepo.findByIdQualityRule(qualityRule);
         return apiQualityRules.stream().map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class)).collect(toList());
     }
@@ -156,5 +155,12 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
             LOGGER.error(error, e);
             throw new TechnicalException(error);
         }
+    }
+
+    @Override
+    public Set<ApiQualityRule> findAll() throws TechnicalException {
+        return internalApiQualityRuleRepo.findAll().stream()
+                .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class))
+                .collect(Collectors.toSet());
     }
 }

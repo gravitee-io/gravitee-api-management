@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
+import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.mongodb.management.internal.key.ApiKeyMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +36,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MongoApiKeyRepository implements ApiKeyRepository {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MongoApiKeyRepository.class);
 
     @Autowired
     private GraviteeMapper mapper;
@@ -72,7 +68,7 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public Set<ApiKey> findBySubscription(String subscription) throws TechnicalException {
+    public Set<ApiKey> findBySubscription(String subscription) {
         return internalApiKeyRepo
             .findBySubscription(subscription)
             .stream()
@@ -96,12 +92,19 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public List<ApiKey> findByKey(String key) throws TechnicalException {
+    public List<ApiKey> findByKey(String key) {
         return internalApiKeyRepo.findByKey(key).stream().map(apiKey -> mapper.map(apiKey, ApiKey.class)).collect(Collectors.toList());
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
+    public Optional<ApiKey> findByKeyAndApi(String key, String api) {
         return internalApiKeyRepo.findByKeyAndApi(key, api).stream().findFirst().map(apiKey -> mapper.map(apiKey, ApiKey.class));
+    }
+
+    @Override
+    public Set<ApiKey> findAll() throws TechnicalException {
+        return internalApiKeyRepo.findAll().stream()
+                .map(apiKeyMongo -> mapper.map(apiKeyMongo, ApiKey.class))
+                .collect(Collectors.toSet());
     }
 }

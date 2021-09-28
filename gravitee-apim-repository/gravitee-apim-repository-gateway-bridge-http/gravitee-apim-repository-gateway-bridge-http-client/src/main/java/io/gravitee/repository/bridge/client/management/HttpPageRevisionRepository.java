@@ -22,6 +22,8 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.PageRevision;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,6 +38,7 @@ public class HttpPageRevisionRepository extends AbstractRepository implements Pa
         throw new IllegalStateException();
     }
 
+    @Override
     public Page<PageRevision> findAll(Pageable pageable) throws TechnicalException {
         throw new IllegalStateException();
     }
@@ -46,12 +49,17 @@ public class HttpPageRevisionRepository extends AbstractRepository implements Pa
     }
 
     @Override
-    public List<PageRevision> findAllByPageId(String pageId) throws TechnicalException {
+    public List<PageRevision> findAllByPageId(String pageId) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<PageRevision> findLastByPageId(String pageId) throws TechnicalException {
+    public Optional<PageRevision> findLastByPageId(String pageId) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<PageRevision> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

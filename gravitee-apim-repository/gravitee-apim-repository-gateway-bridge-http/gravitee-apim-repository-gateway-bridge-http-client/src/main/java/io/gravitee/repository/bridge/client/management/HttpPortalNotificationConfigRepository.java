@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNotificationConfigRepository;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,18 +55,22 @@ public class HttpPortalNotificationConfigRepository extends AbstractRepository i
     }
 
     @Override
-    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) {
         throw new IllegalStateException();
     }
 
     @Override
-    public void deleteByUser(String user) throws TechnicalException {
+    public void deleteByUser(String user) {
         throw new IllegalStateException();
     }
 
     @Override
-    public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<PortalNotificationConfig> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

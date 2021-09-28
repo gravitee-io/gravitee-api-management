@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Environment;
+
 import java.util.Optional;
 import java.util.Set;
 
@@ -25,8 +26,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface EnvironmentRepository extends CrudRepository<Environment, String> {
-    Set<Environment> findAll() throws TechnicalException;
-
     Set<Environment> findByOrganization(String organizationId) throws TechnicalException;
 
     Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids) throws TechnicalException;

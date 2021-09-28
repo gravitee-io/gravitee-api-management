@@ -19,9 +19,11 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -53,5 +55,10 @@ public class CommandRepositoryProxy extends AbstractProxy<CommandRepository> imp
     @Override
     public List<Command> search(CommandCriteria criteria) {
         return target.search(criteria);
+    }
+
+    @Override
+    public Set<Command> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

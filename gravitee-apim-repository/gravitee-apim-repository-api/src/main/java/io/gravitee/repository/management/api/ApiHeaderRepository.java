@@ -24,7 +24,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface ApiHeaderRepository extends CrudRepository<ApiHeader, String> {
-    Set<ApiHeader> findAll() throws TechnicalException;
 
     Set<ApiHeader> findAllByEnvironment(String environmentId) throws TechnicalException;
 }
