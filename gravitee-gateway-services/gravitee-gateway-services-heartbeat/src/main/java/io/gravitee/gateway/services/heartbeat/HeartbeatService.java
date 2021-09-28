@@ -163,6 +163,21 @@ public class HeartbeatService extends AbstractService implements MessageListener
     }
 
     @Override
+    public Object preStop() throws Exception {
+        if (enabled) {
+            heartbeatEvent.setType(EventType.GATEWAY_STOPPED);
+            heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(new Date().getTime()));
+            LOGGER.debug("Pre-stopping Heartbeat Service");
+            LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
+
+            topic.publish(heartbeatEvent);
+
+            topic.removeMessageListener(subscriptionId);
+        }
+        return this;
+    }
+
+    @Override
     protected void doStop() throws Exception {
         if (enabled) {
             if (! executorService.isShutdown()) {
@@ -171,14 +186,6 @@ public class HeartbeatService extends AbstractService implements MessageListener
             } else {
                 LOGGER.info("Gateway monitor already shut-downed");
             }
-
-            heartbeatEvent.setType(EventType.GATEWAY_STOPPED);
-            heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(new Date().getTime()));
-            LOGGER.debug("Sending a {} event", heartbeatEvent.getType());
-
-            topic.publish(heartbeatEvent);
-
-            topic.removeMessageListener(subscriptionId);
 
             super.doStop();
             LOGGER.info("Stop gateway monitor : DONE");
