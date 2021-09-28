@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { combineLatest, Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
+import { StateService } from '@uirouter/core';
 
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { IdentityProvider, IdentityProviderListItem, IdentityProviderActivation } from '../../../entities/identity-provider';
@@ -26,6 +27,7 @@ import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { OrganizationService } from '../../../services-ngx/organization.service';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { UIRouterState } from '../../../ajs-upgraded-providers';
 
 type TableData = {
   logo: string;
@@ -59,6 +61,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     private readonly organizationService: OrganizationService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    @Inject(UIRouterState) private readonly $state: StateService,
   ) {}
 
   ngOnInit() {
@@ -77,11 +80,6 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
-  }
-
-  onIdClicked(identityProvider: IdentityProvider) {
-    // eslint-disable-next-line angular/log,no-console
-    console.log('Id clicked:', identityProvider);
   }
 
   onDeleteActionClicked(identityProvider: TableData) {
@@ -106,9 +104,8 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       .subscribe(() => this.ngOnInit());
   }
 
-  onEditActionClicked(identityProvider: IdentityProvider) {
-    // eslint-disable-next-line angular/log,no-console
-    console.log('Edit clicked:', identityProvider);
+  onEditActionClicked(identityProvider: TableData) {
+    this.$state.go('organization.settings.identityproviders.identityprovider', { id: identityProvider.id });
   }
 
   onActivationToggleActionClicked(identityProvider: IdentityProvider) {
@@ -148,8 +145,8 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     identityProviders: IdentityProviderListItem[],
     activatedIdentityProviders: IdentityProviderActivation[],
   ) {
-    this.dataSource = new MatTableDataSource<TableData>(
-      identityProviders.map((idp) => ({
+    const matTableData = identityProviders
+      .map((idp) => ({
         logo: `assets/logo_${idp.type.toLowerCase()}-idp.svg`,
         id: idp.id,
         name: idp.name,
@@ -158,8 +155,18 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
         activated: activatedIdentityProviders.some((activatedIdp) => activatedIdp.identityProvider === idp.id),
         sync: idp.sync,
         updatedAt: idp.updated_at,
-      })),
-    );
+      }))
+      // Use a custom sort to always have Gravitee AM first
+      .sort((idpA, idpB) => {
+        if (idpA.id === 'gravitee-am') {
+          return -1;
+        } else if (idpB.id === 'gravitee-am') {
+          return 1;
+        }
+        return idpA.id.localeCompare(idpB.id);
+      });
+
+    this.dataSource = new MatTableDataSource<TableData>(matTableData);
   }
 
   getLocalLoginTooltipMessage(): string | null {

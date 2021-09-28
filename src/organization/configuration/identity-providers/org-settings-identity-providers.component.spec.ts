@@ -155,6 +155,37 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
     });
   });
 
+  describe('onEditActionClicked', () => {
+    it('triggers AngularJS router', async () => {
+      const consoleSettings: ConsoleSettings = {
+        authentication: {
+          localLogin: { enabled: true },
+        },
+      };
+
+      flushResponseToInitialRequests(
+        consoleSettings,
+        [
+          fakeIdentityProviderListItem({
+            id: 'google',
+          }),
+        ],
+        [
+          fakeIdentityProviderActivation({
+            identityProvider: 'google',
+          }),
+        ],
+      );
+
+      const activateLoginSlideToggle = await loader.getHarness(
+        MatButtonHarness.with({ selector: '[aria-label="Button to edit an identity provider"]' }),
+      );
+      await activateLoginSlideToggle.click();
+
+      expect(fake$State.go).toHaveBeenCalledWith('organization.settings.identityproviders.identityprovider', { id: 'google' });
+    });
+  });
+
   function flushResponseToInitialRequests(
     consoleSettings: ConsoleSettings,
     identityProviderListItem: IdentityProviderListItem[],
