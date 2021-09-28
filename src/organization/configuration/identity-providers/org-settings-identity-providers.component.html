@@ -119,17 +119,19 @@
       <th mat-header-cell *matHeaderCellDef id="actions"></th>
       <td mat-cell *matCellDef="let element">
         <div class="org-settings-identity-providers__table__centered-cell">
-          <button
-            (click)="onActivationToggleActionClicked(element)"
-            mat-icon-button
-            color="primary"
-            aria-label="Switch to toggle an identity provider activation"
-            matTooltip="
+          <ng-container *gioPermission="{ anyOf: ['organization-identity_provider_activation-u'] }">
+            <button
+              (click)="onActivationToggleActionClicked(element)"
+              mat-icon-button
+              color="primary"
+              aria-label="Switch to toggle an identity provider activation"
+              matTooltip="
             {{ element.activated ? 'Deactivate identity provider' : 'Activate identity provider' }}
             "
-          >
-            <mat-icon>{{ element.activated ? 'toggle_off' : 'toggle_on' }}</mat-icon>
-          </button>
+            >
+              <mat-icon>{{ element.activated ? 'toggle_off' : 'toggle_on' }}</mat-icon>
+            </button>
+          </ng-container>
           <button
             (click)="onEditActionClicked(element)"
             mat-icon-button

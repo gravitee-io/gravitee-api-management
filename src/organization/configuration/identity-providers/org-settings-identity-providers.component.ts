@@ -21,7 +21,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { StateService } from '@uirouter/core';
 
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
-import { IdentityProvider, IdentityProviderListItem, IdentityProviderActivation } from '../../../entities/identity-provider';
+import { IdentityProviderListItem, IdentityProviderActivation } from '../../../entities/identity-provider';
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -108,9 +108,32 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     this.$state.go('organization.settings.identityproviders.identityprovider', { id: identityProvider.id });
   }
 
-  onActivationToggleActionClicked(identityProvider: IdentityProvider) {
-    // eslint-disable-next-line angular/log,no-console
-    console.log('Activation Toggle clicked:', identityProvider);
+  onActivationToggleActionClicked(identityProvider: TableData) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: `${identityProvider.activated ? 'Deactivate' : 'Activate'} an Identity Provider`,
+          content: `Are you sure you want to ${identityProvider.activated ? 'deactivate' : 'activate'} the identity provider <strong>${
+            identityProvider.name
+          }</strong>?`,
+          confirmButton: 'Ok',
+        },
+        role: 'alertdialog',
+        id: 'deleteIdentityProviderConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => {
+          identityProvider.activated = !identityProvider.activated;
+          const activatedIdps = this.dataSource.data.filter((idp) => idp.activated === true).map((idp) => ({ identityProvider: idp.id }));
+          return this.organizationService.updateActivatedIdentityProviders(activatedIdps);
+        }),
+        tap(() => this.snackBarService.success(`Identity Provider ${identityProvider.name} successfully deleted!`)),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   updateLocalLogin(shouldActivateLoginForm: boolean): void {

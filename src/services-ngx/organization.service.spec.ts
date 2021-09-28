@@ -53,6 +53,22 @@ describe('OrganizationService', () => {
     });
   });
 
+  describe('updateActivatedIdentityProviders', () => {
+    it('should send identity providers to activate', (done) => {
+      identityProviderService
+        .updateActivatedIdentityProviders([{ identityProvider: 'google' }, { identityProvider: 'github' }])
+        .subscribe(() => {
+          done();
+        });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/identities`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual([{ identityProvider: 'google' }, { identityProvider: 'github' }]);
+
+      req.flush(null);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

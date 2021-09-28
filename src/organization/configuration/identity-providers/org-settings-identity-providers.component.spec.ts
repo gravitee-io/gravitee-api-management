@@ -28,8 +28,8 @@ import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import {
-  fakeIdentityProviderListItem,
   fakeIdentityProviderActivation,
+  fakeIdentityProviderListItem,
   IdentityProviderActivation,
   IdentityProviderListItem,
 } from '../../../entities/identity-provider';
@@ -130,26 +130,24 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
         consoleSettings,
         [
           fakeIdentityProviderListItem({
-            id: 'google',
+            id: 'gravitee-am',
           }),
         ],
         [
           fakeIdentityProviderActivation({
-            identityProvider: 'google',
+            identityProvider: 'gravitee-am',
           }),
         ],
       );
 
-      const activateLoginSlideToggle = await loader.getHarness(
-        MatButtonHarness.with({ selector: '[aria-label="Button to delete an identity provider"]' }),
-      );
+      const activateLoginSlideToggle = await getActionButtonWithAriaLabel('Button to delete an identity provider');
       await activateLoginSlideToggle.click();
 
       // Use rootLoader to find the Remove button inside the dialog
       const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
       await confirmDialogButton.click();
 
-      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/google`).flush(null);
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/gravitee-am`).flush(null);
 
       flushResponseToInitialRequests(consoleSettings, [], []);
     });
@@ -167,24 +165,118 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
         consoleSettings,
         [
           fakeIdentityProviderListItem({
-            id: 'google',
+            id: 'gravitee-am',
           }),
         ],
         [
           fakeIdentityProviderActivation({
-            identityProvider: 'google',
+            identityProvider: 'gravitee-am',
           }),
         ],
       );
 
-      const activateLoginSlideToggle = await loader.getHarness(
-        MatButtonHarness.with({ selector: '[aria-label="Button to edit an identity provider"]' }),
-      );
+      const activateLoginSlideToggle = await getActionButtonWithAriaLabel('Button to edit an identity provider');
       await activateLoginSlideToggle.click();
 
-      expect(fake$State.go).toHaveBeenCalledWith('organization.settings.identityproviders.identityprovider', { id: 'google' });
+      expect(fake$State.go).toHaveBeenCalledWith('organization.settings.identityproviders.identityprovider', { id: 'gravitee-am' });
     });
   });
+
+  describe('onActivationToggleActionClicked', () => {
+    beforeEach(() => {
+      currentUser.userPermissions = ['organization-identity_provider_activation-u'];
+    });
+
+    it('sends a PUT request to activate an identity provider', async () => {
+      const consoleSettings: ConsoleSettings = {
+        authentication: {
+          localLogin: { enabled: true },
+        },
+      };
+
+      flushResponseToInitialRequests(
+        consoleSettings,
+        [
+          fakeIdentityProviderListItem({
+            id: 'gravitee-am',
+          }),
+        ],
+        [],
+      );
+
+      const activateLoginSlideToggle = await getActionButtonWithAriaLabel('Switch to toggle an identity provider activation');
+      await activateLoginSlideToggle.click();
+
+      // Use rootLoader to find the Remove button inside the dialog
+      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Ok' }));
+      await confirmDialogButton.click();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/identities`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual([{ identityProvider: 'gravitee-am' }]);
+
+      req.flush(null);
+
+      flushResponseToInitialRequests(
+        consoleSettings,
+        [
+          fakeIdentityProviderListItem({
+            id: 'gravitee-am',
+          }),
+        ],
+        [
+          fakeIdentityProviderActivation({
+            identityProvider: 'gravitee-am',
+          }),
+        ],
+      );
+    });
+
+    it('sends a PUT request to deactivate an identity provider', async () => {
+      const consoleSettings: ConsoleSettings = {
+        authentication: {
+          localLogin: { enabled: true },
+        },
+      };
+
+      flushResponseToInitialRequests(
+        consoleSettings,
+        [
+          fakeIdentityProviderListItem({
+            id: 'gravitee-am',
+          }),
+        ],
+        [fakeIdentityProviderActivation({ identityProvider: 'gravitee-am' })],
+      );
+
+      const activateLoginSlideToggle = await getActionButtonWithAriaLabel(`Switch to toggle an identity provider activation`);
+      await activateLoginSlideToggle.click();
+
+      // Use rootLoader to find the Remove button inside the dialog
+      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Ok' }));
+      await confirmDialogButton.click();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/identities`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual([]);
+
+      req.flush(null);
+
+      flushResponseToInitialRequests(
+        consoleSettings,
+        [
+          fakeIdentityProviderListItem({
+            id: 'gravitee-am',
+          }),
+        ],
+        [],
+      );
+    });
+  });
+
+  function getActionButtonWithAriaLabel(actionAriaLabel: string): Promise<MatButtonHarness> {
+    return loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="${actionAriaLabel}"]` }));
+  }
 
   function flushResponseToInitialRequests(
     consoleSettings: ConsoleSettings,

@@ -29,4 +29,8 @@ export class OrganizationService {
   listActivatedIdentityProviders(): Observable<IdentityProviderActivation[]> {
     return this.http.get<IdentityProviderActivation[]>(`${this.constants.org.baseURL}/identities`);
   }
+
+  updateActivatedIdentityProviders(idpsToActivate: { identityProvider: string }[]): Observable<void> {
+    return this.http.put<void>(`${this.constants.org.baseURL}/identities`, idpsToActivate);
+  }
 }
