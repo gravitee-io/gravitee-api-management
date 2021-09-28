@@ -20,6 +20,7 @@ import { IdentityProviderService } from './identity-provider.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeIdentityProviderListItem } from '../entities/identity-provider/identityProviderListItem.fixture';
+import { IdentityProviderListItem } from '../entities/identity-provider';
 
 describe('IdentityProviderService', () => {
   let httpTestingController: HttpTestingController;
@@ -36,9 +37,9 @@ describe('IdentityProviderService', () => {
 
   describe('list', () => {
     it('should return a list of identity providers', (done) => {
-      const identityProviders = [
+      const identityProviders: IdentityProviderListItem[] = [
         fakeIdentityProviderListItem({ id: 'google', type: 'GOOGLE' }),
-        [fakeIdentityProviderListItem({ id: 'github', type: 'GITHUB' })],
+        fakeIdentityProviderListItem({ id: 'github', type: 'GITHUB' }),
       ];
 
       identityProviderService.list().subscribe((identityProviders) => {
@@ -50,6 +51,24 @@ describe('IdentityProviderService', () => {
       expect(req.request.method).toEqual('GET');
 
       req.flush(identityProviders);
+    });
+  });
+
+  describe('delete', () => {
+    it('should send a DELETE request', (done) => {
+      const identityProviderToDelete: IdentityProviderListItem = fakeIdentityProviderListItem({ id: 'github', type: 'GITHUB' });
+
+      identityProviderService.delete(identityProviderToDelete.id).subscribe((identityProviders) => {
+        expect(identityProviders).toEqual(identityProviders);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.baseURL}/configuration/identities/${identityProviderToDelete.id}`,
+      );
+      expect(req.request.method).toEqual('DELETE');
+
+      req.flush(null);
     });
   });
 

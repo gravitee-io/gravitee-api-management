@@ -18,7 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { IdentityProviderListItem } from '../entities/identity-provider/identityProviderListItem';
+import { IdentityProviderListItem } from '../entities/identity-provider';
 
 @Injectable({
   providedIn: 'root',
@@ -28,5 +28,9 @@ export class IdentityProviderService {
 
   list(): Observable<IdentityProviderListItem[]> {
     return this.http.get<IdentityProviderListItem[]>(`${this.constants.org.baseURL}/configuration/identities`);
+  }
+
+  delete(idpId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.org.baseURL}/configuration/identities/${idpId}`);
   }
 }

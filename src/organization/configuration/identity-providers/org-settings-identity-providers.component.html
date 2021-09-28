@@ -139,15 +139,17 @@
           >
             <mat-icon>edit</mat-icon>
           </button>
-          <button
-            (click)="onDeleteActionClicked(element)"
-            mat-icon-button
-            color="primary"
-            aria-label="Button to delete an identity provider"
-            matTooltip="Delete identity provider"
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
+          <ng-container *gioPermission="{ anyOf: ['organization-identity_provider-d'] }">
+            <button
+              (click)="onDeleteActionClicked(element)"
+              mat-icon-button
+              color="primary"
+              aria-label="Button to delete an identity provider"
+              matTooltip="Delete identity provider"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </ng-container>
         </div>
       </td>
     </ng-container>

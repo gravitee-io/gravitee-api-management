@@ -16,7 +16,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { combineLatest, Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
 
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { IdentityProvider, IdentityProviderListItem, IdentityProviderActivation } from '../../../entities/identity-provider';
@@ -24,6 +25,7 @@ import { ConsoleSettingsService } from '../../../services-ngx/console-settings.s
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { OrganizationService } from '../../../services-ngx/organization.service';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 type TableData = {
   logo: string;
@@ -56,6 +58,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     private readonly consoleSettingsService: ConsoleSettingsService,
     private readonly organizationService: OrganizationService,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -63,10 +66,12 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       this.identityProviderService.list(),
       this.consoleSettingsService.get(),
       this.organizationService.listActivatedIdentityProviders(),
-    ]).subscribe(([identityProviders, consoleSettings, activatedIdentityProviders]) => {
-      this.setDataSourceFromIdentityProviders(identityProviders, activatedIdentityProviders);
-      this.consoleSettings = consoleSettings;
-    });
+    ])
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(([identityProviders, consoleSettings, activatedIdentityProviders]) => {
+        this.setDataSourceFromIdentityProviders(identityProviders, activatedIdentityProviders);
+        this.consoleSettings = consoleSettings;
+      });
   }
 
   ngOnDestroy() {
@@ -79,9 +84,26 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     console.log('Id clicked:', identityProvider);
   }
 
-  onDeleteActionClicked(identityProvider: IdentityProvider) {
-    // eslint-disable-next-line angular/log,no-console
-    console.log('Delete clicked:', identityProvider);
+  onDeleteActionClicked(identityProvider: TableData) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete an Identity Provider',
+          content: `Are you sure you want to remove the identity provider <strong>${identityProvider.name}</strong>?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'deleteIdentityProviderConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.identityProviderService.delete(identityProvider.id)),
+        tap(() => this.snackBarService.success(`Identity Provider ${identityProvider.name} successfully deleted!`)),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   onEditActionClicked(identityProvider: IdentityProvider) {
