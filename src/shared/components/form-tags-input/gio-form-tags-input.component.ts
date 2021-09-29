@@ -126,7 +126,7 @@ export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, Con
   // From ControlValueAccessor interface
   @Input()
   get disabled() {
-    return this._disabled;
+    return this._disabled || (this.ngControl && this.ngControl.disabled);
   }
   set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);

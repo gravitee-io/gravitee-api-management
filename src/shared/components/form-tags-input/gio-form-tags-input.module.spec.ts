@@ -124,4 +124,13 @@ describe('GioFormTagsInputModule', () => {
     expect(await matFormFieldHarness.hasErrors()).toBe(true);
     expect(component.tagsControl.valid).toEqual(false);
   });
+
+  it('should handle disabled state with control', async () => {
+    component.tagsControl.disable();
+    fixture.detectChanges();
+
+    const matFormFieldHarness = await loader.getHarness(MatFormFieldHarness);
+
+    expect(await matFormFieldHarness.isDisabled()).toBe(true);
+  });
 });
