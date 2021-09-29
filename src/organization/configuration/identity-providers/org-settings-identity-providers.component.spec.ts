@@ -182,6 +182,35 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
     });
   });
 
+  describe('onAddIdpClicked', () => {
+    it('triggers AngularJS router', async () => {
+      const consoleSettings: ConsoleSettings = {
+        authentication: {
+          localLogin: { enabled: true },
+        },
+      };
+
+      flushResponseToInitialRequests(
+        consoleSettings,
+        [
+          fakeIdentityProviderListItem({
+            id: 'gravitee-am',
+          }),
+        ],
+        [
+          fakeIdentityProviderActivation({
+            identityProvider: 'gravitee-am',
+          }),
+        ],
+      );
+
+      const activateLoginSlideToggle = await loader.getHarness(MatButtonHarness.with({ text: /Add an identity provider/ }));
+      await activateLoginSlideToggle.click();
+
+      expect(fake$State.go).toHaveBeenCalledWith('organization.settings.ng-identityprovider');
+    });
+  });
+
   describe('onActivationToggleActionClicked', () => {
     beforeEach(() => {
       currentUser.userPermissions = ['organization-identity_provider_activation-u'];

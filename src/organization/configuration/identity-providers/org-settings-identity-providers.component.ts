@@ -201,4 +201,8 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
     }
     return null;
   }
+
+  onAddIdpClicked(): void {
+    this.$state.go('organization.settings.ng-identityprovider');
+  }
 }

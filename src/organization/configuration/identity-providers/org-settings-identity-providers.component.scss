@@ -65,6 +65,14 @@
     margin-bottom: 16px;
   }
 
+  &__search-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    // Magic value to have proper alignment and consistent visual experience with users screen
+    height: 70px;
+  }
+
   &__configuration {
     width: 30%;
     min-width: 400px;
