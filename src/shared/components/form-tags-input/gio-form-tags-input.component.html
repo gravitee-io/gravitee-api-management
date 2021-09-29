@@ -15,4 +15,17 @@
     limitations under the License.
 
 -->
-Tags input
+<mat-chip-list #tagChipList [attr.aria-label]="ariaLabel" multiple [disabled]="disabled">
+  <mat-chip *ngFor="let tag of value" [selectable]="false" [removable]="!disabled" (removed)="removeChipToFormControl(tag)">
+    {{ tag }}
+    <mat-icon *ngIf="!disabled" matChipRemove>cancel</mat-icon>
+  </mat-chip>
+  <input
+    *ngIf="!disabled"
+    #tagInput
+    [placeholder]="placeholder"
+    [matChipInputFor]="tagChipList"
+    [matChipInputAddOnBlur]="addOnBlur"
+    (matChipInputTokenEnd)="addChipToFormControl($event)"
+  />
+</mat-chip-list>

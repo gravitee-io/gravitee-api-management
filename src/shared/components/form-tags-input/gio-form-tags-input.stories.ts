@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 import { Meta, moduleMetadata, Story } from '@storybook/angular';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { action } from '@storybook/addon-actions';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { GioFormTagsInputComponent } from './gio-form-tags-input.component';
 import { GioFormTagsInputModule } from './gio-form-tags-input.module';
@@ -28,17 +27,129 @@ export default {
   component: GioFormTagsInputComponent,
   decorators: [
     moduleMetadata({
-      imports: [BrowserAnimationsModule, GioFormTagsInputModule, MatSlideToggleModule, MatFormFieldModule, MatInputModule, MatIconModule],
+      imports: [BrowserAnimationsModule, GioFormTagsInputModule, FormsModule, ReactiveFormsModule, MatFormFieldModule],
     }),
   ],
   render: () => ({}),
+  argTypes: {
+    tags: {
+      control: { type: 'array' },
+      description: '',
+      table: { type: { summary: 'string[]' }, defaultValue: [] },
+    },
+    placeholder: {
+      control: { type: 'string' },
+    },
+    required: {
+      defaultValue: false,
+      control: { type: 'boolean' },
+    },
+    disabled: {
+      defaultValue: false,
+      control: { type: 'boolean' },
+    },
+  },
 } as Meta;
 
-export const Default: Story = {
-  render: () => ({
+export const WithoutFormField: Story = {
+  render: ({ tags, placeholder, required, disabled }) => ({
     template: `
-      <gio-form-tags-input>
+      <gio-form-tags-input [disabled]="disabled" [required]="required" [placeholder]="placeholder" [ngModel]="tags" (ngModelChange)="onTagsChange($event)">
       </gio-form-tags-input>
     `,
+    props: {
+      tags,
+      placeholder,
+      required,
+      disabled,
+      onTagsChange: (e) => action('Tags')(e),
+    },
   }),
+  args: {},
+};
+
+export const NgModelEmpty: Story = {
+  render: ({ tags, placeholder, required, disabled }) => ({
+    template: `
+    <mat-form-field appearance="fill" style="width:100%">
+      <mat-label>My tags</mat-label>
+      <gio-form-tags-input 
+        [disabled]="disabled" 
+        [required]="required" 
+        [placeholder]="placeholder" 
+        [ngModel]="tags" 
+        (ngModelChange)="onTagsChange($event)"
+      >
+      </gio-form-tags-input>
+    </mat-form-field>
+    `,
+    props: {
+      tags,
+      placeholder,
+      required,
+      disabled,
+      onTagsChange: (e) => action('Tags')(e),
+    },
+  }),
+  args: {},
+};
+
+export const NgModelInitialValue: Story = {
+  render: NgModelEmpty.render,
+  args: {
+    tags: ['A', 'B'],
+    required: true,
+    placeholder: 'Add a tag',
+  },
+};
+
+export const NgModelRequired: Story = {
+  render: NgModelEmpty.render,
+  args: {
+    tags: ['A', 'B'],
+    required: true,
+    placeholder: 'Add a tag',
+  },
+};
+
+export const NgModelDisabled: Story = {
+  render: NgModelEmpty.render,
+  args: {
+    tags: ['A', 'B'],
+    required: true,
+    disabled: true,
+    placeholder: 'Add a tag',
+  },
+};
+
+export const FormControlEmpty: Story = {
+  render: ({ tags, placeholder, required, disabled }) => {
+    const tagsControl = new FormControl({ value: tags, disabled });
+
+    tagsControl.valueChanges.subscribe((value) => {
+      action('Tags')(value);
+    });
+
+    return {
+      template: `
+      <mat-form-field appearance="fill" style="width:100%">
+        <mat-label>My tags</mat-label>
+        <gio-form-tags-input 
+          [required]="required" 
+          [placeholder]="placeholder" 
+          [formControl]="tagsControl"
+        >
+        </gio-form-tags-input>
+      </mat-form-field>
+      `,
+      props: {
+        tags,
+        placeholder,
+        required,
+        disabled,
+        tagsControl,
+      },
+    };
+  },
+  args: {},
 };
