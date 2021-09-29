@@ -2776,11 +2776,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             SearchResult matchApis = searchEngineService.search(apiQuery);
 
-            if (matchApis.getDocuments().isEmpty()) {
+            /*
+             * Dirty hack to ensure that only APIs viewable by the current user are returned
+             */
+            Stream<String> apiIdStream = matchApis.getDocuments().stream();
+            if (filters.containsKey("api")) {
+                List<String> availableApis = (List) filters.get("api");
+                apiIdStream = apiIdStream.filter(availableApis::contains);
+            }
+            String[] apiIds = apiIdStream.toArray(String[]::new);
+
+            if (apiIds.length == 0) {
                 return new Page<>(emptyList(), 0, 0, 0);
             }
 
-            final ApiCriteria apiCriteria = new ApiCriteria.Builder().ids(matchApis.getDocuments().toArray(new String[0])).build();
+            final ApiCriteria apiCriteria = new ApiCriteria.Builder().ids(apiIds).build();
             final Page<Api> apiPage = sortAndPaginate(apiRepository.search(apiCriteria), sortable, pageable);
 
             // merge all apis
