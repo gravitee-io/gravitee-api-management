@@ -2798,7 +2798,17 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         Query<ApiEntity> apiQuery = QueryBuilder.create(ApiEntity.class).setQuery(query).setFilters(filters).build();
 
         SearchResult matchApis = searchEngineService.search(apiQuery);
-        return matchApis.getDocuments().stream().map(this::findById).collect(toList());
+
+        /*
+         * Dirty hack to ensure that only APIs viewable by the current user are returned
+         */
+        Stream<String> apiIdStream = matchApis.getDocuments().stream();
+        if (filters.containsKey("api")) {
+            Set<String> availableApis = (Set) filters.get("api");
+            apiIdStream = apiIdStream.filter(availableApis::contains);
+        }
+
+        return apiIdStream.map(this::findById).collect(toList());
     }
 
     @Override
