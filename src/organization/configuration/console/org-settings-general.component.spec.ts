@@ -19,7 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatChipInputHarness, MatChipListHarness } from '@angular/material/chips/testing';
+import { MatChipListHarness } from '@angular/material/chips/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
@@ -33,6 +33,7 @@ import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { GioFormTagsInputHarness } from '../../../shared/components/form-tags-input/gio-form-tags-input.harness';
 
 describe('ConsoleSettingsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsGeneralComponent>;
@@ -349,11 +350,10 @@ describe('ConsoleSettingsComponent', () => {
 
       // # Allow-Origin
       const allowOriginFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Allow-Origin' }));
-      expect(await (await allowOriginFormField.getControl(MatChipListHarness)).getChips()).toEqual([]);
+      expect(await (await allowOriginFormField.getControl(GioFormTagsInputHarness)).getTags()).toEqual([]);
       // Add valid RegExp
-      const allowOriginChipListInput = await allowOriginFormField.getControl(MatChipInputHarness);
-      await allowOriginChipListInput.setValue('(Valid|RegExp)');
-      await allowOriginChipListInput.blur();
+      const allowOriginTagsInput = await allowOriginFormField.getControl(GioFormTagsInputHarness);
+      await allowOriginTagsInput.addTag('(Valid|RegExp)', 'blur');
 
       // # Access-Control-Allow-Methods
       const allowMethodsFormField = await loader.getHarness(
@@ -418,18 +418,16 @@ describe('ConsoleSettingsComponent', () => {
 
       // # Allow-Origin
       const allowOriginFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Allow-Origin' }));
-      expect(await (await allowOriginFormField.getControl(MatChipListHarness)).getChips()).toEqual([]);
+      expect(await (await allowOriginFormField.getControl(GioFormTagsInputHarness)).getTags()).toEqual([]);
       // Add `*` and confirm dialog
-      const allowOriginChipListInput = await allowOriginFormField.getControl(MatChipInputHarness);
+      const allowOriginChipListInput = await allowOriginFormField.getControl(GioFormTagsInputHarness);
 
-      await allowOriginChipListInput.setValue('*');
-      await allowOriginChipListInput.blur();
+      await allowOriginChipListInput.addTag('*');
       const dialogOne = await rootLoader.getHarness(MatDialogHarness);
       expect(await dialogOne.getId()).toEqual('allowAllOriginsConfirmDialog');
       await dialogOne.close();
 
-      await allowOriginChipListInput.setValue('*');
-      await allowOriginChipListInput.blur();
+      await allowOriginChipListInput.addTag('*');
       const dialogTwo = await rootLoader.getHarness(MatDialogHarness);
       await (await dialogTwo.getHarness(MatButtonHarness.with({ text: /^Yes,/ }))).click();
 

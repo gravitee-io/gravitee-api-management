@@ -53,6 +53,7 @@ import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-c
 import { GioFormSlideToggleModule } from '../../shared/components/form-slide-toogle/gio-form-slide-toggle.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { GioFormCardGroupModule } from '../../shared/components/form-card-group/gio-form-card-group.module';
+import { GioFormTagsInputModule } from '../../shared/components/form-tags-input/gio-form-tags-input.module';
 
 @NgModule({
   imports: [
@@ -87,6 +88,7 @@ import { GioFormCardGroupModule } from '../../shared/components/form-card-group/
     GioTableOfContentsModule,
     GioFormSlideToggleModule,
     GioFormCardGroupModule,
+    GioFormTagsInputModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,

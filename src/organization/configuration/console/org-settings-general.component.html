@@ -201,9 +201,9 @@
 
     <mat-card class="settings-general__form__card" formGroupName="cors">
       <h2 gioTableOfContents>CORS</h2>
+
       <mat-card-content>
         <mat-form-field
-          *ngIf="formSettings.get('cors.allowOrigin'); let allowOriginFormControl"
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('cors.allowOrigin')"
           class="settings-general__form__card__form-field"
@@ -213,25 +213,16 @@
             >lock</mat-icon
           >
           <mat-label>Allow-Origin</mat-label>
-          <mat-chip-list #allowOriginChipList aria-label="Allow-Origin selection" multiple [disabled]="allowOriginFormControl.disabled">
-            <mat-chip
-              *ngFor="let origin of allowOriginFormControl.value"
-              [selectable]="false"
-              [removable]="!allowOriginFormControl.disabled"
-              (removed)="removeChipToFormControl(origin, 'cors.allowOrigin', allowOriginChipList)"
-            >
-              {{ origin }}
-              <mat-icon *ngIf="!allowOriginFormControl.disabled" matChipRemove>cancel</mat-icon>
-            </mat-chip>
-            <input
-              *ngIf="!allowOriginFormControl.disabled"
-              placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
-              [matChipInputFor]="allowOriginChipList"
-              [matChipInputAddOnBlur]="true"
-              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowOrigin', allowOriginChipList); confirmAllowAllOrigins($event)"
-            />
-          </mat-chip-list>
-          <mat-error *ngIf="allowOriginFormControl.errors?.allowOrigin">{{ allowOriginFormControl.errors?.allowOrigin }}</mat-error>
+          <gio-form-tags-input
+            formControlName="allowOrigin"
+            placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
+            [tagValidationHook]="confirmAllowAllOrigins()"
+          >
+          </gio-form-tags-input>
+
+          <mat-error *ngIf="formSettings.get('cors.allowOrigin')?.errors?.allowOrigin">{{
+            formSettings.get('cors.allowOrigin')?.errors?.allowOrigin
+          }}</mat-error>
           <mat-hint>
             The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
             <em>same-origin</em> definition.<br />

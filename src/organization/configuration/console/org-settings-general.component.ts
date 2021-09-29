@@ -191,32 +191,35 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
     matChipList.errorState = formControl.errors !== null;
   }
 
-  confirmAllowAllOrigins(event: MatChipInputEvent) {
-    const chipToAdd = (event.value ?? '').trim();
-    const formControl = this.formSettings.get('cors.allowOrigin');
+  confirmAllowAllOrigins(): (tag: string, validationCb: (shouldAddTag: boolean) => void) => void {
+    return (tag, validationCb) => {
+      // Confirm allow all origins
+      if ('*' === tag && !this.allowAllOriginsConfirmDialog) {
+        this.allowAllOriginsConfirmDialog = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(
+          GioConfirmDialogComponent,
+          {
+            width: '450px',
+            data: {
+              title: 'Are you sure?',
+              content: 'Do you want to remove all cross-origin restrictions?',
+              confirmButton: 'Yes, I want to allow all origins.',
+            },
+            role: 'alertdialog',
+            id: 'allowAllOriginsConfirmDialog',
+          },
+        );
 
-    // Confirm allow all origins
-    if ('*' === chipToAdd && !this.allowAllOriginsConfirmDialog) {
-      this.allowAllOriginsConfirmDialog = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '450px',
-        data: {
-          title: 'Are you sure?',
-          content: 'Do you want to remove all cross-origin restrictions?',
-          confirmButton: 'Yes, I want to allow all origins.',
-        },
-        role: 'alertdialog',
-        id: 'allowAllOriginsConfirmDialog',
-      });
-      this.allowAllOriginsConfirmDialog
-        .afterClosed()
-        .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((confirm) => {
-          if (!confirm) {
-            formControl.setValue([...formControl.value].filter((v) => v !== chipToAdd));
-          }
-          this.allowAllOriginsConfirmDialog = undefined;
-        });
-    }
+        this.allowAllOriginsConfirmDialog
+          .afterClosed()
+          .pipe(takeUntil(this.unsubscribe$))
+          .subscribe((shouldAddTag) => {
+            this.allowAllOriginsConfirmDialog = null;
+            validationCb(shouldAddTag);
+          });
+      } else {
+        validationCb(true);
+      }
+    };
   }
 
   removeChipToFormControl(value: string, formControlPath: string, matChipList: MatChipList) {
