@@ -62,11 +62,6 @@ describe('GioFormTagsInputModule', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
   });
 
-  it('should match snapshot', () => {
-    fixture.detectChanges();
-    expect(component).toMatchSnapshot();
-  });
-
   it('should display tags from formControl', async () => {
     fixture.detectChanges();
 
