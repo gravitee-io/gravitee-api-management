@@ -22,7 +22,7 @@ ARG GRAVITEEIO_DOWNLOAD_URL=https://download.gravitee.io/graviteeio-apim/distrib
 ENV GRAVITEEIO_HOME /opt/graviteeio-management-api
 
 RUN apt-get update \
-    && apt-get upgrade \
+    && apt-get --yes upgrade \
     && apt-get --yes install wget unzip htop \
 	&& wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip --no-check-certificate -P /tmp \
     && unzip /tmp/graviteeio-full-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
