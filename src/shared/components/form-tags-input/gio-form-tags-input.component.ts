@@ -99,9 +99,6 @@ export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, Con
   private _placeholder: string;
 
   // From ControlValueAccessor interface
-  ngControl: NgControl;
-
-  // From ControlValueAccessor interface
   focused: boolean;
 
   // From ControlValueAccessor interface
@@ -139,7 +136,13 @@ export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, Con
 
   // From ControlValueAccessor interface
   get errorState(): boolean {
-    return this.touched && this.required && this.empty;
+    return (
+      this.touched &&
+      // if required check if is empty
+      ((this.required && this.empty) ||
+        // if there is a touched control check if there is an error
+        (this.ngControl && this.ngControl.touched && !!this.ngControl.errors))
+    );
   }
 
   // From ControlValueAccessor interface
@@ -151,9 +154,12 @@ export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, Con
   // From ControlValueAccessor interface
   userAriaDescribedBy?: string;
 
-  constructor(@Optional() @Self() ngControl: NgControl, private readonly elRef: ElementRef, private readonly fm: FocusMonitor) {
-    this.ngControl = ngControl;
-
+  constructor(
+    // From ControlValueAccessor interface
+    @Optional() @Self() public readonly ngControl: NgControl,
+    private readonly elRef: ElementRef,
+    private readonly fm: FocusMonitor,
+  ) {
     // Replace the provider from above with this.
     if (this.ngControl != null) {
       // Setting the value accessor directly (instead of using

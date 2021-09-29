@@ -17,8 +17,9 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioFormTagsInputHarness } from './gio-form-tags-input.harness';
@@ -34,6 +35,7 @@ import { GioFormTagsInputModule } from './gio-form-tags-input.module';
         [formControl]="tagsControl"
         [tagValidationHook]="tagValidationHook"
       ></gio-form-tags-input>
+      <mat-error>Error</mat-error>
     </mat-form-field>
   `,
 })
@@ -42,7 +44,7 @@ class TestComponent {
   placeholder = 'Add a tag';
   tagValidationHook = undefined;
 
-  tagsControl = new FormControl();
+  tagsControl = new FormControl(null, Validators.required);
 }
 
 describe('GioFormTagsInputModule', () => {
@@ -106,5 +108,20 @@ describe('GioFormTagsInputModule', () => {
 
     expect(await formTagsInputHarness.getTags()).toEqual(['*']);
     expect(component.tagsControl.value).toEqual(['*']);
+  });
+
+  it('should handle error state with control', async () => {
+    component.tagsControl.addValidators(Validators.required);
+    fixture.detectChanges();
+
+    const formTagsInputHarness = await loader.getHarness(GioFormTagsInputHarness);
+
+    await formTagsInputHarness.addTag('A');
+    await formTagsInputHarness.removeTag('A');
+
+    const matFormFieldHarness = await loader.getHarness(MatFormFieldHarness);
+
+    expect(await matFormFieldHarness.hasErrors()).toBe(true);
+    expect(component.tagsControl.valid).toEqual(false);
   });
 });

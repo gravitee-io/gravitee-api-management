@@ -19,10 +19,13 @@ TestComponent {
     "_rawAsyncValidators": null,
     "_rawValidators": Array [
       [Function],
+      [Function],
     ],
-    "errors": null,
+    "errors": Object {
+      "required": true,
+    },
     "pristine": true,
-    "status": "VALID",
+    "status": "INVALID",
     "statusChanges": EventEmitter_ {
       "__isAsync": false,
       "_isScalar": false,
