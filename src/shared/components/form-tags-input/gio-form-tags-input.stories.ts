@@ -123,7 +123,7 @@ export const NgModelDisabled: Story = {
 };
 
 export const FormControlEmpty: Story = {
-  render: ({ tags, placeholder, required, disabled }) => {
+  render: ({ tags, placeholder, required, disabled, tagValidationHook }) => {
     const tagsControl = new FormControl({ value: tags, disabled });
 
     tagsControl.valueChanges.subscribe((value) => {
@@ -138,6 +138,7 @@ export const FormControlEmpty: Story = {
           [required]="required" 
           [placeholder]="placeholder" 
           [formControl]="tagsControl"
+          [tagValidationHook]="tagValidationHook"
         >
         </gio-form-tags-input>
       </mat-form-field>
@@ -148,8 +149,27 @@ export const FormControlEmpty: Story = {
         required,
         disabled,
         tagsControl,
+        tagValidationHook,
       },
     };
   },
   args: {},
+};
+
+export const WithTagValidationHook: Story = {
+  render: FormControlEmpty.render,
+  args: {
+    tags: ['A'],
+    required: true,
+    disabled: true,
+    placeholder: 'Add a tag',
+    tagValidationHook: (tag: string, validationCb: (shouldAddTag: boolean) => void) => {
+      validationCb(confirm(`Add "${tag}" tag ?`));
+    },
+  },
+  argTypes: {
+    tagValidationHook: {
+      control: { type: 'function' },
+    },
+  },
 };

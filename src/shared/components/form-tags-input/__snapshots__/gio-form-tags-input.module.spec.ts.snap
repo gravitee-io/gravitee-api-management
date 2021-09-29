@@ -2,6 +2,7 @@
 
 exports[`GioFormTagsInputModule should match snapshot 1`] = `
 TestComponent {
+  "confirmTagAdded": undefined,
   "placeholder": "Add a tag",
   "required": false,
   "tagsControl": FormControl {

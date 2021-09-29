@@ -53,6 +53,19 @@ export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, Con
   @Input()
   addOnBlur = true;
 
+  /**
+   * Function called each time a tag is added, it can be used to hook inside the
+   * addition process to, for instance, have custom validation in the components
+   * using `gio-form-tags-input`.
+   *
+   * Parameters are:
+   * - `tag`: The value of the tag to add
+   * - `validationCb`: The callback function to call when validation is done. If
+   * called with `true` it will add the tag, otherwise it will just ignore it
+   */
+  @Input()
+  tagValidationHook: (tag: string, validationCb: (shouldAddTag: boolean) => void) => void;
+
   @ViewChild('tagInput')
   tagInput: ElementRef<HTMLInputElement>;
 
@@ -188,20 +201,32 @@ export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, Con
 
   addChipToFormControl(event: MatChipInputEvent) {
     const input = event.chipInput.inputElement;
-    const chipToAdd = (event.value ?? '').trim();
+    const tagToAdd = (event.value ?? '').trim();
 
-    // Add new Tag in form control
-    if (!isEmpty(chipToAdd)) {
-      // Delete Tag if already existing
-      const formControlValue = [...(this.value ?? [])].filter((v) => v !== chipToAdd);
-
-      this.value = [...formControlValue, chipToAdd];
+    if (isEmpty(tagToAdd)) {
+      return;
     }
+
+    // Add the tag only if shouldAddTag in validationCb return true
+    // Set default callback if not defined
+    const tagValidationHook = this.tagValidationHook ?? ((_, validationCb) => validationCb(true));
+
+    const validationCb = (shouldAddTag: boolean) => {
+      // Add new Tag in form control
+      if (shouldAddTag) {
+        // Delete Tag if already existing
+        const formControlValue = [...(this.value ?? [])].filter((v) => v !== tagToAdd);
+
+        this.value = [...formControlValue, tagToAdd];
+      }
+    };
 
     // Reset the input value
     if (input) {
       input.value = '';
     }
+
+    tagValidationHook(tagToAdd, validationCb);
   }
 
   removeChipToFormControl(tag: string) {

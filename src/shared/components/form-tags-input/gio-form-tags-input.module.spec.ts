@@ -28,13 +28,19 @@ import { GioFormTagsInputModule } from './gio-form-tags-input.module';
   template: `
     <mat-form-field appearance="fill">
       <mat-label>My tags</mat-label>
-      <gio-form-tags-input [required]="required" [placeholder]="placeholder" [formControl]="tagsControl"> </gio-form-tags-input>
+      <gio-form-tags-input
+        [required]="required"
+        [placeholder]="placeholder"
+        [formControl]="tagsControl"
+        [tagValidationHook]="tagValidationHook"
+      ></gio-form-tags-input>
     </mat-form-field>
   `,
 })
 class TestComponent {
   required = false;
   placeholder = 'Add a tag';
+  tagValidationHook = undefined;
 
   tagsControl = new FormControl();
 }
@@ -85,5 +91,20 @@ describe('GioFormTagsInputModule', () => {
 
     expect(await formTagsInputHarness.getTags()).toEqual(['tag2']);
     expect(component.tagsControl.value).toEqual(['tag2']);
+  });
+
+  it('should add tag with confirm function before added', async () => {
+    component.tagValidationHook = (tag: string, validationCb: (shouldAddTag: boolean) => void) => {
+      validationCb(tag.startsWith('*'));
+    };
+    fixture.detectChanges();
+
+    const formTagsInputHarness = await loader.getHarness(GioFormTagsInputHarness);
+
+    await formTagsInputHarness.addTag('*');
+    await formTagsInputHarness.addTag('tag2');
+
+    expect(await formTagsInputHarness.getTags()).toEqual(['*']);
+    expect(component.tagsControl.value).toEqual(['*']);
   });
 });
