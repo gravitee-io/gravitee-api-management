@@ -21,6 +21,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
+import { GioFormColorInputHarness } from './gio-form-color-input.harness';
 import { GioFormColorInputModule } from './gio-form-color-input.module';
 
 @Component({
@@ -54,8 +55,38 @@ describe('GioFormColorInputModule', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
   });
 
-  it('should works', async () => {
-    expect(component).toBeDefined();
-    expect(loader).toBeDefined();
+  it('should display formControl color', async () => {
+    const formColorInput = await loader.getHarness(GioFormColorInputHarness.with({ selector: 'gio-form-color-input' }));
+
+    expect(await formColorInput.getValue()).toEqual('');
+
+    component.colorControl.setValue('#ff0000');
+    expect(await formColorInput.getValue()).toEqual('#ff0000');
+  });
+
+  it('should display change formControl color', async () => {
+    const formColorInput = await loader.getHarness(GioFormColorInputHarness.with({ selector: 'gio-form-color-input' }));
+
+    expect(await formColorInput.getValue()).toEqual('');
+
+    await formColorInput.setValue('#ff0000');
+
+    expect(await formColorInput.getValue()).toEqual('#ff0000');
+    expect(component.colorControl.value).toEqual('#ff0000');
+  });
+
+  it('should disable', async () => {
+    const formColorInput = await loader.getHarness(GioFormColorInputHarness.with({ selector: 'gio-form-color-input' }));
+
+    component.colorControl.setValue('#ff0000');
+
+    component.colorControl.disable();
+    expect(await formColorInput.isDisabled()).toEqual(true);
+
+    component.colorControl.enable();
+    expect(await formColorInput.isDisabled()).toEqual(false);
+
+    component.colorControl.disable();
+    expect(await formColorInput.isDisabled()).toEqual(true);
   });
 });

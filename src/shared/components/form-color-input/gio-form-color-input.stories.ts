@@ -18,6 +18,7 @@ import { action } from '@storybook/addon-actions';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
 
 import { GioFormColorInputComponent } from './gio-form-color-input.component';
 import { GioFormColorInputModule } from './gio-form-color-input.module';
@@ -27,16 +28,16 @@ export default {
   component: GioFormColorInputComponent,
   decorators: [
     moduleMetadata({
-      imports: [BrowserAnimationsModule, GioFormColorInputModule, FormsModule, ReactiveFormsModule, MatFormFieldModule],
+      imports: [BrowserAnimationsModule, GioFormColorInputModule, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule],
     }),
   ],
   render: () => ({}),
   argTypes: {
     color: {
-      control: { type: 'string' },
+      control: { type: 'color' },
     },
     placeholder: {
-      control: { type: 'string' },
+      control: { type: 'text' },
     },
     required: {
       defaultValue: false,
@@ -50,18 +51,46 @@ export default {
 } as Meta;
 
 export const Simple: Story = {
-  render: ({ color, placeholder, required, disabled }) => ({
-    template: `
-      <gio-form-color-input [disabled]="disabled" [required]="required" [placeholder]="placeholder" [ngModel]="color" (ngModelChange)="onColorChange($event)">
-      </gio-form-color-input>
-    `,
-    props: {
-      color,
-      placeholder,
-      required,
-      disabled,
-      onColorChange: (e) => action('Color')(e),
-    },
-  }),
+  render: ({ color, placeholder, required, disabled }) => {
+    const colorControl = new FormControl({ value: color, disabled });
+
+    colorControl.valueChanges.subscribe((value) => {
+      action('Color')(value);
+    });
+
+    return {
+      template: `
+        <mat-form-field appearance="fill" style="width:100%">
+          <mat-label>Select color</mat-label>
+          <gio-form-color-input [required]="required" [placeholder]="placeholder" [formControl]="colorControl">
+          </gio-form-color-input>
+          <mat-error>
+            Please enter a valid color
+          </mat-error>
+        </mat-form-field>
+      `,
+      props: {
+        colorControl,
+        placeholder,
+        required,
+        disabled,
+      },
+    };
+  },
   args: {},
+};
+
+export const Disabled: Story = {
+  render: Simple.render,
+  args: {
+    disabled: true,
+    color: '#ff00c8',
+  },
+};
+
+export const Validation: Story = {
+  render: Simple.render,
+  args: {
+    color: 'aaaaa',
+  },
 };

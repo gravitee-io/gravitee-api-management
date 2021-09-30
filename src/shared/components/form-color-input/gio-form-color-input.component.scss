@@ -13,3 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+
+@use '../../../scss/gio-material-theme' as gio;
+
+$background: map.get(gio.$gio-theme, background);
+
+.form-color-input {
+  display: flex;
+
+  &__color-container {
+    margin-right: 6px;
+
+    &__border {
+      border: solid 2px mat.get-color-from-palette($background, background);
+      border-radius: 50%;
+      overflow: hidden;
+
+      &.disabled {
+        border-style: none;
+        cursor: pointer;
+      }
+
+      &__input {
+        -webkit-appearance: none;
+
+        position: relative;
+        width: 24px;
+        height: 24px;
+        border: none;
+
+        &::-webkit-color-swatch-wrapper {
+          padding: 0;
+        }
+        &::-webkit-color-swatch {
+          border: none;
+        }
+      }
+    }
+  }
+}

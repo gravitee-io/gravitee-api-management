@@ -15,4 +15,26 @@
     limitations under the License.
 
 -->
-🏳️‍🌈
+<div class="form-color-input">
+  <div
+    *ngIf="shouldLabelFloat"
+    class="form-color-input__color-container"
+    matRipple
+    [matRippleCentered]="true"
+    [matRippleUnbounded]="true"
+    [matRippleDisabled]="disabled"
+    matRippleRadius="24"
+  >
+    <div class="form-color-input__color-container__border" [class.disabled]="disabled">
+      <input
+        matInput
+        [placeholder]="placeholder"
+        [formControl]="colorFormControl"
+        class="form-color-input__color-container__border__input"
+        type="color"
+      />
+    </div>
+  </div>
+
+  <input matInput [placeholder]="placeholder" [formControl]="colorFormControl" class="form-color-input__text-input" />
+</div>

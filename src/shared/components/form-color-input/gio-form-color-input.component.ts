@@ -16,12 +16,22 @@
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Component, ElementRef, HostBinding, Input, OnDestroy, Optional, Self } from '@angular/core';
-import { ControlValueAccessor, NgControl } from '@angular/forms';
+import { AbstractControl, ControlValueAccessor, FormControl, NgControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { isEmpty } from 'lodash';
 import { Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 export type Color = string;
+
+export const colorValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  if (isEmpty(control.value)) {
+    return null;
+  }
+
+  const badColor = /^#[0-9a-f]{6}$/i.test(control.value);
+  return !badColor ? { color: { message: `"${control.value}" is not a valid color` } } : null;
+};
 
 @Component({
   selector: 'gio-form-color-input',
@@ -40,6 +50,8 @@ export type Color = string;
 })
 export class GioFormColorInputComponent implements MatFormFieldControl<Color>, ControlValueAccessor, OnDestroy {
   static nextId = 0;
+
+  colorFormControl = new FormControl(null, [colorValidator]);
 
   _onChange: (value: any) => void = () => ({});
 
@@ -107,6 +119,9 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   }
   set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
+
+    dis ? this.colorFormControl.disable() : this.colorFormControl.enable();
+
     this.stateChanges.next();
   }
   private _disabled = false;
@@ -117,8 +132,10 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
       this.touched &&
       // if required check if is empty
       ((this.required && this.empty) ||
-        // if there is a touched control check if there is an error
-        (this.ngControl && this.ngControl.touched && !!this.ngControl.errors))
+        // if there is a touched ngControl check if there is an error
+        (this.ngControl && this.ngControl.touched && !!this.ngControl.errors) ||
+        // if there is a touched colorFormControl check if there is an error
+        (this.colorFormControl && this.colorFormControl.touched && !!this.colorFormControl.errors))
     );
   }
 
@@ -150,6 +167,12 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
       this.touched = true;
       this.stateChanges.next();
     });
+
+    this.colorFormControl.valueChanges.pipe(debounceTime(300)).subscribe((value) => {
+      this.value = value;
+
+      this.colorFormControl.setValue(value, { onlySelf: true, emitEvent: false, emitModelToViewChange: true });
+    });
   }
 
   ngOnDestroy() {
@@ -160,6 +183,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   // From ControlValueAccessor interface
   writeValue(value: string): void {
     this._value = value;
+    this.colorFormControl.setValue(value);
   }
 
   // From ControlValueAccessor interface
@@ -181,4 +205,9 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   // From ControlValueAccessor interface
   // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
   onContainerClick(_event: MouseEvent): void {}
+
+  // From ControlValueAccessor interface
+  setDisabledState(disabled: boolean) {
+    this.disabled = disabled;
+  }
 }
