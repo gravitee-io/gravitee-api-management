@@ -18,11 +18,11 @@ import { ChangeDetectorRef, Component, Input } from '@angular/core';
 @Component({
   selector: 'gio-form-card',
   template: `
-    <mat-card class="card" [class.selected]="selected">
+    <mat-card matRipple class="card" [class.selected]="selected">
       <span class="selection-icon">
         <mat-icon>check_circle</mat-icon>
       </span>
-      <ng-content></ng-content>
+      <mat-card-content class="card__content"><ng-content></ng-content></mat-card-content>
     </mat-card>
   `,
   host: {
