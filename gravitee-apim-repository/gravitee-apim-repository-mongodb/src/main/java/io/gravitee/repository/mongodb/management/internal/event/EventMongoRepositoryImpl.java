@@ -47,7 +47,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         aggregationOperations.add(Aggregation.match(Criteria.where("properties." + group.getValue()).exists(true)));
 
         // Sort.
-        aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt"));
+        aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt", "_id"));
 
         // Group and get last only.
         aggregationOperations.add(Aggregation.group("$properties." + group.getValue()).first(Aggregation.ROOT).as("doc"));
@@ -63,7 +63,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         }
 
         // Sort
-        aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt"));
+        aggregationOperations.add(Aggregation.sort(Sort.Direction.DESC, "updatedAt", "_id"));
 
         // Pagination
         if (page != null) {
@@ -88,7 +88,7 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         criteriaList.forEach(query::addCriteria);
 
         // set sort by updated at
-        query.with(new Sort(Sort.Direction.DESC, "updatedAt"));
+        query.with(Sort.by(Sort.Direction.DESC, "updatedAt", "_id"));
 
         // set pageable
         if (pageable != null) {

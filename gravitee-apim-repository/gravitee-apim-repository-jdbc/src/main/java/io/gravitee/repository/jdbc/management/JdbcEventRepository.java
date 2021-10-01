@@ -171,7 +171,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         builder.append(" inner join (select e.id from events e ");
         appendCriteria(builder, criteria, args);
         builder.append(args.isEmpty() ? WHERE_CLAUSE : AND_CLAUSE).append("e.id in(").append(joinLatest(group, args)).append(")");
-        builder.append("    order by e.updated_at desc ");
+        builder.append("    order by e.updated_at desc, e.id desc ");
 
         if (page != null && size != null) {
             final int limit = size.intValue();
@@ -181,7 +181,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             builder.append(createOffsetClause(0L));
         }
         builder.append("    ) as je on je.id = ev.id ");
-        builder.append(" order by ev.updated_at desc");
+        builder.append(" order by ev.updated_at desc, ev.id desc");
 
         return queryEvents(builder.toString(), args);
     }
@@ -204,7 +204,7 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         final StringBuilder builder = createSearchQueryBuilder();
         appendCriteria(builder, filter, args);
 
-        builder.append(" order by updated_at desc ");
+        builder.append(" order by updated_at desc, id desc ");
         return queryEvents(builder.toString(), args);
     }
 
