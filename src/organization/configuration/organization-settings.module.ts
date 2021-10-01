@@ -54,6 +54,7 @@ import { GioFormSlideToggleModule } from '../../shared/components/form-slide-too
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { GioFormCardGroupModule } from '../../shared/components/form-card-group/gio-form-card-group.module';
 import { GioFormTagsInputModule } from '../../shared/components/form-tags-input/gio-form-tags-input.module';
+import { GioFormColorInputModule } from '../../shared/components/form-color-input/gio-form-color-input.module';
 
 @NgModule({
   imports: [
@@ -89,6 +90,7 @@ import { GioFormTagsInputModule } from '../../shared/components/form-tags-input/
     GioFormSlideToggleModule,
     GioFormCardGroupModule,
     GioFormTagsInputModule,
+    GioFormColorInputModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,

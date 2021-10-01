@@ -15,4 +15,16 @@
     limitations under the License.
 
 -->
-github
+<mat-card class="identity-provider__card">
+  <h2>Configuration</h2>
+
+  <mat-form-field class="identity-provider__card__form-field" appearance="fill">
+    <mat-label>Client Id</mat-label>
+    <input matInput name="configurationClientId" />
+  </mat-form-field>
+
+  <mat-form-field class="identity-provider__card__form-field" appearance="fill">
+    <mat-label>Client Secret</mat-label>
+    <input matInput name="configurationClientSecret" type="password" />
+  </mat-form-field>
+</mat-card>
