@@ -15,136 +15,98 @@
     limitations under the License.
 
 -->
-<div class="identity-provider">
-  <h1>Create a new identity provider</h1>
+<div class="identity-provider" *ngIf="identityProviderSettings">
+  <form [formGroup]="identityProviderSettings">
+    <h1>Create a new identity provider</h1>
 
-  <mat-card class="identity-provider__card mat-elevation-z3">
-    <h2>Provider type</h2>
+    <mat-card class="identity-provider__card mat-elevation-z3">
+      <h2>Provider type</h2>
 
-    <gio-form-card-group class="identity-provider__card__provider-type-group">
-      <gio-form-card class="identity-provider__card__provider-type-group__button" value="OIDC">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_oidc-idp.svg" alt="OpenID Connect Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">OpenID Connect</p>
-      </gio-form-card>
+      <gio-form-card-group class="identity-provider__card__provider-type-group" formControlName="type">
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="GRAVITEEIO_AM">
+          <img
+            class="identity-provider__card__provider-type-group__button__logo"
+            src="/assets/logo_graviteeio_am-idp.svg"
+            alt="ravitee.io AM Logo"
+          />
+          <p class="identity-provider__card__provider-type-group__button__label">Gravitee.io AM</p>
+        </gio-form-card>
 
-      <gio-form-card class="identity-provider__card__provider-type-group__button" value="GOOGLE">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_google-idp.svg" alt="Google Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">Google</p>
-      </gio-form-card>
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="OIDC">
+          <img
+            class="identity-provider__card__provider-type-group__button__logo"
+            src="/assets/logo_oidc-idp.svg"
+            alt="OpenID Connect Logo"
+          />
+          <p class="identity-provider__card__provider-type-group__button__label">OpenID Connect</p>
+        </gio-form-card>
 
-      <gio-form-card class="identity-provider__card__provider-type-group__button" value="GITHUB">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_github-idp.svg" alt="Github Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">Github</p>
-      </gio-form-card>
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="GOOGLE">
+          <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_google-idp.svg" alt="Google Logo" />
+          <p class="identity-provider__card__provider-type-group__button__label">Google</p>
+        </gio-form-card>
 
-      <gio-form-card class="identity-provider__card__provider-type-group__button" value="GRAVITEEIO_AM">
-        <img
-          class="identity-provider__card__provider-type-group__button__logo"
-          src="/assets/logo_graviteeio_am-idp.svg"
-          alt="ravitee.io AM Logo"
-        />
-        <p class="identity-provider__card__provider-type-group__button__label">Gravitee.io AM</p>
-      </gio-form-card>
-    </gio-form-card-group>
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="GITHUB">
+          <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_github-idp.svg" alt="Github Logo" />
+          <p class="identity-provider__card__provider-type-group__button__label">Github</p>
+        </gio-form-card>
+      </gio-form-card-group>
+    </mat-card>
 
-    <!-- <mat-card matRipple class="identity-provider__card__provider-type-group__button" (click)="onSelectCard()">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_oidc-idp.svg" alt="OpenID Connect Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">OpenID Connect</p>
-      </mat-card>
+    <mat-card class="identity-provider__card mat-elevation-z3">
+      <h2>General</h2>
 
-      <mat-card matRipple class="identity-provider__card__provider-type-group__button">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_google-idp.svg" alt="Google Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">Google</p>
-      </mat-card>
+      <mat-form-field class="identity-provider__card__form-field" appearance="fill">
+        <mat-label>Name</mat-label>
+        <input matInput name="name" minlength="2" maxlength="50" />
+        <mat-hint>Identity provider name. The name will be used to define the authentication endpoint</mat-hint>
+      </mat-form-field>
 
-      <mat-card matRipple class="identity-provider__card__provider-type-group__button">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_github-idp.svg" alt="Github Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">Github</p>
-      </mat-card>
+      <mat-form-field class="identity-provider__card__form-field" appearance="fill">
+        <mat-label>Description</mat-label>
+        <input matInput name="description" minlength="2" maxlength="50" />
+        <mat-hint>Provide a description of the identity provider</mat-hint>
+      </mat-form-field>
 
-      <mat-card matRipple class="identity-provider__card__provider-type-group__button">
-        <img
-          class="identity-provider__card__provider-type-group__button__logo"
-          src="/assets/logo_graviteeio_am-idp.svg"
-          alt="ravitee.io AM Logo"
-        />
-        <p class="identity-provider__card__provider-type-group__button__label">Gravitee.io AM</p>
-      </mat-card>
-    </gio-form-select-cards> -->
+      <!-- Note: Token exchange endpoint ?? -->
 
-    <!-- <mat-radio-group #identityProvider class="identity-provider__card__provider-type-group" aria-label="Select an option">
-      <mat-radio-button class="identity-provider__card__provider-type-group__button" value="OIDC">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_oidc-idp.svg" alt="OpenID Connect Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">OpenID Connect</p>
-      </mat-radio-button>
-      <mat-radio-button class="identity-provider__card__provider-type-group__button" value="GOOGLE">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_google-idp.svg" alt="Google Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">Google</p>
-      </mat-radio-button>
-      <mat-radio-button class="identity-provider__card__provider-type-group__button" value="GITHUB">
-        <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_github-idp.svg" alt="Github Logo" />
-        <p class="identity-provider__card__provider-type-group__button__label">Github</p>
-      </mat-radio-button>
-      <mat-radio-button class="identity-provider__card__provider-type-group__button" value="GRAVITEEIO_AM">
-        <img
-          class="identity-provider__card__provider-type-group__button__logo"
-          src="/assets/logo_graviteeio_am-idp.svg"
-          alt="ravitee.io AM Logo"
-        />
-        <p class="identity-provider__card__provider-type-group__button__label">Gravitee.io AM</p>
-      </mat-radio-button> 
-    </mat-radio-group> -->
-  </mat-card>
+      <gio-form-slide-toggle class="identity-provider__card__form-field" appearance="fill">
+        <gio-form-label>Allow portal authentication to use this identity provider</gio-form-label>
+        <mat-slide-toggle
+          gioFormSlideToggle
+          aria-label="Allow identity provider for portal"
+          name="identityProviderEnabled"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
 
-  <mat-card class="identity-provider__card mat-elevation-z3">
-    <h2>General</h2>
+      <gio-form-slide-toggle class="identity-provider__card__form-field" appearance="fill">
+        <gio-form-label>A public email is required to be able to authenticate</gio-form-label>
+        <mat-slide-toggle
+          gioFormSlideToggle
+          aria-label="A public email is required"
+          name="identityProviderEmailRequired"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
 
-    <gio-form-slide-toggle class="identity-provider__card__form-field" appearance="fill">
-      <gio-form-label>Allow portal authentication to use this identity provider</gio-form-label>
-      <mat-slide-toggle
-        gioFormSlideToggle
-        aria-label="Allow identity provider for portal"
-        name="identityProviderEnabled"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
+      <div class="identity-provider__card__form-field radio-group">
+        <label class="mat-body-strong">Group and role mappings</label>
+        <div>Platform administrators still have the ability to override mappings</div>
+        <mat-radio-group class="identity-provider__card__form-field__radio-group" aria-label="Select an option">
+          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" value="1"
+            >Computed only during first user authentication</mat-radio-button
+          >
+          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" value="2"
+            >Computed during each user authentication</mat-radio-button
+          >
+        </mat-radio-group>
+      </div>
+    </mat-card>
 
-    <mat-form-field appearance="fill" class="identity-provider__card__form-field">
-      <mat-label>Name</mat-label>
-      <input matInput name="name" minlength="2" maxlength="50" />
-      <mat-hint>Identity provider name. The name will be used to define the authentication endpoint</mat-hint>
-    </mat-form-field>
-
-    <mat-form-field appearance="fill" class="identity-provider__card__form-field">
-      <mat-label>Description</mat-label>
-      <input matInput name="description" minlength="2" maxlength="50" />
-      <mat-hint>Provide a description of the identity provider</mat-hint>
-    </mat-form-field>
-
-    <!-- Note: Token exchange endpoint ?? -->
-
-    <gio-form-slide-toggle class="identity-provider__card__form-field" appearance="fill">
-      <gio-form-label>A public email is required to be able to authenticate</gio-form-label>
-      <mat-slide-toggle gioFormSlideToggle aria-label="A public email is required" name="identityProviderEmailRequired"></mat-slide-toggle>
-    </gio-form-slide-toggle>
-
-    <div class="identity-provider__card__form-field">
-      <label class="mat-body-strong">Group and role mappings</label>
-      <div>Platform administrators still have the ability to override mappings</div>
-      <mat-radio-group class="identity-provider__card__form-field__radio-group" aria-label="Select an option">
-        <mat-radio-button class="identity-provider__card__form-field__radio-group__button" value="1"
-          >Computed only during first user authentication</mat-radio-button
-        >
-        <mat-radio-button class="identity-provider__card__form-field__radio-group__button" value="2"
-          >Computed during each user authentication</mat-radio-button
-        >
-      </mat-radio-group>
-    </div>
-  </mat-card>
+    <ng-container [ngSwitch]="identityProviderSettings.get('type').value">
+      <org-settings-identity-provider-oidc *ngSwitchCase="'OIDC'"></org-settings-identity-provider-oidc>
+      <org-settings-identity-provider-google *ngSwitchCase="'GOOGLE'"></org-settings-identity-provider-google>
+      <org-settings-identity-provider-github *ngSwitchCase="'GITHUB'"></org-settings-identity-provider-github>
+      <org-settings-identity-provider-graviteeio-am *ngSwitchCase="'GRAVITEEIO_AM'"></org-settings-identity-provider-graviteeio-am>
+    </ng-container>
+  </form>
 </div>
-
-<ng-container [ngSwitch]="identityProviderType">
-  <org-settings-identity-provider-oidc *ngSwitchCase="'OIDC'"></org-settings-identity-provider-oidc>
-  <org-settings-identity-provider-google *ngSwitchCase="'GOOGLE'"></org-settings-identity-provider-google>
-  <org-settings-identity-provider-github *ngSwitchCase="'GITHUB'"></org-settings-identity-provider-github>
-  <org-settings-identity-provider-graviteeio-am *ngSwitchCase="'GRAVITEEIO_AM'"></org-settings-identity-provider-graviteeio-am>
-</ng-container>

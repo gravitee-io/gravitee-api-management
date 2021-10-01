@@ -13,13 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'org-settings-identity-provider',
   styles: [require('./org-settings-identity-provider.component.scss')],
   template: require('./org-settings-identity-provider.component.html'),
 })
-export class OrgSettingsIdentityProviderComponent {
-  identityProviderType = 'GRAVITEEIO_AM';
+export class OrgSettingsIdentityProviderComponent implements OnInit {
+  identityProviderSettings: FormGroup;
+
+  ngOnInit() {
+    this.identityProviderSettings = new FormGroup({
+      type: new FormControl('GRAVITEEIO_AM'),
+    });
+  }
 }

@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
+import { GioFormCardGroupHarness } from '../../../shared/components/form-card-group/gio-form-card-group.harness';
 
 describe('OrgSettingsIdentityProviderComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProviderComponent>;
@@ -36,8 +37,13 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should createComponent', () => {
-    expect(loader).toBeDefined();
-    expect(fixture.componentInstance).toBeDefined();
+  it('should change provider type', async () => {
+    const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+
+    expect(await formCardGroup.getSelectedValue()).toEqual('GRAVITEEIO_AM');
+
+    await formCardGroup.select('GITHUB');
+
+    expect(await formCardGroup.getSelectedValue()).toEqual('GITHUB');
   });
 });

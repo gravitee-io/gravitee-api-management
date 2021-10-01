@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate, parallel } from '@angular/cdk/testing';
+
+export type GioFormCardGroupHarnessFilters = BaseHarnessFilters;
 
 export class GioFormCardGroupHarness extends ComponentHarness {
   static hostSelector = 'gio-form-card-group';
+
+  /**
+   * Gets a `HarnessPredicate` that can be used to search for a `GioFormCardGroupHarness` that meets
+   * certain criteria.
+   *
+   * @param options Options for filtering which input instances are considered a match.
+   * @return a `HarnessPredicate` configured with the given options.
+   */
+  static with(options: GioFormCardGroupHarnessFilters = {}): HarnessPredicate<GioFormCardGroupHarness> {
+    return new HarnessPredicate(GioFormCardGroupHarness, options);
+  }
 
   protected getCards = this.locatorForAll('gio-form-card');
 
