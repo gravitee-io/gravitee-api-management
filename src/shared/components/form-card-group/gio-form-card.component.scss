@@ -19,7 +19,7 @@
 
 @use '../../../scss/gio-material-theme' as gio;
 
-$primary: map.get(gio.$gio-theme, primary);
+$accent: map.get(gio.$gio-theme, accent);
 
 .card {
   @include mat.elevation(1);
@@ -31,7 +31,7 @@ $primary: map.get(gio.$gio-theme, primary);
   & > .selection-icon {
     opacity: 0;
     cursor: pointer;
-    color: mat.get-color-from-palette($primary);
+    color: mat.get-color-from-palette($accent);
     background: #fff;
     position: absolute;
     right: 4px;
@@ -42,7 +42,7 @@ $primary: map.get(gio.$gio-theme, primary);
   }
 
   &.selected {
-    border: 1px solid mat.get-color-from-palette($primary);
+    border: 1px solid mat.get-color-from-palette($accent);
     margin: 5px;
 
     & > .selection-icon {
@@ -52,7 +52,7 @@ $primary: map.get(gio.$gio-theme, primary);
 
   &:hover {
     @include mat.elevation-transition();
-    @include mat.elevation(3, mat.get-color-from-palette($primary), 1);
+    @include mat.elevation(3);
 
     & > .selection-icon {
       opacity: 1;
