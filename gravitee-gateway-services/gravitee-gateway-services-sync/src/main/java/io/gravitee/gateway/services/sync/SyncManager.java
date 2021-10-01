@@ -22,12 +22,15 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -55,6 +58,10 @@ public class SyncManager extends AbstractService<SyncManager> {
     @Autowired
     private ClusterManager clusterManager;
 
+    @Autowired
+    @Qualifier("syncExecutor")
+    private ThreadPoolExecutor executor;
+
     @Value("${services.sync.distributed:false}")
     private boolean distributed;
 
@@ -68,7 +75,7 @@ public class SyncManager extends AbstractService<SyncManager> {
 
     public SyncManager() {
         scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("gio.sync-");
+        scheduler.setThreadNamePrefix("gio.sync-master");
         // Ensure every execution is done before running next execution
         scheduler.setPoolSize(1);
         scheduler.initialize();
@@ -137,6 +144,10 @@ public class SyncManager extends AbstractService<SyncManager> {
 
         // If there was no error during the sync process, let's continue it with the next period of time
         if (!error) {
+            if (lastRefreshAt == -1) {
+                // When first sync is entirely done, we can reduce number of threads to the minimum for next sync
+                executor.setCorePoolSize(1);
+            }
             // We refresh the date even if process did not run (not a master node) to ensure that we sync the same way as
             // soon as the node is becoming the master later.
             lastRefreshAt = nextLastRefreshAt;
