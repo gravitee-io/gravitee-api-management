@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee</groupId>
         <artifactId>gravitee-parent</artifactId>
-        <version>20.0</version>
+        <version>20.1</version>
     </parent>
 
     <groupId>io.gravitee.apim</groupId>
@@ -57,9 +57,9 @@
         <gravitee-cockpit-api.version>1.8.0</gravitee-cockpit-api.version>
         <gravitee-common.version>1.22.0</gravitee-common.version>
         <gravitee-definition.version>1.29.1</gravitee-definition.version>
-        <gravitee-expression-language.version>1.7.0-SNAPSHOT</gravitee-expression-language.version>
+        <gravitee-expression-language.version>1.7.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>1.28.0-SNAPSHOT</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>1.28.0</gravitee-gateway-api.version>
         <gravitee-license-node.version>1.1.0</gravitee-license-node.version>
         <gravitee-node.version>1.17.0</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
@@ -69,6 +69,7 @@
         <gravitee-resource-oauth2-provider-api.version>1.3.0</gravitee-resource-oauth2-provider-api.version>
         <!-- Other dependencies version -->
         <batik-transcoder.version>1.14</batik-transcoder.version>
+        <bcpkix-jdk15on.version>1.68</bcpkix-jdk15on.version>
         <classgraph.version>4.8.90</classgraph.version>
         <commons-io.version>2.7</commons-io.version>
         <commons-lang.version>2.6</commons-lang.version>
@@ -529,6 +530,12 @@
                 <groupId>org.apache.xmlgraphics</groupId>
                 <artifactId>batik-transcoder</artifactId>
                 <version>${batik-transcoder.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk15on</artifactId>
+                <version>${bcpkix-jdk15on.version}</version>
             </dependency>
 
             <dependency>
