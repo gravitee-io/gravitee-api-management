@@ -11,3 +11,10 @@
   background-color: mat.get-color-from-palette(gio.$gio-error-palette, medium);
   // color: mat.get-color-from-palette($gio-error-palette, medium-contrast);
 }
+
+/**
+ * Change default material card elevation to 3 if no elevation was added
+ **/
+.mat-card:not([class*='mat-elevation-z']) {
+  @include mat.elevation(3);
+}
