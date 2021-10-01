@@ -218,6 +218,25 @@ public class DictionarySynchronizerTest extends TestCase {
         verify(dictionaryManager, times(250)).undeploy(anyString());
     }
 
+    @Test
+    public void shouldNotDeployIfProblemWhileReadingFromEvent() throws Exception {
+        Dictionary dictionary = new Dictionary();
+        dictionary.setId("dictionary-test");
+
+        Event mockEvent = mockEvent(dictionary, EventType.PUBLISH_DICTIONARY);
+        when(objectMapper.readValue(mockEvent.getPayload(), Dictionary.class)).thenThrow(new NullPointerException());
+        when(eventRepository.searchLatest(
+                argThat(criteria -> criteria != null && criteria.getTypes().containsAll(Arrays.asList(EventType.PUBLISH_DICTIONARY, EventType.START_DICTIONARY))),
+                eq(Event.EventProperties.DICTIONARY_ID),
+                anyLong(),
+                anyLong()
+        )).thenReturn(singletonList(mockEvent));
+
+        dictionarySynchronizer.synchronize(-1, System.currentTimeMillis());
+
+        verify(dictionaryManager, never()).deploy((dictionary));
+    }
+
     private Event mockEvent(final Dictionary dictionary, EventType eventType) throws Exception {
         Map<String, String> properties = new HashMap<>();
         properties.put(Event.EventProperties.DICTIONARY_ID.getValue(), dictionary.getId());

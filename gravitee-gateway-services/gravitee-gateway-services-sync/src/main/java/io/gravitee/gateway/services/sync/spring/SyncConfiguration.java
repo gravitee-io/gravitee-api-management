@@ -50,7 +50,7 @@ public class SyncConfiguration {
 
     @Bean("syncExecutor")
     public ThreadPoolExecutor syncExecutor() {
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(PARALLELISM, PARALLELISM, 60L, TimeUnit.SECONDS,
+        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(PARALLELISM, PARALLELISM, 15L, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(),
                 new ThreadFactory() {
                     private int counter = 0;

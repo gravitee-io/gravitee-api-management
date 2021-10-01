@@ -26,6 +26,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 import static org.mockito.Mockito.*;
 
 /**
@@ -47,6 +49,9 @@ public class SyncManagerTest {
 
     @Mock
     private DictionarySynchronizer dictionarySynchronizer;
+
+    @Mock
+    private ThreadPoolExecutor executor;
 
     @Before
     public void setUp() {
