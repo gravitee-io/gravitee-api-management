@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'org-settings-identity-provider',
@@ -27,6 +27,12 @@ export class OrgSettingsIdentityProviderComponent implements OnInit {
   ngOnInit() {
     this.identityProviderSettings = new FormGroup({
       type: new FormControl('GRAVITEEIO_AM'),
+      enabled: new FormControl(),
+      name: new FormControl(null, [Validators.required, Validators.maxLength(50), Validators.minLength(2)]),
+      description: new FormControl(),
+      tokenExchangeEndpoint: new FormControl(),
+      emailRequired: new FormControl(),
+      syncMappings: new FormControl(),
     });
   }
 }

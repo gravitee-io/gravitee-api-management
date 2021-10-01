@@ -17,6 +17,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
+import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
@@ -45,5 +48,32 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     await formCardGroup.select('GITHUB');
 
     expect(await formCardGroup.getSelectedValue()).toEqual('GITHUB');
+  });
+
+  it('should save identity provider general settings', async () => {
+    const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+    await nameInput.setValue('Name');
+
+    const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
+    await descriptionInput.setValue('Description');
+
+    const allowPortalToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=enabled]' }));
+    await allowPortalToggle.toggle();
+
+    const emailRequiredToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=emailRequired]' }));
+    await emailRequiredToggle.toggle();
+
+    const syncMappingsRadioGroupe = await loader.getHarness(MatRadioGroupHarness.with({ selector: '[formControlName=syncMappings]' }));
+    await syncMappingsRadioGroupe.checkRadioButton({ label: /^Computed during each user/ });
+
+    expect(fixture.componentInstance.identityProviderSettings.value).toEqual({
+      description: 'Description',
+      emailRequired: true,
+      enabled: true,
+      name: 'Name',
+      syncMappings: true,
+      tokenExchangeEndpoint: null,
+      type: 'GRAVITEEIO_AM',
+    });
   });
 });

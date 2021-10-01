@@ -58,13 +58,21 @@
 
       <mat-form-field class="identity-provider__card__form-field" appearance="fill">
         <mat-label>Name</mat-label>
-        <input matInput name="name" minlength="2" maxlength="50" />
+        <input matInput name="name" minlength="2" maxlength="50" formControlName="name" />
         <mat-hint>Identity provider name. The name will be used to define the authentication endpoint</mat-hint>
+
+        <mat-error *ngIf="this.identityProviderSettings.get('name').hasError('required')">Identity provider name is required.</mat-error>
+        <mat-error *ngIf="this.identityProviderSettings.get('name').hasError('maxlength')"
+          >The identity provider has to be less than 50 characters long.</mat-error
+        >
+        <mat-error *ngIf="this.identityProviderSettings.get('name').hasError('minlength')"
+          >The identity provider has to be more than 2 characters long.</mat-error
+        >
       </mat-form-field>
 
       <mat-form-field class="identity-provider__card__form-field" appearance="fill">
         <mat-label>Description</mat-label>
-        <input matInput name="description" minlength="2" maxlength="50" />
+        <input matInput name="description" formControlName="description" />
         <mat-hint>Provide a description of the identity provider</mat-hint>
       </mat-form-field>
 
@@ -76,6 +84,7 @@
           gioFormSlideToggle
           aria-label="Allow identity provider for portal"
           name="identityProviderEnabled"
+          formControlName="enabled"
         ></mat-slide-toggle>
       </gio-form-slide-toggle>
 
@@ -85,17 +94,22 @@
           gioFormSlideToggle
           aria-label="A public email is required"
           name="identityProviderEmailRequired"
+          formControlName="emailRequired"
         ></mat-slide-toggle>
       </gio-form-slide-toggle>
 
       <div class="identity-provider__card__form-field radio-group">
         <label class="mat-body-strong">Group and role mappings</label>
         <div>Platform administrators still have the ability to override mappings</div>
-        <mat-radio-group class="identity-provider__card__form-field__radio-group" aria-label="Select an option">
-          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" value="1"
+        <mat-radio-group
+          class="identity-provider__card__form-field__radio-group"
+          aria-label="Select an option"
+          formControlName="syncMappings"
+        >
+          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" [value]="false"
             >Computed only during first user authentication</mat-radio-button
           >
-          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" value="2"
+          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" [value]="true"
             >Computed during each user authentication</mat-radio-button
           >
         </mat-radio-group>
