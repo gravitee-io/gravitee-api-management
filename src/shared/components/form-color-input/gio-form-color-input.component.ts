@@ -16,11 +16,19 @@
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Component, ElementRef, HostBinding, Input, OnDestroy, Optional, Self } from '@angular/core';
-import { AbstractControl, ControlValueAccessor, FormControl, NgControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  FormControl,
+  NgControl,
+  NG_VALIDATORS,
+  ValidationErrors,
+  ValidatorFn,
+} from '@angular/forms';
 import { MatFormFieldControl } from '@angular/material/form-field';
 import { isEmpty } from 'lodash';
 import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 
 export type Color = string;
 
@@ -46,12 +54,17 @@ export const colorValidator: ValidatorFn = (control: AbstractControl): Validatio
       provide: MatFormFieldControl,
       useExisting: GioFormColorInputComponent,
     },
+    {
+      provide: NG_VALIDATORS,
+      useValue: colorValidator,
+      multi: true,
+    },
   ],
 })
 export class GioFormColorInputComponent implements MatFormFieldControl<Color>, ControlValueAccessor, OnDestroy {
   static nextId = 0;
 
-  colorFormControl = new FormControl(null, [colorValidator]);
+  colorFormControl = new FormControl();
 
   _onChange: (value: any) => void = () => ({});
 
@@ -148,6 +161,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   // From ControlValueAccessor interface
   userAriaDescribedBy?: string;
 
+  private unsubscribe$ = new Subject<boolean>();
   constructor(
     // From ControlValueAccessor interface
     @Optional() @Self() public readonly ngControl: NgControl,
@@ -168,7 +182,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
       this.stateChanges.next();
     });
 
-    this.colorFormControl.valueChanges.pipe(debounceTime(300)).subscribe((value) => {
+    this.colorFormControl.valueChanges.pipe(takeUntil(this.unsubscribe$), debounceTime(300)).subscribe((value) => {
       this.value = value;
 
       this.colorFormControl.setValue(value, { onlySelf: true, emitEvent: false, emitModelToViewChange: true });
@@ -178,6 +192,8 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   ngOnDestroy() {
     this.stateChanges.complete();
     this.fm.stopMonitoring(this.elRef.nativeElement);
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
   }
 
   // From ControlValueAccessor interface

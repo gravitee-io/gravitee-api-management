@@ -19,6 +19,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioFormColorInputHarness } from './gio-form-color-input.harness';
@@ -29,7 +30,9 @@ import { GioFormColorInputModule } from './gio-form-color-input.module';
     <mat-form-field appearance="fill">
       <mat-label>My color</mat-label>
       <gio-form-color-input [required]="required" [placeholder]="placeholder" [formControl]="colorControl"></gio-form-color-input>
-      <mat-error>Error</mat-error>
+      <mat-error *ngIf="colorControl.hasError('color')">
+        {{ colorControl.getError('color').message }}
+      </mat-error>
     </mat-form-field>
   `,
 })
@@ -37,7 +40,7 @@ class TestComponent {
   required = false;
   placeholder = 'Select color';
 
-  colorControl = new FormControl(null, Validators.required);
+  colorControl = new FormControl(null);
 }
 
 describe('GioFormColorInputModule', () => {
@@ -88,5 +91,19 @@ describe('GioFormColorInputModule', () => {
 
     component.colorControl.disable();
     expect(await formColorInput.isDisabled()).toEqual(true);
+  });
+
+  it('should validate', async () => {
+    const formField = await loader.getHarness(MatFormFieldHarness);
+    const formColorInput = await formField.getControl<GioFormColorInputHarness>(GioFormColorInputHarness);
+
+    component.colorControl.setValue('#ff0000');
+
+    expect(await formColorInput.getValue()).toEqual('#ff0000');
+
+    await formColorInput.setValue('🦊');
+
+    expect(await formField.hasErrors()).toEqual(true);
+    expect(await formField.getTextErrors()).toEqual(['"🦊" is not a valid color']);
   });
 });

@@ -64,8 +64,8 @@ export const Simple: Story = {
           <mat-label>Select color</mat-label>
           <gio-form-color-input [required]="required" [placeholder]="placeholder" [formControl]="colorControl">
           </gio-form-color-input>
-          <mat-error>
-            Please enter a valid color
+          <mat-error *ngIf="colorControl.hasError('color')">
+            {{ colorControl.getError('color').message }}
           </mat-error>
         </mat-form-field>
       `,
