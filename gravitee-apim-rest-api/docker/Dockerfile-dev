@@ -20,13 +20,13 @@ LABEL maintainer="contact@graviteesource.com"
 ARG GRAVITEEIO_VERSION=0
 ENV GRAVITEEIO_HOME /opt/graviteeio-management-api
 
-ADD ./graviteeio-apim-rest-api-distribution-${GRAVITEEIO_VERSION}.zip .
+ADD ./gravitee-apim-rest-api-distribution-${GRAVITEEIO_VERSION}.zip .
 
 RUN apt-get update \
-    && apt-get upgrade \
+    && apt-get --yes upgrade \
     && apt-get --yes install unzip htop \
-    && unzip graviteeio-apim-rest-api-distribution-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
-    && mv /tmp/graviteeio-apim-rest-api-distribution-${GRAVITEEIO_VERSION} ${GRAVITEEIO_HOME} \
+    && unzip gravitee-apim-rest-api-distribution-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
+    && mv /tmp/gravitee-apim-rest-api-distribution-${GRAVITEEIO_VERSION} ${GRAVITEEIO_HOME} \
     && rm -rf /tmp/* \
     && rm -rf /var/lib/apt/lists/* \
 	&& chgrp -R 0 ${GRAVITEEIO_HOME} \

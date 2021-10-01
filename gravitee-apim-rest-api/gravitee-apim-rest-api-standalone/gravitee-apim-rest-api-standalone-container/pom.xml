@@ -186,6 +186,12 @@
             <artifactId>jaxb-impl</artifactId>
         </dependency>
 
+        <!--
+            FIXME:
+            Add this dependency because gravitee-expression-language parse a class in gravitee-gateway-api that uses a class from this package.
+            It is only needed when instanciating the expression-language bean, but the management API fails with a ClassNotFoundException without this dependecy.
+            We should find a way to white list resources in gravitee-expression-language without the need of third party libraries.
+        -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk15on</artifactId>

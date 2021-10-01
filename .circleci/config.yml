@@ -57,7 +57,7 @@ jobs:
           name: "Build project"
           command: |
             mvn -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
-            cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/graviteeio-apim-rest-api-distribution-*.zip ./
+            cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.zip ./
       - save_cache:
           paths:
             - ~/.m2
@@ -67,7 +67,7 @@ jobs:
           root: ./
           paths:
             - ./gravitee-*/*/target/*
-            - ./graviteeio-apim-rest-api-distribution-*.zip
+            - ./gravitee-apim-rest-api-distribution-*.zip
 
   test:
     machine:
@@ -96,7 +96,7 @@ jobs:
 
   publish-on-artifactory:
     docker:
-      - image: circleci/openjdk:11-jdk-stretch
+      - image: cimg/openjdk:11.0
     resource_class: medium
     steps:
       - checkout
@@ -110,7 +110,7 @@ jobs:
 
   publish-on-nexus:
     docker:
-      - image: circleci/openjdk:11-jdk-stretch
+      - image: cimg/openjdk:11.0
     resource_class: medium
     environment:
       NEXUS_SNAPSHOTS_URL: "https://oss.sonatype.org/content/repositories/snapshots"
@@ -135,10 +135,16 @@ jobs:
           at: .
       - setup_remote_docker
       - run:
+          name: Compute APIM Version
+          command: |
+            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+            echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
+            echo "Gravitee APIM version: ${APIM_VERSION}"
+      - run:
           name: Compute Tag for Docker images
           command: |
             # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-            export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+            export TAG=$(echo "${APIM_VERSION}-${CIRCLE_BRANCH:0:15}+${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
             # Workaround for sharing this variable to the next steps
             echo "export TAG=$TAG" >> $BASH_ENV
             echo "Docker images will be tagged with: ${TAG}"
@@ -146,8 +152,6 @@ jobs:
       - run:
           name: Build & Publish Management API Docker Image to Azure Registry
           command: |
-            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-            echo "Gravitee APIM version: ${APIM_VERSION}"
             export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
 
             docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
@@ -192,19 +196,6 @@ jobs:
           command: |
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az aks get-credentials --resource-group element-zero --name element-zero
-
-            helm upgrade --repo https://helm.gravitee.io \
-                         --install apim \
-                         -n apim \
-                         apim3 \
-                         --reuse-values \
-                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                         --set "api.image.tag=${TAG}"
-      - run:
-          name: Helm upgrade and 🚀 to APIM cluster
-          command: |
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
             helm upgrade --repo https://helm.gravitee.io \
                          --install apim \

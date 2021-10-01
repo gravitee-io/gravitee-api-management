@@ -66,7 +66,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>graviteeio-apim-rest-api-standalone-${project.version}</finalName>
+							<finalName>gravitee-apim-rest-api-standalone-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
 								<descriptor>src/main/assembly/plugin-assembly-standalone.xml</descriptor>
@@ -80,7 +80,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>graviteeio-apim-rest-api-distribution-${project.version}</finalName>
+							<finalName>gravitee-apim-rest-api-distribution-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
 								<descriptor>src/main/assembly/plugin-assembly-distribution.xml</descriptor>
