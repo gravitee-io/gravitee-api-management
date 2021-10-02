@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-import { ComponentHarness, parallel, TestKey } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate, parallel, TestKey } from '@angular/cdk/testing';
 import { MatChipListHarness } from '@angular/material/chips/testing';
+
+export type GioFormTagsInputHarnessFilters = BaseHarnessFilters;
 
 export class GioFormTagsInputHarness extends ComponentHarness {
   static hostSelector = 'gio-form-tags-input';
+
+  /**
+   * Gets a `HarnessPredicate` that can be used to search for a `GioFormColorInputHarness` that meets
+   * certain criteria.
+   *
+   * @param options Options for filtering which input instances are considered a match.
+   * @return a `HarnessPredicate` configured with the given options.
+   */
+  static with(options: GioFormTagsInputHarnessFilters = {}): HarnessPredicate<GioFormTagsInputHarness> {
+    return new HarnessPredicate(GioFormTagsInputHarness, options);
+  }
 
   protected getMatChipListHarness = this.locatorFor(MatChipListHarness);
 

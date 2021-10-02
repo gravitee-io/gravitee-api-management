@@ -39,6 +39,8 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
 
   private unsubscribe$ = new Subject<boolean>();
 
+  private identityProviderFormControlKeys: string[] = [];
+
   ngOnInit() {
     this.identityProviderSettings = new FormGroup({
       type: new FormControl('GRAVITEEIO_AM'),
@@ -66,8 +68,19 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
   }
 
   addProviderFormGroups(formGroups: Record<string, FormGroup>) {
+    // clean previous form group
+    if (!isEmpty(this.identityProviderFormControlKeys)) {
+      this.identityProviderFormControlKeys.forEach((key) => {
+        this.identityProviderSettings.removeControl(key);
+      });
+
+      this.identityProviderFormControlKeys = [];
+    }
+
+    // add provider form group
     if (this.identityProviderSettings && !isEmpty(formGroups)) {
       Object.entries(formGroups).forEach(([key, formGroup]) => {
+        this.identityProviderFormControlKeys.push(key);
         this.identityProviderSettings.addControl(key, formGroup);
       });
     }

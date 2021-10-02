@@ -24,7 +24,24 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   template: require('./org-settings-identity-provider-graviteeio-am.component.html'),
 })
 export class OrgSettingsIdentityProviderGraviteeioAmComponent implements ProviderConfiguration {
+  configurationFormGroup: FormGroup = new FormGroup({
+    clientId: new FormControl(null, Validators.required),
+    clientSecret: new FormControl(null, Validators.required),
+    serverURL: new FormControl(null, Validators.required),
+    domain: new FormControl(null, Validators.required),
+    scopes: new FormControl(),
+    color: new FormControl(),
+  });
+
+  userProfileMappingFormGroup: FormGroup = new FormGroup({
+    id: new FormControl(null, Validators.required),
+    firstname: new FormControl(),
+    lastname: new FormControl(),
+    email: new FormControl(),
+    picture: new FormControl(),
+  });
+
   getFormGroups(): Record<string, FormGroup> {
-    return {};
+    return { configuration: this.configurationFormGroup, userProfileMapping: this.userProfileMappingFormGroup };
   }
 }
