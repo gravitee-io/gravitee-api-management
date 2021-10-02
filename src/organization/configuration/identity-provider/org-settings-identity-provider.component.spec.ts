@@ -98,4 +98,23 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       });
     });
   });
+
+  describe('google', () => {
+    it('should save identity provider google configuration ', async () => {
+      const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+
+      await formCardGroup.select('GOOGLE');
+
+      const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
+      await clientIdInput.setValue('Client Id');
+
+      const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
+      await clientSecretInput.setValue('Client Secret');
+
+      expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
+        clientId: 'Client Id',
+        clientSecret: 'Client Secret',
+      });
+    });
+  });
 });

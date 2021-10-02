@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
@@ -24,7 +24,12 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   template: require('./org-settings-identity-provider-google.component.html'),
 })
 export class OrgSettingsIdentityProviderGoogleComponent implements ProviderConfiguration {
-  getFormGroup(): FormGroup {
-    return;
+  configurationFormGroup: FormGroup = new FormGroup({
+    clientId: new FormControl(null, Validators.required),
+    clientSecret: new FormControl(null, Validators.required),
+  });
+
+  getFormGroups(): Record<string, FormGroup> {
+    return { configuration: this.configurationFormGroup };
   }
 }
