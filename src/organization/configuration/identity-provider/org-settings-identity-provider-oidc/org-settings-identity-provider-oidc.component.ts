@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+
+import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
 @Component({
   selector: 'org-settings-identity-provider-oidc',
   styles: [require('./org-settings-identity-provider-oidc.component.scss')],
   template: require('./org-settings-identity-provider-oidc.component.html'),
 })
-export class OrgSettingsIdentityProviderOidcComponent {}
+export class OrgSettingsIdentityProviderOidcComponent implements ProviderConfiguration {
+  getFormGroups(): Record<string, FormGroup> {
+    return {};
+  }
+}

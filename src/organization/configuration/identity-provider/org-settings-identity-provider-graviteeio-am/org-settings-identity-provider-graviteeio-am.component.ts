@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
 @Component({
   selector: 'org-settings-identity-provider-graviteeio-am',
   styles: [require('./org-settings-identity-provider-graviteeio-am.component.scss')],
   template: require('./org-settings-identity-provider-graviteeio-am.component.html'),
 })
-export class OrgSettingsIdentityProviderGraviteeioAmComponent {}
+export class OrgSettingsIdentityProviderGraviteeioAmComponent implements ProviderConfiguration {
+  getFormGroups(): Record<string, FormGroup> {
+    return {};
+  }
+}

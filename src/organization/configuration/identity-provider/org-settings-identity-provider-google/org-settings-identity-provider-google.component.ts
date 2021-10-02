@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+
+import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
 @Component({
   selector: 'org-settings-identity-provider-google',
   styles: [require('./org-settings-identity-provider-google.component.scss')],
   template: require('./org-settings-identity-provider-google.component.html'),
 })
-export class OrgSettingsIdentityProviderGoogleComponent {}
+export class OrgSettingsIdentityProviderGoogleComponent implements ProviderConfiguration {
+  getFormGroup(): FormGroup {
+    return;
+  }
+}

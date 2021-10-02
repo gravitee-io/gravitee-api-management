@@ -29,6 +29,7 @@ import { GioFormCardGroupHarness } from '../../../shared/components/form-card-gr
 describe('OrgSettingsIdentityProviderComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProviderComponent>;
   let loader: HarnessLoader;
+  let component: OrgSettingsIdentityProviderComponent;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -37,6 +38,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
     fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
@@ -48,6 +50,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     await formCardGroup.select('GITHUB');
 
     expect(await formCardGroup.getSelectedValue()).toEqual('GITHUB');
+    expect(Object.keys(component.identityProviderSettings.get('configuration').value)).toEqual(['clientId', 'clientSecret']);
   });
 
   it('should save identity provider general settings', async () => {
@@ -74,6 +77,25 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       syncMappings: true,
       tokenExchangeEndpoint: null,
       type: 'GRAVITEEIO_AM',
+    });
+  });
+
+  describe('github', () => {
+    it('should save identity provider github configuration ', async () => {
+      const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+
+      await formCardGroup.select('GITHUB');
+
+      const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
+      await clientIdInput.setValue('Client Id');
+
+      const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
+      await clientSecretInput.setValue('Client Secret');
+
+      expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
+        clientId: 'Client Id',
+        clientSecret: 'Client Secret',
+      });
     });
   });
 });

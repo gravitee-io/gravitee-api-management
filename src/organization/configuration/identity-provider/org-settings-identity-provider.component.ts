@@ -13,16 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { isEmpty } from 'lodash';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
+export interface ProviderConfiguration {
+  getFormGroups(): Record<string, FormGroup>;
+}
 @Component({
   selector: 'org-settings-identity-provider',
   styles: [require('./org-settings-identity-provider.component.scss')],
   template: require('./org-settings-identity-provider.component.html'),
 })
-export class OrgSettingsIdentityProviderComponent implements OnInit {
+export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewInit, OnDestroy {
   identityProviderSettings: FormGroup;
+
+  @ViewChild('providerConfiguration', { static: false })
+  set providerConfiguration(providerPart: ProviderConfiguration) {
+    this.addProviderFormGroups(providerPart.getFormGroups());
+  }
+
+  identityProviderType = 'GRAVITEEIO_AM';
+
+  private unsubscribe$ = new Subject<boolean>();
 
   ngOnInit() {
     this.identityProviderSettings = new FormGroup({
@@ -34,5 +49,27 @@ export class OrgSettingsIdentityProviderComponent implements OnInit {
       emailRequired: new FormControl(),
       syncMappings: new FormControl(),
     });
+  }
+
+  ngAfterViewInit() {
+    this.identityProviderSettings
+      .get('type')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe((type) => {
+        this.identityProviderType = type;
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  addProviderFormGroups(formGroups: Record<string, FormGroup>) {
+    if (this.identityProviderSettings && !isEmpty(formGroups)) {
+      Object.entries(formGroups).forEach(([key, formGroup]) => {
+        this.identityProviderSettings.addControl(key, formGroup);
+      });
+    }
   }
 }

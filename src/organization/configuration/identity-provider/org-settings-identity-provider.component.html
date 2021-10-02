@@ -116,11 +116,14 @@
       </div>
     </mat-card>
 
-    <ng-container [ngSwitch]="identityProviderSettings.get('type').value">
-      <org-settings-identity-provider-oidc *ngSwitchCase="'OIDC'"></org-settings-identity-provider-oidc>
-      <org-settings-identity-provider-google *ngSwitchCase="'GOOGLE'"></org-settings-identity-provider-google>
-      <org-settings-identity-provider-github *ngSwitchCase="'GITHUB'"></org-settings-identity-provider-github>
-      <org-settings-identity-provider-graviteeio-am *ngSwitchCase="'GRAVITEEIO_AM'"></org-settings-identity-provider-graviteeio-am>
+    <ng-container [ngSwitch]="identityProviderType">
+      <org-settings-identity-provider-oidc *ngSwitchCase="'OIDC'" #providerConfiguration></org-settings-identity-provider-oidc>
+      <org-settings-identity-provider-google *ngSwitchCase="'GOOGLE'" #providerConfiguration></org-settings-identity-provider-google>
+      <org-settings-identity-provider-github *ngSwitchCase="'GITHUB'" #providerConfiguration></org-settings-identity-provider-github>
+      <org-settings-identity-provider-graviteeio-am
+        *ngSwitchCase="'GRAVITEEIO_AM'"
+        #providerConfiguration
+      ></org-settings-identity-provider-graviteeio-am>
     </ng-container>
   </form>
 </div>

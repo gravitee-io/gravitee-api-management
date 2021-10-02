@@ -14,10 +14,22 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+
+import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
 @Component({
   selector: 'org-settings-identity-provider-github',
   styles: [require('./org-settings-identity-provider-github.component.scss')],
   template: require('./org-settings-identity-provider-github.component.html'),
 })
-export class OrgSettingsIdentityProviderGithubComponent {}
+export class OrgSettingsIdentityProviderGithubComponent implements ProviderConfiguration {
+  configurationFormGroup: FormGroup = new FormGroup({
+    clientId: new FormControl(null, Validators.required),
+    clientSecret: new FormControl(null, Validators.required),
+  });
+
+  getFormGroups(): Record<string, FormGroup> {
+    return { configuration: this.configurationFormGroup };
+  }
+}
