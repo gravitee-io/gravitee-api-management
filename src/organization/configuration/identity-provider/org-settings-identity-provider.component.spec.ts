@@ -189,4 +189,77 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       });
     });
   });
+
+  describe('oidc', () => {
+    it('should save identity provider oidc configuration ', async () => {
+      const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+
+      await formCardGroup.select('OIDC');
+
+      const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
+      await clientIdInput.setValue('Client Id');
+
+      const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
+      await clientSecretInput.setValue('Client Secret');
+
+      const tokenEndpointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=tokenEndpoint]' }));
+      await tokenEndpointInput.setValue('Token Endpoint');
+
+      const tokenIntrospectionEndpointInput = await loader.getHarness(
+        MatInputHarness.with({ selector: '[formControlName=tokenIntrospectionEndpoint]' }),
+      );
+      await tokenIntrospectionEndpointInput.setValue('Token Introspection Endpoint');
+
+      const authorizeEndpointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=authorizeEndpoint]' }));
+      await authorizeEndpointInput.setValue('Authorize Endpoint');
+
+      const userInfoEndpointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=userInfoEndpoint]' }));
+      await userInfoEndpointInput.setValue('User Info Endpoint');
+
+      const userLogoutEndpointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=userLogoutEndpoint]' }));
+      await userLogoutEndpointInput.setValue('User Logout Endpoint');
+
+      const scopesInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName=scopes]' }));
+      await scopesInput.addTag('Scope A');
+      await scopesInput.addTag('Scope B');
+
+      const colorInput = await loader.getHarness(GioFormColorInputHarness.with({ selector: '[formControlName=color]' }));
+      await colorInput.setValue('#ffffff');
+
+      expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
+        authorizeEndpoint: 'AuthorizeEndpoint',
+        clientId: 'Client Id',
+        clientSecret: 'Client Secret',
+        color: '#ffffff',
+        scopes: ['Scope A', 'Scope B'],
+        tokenEndpoint: 'TokenEndpoint',
+        tokenIntrospectionEndpoint: 'TokenIntrospectionEndpoint',
+        userInfoEndpoint: 'UserInfoEndpoint',
+        userLogoutEndpoint: 'UserLogoutEndpoint',
+      });
+
+      const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
+      await idInput.setValue('Id');
+
+      const firstnameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=firstname]' }));
+      await firstnameInput.setValue('Firstname');
+
+      const lastnameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=lastname]' }));
+      await lastnameInput.setValue('Lastname');
+
+      const emailInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=email]' }));
+      await emailInput.setValue('Email');
+
+      const pictureInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=picture]' }));
+      await pictureInput.setValue('Picture');
+
+      expect(fixture.componentInstance.identityProviderSettings.get('userProfileMapping').value).toEqual({
+        email: 'Email',
+        firstname: 'Firstname',
+        id: 'Id',
+        lastname: 'Lastname',
+        picture: 'Picture',
+      });
+    });
+  });
 });

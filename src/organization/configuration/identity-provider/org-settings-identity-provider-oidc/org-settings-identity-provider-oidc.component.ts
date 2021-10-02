@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 
 import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
@@ -24,7 +24,27 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   template: require('./org-settings-identity-provider-oidc.component.html'),
 })
 export class OrgSettingsIdentityProviderOidcComponent implements ProviderConfiguration {
+  configurationFormGroup: FormGroup = new FormGroup({
+    clientId: new FormControl(null, Validators.required),
+    clientSecret: new FormControl(null, Validators.required),
+    tokenEndpoint: new FormControl(null, Validators.required),
+    tokenIntrospectionEndpoint: new FormControl(),
+    authorizeEndpoint: new FormControl(null, Validators.required),
+    userInfoEndpoint: new FormControl(null, Validators.required),
+    userLogoutEndpoint: new FormControl(),
+    scopes: new FormControl(),
+    color: new FormControl(),
+  });
+
+  userProfileMappingFormGroup: FormGroup = new FormGroup({
+    id: new FormControl(null, Validators.required),
+    firstname: new FormControl(),
+    lastname: new FormControl(),
+    email: new FormControl(),
+    picture: new FormControl(),
+  });
+
   getFormGroups(): Record<string, FormGroup> {
-    return {};
+    return { configuration: this.configurationFormGroup, userProfileMapping: this.userProfileMappingFormGroup };
   }
 }
