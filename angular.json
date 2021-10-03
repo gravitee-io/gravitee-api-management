@@ -172,5 +172,8 @@
       }
     }
   },
-  "defaultProject": "gravitee-portal-webui"
+  "defaultProject": "gravitee-portal-webui",
+  "cli": {
+    "analytics": false
+  }
 }
