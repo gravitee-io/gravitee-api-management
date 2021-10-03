@@ -58,7 +58,7 @@
 
       <mat-form-field class="identity-provider__card__form-field" appearance="fill">
         <mat-label>Name</mat-label>
-        <input matInput name="name" minlength="2" maxlength="50" formControlName="name" />
+        <input matInput name="name" minlength="2" maxlength="50" formControlName="name" required />
         <mat-hint>Identity provider name. The name will be used to define the authentication endpoint</mat-hint>
 
         <mat-error *ngIf="this.identityProviderSettings.get('name').hasError('required')">Identity provider name is required.</mat-error>
