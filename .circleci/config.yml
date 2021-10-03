@@ -128,6 +128,90 @@ jobs:
           path: dist.zip
           destination: build-output
 
+  publish-images-azure-registry:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker
+      - run:
+          name: Compute Tag for Docker images
+          command: |
+            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+            export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Docker images will be tagged with: ${TAG}"
+            echo $TAG > docker-tag.txt
+      - run:
+          name: Build & Publish Portal UI Docker Image to Azure Registry
+          command: |
+            cp -fr docker/config .
+            cp -fr docker/run.sh .
+
+            export IMAGE_TAG=graviteeio.azurecr.io/apim-portal-ui:${TAG}
+            docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+            echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+            docker push ${IMAGE_TAG}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./docker-tag.txt
+
+  deploy-on-element-zero-cluster:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:latest
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Read tag of Docker images to deploy
+          command: |
+            export TAG=$(cat ./docker-tag.txt)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Will deploy Docker images with tag: ${TAG}"
+      - run:
+          name: Install Helm
+          command: |
+            curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+            helm version
+      - run:
+          name: Install Kubectl
+          command: |
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client=true
+      - run:
+          name: Helm upgrade and 🚀
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group element-zero --name element-zero
+
+            helm upgrade --repo https://helm.gravitee.io \
+                        --install apim \
+                        -n apim \
+                        --reuse-values \
+                        apim3 \
+                        --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
+                        --set "portal.image.tag=$TAG"
+
+  purge-master-azure-registry:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:latest
+    resource_class: small
+    steps:
+      - run:
+          name: 🗑 Let's purge all master Apim Portal UI images older than 1d
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az acr run --cmd "acr purge --filter 'apim-portal-ui:master-.*' --untagged --ago 1d --keep 3" --registry graviteeio /dev/null
+
 workflows:
   build_branch_and_deploy:
     when:
@@ -154,6 +238,44 @@ workflows:
       - build:
           requires:
             - install
+      - publish-images-azure-registry:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+                # To remove after the merge and validation on master
+                - 6293-rework-ci
+      - deploy-on-element-zero-cluster:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-id
+                var-name: AZURE_APPLICATION_ID
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/tenant
+                var-name: AZURE_TENANT
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-secret
+                var-name: AZURE_APPLICATION_SECRET
+          requires:
+            - publish-images-azure-registry
+          filters:
+            branches:
+              only:
+                - master
+                # To remove after the merge and validation on master
+                - 6293-rework-ci
+
 
   pull_requests:
     when:
@@ -507,3 +629,26 @@ workflows:
               only:
                 - master
                 - /^[0-999].[0-999].x/
+
+  # Purge master azure registry every monday
+  weekly-purge-azure-registry:
+    triggers:
+      - schedule:
+          cron: "0 1 * * 1"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - purge-master-azure-registry:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-id
+                var-name: AZURE_APPLICATION_ID
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/tenant
+                var-name: AZURE_TENANT
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-secret
+                var-name: AZURE_APPLICATION_SECRET
