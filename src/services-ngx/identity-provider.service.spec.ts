@@ -20,7 +20,8 @@ import { IdentityProviderService } from './identity-provider.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeIdentityProviderListItem } from '../entities/identity-provider/identityProviderListItem.fixture';
-import { IdentityProviderListItem } from '../entities/identity-provider';
+import { fakeIdentityProvider, IdentityProviderListItem } from '../entities/identity-provider';
+import { fakeNewIdentityProvider } from '../entities/identity-provider/newIdentityProvider.fixture';
 
 describe('IdentityProviderService', () => {
   let httpTestingController: HttpTestingController;
@@ -69,6 +70,25 @@ describe('IdentityProviderService', () => {
       expect(req.request.method).toEqual('DELETE');
 
       req.flush(null);
+    });
+  });
+
+  describe('create', () => {
+    it('should send a PUT request', (done) => {
+      const identityProviderToCreate = fakeNewIdentityProvider({ type: 'GITHUB' });
+
+      const identityProviderCreated = fakeIdentityProvider({ id: 'newId', ...identityProviderToCreate });
+
+      identityProviderService.create(identityProviderToCreate).subscribe((identityProvider) => {
+        expect(identityProvider).toEqual(identityProviderCreated);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual(identityProviderToCreate);
+
+      req.flush(identityProviderCreated);
     });
   });
 
