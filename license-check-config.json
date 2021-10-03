@@ -37,7 +37,8 @@
     "package-json.lock",
     ".tmp/**",
     ".vscode/**",
-    "**/*.spec.ts.snap"
+    "**/*.spec.ts.snap",
+    "sonar-project.properties"
   ],
   "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {
