@@ -30,15 +30,112 @@ parameters:
     default: ''
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 orbs:
-  slack: circleci/slack@4.2.1
   gravitee: gravitee-io/gravitee@1.0
-  # gravitee: gravitee-io/gravitee@dev:1.0.4
-  secrethub: secrethub/cli@1.1.0
-  # secrethub: secrethub/cli@1.0.0
+  secrethub: secrethub/cli@1.1
+
+executors:
+  node-lts:
+    parameters:
+      class:
+        description: The resource class
+        type: enum
+        enum: [ 'small', 'medium', 'large', 'xlarge' ]
+        default: 'medium'
+    docker:
+      - image: circleci/node:14.17-stretch
+    resource_class: <<parameters.class>>
+
+jobs:
+  install:
+    executor:
+      name: node-lts
+      class: small
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - npm-cache-v1-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
+      - save_cache:
+          name: Save NPM cache
+          key: npm-cache-v1-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+
+  lint-test:
+    executor:
+      name: node-lts
+      class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: npm run lint:license
+      - run:
+          name: Run Prettier and ESLint
+          command: npm run lint
+      - run:
+          name: Run unit tests
+          command: npm run test:coverage
+      - persist_to_workspace:
+          root: .
+          paths:
+            - coverage
+      - store_test_results:
+          path: coverage
+
+  build:
+    executor:
+      name: node-lts
+      class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build
+          command: npm run build:prod -- --no-progress
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+      - run:
+          name: Zip dist folder
+          command: zip -r dist.zip dist
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist
+      - store_artifacts:
+          path: dist.zip
+          destination: build-output
 
 workflows:
-  version: 2.1
-  # -- typically this workflow is executed on pull requests events for Community Edition Gravitee Repositories
+  build_branch_and_deploy:
+    when:
+      and:
+        - equal: [ pull_requests, << pipeline.parameters.gio_action >> ]
+    jobs:
+      - gravitee/d_pull_requests_secrets:
+          context: cicd-orchestrator
+          name: pr_secrets_resolution
+      - install:
+          requires:
+            - pr_secrets_resolution
+      - lint-test:
+          requires:
+            - install
+      - build:
+          requires:
+            - install
+
   pull_requests:
     when:
       and:
@@ -47,17 +144,17 @@ workflows:
       - gravitee/d_pull_requests_secrets:
           context: cicd-orchestrator
           name: pr_secrets_resolution
-      # - gravitee/d_pr_tests_containers_qa:
-          # context: gravitee-qa
-          # name: process_pull_request_qa
-          # requires:
+            # - gravitee/d_pr_tests_containers_qa:
+            # context: gravitee-qa
+            # name: process_pull_request_qa
+            # requires:
             # - pr_secrets_resolution
-          # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          # maven_profile_id: 'gio-dev'
-          # filters:
+            # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
+            # maven_profile_id: 'gio-dev'
+            # filters:
             # branches:
-              # ignore:
-                # - master
+          # ignore:
+          # - master
       - gravitee/d_pull_requests_ce:
           name: process_pull_request
           requires:
@@ -70,10 +167,11 @@ workflows:
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
           container_size: 'medium'
-          # filters:
+            # filters:
             # branches:
-              # ignore:
-                # - master
+          # ignore:
+          # - master
+
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
