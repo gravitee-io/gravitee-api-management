@@ -51,6 +51,7 @@
           </mapping>
           <excludes>
             <exclude>*</exclude>
+            <exclude>LICENSE_TEMPLATE.txt</exclude>
             <exclude>node/**</exclude>
             <exclude>node_modules/**</exclude>
             <exclude>dockerfiles/**</exclude>
