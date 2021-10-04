@@ -15,18 +15,19 @@
  */
 package io.gravitee.rest.api.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.search.ApplicationCriteria;
-import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.service.impl.ApplicationServiceImpl;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,5 +81,19 @@ public class ApplicationService_FindByNameTest {
         Mockito.verify(applicationRepository).search(queryCaptor.capture(), any());
         final ApplicationCriteria query = queryCaptor.getValue();
         assertEquals("a", query.getName());
+    }
+
+    @Test
+    public void shouldNotCallSearchWhenUserHasNoMemberships() {
+        // mock applications memberships for this user : nothing found
+        when(membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "myUser", MembershipReferenceType.APPLICATION))
+            .thenReturn(new HashSet<>());
+
+        // call
+        Set<ApplicationListItem> resultSet = applicationService.findByName("myUser", "random search");
+
+        // check applicationRepository search has not been called, and so it returns empty
+        assertTrue(resultSet.isEmpty());
+        verify(applicationRepository, never()).search(any(), any());
     }
 }

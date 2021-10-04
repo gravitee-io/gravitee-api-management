@@ -207,6 +207,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
             appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(Collectors.toSet()));
 
+            if (userName != null && appIds.isEmpty()) {
+                return Collections.emptySet();
+            }
+
             ApplicationCriteria criteria = new ApplicationCriteria.Builder()
                 .status(ApplicationStatus.ACTIVE)
                 .name(name.trim())
