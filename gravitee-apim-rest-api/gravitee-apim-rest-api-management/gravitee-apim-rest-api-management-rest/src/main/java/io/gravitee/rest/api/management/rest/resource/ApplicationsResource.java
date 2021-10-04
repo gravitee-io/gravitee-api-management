@@ -74,7 +74,7 @@ public class ApplicationsResource extends AbstractResource {
         Set<ApplicationListItem> applications;
 
         if (query != null && !query.trim().isEmpty()) {
-            applications = applicationService.findByName(isAdmin() ? null : getAuthenticatedUser(), query);
+            applications = applicationService.findByUserAndName(getAuthenticatedUser(), isAdmin(), query);
         } else if (isAdmin()) {
             applications = group != null ? applicationService.findByGroups(Collections.singletonList(group)) : applicationService.findAll();
         } else {
