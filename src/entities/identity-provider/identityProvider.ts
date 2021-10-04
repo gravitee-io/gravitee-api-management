@@ -26,13 +26,49 @@ export interface RoleMapping {
 
 export type IdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC' | 'GRAVITEE';
 
+export interface IdentityProviderGoogleConfiguration {
+  clientId?: string;
+  clientSecret?: string;
+}
+export interface IdentityProviderGithubConfiguration {
+  clientId?: string;
+  clientSecret?: string;
+}
+
+export interface IdentityProviderGraviteeioAmConfiguration {
+  clientId?: string;
+  clientSecret?: string;
+  color?: string;
+  domain?: string;
+  scopes?: string[];
+  serverURL?: string;
+}
+
+export interface IdentityProviderOidcConfiguration {
+  clientId?: string;
+  clientSecret?: string;
+  authorizeEndpoint?: string;
+  color?: string;
+  scopes?: string[];
+  tokenEndpoint?: string;
+  tokenIntrospectionEndpoint?: string;
+  userInfoEndpoint?: string;
+  userLogoutEndpoint?: string;
+}
+
+export type IdentityProviderConfiguration =
+  | IdentityProviderGoogleConfiguration
+  | IdentityProviderGithubConfiguration
+  | IdentityProviderGraviteeioAmConfiguration
+  | IdentityProviderOidcConfiguration;
+
 export interface IdentityProvider {
   id?: string;
   name?: string;
   description?: string;
   type?: IdentityProviderType;
   enabled?: boolean;
-  configuration?: { scopes: any[] };
+  configuration?: IdentityProviderConfiguration;
   groupMappings?: GroupMapping[];
   roleMappings?: RoleMapping[];
   userProfileMapping?: { id: string; firstname: string; lastname: string; email: string; picture: string };
