@@ -276,43 +276,6 @@ workflows:
                 # To remove after the merge and validation on master
                 - 6293-rework-ci
 
-
-  pull_requests:
-    when:
-      and:
-        - equal: [ pull_requests, << pipeline.parameters.gio_action >> ]
-    jobs:
-      - gravitee/d_pull_requests_secrets:
-          context: cicd-orchestrator
-          name: pr_secrets_resolution
-            # - gravitee/d_pr_tests_containers_qa:
-            # context: gravitee-qa
-            # name: process_pull_request_qa
-            # requires:
-            # - pr_secrets_resolution
-            # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-            # maven_profile_id: 'gio-dev'
-            # filters:
-            # branches:
-          # ignore:
-          # - master
-      - gravitee/d_pull_requests_ce:
-          name: process_pull_request
-          requires:
-            - pr_secrets_resolution
-          # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          maven_profile_id: 'gio-dev'
-          # nexus_snapshots_url: 'https://oss.sonatype.org/content/repositories/snapshots'
-          # nexus_snapshots_server_id: 'sonatype-nexus-snapshots'
-          # container_gun_image_org: 'circleci'
-          # container_gun_image_name: 'openjdk'
-          # container_gun_image_tag: '11.0.3-jdk-stretch'
-          container_size: 'medium'
-            # filters:
-            # branches:
-          # ignore:
-          # - master
-
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
