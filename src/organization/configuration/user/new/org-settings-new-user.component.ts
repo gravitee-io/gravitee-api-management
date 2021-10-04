@@ -22,7 +22,6 @@ import { StateService } from '@uirouter/core';
 import { UsersService } from '../../../../services-ngx/users.service';
 import { NewExternalUser } from '../../../../entities/user/newExternalUser';
 import { IdentityProviderService } from '../../../../services-ngx/identity-provider.service';
-import { GraviteeIdpListItem, IdentityProviderListItem } from '../../../../entities/identity-provider/identityProviderListItem';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 
@@ -33,11 +32,16 @@ import { UIRouterState } from '../../../../ajs-upgraded-providers';
 })
 export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   isLoading = true;
-  identityProviders?: IdentityProviderListItem[];
+  identityProviders?: Array<{ id: string; name: string }>;
 
   userForm: FormGroup;
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  private readonly graviteeIdp = {
+    id: 'gravitee',
+    name: 'Gravitee',
+  };
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -57,9 +61,9 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         let sourceFormControl = {};
 
         if (this.identityProviders && this.identityProviders.length > 0) {
-          this.identityProviders.unshift(GraviteeIdpListItem);
+          this.identityProviders.unshift(this.graviteeIdp);
           sourceFormControl = {
-            source: [GraviteeIdpListItem.id, [Validators.required]],
+            source: [this.graviteeIdp.id, [Validators.required]],
             sourceId: [''],
           };
         }
@@ -75,7 +79,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
           .get('source')
           ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
           .subscribe((source) => {
-            if (source !== GraviteeIdpListItem.id) {
+            if (source !== this.graviteeIdp.id) {
               this.userForm.get('sourceId').addValidators(Validators.required);
             } else {
               this.userForm.get('sourceId').removeValidators(Validators.required);
@@ -104,7 +108,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
       lastname: userFormValue.lastName,
       email: userFormValue.email,
       source: userFormValue.source,
-      sourceId: userFormValue.source === GraviteeIdpListItem.id ? '' : userFormValue.sourceId,
+      sourceId: userFormValue.source === this.graviteeIdp.id ? '' : userFormValue.sourceId,
     };
 
     this.usersService

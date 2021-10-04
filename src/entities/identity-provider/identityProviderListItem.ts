@@ -25,14 +25,3 @@ export interface IdentityProviderListItem {
   created_at: number;
   updated_at: number;
 }
-
-export const GraviteeIdpListItem: IdentityProviderListItem = {
-  id: 'gravitee',
-  name: 'Gravitee',
-  description: 'Gravitee Identity Provider',
-  enabled: true,
-  sync: false,
-  type: 'GRAVITEE',
-  created_at: 0,
-  updated_at: 0,
-};

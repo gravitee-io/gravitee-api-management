@@ -24,7 +24,7 @@ export interface RoleMapping {
   organizations?: string[];
 }
 
-export type IdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC' | 'GRAVITEE';
+export type IdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC';
 
 export interface IdentityProviderGoogleConfiguration {
   clientId?: string;
