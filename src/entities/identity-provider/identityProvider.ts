@@ -62,6 +62,14 @@ export type IdentityProviderConfiguration =
   | IdentityProviderGraviteeioAmConfiguration
   | IdentityProviderOidcConfiguration;
 
+export interface IdentityProviderUserProfileMapping {
+  id: string;
+  firstname?: string;
+  lastname?: string;
+  email?: string;
+  picture?: string;
+}
+
 export interface IdentityProvider {
   id?: string;
   name?: string;
@@ -71,7 +79,7 @@ export interface IdentityProvider {
   configuration?: IdentityProviderConfiguration;
   groupMappings?: GroupMapping[];
   roleMappings?: RoleMapping[];
-  userProfileMapping?: { id: string; firstname: string; lastname: string; email: string; picture: string };
+  userProfileMapping?: IdentityProviderUserProfileMapping;
   emailRequired?: boolean;
   syncMappings?: boolean;
   scopes?: any;
