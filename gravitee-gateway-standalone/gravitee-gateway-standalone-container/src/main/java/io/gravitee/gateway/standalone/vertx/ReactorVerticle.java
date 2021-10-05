@@ -18,7 +18,6 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.gateway.http.vertx.VertxHttpServerConfiguration;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketReactorHandler;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
