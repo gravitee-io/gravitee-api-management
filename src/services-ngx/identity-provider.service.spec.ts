@@ -92,6 +92,37 @@ describe('IdentityProviderService', () => {
     });
   });
 
+  describe('update', () => {
+    it('should send a PUT request', (done) => {
+      const identityProviderToUpdate = fakeIdentityProvider({ type: 'GITHUB' });
+
+      const identityProviderUpdated = fakeIdentityProvider({ id: 'newId', ...identityProviderToUpdate });
+
+      identityProviderService.update(identityProviderToUpdate).subscribe((identityProvider) => {
+        expect(identityProvider).toEqual(identityProviderUpdated);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.baseURL}/configuration/identities/${identityProviderToUpdate.id}`,
+      );
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toStrictEqual({
+        configuration: identityProviderToUpdate.configuration,
+        description: identityProviderToUpdate.description,
+        emailRequired: identityProviderToUpdate.emailRequired,
+        enabled: identityProviderToUpdate.enabled,
+        groupMappings: identityProviderToUpdate.groupMappings,
+        name: identityProviderToUpdate.name,
+        roleMappings: identityProviderToUpdate.roleMappings,
+        syncMappings: identityProviderToUpdate.syncMappings,
+        userProfileMapping: identityProviderToUpdate.userProfileMapping,
+      });
+
+      req.flush(identityProviderUpdated);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

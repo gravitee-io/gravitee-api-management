@@ -40,6 +40,32 @@ export class IdentityProviderService {
     return this.http.post<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities`, newIdentityProvider);
   }
 
+  update(identityProvider: IdentityProvider): Observable<IdentityProvider> {
+    return this.http
+      .put<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities/${identityProvider.id}`, {
+        name: identityProvider.name,
+        description: identityProvider.description,
+        configuration: identityProvider.configuration,
+        enabled: identityProvider.enabled,
+        groupMappings: identityProvider.groupMappings,
+        roleMappings: identityProvider.roleMappings,
+        userProfileMapping: identityProvider.userProfileMapping,
+        emailRequired: identityProvider.emailRequired,
+        syncMappings: identityProvider.syncMappings,
+      })
+      .pipe(
+        map((identityProvider) => ({
+          // Init group mapping
+          groupMappings: identityProvider.groupMappings || [],
+
+          // Init role mapping
+          roleMappings: identityProvider.roleMappings || [],
+
+          ...identityProvider,
+        })),
+      );
+  }
+
   get(id: string): Observable<IdentityProvider> {
     return this.http.get<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities/${id}`).pipe(
       map((identityProvider) => ({
