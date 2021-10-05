@@ -24,7 +24,6 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,15 +46,6 @@ public class DebugReactorVerticle extends AbstractVerticle {
 
     @Autowired
     private HttpServerConfiguration debugHttpServerConfiguration;
-
-    @Autowired
-    private Vertx vertx;
-
-    @Value("${http.requestTimeout:0}")
-    private long requestTimeout;
-
-    @Value("${http.websocket.enabled:false}")
-    private boolean websocketEnabled;
 
     @Value("${handlers.request.format:uuid}")
     private String requestFormat;

@@ -32,7 +32,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.gateway.debug.definition.DebugApi;
-import io.gravitee.gateway.debug.vertx.VertxDebugHttpConfiguration;
+import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.impl.ReactableWrapper;
@@ -86,7 +86,7 @@ public class DebugReactorTest {
     private Vertx vertx;
 
     @Mock
-    private VertxDebugHttpConfiguration debugHttpConfiguration;
+    private VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
 
     @Captor
     ArgumentCaptor<io.gravitee.repository.management.model.Event> eventCaptor;
