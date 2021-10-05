@@ -139,7 +139,7 @@ public class EndpointGroupLifecycleManager
 
     public void start(io.gravitee.definition.model.Endpoint model) {
         try {
-            logger.info(
+            logger.debug(
                 "Create new endpoint: name[{}] type[{}] target[{}] primary[{}]",
                 model.getName(),
                 model.getType(),
@@ -175,7 +175,7 @@ public class EndpointGroupLifecycleManager
     }
 
     public void stop(String endpointName) {
-        logger.info("Closing endpoint: name[{}]", endpointName);
+        logger.debug("Closing endpoint: name[{}]", endpointName);
 
         io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointsByName.remove(endpointName);
         stop(endpoint);

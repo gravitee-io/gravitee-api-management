@@ -24,7 +24,7 @@
     <parent>
         <groupId>io.gravitee.gateway.services</groupId>
         <artifactId>gravitee-gateway-services</artifactId>
-        <version>3.12.0-SNAPSHOT</version>
+        <version>3.13.0-SNAPSHOT</version>
     </parent>
 
 
@@ -37,57 +37,60 @@
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-core</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-reporting</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.gateway.handlers</groupId>
             <artifactId>gravitee-gateway-handlers-api</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-api</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway.services</groupId>
-            <artifactId>gravitee-gateway-services-sync</artifactId>
-            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-resource</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.plugin</groupId>
             <artifactId>gravitee-plugin-resource</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.plugin</groupId>
             <artifactId>gravitee-plugin-policy</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.el</groupId>
             <artifactId>gravitee-expression-language</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-env</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
 
@@ -95,43 +98,44 @@
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-http</artifactId>
             <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-reactor</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.gravitee.gateway</groupId>
-            <artifactId>gravitee-gateway-reactor</artifactId>
-            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.definition</groupId>
             <artifactId>gravitee-definition-model</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.gateway</groupId>
             <artifactId>gravitee-gateway-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.reporter</groupId>
             <artifactId>gravitee-reporter-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.plugin</groupId>
             <artifactId>gravitee-plugin-alert</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.common</groupId>
             <artifactId>gravitee-common</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -152,16 +156,19 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>

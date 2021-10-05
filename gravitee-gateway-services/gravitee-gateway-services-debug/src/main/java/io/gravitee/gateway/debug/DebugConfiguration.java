@@ -15,8 +15,6 @@
  */
 package io.gravitee.gateway.debug;
 
-import io.gravitee.gateway.debug.sync.DebugSyncManager;
-import io.gravitee.gateway.debug.sync.DebugSyncService;
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -25,8 +23,6 @@ import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 public class DebugConfiguration {
@@ -34,23 +30,6 @@ public class DebugConfiguration {
     @Bean
     public VertxDebugService vertxDebugService() {
         return new VertxDebugService();
-    }
-
-    @Bean
-    public DebugSyncService debugSyncService() {
-        return new DebugSyncService();
-    }
-
-    @Bean
-    public DebugSyncManager debugSyncManager() {
-        return new DebugSyncManager();
-    }
-
-    @Bean
-    public TaskScheduler taskScheduler() {
-        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-        scheduler.setThreadNamePrefix("gio.debug-sync-");
-        return scheduler;
     }
 
     @Bean
