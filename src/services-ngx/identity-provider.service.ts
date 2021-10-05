@@ -16,6 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { IdentityProvider, IdentityProviderListItem } from '../entities/identity-provider';
@@ -37,5 +38,19 @@ export class IdentityProviderService {
 
   create(newIdentityProvider: NewIdentityProvider): Observable<IdentityProvider> {
     return this.http.post<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities`, newIdentityProvider);
+  }
+
+  get(id: string): Observable<IdentityProvider> {
+    return this.http.get<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities/${id}`).pipe(
+      map((identityProvider) => ({
+        // Init group mapping
+        groupMappings: identityProvider.groupMappings || [],
+
+        // Init role mapping
+        roleMappings: identityProvider.roleMappings || [],
+
+        ...identityProvider,
+      })),
+    );
   }
 }

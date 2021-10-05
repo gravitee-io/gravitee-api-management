@@ -316,8 +316,8 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
-    .state('organization.settings.ng-identityprovider', {
-      url: '/ng-identities/new',
+    .state('organization.settings.ng-identityprovider-edit', {
+      url: '/ng-identities/:id',
       component: 'ngOrgSettingsIdentityProvider',
       data: {
         useAngularMaterial: true,
@@ -326,7 +326,21 @@ function organizationRouterConfig($stateProvider) {
           page: 'organization-configuration-identityproviders',
         },
         perms: {
-          only: ['organization-identity_provider-r'],
+          only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
+        },
+      },
+    })
+    .state('organization.settings.ng-identityprovider-new', {
+      url: '/ng-identities/',
+      component: 'ngOrgSettingsIdentityProvider',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-identityproviders',
+        },
+        perms: {
+          only: ['organization-identity_provider-c'],
         },
       },
     })

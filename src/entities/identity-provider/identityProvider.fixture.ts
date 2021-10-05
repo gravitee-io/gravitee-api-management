@@ -40,7 +40,10 @@ export function fakeIdentityProvider(attributes?: Partial<IdentityProvider>): Id
     type: 'GOOGLE',
     description: '',
     enabled: true,
-    configuration: { scopes: [] },
+    configuration: {
+      clientId: 'Client Id',
+      clientSecret: 'Client Secret',
+    },
     groupMappings: [],
     roleMappings: [],
     userProfileMapping: { id: '', firstname: '', lastname: '', email: '', picture: '' },

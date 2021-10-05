@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { isEmpty } from 'lodash';
-import { Subject } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
+import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { IdentityProvider } from '../../../entities/identity-provider';
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -30,12 +32,21 @@ export interface ProviderConfiguration {
   styles: [require('./org-settings-identity-provider.component.scss')],
   template: require('./org-settings-identity-provider.component.html'),
 })
-export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewInit, OnDestroy {
+export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
+  isLoading = true;
+
   identityProviderSettings: FormGroup;
 
+  mode: 'new' | 'edit' = 'new';
+
+  // Used for the edit mode
+  initialIdentityProviderValue: IdentityProvider | null = null;
+
   @ViewChild('providerConfiguration', { static: false })
-  set providerConfiguration(providerPart: ProviderConfiguration) {
-    this.addProviderFormGroups(providerPart.getFormGroups());
+  set providerConfiguration(providerPart: ProviderConfiguration | undefined) {
+    if (providerPart) {
+      this.addProviderFormGroups(providerPart.getFormGroups());
+    }
   }
 
   identityProviderType = 'GRAVITEEIO_AM';
@@ -44,7 +55,12 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
 
   private identityProviderFormControlKeys: string[] = [];
 
-  constructor(private readonly identityProviderService: IdentityProviderService, private readonly snackBarService: SnackBarService) {}
+  constructor(
+    private readonly identityProviderService: IdentityProviderService,
+    private readonly snackBarService: SnackBarService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+  ) {}
 
   ngOnInit() {
     this.identityProviderSettings = new FormGroup({
@@ -55,15 +71,38 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
       emailRequired: new FormControl(),
       syncMappings: new FormControl(),
     });
-  }
 
-  ngAfterViewInit() {
     this.identityProviderSettings
       .get('type')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
       .subscribe((type) => {
         this.identityProviderType = type;
       });
+
+    if (this.ajsStateParams.id) {
+      this.mode = 'edit';
+
+      this.identityProviderService
+        .get(this.ajsStateParams.id)
+        .pipe(
+          takeUntil(this.unsubscribe$),
+          tap((identityProvider) => {
+            this.identityProviderType = identityProvider.type;
+            this.initialIdentityProviderValue = identityProvider;
+            this.isLoading = false;
+
+            // Initializes the form value
+            this.identityProviderSettings.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
+            this.identityProviderSettings.markAsPristine();
+            this.identityProviderSettings.markAsUntouched();
+            this.changeDetectorRef.detectChanges();
+          }),
+        )
+        .subscribe();
+    } else {
+      this.mode = 'new';
+      this.isLoading = false;
+    }
   }
 
   ngOnDestroy() {
@@ -72,6 +111,10 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
   }
 
   addProviderFormGroups(formGroups: Record<string, FormGroup>) {
+    if (this.isLoading) {
+      return;
+    }
+
     // clean previous form group
     if (!isEmpty(this.identityProviderFormControlKeys)) {
       this.identityProviderFormControlKeys.forEach((key) => {
@@ -88,6 +131,15 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
         this.identityProviderSettings.addControl(key, formGroup);
       });
     }
+
+    // For the edit mode
+    // Initializes the form value when the sub-form linked to the idP type is added
+    if (this.mode === 'edit') {
+      this.identityProviderSettings.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
+      this.identityProviderSettings.markAsPristine();
+      this.identityProviderSettings.markAsUntouched();
+      this.changeDetectorRef.detectChanges();
+    }
   }
 
   onSubmit() {
@@ -97,8 +149,9 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
 
     const formSettingsValue = this.identityProviderSettings.getRawValue();
 
-    this.identityProviderService
-      .create(formSettingsValue)
+    const upsertIdentityProvider$ = this.mode === 'new' ? this.identityProviderService.create(formSettingsValue) : of();
+
+    upsertIdentityProvider$
       .pipe(
         takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('Identity provider successfully saved!')),

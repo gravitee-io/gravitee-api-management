@@ -105,7 +105,7 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   }
 
   onEditActionClicked(identityProvider: TableData) {
-    this.$state.go('organization.settings.identityproviders.identityprovider', { id: identityProvider.id });
+    this.$state.go('organization.settings.ng-identityprovider-edit', { id: identityProvider.id });
   }
 
   onActivationToggleActionClicked(identityProvider: TableData) {
@@ -203,6 +203,6 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
   }
 
   onAddIdpClicked(): void {
-    this.$state.go('organization.settings.ng-identityprovider');
+    this.$state.go('organization.settings.ng-identityprovider-new');
   }
 }
