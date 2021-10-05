@@ -19,12 +19,12 @@ import { tap } from 'rxjs/operators';
 
 export class CsrfInterceptor implements HttpInterceptor {
   private readonly xsrfTokenHeaderName = 'X-Xsrf-Token';
-  private xsrfToken?: string;
+  public static xsrfToken?: string;
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    const reqWithToken = this.xsrfToken
+    const reqWithToken = CsrfInterceptor.xsrfToken
       ? req.clone({
-          headers: req.headers.set(this.xsrfTokenHeaderName, this.xsrfToken),
+          headers: req.headers.set(this.xsrfTokenHeaderName, CsrfInterceptor.xsrfToken),
         })
       : req;
 
@@ -32,12 +32,12 @@ export class CsrfInterceptor implements HttpInterceptor {
       tap(
         (event) => {
           if (event instanceof HttpResponse && event.headers?.has(this.xsrfTokenHeaderName)) {
-            this.xsrfToken = event.headers.get(this.xsrfTokenHeaderName);
+            CsrfInterceptor.xsrfToken = event.headers.get(this.xsrfTokenHeaderName);
           }
         },
         (error) => {
           if (error.headers?.has(this.xsrfTokenHeaderName)) {
-            this.xsrfToken = error.headers.get(this.xsrfTokenHeaderName);
+            CsrfInterceptor.xsrfToken = error.headers.get(this.xsrfTokenHeaderName);
           }
         },
       ),

@@ -18,6 +18,7 @@ import { ILocationService } from 'angular';
 import NotificationService from '../services/notification.service';
 import ReCaptchaService from '../services/reCaptcha.service';
 import UserService from '../services/user.service';
+import { CsrfInterceptor } from '../shared/interceptors/csrf.interceptor';
 
 export class Future {
   private timeouts = [];
@@ -144,25 +145,23 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
     };
   };
 
-  let xsrfToken;
-
   const csrfInterceptor = function ($q: angular.IQService): angular.IHttpInterceptor {
     return {
       request: function (config) {
-        if (xsrfToken) {
-          config.headers['X-Xsrf-Token'] = xsrfToken;
+        if (CsrfInterceptor.xsrfToken) {
+          config.headers['X-Xsrf-Token'] = CsrfInterceptor.xsrfToken;
         }
         return config;
       },
       response: function (response) {
         if (response.headers('X-Xsrf-Token')) {
-          xsrfToken = response.headers('X-Xsrf-Token');
+          CsrfInterceptor.xsrfToken = response.headers('X-Xsrf-Token');
         }
         return response;
       },
       responseError: function (response) {
         if (response.headers('X-Xsrf-Token')) {
-          xsrfToken = response.headers('X-Xsrf-Token');
+          CsrfInterceptor.xsrfToken = response.headers('X-Xsrf-Token');
         }
         return $q.reject(response);
       },
