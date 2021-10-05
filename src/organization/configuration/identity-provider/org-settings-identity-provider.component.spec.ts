@@ -20,28 +20,40 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioFormCardGroupHarness } from '../../../shared/components/form-card-group/gio-form-card-group.harness';
 import { GioFormTagsInputHarness } from '../../../shared/components/form-tags-input/gio-form-tags-input.harness';
 import { GioFormColorInputHarness } from '../../../shared/components/form-color-input/gio-form-color-input.harness';
+import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
 
 describe('OrgSettingsIdentityProviderComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProviderComponent>;
   let loader: HarnessLoader;
   let component: OrgSettingsIdentityProviderComponent;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
     });
 
     fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
+
+    httpTestingController = TestBed.inject(HttpTestingController);
+
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should change provider type', async () => {
@@ -56,6 +68,9 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   });
 
   it('should save identity provider general settings', async () => {
+    const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+
+    // Set value for all General fields
     const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
     await nameInput.setValue('Name');
 
@@ -71,26 +86,47 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     const syncMappingsRadioGroupe = await loader.getHarness(MatRadioGroupHarness.with({ selector: '[formControlName=syncMappings]' }));
     await syncMappingsRadioGroupe.checkRadioButton({ label: /^Computed during each user/ });
 
-    expect(fixture.componentInstance.identityProviderSettings.value).toEqual({
+    expect(await saveButton.isDisabled()).toEqual(true);
+
+    // Set value for required GRAVITEEIO_AM fields
+    const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
+    await clientIdInput.setValue('Client Id');
+
+    const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
+    await clientSecretInput.setValue('Client Secret');
+
+    const serverURLInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=serverURL]' }));
+    await serverURLInput.setValue('ServerURL');
+
+    const domainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=domain]' }));
+    await domainInput.setValue('Domain');
+
+    const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
+    await idInput.setValue('Id');
+
+    expect(await saveButton.isDisabled()).toEqual(false);
+
+    await saveButton.click();
+
+    expectIdentityProviderCreateRequest({
       description: 'Description',
       emailRequired: true,
       enabled: true,
       name: 'Name',
       syncMappings: true,
-      tokenExchangeEndpoint: null,
       type: 'GRAVITEEIO_AM',
       configuration: {
-        clientId: null,
-        clientSecret: null,
+        clientId: 'Client Id',
+        clientSecret: 'Client Secret',
         color: null,
-        domain: null,
+        domain: 'Domain',
         scopes: null,
-        serverURL: null,
+        serverURL: 'ServerURL',
       },
       userProfileMapping: {
         email: null,
         firstname: null,
-        id: null,
+        id: 'Id',
         lastname: null,
         picture: null,
       },
@@ -113,6 +149,26 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         clientId: 'Client Id',
         clientSecret: 'Client Secret',
       });
+
+      // Set value for required general field
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Name');
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await saveButton.click();
+
+      expectIdentityProviderCreateRequest({
+        description: null,
+        emailRequired: null,
+        enabled: null,
+        name: 'Name',
+        syncMappings: null,
+        type: 'GITHUB',
+        configuration: {
+          clientId: 'Client Id',
+          clientSecret: 'Client Secret',
+        },
+      });
     });
   });
 
@@ -131,6 +187,26 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
         clientId: 'Client Id',
         clientSecret: 'Client Secret',
+      });
+
+      // Set value for required general field
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Name');
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await saveButton.click();
+
+      expectIdentityProviderCreateRequest({
+        description: null,
+        emailRequired: null,
+        enabled: null,
+        name: 'Name',
+        syncMappings: null,
+        type: 'GOOGLE',
+        configuration: {
+          clientId: 'Client Id',
+          clientSecret: 'Client Secret',
+        },
       });
     });
   });
@@ -186,6 +262,37 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         id: 'Id',
         lastname: 'Lastname',
         picture: 'Picture',
+      });
+
+      // Set value for required general field
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Name');
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await saveButton.click();
+
+      expectIdentityProviderCreateRequest({
+        description: null,
+        emailRequired: null,
+        enabled: null,
+        name: 'Name',
+        syncMappings: null,
+        type: 'GRAVITEEIO_AM',
+        configuration: {
+          clientId: 'Client Id',
+          clientSecret: 'Client Secret',
+          color: '#ffffff',
+          domain: 'Domain',
+          scopes: ['Scope A', 'Scope B'],
+          serverURL: 'ServerURL',
+        },
+        userProfileMapping: {
+          email: 'Email',
+          firstname: 'Firstname',
+          id: 'Id',
+          lastname: 'Lastname',
+          picture: 'Picture',
+        },
       });
     });
   });
@@ -260,6 +367,46 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         lastname: 'Lastname',
         picture: 'Picture',
       });
+
+      // Set value for required general field
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Name');
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      await saveButton.click();
+
+      expectIdentityProviderCreateRequest({
+        description: null,
+        emailRequired: null,
+        enabled: null,
+        name: 'Name',
+        syncMappings: null,
+        type: 'OIDC',
+        configuration: {
+          authorizeEndpoint: 'AuthorizeEndpoint',
+          clientId: 'Client Id',
+          clientSecret: 'Client Secret',
+          color: '#ffffff',
+          scopes: ['Scope A', 'Scope B'],
+          tokenEndpoint: 'TokenEndpoint',
+          tokenIntrospectionEndpoint: 'TokenIntrospectionEndpoint',
+          userInfoEndpoint: 'UserInfoEndpoint',
+          userLogoutEndpoint: 'UserLogoutEndpoint',
+        },
+        userProfileMapping: {
+          email: 'Email',
+          firstname: 'Firstname',
+          id: 'Id',
+          lastname: 'Lastname',
+          picture: 'Picture',
+        },
+      });
     });
   });
+
+  function expectIdentityProviderCreateRequest(newIdentityProvider: NewIdentityProvider) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(newIdentityProvider);
+  }
 });

@@ -17,7 +17,10 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { isEmpty } from 'lodash';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, tap } from 'rxjs/operators';
+
+import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 export interface ProviderConfiguration {
   getFormGroups(): Record<string, FormGroup>;
@@ -41,13 +44,14 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
 
   private identityProviderFormControlKeys: string[] = [];
 
+  constructor(private readonly identityProviderService: IdentityProviderService, private readonly snackBarService: SnackBarService) {}
+
   ngOnInit() {
     this.identityProviderSettings = new FormGroup({
       type: new FormControl('GRAVITEEIO_AM'),
       enabled: new FormControl(),
       name: new FormControl(null, [Validators.required, Validators.maxLength(50), Validators.minLength(2)]),
       description: new FormControl(),
-      tokenExchangeEndpoint: new FormControl(),
       emailRequired: new FormControl(),
       syncMappings: new FormControl(),
     });
@@ -84,5 +88,21 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, AfterViewIn
         this.identityProviderSettings.addControl(key, formGroup);
       });
     }
+  }
+
+  onSubmit() {
+    if (this.identityProviderSettings.invalid) {
+      return;
+    }
+
+    const formSettingsValue = this.identityProviderSettings.getRawValue();
+
+    this.identityProviderService
+      .create(formSettingsValue)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(() => this.snackBarService.success('Identity provider successfully saved!')),
+      )
+      .subscribe();
   }
 }

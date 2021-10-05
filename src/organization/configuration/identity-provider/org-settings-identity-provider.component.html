@@ -16,7 +16,7 @@
 
 -->
 <div class="identity-provider" *ngIf="identityProviderSettings">
-  <form [formGroup]="identityProviderSettings">
+  <form [formGroup]="identityProviderSettings" (ngSubmit)="onSubmit()">
     <h1>Create a new identity provider</h1>
 
     <mat-card class="identity-provider__card">
@@ -125,5 +125,9 @@
         #providerConfiguration
       ></org-settings-identity-provider-graviteeio-am>
     </ng-container>
+
+    <div>
+      <button mat-raised-button color="primary" type="submit" [disabled]="identityProviderSettings.invalid">Save</button>
+    </div>
   </form>
 </div>
