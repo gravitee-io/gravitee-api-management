@@ -82,7 +82,10 @@ export interface IdentityProvider {
   userProfileMapping?: IdentityProviderUserProfileMapping;
   emailRequired?: boolean;
   syncMappings?: boolean;
+  // @deprecated
   scopes?: any;
+  // @deprecated
   scope?: any;
+  // @deprecated
   userLogoutEndpoint?: any;
 }

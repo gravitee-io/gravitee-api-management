@@ -48,9 +48,6 @@ export function fakeIdentityProvider(attributes?: Partial<IdentityProvider>): Id
     roleMappings: [],
     userProfileMapping: { id: '', firstname: '', lastname: '', email: '', picture: '' },
     emailRequired: true,
-    scopes: {},
-    scope: {},
-    userLogoutEndpoint: {},
     syncMappings: false,
   };
 
