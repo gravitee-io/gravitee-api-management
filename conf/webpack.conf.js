@@ -146,5 +146,11 @@ module.exports = {
         secure: false,
       },
     },
+    client: {
+      overlay: {
+        errors: true,
+        warnings: false,
+      },
+    },
   },
 };
