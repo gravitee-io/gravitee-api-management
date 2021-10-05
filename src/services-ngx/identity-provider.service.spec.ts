@@ -74,7 +74,7 @@ describe('IdentityProviderService', () => {
   });
 
   describe('create', () => {
-    it('should send a PUT request', (done) => {
+    it('should send a POST request', (done) => {
       const identityProviderToCreate = fakeNewIdentityProvider({ type: 'GITHUB' });
 
       const identityProviderCreated = fakeIdentityProvider({ id: 'newId', ...identityProviderToCreate });
@@ -85,7 +85,7 @@ describe('IdentityProviderService', () => {
       });
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`);
-      expect(req.request.method).toEqual('PUT');
+      expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual(identityProviderToCreate);
 
       req.flush(identityProviderCreated);

@@ -36,6 +36,6 @@ export class IdentityProviderService {
   }
 
   create(newIdentityProvider: NewIdentityProvider): Observable<IdentityProvider> {
-    return this.http.put<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities`, newIdentityProvider);
+    return this.http.post<IdentityProvider>(`${this.constants.org.baseURL}/configuration/identities`, newIdentityProvider);
   }
 }
