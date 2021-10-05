@@ -38,7 +38,6 @@ public class VertxDebugHttpClientConfiguration {
     @Value("${http.ssl.openssl}")
     private boolean openssl;
 
-
     @Value("${debug.timeout.connect:5000}")
     private int connectTimeout;
 
