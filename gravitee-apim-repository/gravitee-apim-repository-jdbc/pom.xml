@@ -41,7 +41,7 @@
         <mariaDB.version>2.4.0</mariaDB.version>
         <wix-embedded-mysql.version>4.6.0</wix-embedded-mysql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
-        <testcontainers.version>1.15.0-rc2</testcontainers.version>
+        <testcontainers.version>1.15.3</testcontainers.version>
         <default-database.jdbcType>postgresql-te</default-database.jdbcType>
         <mssql-jdbc.version>7.4.1.jre8</mssql-jdbc.version>
     </properties>
