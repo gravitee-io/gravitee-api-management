@@ -16,7 +16,7 @@
 
 -->
 <div class="identity-provider" *ngIf="!isLoading">
-  <form [formGroup]="identityProviderSettings" (ngSubmit)="onSubmit()">
+  <form [formGroup]="identityProviderFormGroup" (ngSubmit)="onSubmit()">
     <h1 *ngIf="mode === 'new'">Create a new identity provider</h1>
     <h1 *ngIf="mode === 'edit'">Update {{ identityProviderType | titlecase }} identity provider</h1>
 
@@ -62,11 +62,11 @@
         <input matInput name="name" minlength="2" maxlength="50" formControlName="name" required />
         <mat-hint>Identity provider name. The name will be used to define the authentication endpoint</mat-hint>
 
-        <mat-error *ngIf="this.identityProviderSettings.get('name').hasError('required')">Identity provider name is required.</mat-error>
-        <mat-error *ngIf="this.identityProviderSettings.get('name').hasError('maxlength')"
+        <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('required')">Identity provider name is required.</mat-error>
+        <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('maxlength')"
           >The identity provider has to be less than 50 characters long.</mat-error
         >
-        <mat-error *ngIf="this.identityProviderSettings.get('name').hasError('minlength')"
+        <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('minlength')"
           >The identity provider has to be more than 2 characters long.</mat-error
         >
       </mat-form-field>
@@ -132,7 +132,7 @@
         mat-raised-button
         color="primary"
         type="submit"
-        [disabled]="identityProviderSettings.invalid || !identityProviderSettings.dirty"
+        [disabled]="identityProviderFormGroup.invalid || !identityProviderFormGroup.dirty"
       >
         Save
       </button>

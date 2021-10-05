@@ -35,7 +35,7 @@ export interface ProviderConfiguration {
 export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   isLoading = true;
 
-  identityProviderSettings: FormGroup;
+  identityProviderFormGroup: FormGroup;
 
   mode: 'new' | 'edit' = 'new';
 
@@ -63,7 +63,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.identityProviderSettings = new FormGroup({
+    this.identityProviderFormGroup = new FormGroup({
       type: new FormControl('GRAVITEEIO_AM'),
       enabled: new FormControl(),
       name: new FormControl(null, [Validators.required, Validators.maxLength(50), Validators.minLength(2)]),
@@ -72,7 +72,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
       syncMappings: new FormControl(),
     });
 
-    this.identityProviderSettings
+    this.identityProviderFormGroup
       .get('type')
       .valueChanges.pipe(takeUntil(this.unsubscribe$))
       .subscribe((type) => {
@@ -92,9 +92,9 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
             this.isLoading = false;
 
             // Initializes the form value
-            this.identityProviderSettings.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
-            this.identityProviderSettings.markAsPristine();
-            this.identityProviderSettings.markAsUntouched();
+            this.identityProviderFormGroup.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
+            this.identityProviderFormGroup.markAsPristine();
+            this.identityProviderFormGroup.markAsUntouched();
             this.changeDetectorRef.detectChanges();
           }),
         )
@@ -118,36 +118,36 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     // clean previous form group
     if (!isEmpty(this.identityProviderFormControlKeys)) {
       this.identityProviderFormControlKeys.forEach((key) => {
-        this.identityProviderSettings.removeControl(key);
+        this.identityProviderFormGroup.removeControl(key);
       });
 
       this.identityProviderFormControlKeys = [];
     }
 
     // add provider form group
-    if (this.identityProviderSettings && !isEmpty(formGroups)) {
+    if (this.identityProviderFormGroup && !isEmpty(formGroups)) {
       Object.entries(formGroups).forEach(([key, formGroup]) => {
         this.identityProviderFormControlKeys.push(key);
-        this.identityProviderSettings.addControl(key, formGroup);
+        this.identityProviderFormGroup.addControl(key, formGroup);
       });
     }
 
     // For the edit mode
     // Initializes the form value when the sub-form linked to the idP type is added
     if (this.mode === 'edit') {
-      this.identityProviderSettings.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
-      this.identityProviderSettings.markAsPristine();
-      this.identityProviderSettings.markAsUntouched();
+      this.identityProviderFormGroup.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
+      this.identityProviderFormGroup.markAsPristine();
+      this.identityProviderFormGroup.markAsUntouched();
       this.changeDetectorRef.detectChanges();
     }
   }
 
   onSubmit() {
-    if (this.identityProviderSettings.invalid) {
+    if (this.identityProviderFormGroup.invalid) {
       return;
     }
 
-    const formSettingsValue = this.identityProviderSettings.getRawValue();
+    const formSettingsValue = this.identityProviderFormGroup.getRawValue();
 
     const upsertIdentityProvider$ = this.mode === 'new' ? this.identityProviderService.create(formSettingsValue) : of();
 

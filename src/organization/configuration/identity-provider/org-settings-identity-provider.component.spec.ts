@@ -72,7 +72,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       await formCardGroup.select('GITHUB');
 
       expect(await formCardGroup.getSelectedValue()).toEqual('GITHUB');
-      expect(Object.keys(component.identityProviderSettings.get('configuration').value)).toEqual(['clientId', 'clientSecret']);
+      expect(Object.keys(component.identityProviderFormGroup.get('configuration').value)).toEqual(['clientId', 'clientSecret']);
     });
 
     it('should save identity provider general settings', async () => {
@@ -153,7 +153,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
         await clientSecretInput.setValue('Client Secret');
 
-        expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
+        expect(fixture.componentInstance.identityProviderFormGroup.get('configuration').value).toEqual({
           clientId: 'Client Id',
           clientSecret: 'Client Secret',
         });
@@ -192,7 +192,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
         await clientSecretInput.setValue('Client Secret');
 
-        expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
+        expect(fixture.componentInstance.identityProviderFormGroup.get('configuration').value).toEqual({
           clientId: 'Client Id',
           clientSecret: 'Client Secret',
         });
@@ -240,7 +240,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const colorInput = await loader.getHarness(GioFormColorInputHarness.with({ selector: '[formControlName=color]' }));
         await colorInput.setValue('#ffffff');
 
-        expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
+        expect(fixture.componentInstance.identityProviderFormGroup.get('configuration').value).toEqual({
           clientId: 'Client Id',
           clientSecret: 'Client Secret',
           color: '#ffffff',
@@ -264,7 +264,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const pictureInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=picture]' }));
         await pictureInput.setValue('Picture');
 
-        expect(fixture.componentInstance.identityProviderSettings.get('userProfileMapping').value).toEqual({
+        expect(fixture.componentInstance.identityProviderFormGroup.get('userProfileMapping').value).toEqual({
           email: 'Email',
           firstname: 'Firstname',
           id: 'Id',
@@ -341,7 +341,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const colorInput = await loader.getHarness(GioFormColorInputHarness.with({ selector: '[formControlName=color]' }));
         await colorInput.setValue('#ffffff');
 
-        expect(fixture.componentInstance.identityProviderSettings.get('configuration').value).toEqual({
+        expect(fixture.componentInstance.identityProviderFormGroup.get('configuration').value).toEqual({
           authorizeEndpoint: 'AuthorizeEndpoint',
           clientId: 'Client Id',
           clientSecret: 'Client Secret',
@@ -368,7 +368,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const pictureInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=picture]' }));
         await pictureInput.setValue('Picture');
 
-        expect(fixture.componentInstance.identityProviderSettings.get('userProfileMapping').value).toEqual({
+        expect(fixture.componentInstance.identityProviderFormGroup.get('userProfileMapping').value).toEqual({
           email: 'Email',
           firstname: 'Firstname',
           id: 'Id',
