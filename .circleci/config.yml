@@ -161,7 +161,7 @@ jobs:
           paths:
             - ./docker-tag.txt
 
-  deploy-on-element-zero-cluster:
+  deploy-on-azure-cluster:
     docker:
       - image: mcr.microsoft.com/azure-cli:latest
     resource_class: small
@@ -188,7 +188,7 @@ jobs:
             mv ./kubectl /usr/local/bin/kubectl
             kubectl version --client=true
       - run:
-          name: Helm upgrade and 🚀
+          name: Helm upgrade and 🚀 to Element Zero cluster
           command: |
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az aks get-credentials --resource-group element-zero --name element-zero
@@ -196,6 +196,19 @@ jobs:
             helm upgrade --repo https://helm.gravitee.io \
                         --install apim \
                         -n apim \
+                        --reuse-values \
+                        apim3 \
+                        --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
+                        --set "portal.image.tag=$TAG"
+      - run:
+          name: Helm upgrade and 🚀 to APIM cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group apim-hprod --name apim-hprod
+
+            helm upgrade --repo https://helm.gravitee.io \
+                        --install apim \
+                        -n apim-master \
                         --reuse-values \
                         apim3 \
                         --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-ui" \
@@ -254,8 +267,8 @@ workflows:
               only:
                 - master
                 # To remove after the merge and validation on master
-                - 6293-rework-ci
-      - deploy-on-element-zero-cluster:
+                - 6170-deploy-on-apim-cluster
+      - deploy-on-azure-cluster:
           context: cicd-orchestrator
           pre-steps:
             - secrethub/env-export:
@@ -274,7 +287,7 @@ workflows:
               only:
                 - master
                 # To remove after the merge and validation on master
-                - 6293-rework-ci
+                - 6170-deploy-on-apim-cluster
 
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
