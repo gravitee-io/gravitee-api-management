@@ -16,8 +16,10 @@ db.applications.reIndex();
 db.events.dropIndexes();
 db.events.createIndex( { "type" : 1 } );
 db.events.createIndex( { "updatedAt" : 1 } );
+db.events.createIndex( { "updatedAt" : -1, "_id" : -1 } );
 db.events.createIndex( { "properties.api_id" : 1 } );
 db.events.createIndex( { "properties.api_id":1, "type":1} );
+db.events.createIndex( { "type" : 1, "updatedAt" : 1} );
 db.events.reIndex();
 
 // "plans" collection
