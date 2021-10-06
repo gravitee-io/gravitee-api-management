@@ -125,8 +125,8 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
       expectIdentityProviderCreateRequest({
         description: 'Description',
-        emailRequired: true,
-        enabled: true,
+        emailRequired: false,
+        enabled: false,
         name: 'Name',
         syncMappings: true,
         type: 'GRAVITEEIO_AM',
@@ -176,10 +176,10 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
         expectIdentityProviderCreateRequest({
           description: null,
-          emailRequired: null,
-          enabled: null,
+          emailRequired: true,
+          enabled: true,
           name: 'Name',
-          syncMappings: null,
+          syncMappings: false,
           type: 'GITHUB',
           configuration: {
             clientId: 'Client Id',
@@ -215,10 +215,10 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
         expectIdentityProviderCreateRequest({
           description: null,
-          emailRequired: null,
-          enabled: null,
+          emailRequired: true,
+          enabled: true,
           name: 'Name',
-          syncMappings: null,
+          syncMappings: false,
           type: 'GOOGLE',
           configuration: {
             clientId: 'Client Id',
@@ -290,10 +290,10 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
         expectIdentityProviderCreateRequest({
           description: null,
-          emailRequired: null,
-          enabled: null,
+          emailRequired: true,
+          enabled: true,
           name: 'Name',
-          syncMappings: null,
+          syncMappings: false,
           type: 'GRAVITEEIO_AM',
           configuration: {
             clientId: 'Client Id',
@@ -394,10 +394,10 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
         expectIdentityProviderCreateRequest({
           description: null,
-          emailRequired: null,
-          enabled: null,
+          emailRequired: true,
+          enabled: true,
           name: 'Name',
-          syncMappings: null,
+          syncMappings: false,
           type: 'OIDC',
           configuration: {
             authorizeEndpoint: 'AuthorizeEndpoint',

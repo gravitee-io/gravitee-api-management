@@ -70,11 +70,11 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.identityProviderFormGroup = new FormGroup({
       type: new FormControl('GRAVITEEIO_AM'),
-      enabled: new FormControl(),
+      enabled: new FormControl(true),
       name: new FormControl(null, [Validators.required, Validators.maxLength(50), Validators.minLength(2)]),
       description: new FormControl(),
-      emailRequired: new FormControl(),
-      syncMappings: new FormControl(),
+      emailRequired: new FormControl(true),
+      syncMappings: new FormControl(false),
     });
 
     this.identityProviderFormGroup
