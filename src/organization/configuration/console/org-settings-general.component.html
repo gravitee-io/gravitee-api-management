@@ -528,10 +528,7 @@
         </ng-container>
       </mat-card-content>
     </mat-card>
-
-    <div class="settings-general__form__actions">
-      <button mat-raised-button color="primary" type="submit" [disabled]="formSettings.invalid">Save</button>
-    </div>
+    <gio-save-bar [form]="formSettings" [formInitialValues]="formInitialValues"> </gio-save-bar>
   </form>
 
   <gio-table-of-contents

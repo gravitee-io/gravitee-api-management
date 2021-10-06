@@ -54,6 +54,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   private allowAllOriginsConfirmDialog?: MatDialogRef<GioConfirmDialogComponent, boolean>;
+  public formInitialValues: unknown;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -147,6 +148,8 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
               return checked ? this.formSettings.get(`email.${k}`).enable() : this.formSettings.get(`email.${k}`).disable();
             });
         });
+
+        this.formInitialValues = this.formSettings.getRawValue();
       });
 
     this.allowHeadersFilteredOptions$ = this.allowHeadersInputFormControl.valueChanges.pipe(
@@ -261,7 +264,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
       )
-      .subscribe();
+      .subscribe(() => this.ngOnInit());
   }
 
   isReadonlySetting(property: string): boolean {

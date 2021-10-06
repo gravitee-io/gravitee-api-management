@@ -34,6 +34,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { GioFormTagsInputHarness } from '../../../shared/components/form-tags-input/gio-form-tags-input.harness';
+import { GioSaveBarHarness } from '../../../shared/components/gio-save-bar/gio-save-bar.harness';
 
 describe('ConsoleSettingsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsGeneralComponent>;
@@ -110,8 +111,8 @@ describe('ConsoleSettingsComponent', () => {
       const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'support' }));
       await activateSupportSlideToggle.check();
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         management: {
@@ -151,8 +152,8 @@ describe('ConsoleSettingsComponent', () => {
       // expect automaticValidation SlideToggle not to be visible
       expect(await loader.getAllHarnesses(MatSlideToggleHarness.with({ name: 'automaticValidation' }))).toEqual([]);
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         management: {
@@ -209,8 +210,8 @@ describe('ConsoleSettingsComponent', () => {
       const loaderFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Loader' }));
       await (await loaderFormField.getControl(MatInputHarness)).setValue('New loader');
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         theme: {
@@ -256,8 +257,8 @@ describe('ConsoleSettingsComponent', () => {
       const notificationFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /^Notifications/ }));
       await (await notificationFormField.getControl(MatInputHarness)).setValue('');
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         scheduler: {
@@ -293,8 +294,8 @@ describe('ConsoleSettingsComponent', () => {
       const enableAlertingSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'alert' }));
       await enableAlertingSlideToggle.check();
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         alert: {
@@ -395,8 +396,8 @@ describe('ConsoleSettingsComponent', () => {
       const maxAgeFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /^Max age/ }));
       await (await maxAgeFormField.getControl(MatInputHarness)).setValue('666');
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         cors: {
@@ -431,8 +432,8 @@ describe('ConsoleSettingsComponent', () => {
       const dialogTwo = await rootLoader.getHarness(MatDialogHarness);
       await (await dialogTwo.getHarness(MatButtonHarness.with({ text: /^Yes,/ }))).click();
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         cors: {
@@ -516,8 +517,8 @@ describe('ConsoleSettingsComponent', () => {
       );
       await propertiesStartTlsEnableSlideToggle.check();
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-      await saveButton.click();
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
 
       expectConsoleSettingsSendRequest({
         email: {
