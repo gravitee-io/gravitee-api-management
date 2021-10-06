@@ -13,8 +13,8 @@
 }
 
 /**
- * Change default material card elevation to 3 if no elevation was added
+ * Change default material card elevation to 3 if no elevation was added or if its not a child card
  **/
-.mat-card:not([class*='mat-elevation-z']) {
+.mat-card:not(.mat-card .mat-card):not([class*='mat-elevation-z']) {
   @include mat.elevation(3);
 }
