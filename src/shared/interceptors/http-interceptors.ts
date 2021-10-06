@@ -17,9 +17,11 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { CsrfInterceptor } from './csrf.interceptor';
 import { AccessControlAllowCredentialsInterceptor } from './access-control-allow-credentials.interceptor';
+import { ReplaceEnvInterceptor } from './replace-env.interceptor';
 
 /** Http interceptor providers in outside-in order */
 export const httpInterceptorProviders = [
   { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
   { provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true },
+  { provide: HTTP_INTERCEPTORS, useClass: ReplaceEnvInterceptor, multi: true },
 ];

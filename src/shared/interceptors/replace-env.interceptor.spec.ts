@@ -15,20 +15,20 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
-import { AccessControlAllowCredentialsInterceptor } from './access-control-allow-credentials.interceptor';
+import { httpInterceptorProviders } from './http-interceptors';
 
-describe('AccessControlAllowCredentialsInterceptor', () => {
-  const testUrl = 'https://test.com/config';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../testing';
 
+describe('ReplaceEnvInterceptor', () => {
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [{ provide: HTTP_INTERCEPTORS, useClass: AccessControlAllowCredentialsInterceptor, multi: true }],
+      imports: [GioHttpTestingModule, HttpClientTestingModule],
+      providers: [httpInterceptorProviders],
     });
 
     httpClient = TestBed.inject(HttpClient);
@@ -39,14 +39,13 @@ describe('AccessControlAllowCredentialsInterceptor', () => {
     httpTestingController.verify();
   });
 
-  it('should set withCredentials to true', (done) => {
+  it('should replace {:envId} in url', (done) => {
+    const testUrl = 'https://test.com/{:envId}/config';
+
     httpClient.get<unknown>(testUrl).subscribe(() => {
       done();
     });
 
-    const req = httpTestingController.expectOne(testUrl);
-    expect(req.request.withCredentials).toEqual(true);
-
-    req.flush({});
+    httpTestingController.expectOne(`https://test.com/${CONSTANTS_TESTING.org.currentEnv.id}/config`).flush({});
   });
 });

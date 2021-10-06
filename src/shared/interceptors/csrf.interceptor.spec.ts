@@ -15,10 +15,10 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HttpClient, HttpClientXsrfModule } from '@angular/common/http';
+import { HttpClient, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { catchError, switchMap } from 'rxjs/operators';
 
-import { httpInterceptorProviders } from './http-interceptors';
+import { CsrfInterceptor } from './csrf.interceptor';
 
 describe('CsrfInterceptor', () => {
   const testUrl = 'https://test.com/config';
@@ -36,7 +36,7 @@ describe('CsrfInterceptor', () => {
           headerName: 'none',
         }),
       ],
-      providers: [httpInterceptorProviders],
+      providers: [{ provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true }],
     });
 
     httpClient = TestBed.inject(HttpClient);

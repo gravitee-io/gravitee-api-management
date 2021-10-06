@@ -13,29 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { NgModule } from '@angular/core';
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
+import { Inject } from '@angular/core';
+import { Observable } from 'rxjs';
 
-export const CONSTANTS_TESTING = {
-  org: {
-    baseURL: 'https://url.test:3000/management/organizations/DEFAULT',
-    settings: {
-      reCaptcha: false,
-    },
-    currentEnv: { id: 'DEFAULT' },
-  },
-  env: {
-    baseURL: 'https://url.test:3000/management/organizations/DEFAULT/environments/DEFAULT',
-  },
-};
+import { Constants } from '../../entities/Constants';
 
-@NgModule({
-  imports: [HttpClientTestingModule],
-  providers: [
-    {
-      provide: 'Constants',
-      useValue: CONSTANTS_TESTING,
-    },
-  ],
-})
-export class GioHttpTestingModule {}
+export class ReplaceEnvInterceptor implements HttpInterceptor {
+  constructor(@Inject('Constants') private readonly constants: Constants) {}
+
+  intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    req = req.clone({
+      url: req.url.replace('{:envId}', this.constants.org.currentEnv.id),
+    });
+
+    return next.handle(req);
+  }
+}
