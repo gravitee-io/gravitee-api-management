@@ -22,6 +22,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeAdminUser, fakeUser } from '../entities/user/user.fixture';
 import { fakePagedResult } from '../entities/pagedResult';
 import { fakeNewExternalUser } from '../entities/user/newExternalUser.fixture';
+import { fakeGroup } from '../entities/group/group.fixture';
 
 describe('UsersService', () => {
   let httpTestingController: HttpTestingController;
@@ -92,6 +93,23 @@ describe('UsersService', () => {
       expect(req.request.method).toEqual('POST');
 
       req.flush(createdUser);
+    });
+  });
+
+  describe('getUserGroups', () => {
+    it('should call the API', (done) => {
+      const userId = 'userId';
+      const fakeGroups = [fakeGroup()];
+
+      usersService.getUserGroups(userId).subscribe((groups) => {
+        expect(groups).toMatchObject(fakeGroups);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/groups`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(fakeGroups);
     });
   });
 

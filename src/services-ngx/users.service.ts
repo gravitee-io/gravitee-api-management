@@ -21,6 +21,7 @@ import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { User } from '../entities/user/user';
 import { NewExternalUser } from '../entities/user/newExternalUser';
+import { Group } from '../entities/group/group';
 
 @Injectable({
   providedIn: 'root',
@@ -44,5 +45,9 @@ export class UsersService {
 
   remove(userId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.org.baseURL}/users/${userId}`);
+  }
+
+  getUserGroups(userId: string): Observable<Group[]> {
+    return this.http.get<Group[]>(`${this.constants.org.baseURL}/users/${userId}/groups`);
   }
 }
