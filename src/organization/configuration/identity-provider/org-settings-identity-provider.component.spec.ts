@@ -31,7 +31,7 @@ import { GioFormCardGroupHarness } from '../../../shared/components/form-card-gr
 import { GioFormTagsInputHarness } from '../../../shared/components/form-tags-input/gio-form-tags-input.harness';
 import { GioFormColorInputHarness } from '../../../shared/components/form-color-input/gio-form-color-input.harness';
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identity-provider';
 
 describe('OrgSettingsIdentityProviderComponent', () => {
@@ -39,12 +39,18 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   let loader: HarnessLoader;
   let component: OrgSettingsIdentityProviderComponent;
   let httpTestingController: HttpTestingController;
+  const fakeAjsState = {
+    go: jest.fn(),
+  };
 
   describe('new', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-        providers: [{ provide: UIRouterStateParams, useValue: {} }],
+        providers: [
+          { provide: UIRouterState, useValue: fakeAjsState },
+          { provide: UIRouterStateParams, useValue: {} },
+        ],
       });
 
       fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
@@ -58,6 +64,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
     afterEach(() => {
       httpTestingController.verify();
+      jest.resetAllMocks();
     });
 
     it('should be in new mode', async () => {
@@ -139,6 +146,8 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           picture: null,
         },
       });
+
+      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.settings.ng-identityprovider-edit', { id: 'google-idp' });
     });
 
     describe('github', () => {
@@ -417,7 +426,10 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-        providers: [{ provide: UIRouterStateParams, useValue: { id: 'googleIdp' } }],
+        providers: [
+          { provide: UIRouterState, useValue: fakeAjsState },
+          { provide: UIRouterStateParams, useValue: { id: 'providerId' } },
+        ],
       });
 
       fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
@@ -430,24 +442,125 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     });
 
     it('should be in edit mode', async () => {
-      expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'googleIdp' }));
+      expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
 
       expect(component.mode).toEqual('edit');
     });
 
     it('should not allow to change the provider type', async () => {
-      expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'googleIdp' }));
+      expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
 
       expect(component.mode).toEqual('edit');
       const providerType = await loader.getAllHarnesses(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
       expect(providerType.length).toBe(0);
+    });
+
+    it('should save identity provider general settings', async () => {
+      expectIdentityProviderGetRequest(
+        fakeIdentityProvider({
+          id: 'providerId',
+          type: 'GRAVITEEIO_AM',
+          name: 'Name',
+          description: 'Description',
+          groupMappings: [{ condition: 'A', groups: ['Group A'] }],
+          configuration: {
+            clientId: 'Client Id',
+            clientSecret: 'Client Secret',
+            color: null,
+            domain: 'Domain',
+            scopes: null,
+            serverURL: 'ServerURL',
+          },
+          userProfileMapping: {
+            email: null,
+            firstname: null,
+            id: 'Id',
+            lastname: null,
+            picture: null,
+          },
+        }),
+      );
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+
+      // Set value for all General fields
+
+      const descriptionInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=description]' }));
+      await descriptionInput.setValue('Updated Description');
+
+      const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
+      await nameInput.setValue('Updated Name');
+
+      const allowPortalToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=enabled]' }));
+      await allowPortalToggle.toggle();
+
+      const emailRequiredToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName=emailRequired]' }));
+      await emailRequiredToggle.toggle();
+
+      const syncMappingsRadioGroupe = await loader.getHarness(MatRadioGroupHarness.with({ selector: '[formControlName=syncMappings]' }));
+      await syncMappingsRadioGroupe.checkRadioButton({ label: /^Computed during each user/ });
+
+      // Update value for some GRAVITEEIO_AM fields
+      const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
+      await clientIdInput.setValue('Updated Client Id');
+
+      const clientSecretInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientSecret]' }));
+      await clientSecretInput.setValue('Updated Client Secret');
+
+      const serverURLInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=serverURL]' }));
+      await serverURLInput.setValue('UpdatedServerURL');
+
+      const domainInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=domain]' }));
+      await domainInput.setValue('Updated Domain');
+
+      const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
+      await idInput.setValue('Updated Id');
+
+      expect(await saveButton.isDisabled()).toEqual(false);
+
+      await saveButton.click();
+
+      expectIdentityProviderUpdateRequest('providerId', {
+        description: 'Updated Description',
+        emailRequired: false,
+        enabled: false,
+        name: 'Updated Name',
+        syncMappings: true,
+        groupMappings: [{ condition: 'A', groups: ['Group A'] }],
+        roleMappings: [],
+        configuration: {
+          clientId: 'Updated Client Id',
+          clientSecret: 'Updated Client Secret',
+          color: null,
+          domain: 'Updated Domain',
+          scopes: null,
+          serverURL: 'UpdatedServerURL',
+        },
+        userProfileMapping: {
+          email: null,
+          firstname: null,
+          id: 'Updated Id',
+          lastname: null,
+          picture: null,
+        },
+      });
+
+      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.settings.ng-identityprovider-edit', { id: 'providerId' });
     });
   });
 
   function expectIdentityProviderCreateRequest(newIdentityProvider: NewIdentityProvider) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`);
     expect(req.request.method).toEqual('POST');
-    expect(req.request.body).toEqual(newIdentityProvider);
+    expect(req.request.body).toStrictEqual(newIdentityProvider);
+    req.flush(fakeIdentityProvider({ ...newIdentityProvider }));
+  }
+
+  function expectIdentityProviderUpdateRequest(id: string, identityProvider: IdentityProvider) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/${id}`);
+    expect(req.request.method).toEqual('PUT');
+    expect(req.request.body).toStrictEqual(identityProvider);
+    req.flush({ id, identityProvider });
   }
 
   function expectIdentityProviderGetRequest(identityProvider: IdentityProvider) {

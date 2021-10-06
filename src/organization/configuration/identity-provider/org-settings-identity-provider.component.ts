@@ -15,11 +15,12 @@
  */
 import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { isEmpty } from 'lodash';
-import { of, Subject } from 'rxjs';
+import { StateService } from '@uirouter/angularjs';
+import { cloneDeep, isEmpty } from 'lodash';
+import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
-import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { IdentityProvider } from '../../../entities/identity-provider';
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -44,10 +45,13 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   @ViewChild('providerConfiguration', { static: false })
   set providerConfiguration(providerPart: ProviderConfiguration | undefined) {
-    if (providerPart) {
+    // only if providerPart changed
+    if (providerPart && this._providerPart !== providerPart) {
       this.addProviderFormGroups(providerPart.getFormGroups());
     }
+    this._providerPart = providerPart;
   }
+  private _providerPart: ProviderConfiguration | undefined;
 
   identityProviderType = 'GRAVITEEIO_AM';
 
@@ -59,6 +63,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     private readonly identityProviderService: IdentityProviderService,
     private readonly snackBarService: SnackBarService,
     private readonly changeDetectorRef: ChangeDetectorRef,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
@@ -88,7 +93,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
           takeUntil(this.unsubscribe$),
           tap((identityProvider) => {
             this.identityProviderType = identityProvider.type;
-            this.initialIdentityProviderValue = identityProvider;
+            this.initialIdentityProviderValue = cloneDeep(identityProvider);
             this.isLoading = false;
 
             // Initializes the form value
@@ -149,12 +154,18 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
     const formSettingsValue = this.identityProviderFormGroup.getRawValue();
 
-    const upsertIdentityProvider$ = this.mode === 'new' ? this.identityProviderService.create(formSettingsValue) : of();
+    const upsertIdentityProvider$ =
+      this.mode === 'new'
+        ? this.identityProviderService.create(formSettingsValue)
+        : this.identityProviderService.update({ ...this.initialIdentityProviderValue, ...formSettingsValue });
 
     upsertIdentityProvider$
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap(() => this.snackBarService.success('Identity provider successfully saved!')),
+        tap((identityProvider) => {
+          this.snackBarService.success('Identity provider successfully saved!');
+          this.ajsState.go('organization.settings.ng-identityprovider-edit', { id: identityProvider.id });
+        }),
       )
       .subscribe();
   }
