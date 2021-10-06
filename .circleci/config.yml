@@ -165,7 +165,7 @@ jobs:
           paths:
             - ./docker-tag.txt
 
-  deploy-on-element-zero-aks:
+  deploy-on-azure-aks:
     docker:
       - image: mcr.microsoft.com/azure-cli:latest
     resource_class: small
@@ -200,6 +200,19 @@ jobs:
             helm upgrade --repo https://helm.gravitee.io \
                          --install apim \
                          -n apim \
+                         apim3 \
+                         --reuse-values \
+                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                         --set "api.image.tag=${TAG}"
+      - run:
+          name: Helm upgrade and 🚀 to APIM cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group apim-hprod --name apim-hprod
+
+            helm upgrade --repo https://helm.gravitee.io \
+                         --install apim \
+                         -n apim-master \
                          apim3 \
                          --reuse-values \
                          --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
@@ -273,8 +286,8 @@ workflows:
               only:
                 - master
                 - /^\d+\.\d+\.x$/
-                - apim-zip-with-policies
-      - deploy-on-element-zero-aks:
+                - 6170-deploy-on-apim-cluster
+      - deploy-on-azure-aks:
           context: cicd-orchestrator
           pre-steps:
             - secrethub/env-export:
@@ -293,7 +306,7 @@ workflows:
               only:
                 - master
                 - /^\d+\.\d+\.x$/
-                - apim-zip-with-policies
+                - 6170-deploy-on-apim-cluster
 
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
