@@ -17,8 +17,11 @@
 -->
 <div class="identity-provider" *ngIf="!isLoading">
   <form [formGroup]="identityProviderFormGroup" (ngSubmit)="onSubmit()">
-    <h1 *ngIf="mode === 'new'">Create a new identity provider</h1>
-    <h1 *ngIf="mode === 'edit'">Update {{ identityProviderType | titlecase }} identity provider</h1>
+    <h1>
+      <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-identityproviders' }"></gio-go-back-button>
+      <ng-container *ngIf="mode === 'new'">Create a new identity provider</ng-container>
+      <ng-container *ngIf="mode === 'edit'">Update {{ identityProviderType | titlecase }} identity provider</ng-container>
+    </h1>
 
     <mat-card *ngIf="mode === 'new'" class="identity-provider__card">
       <h2>Provider type</h2>
