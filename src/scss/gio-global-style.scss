@@ -18,3 +18,12 @@
 .mat-card:not(.mat-card .mat-card):not([class*='mat-elevation-z']) {
   @include mat.elevation(3);
 }
+
+/**
+ * Reset `box-sizing` for all elements
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

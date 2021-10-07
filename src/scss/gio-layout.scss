@@ -30,7 +30,7 @@ $container-padding-bottom: 48px;
 
 @mixin gio-responsive-margin-container {
   overflow: auto;
-  height: calc(100vh - #{$navbarHeaderHeight} - #{$container-padding-top} - #{$container-padding-bottom});
+  height: calc(100vh - #{$navbarHeaderHeight});
   padding-top: $container-padding-top;
   padding-bottom: $container-padding-bottom;
 
@@ -52,7 +52,7 @@ $container-padding-bottom: 48px;
 
 @mixin gio-responsive-content-container {
   overflow: auto;
-  height: calc(100vh - #{$navbarHeaderHeight} - #{$container-padding-top} - #{$container-padding-bottom});
+  height: calc(100vh - #{$navbarHeaderHeight});
   padding: $container-padding-top 8px $container-padding-bottom 8px;
 
   @include large-desktop {
