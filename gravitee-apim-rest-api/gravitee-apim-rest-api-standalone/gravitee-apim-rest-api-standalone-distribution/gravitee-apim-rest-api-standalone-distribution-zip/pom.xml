@@ -80,6 +80,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
+							<attach>false</attach>
 							<finalName>gravitee-apim-rest-api-distribution-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
