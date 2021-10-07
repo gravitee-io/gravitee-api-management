@@ -57,7 +57,6 @@ $typography: map.get(gio.$gio-theme, typography);
 
     &:hover,
     &.active {
-      font-weight: 500;
       border-left: solid 2px mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
       color: mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
     }
