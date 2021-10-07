@@ -199,7 +199,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   // From ControlValueAccessor interface
   writeValue(value: string): void {
     this._value = value;
-    this.colorFormControl.setValue(value);
+    this.colorFormControl.setValue(value, { emitEvent: false });
   }
 
   // From ControlValueAccessor interface

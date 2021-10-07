@@ -62,9 +62,15 @@ describe('GioFormColorInputModule', () => {
     const formColorInput = await loader.getHarness(GioFormColorInputHarness.with({ selector: 'gio-form-color-input' }));
 
     expect(await formColorInput.getValue()).toEqual('');
+    expect(component.colorControl.dirty).toBeFalsy();
+    expect(component.colorControl.touched).toBeFalsy();
+    expect(component.colorControl.invalid).toBeFalsy();
 
     component.colorControl.setValue('#ff0000');
     expect(await formColorInput.getValue()).toEqual('#ff0000');
+    expect(component.colorControl.dirty).toBeFalsy();
+    expect(component.colorControl.touched).toBeFalsy();
+    expect(component.colorControl.invalid).toBeFalsy();
   });
 
   it('should display change formControl color', async () => {
