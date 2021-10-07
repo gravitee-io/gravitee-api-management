@@ -79,6 +79,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
+							<attach>false</attach>
 							<finalName>gravitee-gateway-distribution-${project.version}</finalName>
 							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
