@@ -82,7 +82,8 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
             if (source !== this.graviteeIdp.id) {
               this.userForm.get('sourceId').addValidators(Validators.required);
             } else {
-              this.userForm.get('sourceId').removeValidators(Validators.required);
+              this.userForm.get('sourceId').clearValidators();
+              this.userForm.get('sourceId').reset();
             }
             this.userForm.updateValueAndValidity();
           });
