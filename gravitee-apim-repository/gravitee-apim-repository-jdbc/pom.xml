@@ -23,15 +23,15 @@
     <parent>
         <groupId>io.gravitee.apim.repository</groupId>
         <artifactId>gravitee-apim-repository</artifactId>
-        <version>3.5.19-SNAPSHOT</version>
+        <version>3.5.19</version>
     </parent>
 
     <artifactId>gravitee-apim-repository-jdbc</artifactId>
-    <version>3.5.19-SNAPSHOT</version>
+    <version>3.5.19</version>
     <name>Gravitee.io APIM - Repository - JDBC</name>
 
     <properties>
-        <gravitee-definition.version>1.25.0</gravitee-definition.version>
+        <gravitee-definition.version>1.25.1</gravitee-definition.version>
         <maven-dependency-plugin.version>2.10</maven-dependency-plugin.version>
         <HikariCP.version>3.4.1</HikariCP.version>
         <liquibase.version>3.8.0</liquibase.version>
