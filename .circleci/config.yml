@@ -134,7 +134,7 @@ jobs:
   build-storybook:
     executor:
       name: node-lts
-      class: medium
+      class: large
     steps:
       - checkout
       - attach_workspace:
