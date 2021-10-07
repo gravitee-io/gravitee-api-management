@@ -169,4 +169,52 @@ describe('GioFormCardGroupModule', () => {
       expect(await saveBar.isVisible()).toEqual(false);
     });
   });
+
+  describe('use creation mode', () => {
+    const onSubmitMock = jest.fn();
+
+    @Component({
+      template: `
+        <div>
+          <input />
+          <gio-save-bar creationMode="true" (submit)="onSubmit($event)"></gio-save-bar>
+        </div>
+      `,
+    })
+    class TestComponent {
+      onSubmit = onSubmitMock;
+    }
+
+    let fixture: ComponentFixture<TestComponent>;
+    let loader: HarnessLoader;
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        declarations: [TestComponent],
+        imports: [GioSaveBarModule, ReactiveFormsModule, NoopAnimationsModule],
+      });
+      fixture = TestBed.createComponent(TestComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('save bar should be opened by default', async () => {
+      fixture.detectChanges();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toEqual(true);
+      expect(await saveBar.isResetButtonVisible()).toEqual(false);
+    });
+
+    it('should send a submit', async () => {
+      fixture.detectChanges();
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      await saveBar.clickSubmit();
+      expect(onSubmitMock).toHaveBeenCalledTimes(1);
+    });
+  });
 });

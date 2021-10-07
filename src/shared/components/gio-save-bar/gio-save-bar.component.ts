@@ -39,6 +39,9 @@ export class GioSaveBarComponent {
   opened = false;
 
   @Input()
+  creationMode = false;
+
+  @Input()
   form?: FormGroup;
 
   @Input()
@@ -51,6 +54,10 @@ export class GioSaveBarComponent {
   submit = new EventEmitter();
 
   isOpen() {
+    if (this.creationMode) {
+      return true;
+    }
+
     if (this.form) {
       return this.form.dirty;
     }

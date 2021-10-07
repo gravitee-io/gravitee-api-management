@@ -87,3 +87,27 @@ export const ReactiveForm: Story = {
     };
   },
 };
+
+export const CreationMode: Story = {
+  render: () => ({
+    template: `
+    <div style="padding-bottom: 400px">
+      <div>A long form, with many many fields</div>
+      <div style="display: flex; flex-direction: column;"
+           *ngFor="let item of [].constructor(40)">
+           Input {{item}}
+           <input/>
+      </div>
+      <gio-save-bar
+        [creationMode]="true"
+        (reset)="onReset($event)"
+        (submit)="onSubmit($event)">
+      </gio-save-bar>
+    </div>
+    `,
+    props: {
+      onReset: (e) => action('Reset')(e),
+      onSubmit: (e) => action('Submit')(e),
+    },
+  }),
+};

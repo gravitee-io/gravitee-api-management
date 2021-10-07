@@ -19,17 +19,25 @@ import { ComponentHarness } from '@angular/cdk/testing';
 export class GioSaveBarHarness extends ComponentHarness {
   static hostSelector = 'gio-save-bar';
 
-  protected getSubmitButton = this.locatorFor('.save-bar__content__submit-button');
-  protected getResetButton = this.locatorFor('.save-bar__content__reset-button');
+  private readonly resetButtonSelector = '.save-bar__content__reset-button';
+  private readonly submitButtonSelector = '.save-bar__content__submit-button';
+
+  protected getSubmitButton = this.locatorFor(this.submitButtonSelector);
+  protected getResetButton = this.locatorFor(this.resetButtonSelector);
 
   async isVisible(): Promise<boolean> {
-    const submitButton = await this.locatorForOptional('.save-bar__content__submit-button')();
+    const submitButton = await this.locatorForOptional(this.submitButtonSelector)();
     return submitButton !== null;
   }
 
   async clickSubmit(): Promise<void> {
     const submitButton = await this.getSubmitButton();
     return submitButton.click();
+  }
+
+  async isResetButtonVisible(): Promise<boolean> {
+    const submitButton = await this.locatorForOptional(this.resetButtonSelector)();
+    return submitButton !== null;
   }
 
   async clickReset(): Promise<void> {

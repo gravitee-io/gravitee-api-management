@@ -16,11 +16,13 @@
 
 -->
 
-<div class="save-bar" *ngIf="isOpen()" [@slideUpDown]>
-  <mat-card class="mat-elevation-z6 save-bar__content">
+<div *ngIf="isOpen()" [@slideUpDown] [@.disabled]="creationMode" class="save-bar" [class.save-bar-sticky]="!creationMode">
+  <mat-card class="save-bar__content" [class.mat-elevation-z3]="creationMode" [class.mat-elevation-z6]="!creationMode">
     <div class="save-bar__content__label">Please note you have unsaved modifications.</div>
     <div>
-      <button class="save-bar__content__reset-button" mat-stroked-button type="button" (click)="onResetClicked()">Reset</button>
+      <button *ngIf="!creationMode" class="save-bar__content__reset-button" mat-stroked-button type="button" (click)="onResetClicked()">
+        Reset
+      </button>
       <button
         class="save-bar__content__submit-button"
         mat-flat-button
@@ -29,7 +31,7 @@
         (click)="onSubmitClicked()"
         [disabled]="isSubmitDisabled()"
       >
-        Save Changes
+        {{ creationMode ? 'Create' : 'Save Changes' }}
       </button>
     </div>
   </mat-card>

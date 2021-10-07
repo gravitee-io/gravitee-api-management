@@ -6,11 +6,16 @@
 
 $typography: map.get(gio.$gio-theme, typography);
 
-.save-bar {
-  height: 50px;
+.save-bar-sticky {
   position: sticky;
   bottom: 0;
-  margin-bottom: 40px;
+  margin-left: -16px;
+  margin-right: -16px;
+}
+
+.save-bar {
+  margin-top: 32px;
+  height: 50px;
   z-index: 1000;
 
   &__content {
@@ -30,7 +35,8 @@ $typography: map.get(gio.$gio-theme, typography);
 
     &__submit-button {
       background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium');
-      &:hover {
+
+      &:hover:enabled {
         background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'dark');
       }
     }
