@@ -65,7 +65,5 @@
     </mat-card-content>
   </mat-card>
 
-  <div class="org-settings-new-user__actions">
-    <button mat-raised-button color="primary" type="submit" [disabled]="(userForm.statusChanges | async) !== 'VALID'">Save</button>
-  </div>
+  <gio-save-bar creationMode="true" [form]="userForm"> </gio-save-bar>
 </form>

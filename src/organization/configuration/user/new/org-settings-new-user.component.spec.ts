@@ -21,7 +21,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { OrgSettingsNewUserComponent } from './org-settings-new-user.component';
@@ -29,8 +28,9 @@ import { OrgSettingsNewUserComponent } from './org-settings-new-user.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
-import { fakeIdentityProviderListItem } from '../../../../entities/identity-provider/identityProviderListItem.fixture';
+import { fakeIdentityProviderListItem } from '../../../../entities/identity-provider';
 import { fakeUser } from '../../../../entities/user/user.fixture';
+import { GioSaveBarHarness } from '../../../../shared/components/gio-save-bar/gio-save-bar.harness';
 
 describe('OrgSettingsNewUserComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNewUserComponent>;
@@ -70,15 +70,15 @@ describe('OrgSettingsNewUserComponent', () => {
     const lastNameInput = await lastNameFormField.getControl(MatInputHarness);
     await lastNameInput?.setValue('Wayne');
 
-    const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-    expect(await saveButton.isDisabled()).toBeTruthy();
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    expect(await saveBar.isSubmitButtonDisabled()).toBeTruthy();
 
     const emailFormField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: /Email/ }));
     const emailInput = await emailFormField.getControl(MatInputHarness);
     await emailInput?.setValue('contact@batman.com');
 
-    expect(await saveButton.isDisabled()).toBeFalsy();
-    await saveButton.click();
+    expect(await saveBar.isSubmitButtonDisabled()).toBeFalsy();
+    await saveBar.clickSubmit();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users`);
 
@@ -126,9 +126,9 @@ describe('OrgSettingsNewUserComponent', () => {
     const idpIdInput = await idpIdFormField.getControl(MatInputHarness);
     await idpIdInput?.setValue('idp-id');
 
-    const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-    expect(await saveButton.isDisabled()).toBeFalsy();
-    await saveButton.click();
+    const gioSaveBar = await loader.getHarness(GioSaveBarHarness);
+    expect(await gioSaveBar.isSubmitButtonDisabled()).toBeFalsy();
+    await gioSaveBar.clickSubmit();
 
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users`);
 

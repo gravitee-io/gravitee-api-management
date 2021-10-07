@@ -35,6 +35,11 @@ export class GioSaveBarHarness extends ComponentHarness {
     return submitButton.click();
   }
 
+  async isSubmitButtonDisabled(): Promise<boolean> {
+    const submitButton = await this.getSubmitButton();
+    return submitButton.getProperty<boolean>('disabled');
+  }
+
   async isResetButtonVisible(): Promise<boolean> {
     const submitButton = await this.locatorForOptional(this.resetButtonSelector)();
     return submitButton !== null;
