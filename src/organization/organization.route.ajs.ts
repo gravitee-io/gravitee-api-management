@@ -500,6 +500,20 @@ function organizationRouterConfig($stateProvider) {
           NotificationTemplatesService.getNotificationTemplates().then((response) => response.data),
       },
     })
+    .state('organization.settings.ng-notificationTemplates', {
+      url: '/ng-notification-templates',
+      component: 'ngNotificationTemplatesComponent',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-notification-templates',
+        },
+        perms: {
+          only: ['organization-notification_templates-r'],
+        },
+      },
+    })
     .state('organization.settings.notificationTemplate', {
       url: '/notification-templates/:scope/:hook',
       component: 'notificationTemplateComponent',
