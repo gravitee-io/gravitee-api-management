@@ -130,15 +130,7 @@
       ></org-settings-identity-provider-graviteeio-am>
     </ng-container>
 
-    <div>
-      <button
-        mat-raised-button
-        color="primary"
-        type="submit"
-        [disabled]="identityProviderFormGroup.invalid || !identityProviderFormGroup.dirty"
-      >
-        Save
-      </button>
-    </div>
+    <gio-save-bar [creationMode]="mode === 'new'" [form]="identityProviderFormGroup" [formInitialValues]="initialIdentityProviderValue">
+    </gio-save-bar>
   </form>
 </div>

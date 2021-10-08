@@ -21,7 +21,6 @@ import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
@@ -33,6 +32,7 @@ import { GioFormColorInputHarness } from '../../../shared/components/form-color-
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identity-provider';
+import { GioSaveBarHarness } from '../../../shared/components/gio-save-bar/gio-save-bar.harness';
 
 describe('OrgSettingsIdentityProviderComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProviderComponent>;
@@ -83,7 +83,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     });
 
     it('should save identity provider general settings', async () => {
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
 
       // Set value for all General fields
       const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
@@ -101,7 +101,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       const syncMappingsRadioGroupe = await loader.getHarness(MatRadioGroupHarness.with({ selector: '[formControlName=syncMappings]' }));
       await syncMappingsRadioGroupe.checkRadioButton({ label: /^Computed during each user/ });
 
-      expect(await saveButton.isDisabled()).toEqual(true);
+      expect(await saveBar.isSubmitButtonDisabled()).toEqual(true);
 
       // Set value for required GRAVITEEIO_AM fields
       const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
@@ -119,9 +119,9 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
       await idInput.setValue('Id');
 
-      expect(await saveButton.isDisabled()).toEqual(false);
+      expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
 
-      await saveButton.click();
+      await saveBar.clickSubmit();
 
       expectIdentityProviderCreateRequest({
         description: 'Description',
@@ -171,8 +171,8 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
         await nameInput.setValue('Name');
 
-        const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-        await saveButton.click();
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        await saveBar.clickSubmit();
 
         expectIdentityProviderCreateRequest({
           description: null,
@@ -210,8 +210,8 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
         await nameInput.setValue('Name');
 
-        const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-        await saveButton.click();
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        await saveBar.clickSubmit();
 
         expectIdentityProviderCreateRequest({
           description: null,
@@ -285,8 +285,8 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
         await nameInput.setValue('Name');
 
-        const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-        await saveButton.click();
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        await saveBar.clickSubmit();
 
         expectIdentityProviderCreateRequest({
           description: null,
@@ -389,8 +389,8 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const nameInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=name]' }));
         await nameInput.setValue('Name');
 
-        const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
-        await saveButton.click();
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        await saveBar.clickSubmit();
 
         expectIdentityProviderCreateRequest({
           description: null,
@@ -481,7 +481,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         }),
       );
 
-      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save' }));
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
 
       // Set value for all General fields
 
@@ -516,9 +516,9 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
       await idInput.setValue('Updated Id');
 
-      expect(await saveButton.isDisabled()).toEqual(false);
+      expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
 
-      await saveButton.click();
+      await saveBar.clickSubmit();
 
       expectIdentityProviderUpdateRequest('providerId', {
         description: 'Updated Description',
