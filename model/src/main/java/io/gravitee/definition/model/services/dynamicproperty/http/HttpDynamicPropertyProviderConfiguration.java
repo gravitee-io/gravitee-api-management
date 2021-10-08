@@ -20,6 +20,7 @@ import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProviderConfiguration;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -32,6 +33,9 @@ public class HttpDynamicPropertyProviderConfiguration implements DynamicProperty
 
     @JsonProperty(value = "specification", required = true)
     private String specification;
+
+    @JsonProperty("useSystemProxy")
+    private boolean useSystemProxy;
 
     @JsonProperty("method")
     private HttpMethod method = HttpMethod.GET;
@@ -58,6 +62,14 @@ public class HttpDynamicPropertyProviderConfiguration implements DynamicProperty
         this.specification = specification;
     }
 
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
+    }
+
     public HttpMethod getMethod() {
         return method;
     }
@@ -80,5 +92,20 @@ public class HttpDynamicPropertyProviderConfiguration implements DynamicProperty
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HttpDynamicPropertyProviderConfiguration that = (HttpDynamicPropertyProviderConfiguration) o;
+        return (
+            useSystemProxy == that.useSystemProxy && Objects.equals(url, that.url) && Objects.equals(specification, that.specification)
+        );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(url, specification, useSystemProxy);
     }
 }
