@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, isEmpty } from 'lodash';
 import { EMPTY, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, shareReplay, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { IdentityProvider } from '../../../entities/identity-provider';
+import { GroupMapping, IdentityProvider } from '../../../entities/identity-provider';
+import { GroupService } from '../../../services-ngx/group.service';
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -55,12 +56,15 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   identityProviderType: IdentityProvider['type'] | null = null;
 
+  groups$ = this.groupService.list().pipe(shareReplay());
+
   private unsubscribe$ = new Subject<boolean>();
 
   private identityProviderFormControlKeys: string[] = [];
 
   constructor(
     private readonly identityProviderService: IdentityProviderService,
+    private readonly groupService: GroupService,
     private readonly snackBarService: SnackBarService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -95,6 +99,10 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
           tap((identityProvider) => {
             this.identityProviderType = identityProvider.type;
             this.initialIdentityProviderValue = cloneDeep(identityProvider);
+
+            this.identityProviderFormGroup.addControl('groupMappings', new FormArray([]), { emitEvent: false });
+            identityProvider.groupMappings.forEach((groupMapping) => this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false));
+
             this.isLoading = false;
           }),
         )
@@ -173,6 +181,34 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
           this.resetComponent();
         }
       });
+  }
+
+  addGroupMappingToIdentityProviderFormGroup(groupMapping?: GroupMapping, emitEvent = true) {
+    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as FormArray;
+    groupMappings.push(
+      new FormGroup({
+        condition: new FormControl(groupMapping?.condition ?? null, [Validators.required]),
+        groups: new FormControl(groupMapping?.groups ?? [], [Validators.required]),
+      }),
+      { emitEvent },
+    );
+    if (emitEvent) {
+      this.identityProviderFormGroup.markAsDirty();
+    }
+  }
+
+  removeGroupMappingFromIdentityProviderFormGroup(index: number) {
+    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as FormArray;
+    groupMappings.removeAt(index);
+    this.identityProviderFormGroup.markAsDirty();
+  }
+
+  onFormReset() {
+    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as FormArray;
+    groupMappings.clear();
+    this.initialIdentityProviderValue.groupMappings.forEach((groupMapping) =>
+      this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false),
+    );
   }
 
   // reset component to initial state

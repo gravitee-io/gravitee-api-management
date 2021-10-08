@@ -20,7 +20,11 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { omit } from 'lodash';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
@@ -33,6 +37,8 @@ import { NewIdentityProvider } from '../../../entities/identity-provider/newIden
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identity-provider';
 import { GioSaveBarHarness } from '../../../shared/components/gio-save-bar/gio-save-bar.harness';
+import { Group } from '../../../entities/group/group';
+import { fakeGroup } from '../../../entities/group/group.fixture';
 
 describe('OrgSettingsIdentityProviderComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProviderComponent>;
@@ -462,7 +468,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           type: 'GRAVITEEIO_AM',
           name: 'Name',
           description: 'Description',
-          groupMappings: [{ condition: 'A', groups: ['Group A'] }],
+          groupMappings: [{ condition: 'A', groups: ['groupAId'] }],
           configuration: {
             clientId: 'Client Id',
             clientSecret: 'Client Secret',
@@ -480,6 +486,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           },
         }),
       );
+      expectGroupListRequest([fakeGroup({ id: 'groupAId', name: 'Group A' })]);
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
 
@@ -526,7 +533,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         enabled: false,
         name: 'Updated Name',
         syncMappings: true,
-        groupMappings: [{ condition: 'A', groups: ['Group A'] }],
+        groupMappings: [{ condition: 'A', groups: ['groupAId'] }],
         roleMappings: [],
         configuration: {
           clientId: 'Updated Client Id',
@@ -550,6 +557,119 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       // no flush to end this test
       httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
     });
+
+    describe('group mappings', () => {
+      let identityProviderToUpdate;
+      let groupMappingsCard: MatCardHarness;
+
+      beforeEach(async () => {
+        identityProviderToUpdate = fakeIdentityProvider({
+          id: 'providerId',
+          type: 'GRAVITEEIO_AM',
+          name: 'Name',
+          description: 'Description',
+          groupMappings: [{ condition: 'foo', groups: ['groupAId'] }],
+          configuration: {
+            clientId: 'Client Id',
+            clientSecret: 'Client Secret',
+            color: null,
+            domain: 'Domain',
+            scopes: null,
+            serverURL: 'ServerURL',
+          },
+          userProfileMapping: {
+            email: null,
+            firstname: null,
+            id: 'Id',
+            lastname: null,
+            picture: null,
+          },
+        });
+        expectIdentityProviderGetRequest(identityProviderToUpdate);
+        expectGroupListRequest([fakeGroup({ id: 'groupAId', name: 'Group A' }), fakeGroup({ id: 'groupBId', name: 'Group B' })]);
+        groupMappingsCard = await loader.getHarness(MatCardHarness.with({ selector: '[formArrayName=groupMappings]' }));
+      });
+
+      it('should edit group mapping', async () => {
+        // 📝 [ng-reflect-name="0"] is the index of the first group mapping
+        // Select the sub card to edit of groupMappingsCard
+        const groupMappingCardToEdit = await groupMappingsCard.getHarness(MatCardHarness.with({ selector: '[ng-reflect-name="0"]' }));
+
+        const conditionInput = await groupMappingCardToEdit.getHarness(MatInputHarness.with({ selector: '[formControlName=condition]' }));
+        await conditionInput.setValue('new foo');
+
+        const groupsSelect = await groupMappingCardToEdit.getHarness(MatSelectHarness.with({ selector: '[formControlName=groups]' }));
+        await groupsSelect.clickOptions({ text: 'Group B' });
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        await saveBar.clickSubmit();
+
+        expectIdentityProviderUpdateRequest('providerId', {
+          ...identityProviderToUpdate,
+          groupMappings: [{ condition: 'new foo', groups: ['groupAId', 'groupBId'] }],
+        });
+
+        // Expect the component is reset
+        expect(component.isLoading).toBe(true);
+
+        // no flush to end this test
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should add group mapping', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+        const addGroupMappingButton = await groupMappingsCard.getHarness(MatButtonHarness.with({ text: /Add group mapping/ }));
+        await addGroupMappingButton.click();
+
+        expect(await saveBar.isSubmitButtonDisabled()).toEqual(true);
+
+        // 📝 [ng-reflect-name="0"] is the index of the first group mapping
+        // Select the new card added of groupMappingsCard
+        const groupMappingCardAdded = await groupMappingsCard.getHarness(MatCardHarness.with({ selector: '[ng-reflect-name="1"]' }));
+
+        const conditionInput = await groupMappingCardAdded.getHarness(MatInputHarness.with({ selector: '[formControlName=condition]' }));
+        await conditionInput.setValue('new bar');
+        const groupsSelect = await groupMappingCardAdded.getHarness(MatSelectHarness.with({ selector: '[formControlName=groups]' }));
+        await groupsSelect.clickOptions({ text: 'Group B' });
+
+        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        await saveBar.clickSubmit();
+
+        expectIdentityProviderUpdateRequest('providerId', {
+          ...identityProviderToUpdate,
+          groupMappings: [
+            { condition: 'foo', groups: ['groupAId'] },
+            { condition: 'new bar', groups: ['groupBId'] },
+          ],
+        });
+
+        // no flush to end this test
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should remove group mapping', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+        // 📝 [ng-reflect-name="0"] is the index of the group to remove
+        const removeGroupMappingButton = await groupMappingsCard.getHarness(
+          MatButtonHarness.with({ text: /Remove/, ancestor: '[ng-reflect-name="0"]' }),
+        );
+        await removeGroupMappingButton.click();
+
+        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        await saveBar.clickSubmit();
+
+        expectIdentityProviderUpdateRequest('providerId', {
+          ...identityProviderToUpdate,
+          groupMappings: [],
+        });
+
+        // no flush to end this test
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+    });
   });
 
   function expectIdentityProviderCreateRequest(newIdentityProvider: NewIdentityProvider) {
@@ -562,7 +682,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   function expectIdentityProviderUpdateRequest(id: string, identityProvider: IdentityProvider) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/${id}`);
     expect(req.request.method).toEqual('PUT');
-    expect(req.request.body).toStrictEqual(identityProvider);
+    expect(req.request.body).toStrictEqual(omit(identityProvider, ['id', 'type']));
     req.flush({ id, identityProvider });
   }
 
@@ -570,5 +690,13 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/${identityProvider.id}`);
     expect(req.request.method).toEqual('GET');
     req.flush(identityProvider);
+    fixture.detectChanges();
+  }
+
+  function expectGroupListRequest(groups: Group[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(groups);
+    fixture.detectChanges();
   }
 });
