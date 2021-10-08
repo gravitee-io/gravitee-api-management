@@ -43,6 +43,11 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     go: jest.fn(),
   };
 
+  afterEach(() => {
+    httpTestingController.verify();
+    jest.resetAllMocks();
+  });
+
   describe('new', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
@@ -60,11 +65,6 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       httpTestingController = TestBed.inject(HttpTestingController);
 
       fixture.detectChanges();
-    });
-
-    afterEach(() => {
-      httpTestingController.verify();
-      jest.resetAllMocks();
     });
 
     it('should be in new mode', async () => {
@@ -544,8 +544,11 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           picture: null,
         },
       });
+      // Expect the component is reset
+      expect(component.isLoading).toBe(true);
 
-      expect(fakeAjsState.go).toHaveBeenCalledWith('organization.settings.ng-identityprovider-edit', { id: 'providerId' });
+      // no flush to end this test
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
     });
   });
 

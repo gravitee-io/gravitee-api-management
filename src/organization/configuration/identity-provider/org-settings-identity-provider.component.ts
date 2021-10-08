@@ -17,8 +17,8 @@ import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } fr
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, isEmpty } from 'lodash';
-import { Subject } from 'rxjs';
-import { distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { IdentityProvider } from '../../../entities/identity-provider';
@@ -158,11 +158,32 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     upsertIdentityProvider$
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((identityProvider) => {
+        tap(() => {
           this.snackBarService.success('Identity provider successfully saved!');
-          this.ajsState.go('organization.settings.ng-identityprovider-edit', { id: identityProvider.id });
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
         }),
       )
-      .subscribe();
+      .subscribe((identityProvider) => {
+        if (this.mode === 'new') {
+          this.ajsState.go('organization.settings.ng-identityprovider-edit', { id: identityProvider.id });
+        } else {
+          this.resetComponent();
+        }
+      });
+  }
+
+  // reset component to initial state
+  private resetComponent(): void {
+    this.isLoading = true;
+    this.initialIdentityProviderValue = null;
+
+    // reset sub form property to force new call of addProviderFormGroups in order to patchValue the form with new idP get
+    this._providerPartName = null;
+    this.identityProviderType = null;
+
+    this.ngOnInit();
   }
 }
