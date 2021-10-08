@@ -126,7 +126,7 @@
     "ng-annotate-loader": "^0.6.1",
     "postcss-loader": "^2.1.6",
     "prettier": "^2.2.1",
-    "sass": "^1.38.0",
+    "sass": "^1.41.1",
     "sass-loader": "^7.3.1",
     "storybook-addon-designs": "^6.1.0",
     "style-loader": "^0.21.0",
