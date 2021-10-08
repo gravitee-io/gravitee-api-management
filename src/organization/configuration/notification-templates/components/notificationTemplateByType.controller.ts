@@ -15,9 +15,9 @@
  */
 import * as _ from 'lodash';
 
+import { NotificationTemplate } from '../../../../entities/notification/notificationTemplate';
 import NotificationService from '../../../../services/notification.service';
 import NotificationTemplatesService from '../../../../services/notificationTemplates.service';
-import { NotificationTemplate } from '../model/notificationTemplate.model';
 
 class NotificationTemplateByTypeController {
   public notifTemplateForm: any;

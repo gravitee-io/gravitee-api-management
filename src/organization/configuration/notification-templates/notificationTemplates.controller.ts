@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NotificationTemplate } from './model/notificationTemplate.model';
+
+import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
 
 class NotificationTemplatesController {
   private notificationTemplates: NotificationTemplate[];

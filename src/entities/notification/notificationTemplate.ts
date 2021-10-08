@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-export class NotificationTemplate {
-  public id: string;
-  public hook: string;
-  public scope: string;
-  public name: string;
-  public description: string;
-  public title: string;
-  public content: string;
-  public type: string;
-  public created_at: Date;
-  public updated_at: Date;
-  public enabled: boolean;
+export type NotificationTemplateType = 'EMAIL' | 'PORTAL';
+
+export interface NotificationTemplate {
+  id: string;
+  hook?: string;
+  scope: string;
+  name: string;
+  description: string;
+  title: string;
+  content: string;
+  type: NotificationTemplateType;
+  created_at: number;
+  updated_at?: number;
+  enabled?: boolean;
 }
