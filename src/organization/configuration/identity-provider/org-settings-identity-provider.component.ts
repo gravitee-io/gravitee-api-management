@@ -18,7 +18,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, isEmpty } from 'lodash';
 import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { IdentityProvider } from '../../../entities/identity-provider';
@@ -46,14 +46,14 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   @ViewChild('providerConfiguration', { static: false })
   set providerConfiguration(providerPart: ProviderConfiguration | undefined) {
     // only if providerPart changed
-    if (providerPart && this._providerPart !== providerPart) {
+    if (providerPart && this._providerPartName !== providerPart.constructor.name) {
+      this._providerPartName = providerPart.constructor.name;
       this.addProviderFormGroups(providerPart.getFormGroups());
     }
-    this._providerPart = providerPart;
   }
-  private _providerPart: ProviderConfiguration | undefined;
+  private _providerPartName: string;
 
-  identityProviderType = 'GRAVITEEIO_AM';
+  identityProviderType: IdentityProvider['type'] | null = null;
 
   private unsubscribe$ = new Subject<boolean>();
 
@@ -69,7 +69,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.identityProviderFormGroup = new FormGroup({
-      type: new FormControl('GRAVITEEIO_AM'),
+      type: new FormControl(),
       enabled: new FormControl(true),
       name: new FormControl(null, [Validators.required, Validators.maxLength(50), Validators.minLength(2)]),
       description: new FormControl(),
@@ -79,9 +79,10 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
     this.identityProviderFormGroup
       .get('type')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .valueChanges.pipe(takeUntil(this.unsubscribe$), distinctUntilChanged())
       .subscribe((type) => {
         this.identityProviderType = type;
+        this.identityProviderFormGroup.markAsUntouched();
       });
 
     if (this.ajsStateParams.id) {
@@ -95,17 +96,12 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
             this.identityProviderType = identityProvider.type;
             this.initialIdentityProviderValue = cloneDeep(identityProvider);
             this.isLoading = false;
-
-            // Initializes the form value
-            this.identityProviderFormGroup.patchValue(this.initialIdentityProviderValue, { emitEvent: false });
-            this.identityProviderFormGroup.markAsPristine();
-            this.identityProviderFormGroup.markAsUntouched();
-            this.changeDetectorRef.detectChanges();
           }),
         )
         .subscribe();
     } else {
       this.mode = 'new';
+      this.identityProviderFormGroup.get('type').setValue('GRAVITEEIO_AM');
       this.isLoading = false;
     }
   }
@@ -133,7 +129,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     if (this.identityProviderFormGroup && !isEmpty(formGroups)) {
       Object.entries(formGroups).forEach(([key, formGroup]) => {
         this.identityProviderFormControlKeys.push(key);
-        this.identityProviderFormGroup.addControl(key, formGroup);
+        this.identityProviderFormGroup.addControl(key, formGroup, { emitEvent: false });
       });
     }
 
