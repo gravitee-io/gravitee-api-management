@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<div class="identity-provider" *ngIf="!isLoading">
-  <form [formGroup]="identityProviderFormGroup" (ngSubmit)="onSubmit()">
+<div class="identity-provider">
+  <form *ngIf="!isLoading" [formGroup]="identityProviderFormGroup" (ngSubmit)="onSubmit()">
     <h1>
       <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-identityproviders' }"></gio-go-back-button>
       <ng-container *ngIf="mode === 'new'">Create a new identity provider</ng-container>
@@ -24,7 +24,7 @@
     </h1>
 
     <mat-card *ngIf="mode === 'new'" class="identity-provider__card">
-      <h2>Provider type</h2>
+      <h2 gioTableOfContents>Provider type</h2>
 
       <gio-form-card-group class="identity-provider__card__provider-type-group" formControlName="type">
         <gio-form-card class="identity-provider__card__provider-type-group__button" value="GRAVITEEIO_AM">
@@ -58,7 +58,7 @@
     </mat-card>
 
     <mat-card class="identity-provider__card">
-      <h2>General</h2>
+      <h2 gioTableOfContents>General</h2>
 
       <mat-form-field class="identity-provider__card__form-field" appearance="fill">
         <mat-label>Name</mat-label>
@@ -131,7 +131,7 @@
     </ng-container>
 
     <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="groupMappings">
-      <h2>Groups Mapping</h2>
+      <h2 gioTableOfContents>Groups Mapping</h2>
       <mat-card
         *ngFor="let _ of this.identityProviderFormGroup.get('groupMappings')?.controls; index as groupMappingIndex"
         class="identity-provider__card__group-mapping"
@@ -165,7 +165,7 @@
     </mat-card>
 
     <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="roleMappings">
-      <h2>Roles Mapping</h2>
+      <h2 gioTableOfContents>Roles Mapping</h2>
       <mat-card
         *ngFor="let _ of this.identityProviderFormGroup.get('roleMappings')?.controls; index as roleMappingIndex"
         class="identity-provider__card__role-mapping"
@@ -241,4 +241,9 @@
     >
     </gio-save-bar>
   </form>
+
+  <gio-table-of-contents
+    [sectionNames]="{ '': 'Identity provider' }"
+    scrollingContainer="ng-org-settings-identity-provider"
+  ></gio-table-of-contents>
 </div>

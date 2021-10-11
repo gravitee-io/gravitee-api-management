@@ -8,6 +8,10 @@
 }
 
 .identity-provider {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
   &__card {
     margin-bottom: 16px;
 
