@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Environment {
-  id: string;
-  hrids?: string[];
-  name?: string;
-  description?: string;
-  organizationId: string;
-  domainRestrictions?: string[];
+import { Environment } from './environment';
+
+export function fakeEnvironment(attributes?: Partial<Environment>): Environment {
+  const defaultValue: Environment = {
+    description: 'Default environment',
+    id: 'DEFAULT',
+    name: 'Default environment',
+    organizationId: 'DEFAULT',
+  };
+
+  return {
+    ...defaultValue,
+    ...attributes,
+  };
 }

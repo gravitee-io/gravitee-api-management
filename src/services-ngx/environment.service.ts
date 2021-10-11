@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface Environment {
-  id: string;
-  hrids?: string[];
-  name?: string;
-  description?: string;
-  organizationId: string;
-  domainRestrictions?: string[];
+import { HttpClient } from '@angular/common/http';
+import { Inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+
+import { Constants } from '../entities/Constants';
+import { Environment } from '../entities/environment/environment';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class EnvironmentService {
+  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+
+  list(): Observable<Environment[]> {
+    return this.http.get<Environment[]>(`${this.constants.org.baseURL}/environments`);
+  }
 }
