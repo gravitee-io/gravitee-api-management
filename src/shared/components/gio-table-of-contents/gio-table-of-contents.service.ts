@@ -15,7 +15,7 @@
  */
 
 import { Injectable } from '@angular/core';
-import { isEmpty, remove } from 'lodash';
+import { isEmpty } from 'lodash';
 import { Subject } from 'rxjs';
 import { mapTo, startWith } from 'rxjs/operators';
 
@@ -59,7 +59,10 @@ export class GioTableOfContentsService {
     }
     const section = this.sectionsLinks[sectionId];
 
-    remove(section.links, (link) => `${link.id}` !== `${linkId}`);
+    section.links.splice(
+      section.links.findIndex((i) => i.id === linkId),
+      1,
+    );
 
     // If is the last link remove section
     if (isEmpty(section.links)) {

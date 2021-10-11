@@ -117,6 +117,10 @@ describe('GioConfirmDialogComponent', () => {
     expect(getSectionsName()).toEqual(['Section name', 'Fox section']);
 
     gioTableOfContentsService.removeLink('', '1️');
+
+    fixture.detectChanges();
+    expect(getSectionsName()).toEqual(['Section name', 'Fox section']);
+
     gioTableOfContentsService.removeLink('', '2');
 
     fixture.detectChanges();
