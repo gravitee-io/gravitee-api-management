@@ -164,6 +164,75 @@
       </mat-card-actions>
     </mat-card>
 
+    <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="roleMappings">
+      <h2>Roles Mapping</h2>
+      <mat-card
+        *ngFor="let _ of this.identityProviderFormGroup.get('roleMappings')?.controls; index as roleMappingIndex"
+        class="identity-provider__card__role-mapping"
+        [formGroupName]="roleMappingIndex"
+      >
+        <mat-form-field class="identity-provider__card__role-mapping__form-field" appearance="fill">
+          <mat-label>Condition</mat-label>
+          <input matInput name="condition" formControlName="condition" required />
+          <mat-hint>The condition which should be validated to associate below groups at login time</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field class="identity-provider__card__role-mapping__form-field" appearance="fill">
+          <mat-label>Organization roles</mat-label>
+          <mat-select formControlName="organizations" multiple required>
+            <mat-option *ngFor="let role of organizationRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <table
+          mat-table
+          [dataSource]="environments$ | async"
+          class="identity-provider__card__role-mapping__table"
+          aria-label="Environment role selection"
+        >
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell id="name" *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let environment">{{ environment.name }}</td>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell id="description" *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let environment">{{ environment.description }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell id="actions" *matHeaderCellDef>Roles selected</th>
+            <td mat-cell *matCellDef="let environment" formGroupName="environments">
+              <mat-form-field appearance="fill">
+                <mat-label>Roles</mat-label>
+                <mat-select [formControlName]="environment.id" multiple required>
+                  <mat-option *ngFor="let role of environmentRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="environmentTableDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: environmentTableDisplayedColumns"></tr>
+        </table>
+
+        <mat-card-actions align="end">
+          <button mat-button type="button" (click)="removeRoleMappingFromIdentityProviderFormGroup(roleMappingIndex)">
+            <mat-icon>delete</mat-icon> Remove
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card-actions>
+        <button mat-button color="accent" type="button" (click)="addRoleMappingToIdentityProviderFormGroup()">
+          <mat-icon>add</mat-icon> Add role mapping
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
     <gio-save-bar
       [creationMode]="mode === 'new'"
       [form]="identityProviderFormGroup"

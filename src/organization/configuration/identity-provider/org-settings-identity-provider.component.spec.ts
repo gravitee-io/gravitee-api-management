@@ -25,6 +25,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { omit } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
@@ -39,6 +40,10 @@ import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identi
 import { GioSaveBarHarness } from '../../../shared/components/gio-save-bar/gio-save-bar.harness';
 import { Group } from '../../../entities/group/group';
 import { fakeGroup } from '../../../entities/group/group.fixture';
+import { Role } from '../../../entities/role/role';
+import { Environment } from '../../../entities/environment/environment';
+import { fakeRole } from '../../../entities/role/role.fixture';
+import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
 
 describe('OrgSettingsIdentityProviderComponent', () => {
   let fixture: ComponentFixture<OrgSettingsIdentityProviderComponent>;
@@ -449,12 +454,14 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
     it('should be in edit mode', async () => {
       expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
+      expectEnvironmentListRequest([]);
 
       expect(component.mode).toEqual('edit');
     });
 
     it('should not allow to change the provider type', async () => {
       expectIdentityProviderGetRequest(fakeIdentityProvider({ id: 'providerId' }));
+      expectEnvironmentListRequest([]);
 
       expect(component.mode).toEqual('edit');
       const providerType = await loader.getAllHarnesses(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
@@ -486,6 +493,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           },
         }),
       );
+      expectEnvironmentListRequest([]);
       expectGroupListRequest([fakeGroup({ id: 'groupAId', name: 'Group A' })]);
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -586,6 +594,8 @@ describe('OrgSettingsIdentityProviderComponent', () => {
           },
         });
         expectIdentityProviderGetRequest(identityProviderToUpdate);
+        expectEnvironmentListRequest([]);
+
         expectGroupListRequest([fakeGroup({ id: 'groupAId', name: 'Group A' }), fakeGroup({ id: 'groupBId', name: 'Group B' })]);
         groupMappingsCard = await loader.getHarness(MatCardHarness.with({ selector: '[formArrayName=groupMappings]' }));
       });
@@ -670,6 +680,167 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
       });
     });
+
+    describe('role mappings', () => {
+      let identityProviderToUpdate;
+      let roleMappingsCard: MatCardHarness;
+
+      beforeEach(async () => {
+        identityProviderToUpdate = fakeIdentityProvider({
+          id: 'providerId',
+          type: 'GRAVITEEIO_AM',
+          name: 'Name',
+          description: 'Description',
+          roleMappings: [
+            {
+              condition: 'foo',
+              organizations: ['ROLE_ORG_USER'],
+              environments: { environmentAlphaId: ['ROLE_ENV_USER'], environmentBetaId: ['ROLE_ENV_USER'] },
+            },
+          ],
+          configuration: {
+            clientId: 'Client Id',
+            clientSecret: 'Client Secret',
+            color: null,
+            domain: 'Domain',
+            scopes: null,
+            serverURL: 'ServerURL',
+          },
+          userProfileMapping: {
+            email: null,
+            firstname: null,
+            id: 'Id',
+            lastname: null,
+            picture: null,
+          },
+        });
+        expectIdentityProviderGetRequest(identityProviderToUpdate);
+
+        expectEnvironmentListRequest([
+          fakeEnvironment({ id: 'environmentAlphaId', name: 'Environment Alpha' }),
+          fakeEnvironment({ id: 'environmentBetaId', name: 'Environment Beta' }),
+        ]);
+        expectRolesListRequest('ORGANIZATION', [
+          fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
+          fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
+        ]);
+        expectRolesListRequest('ENVIRONMENT', [
+          fakeRole({ id: 'roleEnvApiId', name: 'ROLE_ENV_API' }),
+          fakeRole({ id: 'roleEnvUserId', name: 'ROLE_ENV_USER' }),
+        ]);
+
+        roleMappingsCard = await loader.getHarness(MatCardHarness.with({ selector: '[formArrayName=roleMappings]' }));
+      });
+
+      it('should edit role mapping', async () => {
+        // 📝 [ng-reflect-name="0"] is the index of the first role mapping
+        // Select the sub card to edit of roleMappingsCard
+        const roleMappingCardToEdit = await roleMappingsCard.getHarness(MatCardHarness.with({ selector: '[ng-reflect-name="0"]' }));
+
+        const conditionInput = await roleMappingCardToEdit.getHarness(MatInputHarness.with({ selector: '[formControlName=condition]' }));
+        await conditionInput.setValue('new foo');
+
+        const organizationsSelect = await roleMappingCardToEdit.getHarness(
+          MatSelectHarness.with({ selector: '[formControlName=organizations]' }),
+        );
+        expect(await organizationsSelect.getValueText()).toEqual('ROLE_ORG_USER');
+        await organizationsSelect.clickOptions({ text: 'ROLE_ORG_ADMIN' });
+
+        // Select ROLE_ENV_API option in environmentAlpha row of environment table
+        const environmentsTable = await roleMappingCardToEdit.getHarness(MatTableHarness);
+        const environmentAlphaRow = (await environmentsTable.getRows())[0]; // select first row
+        const environmentAlphaActionsCell = (await environmentAlphaRow.getCells())[2]; // select third column = actions
+        const environmentAlphaSelect = await environmentAlphaActionsCell.getHarness(MatSelectHarness);
+        expect(await environmentAlphaSelect.getValueText()).toEqual('ROLE_ENV_USER');
+        await environmentAlphaSelect.clickOptions({ text: 'ROLE_ENV_API' });
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        await saveBar.clickSubmit();
+
+        expectIdentityProviderUpdateRequest('providerId', {
+          ...identityProviderToUpdate,
+          roleMappings: [
+            {
+              condition: 'new foo',
+              organizations: ['ROLE_ORG_USER', 'ROLE_ORG_ADMIN'],
+              environments: {
+                environmentAlphaId: ['ROLE_ENV_API', 'ROLE_ENV_USER'],
+                environmentBetaId: ['ROLE_ENV_USER'],
+              },
+            },
+          ],
+        });
+
+        // Expect the component is reset
+        expect(component.isLoading).toBe(true);
+
+        // no flush to end this test
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+
+      it('should add role mapping', async () => {
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+        const addRoleMappingButton = await roleMappingsCard.getHarness(MatButtonHarness.with({ text: /Add role mapping/ }));
+        await addRoleMappingButton.click();
+
+        expect(await saveBar.isSubmitButtonDisabled()).toEqual(true);
+
+        // 📝 [ng-reflect-name="1"] is the index of the new role mapping added
+        // Select the new card added of roleMappingsCard
+        const roleMappingCardAdded = await roleMappingsCard.getHarness(MatCardHarness.with({ selector: '[ng-reflect-name="1"]' }));
+
+        // Add condition and select role for new role mapping added
+        const conditionInput = await roleMappingCardAdded.getHarness(MatInputHarness.with({ selector: '[formControlName=condition]' }));
+        await conditionInput.setValue('new bar');
+        const organizationsSelect = await roleMappingCardAdded.getHarness(
+          MatSelectHarness.with({ selector: '[formControlName=organizations]' }),
+        );
+        await organizationsSelect.clickOptions({ text: 'ROLE_ORG_ADMIN' });
+
+        const environmentsTable = await roleMappingCardAdded.getHarness(MatTableHarness);
+        // Select ROLE_ENV_API option in environmentAlpha row of environment table
+        const environmentAlphaRow = (await environmentsTable.getRows())[0]; // select first row
+        const environmentAlphaActionsCell = (await environmentAlphaRow.getCells())[2]; // select third column = actions
+        const environmentAlphaSelect = await environmentAlphaActionsCell.getHarness(MatSelectHarness);
+        await environmentAlphaSelect.clickOptions({ text: 'ROLE_ENV_API' });
+
+        // Same for Beta environment because role selection is required
+        const environmentBetaRow = (await environmentsTable.getRows())[1]; // select second row
+        const environmentBetaActionsCell = (await environmentBetaRow.getCells())[2]; // select third column = actions
+        const environmentBetaSelect = await environmentBetaActionsCell.getHarness(MatSelectHarness);
+        await environmentBetaSelect.clickOptions({ text: 'ROLE_ENV_USER' });
+
+        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        await saveBar.clickSubmit();
+
+        expectIdentityProviderUpdateRequest('providerId', {
+          ...identityProviderToUpdate,
+          roleMappings: [
+            {
+              condition: 'foo',
+              organizations: ['ROLE_ORG_USER'],
+              environments: {
+                environmentAlphaId: ['ROLE_ENV_USER'],
+                environmentBetaId: ['ROLE_ENV_USER'],
+              },
+            },
+            {
+              condition: 'new bar',
+              organizations: ['ROLE_ORG_ADMIN'],
+              environments: {
+                environmentAlphaId: ['ROLE_ENV_API'],
+                environmentBetaId: ['ROLE_ENV_USER'],
+              },
+            },
+          ],
+        });
+
+        // no flush to end this test
+        httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities/providerId`);
+      });
+    });
   });
 
   function expectIdentityProviderCreateRequest(newIdentityProvider: NewIdentityProvider) {
@@ -697,6 +868,20 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups`);
     expect(req.request.method).toEqual('GET');
     req.flush(groups);
+    fixture.detectChanges();
+  }
+
+  function expectRolesListRequest(scope, roles: Role[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${scope}/roles`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(roles);
+    fixture.detectChanges();
+  }
+
+  function expectEnvironmentListRequest(environments: Environment[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(environments);
     fixture.detectChanges();
   }
 });

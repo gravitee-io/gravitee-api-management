@@ -17,13 +17,16 @@ import { ChangeDetectorRef, Component, Inject, OnDestroy, OnInit, ViewChild } fr
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, isEmpty } from 'lodash';
-import { EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
-import { GroupMapping, IdentityProvider } from '../../../entities/identity-provider';
+import { Environment } from '../../../entities/environment/environment';
+import { GroupMapping, IdentityProvider, RoleMapping } from '../../../entities/identity-provider';
+import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { GroupService } from '../../../services-ngx/group.service';
 import { IdentityProviderService } from '../../../services-ngx/identity-provider.service';
+import { RoleService } from '../../../services-ngx/role.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 export interface ProviderConfiguration {
@@ -58,6 +61,15 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   groups$ = this.groupService.list().pipe(shareReplay());
 
+  organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay());
+
+  environments$ = this.environmentService.list().pipe(shareReplay());
+  allEnvironments: Environment[];
+
+  environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay());
+
+  environmentTableDisplayedColumns = ['name', 'description', 'actions'];
+
   private unsubscribe$ = new Subject<boolean>();
 
   private identityProviderFormControlKeys: string[] = [];
@@ -65,6 +77,8 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   constructor(
     private readonly identityProviderService: IdentityProviderService,
     private readonly groupService: GroupService,
+    private readonly roleService: RoleService,
+    private readonly environmentService: EnvironmentService,
     private readonly snackBarService: SnackBarService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -92,16 +106,19 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     if (this.ajsStateParams.id) {
       this.mode = 'edit';
 
-      this.identityProviderService
-        .get(this.ajsStateParams.id)
+      combineLatest([this.identityProviderService.get(this.ajsStateParams.id), this.environments$])
         .pipe(
           takeUntil(this.unsubscribe$),
-          tap((identityProvider) => {
+          tap(([identityProvider, environments]) => {
             this.identityProviderType = identityProvider.type;
             this.initialIdentityProviderValue = cloneDeep(identityProvider);
 
             this.identityProviderFormGroup.addControl('groupMappings', new FormArray([]), { emitEvent: false });
             identityProvider.groupMappings.forEach((groupMapping) => this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false));
+
+            this.allEnvironments = environments;
+            this.identityProviderFormGroup.addControl('roleMappings', new FormArray([]), { emitEvent: false });
+            identityProvider.roleMappings.forEach((roleMapping) => this.addRoleMappingToIdentityProviderFormGroup(roleMapping, false));
 
             this.isLoading = false;
           }),
@@ -199,6 +216,36 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   removeGroupMappingFromIdentityProviderFormGroup(index: number) {
     const groupMappings = this.identityProviderFormGroup.get('groupMappings') as FormArray;
+    groupMappings.removeAt(index);
+    this.identityProviderFormGroup.markAsDirty();
+  }
+
+  addRoleMappingToIdentityProviderFormGroup(roleMapping?: RoleMapping, emitEvent = true) {
+    const roleMappings = this.identityProviderFormGroup.get('roleMappings') as FormArray;
+    roleMappings.push(
+      new FormGroup({
+        condition: new FormControl(roleMapping?.condition ?? null, [Validators.required]),
+        organizations: new FormControl(roleMapping?.organizations ?? [], [Validators.required]),
+        // new form group with environment.id as key and Environment[] as FormControl
+        environments: new FormGroup({
+          ...this.allEnvironments.reduce(
+            (prev, environment) => ({
+              ...prev,
+              [environment.id]: new FormControl(roleMapping?.environments[environment.id] ?? [], [Validators.required]),
+            }),
+            {},
+          ),
+        }),
+      }),
+      { emitEvent },
+    );
+    if (emitEvent) {
+      this.identityProviderFormGroup.markAsDirty();
+    }
+  }
+
+  removeRoleMappingFromIdentityProviderFormGroup(index: number) {
+    const groupMappings = this.identityProviderFormGroup.get('roleMappings') as FormArray;
     groupMappings.removeAt(index);
     this.identityProviderFormGroup.markAsDirty();
   }
