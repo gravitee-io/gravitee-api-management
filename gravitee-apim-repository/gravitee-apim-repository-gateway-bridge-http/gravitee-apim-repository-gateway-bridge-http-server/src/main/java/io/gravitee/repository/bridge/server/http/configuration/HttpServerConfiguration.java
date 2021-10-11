@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class HttpServerConfiguration {
 
-    @Value("${services.bridge.http.enabled:true}")
+    @Value("${services.bridge.http.enabled:false}")
     private boolean enabled;
 
     @Value("${services.bridge.http.port:18092}")

@@ -41,9 +41,6 @@ public class BridgeService extends AbstractService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BridgeService.class);
 
-    @Value("${services.bridge.enabled:true}")
-    private boolean enabled;
-
     private static final String PATH = "/_bridge";
 
     private static final String AUTHENTICATION_TYPE_NONE = "none";
@@ -70,13 +67,9 @@ public class BridgeService extends AbstractService {
 
     @Override
     protected void doStart() throws Exception {
-        if (enabled) {
+        if (httpServerConfiguration.isEnabled()) {
             super.doStart();
             LOGGER.info("Start HTTP server for bridge");
-
-            LOGGER.warn("------------------------------------------------------------------------");
-            LOGGER.warn("HTTP Bridge Service will be disabled by default starting in version 3.13");
-            LOGGER.warn("------------------------------------------------------------------------");
 
             // Start HTTP server
             Router mainRouter = Router.router(vertx);
