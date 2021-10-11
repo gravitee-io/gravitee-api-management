@@ -66,6 +66,39 @@ describe('GioConfirmDialogComponent', () => {
     expect(getSectionName()).toEqual('Section 🔢');
   });
 
+  it('should order links by top', () => {
+    fixture.detectChanges();
+    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣', top: 10 }));
+    gioTableOfContentsService.addLink('', fakeLink({ name: '3️⃣', top: 30 }));
+    fixture.detectChanges();
+
+    expect(getLinksText()).toEqual(['1️⃣', '3️⃣']);
+
+    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣', top: 20 }));
+    fixture.detectChanges();
+
+    expect(getLinksText()).toEqual(['1️⃣', '2️⃣', '3️⃣']);
+    expect(getSectionName()).toEqual(undefined);
+  });
+
+  it('should keep order when top change', () => {
+    fixture.detectChanges();
+    const foxLink = fakeLink({ name: '🦊', top: 10 });
+    gioTableOfContentsService.addLink('', foxLink);
+    const dogLink = fakeLink({ name: '🐶', top: 20 });
+    gioTableOfContentsService.addLink('', dogLink);
+    fixture.detectChanges();
+
+    expect(getLinksText()).toEqual(['🦊', '🐶']);
+
+    // @ts-ignore - Change top of foxLink
+    foxLink.top = 30;
+    fixture.detectChanges();
+
+    expect(getLinksText()).toEqual(['🐶', '🦊']);
+    expect(getSectionName()).toEqual(undefined);
+  });
+
   it('should active link on scroll', async () => {
     component.scrollingContainer = document.body;
     fixture.detectChanges();
@@ -178,5 +211,5 @@ const fakeLink = (attr: Partial<TocSectionLink>): TocSectionLink => {
   const baseName = attr.name ?? 'Fake Link';
   const base = { active: false, id: camelCase(baseName), name: 'Fake Link', top: 10, type: 'h2' };
 
-  return { ...base, ...attr };
+  return { ...base, ...attr } as TocSectionLink;
 };

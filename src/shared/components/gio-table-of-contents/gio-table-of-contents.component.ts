@@ -15,7 +15,7 @@
  */
 import { DOCUMENT, Location } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, Inject, Input, OnDestroy, OnInit } from '@angular/core';
-import { flatten } from 'lodash';
+import { flatten, sortBy } from 'lodash';
 import { fromEvent, Observable, Subscription } from 'rxjs';
 import { debounceTime, map } from 'rxjs/operators';
 
@@ -96,7 +96,7 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
     // Get all links for the scroll activation mechanism
     this.subscriptions.add(
       this.sections$.subscribe((s) => {
-        this.allLinks = flatten(s.map((s) => s.links));
+        this.allLinks = this.sortByTopOffset(flatten(s.map((s) => s.links)));
       }),
     );
   }
@@ -118,6 +118,10 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
     // Use location go emit for location.subscribe to update scroll position
     event.stopPropagation();
     this.location.go(`${this.rootUrl}#${linkId}`);
+  }
+
+  sortByTopOffset(links: TocSectionLink[] = []) {
+    return sortBy(links, 'top');
   }
 
   private updateScrollPosition(): void {

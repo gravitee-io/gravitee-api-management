@@ -1,3 +1,5 @@
+import { kebabCase } from 'lodash';
+
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -18,29 +20,40 @@ export interface TocSection {
   links: TocSectionLink[];
 }
 
-export interface TocSectionLink {
+export class TocSectionLink {
   /**
    * Id of the section
    */
-  id: string;
+  public get id(): string {
+    const name = this.element.innerText?.trim();
+    return kebabCase(name);
+  }
 
   /**
    * Header type h3/h4
    */
-  type: string;
+  public get type(): string {
+    return String(this.element.tagName).toLowerCase();
+  }
 
   /**
    * If the anchor is in view of the page
    */
-  active: boolean;
+  active = false;
 
   /**
    * Name of the anchor
    */
-  name: string;
+  public get name(): string {
+    return this.element.innerText?.trim();
+  }
 
   /**
    * Top offset of the anchor in px
    */
-  top: number;
+  public get top(): number {
+    return this.element.getBoundingClientRect().top;
+  }
+
+  constructor(private element: HTMLElement) {}
 }

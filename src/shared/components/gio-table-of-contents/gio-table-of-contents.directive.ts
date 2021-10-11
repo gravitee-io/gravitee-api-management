@@ -18,6 +18,7 @@ import { Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { kebabCase } from 'lodash';
 
 import { GioTableOfContentsService } from './gio-table-of-contents.service';
+import { TocSectionLink } from './TocSection';
 
 @Directive({
   selector: 'h2[gioTableOfContents], h3[gioTableOfContents], h4[gioTableOfContents]',
@@ -27,19 +28,17 @@ export class GioTableOfContentsDirective implements OnInit, OnDestroy {
 
   @Input('gioTableOfContentsSectionId') sectionId = '';
 
+  private link: TocSectionLink;
+
   ngOnInit(): void {
-    const name = this.el.nativeElement.innerText?.trim();
-    const type = String(this.el.nativeElement.tagName).toLowerCase();
-    const id = kebabCase(name);
-    const { top } = this.el.nativeElement.getBoundingClientRect();
+    this.link = new TocSectionLink(this.el.nativeElement);
 
-    this.el.nativeElement.id = `toc-${id}`;
+    this.el.nativeElement.id = `toc-${this.link.id}`;
 
-    this.tableOfContentsService.addLink(this.sectionId, { active: false, id, name, top, type });
+    this.tableOfContentsService.addLink(this.sectionId, this.link);
   }
 
   ngOnDestroy(): void {
-    const name = this.el.nativeElement.innerText;
-    this.tableOfContentsService.removeLink(this.sectionId, kebabCase(name));
+    this.tableOfContentsService.removeLink(this.sectionId, kebabCase(this.link.id));
   }
 }

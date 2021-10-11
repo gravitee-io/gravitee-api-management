@@ -115,6 +115,11 @@ export const AddAndRemoveDynamically: Story = {
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
       <div style="width: 60%;">
+        <ng-container *ngIf="moreLinks">
+          <h2 gioTableOfContents>Link 1.0</h2>
+          <br *ngFor="let item of [].constructor(10)">
+        </ng-container>
+
         <h2 gioTableOfContents>Link 1.1</h2>
         <br *ngFor="let item of [].constructor(10)">
 
@@ -123,6 +128,11 @@ export const AddAndRemoveDynamically: Story = {
 
         <h3 gioTableOfContents>Link 1.1.2</h3>
         <br *ngFor="let item of [].constructor(10)">
+        
+        <ng-container *ngIf="moreLinks">
+          <h3 gioTableOfContents>Link 1.1.3</h3>
+          <br *ngFor="let item of [].constructor(10)">
+        </ng-container>
 
         <button *ngIf="!moreLinks" (click)="moreLinks = true">+ Add</button>
         <ng-container *ngIf="moreLinks">

@@ -19,7 +19,7 @@
   <div *ngIf="section?.name" class="toc__section-name">{{ section?.name }}</div>
   <nav [attr.aria-label]="section?.name + ' Table of Contents'">
     <a
-      *ngFor="let link of section?.links; let i = index"
+      *ngFor="let link of sortByTopOffset(section?.links); let i = index"
       [href]="rootUrl + '#' + link.id"
       [class.active]="link.active"
       (click)="onClick($event, link.id)"
