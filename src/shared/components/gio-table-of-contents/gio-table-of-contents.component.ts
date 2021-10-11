@@ -166,6 +166,6 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
 
 // Split url to remove last # followed by kebabCase string
 const splitUrlFragment = (url: string): { rootUrl: string; fragment?: string } => {
-  const [rootUrl, fragment] = url.split(/#([a-z0-9]*)(-[a-z0-9]+)*$/);
+  const [rootUrl, fragment] = url.split(/#(([a-z0-9]*)(-[a-z0-9]+)*)$/);
   return { rootUrl, fragment };
 };

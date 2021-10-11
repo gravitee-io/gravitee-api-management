@@ -142,11 +142,11 @@ describe('GioConfirmDialogComponent', () => {
     const element_1 = document.createElement('h2');
     element_1.id = 'toc-1';
     element_1.scrollIntoView = jest.fn();
-    const element_2 = document.createElement('h2');
-    element_2.id = 'toc-2';
-    element_2.scrollIntoView = jest.fn();
+    const element_1_2 = document.createElement('h2');
+    element_1_2.id = 'toc-1-2';
+    element_1_2.scrollIntoView = jest.fn();
     document.body.appendChild(element_1);
-    document.body.appendChild(element_2);
+    document.body.appendChild(element_1_2);
     fixture.detectChanges();
 
     // Init links
@@ -156,8 +156,8 @@ describe('GioConfirmDialogComponent', () => {
 
     // Simulate location change to link 2️⃣
     locationStrategy.simulatePopState('#2');
-    locationStrategy.simulatePopState('#2');
-    expect(element_2.scrollIntoView).toHaveBeenCalledTimes(1);
+    locationStrategy.simulatePopState('#1-2');
+    expect(element_1_2.scrollIntoView).toHaveBeenCalledTimes(1);
 
     locationStrategy.simulatePopState('#1');
 
