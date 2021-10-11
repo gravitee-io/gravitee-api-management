@@ -2,6 +2,8 @@
 
 @use './gio-palettes' as gio;
 
+@import './gio-badge';
+
 .gio-snack-bar-success {
   background-color: mat.get-color-from-palette(gio.$gio-success-palette, 'medium');
   // color: mat.get-color-from-palette($gio-success-palette, 'medium-contrast');
