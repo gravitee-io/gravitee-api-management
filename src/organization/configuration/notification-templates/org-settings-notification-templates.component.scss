@@ -1,0 +1,46 @@
+@use '../../../scss/gio-layout' as gio-layout;
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+@use '../../../scss/gio-material-theme' as gio;
+
+$typography: map.get(gio.$gio-theme, typography);
+$background: map.get(gio.$gio-theme, background);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+// FIXME: TO MUTUALIZE WITH OTHER BADGES
+.badge {
+  margin-left: 8px;
+  min-width: 10px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: #039be5;
+  border-radius: 10px;
+}
+
+.org-settings-notification-template {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  &__card {
+    margin-bottom: 32px;
+  }
+
+  &__list {
+    &__item {
+      cursor: pointer;
+      &:hover {
+        background-color: mat.get-color-from-palette($background, hover);
+      }
+    }
+  }
+}

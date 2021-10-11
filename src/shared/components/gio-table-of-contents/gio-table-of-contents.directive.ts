@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import { Directive, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, Input, OnDestroy } from '@angular/core';
 import { kebabCase } from 'lodash';
 
 import { GioTableOfContentsService } from './gio-table-of-contents.service';
 import { TocSectionLink } from './TocSection';
 
 @Directive({
-  selector: 'h2[gioTableOfContents], h3[gioTableOfContents], h4[gioTableOfContents]',
+  selector: 'h2[gioTableOfContents], h3[gioTableOfContents], h4[gioTableOfContents], [mat-subheader][gioTableOfContents]',
 })
-export class GioTableOfContentsDirective implements OnInit, OnDestroy {
+export class GioTableOfContentsDirective implements AfterViewInit, OnDestroy {
   constructor(private readonly el: ElementRef, private readonly tableOfContentsService: GioTableOfContentsService) {}
 
   @Input('gioTableOfContentsSectionId') sectionId = '';
 
   private link: TocSectionLink;
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.link = new TocSectionLink(this.el.nativeElement);
 
     this.el.nativeElement.id = `toc-${this.link.id}`;

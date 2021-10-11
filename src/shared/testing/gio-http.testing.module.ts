@@ -16,12 +16,20 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NgModule } from '@angular/core';
 
-export const CONSTANTS_TESTING = {
+import { Constants } from '../../entities/Constants';
+
+export const CONSTANTS_TESTING: Constants = {
   org: {
     baseURL: 'https://url.test:3000/management/organizations/DEFAULT',
     settings: {
-      reCaptcha: false,
+      reCaptcha: { enabled: false },
+      alert: {
+        enabled: false,
+      },
     },
+    // FIXME: Fill missing fields
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     currentEnv: { id: 'DEFAULT' },
   },
   env: {

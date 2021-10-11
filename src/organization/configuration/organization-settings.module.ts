@@ -36,6 +36,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatRippleModule } from '@angular/material/core';
+import { MatListModule } from '@angular/material/list';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -96,6 +97,7 @@ import { GioSaveBarModule } from '../../shared/components/gio-save-bar/gio-save-
     GioFormColorInputModule,
     GioGoBackButtonModule,
     GioSaveBarModule,
+    MatListModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,
