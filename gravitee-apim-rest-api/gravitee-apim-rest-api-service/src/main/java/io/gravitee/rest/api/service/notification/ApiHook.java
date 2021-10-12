@@ -20,9 +20,9 @@ package io.gravitee.rest.api.service.notification;
  * @author GraviteeSource Team
  */
 public enum ApiHook implements Hook {
-    APIKEY_EXPIRED("API key Expired", "Triggered when an API key is expired.", "API KEY"),
-    APIKEY_RENEWED("API key Renewed", "Triggered when an API key is renewed.", "API KEY"),
-    APIKEY_REVOKED("API key Revoked", "Triggered when an API key is revoked.", "API KEY"),
+    APIKEY_EXPIRED("API-Key Expired", "Triggered when an API key is expired.", "API KEY"),
+    APIKEY_RENEWED("API-Key Renewed", "Triggered when an API key is renewed.", "API KEY"),
+    APIKEY_REVOKED("API-Key Revoked", "Triggered when an API key is revoked.", "API KEY"),
     SUBSCRIPTION_NEW("New Subscription", "Triggered when a Subscription is created.", "SUBSCRIPTION"),
     SUBSCRIPTION_ACCEPTED("Subscription Accepted", "Triggered when a Subscription is accepted.", "SUBSCRIPTION"),
     SUBSCRIPTION_CLOSED("Subscription Closed", "Triggered when a Subscription is closed.", "SUBSCRIPTION"),
@@ -33,6 +33,8 @@ public enum ApiHook implements Hook {
     NEW_SUPPORT_TICKET("New Support Ticket", "Triggered when a new support ticket is created", "SUPPORT"),
     API_STARTED("API Started", "Triggered when an API is started", "LIFECYCLE"),
     API_STOPPED("API Stopped", "Triggered when an API is stopped", "LIFECYCLE"),
+    API_UPDATED("API Updated", "Triggered when an API is updated", "LIFECYCLE"),
+    API_DEPLOYED("API Deployed", "Triggered when an API is deployed", "LIFECYCLE"),
     NEW_RATING("New Rating", "Triggered when a new rating is submitted", "RATING"),
     NEW_RATING_ANSWER("New Rating Answer", "Triggered when a new answer is submitted", "RATING"),
     MESSAGE("Message", "Used when sending a custom message to an Application Role", null, true),

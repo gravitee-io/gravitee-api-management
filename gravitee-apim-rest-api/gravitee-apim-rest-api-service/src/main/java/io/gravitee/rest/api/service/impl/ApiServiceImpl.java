@@ -34,10 +34,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.util.DataEncryptor;
@@ -87,6 +85,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
@@ -255,6 +254,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private DataEncryptor dataEncryptor;
+
+    @Autowired
+    private ApiConverter apiConverter;
 
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
@@ -1526,6 +1528,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
                 ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
 
+                triggerUpdateNotification(apiId, apiEntity);
+
                 searchEngineService.index(apiWithMetadata, false);
 
                 return apiEntity;
@@ -1983,7 +1987,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // And create event
             eventService.create(eventType, objectMapper.writeValueAsString(apiValue), properties);
 
-            return convert(singletonList(apiValue)).iterator().next();
+            final ApiEntity deployed = convert(singletonList(apiValue)).iterator().next();
+
+            notifierService.trigger(
+                ApiHook.API_DEPLOYED,
+                apiId,
+                new NotificationParamsBuilder().api(deployed).user(userService.findById(userId)).build()
+            );
+
+            return deployed;
         } else {
             throw new ApiNotFoundException(apiId);
         }
@@ -2074,22 +2086,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return "";
     }
 
-    @Override
-    public ApiEntity createWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
-        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
-        try {
-            // Read the whole definition
-            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
-            UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode);
-            ApiEntity createdApiEntity = createWithApiDefinition(importedApi, userId, jsonNode);
-            createPageAndMedia(createdApiEntity, jsonNode);
-            updateApiReferences(createdApiEntity, jsonNode);
-            return createdApiEntity;
-        } catch (JsonProcessingException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
-        }
-    }
+    //    @Override
+    //    public ApiEntity createWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
+    //        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
+    //        try {
+    //            // Read the whole definition
+    //            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
+    //            UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode);
+    //            ApiEntity createdApiEntity = createWithApiDefinition(importedApi, userId, jsonNode);
+    //            createPageAndMedia(createdApiEntity, jsonNode);
+    //            updateApiReferences(createdApiEntity, jsonNode);
+    //            return createdApiEntity;
+    //        } catch (JsonProcessingException e) {
+    //            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
+    //            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
+    //        }
+    //    }
 
     private void createPageAndMedia(ApiEntity createdApiEntity, JsonNode jsonNode) {
         final JsonNode apiMedia = jsonNode.path("apiMedia");
@@ -2121,22 +2133,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         );
         if (search.isEmpty()) {
             createSystemFolder(createdApiEntity.getId());
-        }
-    }
-
-    @Override
-    public ApiEntity updateWithImportedDefinition(ApiEntity apiEntity, String apiDefinitionOrURL, String userId) {
-        String apiDefinition = fetchApiDefinitionContentFromURL(apiDefinitionOrURL);
-        try {
-            // Read the whole definition
-            final JsonNode jsonNode = objectMapper.readTree(apiDefinition);
-            UpdateApiEntity importedApi = this.convertToEntity(apiDefinition, jsonNode);
-            ApiEntity updatedApiEntity = update(apiEntity.getId(), importedApi);
-            updateApiReferences(updatedApiEntity, jsonNode);
-            return updatedApiEntity;
-        } catch (JsonProcessingException e) {
-            LOGGER.error("An error occurs while trying to JSON deserialize the API {}", apiDefinition, e);
-            throw new TechnicalManagementException("An error occurs while trying to JSON deserialize the API definition.");
         }
     }
 
@@ -2631,6 +2627,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.getCategories().remove(categoryId);
                 api.setUpdatedAt(new Date());
                 apiRepository.update(api);
+                //                triggerUpdateNotification(apiId, apiEntity);
                 // Audit
                 auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, api);
             } else {
@@ -2974,6 +2971,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             groups.add(group);
 
             apiRepository.update(api);
+            //            triggerUpdateNotification(apiId, apiEntity);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add group {} to API {}: {}", group, apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to add group " + group + " to API " + apiId, ex);
@@ -2994,6 +2992,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
             if (api.getGroups() != null && api.getGroups().remove(group)) {
                 apiRepository.update(api);
+                //                triggerUpdateNotification(apiId, apiEntity);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to remove group {} from API {}: {}", group, apiId, ex);
@@ -3151,7 +3150,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (apiDefinition.getTags().remove(tagId)) {
                 api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                 Api updated = apiRepository.update(api);
-
+                //                triggerUpdateNotification(apiId, apiEntity);
                 auditService.createApiAuditLog(api.getId(), Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, updated);
             }
         } catch (Exception ex) {
@@ -3327,65 +3326,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private ApiEntity convert(Api api, PrimaryOwnerEntity primaryOwner, List<CategoryEntity> categories) {
-        ApiEntity apiEntity = new ApiEntity();
+        ApiEntity apiEntity = apiConverter.toApiEntity(api, primaryOwner);
 
-        apiEntity.setId(api.getId());
-        apiEntity.setName(api.getName());
-        apiEntity.setDeployedAt(api.getDeployedAt());
-        apiEntity.setCreatedAt(api.getCreatedAt());
-        apiEntity.setGroups(api.getGroups());
-        apiEntity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
-        apiEntity.setReferenceType(GraviteeContext.ReferenceContextType.ENVIRONMENT.name());
-        apiEntity.setReferenceId(api.getEnvironmentId());
-
-        if (api.getDefinition() != null) {
-            try {
-                io.gravitee.definition.model.Api apiDefinition = objectMapper.readValue(
-                    api.getDefinition(),
-                    io.gravitee.definition.model.Api.class
-                );
-
-                apiEntity.setProxy(apiDefinition.getProxy());
-                apiEntity.setPaths(apiDefinition.getPaths());
-                apiEntity.setServices(apiDefinition.getServices());
-                apiEntity.setResources(apiDefinition.getResources());
-                apiEntity.setProperties(apiDefinition.getProperties());
-                apiEntity.setTags(apiDefinition.getTags());
-                if (apiDefinition.getDefinitionVersion() != null) {
-                    apiEntity.setGraviteeDefinitionVersion(apiDefinition.getDefinitionVersion().getLabel());
-                }
-                if (apiDefinition.getFlowMode() != null) {
-                    apiEntity.setFlowMode(apiDefinition.getFlowMode());
-                }
-                if (DefinitionVersion.V2.equals(apiDefinition.getDefinitionVersion())) {
-                    apiEntity.setFlows(apiDefinition.getFlows());
-                    apiEntity.setPlans(new ArrayList<>(apiDefinition.getPlans()));
-                } else {
-                    apiEntity.setFlows(null);
-                    apiEntity.setPlans(null);
-                }
-
-                // Issue https://github.com/gravitee-io/issues/issues/3356
-                if (apiDefinition.getProxy().getVirtualHosts() != null && !apiDefinition.getProxy().getVirtualHosts().isEmpty()) {
-                    apiEntity.setContextPath(apiDefinition.getProxy().getVirtualHosts().get(0).getPath());
-                }
-
-                if (apiDefinition.getPathMappings() != null) {
-                    apiEntity.setPathMappings(new HashSet<>(apiDefinition.getPathMappings().keySet()));
-                }
-                apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
-            } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while generating API definition", ioe);
-            }
-        }
-
-        apiEntity.setUpdatedAt(api.getUpdatedAt());
-        apiEntity.setVersion(api.getVersion());
-        apiEntity.setDescription(api.getDescription());
-        apiEntity.setPicture(api.getPicture());
-        apiEntity.setBackground(api.getBackground());
-        apiEntity.setLabels(api.getLabels());
-
+        // TODO: extract calls to external service from convert method
         final Set<String> apiCategories = api.getCategories();
         if (apiCategories != null) {
             if (categories == null) {
@@ -3397,21 +3340,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 optionalView.ifPresent(category -> newApiCategories.add(category.getKey()));
             }
             apiEntity.setCategories(newApiCategories);
-        }
-        final LifecycleState state = api.getLifecycleState();
-        if (state != null) {
-            apiEntity.setState(Lifecycle.State.valueOf(state.name()));
-        }
-        if (api.getVisibility() != null) {
-            apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
-        }
-
-        if (primaryOwner != null) {
-            apiEntity.setPrimaryOwner(primaryOwner);
-        }
-        final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
-        if (lifecycleState != null) {
-            apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
         if (parameterService.findAsBoolean(Key.API_REVIEW_ENABLED, api.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT)) {
@@ -3677,5 +3605,13 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             }
         }
+    }
+
+    private void triggerUpdateNotification(String apiId, ApiEntity apiEntity) {
+        notifierService.trigger(
+            ApiHook.API_UPDATED,
+            apiId,
+            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(getAuthenticatedUsername())).build()
+        );
     }
 }

@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import java.util.*;
@@ -94,6 +95,9 @@ public class ApiService_FindByUserTest {
 
     @Mock
     private CategoryService categoryService;
+
+    @Spy
+    private ApiConverter apiConverter;
 
     @Before
     public void setUp() {

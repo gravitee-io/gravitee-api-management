@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
@@ -81,6 +82,9 @@ public class ApiService_FindByIdTest {
 
     @Mock
     private CategoryService categoryService;
+
+    @Spy
+    private ApiConverter apiConverter;
 
     @Before
     public void setUp() {

@@ -33,6 +33,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.mixin.ApiMixin;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
@@ -90,6 +91,9 @@ public class ApiService_StartTest {
 
     @Mock
     private CategoryService categoryService;
+
+    @Spy
+    private ApiConverter apiConverter;
 
     @Before
     public void setUp() {

@@ -29,11 +29,7 @@ import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.TopApiService;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeletableException;
 import io.gravitee.rest.api.service.exceptions.ApiRunningStateException;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
@@ -121,6 +117,9 @@ public class ApiService_DeleteTest {
 
     @Mock
     private ApiMetadataService apiMetadataService;
+
+    @Spy
+    private ApiConverter apiConverter;
 
     @Before
     public void setUp() {

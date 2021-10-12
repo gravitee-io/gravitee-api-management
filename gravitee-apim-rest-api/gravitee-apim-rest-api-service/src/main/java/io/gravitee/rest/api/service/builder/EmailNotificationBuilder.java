@@ -110,6 +110,8 @@ public class EmailNotificationBuilder {
         API_NEW_SUPPORT_TICKET(ApiHook.NEW_SUPPORT_TICKET, "supportTicketNotification.html", "New Support Ticket"),
         API_API_STARTED(ApiHook.API_STARTED, "apiStarted.html", "API Started"),
         API_API_STOPPED(ApiHook.API_STOPPED, "apiStopped.html", "API Stopped"),
+        API_API_UPDATED(ApiHook.API_UPDATED, "apiUpdated.html", "API Updated"),
+        API_API_DEPLOYED(ApiHook.API_DEPLOYED, "apiDeployed.html", "API Deployed"),
         API_NEW_RATING(ApiHook.NEW_RATING, "newRating.html", "New Rating"),
         API_NEW_RATING_ANSWER(ApiHook.NEW_RATING_ANSWER, "newRatingAnswer.html", "New Rating Answer"),
         API_ASK_FOR_REVIEW(ApiHook.ASK_FOR_REVIEW, "askForReview.html", "Review asked"),

@@ -25,7 +25,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -39,6 +38,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.Workflow;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
@@ -50,9 +50,11 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.Reader;
@@ -64,6 +66,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.internal.util.collections.Sets;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -202,17 +205,25 @@ public class ApiService_UpdateTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @InjectMocks
+    private ApiConverter apiConverter;
+
     @Before
     public void setUp() {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
+        apiConverter = spy(new ApiConverter());
+        MockitoAnnotations.openMocks(this);
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
         GraviteeContext.setCurrentEnvironment("DEFAULT");
 
         final SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
+        final Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(new UserDetails("username", "", emptyList()));
         SecurityContextHolder.setContext(securityContext);
+        when(userService.findById(any())).thenReturn(new UserEntity());
 
         when(api.getId()).thenReturn(API_ID);
         when(api.getDefinition())
@@ -459,6 +470,7 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -485,6 +497,7 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -503,6 +516,7 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -515,6 +529,7 @@ public class ApiService_UpdateTest {
         when(api.getDefinition())
             .thenReturn("{\"id\": \"" + API_ID + "\",\"name\": \"" + API_NAME + "\",\"proxy\": {\"context_path\": \"/old\"}}");
         apiService.update(API_ID, existingApi, true);
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -534,6 +549,7 @@ public class ApiService_UpdateTest {
                 "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
             );
         apiService.update(API_ID, existingApi, true);
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -553,6 +569,7 @@ public class ApiService_UpdateTest {
                 "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"MALICIOUS\", \"status\":\"CLOSED\"}]}"
             );
         apiService.update(API_ID, existingApi, true);
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -572,6 +589,7 @@ public class ApiService_UpdateTest {
                 "\",\"proxy\": {\"context_path\": \"/old\"}, \"plans\": [{ \"id\": \"VALID\", \"status\":\"PUBLISHED\"}]}"
             );
         apiService.update(API_ID, existingApi, true);
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = TagNotAllowedException.class)
@@ -595,6 +613,7 @@ public class ApiService_UpdateTest {
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any(), any(), any())).thenReturn(emptySet());
         apiService.update(API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = TagNotAllowedException.class)
@@ -618,6 +637,7 @@ public class ApiService_UpdateTest {
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("public"));
         apiService.update(API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = TagNotAllowedException.class)
@@ -641,6 +661,7 @@ public class ApiService_UpdateTest {
         when(proxy.getVirtualHosts()).thenReturn(Collections.singletonList(new VirtualHost("/context")));
         when(tagService.findByUser(any(), any(), any())).thenReturn(singleton("private"));
         apiService.update(API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = InvalidDataException.class)
@@ -655,6 +676,7 @@ public class ApiService_UpdateTest {
 
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -670,6 +692,7 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -687,6 +710,7 @@ public class ApiService_UpdateTest {
         apiEntity = apiService.update(API_ID, existingApi);
         assertNotNull(apiEntity);
         assertEquals(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED, apiEntity.getLifecycleState());
+        verify(notifierService, times(2)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -698,6 +722,7 @@ public class ApiService_UpdateTest {
         assertNotNull(apiEntity);
         assertEquals(UNPUBLISHED, apiEntity.getLifecycleState());
         verify(searchEngineService, times(1)).index(any(), eq(false));
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -740,11 +765,12 @@ public class ApiService_UpdateTest {
             .createApiAuditLog(
                 argThat(apiId -> apiId.equals(API_ID)),
                 anyMap(),
-                argThat(evt -> Workflow.AuditEvent.API_REVIEW_REJECTED.equals(evt)),
+                argThat(Workflow.AuditEvent.API_REVIEW_REJECTED::equals),
                 any(),
                 any(),
                 any()
             );
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -790,6 +816,7 @@ public class ApiService_UpdateTest {
                 any()
             );
         verify(roleService).findByScope(RoleScope.API);
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -808,6 +835,7 @@ public class ApiService_UpdateTest {
                 any(),
                 any()
             );
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     private void prepareReviewAuditTest() throws TechnicalException {
@@ -837,6 +865,7 @@ public class ApiService_UpdateTest {
         assertUpdate(ApiLifecycleState.CREATED, PUBLISHED, true);
         assertUpdate(ApiLifecycleState.CREATED, UNPUBLISHED, true);
         assertUpdate(ApiLifecycleState.CREATED, DEPRECATED, true);
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test(expected = AllowOriginNotAllowedException.class)
@@ -857,6 +886,7 @@ public class ApiService_UpdateTest {
                 )
             );
         apiService.update(API_ID, existingApi);
+        verify(notifierService, times(0)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -865,6 +895,7 @@ public class ApiService_UpdateTest {
         existingApi.getProxy().getCors().setEnabled(true);
         existingApi.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("*"));
         apiService.update(API_ID, existingApi);
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -873,6 +904,7 @@ public class ApiService_UpdateTest {
         existingApi.getProxy().getCors().setEnabled(true);
         existingApi.getProxy().getCors().setAccessControlAllowOrigin(Collections.singleton("null"));
         apiService.update(API_ID, existingApi);
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     private void assertUpdate(

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,14 +33,17 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
+import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.io.IOException;
@@ -53,6 +57,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -120,6 +125,12 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+    @Mock
+    private NotifierService notifierService;
+
+    @InjectMocks
+    private ApiConverter apiConverter;
+
     @AfterClass
     public static void cleanSecurityContextHolder() {
         // reset authentication to avoid side effect during test executions.
@@ -139,6 +150,8 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
     @Before
     public void setUp() throws TechnicalException {
         PropertyFilter apiMembershipTypeFilter = new ApiPermissionFilter();
+        apiConverter = spy(new ApiConverter());
+        MockitoAnnotations.openMocks(this);
         objectMapper.setFilterProvider(
             new SimpleFilterProvider(Collections.singletonMap("apiMembershipTypeFilter", apiMembershipTypeFilter))
         );
@@ -177,8 +190,11 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
         when(System.currentTimeMillis()).thenReturn(0L);
 
         final SecurityContext securityContext = mock(SecurityContext.class);
-        when(securityContext.getAuthentication()).thenReturn(mock(Authentication.class));
+        final Authentication authentication = mock(Authentication.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(new UserDetails("username", "", emptyList()));
         SecurityContextHolder.setContext(securityContext);
+        when(userService.findById(any())).thenReturn(new UserEntity());
 
         when(notificationTemplateService.resolveInlineTemplateWithParam(anyString(), any(Reader.class), any()))
             .thenReturn("toDecode=decoded-value");
@@ -211,6 +227,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -244,6 +261,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -277,6 +295,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -310,6 +329,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -343,6 +363,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -376,6 +397,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -414,6 +436,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -452,6 +475,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -492,6 +516,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -532,6 +557,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -572,6 +598,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -612,6 +639,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -645,6 +673,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -681,6 +710,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -717,6 +747,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test
@@ -753,6 +784,7 @@ public class ApiService_Update_DefaultLoggingMaxDurationTest {
                     }
                 )
             );
+        verify(notifierService, times(1)).trigger(eq(ApiHook.API_UPDATED), any(), any());
     }
 
     @Test

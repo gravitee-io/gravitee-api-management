@@ -41,7 +41,10 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.notification.ApiHook;
+import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -97,6 +100,12 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
     @Autowired
     private EventManager eventManager;
+
+    @Autowired
+    private NotifierService notifierService;
+
+    @Autowired
+    private ApiConverter apiConverter;
 
     @Override
     public List<GroupEntity> findAll() {
@@ -377,6 +386,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                                     api.getGroups().add(groupId);
                                     try {
                                         apiRepository.update(api);
+                                        triggerUpdateNotification(api);
                                     } catch (TechnicalException e) {
                                         e.printStackTrace();
                                     }
@@ -505,6 +515,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         api.setUpdatedAt(updatedDate);
                         try {
                             apiRepository.update(api);
+                            triggerUpdateNotification(api);
                         } catch (TechnicalException ex) {
                             logger.error("An error occurs while trying to delete a group", ex);
                             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
@@ -912,5 +923,14 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             logger.error("An error occurs while trying to find or update a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find or update a group", ex);
         }
+    }
+
+    private void triggerUpdateNotification(Api api) {
+        ApiEntity apiEntity = apiConverter.toApiEntity(api);
+        notifierService.trigger(
+            ApiHook.API_UPDATED,
+            api.getId(),
+            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(getAuthenticatedUsername())).build()
+        );
     }
 }

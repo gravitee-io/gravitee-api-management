@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
@@ -46,7 +47,6 @@ import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 import java.util.Arrays;
@@ -134,6 +134,9 @@ public class ApiService_CreateTest {
 
     @Mock
     private NotificationTemplateService notificationTemplateService;
+
+    @Spy
+    private ApiConverter apiConverter;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
