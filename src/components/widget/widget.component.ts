@@ -54,7 +54,6 @@ const WidgetComponent: ng.IComponentOptions = {
 
     const unregisterFn = $scope.$on('onQueryFilterChange', (event, query) => {
       if (this.widget.chart && this.widget.chart.request) {
-        this.widget.chart.request.query = query.query;
         this.reload();
       }
     });
@@ -98,8 +97,14 @@ const WidgetComponent: ng.IComponentOptions = {
         } else {
           filters = Object.keys(queryFilters);
         }
-        chartRequest.query = filters
-          .map((f) => '(' + f + ':' + queryFilters[f].map((qp) => this.AnalyticsService.buildQueryParam(qp, f)).join(' OR ') + ')')
+
+        chartRequest.query = [
+          // Specific initial query or empty string
+          chartRequest.query,
+          filters.map((f) => `(${f}:${queryFilters[f].map((qp) => this.AnalyticsService.buildQueryParam(qp, f)).join(' OR ')})`),
+        ]
+          .reduce((acc, val) => acc.concat(val), [])
+          .filter((part) => part)
           .join(' AND ');
       }
 
