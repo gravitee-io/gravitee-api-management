@@ -91,7 +91,7 @@ describe('GioConfirmDialogComponent', () => {
 
     expect(getLinksText()).toEqual(['🦊', '🐶']);
 
-    // @ts-ignore - Change top of foxLink
+    // @ts-expect-error - Change top of foxLink, TS is throwing as it's a readonly property
     foxLink.top = 30;
     fixture.detectChanges();
 
