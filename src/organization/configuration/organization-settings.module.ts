@@ -48,6 +48,7 @@ import { OrgSettingsIdentityProviderGoogleComponent } from './identity-provider/
 import { OrgSettingsIdentityProviderGraviteeioAmComponent } from './identity-provider/org-settings-identity-provider-graviteeio-am/org-settings-identity-provider-graviteeio-am.component';
 import { OrgSettingsIdentityProviderOidcComponent } from './identity-provider/org-settings-identity-provider-oidc/org-settings-identity-provider-oidc.component';
 import { OrgSettingsNotificationTemplatesComponent } from './notification-templates/org-settings-notification-templates.component';
+import { OrgSettingsCockpitComponent } from './cockpit/org-settings-cockpit.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -112,6 +113,7 @@ import { GioFormFocusInvalidModule } from '../../shared/components/form-focus-fi
     OrgSettingsIdentityProviderGraviteeioAmComponent,
     OrgSettingsIdentityProviderGithubComponent,
     OrgSettingsNotificationTemplatesComponent,
+    OrgSettingsCockpitComponent,
   ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
   entryComponents: [
@@ -121,6 +123,7 @@ import { GioFormFocusInvalidModule } from '../../shared/components/form-focus-fi
     OrgSettingsIdentityProvidersComponent,
     OrgSettingsIdentityProviderComponent,
     OrgSettingsNotificationTemplatesComponent,
+    OrgSettingsCockpitComponent,
   ],
 })
 export class OrganizationSettingsModule {}

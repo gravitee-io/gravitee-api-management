@@ -568,6 +568,7 @@ import { OrgSettingsNewUserComponent } from '../organization/configuration/user/
 import { OrgSettingsIdentityProvidersComponent } from '../organization/configuration/identity-providers/org-settings-identity-providers.component';
 import { OrgSettingsIdentityProviderComponent } from '../organization/configuration/identity-provider/org-settings-identity-provider.component';
 import { OrgSettingsNotificationTemplatesComponent } from '../organization/configuration/notification-templates/org-settings-notification-templates.component';
+import { OrgSettingsCockpitComponent } from '../organization/configuration/cockpit/org-settings-cockpit.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -869,6 +870,7 @@ graviteeManagementModule.component('roleMembers', RoleMembersComponent);
 graviteeManagementModule.component('theme', ThemeComponent);
 graviteeManagementModule.component('topApis', TopApisComponent);
 graviteeManagementModule.component('cockpit', CockpitComponent);
+graviteeManagementModule.directive('ngCockpit', downgradeComponent({ component: OrgSettingsCockpitComponent }));
 graviteeManagementModule.component('consoleSettings', ConsoleSettingsComponentAjs);
 graviteeManagementModule.directive('ngConsoleSettings', downgradeComponent({ component: OrgSettingsGeneralComponent }));
 graviteeManagementModule.component('portalSettings', PortalSettingsComponent);

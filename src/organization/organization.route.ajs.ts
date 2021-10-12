@@ -72,6 +72,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-cockpit', {
+      url: '/ng-cockpit',
+      component: 'ngCockpit',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-cockpit',
+        },
+        perms: {
+          only: ['organization-installation-r'],
+        },
+      },
+    })
     .state('organization.settings.console', {
       url: '/console',
       component: 'consoleSettings',
