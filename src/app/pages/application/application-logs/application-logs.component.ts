@@ -112,7 +112,12 @@ export class ApplicationLogsComponent implements OnInit, OnDestroy {
             format: (item) => item.toUpperCase(),
             style: ({ method }) => 'color:' + this.getMethodColor(method),
           },
-          { field: 'path', label: i18n('application.logs.path'), width: '350px' },
+          {
+            field: 'path',
+            label: i18n('application.logs.path'),
+            width: '350px',
+            style: () => '--gv-table-cell--d: block; height: auto; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;',
+          },
           {
             field: 'responseTime',
             label: i18n('application.logs.responseTime'),
