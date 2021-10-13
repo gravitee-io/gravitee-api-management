@@ -32,7 +32,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -45,11 +44,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class ProxyEndpointResolverTest {
 
-    @InjectMocks
     private ProxyEndpointResolver resolver;
 
     @Spy
-    private ReferenceRegister referenceRegister = new DefaultReferenceRegister();
+    private final ReferenceRegister referenceRegister = new DefaultReferenceRegister();
 
     @Mock
     private GroupManager groupManager;
@@ -60,6 +58,8 @@ public class ProxyEndpointResolverTest {
     @Before
     public void setUp() {
         initMocks(this);
+
+        resolver = new ProxyEndpointResolver(referenceRegister, groupManager);
 
         LoadBalancedEndpointGroup group = mock(LoadBalancedEndpointGroup.class);
         when(group.getName()).thenReturn("default-group");

@@ -30,25 +30,26 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DummyReactorHandler extends AbstractReactorHandler {
+public class DummyReactorHandler extends AbstractReactorHandler<Reactable> {
 
-    @Override
-    public Reactable reactable() {
-        return new Reactable() {
-            @Override
-            public boolean enabled() {
-                return true;
-            }
+    public DummyReactorHandler() {
+        super(
+            new Reactable() {
+                @Override
+                public boolean enabled() {
+                    return true;
+                }
 
-            @Override
-            public Set dependencies(Class type) {
-                return null;
-            }
+                @Override
+                public Set dependencies(Class type) {
+                    return null;
+                }
 
-            public List<Entrypoint> entrypoints() {
-                return null;
+                public List<Entrypoint> entrypoints() {
+                    return null;
+                }
             }
-        };
+        );
     }
 
     @Override

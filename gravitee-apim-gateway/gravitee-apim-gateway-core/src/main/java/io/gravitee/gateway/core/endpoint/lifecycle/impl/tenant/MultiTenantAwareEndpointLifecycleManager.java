@@ -15,11 +15,16 @@
  */
 package io.gravitee.gateway.core.endpoint.lifecycle.impl.tenant;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.gateway.connector.ConnectorRegistry;
+import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
+import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
+import io.gravitee.node.api.configuration.Configuration;
 import java.util.function.Predicate;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +38,17 @@ public class MultiTenantAwareEndpointLifecycleManager extends EndpointGroupLifec
 
     private final String tenant;
 
-    @Inject
-    public MultiTenantAwareEndpointLifecycleManager(EndpointGroup group, String tenant) {
-        super(group);
+    public MultiTenantAwareEndpointLifecycleManager(
+        Api api,
+        EndpointGroup group,
+        EndpointFactory endpointFactory,
+        ReferenceRegister referenceRegister,
+        ConnectorRegistry connectorRegistry,
+        Configuration configuration,
+        ObjectMapper mapper,
+        String tenant
+    ) {
+        super(api, group, endpointFactory, referenceRegister, connectorRegistry, configuration, mapper);
         this.tenant = tenant;
     }
 

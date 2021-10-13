@@ -15,13 +15,13 @@
  */
 package io.gravitee.gateway.security.core;
 
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.component.ComponentResolver;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * This class is used to load multiple implementations of {@link AuthenticationHandler}.
@@ -31,15 +31,20 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AuthenticationHandlerManager implements InitializingBean {
+public class AuthenticationHandlerManager {
 
     private final Logger logger = LoggerFactory.getLogger(AuthenticationHandlerManager.class);
 
-    @Autowired
-    private SecurityProviderLoader securityProviderLoader;
+    private final SecurityProviderLoader securityProviderLoader;
 
-    @Autowired(required = false)
+    private final ComponentProvider componentProvider;
+
     private AuthenticationHandlerEnhancer authenticationHandlerEnhancer;
+
+    public AuthenticationHandlerManager(SecurityProviderLoader securityProviderLoader, ComponentProvider componentProvider) {
+        this.securityProviderLoader = securityProviderLoader;
+        this.componentProvider = componentProvider;
+    }
 
     private List<AuthenticationHandler> authenticationHandlers;
 
@@ -49,9 +54,9 @@ public class AuthenticationHandlerManager implements InitializingBean {
 
         availableSecurityProviders.forEach(
             authenticationHandler -> {
-                if (authenticationHandler instanceof InitializingBean) {
+                if (authenticationHandler instanceof ComponentResolver) {
                     try {
-                        ((InitializingBean) authenticationHandler).afterPropertiesSet();
+                        ((ComponentResolver) authenticationHandler).resolve(componentProvider);
                     } catch (Exception e) {
                         logger.debug(
                             "An error occurs while loading security provider [{}]: {}",
@@ -76,10 +81,6 @@ public class AuthenticationHandlerManager implements InitializingBean {
 
     public List<AuthenticationHandler> getAuthenticationHandlers() {
         return authenticationHandlers;
-    }
-
-    public void setSecurityProviderLoader(SecurityProviderLoader securityProviderLoader) {
-        this.securityProviderLoader = securityProviderLoader;
     }
 
     public void setAuthenticationHandlerEnhancer(AuthenticationHandlerEnhancer authenticationHandlerEnhancer) {

@@ -24,7 +24,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,14 +33,16 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultReactorHandlerRegistry.class);
 
-    @Autowired
-    private ReactorHandlerFactoryManager handlerFactoryManager;
+    private final ReactorHandlerFactoryManager handlerFactoryManager;
 
-    private final Map<Reactable, ReactorHandler> handlers = new ConcurrentHashMap<>();
-    private final Map<Reactable, List<HandlerEntrypoint>> entrypointByReactable = new ConcurrentHashMap<>();
+    private final Map<Reactable, ReactableEntrypoints> handlers = new ConcurrentHashMap<>();
 
     private List<HandlerEntrypoint> registeredEntrypoints = new ArrayList<>();
     private final HandlerEntryPointComparator entryPointComparator = new HandlerEntryPointComparator();
+
+    public DefaultReactorHandlerRegistry(ReactorHandlerFactoryManager handlerFactoryManager) {
+        this.handlerFactoryManager = handlerFactoryManager;
+    }
 
     @Override
     public void create(Reactable reactable) {
@@ -55,49 +56,16 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     private void register(ReactorHandler handler) {
         logger.debug("Registering a new handler: {}", handler);
-        handlers.put(handler.reactable(), handler);
 
         // Associate the handler to the entrypoints
         List<HandlerEntrypoint> reactableEntrypoints = handler
             .reactable()
             .entrypoints()
             .stream()
-            .map(
-                new Function<Entrypoint, HandlerEntrypoint>() {
-                    @Override
-                    public HandlerEntrypoint apply(Entrypoint entrypoint) {
-                        return new HandlerEntrypoint() {
-                            @Override
-                            public ReactorHandler target() {
-                                return handler;
-                            }
-
-                            @Override
-                            public String path() {
-                                return entrypoint.path();
-                            }
-
-                            @Override
-                            public String host() {
-                                return entrypoint.host();
-                            }
-
-                            @Override
-                            public int priority() {
-                                return entrypoint.priority();
-                            }
-
-                            @Override
-                            public boolean accept(Request request) {
-                                return entrypoint.accept(request);
-                            }
-                        };
-                    }
-                }
-            )
+            .map((Function<Entrypoint, HandlerEntrypoint>) entrypoint -> new DefaultHandlerEntrypoint(handler, entrypoint))
             .collect(Collectors.toList());
 
-        entrypointByReactable.put(handler.reactable(), reactableEntrypoints);
+        handlers.put(handler.reactable(), new ReactableEntrypoints(handler, reactableEntrypoints));
         addEntrypoints(reactableEntrypoints);
     }
 
@@ -120,25 +88,25 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     public void update(Reactable reactable) {
         logger.debug("Updating handler for: {}", reactable);
 
-        ReactorHandler currentHandler = handlers.get(reactable);
+        ReactableEntrypoints reactableEntrypoints = handlers.get(reactable);
 
-        if (currentHandler != null) {
+        if (reactableEntrypoints != null) {
+            ReactorHandler currentHandler = reactableEntrypoints.handler;
             logger.debug("Handler is already deployed: {}", currentHandler);
 
             ReactorHandler newHandler = prepare(reactable);
 
             // Do not update handler if the new is not correctly initialized
             if (newHandler != null) {
-                ReactorHandler previousHandler = handlers.remove(reactable);
-                List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(previousHandler.reactable());
+                ReactableEntrypoints previousHandler = handlers.remove(reactable);
 
                 // Register the new handler before removing the previous entrypoints to avoid 404, especially on high throughput.
                 register(newHandler);
-                removeEntrypoints(previousEntrypoints);
+                removeEntrypoints(previousHandler.entrypoints);
 
                 try {
                     logger.debug("Stopping previous handler for: {}", reactable);
-                    previousHandler.stop();
+                    previousHandler.handler.stop();
                 } catch (Exception ex) {
                     logger.error("Unable to stop handler", ex);
                 }
@@ -150,16 +118,15 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     @Override
     public void remove(Reactable reactable) {
-        ReactorHandler handler = handlers.get(reactable);
-
-        remove(reactable, handler, true);
+        final ReactableEntrypoints reactableEntrypoints = handlers.get(reactable);
+        remove(reactable, reactableEntrypoints, true);
     }
 
     @Override
     public void clear() {
-        Iterator<Map.Entry<Reactable, ReactorHandler>> reactableIte = handlers.entrySet().iterator();
+        Iterator<Map.Entry<Reactable, ReactableEntrypoints>> reactableIte = handlers.entrySet().iterator();
         while (reactableIte.hasNext()) {
-            final Map.Entry<Reactable, ReactorHandler> next = reactableIte.next();
+            final Map.Entry<Reactable, ReactableEntrypoints> next = reactableIte.next();
             remove(next.getKey(), next.getValue(), false);
             reactableIte.remove();
         }
@@ -170,14 +137,12 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         return handlers.containsKey(reactable);
     }
 
-    private void remove(Reactable reactable, ReactorHandler handler, boolean remove) {
-        if (handler != null) {
+    private void remove(Reactable reactable, ReactableEntrypoints reactableEntrypoints, boolean remove) {
+        if (reactableEntrypoints != null) {
             try {
-                List<HandlerEntrypoint> previousEntrypoints = entrypointByReactable.remove(handler.reactable());
-
                 // Remove the entrypoints before stopping the handler to avoid 500 errors.
-                removeEntrypoints(previousEntrypoints);
-                handler.stop();
+                removeEntrypoints(reactableEntrypoints.entrypoints);
+                reactableEntrypoints.handler.stop();
 
                 if (remove) {
                     handlers.remove(reactable);
@@ -192,6 +157,59 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
     @Override
     public Collection<HandlerEntrypoint> getEntrypoints() {
         return registeredEntrypoints;
+    }
+
+    private static class ReactableEntrypoints {
+
+        private final ReactorHandler handler;
+
+        private final List<HandlerEntrypoint> entrypoints;
+
+        public ReactableEntrypoints(ReactorHandler handler, List<HandlerEntrypoint> entrypoints) {
+            this.handler = handler;
+            this.entrypoints = entrypoints;
+        }
+    }
+
+    private static class DefaultHandlerEntrypoint implements HandlerEntrypoint {
+
+        private final ReactorHandler handler;
+        private final Entrypoint entrypoint;
+
+        public DefaultHandlerEntrypoint(ReactorHandler handler, Entrypoint entrypoint) {
+            this.handler = handler;
+            this.entrypoint = entrypoint;
+        }
+
+        @Override
+        public ReactorHandler target() {
+            return handler;
+        }
+
+        @Override
+        public String path() {
+            return entrypoint.path();
+        }
+
+        @Override
+        public String host() {
+            return entrypoint.host();
+        }
+
+        @Override
+        public int priority() {
+            return entrypoint.priority();
+        }
+
+        @Override
+        public boolean accept(Request request) {
+            return entrypoint.accept(request);
+        }
+
+        @Override
+        public String toString() {
+            return entrypoint.toString();
+        }
     }
 
     private void addEntrypoints(List<HandlerEntrypoint> reactableEntrypoints) {

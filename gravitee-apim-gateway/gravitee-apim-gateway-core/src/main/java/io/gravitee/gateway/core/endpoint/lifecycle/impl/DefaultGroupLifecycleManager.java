@@ -15,52 +15,68 @@
  */
 package io.gravitee.gateway.core.endpoint.lifecycle.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.gateway.connector.ConnectorRegistry;
+import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.lifecycle.GroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.tenant.MultiTenantAwareEndpointLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.GroupReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
-import io.gravitee.gateway.env.GatewayConfiguration;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import io.gravitee.node.api.configuration.Configuration;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultGroupLifecycleManager
-    extends AbstractLifecycleComponent<GroupLifecycleManager>
-    implements GroupLifecycleManager, ApplicationContextAware {
+public class DefaultGroupLifecycleManager extends AbstractLifecycleComponent<GroupLifecycleManager> implements GroupLifecycleManager {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultGroupLifecycleManager.class);
 
-    @Autowired
-    private Api api;
+    private final Api api;
 
-    @Autowired
-    private ReferenceRegister referenceRegister;
+    private final ReferenceRegister referenceRegister;
 
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
-
-    private ApplicationContext applicationContext;
+    private final EndpointFactory endpointFactory;
 
     private final Map<String, EndpointGroupLifecycleManager> groups = new HashMap<>();
+
+    private final ConnectorRegistry connectorRegistry;
+
+    private final Configuration configuration;
+
+    private final ObjectMapper mapper;
+
+    private final Optional<String> tenant;
+
     private EndpointGroupLifecycleManager defaultGroup;
+
+    public DefaultGroupLifecycleManager(
+        final Api api,
+        final ReferenceRegister referenceRegister,
+        final EndpointFactory endpointFactory,
+        final ConnectorRegistry connectorRegistry,
+        final Configuration configuration,
+        final ObjectMapper mapper,
+        final Optional<String> tenant
+    ) {
+        this.api = api;
+        this.referenceRegister = referenceRegister;
+        this.endpointFactory = endpointFactory;
+        this.connectorRegistry = connectorRegistry;
+        this.configuration = configuration;
+        this.mapper = mapper;
+        this.tenant = tenant;
+    }
 
     @Override
     public LoadBalancedEndpointGroup get(String groupName) {
@@ -92,14 +108,30 @@ public class DefaultGroupLifecycleManager
                         public EndpointGroupLifecycleManager apply(EndpointGroup group) {
                             EndpointGroupLifecycleManager groupLifecycleManager;
 
-                            if (gatewayConfiguration.tenant().isPresent()) {
+                            if (tenant.isPresent()) {
                                 groupLifecycleManager =
-                                    new MultiTenantAwareEndpointLifecycleManager(group, gatewayConfiguration.tenant().get());
+                                    new MultiTenantAwareEndpointLifecycleManager(
+                                        api,
+                                        group,
+                                        endpointFactory,
+                                        referenceRegister,
+                                        connectorRegistry,
+                                        configuration,
+                                        mapper,
+                                        tenant.get()
+                                    );
                             } else {
-                                groupLifecycleManager = new EndpointGroupLifecycleManager(group);
+                                groupLifecycleManager =
+                                    new EndpointGroupLifecycleManager(
+                                        api,
+                                        group,
+                                        endpointFactory,
+                                        referenceRegister,
+                                        connectorRegistry,
+                                        configuration,
+                                        mapper
+                                    );
                             }
-
-                            applicationContext.getAutowireCapableBeanFactory().autowireBean(groupLifecycleManager);
 
                             groups.put(group.getName(), groupLifecycleManager);
 
@@ -146,10 +178,5 @@ public class DefaultGroupLifecycleManager
 
         groups.clear();
         defaultGroup = null;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }

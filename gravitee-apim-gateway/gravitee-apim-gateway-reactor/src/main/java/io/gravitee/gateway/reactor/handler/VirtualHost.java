@@ -90,4 +90,9 @@ public class VirtualHost implements Entrypoint {
             ? this.host.equalsIgnoreCase(host) && (request.path().startsWith(this.path) || request.path().equals(pathWithoutTrailingSlash))
             : (request.path().startsWith(this.path) || request.path().equals(pathWithoutTrailingSlash));
     }
+
+    @Override
+    public String toString() {
+        return "host[" + this.host + "] - path[" + this.path + "/*]";
+    }
 }

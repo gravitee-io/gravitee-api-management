@@ -18,21 +18,29 @@ package io.gravitee.gateway.security.core;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.policy.AbstractPolicyResolver;
 import io.gravitee.gateway.policy.Policy;
+import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class SecurityPolicyResolver extends AbstractPolicyResolver {
 
-    @Autowired
-    private AuthenticationHandlerSelector handlerSelector;
+    private final AuthenticationHandlerSelector authenticationHandlerSelector;
+
+    public SecurityPolicyResolver(final PolicyManager policyManager, final AuthenticationHandlerSelector authenticationHandlerSelector) {
+        super(policyManager);
+        this.authenticationHandlerSelector = authenticationHandlerSelector;
+    }
 
     @Override
     public List<Policy> resolve(StreamType streamType, ExecutionContext context) {
-        final AuthenticationHandler authenticationHandler = handlerSelector.select(context.request());
+        final AuthenticationHandler authenticationHandler = authenticationHandlerSelector.select(context.request());
 
         if (authenticationHandler == null) {
             // No authentication method selected, must send a 401
@@ -82,9 +90,5 @@ public class SecurityPolicyResolver extends AbstractPolicyResolver {
             )
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
-    }
-
-    public void setAuthenticationHandlerSelector(AuthenticationHandlerSelector handlerSelector) {
-        this.handlerSelector = handlerSelector;
     }
 }

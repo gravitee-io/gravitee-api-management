@@ -81,8 +81,8 @@ public class StreamFailGatewayTest extends AbstractWiremockGatewayTest {
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin streamFailPolicy = PolicyBuilder.build("stream-fail", StreamFailerPolicy.class);
         policyPluginManager.register(streamFailPolicy);

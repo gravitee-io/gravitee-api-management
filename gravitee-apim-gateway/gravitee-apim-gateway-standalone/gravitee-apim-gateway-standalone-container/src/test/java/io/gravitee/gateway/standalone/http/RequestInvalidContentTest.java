@@ -53,8 +53,8 @@ public class RequestInvalidContentTest extends AbstractWiremockGatewayTest {
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin errorRequestStreamPolicy = PolicyBuilder.build("content-response-error", ValidateRequestPolicy.class);
         policyPluginManager.register(errorRequestStreamPolicy);

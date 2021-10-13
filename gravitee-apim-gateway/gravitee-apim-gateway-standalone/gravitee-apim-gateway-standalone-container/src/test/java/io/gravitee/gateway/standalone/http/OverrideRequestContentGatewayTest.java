@@ -59,8 +59,8 @@ public class OverrideRequestContentGatewayTest extends AbstractWiremockGatewayTe
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin rewriteRequestStreamPolicy = PolicyBuilder.build("override-request-content", OverrideRequestContentPolicy.class);
         policyPluginManager.register(rewriteRequestStreamPolicy);

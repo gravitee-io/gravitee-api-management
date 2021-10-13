@@ -24,7 +24,7 @@ import io.gravitee.el.TemplateVariableScope;
 public class ApiTemplateVariableProviderFactory extends TemplateVariableProviderFactory {
 
     @Override
-    public TemplateVariableScope getTemplateVariableScope() {
+    protected TemplateVariableScope getTemplateVariableScope() {
         return TemplateVariableScope.API;
     }
 }
