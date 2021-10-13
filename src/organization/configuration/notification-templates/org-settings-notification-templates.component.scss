@@ -10,7 +10,7 @@ $background: map.get(gio.$gio-theme, background);
   @include gio-layout.gio-responsive-margin-container;
 }
 
-.org-settings-notification-template {
+.org-settings-notification-templates {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
