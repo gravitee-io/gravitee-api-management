@@ -23,6 +23,7 @@ import _ = require('lodash');
 const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   bindings: {
     clientRegistrationProviders: '<',
+    settings: '<',
   },
   template: require('./client-registration-providers.html'),
   controller: function (
@@ -35,7 +36,6 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
   ) {
     'ngInject';
 
-    this.settings = _.cloneDeep(Constants.env.settings);
     this.providedConfigurationMessage = 'Configuration provided by the system';
 
     this.select = (provider: ClientRegistrationProvider) => {
@@ -70,13 +70,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
     };
 
     this.saveClientRegistration = () => {
-      PortalSettingsService.save({
-        application: {
-          registration: {
-            enabled: this.settings.application.registration.enabled,
-          },
-        },
-      }).then((response) => {
+      PortalSettingsService.save(this.settings).then((response) => {
         NotificationService.show(
           'Client registration is now ' + (this.settings.application.registration.enabled ? 'mandatory' : 'optional'),
         );
@@ -99,7 +93,7 @@ const ClientRegistrationProvidersComponent: ng.IComponentOptions = {
         enabled: this.settings.application.types[type].enabled,
       };
 
-      PortalSettingsService.save(appType).then((response) => {
+      PortalSettingsService.save(this.settings).then((response) => {
         NotificationService.show(
           "Application type '" + type + "' is now " + (this.settings.application.types[type].enabled ? 'allowed' : 'disallowed'),
         );

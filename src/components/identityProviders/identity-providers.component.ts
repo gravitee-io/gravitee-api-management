@@ -106,39 +106,24 @@ const IdentityProvidersComponent: ng.IComponentOptions = {
     };
 
     this.saveForceLogin = () => {
-      PortalSettingsService.save({
-        authentication: {
-          forceLogin: {
-            enabled: this.settings.authentication.forceLogin.enabled,
-          },
-        },
-      }).then(() => {
+      PortalSettingsService.save(this.settings).then((response) => {
         NotificationService.show('Authentication is now ' + (this.settings.authentication.forceLogin.enabled ? 'mandatory' : 'optional'));
+        this.settings = response.data;
         $state.reload();
       });
     };
 
     this.saveShowLoginForm = () => {
       if (this.target === 'ENVIRONMENT') {
-        PortalSettingsService.save({
-          authentication: {
-            localLogin: {
-              enabled: this.settings.authentication.localLogin.enabled,
-            },
-          },
-        }).then(() => {
+        PortalSettingsService.save(this.settings).then((response) => {
           NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
+          this.settings = response.data;
           $state.reload();
         });
       } else {
-        ConsoleSettingsService.save({
-          authentication: {
-            localLogin: {
-              enabled: this.settings.authentication.localLogin.enabled,
-            },
-          },
-        }).then(() => {
+        ConsoleSettingsService.save(this.settings).then((response) => {
           NotificationService.show('Login form is now ' + (this.settings.authentication.localLogin.enabled ? 'enabled' : 'disabled'));
+          this.consoleSettings = response.data;
           $state.reload();
         });
       }
