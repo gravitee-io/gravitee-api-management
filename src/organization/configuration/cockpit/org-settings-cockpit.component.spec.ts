@@ -15,41 +15,116 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { InteractivityChecker } from '@angular/cdk/a11y';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { HarnessLoader } from '@angular/cdk/testing';
 
 import { OrgSettingsCockpitComponent } from './org-settings-cockpit.component';
 
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { fakeInstallation } from '../../../entities/installation/installation.fixture';
 
 describe('OrgSettingsCockpitComponent', () => {
   let fixture: ComponentFixture<OrgSettingsCockpitComponent>;
-  let loader: HarnessLoader;
+  let component: OrgSettingsCockpitComponent;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-      providers: [{ provide: UIRouterState, useValue: { go: jest.fn() } }],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
-        },
-      })
-      .compileComponents();
+    });
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(OrgSettingsCockpitComponent);
-    loader = TestbedHarnessEnvironment.loader(fixture);
+    component = fixture.componentInstance;
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+  });
+
+  describe('setup properties', () => {
+    it('when installation has no Cockpit status', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
+        fakeInstallation({
+          cockpitURL: 'https://cockpit.gravitee.io',
+          additionalInformation: {},
+        }),
+      );
+
+      expect(component.icon).toEqual('explore');
+      expect(component.title).toEqual('Meet Cockpit...');
+      expect(component.message).toEqual(
+        'Create an account on <a href="https://cockpit.gravitee.io" target="_blank">Cockpit</a>, register your current installation and start creating new organizations and environments!',
+      );
+    });
+
+    it('when installation has PENDING Cockpit status', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
+        fakeInstallation({
+          cockpitURL: 'https://cockpit.gravitee.io',
+          additionalInformation: {
+            COCKPIT_INSTALLATION_STATUS: 'PENDING',
+          },
+        }),
+      );
+
+      expect(component.icon).toEqual('schedule');
+      expect(component.title).toEqual('Almost there!');
+      expect(component.message).toEqual(
+        'Your installation is connected but it still has to be accepted on <a href="https://cockpit.gravitee.io" target="_blank">Cockpit</a>!',
+      );
+    });
+
+    it('when installation has ACCEPTED Cockpit status', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
+        fakeInstallation({
+          cockpitURL: 'https://cockpit.gravitee.io',
+          additionalInformation: {
+            COCKPIT_INSTALLATION_STATUS: 'ACCEPTED',
+          },
+        }),
+      );
+
+      expect(component.icon).toEqual('check_circle');
+      expect(component.title).toEqual('Congratulation!');
+      expect(component.message).toEqual(
+        'Your installation is now connected to <a href="https://cockpit.gravitee.io" target="_blank">Cockpit</a>, you can now explore all the possibilities offered by Cockpit!',
+      );
+    });
+
+    it('when installation has REJECTED Cockpit status', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
+        fakeInstallation({
+          cockpitURL: 'https://cockpit.gravitee.io',
+          additionalInformation: {
+            COCKPIT_INSTALLATION_STATUS: 'REJECTED',
+          },
+        }),
+      );
+
+      expect(component.icon).toEqual('warning');
+      expect(component.title).toEqual('No luck!');
+      expect(component.message).toEqual(
+        'Seems that your installation is connected to <a href="https://cockpit.gravitee.io" target="_blank">Cockpit</a>, but has been rejected...',
+      );
+    });
+
+    it('when installation has DELETED Cockpit status', async () => {
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/installation`).flush(
+        fakeInstallation({
+          cockpitURL: 'https://cockpit.gravitee.io',
+          additionalInformation: {
+            COCKPIT_INSTALLATION_STATUS: 'DELETED',
+          },
+        }),
+      );
+
+      expect(component.icon).toEqual('gps_off');
+      expect(component.title).toEqual('Installation unlinked!');
+      expect(component.message).toEqual(
+        'Seems that your installation is connected to <a href="https://cockpit.gravitee.io" target="_blank">Cockpit</a>, but is not linked anymore...',
+      );
+    });
   });
 
   afterEach(() => {

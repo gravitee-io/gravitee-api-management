@@ -15,4 +15,10 @@
     limitations under the License.
 
 -->
-<div class="org-settings-cockpit">It works!</div>
+<div class="org-settings-cockpit">
+  <mat-card *ngIf="!isLoading" class="org-settings-cockpit__card">
+    <mat-icon class="org-settings-cockpit__card__icon">{{ icon }}</mat-icon>
+    <h2 class="org-settings-cockpit__card__title">{{ title }}</h2>
+    <div class="org-settings-cockpit__card__message" [innerHTML]="message"></div>
+  </mat-card>
+</div>

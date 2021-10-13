@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+import { InstallationService } from '../../../services-ngx/installation.service';
+import { Installation } from '../../../entities/installation/installation';
 
 @Component({
   selector: 'org-settings-cockpit',
@@ -21,9 +26,67 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
   styles: [require('./org-settings-cockpit.component.scss')],
 })
 export class OrgSettingsCockpitComponent implements OnInit, OnDestroy {
-  constructor() {}
+  isLoading = true;
 
-  ngOnInit(): void {}
+  icon = '';
+  title = '';
+  message = '';
 
-  ngOnDestroy(): void {}
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  constructor(private readonly installationService: InstallationService) {}
+
+  ngOnInit(): void {
+    this.installationService
+      .get()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((installation) => {
+          this.setupVM(installation);
+          this.isLoading = false;
+        }),
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  private setupVM(installation: Installation): void {
+    const cockpitLink = `<a href="${installation.cockpitURL}" target="_blank">Cockpit</a>`;
+
+    switch (installation.additionalInformation.COCKPIT_INSTALLATION_STATUS) {
+      case 'PENDING':
+        this.icon = 'schedule';
+        this.title = 'Almost there!';
+        this.message = `Your installation is connected but it still has to be accepted on ${cockpitLink}!`;
+        return;
+
+      case 'ACCEPTED':
+        this.icon = 'check_circle';
+        this.title = 'Congratulation!';
+        this.message = `Your installation is now connected to ${cockpitLink}, you can now explore all the possibilities offered by Cockpit!`;
+        return;
+
+      case 'REJECTED':
+        this.icon = 'warning';
+        this.title = 'No luck!';
+        this.message = `Seems that your installation is connected to ${cockpitLink}, but has been rejected...`;
+        return;
+
+      case 'DELETED':
+        this.icon = 'gps_off';
+        this.title = 'Installation unlinked!';
+        this.message = `Seems that your installation is connected to ${cockpitLink}, but is not linked anymore...`;
+        return;
+
+      default:
+        this.icon = 'explore';
+        this.title = 'Meet Cockpit...';
+        this.message = `Create an account on ${cockpitLink}, register your current installation and start creating new organizations and environments!`;
+        return;
+    }
+  }
 }
