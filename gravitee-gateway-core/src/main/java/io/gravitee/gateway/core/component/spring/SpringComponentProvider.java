@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy.impl;
+package io.gravitee.gateway.core.component.spring;
 
-import io.gravitee.policy.api.*;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import org.springframework.context.ApplicationContext;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
- * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * A {@link ComponentProvider} based on Spring which allows to gain access to all the beans managed by the Spring
+ * {@link ApplicationContext}.
+ *
+ * TODO: How we could we limit the scope of components that could be retrieved by calling the <code>getComponent</code>
+ * method.
+ *
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SpringPolicyContextProvider implements PolicyContextProvider {
+public class SpringComponentProvider implements ComponentProvider {
 
     private final ApplicationContext applicationContext;
 
-    public SpringPolicyContextProvider(ApplicationContext applicationContext) {
+    public SpringComponentProvider(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     @Override
-    public <T> T getNativeProvider() {
-        return (T) applicationContext;
-    }
-
-    @Override
-    public <T> T getComponent(Class<T> componentClass) {
-        return applicationContext.getBean(componentClass);
+    public <T> T getComponent(Class<T> clazz) {
+        return applicationContext.getBean(clazz);
     }
 }

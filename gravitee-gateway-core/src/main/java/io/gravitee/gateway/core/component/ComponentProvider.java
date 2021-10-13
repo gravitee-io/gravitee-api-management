@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api;
-
-import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.policy.security.FreePlanAuthenticationHandlerEnhancer;
-import io.gravitee.gateway.security.core.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+package io.gravitee.gateway.core.component;
 
 /**
+ * A {@link ComponentProvider} is a class which enabled to look for existing component by calling
+ * {@link io.gravitee.gateway.api.ExecutionContext} <code>getComponent</code> method.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class FreePlanApiHandlerConfiguration extends ApiHandlerConfiguration {
-
-    @Bean
-    public AuthenticationHandlerEnhancer authenticationHandlerEnhancer(Api api) {
-        return new FreePlanAuthenticationHandlerEnhancer(api);
-    }
+public interface ComponentProvider {
+    <T> T getComponent(Class<T> clazz);
 }

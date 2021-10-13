@@ -15,37 +15,42 @@
  */
 package io.gravitee.gateway.core.invoker;
 
-import io.gravitee.common.spring.factory.AbstractAutowiringFactoryBean;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.Invoker;
+import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.core.failover.FailoverInvoker;
 import io.gravitee.gateway.core.failover.FailoverOptions;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.vertx.core.Vertx;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InvokerFactory extends AbstractAutowiringFactoryBean<Invoker> {
+public class InvokerFactory {
 
-    @Autowired
-    private Api api;
+    private final Api api;
 
-    @Override
-    public Class<?> getObjectType() {
-        return Invoker.class;
+    private final Vertx vertx;
+
+    private final EndpointResolver endpointResolver;
+
+    public InvokerFactory(final Api api, final Vertx vertx, final EndpointResolver endpointResolver) {
+        this.api = api;
+        this.vertx = vertx;
+        this.endpointResolver = endpointResolver;
     }
 
-    @Override
-    protected Invoker doCreateInstance() {
+    public Invoker create() {
         if (api.getProxy().failoverEnabled()) {
             return new FailoverInvoker(
+                vertx,
+                endpointResolver,
                 new FailoverOptions()
                     .setMaxAttempts(api.getProxy().getFailover().getMaxAttempts())
                     .setRetryTimeout(api.getProxy().getFailover().getRetryTimeout())
             );
         }
 
-        return new EndpointInvoker();
+        return new EndpointInvoker(endpointResolver);
     }
 }

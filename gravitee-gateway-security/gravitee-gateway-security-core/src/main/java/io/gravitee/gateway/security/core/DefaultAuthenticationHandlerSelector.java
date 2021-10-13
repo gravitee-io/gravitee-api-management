@@ -16,7 +16,6 @@
 package io.gravitee.gateway.security.core;
 
 import io.gravitee.gateway.api.Request;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -24,24 +23,23 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class DefaultAuthenticationHandlerSelector implements AuthenticationHandlerSelector {
 
-    @Autowired
-    private AuthenticationHandlerManager providerManager;
+    private final AuthenticationHandlerManager authenticationHandlerManager;
+
+    public DefaultAuthenticationHandlerSelector(AuthenticationHandlerManager authenticationHandlerManager) {
+        this.authenticationHandlerManager = authenticationHandlerManager;
+    }
 
     @Override
     public AuthenticationHandler select(Request request) {
         // Prepare the authentication context
         final SimpleAuthenticationContext context = new SimpleAuthenticationContext(request);
 
-        for (AuthenticationHandler securityProvider : providerManager.getAuthenticationHandlers()) {
+        for (AuthenticationHandler securityProvider : authenticationHandlerManager.getAuthenticationHandlers()) {
             if (securityProvider.canHandle(context)) {
                 return securityProvider;
             }
         }
 
         return null;
-    }
-
-    public void setProviderManager(AuthenticationHandlerManager providerManager) {
-        this.providerManager = providerManager;
     }
 }

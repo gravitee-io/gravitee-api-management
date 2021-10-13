@@ -1,2 +1,0 @@
-io.gravitee.gateway.security.core.AuthenticationHandler=\
-  io.gravitee.gateway.security.apikey.ApiKeyAuthenticationHandler

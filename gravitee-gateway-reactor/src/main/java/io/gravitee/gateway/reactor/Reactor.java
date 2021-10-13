@@ -25,6 +25,6 @@ import io.gravitee.gateway.api.handler.Handler;
  * @author David BRASSELY (david at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface Reactor extends Service {
+public interface Reactor extends Service<Reactor> {
     void route(Request request, Response response, Handler<ExecutionContext> handler);
 }

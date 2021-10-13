@@ -18,7 +18,6 @@ package io.gravitee.gateway.resource.internal;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.gateway.reactor.Reactable;
-import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -31,10 +30,8 @@ import java.io.IOException;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -45,11 +42,28 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
 
     private final Logger logger = LoggerFactory.getLogger(ResourceManagerImpl.class);
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
     private final Map<String, io.gravitee.resource.api.Resource> resources = new HashMap<>();
     private final Map<String, PluginClassLoader> classloaders = new HashMap<>();
+
+    private final Reactable reactable;
+    private final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager;
+    private final ResourceClassLoaderFactory resourceClassLoaderFactory;
+    private final ResourceConfigurationFactory resourceConfigurationFactory;
+    private final ApplicationContext applicationContext;
+
+    public ResourceManagerImpl(
+        final Reactable reactable,
+        final ConfigurablePluginManager<ResourcePlugin<?>> resourcePluginManager,
+        final ResourceClassLoaderFactory resourceClassLoaderFactory,
+        final ResourceConfigurationFactory resourceConfigurationFactory,
+        final ApplicationContext applicationContext
+    ) {
+        this.reactable = reactable;
+        this.resourcePluginManager = resourcePluginManager;
+        this.resourceClassLoaderFactory = resourceClassLoaderFactory;
+        this.resourceConfigurationFactory = resourceConfigurationFactory;
+        this.applicationContext = applicationContext;
+    }
 
     @Override
     protected void doStart() throws Exception {
@@ -109,31 +123,12 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
         resources.clear();
     }
 
-    public ApplicationContext getRootContext() {
-        ApplicationContext rootContext = applicationContext;
-        while (rootContext.getParent() != null) {
-            rootContext = rootContext.getParent();
-        }
-        return rootContext;
-    }
-
     private void initialize() {
-        String[] beanNamesForType = getRootContext()
-            .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
-
-        ConfigurablePluginManager<ResourcePlugin> rpm = (ConfigurablePluginManager<ResourcePlugin>) getRootContext()
-            .getBean(beanNamesForType[0]);
-
-        ResourceClassLoaderFactory rclf = applicationContext.getBean(ResourceClassLoaderFactory.class);
-        ResourceConfigurationFactory rcf = applicationContext.getBean(ResourceConfigurationFactory.class);
-        ReactorHandler rh = applicationContext.getBean(ReactorHandler.class);
-        Reactable reactable = applicationContext.getBean(Reactable.class);
-
         Set<Resource> resourceDeps = reactable.dependencies(Resource.class);
 
         resourceDeps.forEach(
             resource -> {
-                final ResourcePlugin resourcePlugin = rpm.get(resource.getType());
+                final ResourcePlugin resourcePlugin = resourcePluginManager.get(resource.getType());
                 if (resourcePlugin == null) {
                     logger.error("Resource [{}] can not be found in plugin registry", resource.getType());
                     throw new IllegalStateException("Resource [" + resource.getType() + "] can not be found in plugin registry");
@@ -141,10 +136,10 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
 
                 PluginClassLoader resourceClassLoader = classloaders.computeIfAbsent(
                     resourcePlugin.id(),
-                    s -> rclf.getOrCreateClassLoader(resourcePlugin, rh.getClass().getClassLoader())
+                    s -> resourceClassLoaderFactory.getOrCreateClassLoader(resourcePlugin, reactable.getClass().getClassLoader())
                 );
 
-                logger.debug("Loading resource {} for {}", resource.getName(), rh);
+                logger.debug("Loading resource {} for {}", resource.getName(), reactable);
 
                 try {
                     Class<? extends io.gravitee.resource.api.Resource> resourceClass = (Class<? extends io.gravitee.resource.api.Resource>) ClassUtils.forName(
@@ -158,7 +153,10 @@ public class ResourceManagerImpl extends AbstractLifecycleComponent<ResourceMana
                             resourcePlugin.configuration().getName(),
                             resourceClassLoader
                         );
-                        injectables.put(resourceConfigurationClass, rcf.create(resourceConfigurationClass, resource.getConfiguration()));
+                        injectables.put(
+                            resourceConfigurationClass,
+                            resourceConfigurationFactory.create(resourceConfigurationClass, resource.getConfiguration())
+                        );
                     }
 
                     io.gravitee.resource.api.Resource resourceInstance = new ResourceFactory().create(resourceClass, injectables);

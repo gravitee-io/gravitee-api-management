@@ -25,7 +25,6 @@ import io.gravitee.gateway.core.endpoint.ref.Reference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import java.util.Collection;
 import java.util.regex.Pattern;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 /**
@@ -41,11 +40,14 @@ public class ProxyEndpointResolver implements EndpointResolver {
 
     private static final Pattern URI_SCHEME_PATTERN = Pattern.compile("^(https?|wss?|grpcs?)://.*$");
 
-    @Autowired
-    private ReferenceRegister referenceRegister;
+    private final ReferenceRegister referenceRegister;
 
-    @Autowired
-    private GroupManager groupManager;
+    private final GroupManager groupManager;
+
+    public ProxyEndpointResolver(ReferenceRegister referenceRegister, GroupManager groupManager) {
+        this.referenceRegister = referenceRegister;
+        this.groupManager = groupManager;
+    }
 
     @Override
     public ProxyEndpoint resolve(String reference) {
