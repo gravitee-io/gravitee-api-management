@@ -52,6 +52,26 @@
   transition: all 250ms ease-in-out;
 }
 
+.layout__api {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.layout__api__search {
+  margin-right: 25px;
+}
+
+.layout__api__search,
+.layout__api__actions {
+  flex: 1;
+}
+
+.layout__api__actions {
+  border-left: 1px solid lightgrey;
+  padding-left: 20px;
+}
+
 .layout__header__homepage__background {
   display: none;
 }

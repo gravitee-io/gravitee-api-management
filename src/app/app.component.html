@@ -22,10 +22,15 @@
   <div #homepageBackground class="layout__header__homepage__background">
     <div *ngIf="isHomepage" class="layout__header__homepage__title">
       <h1>{{ this.homepageTitle }}</h1>
-      <gv-button (:gv-button:click)="goTo('/catalog')" outlined>{{ 'homepage.explore' | translate }}</gv-button>
-      <gv-button (:gv-button:click)="goTo('/user/registration')" *ngIf="displaySignUp()" outlined>{{
-        'homepage.signup' | translate
-      }}</gv-button>
+      <div class="layout__api">
+        <app-gv-search-api class="layout__api__search"></app-gv-search-api>
+        <div class="layout__api__actions">
+          <gv-button (:gv-button:click)="goTo('/catalog')" outlined>{{ 'homepage.explore' | translate }}</gv-button>
+          <gv-button (:gv-button:click)="goTo('/user/registration')" *ngIf="displaySignUp()" outlined>{{
+            'homepage.signup' | translate
+          }}</gv-button>
+        </div>
+      </div>
     </div>
     <div class="layer"></div>
   </div>
