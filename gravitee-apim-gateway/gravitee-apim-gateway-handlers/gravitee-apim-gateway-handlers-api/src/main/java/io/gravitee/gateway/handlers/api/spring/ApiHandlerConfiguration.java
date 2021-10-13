@@ -16,6 +16,8 @@
 package io.gravitee.gateway.handlers.api.spring;
 
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.component.spring.SpringComponentProvider;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
@@ -24,10 +26,11 @@ import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.policy.PolicyPluginFactory;
 import io.gravitee.gateway.policy.impl.PolicyFactoryCreator;
 import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
+import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 /**
@@ -39,6 +42,9 @@ public class ApiHandlerConfiguration {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @Bean
     public ApiManager apiManager() {
@@ -71,7 +77,17 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
+    public ComponentProvider componentProvider() {
+        return new SpringComponentProvider(applicationContext);
+    }
+
+    @Bean
     public DataEncryptor apiPropertiesEncryptor() {
         return new DataEncryptor(environment, "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
+    }
+
+    @Bean
+    public ApiTemplateVariableProviderFactory apiTemplateVariableProviderFactory() {
+        return new ApiTemplateVariableProviderFactory();
     }
 }

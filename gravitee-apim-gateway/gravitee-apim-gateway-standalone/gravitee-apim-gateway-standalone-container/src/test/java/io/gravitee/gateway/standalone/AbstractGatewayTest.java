@@ -15,13 +15,15 @@
  */
 package io.gravitee.gateway.standalone;
 
+import io.gravitee.connector.http.HttpConnectorFactory;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
-import io.gravitee.gateway.standalone.connector.ConnectorRegister;
+import io.gravitee.gateway.standalone.connector.ConnectorBuilder;
+import io.gravitee.gateway.standalone.plugin.PluginRegister;
 import io.gravitee.gateway.standalone.policy.ApiKeyPolicy;
 import io.gravitee.gateway.standalone.policy.KeylessPolicy;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
-import io.gravitee.gateway.standalone.policy.PolicyRegister;
+import io.gravitee.plugin.connector.ConnectorPlugin;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import io.netty.util.internal.logging.InternalLoggerFactory;
@@ -33,7 +35,7 @@ import org.junit.BeforeClass;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractGatewayTest implements PolicyRegister, ConnectorRegister, ApiLoaderInterceptor {
+public abstract class AbstractGatewayTest implements PluginRegister, ApiLoaderInterceptor {
 
     protected Api api;
 
@@ -43,7 +45,7 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ConnectorRe
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
         PolicyPlugin apiKey = PolicyBuilder.build("api-key", ApiKeyPolicy.class);
         policyPluginManager.register(apiKey);
 
@@ -55,6 +57,12 @@ public abstract class AbstractGatewayTest implements PolicyRegister, ConnectorRe
 
         PolicyPlugin jwtPolicy = PolicyBuilder.build("jwt", KeylessPolicy.class);
         policyPluginManager.register(jwtPolicy);
+    }
+
+    @Override
+    public void registerConnector(ConfigurablePluginManager<ConnectorPlugin> connectorPluginManager) {
+        ConnectorPlugin connectorHttp = ConnectorBuilder.build("connector-http", HttpConnectorFactory.class);
+        connectorPluginManager.register(connectorHttp);
     }
 
     @Override

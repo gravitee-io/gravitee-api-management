@@ -49,8 +49,8 @@ public class OverrideMethodGatewayTest extends AbstractWiremockGatewayTest {
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin dynamicRoutingPolicy = PolicyBuilder.build("override-method", OverrideMethodPolicy.class);
         policyPluginManager.register(dynamicRoutingPolicy);

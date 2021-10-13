@@ -15,22 +15,17 @@
  */
 package io.gravitee.gateway.security.core;
 
-import io.gravitee.common.spring.factory.SpringFactoriesLoader;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ServiceLoader;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SecurityProviderLoader extends SpringFactoriesLoader<AuthenticationHandler> {
-
-    @Override
-    protected Class<AuthenticationHandler> getObjectType() {
-        return AuthenticationHandler.class;
-    }
+public class SecurityProviderLoader {
 
     List<AuthenticationHandler> getSecurityProviders() {
-        return new ArrayList<>(getFactoriesInstances());
+        return ServiceLoader.load(AuthenticationHandler.class).stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
     }
 }

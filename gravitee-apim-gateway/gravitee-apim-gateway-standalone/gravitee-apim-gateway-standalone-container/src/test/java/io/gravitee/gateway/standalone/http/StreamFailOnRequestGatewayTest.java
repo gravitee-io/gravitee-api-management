@@ -22,7 +22,6 @@ import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.gateway.standalone.policy.TransformRequestStreamFailPolicy;
-import io.gravitee.gateway.standalone.policy.TransformResponseStreamFailPolicy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
@@ -53,8 +52,8 @@ public class StreamFailOnRequestGatewayTest extends AbstractWiremockGatewayTest 
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build(
             "transform-request-content-fail",

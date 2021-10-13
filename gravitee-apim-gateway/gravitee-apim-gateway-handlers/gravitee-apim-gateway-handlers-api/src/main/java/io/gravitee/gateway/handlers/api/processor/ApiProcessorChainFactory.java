@@ -26,39 +26,28 @@ import io.gravitee.gateway.core.processor.provider.StreamableProcessorProviderCh
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.handlers.api.definition.Api;
+import io.gravitee.gateway.policy.PolicyManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
-import javax.inject.Inject;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 public abstract class ApiProcessorChainFactory
-    implements
-        ProcessorChainFactory<StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>>>,
-        ApplicationContextAware,
-        InitializingBean {
+    implements ProcessorChainFactory<StreamableProcessorChain<ExecutionContext, Buffer, StreamableProcessor<ExecutionContext, Buffer>>> {
 
-    @Autowired
-    protected Api api;
+    protected final Api api;
 
-    @Inject
-    protected PolicyChainFactory chainFactory;
+    protected final PolicyChainFactory policyChainFactory;
 
     private final List<ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>>> providers = new ArrayList<>();
 
-    ApplicationContext applicationContext;
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    protected ApiProcessorChainFactory(final Api api, final PolicyChainFactory policyChainFactory) {
+        this.api = api;
+        this.policyChainFactory = policyChainFactory;
     }
 
     protected void add(ProcessorProvider<ExecutionContext, StreamableProcessor<ExecutionContext, Buffer>> provider) {

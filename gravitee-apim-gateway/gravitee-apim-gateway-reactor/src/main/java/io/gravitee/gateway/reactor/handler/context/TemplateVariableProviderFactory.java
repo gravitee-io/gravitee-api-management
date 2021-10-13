@@ -42,39 +42,49 @@ public abstract class TemplateVariableProviderFactory {
     @Autowired
     private ApplicationContext applicationContext;
 
+    private List<TemplateVariableProvider> providers;
+
     public List<TemplateVariableProvider> getTemplateVariableProviders() {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        return loadFactories(classLoader)
-            .stream()
-            .map(
-                name -> {
-                    try {
-                        Class<TemplateVariableProvider> instance = (Class<TemplateVariableProvider>) ClassUtils.forName(name, classLoader);
-                        return applicationContext.getBean(instance);
-                    } catch (ClassNotFoundException e) {
-                        logger.warn("TemplateVariableProvider class not found : {}", e.getMessage());
-                        return null;
-                    } catch (NoSuchBeanDefinitionException e) {
-                        logger.debug("No TemplateVariableProvider of type {} is defined", name);
-                        return null;
-                    }
-                }
-            )
-            .filter(
-                provider -> {
-                    if (provider != null) {
-                        TemplateVariable annotation = provider.getClass().getAnnotation(TemplateVariable.class);
-                        return annotation != null && Arrays.asList(annotation.scopes()).contains(getTemplateVariableScope());
-                    }
-                    return false;
-                }
-            )
-            .collect(Collectors.toList());
+        if (providers == null) {
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            providers =
+                loadFactories(classLoader)
+                    .stream()
+                    .map(
+                        name -> {
+                            try {
+                                Class<TemplateVariableProvider> instance = (Class<TemplateVariableProvider>) ClassUtils.forName(
+                                    name,
+                                    classLoader
+                                );
+                                return applicationContext.getBean(instance);
+                            } catch (ClassNotFoundException e) {
+                                logger.warn("TemplateVariableProvider class not found : {}", e.getMessage());
+                                return null;
+                            } catch (NoSuchBeanDefinitionException e) {
+                                logger.debug("No TemplateVariableProvider of type {} is defined", name);
+                                return null;
+                            }
+                        }
+                    )
+                    .filter(
+                        provider -> {
+                            if (provider != null) {
+                                TemplateVariable annotation = provider.getClass().getAnnotation(TemplateVariable.class);
+                                return annotation != null && Arrays.asList(annotation.scopes()).contains(getTemplateVariableScope());
+                            }
+                            return false;
+                        }
+                    )
+                    .collect(Collectors.toList());
+        }
+
+        return providers;
     }
 
     public Set<String> loadFactories(ClassLoader classLoader) {
         return new LinkedHashSet<>(SpringFactoriesLoader.loadFactoryNames(TemplateVariableProvider.class, classLoader));
     }
 
-    public abstract TemplateVariableScope getTemplateVariableScope();
+    protected abstract TemplateVariableScope getTemplateVariableScope();
 }
