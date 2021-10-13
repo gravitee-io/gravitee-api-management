@@ -21,8 +21,13 @@
 
 $accent: map.get(gio.$gio-theme, accent);
 
+:host {
+  display: flex;
+}
+
 .card {
   @include mat.elevation(1);
+  flex: 1 1 auto;
   margin: 6px;
   cursor: pointer;
   min-height: 40px;
