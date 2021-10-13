@@ -34,6 +34,23 @@ $gio-accent-palette: mat.define-palette(
   dark
 );
 
+// Info color
+$gio-info-palette: mat.define-palette(
+  (
+    dark: #1045a1,
+    default: #2196f3,
+    light: #bbdefb,
+    contrast: (
+      dark: #262626,
+      medium: #262626,
+      light: #262626,
+    ),
+  ),
+  medium,
+  light,
+  dark
+);
+
 // Success color
 $gio-success-palette: mat.define-palette(
   (
