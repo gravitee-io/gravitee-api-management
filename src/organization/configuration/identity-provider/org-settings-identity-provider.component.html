@@ -16,7 +16,7 @@
 
 -->
 <div class="identity-provider">
-  <form *ngIf="!isLoading" [formGroup]="identityProviderFormGroup" (ngSubmit)="onSubmit()">
+  <form *ngIf="!isLoading" [formGroup]="identityProviderFormGroup" (ngSubmit)="onSubmit()" autocomplete="off" gioFormFocusInvalid>
     <h1>
       <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-identityproviders' }"></gio-go-back-button>
       <ng-container *ngIf="mode === 'new'">Create a new identity provider</ng-container>

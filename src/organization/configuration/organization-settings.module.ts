@@ -59,6 +59,7 @@ import { GioFormTagsInputModule } from '../../shared/components/form-tags-input/
 import { GioFormColorInputModule } from '../../shared/components/form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/go-back-button/gio-go-back-button.module';
 import { GioSaveBarModule } from '../../shared/components/gio-save-bar/gio-save-bar.module';
+import { GioFormFocusInvalidModule } from '../../shared/components/form-focus-first-invalid/gio-form-focus-first-invalid.module';
 
 @NgModule({
   imports: [
@@ -86,6 +87,7 @@ import { GioSaveBarModule } from '../../shared/components/gio-save-bar/gio-save-
     MatDividerModule,
     MatRadioModule,
     MatRippleModule,
+    MatListModule,
 
     GioPermissionModule,
     GioConfirmDialogModule,
@@ -97,7 +99,7 @@ import { GioSaveBarModule } from '../../shared/components/gio-save-bar/gio-save-
     GioFormColorInputModule,
     GioGoBackButtonModule,
     GioSaveBarModule,
-    MatListModule,
+    GioFormFocusInvalidModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,

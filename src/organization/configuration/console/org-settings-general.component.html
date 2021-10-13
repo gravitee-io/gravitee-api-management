@@ -16,7 +16,14 @@
 
 -->
 <div class="settings-general" #container>
-  <form *ngIf="!isLoading" class="settings-general__form" [formGroup]="formSettings" (ngSubmit)="onSubmit()" autocomplete="off">
+  <form
+    *ngIf="!isLoading"
+    class="settings-general__form"
+    [formGroup]="formSettings"
+    (ngSubmit)="onSubmit()"
+    autocomplete="off"
+    gioFormFocusInvalid
+  >
     <h1>Settings</h1>
     <h4>
       Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
