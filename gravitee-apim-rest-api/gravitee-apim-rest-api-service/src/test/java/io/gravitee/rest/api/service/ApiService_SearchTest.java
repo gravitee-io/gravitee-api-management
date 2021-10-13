@@ -28,6 +28,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -125,14 +126,20 @@ public class ApiService_SearchTest {
         membership1.setRoleId("API_USER");
 
         MembershipEntity membership2 = new MembershipEntity();
-        membership2.setId(api2.getId());
+        membership2.setId("id2");
         membership2.setMemberId(USER_NAME);
         membership2.setMemberType(MembershipMemberType.USER);
         membership2.setReferenceId("api2");
         membership2.setReferenceType(MembershipReferenceType.API);
         membership2.setRoleId("API_USER");
 
-        when(apiRepository.search(new ApiCriteria.Builder().environmentId("DEFAULT").build())).thenReturn(Arrays.asList(api1, api2));
+        when(
+            apiRepository.search(
+                new ApiCriteria.Builder().environmentId("DEFAULT").build(),
+                new ApiFieldExclusionFilter.Builder().excludePicture().build()
+            )
+        )
+            .thenReturn(Arrays.asList(api1, api2));
 
         RoleEntity poRole = new RoleEntity();
         poRole.setId("API_PRIMARY_OWNER");

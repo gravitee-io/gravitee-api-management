@@ -908,17 +908,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         try {
             logger.debug("Search subscriptions {}", query);
 
-            SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
-
-            if (query.getStatuses() != null) {
-                builder.statuses(
-                    query
-                        .getStatuses()
-                        .stream()
-                        .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
-                        .collect(Collectors.toSet())
-                );
-            }
+            final SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
 
             Stream<SubscriptionEntity> subscriptionsStream = subscriptionRepository.search(builder.build()).stream().map(this::convert);
             if (query.getApiKey() != null && !query.getApiKey().isEmpty()) {
@@ -966,17 +956,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
                     return new Page<>(emptyList(), 1, 0, 0);
                 }
             } else {
-                SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
-
-                if (query.getStatuses() != null) {
-                    builder.statuses(
-                        query
-                            .getStatuses()
-                            .stream()
-                            .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
-                            .collect(Collectors.toSet())
-                    );
-                }
+                final SubscriptionCriteria.Builder builder = toSubscriptionCriteriaBuilder(query);
 
                 Page<Subscription> pageSubscription = subscriptionRepository.search(
                     builder.build(),
@@ -1002,7 +982,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
     }
 
     private SubscriptionCriteria.Builder toSubscriptionCriteriaBuilder(SubscriptionQuery query) {
-        return new SubscriptionCriteria.Builder()
+        SubscriptionCriteria.Builder builder = new SubscriptionCriteria.Builder()
             .apis(query.getApis())
             .applications(query.getApplications())
             .plans(query.getPlans())
@@ -1010,6 +990,18 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
             .to(query.getTo())
             .endingAtAfter(query.getEndingAtAfter())
             .endingAtBefore(query.getEndingAtBefore());
+
+        if (query.getStatuses() != null) {
+            builder.statuses(
+                query
+                    .getStatuses()
+                    .stream()
+                    .map(subscriptionStatus -> Subscription.Status.valueOf(subscriptionStatus.name()))
+                    .collect(Collectors.toSet())
+            );
+        }
+
+        return builder;
     }
 
     @Override

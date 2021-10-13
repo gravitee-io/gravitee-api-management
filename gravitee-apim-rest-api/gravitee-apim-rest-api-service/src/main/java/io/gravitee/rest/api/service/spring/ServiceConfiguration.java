@@ -49,10 +49,12 @@ import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
 import io.gravitee.rest.api.service.validator.jsonschema.JavaRegexFormatAttribute;
 import java.util.Collections;
+import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -138,5 +140,15 @@ public class ServiceConfiguration {
             .setReportProvider(new ListReportProvider(LogLevel.ERROR, LogLevel.FATAL)) // Log errors only, throw fatal exceptions only
             .setValidationConfiguration(cfg.freeze())
             .freeze();
+    }
+
+    @Bean(name = "indexerThreadPoolTaskExecutor")
+    public Executor threadPoolTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+        executor.setThreadNamePrefix("gio.search-indexer-");
+        executor.setDaemon(true);
+        executor.setCorePoolSize(2);
+        return executor;
     }
 }
