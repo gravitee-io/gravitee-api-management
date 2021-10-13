@@ -82,8 +82,8 @@ public class ConditionalPolicyTest extends AbstractWiremockGatewayTest {
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin myPolicyHeader1 = PolicyBuilder.build("header-policy1", Header1Policy.class);
         PolicyPlugin onRequestPolicy = PolicyBuilder.build("on-request-policy", OnRequestPolicy.class);

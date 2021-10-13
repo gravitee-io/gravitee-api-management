@@ -29,33 +29,33 @@ import io.gravitee.gateway.reactor.handler.http.ContextualizedHttpServerRequest;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class AbstractReactorHandler
+public abstract class AbstractReactorHandler<T extends Reactable>
     extends AbstractLifecycleComponent<ReactorHandler>
-    implements ReactorHandler, ApplicationContextAware {
+    implements ReactorHandler {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public static final String ATTR_ENTRYPOINT = ExecutionContext.ATTR_PREFIX + "entrypoint";
 
-    protected ApplicationContext applicationContext;
-
-    @Autowired
     private ExecutionContextFactory executionContextFactory;
 
     protected Handler<ExecutionContext> handler;
 
-    @Autowired
-    private Reactable reactable;
+    protected final T reactable;
+
+    protected AbstractReactorHandler(T reactable) {
+        this.reactable = reactable;
+    }
+
+    @Override
+    public T reactable() {
+        return reactable;
+    }
 
     @Override
     protected void doStart() throws Exception {
@@ -64,14 +64,7 @@ public abstract class AbstractReactorHandler
 
     @Override
     protected void doStop() throws Exception {
-        if (applicationContext != null) {
-            ((ConfigurableApplicationContext) applicationContext).close();
-        }
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+        // Nothing to do there
     }
 
     @Override
@@ -107,10 +100,14 @@ public abstract class AbstractReactorHandler
         logger.debug("{} ready to accept requests on:", this);
         entrypoints.forEach(
             entrypoint -> {
-                logger.debug("\thost[{}] - path[{}/*]", null, entrypoint.path());
+                logger.debug("\t{}", entrypoint);
             }
         );
     }
 
     protected abstract void doHandle(ExecutionContext executionContext);
+
+    public void setExecutionContextFactory(ExecutionContextFactory executionContextFactory) {
+        this.executionContextFactory = executionContextFactory;
+    }
 }

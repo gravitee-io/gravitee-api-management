@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.connector;
+package io.gravitee.gateway.core.component;
 
-import io.gravitee.connector.http.HttpConnectorFactory;
-import io.gravitee.plugin.connector.ConnectorPlugin;
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ConnectorRegister {
-    default void registerConnector(ConfigurablePluginManager<ConnectorPlugin> connectorPluginManager) {
-        ConnectorPlugin connectorHttp = ConnectorBuilder.build("connector-http", HttpConnectorFactory.class);
-        connectorPluginManager.register(connectorHttp);
+public class CustomComponentProvider implements ComponentProvider {
+
+    private final Map<Class<?>, Object> components = new ConcurrentHashMap<>();
+
+    public <T> void add(Class<T> clazz, T component) {
+        components.put(clazz, component);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getComponent(Class<T> clazz) {
+        return (T) components.get(clazz);
     }
 }

@@ -17,6 +17,7 @@ package io.gravitee.gateway.debug;
 
 import io.gravitee.gateway.debug.vertx.VertxDebugService;
 import io.gravitee.gateway.reactor.handler.EntrypointResolver;
+import io.gravitee.gateway.reactor.handler.ReactorHandlerFactoryManager;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import io.gravitee.gateway.reactor.handler.impl.DefaultEntrypointResolver;
 import io.gravitee.gateway.reactor.handler.impl.DefaultReactorHandlerRegistry;
@@ -34,8 +35,8 @@ public class DebugConfiguration {
 
     @Bean
     @Qualifier("debugReactorHandlerRegistry")
-    public ReactorHandlerRegistry reactorHandlerRegistry() {
-        return new DefaultReactorHandlerRegistry();
+    public ReactorHandlerRegistry reactorHandlerRegistry(ReactorHandlerFactoryManager reactorHandlerFactoryManager) {
+        return new DefaultReactorHandlerRegistry(reactorHandlerFactoryManager);
     }
 
     @Bean

@@ -21,11 +21,12 @@ import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.core.component.ComponentResolver;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationHandler;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
-import io.gravitee.reporter.api.http.SecurityType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -34,10 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 
 /**
  * An api-key based {@link AuthenticationHandler}.
@@ -45,7 +43,7 @@ import org.springframework.context.ApplicationContext;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiKeyAuthenticationHandler implements AuthenticationHandler, InitializingBean {
+public class ApiKeyAuthenticationHandler implements AuthenticationHandler, ComponentResolver {
 
     private final Logger logger = LoggerFactory.getLogger(ApiKeyAuthenticationHandler.class);
 
@@ -55,24 +53,13 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
 
     private static final List<AuthenticationPolicy> POLICIES = Collections.singletonList((PluginAuthenticationPolicy) () -> API_KEY_POLICY);
 
-    @Value("${policy.api-key.header:" + GraviteeHttpHeader.X_GRAVITEE_API_KEY + "}")
-    private String apiKeyHeader = GraviteeHttpHeader.X_GRAVITEE_API_KEY;
+    private String apiKeyHeader;
 
-    @Value("${policy.api-key.param:api-key}")
-    private String apiKeyQueryParameter = "api-key";
+    private String apiKeyQueryParameter;
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Autowired
     private Api api;
 
     private ApiKeyRepository apiKeyRepository;
-
-    @Override
-    public void afterPropertiesSet() {
-        apiKeyRepository = applicationContext.getBean(ApiKeyRepository.class);
-    }
 
     @Override
     public boolean canHandle(AuthenticationContext context) {
@@ -128,5 +115,15 @@ public class ApiKeyAuthenticationHandler implements AuthenticationHandler, Initi
         }
 
         return apiKey;
+    }
+
+    @Override
+    public void resolve(ComponentProvider componentProvider) {
+        apiKeyRepository = componentProvider.getComponent(ApiKeyRepository.class);
+        api = componentProvider.getComponent(Api.class);
+
+        Environment environment = componentProvider.getComponent(Environment.class);
+        apiKeyHeader = environment.getProperty("policy.api-key.header", GraviteeHttpHeader.X_GRAVITEE_API_KEY);
+        apiKeyQueryParameter = environment.getProperty("policy.api-key.param", "api-key");
     }
 }

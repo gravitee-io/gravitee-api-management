@@ -64,8 +64,8 @@ public class FreePlanAuthenticationHandlerEnhancer extends PlanBasedAuthenticati
             }
 
             if (!providers.isEmpty()) {
-                logger.info("{} requires the following authentication handlers:", getApi());
-                providers.forEach(authenticationProvider -> logger.info("\t* {}", authenticationProvider.name()));
+                logger.debug("{} requires the following authentication handlers:", getApi());
+                providers.forEach(authenticationProvider -> logger.debug("\t* {}", authenticationProvider.name()));
             } else {
                 logger.warn("No authentication handler is provided for {}", getApi());
             }

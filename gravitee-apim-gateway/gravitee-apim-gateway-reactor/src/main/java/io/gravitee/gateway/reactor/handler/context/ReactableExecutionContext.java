@@ -24,11 +24,11 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
 import io.gravitee.gateway.api.el.EvaluableRequest;
 import io.gravitee.gateway.api.el.EvaluableResponse;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.tracing.api.Tracer;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Map;
-import org.springframework.context.ApplicationContext;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -40,20 +40,17 @@ public class ReactableExecutionContext implements MutableExecutionContext {
     private static final String TEMPLATE_ATTRIBUTE_RESPONSE = "response";
     private static final String TEMPLATE_ATTRIBUTE_CONTEXT = "context";
 
-    private final ApplicationContext applicationContext;
-
     private Collection<TemplateVariableProvider> providers;
 
     private TemplateEngine templateEngine;
 
-    private final Tracer tracer;
-
     private final MutableExecutionContext context;
 
-    ReactableExecutionContext(final MutableExecutionContext context, final Tracer tracer, ApplicationContext applicationContext) {
+    private final ComponentProvider componentProvider;
+
+    ReactableExecutionContext(final MutableExecutionContext context, final ComponentProvider componentProvider) {
         this.context = context;
-        this.tracer = tracer;
-        this.applicationContext = applicationContext;
+        this.componentProvider = componentProvider;
 
         setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, context.request().contextPath());
     }
@@ -107,7 +104,7 @@ public class ReactableExecutionContext implements MutableExecutionContext {
 
     @Override
     public <T> T getComponent(Class<T> componentClass) {
-        return applicationContext.getBean(componentClass);
+        return componentProvider.getComponent(componentClass);
     }
 
     @Override
@@ -130,7 +127,7 @@ public class ReactableExecutionContext implements MutableExecutionContext {
 
     @Override
     public Tracer getTracer() {
-        return tracer;
+        return getComponent(Tracer.class);
     }
 
     void setProviders(Collection<TemplateVariableProvider> providers) {

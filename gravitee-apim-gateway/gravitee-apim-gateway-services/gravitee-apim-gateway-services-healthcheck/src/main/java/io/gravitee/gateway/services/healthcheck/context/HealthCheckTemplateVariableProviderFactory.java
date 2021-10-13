@@ -25,7 +25,7 @@ import io.gravitee.gateway.reactor.handler.context.TemplateVariableProviderFacto
 public class HealthCheckTemplateVariableProviderFactory extends TemplateVariableProviderFactory {
 
     @Override
-    public TemplateVariableScope getTemplateVariableScope() {
+    protected TemplateVariableScope getTemplateVariableScope() {
         return TemplateVariableScope.HEALTH_CHECK;
     }
 }

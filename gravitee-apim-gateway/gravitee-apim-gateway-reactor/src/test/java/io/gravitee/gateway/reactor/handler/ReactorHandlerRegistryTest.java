@@ -493,6 +493,16 @@ public class ReactorHandlerRegistryTest {
     }
 
     @Test
+    public void shouldHaveNoEntrypoint_removeUnknownEntrypoint() {
+        DummyReactable reactable = createReactable("reactable1", "/");
+        ReactorHandler handler = createReactorHandler(reactable);
+        when(reactorHandlerFactoryManager.create(reactable)).thenReturn(handler);
+        reactorHandlerRegistry.remove(reactable);
+
+        Assert.assertEquals(0, reactorHandlerRegistry.getEntrypoints().size());
+    }
+
+    @Test
     public void shouldHaveMultipleEntrypoints_multipleRemoveReactable() {
         DummyReactable reactable = createReactable("reactable1", "/");
         ReactorHandler handler = createReactorHandler(reactable);

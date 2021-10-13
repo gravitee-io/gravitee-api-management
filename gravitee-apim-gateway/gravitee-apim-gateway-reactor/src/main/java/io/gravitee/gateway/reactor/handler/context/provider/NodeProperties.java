@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.reactor.handler.context.provider;
 
+import java.util.List;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -26,6 +28,10 @@ public class NodeProperties {
     private String version;
 
     private String tenant;
+
+    private List<String> shardingTags;
+
+    private String zone;
 
     public String getTenant() {
         return tenant;
@@ -49,5 +55,21 @@ public class NodeProperties {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public List<String> getShardingTags() {
+        return shardingTags;
+    }
+
+    public void setShardingTags(List<String> shardingTags) {
+        this.shardingTags = shardingTags;
+    }
+
+    public String getZone() {
+        return zone;
+    }
+
+    public void setZone(String zone) {
+        this.zone = zone;
     }
 }

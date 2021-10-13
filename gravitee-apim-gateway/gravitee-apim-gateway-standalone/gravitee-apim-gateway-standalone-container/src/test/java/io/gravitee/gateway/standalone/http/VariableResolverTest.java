@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.flow;
+package io.gravitee.gateway.standalone.http;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.Assert.assertEquals;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.util.Version;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
-import io.gravitee.gateway.standalone.flow.policy.MyPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
+import io.gravitee.gateway.standalone.policy.TemplateVariablePolicy;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
@@ -33,24 +35,26 @@ import org.junit.Test;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/flow/disabled-policy-flow.json")
-public class DisabledPolicyFlowTest extends AbstractWiremockGatewayTest {
+@ApiDescriptor("/io/gravitee/gateway/standalone/http/template-variable.json")
+public class VariableResolverTest extends AbstractWiremockGatewayTest {
 
     @Test
-    public void shouldRunFlows_getMethod() throws Exception {
+    public void testVariablesFromResponse() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
-        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withoutHeader("my-counter"));
+        assertEquals(Version.RUNTIME_VERSION.MAJOR_VERSION, response.getFirstHeader("node").getValue());
+        assertEquals("api-test", response.getFirstHeader("api").getValue());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin myPolicy = PolicyBuilder.build("my-policy", MyPolicy.class);
-        MyPolicy.clear();
-        policyPluginManager.register(myPolicy);
+        PolicyPlugin templateVariablePolicy = PolicyBuilder.build("template-variable", TemplateVariablePolicy.class);
+        policyPluginManager.register(templateVariablePolicy);
     }
 }

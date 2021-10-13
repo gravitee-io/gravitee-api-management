@@ -64,8 +64,8 @@ public class TransformResponseContentUsingBuilderGatewayTest extends AbstractWir
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin transformResponseContentPolicy = PolicyBuilder.build(
             "transform-response-content",

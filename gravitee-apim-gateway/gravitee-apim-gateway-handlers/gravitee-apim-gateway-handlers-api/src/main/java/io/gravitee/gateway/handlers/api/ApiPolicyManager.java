@@ -15,9 +15,17 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import io.gravitee.definition.model.Policy;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
-import io.gravitee.gateway.reactor.handler.ReactorHandler;
+import io.gravitee.gateway.reactor.Reactable;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.gravitee.plugin.policy.PolicyPlugin;
+import java.util.Set;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -25,12 +33,35 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
  */
 public class ApiPolicyManager extends DefaultPolicyManager {
 
-    public ApiPolicyManager(PolicyFactory policyFactory) {
-        super(policyFactory);
+    private final Reactable reactable;
+
+    public ApiPolicyManager(
+        final Reactable reactable,
+        final PolicyFactory policyFactory,
+        final PolicyConfigurationFactory policyConfigurationFactory,
+        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+        final PolicyClassLoaderFactory policyClassLoaderFactory,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final ComponentProvider componentProvider
+    ) {
+        super(
+            policyFactory,
+            policyConfigurationFactory,
+            policyPluginManager,
+            policyClassLoaderFactory,
+            resourceLifecycleManager,
+            componentProvider
+        );
+        this.reactable = reactable;
+    }
+
+    @Override
+    protected Set<Policy> dependencies() {
+        return reactable.dependencies(Policy.class);
     }
 
     @Override
     protected ClassLoader getClassLoader() {
-        return applicationContext.getBean(ReactorHandler.class).getClass().getClassLoader();
+        return reactable.getClass().getClassLoader();
     }
 }

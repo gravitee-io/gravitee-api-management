@@ -20,14 +20,14 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.gateway.core.condition.CompositeConditionEvaluator;
 import io.gravitee.gateway.core.condition.ConditionEvaluator;
-import io.gravitee.gateway.core.condition.ExpressionLanguageStringConditionEvaluator;
-import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.flow.BestMatchPolicyResolver;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.SimpleFlowProvider;
 import io.gravitee.gateway.flow.condition.evaluation.ExpressionLanguageFlowConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
@@ -42,7 +42,6 @@ import io.gravitee.gateway.policy.PolicyChainOrder;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
 import io.gravitee.gateway.policy.StreamType;
 import io.gravitee.node.api.Node;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -50,17 +49,24 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
 
-    @Autowired
-    GatewayConfiguration gatewayConfiguration;
+    private final PolicyChainProviderLoader policyChainProviderLoader;
 
-    @Autowired
-    PolicyChainProviderLoader policyChainProviderLoader;
-
-    @Autowired
     private Node node;
 
-    @Override
-    public void afterPropertiesSet() {
+    public ResponseProcessorChainFactory(
+        final Api api,
+        final PolicyChainFactory policyChainFactory,
+        final PolicyChainProviderLoader policyChainProviderLoader,
+        final Node node
+    ) {
+        super(api, policyChainFactory);
+        this.policyChainProviderLoader = policyChainProviderLoader;
+        this.node = node;
+
+        this.initialize();
+    }
+
+    private void initialize() {
         add(() -> new ShutdownProcessor(node));
         addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_RESPONSE));
 
@@ -71,18 +77,18 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
         );
 
         if (api.getDefinitionVersion() == DefinitionVersion.V1) {
-            add(new ApiPolicyChainProvider(StreamType.ON_RESPONSE, new ApiPolicyResolver(), chainFactory));
-            add(new PlanPolicyChainProvider(StreamType.ON_RESPONSE, new PlanPolicyResolver(api), chainFactory));
+            add(new ApiPolicyChainProvider(StreamType.ON_RESPONSE, new ApiPolicyResolver(), policyChainFactory));
+            add(new PlanPolicyChainProvider(StreamType.ON_RESPONSE, new PlanPolicyResolver(api), policyChainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), chainFactory)
+                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new ApiFlowResolver(api, evaluator), policyChainFactory)
                     )
                 );
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), chainFactory)
+                        new SimpleFlowProvider(StreamType.ON_RESPONSE, new PlanFlowResolver(api, evaluator), policyChainFactory)
                     )
                 );
             } else {
@@ -91,7 +97,7 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_RESPONSE,
                             new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
-                            chainFactory
+                            policyChainFactory
                         )
                     )
                 );
@@ -100,7 +106,7 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_RESPONSE,
                             new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
-                            chainFactory
+                            policyChainFactory
                         )
                     )
                 );

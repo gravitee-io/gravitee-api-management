@@ -19,7 +19,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.flow.policy.MyPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
@@ -56,8 +55,8 @@ public class PlanFlowTest extends AbstractWiremockGatewayTest {
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin myPolicy = PolicyBuilder.build("my-policy", MyPolicy.class);
         MyPolicy.clear();
