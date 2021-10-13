@@ -128,24 +128,16 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
     this.document.getElementById(`toc-${this.fragment}`)?.scrollIntoView();
   }
 
-  // Gets the scroll offset of the scroll container
-  private getScrollOffset(): number | void {
+  private getTableOfContentsTop(): number {
     const { top } = this.elementRef.nativeElement.getBoundingClientRect();
-
-    const container = this.container;
-
-    if (container instanceof HTMLElement) {
-      return container.scrollTop + top;
-    }
-
-    if (container) {
-      return container.pageYOffset + top;
-    }
+    return top;
   }
 
   // Change current active link according to the scroll
   private onScroll(): void {
-    const scrollOffset = this.getScrollOffset();
+    // 🧙‍♂️ Find the scroll offset with the TOC top position and add an extra 32 offset to activate the link a little before
+    const scrollOffset = this.getTableOfContentsTop() + 32;
+
     let hasChanged = false;
 
     for (let i = 0; i < this.allLinks.length; i++) {
@@ -153,7 +145,8 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
       // anchor without also being scrolled passed the next link.
       const currentLink = this.allLinks[i];
       const nextLink = this.allLinks[i + 1];
-      const isActive = scrollOffset >= currentLink.top && (!nextLink || nextLink.top >= scrollOffset);
+      // 📝 link.top is a getter and always return a relative link position from the viewport
+      const isActive = currentLink.top <= 0 + scrollOffset && (!nextLink || nextLink.top > 0 + scrollOffset);
 
       if (isActive !== currentLink.active) {
         currentLink.active = isActive;

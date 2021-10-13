@@ -35,29 +35,29 @@ export const Default: Story = {
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
       <div style="width: 60%;">
-        <h1 >Link 1</h1>
+        <h1 >Link in h1</h1>
         <br *ngFor="let item of [].constructor(10)">
 
         <h2 gioTableOfContents>Link 1.1</h2>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.1</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.2</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h4 gioTableOfContents>Link 1.1.2.a</h4>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h4 gioTableOfContents>Link 1.1.2.b</h4>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h2 gioTableOfContents>Link 1.2</h2>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.2.1</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.2.1</h3>
       </div>
@@ -74,19 +74,19 @@ export const Multiple: Story = {
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
       <div style="width: 60%;">
         <h2 gioTableOfContents>Link 1.1</h2>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.1</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.2</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h2 gioTableOfContents gioTableOfContentsSectionId="second">Link 1.2</h2>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents gioTableOfContentsSectionId="second">Link 1.2.1</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents gioTableOfContentsSectionId="second">Link 1.2.1</h3>
       </div>
@@ -117,36 +117,36 @@ export const AddAndRemoveDynamically: Story = {
       <div style="width: 60%;">
         <ng-container *ngIf="moreLinks">
           <h2 gioTableOfContents>Link 1.0</h2>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
         </ng-container>
 
         <h2 gioTableOfContents>Link 1.1</h2>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.1</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.2</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
         
         <ng-container *ngIf="moreLinks">
           <h3 gioTableOfContents>Link 1.1.3</h3>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
         </ng-container>
 
         <button *ngIf="!moreLinks" (click)="moreLinks = true">+ Add</button>
         <ng-container *ngIf="moreLinks">
           <h2 gioTableOfContents>Link 1.2</h2>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
           <h3 gioTableOfContents>Link 1.2.1</h3>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
           <h3 gioTableOfContents>Link 1.2.1</h3>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
           <h2 gioTableOfContents gioTableOfContentsSectionId="second">Link in new section</h2>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
           <button (click)="moreLinks = false">- Remove</button>
         </ng-container>
@@ -180,27 +180,27 @@ export const scrollingContainer: Story = {
     >
       <div style="width: 60%;">
         <h2 gioTableOfContents>Link 1.1</h2>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.1</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
         <h3 gioTableOfContents>Link 1.1.2</h3>
-        <br *ngFor="let item of [].constructor(10)">
+        <br *ngFor="let item of [].constructor(30)">
 
 
         <ng-container *ngIf="moreLinks">
           <h2 gioTableOfContents>Link 1.2</h2>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
           <h3 gioTableOfContents>Link 1.2.1</h3>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
           <h3 gioTableOfContents>Link 1.2.1</h3>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
           <h2 gioTableOfContents gioTableOfContentsSectionId="second">Link in new section</h2>
-          <br *ngFor="let item of [].constructor(10)">
+          <br *ngFor="let item of [].constructor(30)">
 
         </ng-container>
       </div>
