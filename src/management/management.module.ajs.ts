@@ -569,6 +569,7 @@ import { OrgSettingsIdentityProvidersComponent } from '../organization/configura
 import { OrgSettingsIdentityProviderComponent } from '../organization/configuration/identity-provider/org-settings-identity-provider.component';
 import { OrgSettingsNotificationTemplatesComponent } from '../organization/configuration/notification-templates/org-settings-notification-templates.component';
 import { OrgSettingsCockpitComponent } from '../organization/configuration/cockpit/org-settings-cockpit.component';
+import { OrgSettingsNotificationTemplateComponent } from '../organization/configuration/notification-templates/org-settings-notification-template.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -970,6 +971,11 @@ graviteeManagementModule.directive(
 );
 
 graviteeManagementModule.component('notificationTemplateComponent', NotificationTemplateComponent);
+graviteeManagementModule.directive(
+  'ngNotificationTemplateComponent',
+  downgradeComponent({ component: OrgSettingsNotificationTemplateComponent }),
+);
+
 graviteeManagementModule.component('gvNotificationTemplateByType', NotificationTemplateByTypeComponent);
 graviteeManagementModule.controller('NotificationTemplatesController', NotificationTemplatesController);
 graviteeManagementModule.controller('NotificationTemplateController', NotificationTemplateController);

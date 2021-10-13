@@ -49,6 +49,7 @@ import { OrgSettingsIdentityProviderGraviteeioAmComponent } from './identity-pro
 import { OrgSettingsIdentityProviderOidcComponent } from './identity-provider/org-settings-identity-provider-oidc/org-settings-identity-provider-oidc.component';
 import { OrgSettingsNotificationTemplatesComponent } from './notification-templates/org-settings-notification-templates.component';
 import { OrgSettingsCockpitComponent } from './cockpit/org-settings-cockpit.component';
+import { OrgSettingsNotificationTemplateComponent } from './notification-templates/org-settings-notification-template.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -115,6 +116,7 @@ import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.m
     OrgSettingsIdentityProviderGraviteeioAmComponent,
     OrgSettingsIdentityProviderGithubComponent,
     OrgSettingsNotificationTemplatesComponent,
+    OrgSettingsNotificationTemplateComponent,
     OrgSettingsCockpitComponent,
   ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
@@ -125,6 +127,7 @@ import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.m
     OrgSettingsIdentityProvidersComponent,
     OrgSettingsIdentityProviderComponent,
     OrgSettingsNotificationTemplatesComponent,
+    OrgSettingsNotificationTemplateComponent,
     OrgSettingsCockpitComponent,
   ],
 })

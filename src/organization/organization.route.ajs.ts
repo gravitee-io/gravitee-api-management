@@ -552,5 +552,19 @@ function organizationRouterConfig($stateProvider) {
         },
         alertingStatus: (AlertService: AlertService) => AlertService.getStatus(undefined, Scope.PLATFORM).then((response) => response.data),
       },
+    })
+    .state('organization.settings.ng-notificationTemplate', {
+      url: '/ng-notification-templates/:scope/:hook',
+      component: 'ngNotificationTemplateComponent',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-notification-template',
+        },
+        perms: {
+          only: ['organization-notification_templates-r'],
+        },
+      },
     });
 }
