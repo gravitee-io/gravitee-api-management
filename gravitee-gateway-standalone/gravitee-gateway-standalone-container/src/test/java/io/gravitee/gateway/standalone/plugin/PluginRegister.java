@@ -13,23 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.api;
+package io.gravitee.gateway.standalone.plugin;
 
-import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.policy.security.FreePlanAuthenticationHandlerEnhancer;
-import io.gravitee.gateway.security.core.*;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.gravitee.plugin.connector.ConnectorPlugin;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.plugin.resource.ResourcePlugin;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Configuration
-public class FreePlanApiHandlerConfiguration extends ApiHandlerConfiguration {
+public interface PluginRegister {
+    default void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {}
 
-    @Bean
-    public AuthenticationHandlerEnhancer authenticationHandlerEnhancer(Api api) {
-        return new FreePlanAuthenticationHandlerEnhancer(api);
-    }
+    default void registerConnector(ConfigurablePluginManager<ConnectorPlugin> connectorPluginManager) {}
+
+    default void registerResource(ConfigurablePluginManager<ResourcePlugin> resourcePluginManager) {}
 }

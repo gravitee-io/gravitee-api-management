@@ -47,8 +47,7 @@ public class AuthenticationHandlerSelectorTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        authenticationHandlerSelector = new DefaultAuthenticationHandlerSelector();
-        authenticationHandlerSelector.setProviderManager(authenticationHandlerManager);
+        authenticationHandlerSelector = new DefaultAuthenticationHandlerSelector(authenticationHandlerManager);
     }
 
     @Test

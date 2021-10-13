@@ -50,8 +50,7 @@ public class SecurityPolicyResolverTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        securityPolicyResolver = new SecurityPolicyResolver();
-        securityPolicyResolver.setAuthenticationHandlerSelector(handlerSelector);
+        securityPolicyResolver = new SecurityPolicyResolver(policyManager, handlerSelector);
 
         when(executionContext.request()).thenReturn(request);
     }

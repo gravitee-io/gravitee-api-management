@@ -13,29 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.resource;
-
-import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.MockitoAnnotations;
+package io.gravitee.gateway.core.component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ResourceManagerImplTest {
-
-    private ResourceManagerImpl resourceManager;
-
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        resourceManager = new ResourceManagerImpl();
-    }
-
-    @Test
-    public void test() throws Exception {
-        //    resourceManager.start();
-    }
+public interface ComponentResolver {
+    void resolve(ComponentProvider componentProvider);
 }

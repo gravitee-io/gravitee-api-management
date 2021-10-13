@@ -25,6 +25,7 @@ import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import java.util.Arrays;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -47,13 +48,15 @@ public class ResponseProcessorChainFactory {
     private String port;
 
     public Processor<ExecutionContext> create() {
-        return new DefaultProcessorChain<>(
-            Arrays.asList(
-                new ResponseTimeProcessor(),
-                new ReporterProcessor(reporterService),
-                //TODO: apply alert processor only if one plugin is installed
-                new AlertProcessor(eventProducer, node, port)
-            )
+        final List<Processor<ExecutionContext>> processors = Arrays.asList(
+            new ResponseTimeProcessor(),
+            new ReporterProcessor(reporterService)
         );
+
+        if (!eventProducer.isEmpty()) {
+            processors.add(new AlertProcessor(eventProducer, node, port));
+        }
+
+        return new DefaultProcessorChain<>(processors);
     }
 }

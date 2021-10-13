@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.platform.spring;
 
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.flow.FlowResolver;
 import io.gravitee.gateway.flow.policy.PolicyChainFactory;
 import io.gravitee.gateway.platform.OrganizationFlowResolver;
@@ -28,8 +29,16 @@ import io.gravitee.gateway.resource.ResourceConfigurationFactory;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.gateway.resource.internal.ResourceConfigurationFactoryImpl;
 import io.gravitee.gateway.resource.internal.ResourceManagerImpl;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.plugin.resource.ResourceClassLoaderFactory;
+import io.gravitee.plugin.resource.ResourcePlugin;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.ResolvableType;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -37,6 +46,9 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class PlatformConfiguration {
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @Bean
     public OrganizationManager organizationManager(PlatformPolicyManager policyManager) {
@@ -54,8 +66,29 @@ public class PlatformConfiguration {
     }
 
     @Bean
-    public PlatformPolicyManager platformPolicyManager(PolicyFactory factory) {
-        return new PlatformPolicyManager(factory);
+    public PlatformPolicyManager platformPolicyManager(
+        PolicyFactory factory,
+        PolicyConfigurationFactory policyConfigurationFactory,
+        PolicyClassLoaderFactory policyClassLoaderFactory,
+        ResourceLifecycleManager resourceLifecycleManager,
+        ComponentProvider componentProvider
+    ) {
+        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
+        );
+
+        ConfigurablePluginManager<PolicyPlugin<?>> cpm = (ConfigurablePluginManager<PolicyPlugin<?>>) applicationContext.getBean(
+            beanNamesForType[0]
+        );
+
+        return new PlatformPolicyManager(
+            factory,
+            policyConfigurationFactory,
+            cpm,
+            policyClassLoaderFactory,
+            resourceLifecycleManager,
+            componentProvider
+        );
     }
 
     @Bean
@@ -64,8 +97,19 @@ public class PlatformConfiguration {
     }
 
     @Bean
-    public ResourceLifecycleManager resourceLifecycleManager() {
-        return new ResourceManagerImpl();
+    public ResourceLifecycleManager resourceLifecycleManager(
+        ResourceClassLoaderFactory resourceClassLoaderFactory,
+        ResourceConfigurationFactory resourceConfigurationFactory
+    ) {
+        String[] beanNamesForType = applicationContext.getBeanNamesForType(
+            ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class)
+        );
+
+        ConfigurablePluginManager<ResourcePlugin<?>> cpm = (ConfigurablePluginManager<ResourcePlugin<?>>) applicationContext.getBean(
+            beanNamesForType[0]
+        );
+
+        return new ResourceManagerImpl(null, cpm, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
     }
 
     @Bean

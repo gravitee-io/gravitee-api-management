@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.RequestWrapper;
 public class ContextualizedHttpServerRequest extends RequestWrapper {
 
     private final String contextPath;
-    private String pathInfo;
+    private final String pathInfo;
 
     public ContextualizedHttpServerRequest(final String contextPath, final Request request) {
         super(request);

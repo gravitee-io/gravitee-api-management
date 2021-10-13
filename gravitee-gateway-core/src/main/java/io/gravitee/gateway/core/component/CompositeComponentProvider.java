@@ -13,31 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.policy.impl;
+package io.gravitee.gateway.core.component;
 
-import io.gravitee.policy.api.*;
-import org.springframework.context.ApplicationContext;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
- * @author David BRASSELY (david at graviteesource.com)
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class SpringPolicyContextProvider implements PolicyContextProvider {
+public class CompositeComponentProvider implements ComponentProvider {
 
-    private final ApplicationContext applicationContext;
+    private List<ComponentProvider> componentProviders;
 
-    public SpringPolicyContextProvider(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
+    public CompositeComponentProvider(ComponentProvider... componentProviders) {
+        this.componentProviders = Arrays.asList(componentProviders);
     }
 
     @Override
-    public <T> T getNativeProvider() {
-        return (T) applicationContext;
-    }
-
-    @Override
-    public <T> T getComponent(Class<T> componentClass) {
-        return applicationContext.getBean(componentClass);
+    public <T> T getComponent(Class<T> clazz) {
+        return this.componentProviders.stream().map(cp -> cp.getComponent(clazz)).filter(Objects::nonNull).findFirst().orElse(null);
     }
 }
