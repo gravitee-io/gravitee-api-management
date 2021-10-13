@@ -15,7 +15,7 @@
  */
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { Component, ElementRef, HostBinding, Input, OnDestroy, Optional, Self, ViewChild } from '@angular/core';
+import { Component, DoCheck, ElementRef, HostBinding, Input, OnDestroy, Optional, Self, ViewChild } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { MatFormFieldControl } from '@angular/material/form-field';
@@ -39,7 +39,7 @@ export type Tags = Array<string>;
     },
   ],
 })
-export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, ControlValueAccessor, OnDestroy {
+export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, ControlValueAccessor, DoCheck, OnDestroy {
   static nextId = 0;
 
   _onChange: (value: any) => void = () => ({});
@@ -173,6 +173,14 @@ export class GioFormTagsInputComponent implements MatFormFieldControl<Tags>, Con
       this.touched = true;
       this.stateChanges.next();
     });
+  }
+
+  ngDoCheck() {
+    // sync control touched with local touched
+    if (this.ngControl != null && this.touched !== this.ngControl.touched) {
+      this.touched = this.ngControl.touched;
+      this.stateChanges.next();
+    }
   }
 
   ngOnDestroy() {

@@ -15,7 +15,7 @@
  */
 import { FocusMonitor } from '@angular/cdk/a11y';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { Component, ElementRef, HostBinding, Input, OnDestroy, Optional, Self } from '@angular/core';
+import { Component, DoCheck, ElementRef, HostBinding, Input, OnDestroy, Optional, Self } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -61,7 +61,7 @@ export const colorValidator: ValidatorFn = (control: AbstractControl): Validatio
     },
   ],
 })
-export class GioFormColorInputComponent implements MatFormFieldControl<Color>, ControlValueAccessor, OnDestroy {
+export class GioFormColorInputComponent implements MatFormFieldControl<Color>, ControlValueAccessor, DoCheck, OnDestroy {
   static nextId = 0;
 
   colorFormControl = new FormControl();
@@ -187,6 +187,15 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
 
       this.colorFormControl.setValue(value, { onlySelf: true, emitEvent: false, emitModelToViewChange: true });
     });
+  }
+
+  ngDoCheck() {
+    // sync control touched with local touched
+    if (this.ngControl != null && this.touched !== this.ngControl.touched) {
+      this.touched = this.ngControl.touched;
+
+      this.stateChanges.next();
+    }
   }
 
   ngOnDestroy() {

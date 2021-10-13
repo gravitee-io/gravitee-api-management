@@ -17,7 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -33,6 +33,7 @@ import { GioFormColorInputModule } from './gio-form-color-input.module';
       <mat-error *ngIf="colorControl.hasError('color')">
         {{ colorControl.getError('color').message }}
       </mat-error>
+      <mat-error *ngIf="!colorControl.hasError('color')"> Has Error </mat-error>
     </mat-form-field>
   `,
 })
@@ -111,5 +112,18 @@ describe('GioFormColorInputModule', () => {
 
     expect(await formField.hasErrors()).toEqual(true);
     expect(await formField.getTextErrors()).toEqual(['"🦊" is not a valid color']);
+  });
+
+  it('should update error state when control is touched', async () => {
+    component.colorControl.addValidators(Validators.required);
+    component.required = true;
+
+    const matFormFieldHarness = await loader.getHarness(MatFormFieldHarness);
+
+    expect(await matFormFieldHarness.hasErrors()).toBe(false);
+
+    component.colorControl.markAsTouched();
+
+    expect(await matFormFieldHarness.hasErrors()).toBe(true);
   });
 });
