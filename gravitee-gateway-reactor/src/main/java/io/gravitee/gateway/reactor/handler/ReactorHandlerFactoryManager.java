@@ -17,26 +17,29 @@ package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.spring.factory.SpringFactoriesLoader;
 import io.gravitee.gateway.reactor.Reactable;
-import java.util.Collection;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ReactorHandlerFactoryManager extends SpringFactoriesLoader<ReactorHandlerFactory> {
+public class ReactorHandlerFactoryManager extends SpringFactoriesLoader<ReactorHandlerFactory> implements InitializingBean {
 
-    private Collection<ReactorHandlerFactory> reactorHandlerFactories;
+    private ReactorHandlerFactory<Reactable> reactorHandlerFactory;
 
     public ReactorHandler create(Reactable reactable) {
-        if (reactorHandlerFactories == null) {
-            reactorHandlerFactories = (Collection<ReactorHandlerFactory>) getFactoriesInstances();
-        }
-
-        return reactorHandlerFactories.iterator().next().create(reactable);
+        return reactorHandlerFactory.create(reactable);
     }
 
     @Override
     protected Class<ReactorHandlerFactory> getObjectType() {
         return ReactorHandlerFactory.class;
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        // For now, there is only a single reactorHandlerFactory.
+        // This must be updated as soon as we are looking to manage more reactable type
+        reactorHandlerFactory = getFactoriesInstances().iterator().next();
     }
 }

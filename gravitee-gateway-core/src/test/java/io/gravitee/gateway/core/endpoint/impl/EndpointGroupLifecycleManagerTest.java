@@ -40,7 +40,6 @@ import io.gravitee.node.api.configuration.Configuration;
 import java.util.Collections;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -50,7 +49,6 @@ import org.mockito.MockitoAnnotations;
  */
 public class EndpointGroupLifecycleManagerTest {
 
-    @InjectMocks
     private EndpointGroupLifecycleManager endpointLifecycleManager;
 
     @Mock
@@ -86,17 +84,17 @@ public class EndpointGroupLifecycleManagerTest {
     @Before
     public void setUp() throws JsonProcessingException {
         MockitoAnnotations.initMocks(this);
-        endpointLifecycleManager.setEndpointFactory(endpointFactory);
-        endpointLifecycleManager.setReferenceRegister(referenceRegister);
-        endpointLifecycleManager.setApi(api);
-        endpointLifecycleManager.setConfiguration(configuration);
+
         when(connectorFactory.create(anyString(), anyString(), any(ConnectorBuilder.class))).thenReturn(connector);
         when(connectorRegistry.getConnector(any())).thenReturn(connectorFactory);
-        endpointLifecycleManager.setConnectorRegistry(connectorRegistry);
+
         JsonNode node = mock(ObjectNode.class);
         when(node.has(anyString())).thenReturn(false);
         when(mapper.readTree(anyString())).thenReturn(node);
-        endpointLifecycleManager.setMapper(mapper);
+
+        endpointLifecycleManager =
+            new EndpointGroupLifecycleManager(api, group, endpointFactory, referenceRegister, connectorRegistry, configuration, mapper);
+
         when(api.getProxy()).thenReturn(proxy);
         when(proxy.getGroups()).thenReturn(Collections.singleton(group));
     }

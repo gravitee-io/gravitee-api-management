@@ -39,7 +39,6 @@ import io.gravitee.node.api.configuration.Configuration;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
-import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,23 +52,17 @@ public class EndpointGroupLifecycleManager
 
     private final Logger logger = LoggerFactory.getLogger(EndpointGroupLifecycleManager.class);
 
-    @Inject
-    private Api api;
+    private final Api api;
 
-    @Inject
-    private EndpointFactory endpointFactory;
+    private final EndpointFactory endpointFactory;
 
-    @Inject
-    private ConnectorRegistry connectorRegistry;
+    private final ReferenceRegister referenceRegister;
 
-    @Inject
-    private Configuration configuration;
+    private final ConnectorRegistry connectorRegistry;
 
-    @Inject
-    private ReferenceRegister referenceRegister;
+    private final Configuration configuration;
 
-    @Inject
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
 
     private final Map<String, io.gravitee.gateway.api.endpoint.Endpoint> endpointsByName = new LinkedHashMap<>();
     private final ObservableCollection<io.gravitee.gateway.api.endpoint.Endpoint> endpoints = new ObservableCollection<>(new ArrayList<>());
@@ -77,9 +70,22 @@ public class EndpointGroupLifecycleManager
     private final EndpointGroup group;
     private LoadBalancedEndpointGroup lbGroup;
 
-    @Inject
-    public EndpointGroupLifecycleManager(EndpointGroup group) {
+    public EndpointGroupLifecycleManager(
+        Api api,
+        EndpointGroup group,
+        EndpointFactory endpointFactory,
+        ReferenceRegister referenceRegister,
+        ConnectorRegistry connectorRegistry,
+        Configuration configuration,
+        ObjectMapper mapper
+    ) {
         this.group = group;
+        this.api = api;
+        this.endpointFactory = endpointFactory;
+        this.referenceRegister = referenceRegister;
+        this.connectorRegistry = connectorRegistry;
+        this.configuration = configuration;
+        this.mapper = mapper;
     }
 
     @Override
@@ -239,26 +245,6 @@ public class EndpointGroupLifecycleManager
         return group;
     }
 
-    public void setEndpointFactory(EndpointFactory endpointFactory) {
-        this.endpointFactory = endpointFactory;
-    }
-
-    public void setReferenceRegister(ReferenceRegister referenceRegister) {
-        this.referenceRegister = referenceRegister;
-    }
-
-    public void setConnectorRegistry(ConnectorRegistry connectorRegistry) {
-        this.connectorRegistry = connectorRegistry;
-    }
-
-    public void setMapper(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
-
-    public void setApi(Api api) {
-        this.api = api;
-    }
-
     private String getEndpointConfiguration(Endpoint endpoint) {
         // Manage endpoint inheritance from group
         final boolean inherit = endpoint.getInherit() != null && endpoint.getInherit();
@@ -275,9 +261,5 @@ public class EndpointGroupLifecycleManager
         } catch (IOException ioe) {}
 
         return endpoint.getConfiguration();
-    }
-
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
     }
 }

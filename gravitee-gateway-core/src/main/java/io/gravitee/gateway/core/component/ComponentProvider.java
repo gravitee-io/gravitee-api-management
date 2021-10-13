@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.policy;
-
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
-import io.gravitee.plugin.policy.PolicyPlugin;
+package io.gravitee.gateway.core.component;
 
 /**
+ * A {@link ComponentProvider} is a class which enabled to look for existing component by calling
+ * {@link io.gravitee.gateway.api.ExecutionContext} <code>getComponent</code> method.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PolicyRegister {
-    void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager);
+public interface ComponentProvider {
+    <T> T getComponent(Class<T> clazz);
 }

@@ -22,33 +22,30 @@ import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.node.api.Node;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Collections;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @TemplateVariable(scopes = { TemplateVariableScope.API })
-public class NodeTemplateVariableProvider implements TemplateVariableProvider, InitializingBean {
+public class NodeTemplateVariableProvider implements TemplateVariableProvider {
 
-    @Autowired
-    private GatewayConfiguration gatewayConfiguration;
+    private static final String TEMPLATE_VARIABLE_KEY = "node";
 
-    @Autowired
-    private Node node;
+    private final NodeProperties nodeProperties;
 
-    private NodeProperties nodeProperties;
-
-    public void afterPropertiesSet() {
+    public NodeTemplateVariableProvider(Node node, GatewayConfiguration gatewayConfiguration) {
         nodeProperties = new NodeProperties();
         nodeProperties.setId(node.id());
         nodeProperties.setVersion(Version.RUNTIME_VERSION.MAJOR_VERSION);
         nodeProperties.setTenant(gatewayConfiguration.tenant().orElse(null));
+        nodeProperties.setShardingTags(gatewayConfiguration.shardingTags().orElse(Collections.emptyList()));
+        nodeProperties.setZone(gatewayConfiguration.zone().orElse(null));
     }
 
     @Override
     public void provide(TemplateContext templateContext) {
-        templateContext.setVariable("node", nodeProperties);
+        templateContext.setVariable(TEMPLATE_VARIABLE_KEY, nodeProperties);
     }
 }

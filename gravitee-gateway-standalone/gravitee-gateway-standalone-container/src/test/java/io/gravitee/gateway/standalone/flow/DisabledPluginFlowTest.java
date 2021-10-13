@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.standalone.http;
+package io.gravitee.gateway.standalone.flow;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
 
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
+import io.gravitee.gateway.standalone.flow.policy.MyPolicy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
+import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.fluent.Request;
 import org.junit.Test;
 
@@ -30,20 +33,24 @@ import org.junit.Test;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/http/teams.json")
-public class PolicyNotFoundGatewayTest extends AbstractWiremockGatewayTest {
+@ApiDescriptor("/io/gravitee/gateway/standalone/flow/disabled-policy-flow.json")
+public class DisabledPluginFlowTest extends AbstractWiremockGatewayTest {
 
     @Test
-    public void shouldReturnNotFound_unknownPolicy() throws Exception {
-        HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+    public void shouldRunFlows_getMethod() throws Exception {
+        wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
-        // The gateway returns a NOT_FOUND (404) because the API can't be deployed correctly.
-        // The API is not correctly deployed because a required policy can not be found
-        assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatusLine().getStatusCode());
+        final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+        assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withoutHeader("my-counter"));
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        // Do not install any policy in registry
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
+
+        PolicyPlugin myPolicy = PolicyBuilder.build("my-policy", MyPolicy.class);
+        MyPolicy.clear();
+        policyPluginManager.register(myPolicy);
     }
 }

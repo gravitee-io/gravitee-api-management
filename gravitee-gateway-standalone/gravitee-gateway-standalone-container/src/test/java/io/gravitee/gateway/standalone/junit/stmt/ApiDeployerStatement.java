@@ -22,14 +22,14 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
-import io.gravitee.gateway.standalone.connector.ConnectorRegister;
 import io.gravitee.gateway.standalone.container.GatewayTestContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.gravitee.gateway.standalone.policy.PolicyRegister;
+import io.gravitee.gateway.standalone.plugin.PluginRegister;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
 import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.plugin.resource.ResourcePlugin;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -68,21 +68,30 @@ public class ApiDeployerStatement extends Statement {
             (ConfigurableApplicationContext) container.applicationContext()
         ).getBeanFactory();
 
-        if (target instanceof ConnectorRegister) {
-            ConnectorPluginManager cpm = container.applicationContext().getBean(ConnectorPluginManager.class);
-            ((ConnectorRegister) target).registerConnector(cpm);
-        }
+        if (target instanceof PluginRegister) {
+            final PluginRegister register = ((PluginRegister) target);
 
-        if (target instanceof PolicyRegister) {
-            String[] beanNamesForType = container
+            // Register connectors
+            ConnectorPluginManager cpm = container.applicationContext().getBean(ConnectorPluginManager.class);
+            register.registerConnector(cpm);
+
+            // Register policies
+            String[] policyBeanNamesForType = container
                 .applicationContext()
                 .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
 
-            ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) container
-                .applicationContext()
-                .getBean(beanNamesForType[0]);
+            register.registerPolicy(
+                (ConfigurablePluginManager<PolicyPlugin>) container.applicationContext().getBean(policyBeanNamesForType[0])
+            );
 
-            ((PolicyRegister) target).register(ppm);
+            // Register resources
+            String[] resourceBeanNamesForType = container
+                .applicationContext()
+                .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, ResourcePlugin.class));
+
+            register.registerResource(
+                (ConfigurablePluginManager<ResourcePlugin>) container.applicationContext().getBean(resourceBeanNamesForType[0])
+            );
         }
 
         if (target instanceof PolicyFactory) {

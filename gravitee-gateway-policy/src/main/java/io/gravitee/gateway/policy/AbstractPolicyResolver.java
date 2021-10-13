@@ -17,7 +17,6 @@ package io.gravitee.gateway.policy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -27,8 +26,11 @@ public abstract class AbstractPolicyResolver implements PolicyResolver {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private PolicyManager policyManager;
+    private final PolicyManager policyManager;
+
+    public AbstractPolicyResolver(final PolicyManager policyManager) {
+        this.policyManager = policyManager;
+    }
 
     protected Policy create(StreamType streamType, String policy, String configuration) {
         return policyManager.create(streamType, policy, configuration);

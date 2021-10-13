@@ -62,8 +62,8 @@ public class TransformRequestContentGatewayTest extends AbstractWiremockGatewayT
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin transformRequestContentPolicy = PolicyBuilder.build("transform-request-content", TransformRequestContentPolicy.class);
         policyPluginManager.register(transformRequestContentPolicy);

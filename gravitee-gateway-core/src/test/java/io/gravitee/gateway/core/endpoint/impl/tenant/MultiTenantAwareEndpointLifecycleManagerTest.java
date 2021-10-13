@@ -86,18 +86,23 @@ public class MultiTenantAwareEndpointLifecycleManagerTest {
     public void setUp() throws JsonProcessingException {
         MockitoAnnotations.initMocks(this);
 
-        endpointLifecycleManager = new MultiTenantAwareEndpointLifecycleManager(group, "europe");
-        endpointLifecycleManager.setEndpointFactory(endpointFactory);
-        endpointLifecycleManager.setReferenceRegister(referenceRegister);
-        endpointLifecycleManager.setApi(api);
-        endpointLifecycleManager.setConfiguration(configuration);
         when(connectorFactory.create(anyString(), anyString(), any(ConnectorBuilder.class))).thenReturn(connector);
         when(connectorRegistry.getConnector(any())).thenReturn(connectorFactory);
-        endpointLifecycleManager.setConnectorRegistry(connectorRegistry);
         JsonNode node = mock(ObjectNode.class);
         when(node.has(anyString())).thenReturn(false);
         when(mapper.readTree(anyString())).thenReturn(node);
-        endpointLifecycleManager.setMapper(mapper);
+
+        endpointLifecycleManager =
+            new MultiTenantAwareEndpointLifecycleManager(
+                api,
+                group,
+                endpointFactory,
+                referenceRegister,
+                connectorRegistry,
+                configuration,
+                mapper,
+                "europe"
+            );
 
         when(api.getProxy()).thenReturn(proxy);
         when(proxy.getGroups()).thenReturn(Collections.singleton(group));

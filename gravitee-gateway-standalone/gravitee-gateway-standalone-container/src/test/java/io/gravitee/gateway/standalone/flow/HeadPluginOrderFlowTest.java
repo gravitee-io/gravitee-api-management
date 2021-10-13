@@ -17,12 +17,11 @@ package io.gravitee.gateway.standalone.flow;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
-import io.gravitee.gateway.standalone.flow.policy.MyPolicy;
-import io.gravitee.gateway.standalone.flow.policy.OnRequestPolicy;
+import io.gravitee.gateway.standalone.flow.policy.Header1Policy;
+import io.gravitee.gateway.standalone.flow.policy.Header2Policy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
@@ -32,30 +31,29 @@ import org.apache.http.client.fluent.Request;
 import org.junit.Test;
 
 /**
- * This test validates that on-request policies are not run during the "post" phase of a flow.
- *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/flow/post-with-request-policy-flow.json")
-public class PostFlowWithOnRequestPolicyTest extends AbstractWiremockGatewayTest {
+@ApiDescriptor("/io/gravitee/gateway/standalone/flow/simple-request-flow.json")
+public class HeadPluginOrderFlowTest extends AbstractWiremockGatewayTest {
 
     @Test
-    public void shouldRunPolicies() throws Exception {
+    public void shouldRunFlows() throws Exception {
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
+
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
+
+        assertEquals(response.getFirstHeader("X-Gravitee-Policy").getValue(), "response-header2");
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
-        assertFalse(response.containsHeader("my-counter"));
-        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withoutHeader("my-counter"));
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
-        PolicyPlugin myPolicy = PolicyBuilder.build("my-policy", OnRequestPolicy.class);
-        MyPolicy.clear();
-        policyPluginManager.register(myPolicy);
+        policyPluginManager.register(PolicyBuilder.build("header-policy1", Header1Policy.class));
+        policyPluginManager.register(PolicyBuilder.build("header-policy2", Header2Policy.class));
     }
 }

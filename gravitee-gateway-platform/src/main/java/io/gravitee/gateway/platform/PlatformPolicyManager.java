@@ -16,10 +16,15 @@
 package io.gravitee.gateway.platform;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.DefaultPolicyManager;
-import java.util.HashSet;
+import io.gravitee.gateway.resource.ResourceLifecycleManager;
+import io.gravitee.plugin.core.api.ConfigurablePluginManager;
+import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
+import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +37,24 @@ public class PlatformPolicyManager extends DefaultPolicyManager {
 
     private final Logger logger = LoggerFactory.getLogger(PlatformPolicyManager.class);
 
-    Set<Policy> dependencies = new HashSet<>();
+    private Set<Policy> dependencies;
 
-    public PlatformPolicyManager(PolicyFactory policyFactory) {
-        super(policyFactory);
+    public PlatformPolicyManager(
+        final PolicyFactory policyFactory,
+        final PolicyConfigurationFactory policyConfigurationFactory,
+        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+        final PolicyClassLoaderFactory policyClassLoaderFactory,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final ComponentProvider componentProvider
+    ) {
+        super(
+            policyFactory,
+            policyConfigurationFactory,
+            policyPluginManager,
+            policyClassLoaderFactory,
+            resourceLifecycleManager,
+            componentProvider
+        );
     }
 
     public void setDependencies(Set<Policy> dependencies) {
