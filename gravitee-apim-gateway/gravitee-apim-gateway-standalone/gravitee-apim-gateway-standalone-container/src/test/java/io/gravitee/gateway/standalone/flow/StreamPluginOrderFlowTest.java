@@ -20,10 +20,11 @@ import static org.junit.Assert.assertEquals;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
-import io.gravitee.gateway.standalone.flow.policy.Header1Policy;
-import io.gravitee.gateway.standalone.flow.policy.Header2Policy;
+import io.gravitee.gateway.standalone.flow.policy.Stream1Policy;
+import io.gravitee.gateway.standalone.flow.policy.Stream2Policy;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyBuilder;
+import io.gravitee.gateway.standalone.utils.StringUtils;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import org.apache.http.HttpResponse;
@@ -34,8 +35,8 @@ import org.junit.Test;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@ApiDescriptor("/io/gravitee/gateway/standalone/flow/simple-request-flow.json")
-public class HeadPolicyOrderFlowTest extends AbstractWiremockGatewayTest {
+@ApiDescriptor("/io/gravitee/gateway/standalone/flow/simple-request-stream-flow.json")
+public class StreamPluginOrderFlowTest extends AbstractWiremockGatewayTest {
 
     @Test
     public void shouldRunFlows() throws Exception {
@@ -43,17 +44,19 @@ public class HeadPolicyOrderFlowTest extends AbstractWiremockGatewayTest {
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team")).returnResponse();
 
-        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withHeader("X-Gravitee-Policy", equalTo("request-header2")));
+        wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")).withRequestBody(equalTo("OnRequestContent2Policy")));
 
-        assertEquals(response.getFirstHeader("X-Gravitee-Policy").getValue(), "response-header2");
         assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
+
+        String responseContent = StringUtils.copy(response.getEntity().getContent());
+        assertEquals("OnResponseContent2Policy", responseContent);
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
-        policyPluginManager.register(PolicyBuilder.build("header-policy1", Header1Policy.class));
-        policyPluginManager.register(PolicyBuilder.build("header-policy2", Header2Policy.class));
+        policyPluginManager.register(PolicyBuilder.build("stream-policy1", Stream1Policy.class));
+        policyPluginManager.register(PolicyBuilder.build("stream-policy2", Stream2Policy.class));
     }
 }

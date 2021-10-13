@@ -79,7 +79,7 @@ public class PlanBasedAuthenticationHandlerEnhancer implements AuthenticationHan
 
         if (!providers.isEmpty()) {
             logger.debug("{} requires the following authentication handlers:", api);
-            providers.forEach(authenticationProvider -> logger.info("\t* {}", authenticationProvider.name()));
+            providers.forEach(authenticationProvider -> logger.debug("\t* {}", authenticationProvider.name()));
         } else {
             logger.warn("No authentication handler is provided for {}", api);
         }

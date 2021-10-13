@@ -30,7 +30,6 @@ import io.gravitee.gateway.core.logging.LoggableProxyConnectionDecorator;
 import io.gravitee.gateway.core.proxy.DirectProxyConnection;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -39,8 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class EndpointInvoker implements Invoker {
 
-    @Autowired
-    private EndpointResolver endpointResolver;
+    private final EndpointResolver endpointResolver;
+
+    public EndpointInvoker(final EndpointResolver endpointResolver) {
+        this.endpointResolver = endpointResolver;
+    }
 
     @Override
     public void invoke(ExecutionContext context, ReadStream<Buffer> stream, Handler<ProxyConnection> connectionHandler) {

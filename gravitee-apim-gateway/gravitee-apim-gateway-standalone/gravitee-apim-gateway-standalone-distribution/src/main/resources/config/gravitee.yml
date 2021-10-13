@@ -13,7 +13,7 @@
 
 # Gateway HTTP server
 #http:
-#  port: 8082
+#  port: 8092
 #  host: 0.0.0.0
 #  idleTimeout: 0
 #  tcpKeepAlive: true

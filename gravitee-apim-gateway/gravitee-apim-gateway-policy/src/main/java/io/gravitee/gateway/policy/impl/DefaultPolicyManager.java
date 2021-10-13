@@ -18,8 +18,8 @@ package io.gravitee.gateway.policy.impl;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.definition.model.Policy;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.policy.*;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.PluginClassLoader;
@@ -38,33 +38,43 @@ import java.util.Set;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.ResolvableType;
 import org.springframework.util.ClassUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
+public abstract class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManager> implements PolicyManager {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPolicyManager.class);
 
-    @Autowired
-    protected ApplicationContext applicationContext;
+    protected final PolicyFactory policyFactory;
 
-    protected PolicyFactory policyFactory;
-
-    @Autowired
-    protected PolicyConfigurationFactory policyConfigurationFactory;
+    protected final PolicyConfigurationFactory policyConfigurationFactory;
 
     private DelegatingClassLoader resourcesClassLoader;
 
     private final Map<String, PolicyMetadata> policies = new HashMap<>();
 
-    public DefaultPolicyManager(PolicyFactory policyFactory) {
+    private final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager;
+    private final PolicyClassLoaderFactory policyClassLoaderFactory;
+    private final ResourceLifecycleManager resourceLifecycleManager;
+    private final ComponentProvider componentProvider;
+
+    public DefaultPolicyManager(
+        final PolicyFactory policyFactory,
+        final PolicyConfigurationFactory policyConfigurationFactory,
+        final ConfigurablePluginManager<PolicyPlugin<?>> policyPluginManager,
+        final PolicyClassLoaderFactory policyClassLoaderFactory,
+        final ResourceLifecycleManager resourceLifecycleManager,
+        final ComponentProvider componentProvider
+    ) {
         this.policyFactory = policyFactory;
+        this.policyConfigurationFactory = policyConfigurationFactory;
+        this.policyPluginManager = policyPluginManager;
+        this.policyClassLoaderFactory = policyClassLoaderFactory;
+        this.resourceLifecycleManager = resourceLifecycleManager;
+        this.componentProvider = componentProvider;
     }
 
     @Override
@@ -144,20 +154,10 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         TypeFactory.defaultInstance().clearCache();
     }
 
-    protected Set<Policy> dependencies() {
-        Reactable reactable = applicationContext.getBean(Reactable.class);
-        return reactable.dependencies(Policy.class);
-    }
+    protected abstract Set<Policy> dependencies();
 
     private void initialize() {
-        String[] beanNamesForType = getRootContext()
-            .getBeanNamesForType(ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class));
-
-        ConfigurablePluginManager<PolicyPlugin> ppm = (ConfigurablePluginManager<PolicyPlugin>) getRootContext()
-            .getBean(beanNamesForType[0]);
-        PolicyClassLoaderFactory pclf = applicationContext.getBean(PolicyClassLoaderFactory.class);
         ClassLoader globalClassLoader = getClassLoader();
-        ResourceLifecycleManager rm = applicationContext.getBean(ResourceLifecycleManager.class);
 
         ClassLoader parentClassLoader;
 
@@ -186,13 +186,28 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
         dependencies()
             .forEach(
                 policy -> {
-                    final PolicyPlugin policyPlugin = ppm.get(policy.getName());
+                    final PolicyPlugin<?> policyPlugin = policyPluginManager.get(policy.getName());
                     if (policyPlugin == null) {
                         logger.error("Policy [{}] can not be found in policy registry", policy.getName());
                         throw new IllegalStateException("Policy [" + policy.getName() + "] can not be found in policy registry");
                     }
+                    
+                    PluginClassLoader policyClassLoader;
 
-                    PluginClassLoader policyClassLoader = pclf.getOrCreateClassLoader(policyPlugin, parentClassLoader);
+                    // Load dependant resources to enhance policy classloader
+                    Collection<? extends Resource> resources = resourceLifecycleManager.getResources();
+                    if (!resources.isEmpty()) {
+                        ClassLoader[] resourceClassLoaders = resourceLifecycleManager
+                            .getResources()
+                            .stream()
+                            .map((Function<Resource, ClassLoader>) resource -> resource.getClass().getClassLoader())
+                            .toArray(ClassLoader[]::new);
+
+                        DelegatingClassLoader parentClassLoader = new DelegatingClassLoader(globalClassLoader, resourceClassLoaders);
+                        policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, parentClassLoader);
+                    } else {
+                        policyClassLoader = policyClassLoaderFactory.getOrCreateClassLoader(policyPlugin, globalClassLoader);
+                    }
 
                     logger.debug("Loading policy {}", policy.getName());
 
@@ -228,7 +243,7 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
 
                             if (context instanceof PolicyContextProviderAware) {
                                 ((PolicyContextProviderAware) context).setPolicyContextProvider(
-                                        new SpringPolicyContextProvider(applicationContext)
+                                        new DefaultPolicyContextProvider(componentProvider)
                                     );
                             }
 
@@ -264,14 +279,6 @@ public class DefaultPolicyManager extends AbstractLifecycleComponent<PolicyManag
                     }
                 }
             );
-    }
-
-    public ApplicationContext getRootContext() {
-        ApplicationContext rootContext = applicationContext;
-        while (rootContext.getParent() != null) {
-            rootContext = rootContext.getParent();
-        }
-        return rootContext;
     }
 
     protected ClassLoader getClassLoader() {
