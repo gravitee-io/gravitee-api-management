@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class DefaultReactor extends AbstractService implements Reactor, EventListener<ReactorEvent, Reactable> {
+public class DefaultReactor extends AbstractService<Reactor> implements Reactor, EventListener<ReactorEvent, Reactable> {
 
     private final Logger LOGGER = LoggerFactory.getLogger(DefaultReactor.class);
 

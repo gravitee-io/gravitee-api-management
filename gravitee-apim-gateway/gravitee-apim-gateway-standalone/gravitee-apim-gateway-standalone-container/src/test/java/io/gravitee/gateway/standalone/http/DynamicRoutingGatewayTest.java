@@ -63,8 +63,8 @@ public class DynamicRoutingGatewayTest extends AbstractWiremockGatewayTest {
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin dynamicRoutingPolicy = PolicyBuilder.build("dynamic-routing", DynamicRoutingPolicy.class);
         policyPluginManager.register(dynamicRoutingPolicy);

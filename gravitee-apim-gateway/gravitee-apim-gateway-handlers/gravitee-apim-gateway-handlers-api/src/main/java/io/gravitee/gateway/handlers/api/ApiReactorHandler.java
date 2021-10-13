@@ -30,37 +30,38 @@ import io.gravitee.gateway.handlers.api.processor.OnErrorProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.policy.PolicyManager;
-import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.resource.ResourceLifecycleManager;
 import java.util.Map;
 import java.util.Objects;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiReactorHandler extends AbstractReactorHandler {
-
-    @Autowired
-    protected Api api;
+public class ApiReactorHandler extends AbstractReactorHandler<Api> {
 
     /**
      * Invoker is the connector to access the remote backend / endpoint.
      * If not override by a policy, default invoker is {@link EndpointInvoker}.
      */
-    @Autowired
     private Invoker invoker;
 
-    @Autowired
     private RequestProcessorChainFactory requestProcessorChain;
 
-    @Autowired
     private ResponseProcessorChainFactory responseProcessorChain;
 
-    @Autowired
     private OnErrorProcessorChainFactory errorProcessorChain;
+
+    private ResourceLifecycleManager resourceLifecycleManager;
+
+    private PolicyManager policyManager;
+
+    private GroupLifecycleManager groupLifecycleManager;
+
+    public ApiReactorHandler(final Api api) {
+        super(api);
+    }
 
     @Override
     protected void doHandle(final ExecutionContext context) {
@@ -74,12 +75,12 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         request.pause();
 
         context.setAttribute(ExecutionContext.ATTR_CONTEXT_PATH, request.contextPath());
-        context.setAttribute(ExecutionContext.ATTR_API, api.getId());
-        context.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
+        context.setAttribute(ExecutionContext.ATTR_API, reactable.getId());
+        context.setAttribute(ExecutionContext.ATTR_API_DEPLOYED_AT, reactable.getDeployedAt().getTime());
         context.setAttribute(ExecutionContext.ATTR_INVOKER, invoker);
 
         // Prepare request metrics
-        request.metrics().setApi(api.getId());
+        request.metrics().setApi(reactable.getId());
         request.metrics().setPath(request.pathInfo());
 
         // It's time to process incoming client request
@@ -259,20 +260,15 @@ public class ApiReactorHandler extends AbstractReactorHandler {
     }
 
     @Override
-    public Reactable reactable() {
-        return api;
-    }
-
-    @Override
     protected void doStart() throws Exception {
         logger.debug("API handler is now starting, preparing API context...");
         long startTime = System.currentTimeMillis(); // Get the start Time
         super.doStart();
 
         // Start resources before
-        applicationContext.getBean(ResourceLifecycleManager.class).start();
-        applicationContext.getBean(PolicyManager.class).start();
-        applicationContext.getBean(GroupLifecycleManager.class).start();
+        resourceLifecycleManager.start();
+        policyManager.start();
+        groupLifecycleManager.start();
 
         dumpVirtualHosts();
 
@@ -284,9 +280,9 @@ public class ApiReactorHandler extends AbstractReactorHandler {
     protected void doStop() throws Exception {
         logger.debug("API handler is now stopping, closing context for {} ...", this);
 
-        applicationContext.getBean(PolicyManager.class).stop();
-        applicationContext.getBean(ResourceLifecycleManager.class).stop();
-        applicationContext.getBean(GroupLifecycleManager.class).stop();
+        policyManager.stop();
+        resourceLifecycleManager.stop();
+        groupLifecycleManager.stop();
 
         super.doStop();
         logger.debug("API handler is now stopped: {}", this);
@@ -294,7 +290,7 @@ public class ApiReactorHandler extends AbstractReactorHandler {
 
     @Override
     public String toString() {
-        return "Handler API id[" + api.getId() + "] name[" + api.getName() + "] version[" + api.getVersion() + ']';
+        return "Handler API id[" + reactable.getId() + "] name[" + reactable.getName() + "] version[" + reactable.getVersion() + ']';
     }
 
     @Override
@@ -302,12 +298,40 @@ public class ApiReactorHandler extends AbstractReactorHandler {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApiReactorHandler that = (ApiReactorHandler) o;
-        return api.equals(that.api);
+        return reactable.equals(that.reactable);
+    }
+
+    public void setInvoker(Invoker invoker) {
+        this.invoker = invoker;
+    }
+
+    public void setRequestProcessorChain(RequestProcessorChainFactory requestProcessorChain) {
+        this.requestProcessorChain = requestProcessorChain;
+    }
+
+    public void setResponseProcessorChain(ResponseProcessorChainFactory responseProcessorChain) {
+        this.responseProcessorChain = responseProcessorChain;
+    }
+
+    public void setErrorProcessorChain(OnErrorProcessorChainFactory errorProcessorChain) {
+        this.errorProcessorChain = errorProcessorChain;
+    }
+
+    public void setResourceLifecycleManager(ResourceLifecycleManager resourceLifecycleManager) {
+        this.resourceLifecycleManager = resourceLifecycleManager;
+    }
+
+    public void setPolicyManager(PolicyManager policyManager) {
+        this.policyManager = policyManager;
+    }
+
+    public void setGroupLifecycleManager(GroupLifecycleManager groupLifecycleManager) {
+        this.groupLifecycleManager = groupLifecycleManager;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(api);
+        return Objects.hash(reactable);
     }
 
     private static final ProcessorFailure TIMEOUT_PROCESSOR_FAILURE = new ProcessorFailure() {

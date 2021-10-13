@@ -20,6 +20,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
+import io.gravitee.gateway.api.endpoint.resolver.EndpointResolver;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.proxy.ProxyResponse;
@@ -28,33 +29,33 @@ import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.core.invoker.EndpointInvoker;
 import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.circuitbreaker.CircuitBreakerOptions;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class FailoverInvoker extends EndpointInvoker implements InitializingBean {
+public class FailoverInvoker extends EndpointInvoker {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FailoverInvoker.class);
     private static final String errorMessageFormat = "[%s] %s";
 
-    @Autowired
-    private Vertx vertx;
-
-    private CircuitBreaker circuitBreaker;
+    private final Vertx vertx;
 
     private final FailoverOptions options;
 
-    public FailoverInvoker(final FailoverOptions options) {
+    private CircuitBreaker circuitBreaker;
+
+    public FailoverInvoker(final Vertx vertx, final EndpointResolver endpointResolver, final FailoverOptions options) {
+        super(endpointResolver);
+        this.vertx = vertx;
         this.options = options;
+
+        this.initialize();
     }
 
     @Override
@@ -142,8 +143,7 @@ public class FailoverInvoker extends EndpointInvoker implements InitializingBean
             );
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
+    private void initialize() {
         circuitBreaker =
             CircuitBreaker.create(
                 "cb-" + options.hashCode(),

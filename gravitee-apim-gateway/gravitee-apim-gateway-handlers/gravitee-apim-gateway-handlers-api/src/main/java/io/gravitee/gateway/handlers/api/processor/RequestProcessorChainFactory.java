@@ -21,7 +21,6 @@ import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.core.processor.provider.StreamableProcessorSupplier;
-import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.flow.BestMatchPolicyResolver;
 import io.gravitee.gateway.flow.SimpleFlowPolicyChainProvider;
 import io.gravitee.gateway.flow.SimpleFlowProvider;
@@ -30,6 +29,8 @@ import io.gravitee.gateway.flow.condition.ConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.HttpMethodConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.PathBasedConditionEvaluator;
 import io.gravitee.gateway.flow.condition.evaluation.el.ExpressionLanguageBasedConditionEvaluator;
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.flow.api.ApiFlowResolver;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowPolicyChainProvider;
 import io.gravitee.gateway.handlers.api.flow.plan.PlanFlowResolver;
@@ -44,12 +45,11 @@ import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProc
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersIndexProcessor;
 import io.gravitee.gateway.policy.PolicyChainOrder;
 import io.gravitee.gateway.policy.PolicyChainProviderLoader;
-import io.gravitee.gateway.policy.PolicyResolver;
+import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.StreamType;
+import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
 import io.gravitee.gateway.security.core.SecurityPolicyChainProvider;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -59,23 +59,29 @@ import org.springframework.beans.factory.annotation.Value;
  */
 public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
 
-    @Value("${reporters.logging.max_size:-1}")
-    private int maxSizeLogMessage;
+    private final RequestProcessorChainFactoryOptions requestProcessorChainFactoryOptions;
+    private final PolicyChainProviderLoader policyChainProviderLoader;
+    private final AuthenticationHandlerSelector authenticationHandlerSelector;
+    private final PolicyManager policyManager;
 
-    @Value("${reporters.logging.excluded_response_types:#{null}}")
-    private String excludedResponseTypes;
+    public RequestProcessorChainFactory(
+        final Api api,
+        final PolicyChainFactory policyChainFactory,
+        final PolicyManager policyManager,
+        final RequestProcessorChainFactoryOptions requestProcessorChainFactoryOptions,
+        final PolicyChainProviderLoader policyChainProviderLoader,
+        final AuthenticationHandlerSelector authenticationHandlerSelector
+    ) {
+        super(api, policyChainFactory);
+        this.policyManager = policyManager;
+        this.requestProcessorChainFactoryOptions = requestProcessorChainFactoryOptions;
+        this.policyChainProviderLoader = policyChainProviderLoader;
+        this.authenticationHandlerSelector = authenticationHandlerSelector;
 
-    @Value("${handlers.request.headers.x-forwarded-prefix:false}")
-    private boolean overrideXForwardedPrefix;
+        this.initialize();
+    }
 
-    @Autowired
-    GatewayConfiguration gatewayConfiguration;
-
-    @Autowired
-    PolicyChainProviderLoader policyChainProviderLoader;
-
-    @Override
-    public void afterPropertiesSet() {
+    private void initialize() {
         addAll(policyChainProviderLoader.get(PolicyChainOrder.BEFORE_API, StreamType.ON_REQUEST));
 
         StreamableProcessorSupplier<ExecutionContext, Buffer> loggingDecoratorSupplier = null;
@@ -84,8 +90,8 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                 new StreamableProcessorSupplier<>(
                     () -> {
                         ApiLoggableRequestProcessor processor = new ApiLoggableRequestProcessor(api.getProxy().getLogging());
-                        processor.setMaxSizeLogMessage(maxSizeLogMessage);
-                        processor.setExcludedResponseTypes(excludedResponseTypes);
+                        processor.setMaxSizeLogMessage(requestProcessorChainFactoryOptions.getMaxSizeLogMessage());
+                        processor.setExcludedResponseTypes(requestProcessorChainFactoryOptions.getExcludedResponseTypes());
 
                         return processor;
                     }
@@ -99,9 +105,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
         }
 
         // Prepare security policy chain
-        final PolicyResolver securityPolicyResolver = new SecurityPolicyResolver();
-        applicationContext.getAutowireCapableBeanFactory().autowireBean(securityPolicyResolver);
-        add(new SecurityPolicyChainProvider(securityPolicyResolver));
+        add(new SecurityPolicyChainProvider(new SecurityPolicyResolver(policyManager, authenticationHandlerSelector)));
 
         final ConditionEvaluator evaluator = new CompositeConditionEvaluator(
             new HttpMethodConditionEvaluator(),
@@ -113,24 +117,24 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
             add(loggingDecoratorSupplier);
         }
 
-        if (overrideXForwardedPrefix) {
+        if (requestProcessorChainFactoryOptions.isOverrideXForwardedPrefix()) {
             add(XForwardedPrefixProcessor::new);
         }
 
         if (api.getDefinitionVersion() == DefinitionVersion.V1) {
             add(() -> new PathParametersIndexProcessor(new ApiPathResolverImpl(api)));
-            add(new PlanPolicyChainProvider(StreamType.ON_REQUEST, new PlanPolicyResolver(api), chainFactory));
-            add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), chainFactory));
+            add(new PlanPolicyChainProvider(StreamType.ON_REQUEST, new PlanPolicyResolver(api), policyChainFactory));
+            add(new ApiPolicyChainProvider(StreamType.ON_REQUEST, new ApiPolicyResolver(), policyChainFactory));
         } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             if (api.getFlowMode() == null || api.getFlowMode() == FlowMode.DEFAULT) {
                 add(
                     new PlanFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_REQUEST, new PlanFlowResolver(api, evaluator), chainFactory)
+                        new SimpleFlowProvider(StreamType.ON_REQUEST, new PlanFlowResolver(api, evaluator), policyChainFactory)
                     )
                 );
                 add(
                     new SimpleFlowPolicyChainProvider(
-                        new SimpleFlowProvider(StreamType.ON_REQUEST, new ApiFlowResolver(api, evaluator), chainFactory)
+                        new SimpleFlowProvider(StreamType.ON_REQUEST, new ApiFlowResolver(api, evaluator), policyChainFactory)
                     )
                 );
             } else {
@@ -139,7 +143,7 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_REQUEST,
                             new BestMatchPolicyResolver(new PlanFlowResolver(api, evaluator)),
-                            chainFactory
+                            policyChainFactory
                         )
                     )
                 );
@@ -148,11 +152,47 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                         new SimpleFlowProvider(
                             StreamType.ON_REQUEST,
                             new BestMatchPolicyResolver(new ApiFlowResolver(api, evaluator)),
-                            chainFactory
+                            policyChainFactory
                         )
                     )
                 );
             }
+        }
+    }
+
+    public static class RequestProcessorChainFactoryOptions {
+
+        private int maxSizeLogMessage = -1;
+
+        private String excludedResponseTypes;
+
+        private boolean overrideXForwardedPrefix = false;
+
+        public int getMaxSizeLogMessage() {
+            return maxSizeLogMessage;
+        }
+
+        public RequestProcessorChainFactoryOptions setMaxSizeLogMessage(int maxSizeLogMessage) {
+            this.maxSizeLogMessage = maxSizeLogMessage;
+            return this;
+        }
+
+        public String getExcludedResponseTypes() {
+            return excludedResponseTypes;
+        }
+
+        public RequestProcessorChainFactoryOptions setExcludedResponseTypes(String excludedResponseTypes) {
+            this.excludedResponseTypes = excludedResponseTypes;
+            return this;
+        }
+
+        public boolean isOverrideXForwardedPrefix() {
+            return overrideXForwardedPrefix;
+        }
+
+        public RequestProcessorChainFactoryOptions setOverrideXForwardedPrefix(boolean overrideXForwardedPrefix) {
+            this.overrideXForwardedPrefix = overrideXForwardedPrefix;
+            return this;
         }
     }
 }

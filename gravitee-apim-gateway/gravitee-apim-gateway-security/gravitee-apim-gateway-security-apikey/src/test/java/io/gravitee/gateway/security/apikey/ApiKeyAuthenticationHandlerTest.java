@@ -19,12 +19,14 @@ import static java.util.Optional.of;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import io.gravitee.common.http.GraviteeHttpHeader;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.security.core.AuthenticationContext;
 import io.gravitee.gateway.security.core.AuthenticationPolicy;
 import io.gravitee.gateway.security.core.PluginAuthenticationPolicy;
@@ -35,18 +37,15 @@ import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -77,6 +76,19 @@ public class ApiKeyAuthenticationHandlerTest {
     @Before
     public void init() {
         initMocks(this);
+
+        ComponentProvider provider = mock(ComponentProvider.class);
+
+        when(provider.getComponent(ApiKeyRepository.class)).thenReturn(apiKeyRepository);
+        when(provider.getComponent(Api.class)).thenReturn(api);
+
+        Environment environment = mock(Environment.class);
+        when(environment.getProperty(eq("policy.api-key.header"), anyString())).thenReturn(GraviteeHttpHeader.X_GRAVITEE_API_KEY);
+        when(environment.getProperty(eq("policy.api-key.param"), anyString())).thenReturn("api-key");
+
+        when(provider.getComponent(Environment.class)).thenReturn(environment);
+
+        authenticationHandler.resolve(provider);
     }
 
     @Test

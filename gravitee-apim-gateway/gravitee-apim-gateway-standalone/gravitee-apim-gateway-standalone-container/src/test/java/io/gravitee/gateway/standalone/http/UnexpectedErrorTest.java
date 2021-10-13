@@ -47,8 +47,8 @@ public class UnexpectedErrorTest extends AbstractWiremockGatewayTest {
     }
 
     @Override
-    public void register(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
-        super.register(policyPluginManager);
+    public void registerPolicy(ConfigurablePluginManager<PolicyPlugin> policyPluginManager) {
+        super.registerPolicy(policyPluginManager);
 
         PolicyPlugin myPolicy = PolicyBuilder.build("unexpected-error-policy", UnexpectedErrorPolicy.class);
         policyPluginManager.register(myPolicy);

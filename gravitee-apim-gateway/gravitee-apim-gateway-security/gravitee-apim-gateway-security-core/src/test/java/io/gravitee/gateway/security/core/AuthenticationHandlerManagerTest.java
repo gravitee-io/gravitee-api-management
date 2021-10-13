@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.gateway.core.component.ComponentProvider;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,13 +37,15 @@ public class AuthenticationHandlerManagerTest {
     @Mock
     private SecurityProviderLoader securityProviderLoader;
 
+    @Mock
+    private ComponentProvider componentProvider;
+
     private AuthenticationHandlerManager authenticationHandlerManager;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        authenticationHandlerManager = new AuthenticationHandlerManager();
-        authenticationHandlerManager.setSecurityProviderLoader(securityProviderLoader);
+        authenticationHandlerManager = new AuthenticationHandlerManager(securityProviderLoader, componentProvider);
     }
 
     @Test

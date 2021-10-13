@@ -18,37 +18,40 @@ package io.gravitee.gateway.reactor.handler.context;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.context.MutableExecutionContext;
-import io.gravitee.tracing.api.Tracer;
+import io.gravitee.gateway.core.component.ComponentProvider;
+import java.util.ArrayList;
 import java.util.List;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 /**
+ * A factory of {@link ExecutionContext}. A single instance is created on per {@link io.gravitee.gateway.reactor.Reactable}
+ * basis because {@link TemplateVariableProvider} providers list is containing provider specific to the reactable.
+ *
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ExecutionContextFactory implements InitializingBean {
+public class ExecutionContextFactory {
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final List<TemplateVariableProvider> providers = new ArrayList<>();
 
-    @Autowired
-    private TemplateVariableProviderFactory templateVariableProviderFactory;
+    private final ComponentProvider componentProvider;
 
-    private List<TemplateVariableProvider> providers;
-
-    @Autowired
-    private Tracer tracer;
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        providers = templateVariableProviderFactory.getTemplateVariableProviders();
+    public ExecutionContextFactory(ComponentProvider componentProvider) {
+        this.componentProvider = componentProvider;
     }
 
+    /**
+     * Create a new {@link ExecutionContext} for each of the incoming request to the gateway.
+     *
+     * @param wrapped
+     * @return
+     */
     public ExecutionContext create(ExecutionContext wrapped) {
-        ReactableExecutionContext context = new ReactableExecutionContext((MutableExecutionContext) wrapped, tracer, applicationContext);
+        ReactableExecutionContext context = new ReactableExecutionContext((MutableExecutionContext) wrapped, componentProvider);
         context.setProviders(providers);
         return context;
+    }
+
+    public void addTemplateVariableProvider(TemplateVariableProvider templateVariableProvider) {
+        this.providers.add(templateVariableProvider);
     }
 }

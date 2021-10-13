@@ -15,6 +15,8 @@
  */
 package io.gravitee.gateway.handlers.api.processor;
 
+import io.gravitee.gateway.flow.policy.PolicyChainFactory;
+import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsSimpleRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.error.SimpleFailureProcessor;
 import io.gravitee.gateway.handlers.api.processor.error.templates.ResponseTemplateBasedFailureProcessor;
@@ -26,8 +28,12 @@ import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcess
  */
 public class OnErrorProcessorChainFactory extends ApiProcessorChainFactory {
 
-    @Override
-    public void afterPropertiesSet() {
+    public OnErrorProcessorChainFactory(final Api api, final PolicyChainFactory policyChainFactory) {
+        super(api, policyChainFactory);
+        this.initialize();
+    }
+
+    private void initialize() {
         if (api.getProxy().getCors() != null && api.getProxy().getCors().isEnabled()) {
             add(() -> new CorsSimpleRequestProcessor(api.getProxy().getCors()));
         }
