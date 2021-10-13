@@ -39,6 +39,14 @@ $typography: map.get(gio.$gio-theme, typography);
       &:hover:enabled {
         background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'dark');
       }
+
+      &.invalid {
+        background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'light');
+
+        &:hover:enabled {
+          background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium');
+        }
+      }
     }
   }
 }

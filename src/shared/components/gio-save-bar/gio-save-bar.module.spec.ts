@@ -17,7 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatInputHarness } from '@angular/material/input/testing';
 
@@ -144,6 +144,39 @@ describe('GioFormCardGroupModule', () => {
 
       await saveBar.clickSubmit();
       expect(onSubmitMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('should invalidate form submit button', async () => {
+      aForm.controls.anInput.addValidators(Validators.required);
+      fixture.detectChanges();
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      const input = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=anInput]' }));
+
+      // Visible after a change
+      expect(await saveBar.isVisible()).toBeFalsy();
+      await input.setValue('New value');
+      expect(await saveBar.isVisible()).toBeTruthy();
+
+      // Invalidate button when form is invalid
+      expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
+      await input.setValue('');
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+    });
+
+    it('should markAllAsTouched on submit when form is invalid', async () => {
+      aForm.controls.anInput.addValidators(Validators.required);
+      aForm.controls.anInput.setValue('');
+      fixture.detectChanges();
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      // Open save bar
+      aForm.markAsDirty();
+      expect(await saveBar.isVisible()).toBeTruthy();
+
+      // touch all form after summit
+      expect(aForm.controls.anInput.touched).toEqual(false);
+      await saveBar.clickSubmit();
+      expect(aForm.controls.anInput.touched).toEqual(true);
     });
 
     it('should reset the form', async () => {

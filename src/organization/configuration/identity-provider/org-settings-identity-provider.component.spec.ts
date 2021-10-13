@@ -112,7 +112,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       const syncMappingsRadioGroupe = await loader.getHarness(MatRadioGroupHarness.with({ selector: '[formControlName=syncMappings]' }));
       await syncMappingsRadioGroupe.checkRadioButton({ label: /^Computed during each user/ });
 
-      expect(await saveBar.isSubmitButtonDisabled()).toEqual(true);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
 
       // Set value for required GRAVITEEIO_AM fields
       const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=clientId]' }));
@@ -130,7 +130,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
       await idInput.setValue('Id');
 
-      expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
 
       await saveBar.clickSubmit();
 
@@ -531,7 +531,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       const idInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=id]' }));
       await idInput.setValue('Updated Id');
 
-      expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+      expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
 
       await saveBar.clickSubmit();
 
@@ -612,7 +612,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         await groupsSelect.clickOptions({ text: 'Group B' });
 
         const saveBar = await loader.getHarness(GioSaveBarHarness);
-        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
         await saveBar.clickSubmit();
 
         expectIdentityProviderUpdateRequest('providerId', {
@@ -633,7 +633,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const addGroupMappingButton = await groupMappingsCard.getHarness(MatButtonHarness.with({ text: /Add group mapping/ }));
         await addGroupMappingButton.click();
 
-        expect(await saveBar.isSubmitButtonDisabled()).toEqual(true);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
 
         // 📝 [ng-reflect-name="0"] is the index of the first group mapping
         // Select the new card added of groupMappingsCard
@@ -644,7 +644,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const groupsSelect = await groupMappingCardAdded.getHarness(MatSelectHarness.with({ selector: '[formControlName=groups]' }));
         await groupsSelect.clickOptions({ text: 'Group B' });
 
-        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
         await saveBar.clickSubmit();
 
         expectIdentityProviderUpdateRequest('providerId', {
@@ -668,7 +668,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         );
         await removeGroupMappingButton.click();
 
-        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
         await saveBar.clickSubmit();
 
         expectIdentityProviderUpdateRequest('providerId', {
@@ -755,7 +755,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         await environmentAlphaSelect.clickOptions({ text: 'ROLE_ENV_API' });
 
         const saveBar = await loader.getHarness(GioSaveBarHarness);
-        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
         await saveBar.clickSubmit();
 
         expectIdentityProviderUpdateRequest('providerId', {
@@ -785,7 +785,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const addRoleMappingButton = await roleMappingsCard.getHarness(MatButtonHarness.with({ text: /Add role mapping/ }));
         await addRoleMappingButton.click();
 
-        expect(await saveBar.isSubmitButtonDisabled()).toEqual(true);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(true);
 
         // 📝 [ng-reflect-name="1"] is the index of the new role mapping added
         // Select the new card added of roleMappingsCard
@@ -812,7 +812,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
         const environmentBetaSelect = await environmentBetaActionsCell.getHarness(MatSelectHarness);
         await environmentBetaSelect.clickOptions({ text: 'ROLE_ENV_USER' });
 
-        expect(await saveBar.isSubmitButtonDisabled()).toEqual(false);
+        expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
         await saveBar.clickSubmit();
 
         expectIdentityProviderUpdateRequest('providerId', {

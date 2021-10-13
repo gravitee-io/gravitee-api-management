@@ -25,11 +25,11 @@
       </button>
       <button
         class="save-bar__content__submit-button"
+        [class.invalid]="this.form && this.form.invalid"
         mat-flat-button
         color="primary"
         [type]="form ? 'submit' : 'button'"
         (click)="onSubmitClicked()"
-        [disabled]="isSubmitDisabled()"
       >
         {{ creationMode ? 'Create' : 'Save Changes' }}
       </button>

@@ -64,10 +64,6 @@ export class GioSaveBarComponent {
     return this.opened;
   }
 
-  isSubmitDisabled() {
-    return this.form && this.form.invalid;
-  }
-
   onResetClicked(): void {
     if (this.form) {
       this.form.reset(this.formInitialValues);
@@ -77,6 +73,10 @@ export class GioSaveBarComponent {
   }
 
   onSubmitClicked(): void {
+    if (this.form && this.form.invalid) {
+      this.form.markAllAsTouched();
+    }
+
     this.submit.emit();
   }
 }
