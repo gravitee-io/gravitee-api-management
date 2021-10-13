@@ -24,6 +24,8 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   template: require('./org-settings-identity-provider-google.component.html'),
 })
 export class OrgSettingsIdentityProviderGoogleComponent implements ProviderConfiguration {
+  name = 'OrgSettingsIdentityProviderGoogleComponent';
+
   configurationFormGroup: FormGroup = new FormGroup({
     clientId: new FormControl(null, Validators.required),
     clientSecret: new FormControl(null, Validators.required),

@@ -24,6 +24,8 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   template: require('./org-settings-identity-provider-graviteeio-am.component.html'),
 })
 export class OrgSettingsIdentityProviderGraviteeioAmComponent implements ProviderConfiguration {
+  name = 'OrgSettingsIdentityProviderGraviteeioAmComponent';
+
   configurationFormGroup: FormGroup = new FormGroup({
     clientId: new FormControl(null, Validators.required),
     clientSecret: new FormControl(null, Validators.required),

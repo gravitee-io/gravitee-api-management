@@ -24,6 +24,8 @@ import { ProviderConfiguration } from '../org-settings-identity-provider.compone
   template: require('./org-settings-identity-provider-oidc.component.html'),
 })
 export class OrgSettingsIdentityProviderOidcComponent implements ProviderConfiguration {
+  name = 'OrgSettingsIdentityProviderOidcComponent';
+
   configurationFormGroup: FormGroup = new FormGroup({
     clientId: new FormControl(null, Validators.required),
     clientSecret: new FormControl(null, Validators.required),

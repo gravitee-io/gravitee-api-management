@@ -30,6 +30,7 @@ import { RoleService } from '../../../services-ngx/role.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 export interface ProviderConfiguration {
+  name: string;
   getFormGroups(): Record<string, FormGroup>;
 }
 @Component({
@@ -50,8 +51,8 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   @ViewChild('providerConfiguration', { static: false })
   set providerConfiguration(providerPart: ProviderConfiguration | undefined) {
     // only if providerPart changed
-    if (providerPart && this._providerPartName !== providerPart.constructor.name) {
-      this._providerPartName = providerPart.constructor.name;
+    if (providerPart && this._providerPartName !== providerPart.name) {
+      this._providerPartName = providerPart.name;
       this.addProviderFormGroups(providerPart.getFormGroups());
     }
   }
