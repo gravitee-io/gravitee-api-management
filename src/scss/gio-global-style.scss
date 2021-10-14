@@ -6,6 +6,7 @@
 @import './gio-badge';
 
 $background: map.get(theme.$gio-theme, background);
+$typography: map.get(theme.$gio-theme, typography);
 
 .gio-snack-bar-success {
   background-color: mat.get-color-from-palette(gio.$gio-success-palette, 'medium');
@@ -40,4 +41,8 @@ $background: map.get(theme.$gio-theme, background);
   tbody tr:hover {
     background-color: mat.get-color-from-palette($background, hover);
   }
+}
+
+.mat-hint {
+  font-size: mat.font-size(theme.$gio-typography, caption);
 }
