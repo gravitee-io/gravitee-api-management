@@ -1,0 +1,1078 @@
+{
+  "analytics": {
+    "empty": "无结果显示",
+    "timeframes": {
+      "day": "天",
+      "days": "天数",
+      "hour": "时间",
+      "hours": "小时",
+      "minutes": "分钟"
+    }
+  },
+  "api": {
+    "createdAt": "创建于",
+    "deployedAt": "部署于",
+    "description": "描述",
+    "endpoint": "上下文路径",
+    "information": {
+      "about": "关于",
+      "beFirstToRate": "率先评分",
+      "categories": "类别",
+      "entrypoints": "访问URL",
+      "labels": "标签",
+      "metrics": "指标",
+      "ratings": "等级",
+      "resources": "资源"
+    },
+    "list": {
+      "connectedApps": "已连接的应用程序"
+    },
+    "name": "名称",
+    "owner": "拥有者",
+    "publishedAt": "发表于",
+    "version": "版本号"
+  },
+  "apiGeneral": {
+    "backToApplication": "返回至应用程序 \"{name}\"",
+    "backToCatalog": "返回目录",
+    "backToCategory": "返回至目录 \"{name}\"",
+    "backToSearch": "返回搜索结果",
+    "description": "描述",
+    "giveRating": "分享评论",
+    "rate": "等级",
+    "rateComment": "解释原因",
+    "rateTitle": "你会推荐这个API吗?",
+    "rateTitlePlaceholder": "一句话",
+    "ratingAnswerCreated": "您的答复已发送",
+    "ratingAnswerDeleted": "您的答案已被删除",
+    "ratingCreated": "您的评论已发送",
+    "ratingDeleted": "您的评论已被删除",
+    "ratingUpdated": "谢谢您的评论",
+    "ratingsSortOptions": {
+      "answers": "最多评论的",
+      "best": "最佳评级",
+      "newest": "最近的",
+      "oldest": "最久的",
+      "worst": "最低评级"
+    },
+    "showMore": "显示更多",
+    "userRatings": "用户评级"
+  },
+  "apiSubscribe": {
+    "apps": {
+      "chooseApp": "选择一个应用程序",
+      "comment": "请向API所有者留下评论",
+      "connectedApps": "您已经有 <b>{count}</b> {count, plural, =0{} one{已连接的应用程序} other{已连接的应用程序}} 使用API <b>{apiName}</b>.",
+      "createApp": "我想创建一个应用程序",
+      "description": "该应用程序是您作为消费者，与订阅API计划之间的链接.",
+      "missingClientId": "缺少客户端id",
+      "noAvailableApplications": "没有可用的应用程序."
+    },
+    "chooseApp": {
+      "title": "应用选择"
+    },
+    "choosePlan": {
+      "title": "方案选择"
+    },
+    "connectedApps": "{count, plural, =0{} one{已连接的应用程序} other{已连接的应用程序}} to {planName}",
+    "errors": {
+      "information": "订阅过程中发生错误.",
+      "notConnected": "登录或创建帐户以订阅API.",
+      "sorry": "对不起"
+    },
+    "exit": "退出",
+    "nextStep": "下一个",
+    "plan": "计划",
+    "plans": {
+      "description": "组织API的基本目录",
+      "sample": "您可以开始使用API",
+      "title": "计划及特性"
+    },
+    "previousStep": "之前",
+    "success": {
+      "congratulations": "好极了!",
+      "discoverApi": "开始发现API",
+      "goToHome": "返回主页",
+      "oauth2": "在能够使用此API之前，您必须从授权服务器获取访问令牌.",
+      "subscriptionAccepted": "接受应用程序<b>{appName}</b>对API<b>{apiName}</b>的计划<b>{planName}</b>的订阅!",
+      "subscriptionKey": "这是访问API的个人密钥",
+      "subscriptionPending": "正在验证应用程序对API的计划的订阅.",
+      "subscriptionRejected": "向API<b>{apiName}</b>的<b>{planName}</b>计划订阅<b>{appName}</b>应用程序被拒绝."
+    },
+    "validate": {
+      "askConfirmation": "即将完成对API <b>{apiName}</b> 的 <b>{planName}</b> 计划的 <b>{appName}</b> 应用程序的订阅.",
+      "information": "{hasAutoValidation, select, true {验证是自动的,订阅完成后,您将能够使用API.} other {您的订阅验证需要所有者的批准,一旦您的访问验证,您将收到一封电子邮件.}}",
+      "notCompleted": "对API <b>{apiName}</b> 的订阅未完成, 返回到前面的步骤并输入缺少的信息.",
+      "subscription": "验证请求",
+      "title": "验证"
+    }
+  },
+  "application": {
+    "alerts": {
+      "disabled": "在能够定义警报规则之前，请与管理员联系在能够定义警报规则之前，请与管理员联系.",
+      "maximum": "您已达到最多10个警报",
+      "update": {
+        "success": "警报已更新"
+      },
+      "delete": {
+        "success": "警报已删除"
+      },
+      "information": "已配置其电子邮件地址的每个应用程序成员都将收到通知",
+      "list": {
+        "empty": "无结果显示",
+        "title": "警报列表"
+      },
+      "type": {
+        "status": "状态码",
+        "response_time": "平均响应时间（毫秒）"
+      },
+      "timeUnits": {
+        "seconds": "秒",
+        "minutes": "分",
+        "hours": "时"
+      },
+      "phrase": {
+        "first": "警惕",
+        "status": {
+          "second": "结束",
+          "third": "%"
+        },
+        "response_time": {
+          "second": "结束",
+          "third": "毫秒"
+        },
+        "last": "过去"
+      },
+      "add": {
+        "title": "添加警报",
+        "reset": "重置",
+        "success": "已创建警报",
+        "type": {
+          "placeholder": "选择一种类型",
+          "status": {
+            "name": "状态码",
+            "percent": {
+              "placeholder": "0..100"
+            },
+            "http_status": {
+              "placeholder": "状态"
+            }
+          }
+        }
+      }
+    },
+    "analytics": {
+      "displayLogs": "查看日志",
+      "exportCSV": "以CSV格式导出",
+      "goToAlerts": "创建警报",
+      "filters": {
+        "advanced": {
+          "hide": "隐藏高级过滤器",
+          "show": "显示高级过滤器"
+        },
+        "api": {
+          "label": "API",
+          "title": "选择一个API"
+        },
+        "methods": {
+          "label": "HTTP方法",
+          "title": "选择一个HTTP方法"
+        },
+        "path": {
+          "label": "路径",
+          "title": "选择路径"
+        },
+        "payloads": {
+          "label": "消息体",
+          "title": "在消息体中搜索文本"
+        },
+        "requestId": {
+          "label": "请求ID",
+          "title": "输入请求ID"
+        },
+        "responseTimes": {
+          "label": "响应时间",
+          "title": "选择响应时间间隔"
+        },
+        "status": {
+          "label": "http状态码",
+          "title": "选择HTTP状态码"
+        },
+        "transactionId": {
+          "label": "事务Id",
+          "title": "选择一个事务Id"
+        }
+      },
+      "search": "搜索"
+    },
+    "change_background": "改变背景",
+    "change_picture": "改变图片",
+    "client_id": {
+      "label": "客户端ID",
+      "title": "客户端ID"
+    },
+    "client_secret": {
+      "label": "客户端密钥",
+      "title": "客户端密钥"
+    },
+    "delete": {
+      "cancel": "取消",
+      "message": "是否确实要删除此应用程序?",
+      "ok": "OK"
+    },
+    "description": {
+      "label": "描述此应用程序的目标",
+      "title": "描述"
+    },
+    "general": "常规",
+    "information": {
+      "createdDate": "创建",
+      "lastUpdate": "更新",
+      "owner": "所有者",
+      "title": "信息",
+      "type": "类型"
+    },
+    "list": {
+      "connectedApis": "订阅的API"
+    },
+    "log": {
+      "request": "请求",
+      "requestBody": "请求体",
+      "requestContentLength": "发送内容的大小",
+      "requestHeaders": "HTTP请求头",
+      "requestId": "请求ID",
+      "response": "响应",
+      "responseBody": "响应体",
+      "responseContentLength": "接收内容的大小",
+      "responseHeaders": "HTTP响应头",
+      "responseTime": "响应时间",
+      "transactionId": "事务Id"
+    },
+    "logs": {
+      "api": "API",
+      "date": "日期",
+      "displayAnalytics": "视图分析",
+      "method": "方法",
+      "path": "路径",
+      "plan": "计划",
+      "responseTime": "响应时间",
+      "status": "状态",
+      "title": "日志"
+    },
+    "members": {
+      "add": {
+        "add": "添加",
+        "reset": "重置",
+        "role": {
+          "name": "角色",
+          "placeholder": "选择一个角色"
+        },
+        "success": "新成员已添加",
+        "title": "添加一个成员",
+        "user": {
+          "name": "用户",
+          "placeholder": "查询一个用户..."
+        }
+      },
+      "inherited": {
+        "groupTitle": "{nbMembers} 成员继承自 \"{groupName}\" 组",
+        "hide": "隐藏",
+        "show": "显示",
+        "title": "继承成员"
+      },
+      "list": {
+        "member": "成员",
+        "remove": {
+          "message": "您确定要删除此成员吗?",
+          "success": "成员已删除",
+          "title": "删除成员"
+        },
+        "role": "角色",
+        "success": "角色已更新",
+        "title": "成员列表"
+      },
+      "transferOwnership": {
+        "confirm": {
+          "cancel": "取消",
+          "message": "此操作无法撤消。<br/>新所有者将是<b>{name}</b><br/>您将被重定向到应用程序列表.",
+          "ok": "明白，请转寄此申请"
+        },
+        "currentPrimaryOwnerNewRole": {
+          "name": "新角色",
+          "placeholder": "为当前主要所有者选择新角色"
+        },
+        "information": "向其他用户授予对此应用程序的完全访问权限.",
+        "newPrimaryOwner": {
+          "name": "新的主要所有者",
+          "placeholder": "搜索新的主要所有者..."
+        },
+        "reset": "重置",
+        "success": "主要所有者已更新",
+        "title": "转让所有权",
+        "transfer": "转让"
+      }
+    },
+    "metadata": {
+      "format": "格式",
+      "key": "键",
+      "list": {
+        "add": {
+          "title": "新增"
+        },
+        "remove": {
+          "title": "删除"
+        },
+        "title": "元数据列表"
+      },
+      "name": "名称",
+      "reset": {
+        "title": "重置"
+      },
+      "update": {
+        "success": "更新已成功完成",
+        "title": "更新"
+      },
+      "value": "值"
+    },
+    "name": {
+      "label": "app的名字",
+      "title": "应用程序名称"
+    },
+    "notifications": {
+      "NEW_SUPPORT_TICKET": {
+        "description": "创建与应用程序相关的票证时，您将收到通知",
+        "label": "新建支持票据"
+      },
+      "SUBSCRIPTION": {
+        "title": "订阅"
+      },
+      "SUBSCRIPTION_ACCEPTED": {
+        "description": "当订阅被接受时，您将收到通知",
+        "label": "接受订阅"
+      },
+      "SUBSCRIPTION_CLOSED": {
+        "description": "订阅关闭时，您将收到通知",
+        "label": "关闭订阅"
+      },
+      "SUBSCRIPTION_NEW": {
+        "description": "请求新订阅时，您将收到通知",
+        "label": "新订阅"
+      },
+      "SUBSCRIPTION_PAUSED": {
+        "description": "订阅暂停时，您将收到通知",
+        "label": "暂停订阅"
+      },
+      "SUBSCRIPTION_REJECTED": {
+        "description": "当订阅被拒绝时，您将收到通知",
+        "label": "拒绝订阅"
+      },
+      "SUBSCRIPTION_RESUMED": {
+        "description": "暂停后重新激活订阅时，您将收到通知",
+        "label": "重新激活订阅"
+      },
+      "SUBSCRIPTION_TRANSFERRED": {
+        "description": "在传输订阅时，您将收到通知",
+        "label": "传输订阅"
+      },
+      "SUPPORT": {
+        "title": "支持"
+      },
+      "header": "您想订阅哪些事件?",
+      "saveSuccess": "已保存此应用的通知订阅",
+      "title": "订阅"
+    },
+    "oauth2": "OAuth2整合",
+    "renewSecret": {
+      "label": "重建密钥",
+      "message": "是否确实要续订应用程序的密钥?<br/>续订机密后，您将无法再生成新的访问令牌并调用API."
+    },
+    "subscriptions": {
+      "api": "API",
+      "apiKey": {
+        "created_at": "创建于",
+        "end_at": "结束于",
+        "ended_at": "完成于",
+        "expired": {
+          "hide": "隐藏过期的密钥",
+          "show": "显示过期的密钥"
+        },
+        "revoke": {
+          "label": "撤销",
+          "message": "您确实要撤消此API密钥吗?"
+        },
+        "success": {
+          "revoke": "您的API密钥已成功撤销"
+        },
+        "title": "API 密钥:"
+      },
+      "close": {
+        "message": "您是否确实要关闭此订阅?",
+        "title": "关闭"
+      },
+      "created_at": "订阅日期",
+      "end_at": "结束于",
+      "filters": {
+        "api": {
+          "label": "选择API",
+          "title": "API"
+        },
+        "status": {
+          "label": "选择状态",
+          "title": "状态"
+        }
+      },
+      "navigateToApi": "查看API",
+      "plan": "计划",
+      "processed_at": "处理日期",
+      "renew": {
+        "message": "您是否确实要续订此订阅?",
+        "title": "续订"
+      },
+      "selected": {
+        "title": "订阅信息"
+      },
+      "start_at": "开始日期",
+      "status": "状态",
+      "subscribed_by": "签署人",
+      "success": {
+        "close": "您的订阅已成功关闭",
+        "renew": "您的订阅已成功续订"
+      },
+      "title": "订阅"
+    },
+    "success": {
+      "delete": "您的应用程序已成功删除",
+      "renewSecret": "您申请的密钥已成功续订",
+      "save": "您的应用程序已成功更新"
+    },
+    "type": {
+      "label": "应用程序类型",
+      "title": "应用程序类型"
+    },
+    "types": "{type, select, BACKEND_TO_BACKEND{Backend to backend} NATIVE{Native} WEB{Web} BROWSER{Browser} SIMPLE{Simple} other{Simple}}"
+  },
+  "applicationCreation": {
+    "exit": "退出",
+    "general": {
+      "description": {
+        "label": "描述",
+        "placeholder": "请描述一下应用程序的用途"
+      },
+      "image": "应用图片",
+      "name": {
+        "label": "应用程序名称",
+        "placeholder": "请命名您的应用程序"
+      }
+    },
+    "security": {
+      "description": "出于安全原因,请仅定义所需的类型.",
+      "label": "为客户授权的权利类型."
+    },
+    "step": {
+      "createApp": "创建应用程序",
+      "general": "常规",
+      "next": "下一步",
+      "previous": "上一步",
+      "security": "安全",
+      "subscription": "订阅",
+      "validate": "确认"
+    },
+    "subscription": {
+      "api": {
+        "description": "查找应用程序的API"
+      },
+      "comment": "评论",
+      "description": "{count, plural, =0{没有订阅} one{只有一个订阅} other{{count} 订阅}}",
+      "disabledPlans": "需要clientID才能订阅 {count, plural, =0{停用计划} one{停用计划} other{停用计划}}",
+      "noPlan": "此API没有可用的计划",
+      "plan": {
+        "description": "查找应用程序的API并添加要订阅的计划"
+      },
+      "remove": "删除",
+      "resubscribe": "重试",
+      "subscribe": "订阅",
+      "validation": {
+        "auto": "自动",
+        "manual": "手动",
+        "type": "验证"
+      }
+    },
+    "validation": {
+      "confirm": "应用程序 \"{name}\" 已准备就绪!",
+      "error": {
+        "description": "创建应用程序时出错.",
+        "title": "抱歉"
+      },
+      "pending": {
+        "description": "缺少创建应用程序的信息.<br/>请检查所有步骤是否已验证.",
+        "title": "您差不多完成了"
+      },
+      "subscriptionTitle": "订阅请求"
+    }
+  },
+  "applicationType": {
+    "backend_to_backend": {
+      "description": "Machine to machine",
+      "title": "Backend to backend"
+    },
+    "browser": {
+      "description": "Angular, React, ...",
+      "title": "SPA"
+    },
+    "native": {
+      "description": "IOS, Android, ...",
+      "title": "Native"
+    },
+    "security": {
+      "authorization_code": {
+        "description": " ",
+        "title": "授权码"
+      },
+      "clientId": {
+        "description": " 应用程序的客户端id.订阅特定类型的API计划（OAuth2，JWT）需要此字段.",
+        "label": "客户端ID"
+      },
+      "client_credentials": {
+        "description": " ",
+        "title": "客户端凭据"
+      },
+      "implicit": {
+        "description": " ",
+        "title": "隐含"
+      },
+      "implicit_hybrid": {
+        "description": " 混合",
+        "title": "隐含"
+      },
+      "password": {
+        "description": "由资源的所有者提供",
+        "title": "密码"
+      },
+      "redirectUris": {
+        "description": "授权服务器将在其中发送OAuth响应的URI",
+        "label": "重定向URI"
+      },
+      "refresh_token": {
+        "description": " ",
+        "title": "刷新凭证"
+      },
+      "simple": {
+        "description": "应用程序的类型 (手机端, 网页端, ...)",
+        "title": "Type"
+      }
+    },
+    "simple": {
+      "description": "免提应用程序。<br/>使用此类型，您可以自己定义客户端id.",
+      "title": "Simple"
+    },
+    "web": {
+      "description": "Java, .Net, ...",
+      "title": "页面"
+    }
+  },
+  "applications": {
+    "subscribers": {
+      "title": "查看应用程序 {appName} 的 {count, plural, one{订阅} other{订阅}} "
+    },
+    "title": "应用程序"
+  },
+  "catalog": {
+    "ALL": {
+      "emptyMessage": "门户不包含任何API"
+    },
+    "FEATURED": {
+      "emptyMessage": "没有特色的API"
+    },
+    "STARRED": {
+      "emptyMessage": "还没有笔记"
+    },
+    "TRENDINGS": {
+      "emptyMessage": "目前还没有趋势"
+    },
+    "categories": {
+      "emptyMessage": "类别不包含任何API"
+    },
+    "category": {
+      "documentation": {
+        "hide": "隐藏文档",
+        "show": "显示文档"
+      }
+    },
+    "defaultCategory": "所有API",
+    "display": {
+      "cards": "展示卡",
+      "list": "显示列表"
+    },
+    "filter": "过滤结果",
+    "othersApi": {
+      "subTitle": "在本月的标题中发现不同的API",
+      "title": "其他API"
+    },
+    "search": "搜索API"
+  },
+  "categories": {
+    "empty": "没有类别",
+    "title": "类别"
+  },
+  "common": {
+    "cancel": "取消",
+    "date": {
+      "range": {
+        "title": "选择一个时间间隔"
+      }
+    },
+    "delete": "删除",
+    "filters": {
+      "title": "过滤器"
+    },
+    "general_conditions": {
+      "accept": "我接受条款和条件",
+      "title": "一般使用条件"
+    },
+    "ok": "验证",
+    "options": "选择",
+    "reset": "重置",
+    "save": "保存",
+    "search": "搜索",
+    "status": {
+      "ACCEPTED": "接受",
+      "CLOSED": "关闭",
+      "PAUSED": "暂停",
+      "PENDING": "等待中",
+      "REJECTED": "拒绝"
+    },
+    "update": "更新"
+  },
+  "cookies": {
+    "actions": {
+      "decline": "我拒绝",
+      "ok": "我明白"
+    },
+    "confirmation": "如果您拒绝,访问此网站时将不会收集您的浏览数据.除了网站要求的cookie之外,您的浏览器中只会创建一个cookie,以记住您的意愿不会被跟踪.",
+    "googleAnalyticsDescription": "允许Cookie用于Google analytics",
+    "information": {
+      "common": "此网站在您的计算机上保存cookies.这些cookies用于存储您的首选项和连接信息.它允许我们改善您的浏览体验.",
+      "withAnalytics": "还可以收集访客的分析和指标 (使用 <a href=\"https://policies.google.com/privacy\" target=\"_blank\">Google Analytics</a>)."
+    },
+    "manage": "您可以在这里管理您的cookie优先权.",
+    "success": {
+      "disable": "已停用Cookie {cookieName}",
+      "enable": "已启用Cookie {cookieName}"
+    },
+    "title": "Cookies设置"
+  },
+  "dashboard": {
+    "applications": {
+      "create": "创建应用程序",
+      "createFirst": "创建我的第一个应用程序",
+      "list": "查看您的应用程序",
+      "title": "您的应用程序"
+    },
+    "empty": "您还没有申请",
+    "noApplicationPermission": "您的仪表板中没有任何内容",
+    "stats": {
+      "avg": "平均响应时间",
+      "max": "最大响应时间",
+      "min": "最小响应时间",
+      "ms": "毫秒",
+      "rph": "每小时请求数",
+      "rpm": "每分钟请求数",
+      "rps": "每秒请求数",
+      "total": "总计"
+    },
+    "subscriptions": {
+      "api": "API",
+      "application": "应用程序",
+      "list": {
+        "empty": "没有订阅"
+      },
+      "plan": "计划",
+      "subtitle": "选择订阅以查看上周的活动",
+      "title": "您的订阅"
+    },
+    "welcome": "欢迎 {username}"
+  },
+  "errors": {
+    "clientRegistrationProvider": {
+      "exception": "连接到访问管理服务时出错"
+    },
+    "email": {
+      "required": "请配置电子邮件以使用联系人表单"
+    },
+    "forbidden": "您没有足够的权限访问此资源",
+    "metadata": {
+      "exists": "元数据 \"{metadata}\" 已存在"
+    },
+    "passwordFormat": {
+      "invalid": "根据策略规则,密码无效"
+    },
+    "plan": {
+      "general_conditions_accept": "计划{Plan}要求接受一般使用条件.",
+      "general_conditions_revision": "计划{plan}的使用条款已经改变.",
+      "general_conditions_status": "计划{Plan}引用未发布的使用条款页面.",
+      "notSubscribable": "订阅OAuth2或JWT计划需要客户端id.",
+      "otherOAuth2OrJWTSubscribed": "同一应用程序已经订阅了其他OAuth2或JWT计划",
+      "subscribed": "此计划已存在挂起或接受的订阅."
+    },
+    "server": {
+      "unavailable": "服务器不可用或连接丢失"
+    },
+    "support": {
+      "disabled": "联系方式目前不可用"
+    },
+    "unexpected": "发生意外错误",
+    "user": {
+      "exists": "已经有一个用户使用该电子邮件: {user}",
+      "finalized": "账户已经确定",
+      "resetpassword": "已请求重置密码,请检查您的电子邮件并等待几分钟，然后重新尝试."
+    }
+  },
+  "footer": {
+    "rights": "© 版权所有 2020"
+  },
+  "gv-card-full": {
+    "empty": "这里没有要显示的API",
+    "error": "加载API时出错"
+  },
+  "gv-card": {
+    "empty": "这里没有要显示的API",
+    "error": "加载API时出错"
+  },
+  "gv-category-list": {
+    "error": "加载列表时出错"
+  },
+  "gv-category": {
+    "empty": "此处没有要显示的类别",
+    "error": "加载类别时出错"
+  },
+  "gv-chart": {
+    "empty": "没有结果显示",
+    "error": "加载数据时出错"
+  },
+  "gv-code": {
+    "copy": "复制到剪贴板"
+  },
+  "gv-confirm": {
+    "cancel": "取消",
+    "ok": "Ok"
+  },
+  "gv-contact": {
+    "apis": {
+      "label": "查找API",
+      "title": "关联API"
+    },
+    "applications": {
+      "label": "查找应用程序",
+      "title": "关联应用程序"
+    },
+    "button": "发送您的请求",
+    "content": {
+      "label": "解释您的请求...",
+      "title": "您的请求"
+    },
+    "receiveCopy": "通过电子邮件接收副本",
+    "subject": {
+      "label": "解释主题...",
+      "title": "主题"
+    },
+    "success": "您的请求已发送给所有者",
+    "title": "您的请求"
+  },
+  "gv-create-application": {
+    "createApplication": "创建一个应用"
+  },
+  "gv-date-picker": {
+    "endDate": "结束日期",
+    "format": "MM/dd/yyyy",
+    "now": "现在",
+    "ok": "Ok",
+    "startDate": "开始日期",
+    "today": "今天"
+  },
+  "gv-documentation": {
+    "empty": "暂时没有文件"
+  },
+  "gv-file-upload": {
+    "chooseAnotherFile": "选择另一个文件",
+    "chooseFile": "选择一个文件",
+    "error": {
+      "maxSize": "文件大小超出了允许的限制",
+      "typeNotAllowed": "不允许使用此文件类型"
+    },
+    "orDragIt": "或者拖拽到这里.",
+    "removePicture": "删除图片"
+  },
+  "gv-header": {
+    "empty": "这里没有要显示的API",
+    "error": "加载API时出错",
+    "subscribe": "订阅"
+  },
+  "gv-input": {
+    "copy": "复制到剪贴板",
+    "search": "搜索"
+  },
+  "gv-list": {
+    "error": "加载列表时出错",
+    "paused": "暂停",
+    "pending": "挂起"
+  },
+  "gv-markdown-toc": {
+    "title": "目录"
+  },
+  "gv-metrics": {
+    "health": "健康",
+    "hits": "{count, plural, =0{攻击} one{攻击} other{攻击}} (过去7天)",
+    "subscribers": "{count, plural, =0{订阅者} one{订阅者} other{订阅者}}"
+  },
+  "gv-page": {
+    "swagger": {
+      "badFormat": "您试图显示的页面不是Swagger/OpenAPI格式"
+    }
+  },
+  "gv-pagination": {
+    "next": "下一页",
+    "previous": "上一页"
+  },
+  "gv-plans": {
+    "characteristics": {
+      "empty": "没有关于这个计划的信息"
+    },
+    "empty": {
+      "redirect": "我想联系拥有者了解更多信息",
+      "title": "API目前没有可用的计划."
+    },
+    "error": "加载计划时出错.",
+    "security": {
+      "apiKey": "个人API密钥",
+      "jwt": "Json Web Token",
+      "keyLess": "无API密钥",
+      "oauth2": "Oauth 2"
+    },
+    "validation": {
+      "auto": "自动验证",
+      "manual": "手动验证"
+    }
+  },
+  "gv-promote": {
+    "empty": "此处没有要显示的API",
+    "error": "加载API时出错",
+    "view": "查看API"
+  },
+  "gv-rating-list": {
+    "answerLabel": "添加一个答案",
+    "cancel": "取消",
+    "confirmAnswerDelete": "您确定要删除答案吗?",
+    "confirmRatingDelete": "您确定要删除分级吗?",
+    "deleteAnswer": "删除答案",
+    "deleteRating": "删除分级",
+    "reply": "回复",
+    "send": "发送"
+  },
+  "gv-rating": {
+    "description-1": "我讨厌",
+    "description-2": "我不喜欢",
+    "description-3": "我喜欢",
+    "description-4": "我喜爱",
+    "description-5": "太完美了",
+    "note": "记录",
+    "notes": "评级"
+  },
+  "gv-row": {
+    "empty": "没有结果显示",
+    "error": "加载API时出错"
+  },
+  "gv-stats": {
+    "empty": "没有结果显示",
+    "error": "加载数据时出错"
+  },
+  "gv-stepper": {
+    "error": "加载步骤时出错"
+  },
+  "gv-table": {
+    "accepted": "接受",
+    "empty": "没有结果显示",
+    "error": "加载数据时出错",
+    "paused": "暂停",
+    "pending": "挂起",
+    "rejected": "拒绝"
+  },
+  "homepage": {
+    "apis": "特色API",
+    "explore": "探索API",
+    "signup": "注册",
+    "title": "释放API的能力."
+  },
+  "login": {
+    "button": "登录",
+    "notification": {
+      "error": "无效的用户名或密码"
+    },
+    "password": "密码",
+    "resetPassword": "重置密码",
+    "signup": {
+      "link": "注册!",
+      "text": "还没有账户?"
+    },
+    "title": "你是谁?",
+    "username": "用户名"
+  },
+  "notFound": {
+    "goHome": "返回主页",
+    "message": "您正在查找的页面似乎不存在。别担心，还没有失去什么!",
+    "title": "找不到页面"
+  },
+  "register": {
+    "field": {
+      "address": "住址",
+      "city": "城市",
+      "country": "国家",
+      "job_position": "职位",
+      "organization": "公司",
+      "telephone_number": "电话号码",
+      "zip_code": "邮政编码"
+    }
+  },
+  "registration": {
+    "backHome": "返回至门户",
+    "backLogin": "返回至登录",
+    "button": "注册",
+    "email": "邮箱",
+    "firstname": "名",
+    "lastname": "姓",
+    "success": {
+      "message": "已向发送电子邮件: {email}",
+      "title": "注册确认!"
+    },
+    "title": "创建帐户"
+  },
+  "registrationConfirmation": {
+    "backHome": "返回至门户",
+    "backLogin": "返回至登录",
+    "backRegistration": "返回至注册",
+    "button": "确认",
+    "confirmedPassword": "确认密码",
+    "email": "邮箱",
+    "firstname": "名",
+    "lastname": "姓",
+    "password": "选择您的密码",
+    "success": {
+      "message": "您的帐户创建已确认",
+      "title": "注册成功"
+    },
+    "title": "确认注册",
+    "tokenExpired": "您的帐户创建请求已过期"
+  },
+  "resetPassword": {
+    "backHome": "返回至门户",
+    "backLogin": "返回至登录",
+    "button": "重置密码",
+    "success": {
+      "message": "如果该帐户存在，将发送一封电子邮件.",
+      "title": "密码重置已确认!"
+    },
+    "title": "重置密码",
+    "username": "用户名"
+  },
+  "resetPasswordConfirmation": {
+    "backHome": "返回至门户",
+    "backLogin": "返回至登录",
+    "backResetPassword": "返回至重置密码",
+    "button": "确认",
+    "confirmedPassword": "确认您的密码",
+    "email": "邮箱",
+    "firstname": "名",
+    "lastname": "姓",
+    "password": "选择一个密码",
+    "success": {
+      "message": "您的密码已被修改d",
+      "title": "重置成功"
+    },
+    "title": "选择一个密码",
+    "tokenExpired": "您的密码重置请求已过期"
+  },
+  "route": {
+    "alerts": "警报",
+    "analyticsApplication": "分析",
+    "applicationCreation": "创建应用程序",
+    "applications": "应用",
+    "catalog": "目录",
+    "catalogAll": "所有API",
+    "catalogApi": "通用信息",
+    "catalogApiContact": "联系",
+    "catalogApiDocumentation": "文档",
+    "catalogApiSubscribe": "订阅",
+    "catalogCategories": "类目",
+    "catalogCategory": "类目",
+    "catalogFeatured": "特性",
+    "catalogStarred": "星级",
+    "catalogTrending": "趋向",
+    "contact": "联系",
+    "cookies": "Cookies设置",
+    "dashboard": "仪表板",
+    "homepage": "主页",
+    "login": "登录",
+    "logout": "退出",
+    "logsApplication": "日志",
+    "management": "管理",
+    "members": "成员",
+    "metadata": "元数据",
+    "myApplications": "我的应用",
+    "mySubscriptions": "我的订阅",
+    "notFound": "找不到页面",
+    "notifications": "通知",
+    "subscriptions": "订阅",
+    "tickets": "票据",
+    "user": "我的帐户"
+  },
+  "search": {
+    "results": {
+      "label": "{count, plural, =0{没有结果} one{{count} 结果} other{{count} 结果}}"
+    }
+  },
+  "site": {
+    "title": "铜山三维时空数据库管理系统API门户"
+  },
+  "subscriptions": {
+    "applications": {
+      "init": "您没有任何应用",
+      "name": "名字",
+      "navigate": "去申请",
+      "owner": "拥有者",
+      "title": "应用"
+    },
+    "subscriptions": {
+      "api": "API",
+      "empty": "没有此应用程序的订阅",
+      "end_date": "结束日期",
+      "init": "滚动应用程序以查看其订阅",
+      "navigate": "转到订阅",
+      "plan": "计划",
+      "start_date": "开始日期",
+      "title": "订阅"
+    },
+    "title": "我的订阅"
+  },
+  "tickets": {
+    "api": "API",
+    "application": "应用程序",
+    "content": "内容",
+    "date": "日期",
+    "subject": "主题",
+    "title": "票据"
+  },
+  "user": {
+    "account": {
+      "success": "您的帐户已成功更新",
+      "title": "个人信息"
+    },
+    "change_picture": "更改照片",
+    "email": "邮箱:",
+    "first_name": "名",
+    "last_name": "姓",
+    "notifications": {
+      "empty": "没有收到通知",
+      "read": "读取",
+      "title": "通知"
+    }
+  }
+}
