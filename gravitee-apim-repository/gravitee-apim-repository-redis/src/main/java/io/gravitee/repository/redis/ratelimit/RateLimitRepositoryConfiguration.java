@@ -16,42 +16,26 @@
 package io.gravitee.repository.redis.ratelimit;
 
 import io.gravitee.repository.Scope;
-import io.gravitee.repository.redis.common.AbstractRepositoryConfiguration;
-import java.util.List;
+import io.gravitee.repository.redis.common.RedisConnectionFactory;
+import io.gravitee.repository.redis.vertx.RedisAPI;
+import io.vertx.core.Vertx;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.scripting.support.ResourceScriptSource;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Configuration
-@ComponentScan
-public class RateLimitRepositoryConfiguration extends AbstractRepositoryConfiguration {
+public class RateLimitRepositoryConfiguration {
 
-    @Bean(name = "rateLimitRedisTemplate")
-    public StringRedisTemplate redisTemplate(org.springframework.data.redis.connection.RedisConnectionFactory redisConnectionFactory) {
-        StringRedisTemplate redisTemplate = new StringRedisTemplate();
-        redisTemplate.setConnectionFactory(redisConnectionFactory);
-        return redisTemplate;
+    @Bean
+    public RedisConnectionFactory redisConnectionFactory(Vertx vertx) {
+        return new RedisConnectionFactory(vertx, Scope.RATE_LIMIT.getName());
     }
 
-    @Bean(name = "rateLimitIncrScript")
-    public RedisScript<List> script() {
-        DefaultRedisScript<List> redisScript = new DefaultRedisScript<>();
-        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("scripts/ratelimit.lua")));
-        redisScript.setResultType(List.class);
-        return redisScript;
-    }
-
-    @Override
-    protected Scope getScope() {
-        return Scope.RATE_LIMIT;
+    @Bean
+    public RedisRateLimitRepository redisRateLimitRepository(RedisAPI redisAPI) {
+        return new RedisRateLimitRepository(redisAPI);
     }
 }

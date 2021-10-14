@@ -506,6 +506,13 @@
                                             <overWrite>false</overWrite>
                                         </artifactItem>
                                         <artifactItem>
+                                            <groupId>io.gravitee.apim.repository</groupId>
+                                            <artifactId>gravitee-apim-repository-redis</artifactId>
+                                            <version>LATEST</version>
+                                            <type>zip</type>
+                                            <overWrite>false</overWrite>
+                                        </artifactItem>
+                                        <artifactItem>
                                             <groupId>io.gravitee.repository</groupId>
                                             <artifactId>gravitee-repository-elasticsearch</artifactId>
                                             <version>LATEST</version>

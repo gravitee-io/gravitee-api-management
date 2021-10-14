@@ -42,16 +42,16 @@ public class CachedPolicyFactory implements PolicyFactory {
     @Override
     public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
         return policies.computeIfAbsent(
-                getKey(streamType, policyMetadata, policyConfiguration, null),
-                k -> delegate.create(streamType, policyMetadata, policyConfiguration)
+            getKey(streamType, policyMetadata, policyConfiguration, null),
+            k -> delegate.create(streamType, policyMetadata, policyConfiguration)
         );
     }
 
     @Override
     public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
         return policies.computeIfAbsent(
-                getKey(streamType, policyMetadata, policyConfiguration, condition),
-                k -> delegate.create(streamType, policyMetadata, policyConfiguration, condition)
+            getKey(streamType, policyMetadata, policyConfiguration, condition),
+            k -> delegate.create(streamType, policyMetadata, policyConfiguration, condition)
         );
     }
 
@@ -62,13 +62,13 @@ public class CachedPolicyFactory implements PolicyFactory {
 
     private String getKey(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration, String condition) {
         return (
-                getHashCode(streamType) +
-                        "-" +
-                        getHashCode(policyMetadata) +
-                        "-" +
-                        getHashCode(policyConfiguration) +
-                        "-" +
-                        getHashCode(condition)
+            getHashCode(streamType) +
+            "-" +
+            getHashCode(policyMetadata) +
+            "-" +
+            getHashCode(policyConfiguration) +
+            "-" +
+            getHashCode(condition)
         );
     }
 
@@ -78,10 +78,5 @@ public class CachedPolicyFactory implements PolicyFactory {
         }
 
         return o.hashCode();
-    }
-
-    @Override
-    public void cleanup(PolicyMetadata policyMetadata) {
-        delegate.cleanup(policyMetadata);
     }
 }
