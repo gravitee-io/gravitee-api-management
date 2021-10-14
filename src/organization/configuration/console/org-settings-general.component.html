@@ -25,10 +25,10 @@
     gioFormFocusInvalid
   >
     <h1>Settings</h1>
-    <h4>
+    <gio-banner-info>
       Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
       information.
-    </h4>
+    </gio-banner-info>
 
     <mat-card class="settings-general__form__card" formGroupName="management">
       <h2 gioTableOfContents>Management</h2>
@@ -208,8 +208,13 @@
 
     <mat-card class="settings-general__form__card" formGroupName="cors">
       <h2 gioTableOfContents>CORS</h2>
-
       <mat-card-content>
+        <div class="settings-general__form__card__label">Allow-Origin</div>
+        <p>
+          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
+          <em>same-origin</em> definition. <br />
+          If you choose to enable '*' it means that is allows all requests, regardless of origin.
+        </p>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('cors.allowOrigin')"
@@ -230,13 +235,11 @@
           <mat-error *ngIf="formSettings.get('cors.allowOrigin')?.errors?.allowOrigin">{{
             formSettings.get('cors.allowOrigin')?.errors?.allowOrigin
           }}</mat-error>
-          <mat-hint>
-            The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
-            <em>same-origin</em> definition.<br />
-            If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
-          </mat-hint>
+          <mat-hint>Regular Expressions are also supported</mat-hint>
         </mat-form-field>
 
+        <div class="settings-general__form__card__label">Access-Control-Allow-Methods</div>
+        <p>Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.</p>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('cors.allowMethods')"
@@ -250,11 +253,10 @@
           <mat-select formControlName="allowMethods" multiple>
             <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
           </mat-select>
-          <mat-hint>
-            Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.
-          </mat-hint>
         </mat-form-field>
 
+        <div class="settings-general__form__card__label">Allow-Headers</div>
+        <p>Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.</p>
         <mat-form-field
           *ngIf="formSettings.get('cors.allowHeaders'); let allowHeadersFormControl"
           [matTooltip]="providedConfigurationMessage"
@@ -290,11 +292,10 @@
               {{ defaultHeader }}
             </mat-option>
           </mat-autocomplete>
-          <mat-hint>
-            Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
-          </mat-hint>
         </mat-form-field>
 
+        <div class="settings-general__form__card__label">Exposed-Headers</div>
+        <p>Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.</p>
         <mat-form-field
           *ngIf="formSettings.get('cors.exposedHeaders'); let exposedHeadersFormControl"
           [matTooltip]="providedConfigurationMessage"
@@ -335,11 +336,10 @@
               {{ defaultHeader }}
             </mat-option>
           </mat-autocomplete>
-          <mat-hint>
-            Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
-          </mat-hint>
         </mat-form-field>
 
+        <div class="settings-general__form__card__label">Max age</div>
+        <p>How long the response from a pre-flight request can be cached by clients</p>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('cors.maxAge')"
@@ -349,8 +349,9 @@
           <mat-icon *ngIf="isReadonlySetting('cors.maxAge')" class="settings-general__form__card__form-field__icon" matPrefix
             >lock</mat-icon
           >
-          <mat-label>Max age (seconds) <small>How long the response from a pre-flight request can be cached by clients</small></mat-label>
+          <mat-label>Max age</mat-label>
           <input #maxAgeInput matInput formControlName="maxAge" type="number" min="0" />
+          <mat-hint>(seconds)</mat-hint>
         </mat-form-field>
       </mat-card-content>
     </mat-card>

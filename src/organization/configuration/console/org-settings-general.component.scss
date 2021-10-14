@@ -5,6 +5,7 @@
 @use '../../../scss/gio-layout' as gio-layout;
 
 $foreground: map.get(gio.$gio-theme, foreground);
+$typography: map.get(gio.$gio-theme, typography);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
@@ -33,6 +34,17 @@ $foreground: map.get(gio.$gio-theme, foreground);
 
         &.margin-top {
           margin-top: 16px;
+        }
+        &.margin-bottom {
+          margin-bottom: 32px;
+        }
+      }
+
+      &__label {
+        @include mat.typography-level($typography, body-2);
+
+        & ~ & {
+          padding-top: 16px;
         }
       }
 
