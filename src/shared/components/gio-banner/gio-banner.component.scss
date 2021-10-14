@@ -20,7 +20,7 @@
 @use '../../../scss/gio-palettes' as gio-palettes;
 
 $foreground: map-get(gio.$gio-theme, foreground);
-$typography: map.get(gio.$gio-theme, typography);
+$background: map-get(gio.$gio-theme, background);
 
 // Map for palette by type
 $types: (
@@ -30,17 +30,21 @@ $types: (
   warning: gio-palettes.$gio-warning-palette,
 );
 
+:host {
+  display: block;
+  margin: 8px 0px;
+}
+
 .banner {
-  @include mat.typography-level($typography, body-2);
+  padding: 0 16px;
   display: flex;
   align-items: center;
   border-radius: 4px;
-  margin: 8px 0px;
-  padding: 0 16px;
 
   @each $typeName, $typePalette in $types {
     &.#{$typeName} {
       color: mat.get-color-from-palette($typePalette, darker);
+      background-color: mat.get-color-from-palette($background, card);
       border: 1px solid mat.get-color-from-palette($typePalette, medium);
 
       box-shadow: 8px 0px 0px 0px mat.get-color-from-palette($typePalette, light, 0.12) inset;
@@ -63,6 +67,7 @@ $types: (
   }
 
   &__content {
+    line-height: normal;
     padding: 8px 0;
   }
 }
