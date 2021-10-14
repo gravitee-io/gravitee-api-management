@@ -290,6 +290,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-user', {
+      url: '/ng-users/:userId',
+      component: 'ngOrgSettingsUserDetail',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'organization-configuration-user',
+        },
+        perms: {
+          only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+        },
+      },
+    })
     .state('organization.settings.identityproviders', {
       abstract: true,
       url: '/identities',

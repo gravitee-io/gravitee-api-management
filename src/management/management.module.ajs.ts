@@ -570,6 +570,7 @@ import { OrgSettingsIdentityProviderComponent } from '../organization/configurat
 import { OrgSettingsNotificationTemplatesComponent } from '../organization/configuration/notification-templates/org-settings-notification-templates.component';
 import { OrgSettingsCockpitComponent } from '../organization/configuration/cockpit/org-settings-cockpit.component';
 import { OrgSettingsNotificationTemplateComponent } from '../organization/configuration/notification-templates/org-settings-notification-template.component';
+import { OrgSettingsUserDetailComponent } from '../organization/configuration/user/detail/org-settings-user-detail.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -1026,9 +1027,13 @@ graviteeManagementModule.controller('ApiLoggingController', ApiLoggingController
 // Users
 graviteeManagementModule.component('users', UsersComponent);
 graviteeManagementModule.directive('ngOrgSettingsUsers', downgradeComponent({ component: OrgSettingsUsersComponent }));
+
 graviteeManagementModule.component('userDetail', UserDetailComponent);
-graviteeManagementModule.directive('ngOrgSettingsNewUser', downgradeComponent({ component: OrgSettingsNewUserComponent }));
+graviteeManagementModule.directive('ngOrgSettingsUserDetail', downgradeComponent({ component: OrgSettingsUserDetailComponent }));
+
 graviteeManagementModule.component('newUser', NewUserComponent);
+graviteeManagementModule.directive('ngOrgSettingsNewUser', downgradeComponent({ component: OrgSettingsNewUserComponent }));
+
 graviteeManagementModule.controller('DialogAddUserGroupController', DialogAddUserGroupController);
 
 // Router

@@ -50,6 +50,7 @@ import { OrgSettingsIdentityProviderOidcComponent } from './identity-provider/or
 import { OrgSettingsNotificationTemplatesComponent } from './notification-templates/org-settings-notification-templates.component';
 import { OrgSettingsCockpitComponent } from './cockpit/org-settings-cockpit.component';
 import { OrgSettingsNotificationTemplateComponent } from './notification-templates/org-settings-notification-template.component';
+import { OrgSettingsUserDetailComponent } from './user/detail/org-settings-user-detail.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -109,6 +110,7 @@ import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.m
     OrgSettingsGeneralComponent,
     OrgSettingsUsersComponent,
     OrgSettingsNewUserComponent,
+    OrgSettingsUserDetailComponent,
     OrgSettingsIdentityProvidersComponent,
     OrgSettingsIdentityProviderComponent,
     OrgSettingsIdentityProviderGoogleComponent,
@@ -124,6 +126,7 @@ import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.m
     OrgSettingsGeneralComponent,
     OrgSettingsUsersComponent,
     OrgSettingsNewUserComponent,
+    OrgSettingsUserDetailComponent,
     OrgSettingsIdentityProvidersComponent,
     OrgSettingsIdentityProviderComponent,
     OrgSettingsNotificationTemplatesComponent,

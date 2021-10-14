@@ -122,7 +122,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   }
 
   onDisplayNameClick(userId: string) {
-    this.$state.go('organization.settings.user', { userId });
+    this.$state.go('organization.settings.ng-user', { userId });
   }
 
   onDeleteUserClick({ userId, displayName }: TableData) {
