@@ -17,66 +17,78 @@ package io.gravitee.repository.redis.ratelimit;
 
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.gravitee.repository.redis.vertx.RedisAPI;
 import io.reactivex.Single;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Function;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.reactivex.impl.AsyncResultMaybe;
+import io.vertx.redis.client.Response;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Component
 public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> {
 
-    @Autowired
-    @Qualifier("rateLimitRedisTemplate")
-    private StringRedisTemplate redisTemplate;
+    private static final String KEY_PREFIX = "rl:";
 
-    @Autowired
-    @Qualifier("rateLimitIncrScript")
-    private RedisScript<List> rateLimitIncrScript;
+    private final RedisAPI redisAPI;
 
-    private static final String KEY_PREFIX = "ratelimit:";
+    public RedisRateLimitRepository(final RedisAPI redisAPI) {
+        this.redisAPI = redisAPI;
+    }
 
     @Override
     public Single<RateLimit> incrementAndGet(String key, long weight, Supplier<RateLimit> supplier) {
-        RateLimit newRate = supplier.get();
+        final RateLimit newRate = supplier.get();
 
-        //TODO: for now, we have to call the supplier for each call, we must find a better way to handle this case
-        final List values = redisTemplate.execute(
-            rateLimitIncrScript,
-            Arrays.asList(KEY_PREFIX + key, Long.toString(weight)),
-            convertToValuesArray(newRate)
-        );
+        return AsyncResultMaybe
+            .toMaybe(
+                (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
+                    redisAPI
+                        .getNative()
+                        .evalsha(
+                            convertToList(redisAPI.getScriptSha1(), KEY_PREFIX + key, Long.toString(weight), newRate),
+                            asyncResultHandler
+                        )
+            )
+            .map(
+                new Function<Response, RateLimit>() {
+                    @Override
+                    public RateLimit apply(@NonNull Response response) throws Exception {
+                        // It may happen when the rate has been expired while running the script
+                        if (response.size() > 0 && response.get(0) != null) {
+                            RateLimit rateLimit = new RateLimit(key);
+                            rateLimit.setCounter(response.get(0).toLong());
+                            rateLimit.setLimit(newRate.getLimit());
+                            rateLimit.setResetTime(response.get(1).toLong());
+                            rateLimit.setSubscription(newRate.getSubscription());
 
-        // It may happen when the rate has been expired while running the script
-        // expired values return a list of 'null'
-        if (!values.isEmpty() && !values.stream().filter(Objects::nonNull).findFirst().isEmpty()) {
-            RateLimit rateLimit = new RateLimit(key);
-            rateLimit.setCounter(Long.parseLong((String) values.get(0)));
-            rateLimit.setLimit(Long.parseLong((String) values.get(1)));
-            rateLimit.setResetTime(Long.parseLong((String) values.get(2)));
-            rateLimit.setSubscription((String) values.get(3));
+                            return rateLimit;
+                        }
 
-            return Single.just(rateLimit);
-        }
-
-        return Single.just(newRate);
+                        return newRate;
+                    }
+                }
+            )
+            .onErrorReturn(throwable -> newRate)
+            .toSingle();
     }
 
-    private Object[] convertToValuesArray(RateLimit rate) {
-        return new Object[] {
-            Long.toString(rate.getCounter()),
-            Long.toString(rate.getLimit()),
-            Long.toString(rate.getResetTime()),
-            rate.getSubscription(),
-        };
+    private List<String> convertToList(String scriptSha1, String key, String weight, RateLimit rate) {
+        return Arrays.asList(
+            scriptSha1,
+            "1", // Number of keys
+            key,
+            weight,
+            Long.toString(rate.getResetTime())
+        );
     }
 }
