@@ -93,9 +93,7 @@ public class DefaultReactor extends AbstractService implements Reactor, EventLis
                             .handler(
                                 context1 -> {
                                     // Ensure that response has been ended before going further
-                                    context1.response().end();
-
-                                    processResponse(context1, handler);
+                                    context1.response().endHandler(avoid -> processResponse(context1, handler)).end();
                                 }
                             )
                             .handle(ctx);
