@@ -5,6 +5,7 @@ module.exports = {
   addons: ['storybook-addon-designs','@storybook/addon-essentials'],
   features: {
     previewCsfV3: true,
+    storyStoreV7: false, 
   },
   angularOptions: {
     enableIvy: true,

@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata, Story, componentWrapperDecorator } from '@storybook/angular';
+import { Meta, moduleMetadata, componentWrapperDecorator } from '@storybook/angular';
+import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
 import { GioAvatarComponent } from './gio-avatar.component';
 import { GioAvatarModule } from './gio-avatar.module';
