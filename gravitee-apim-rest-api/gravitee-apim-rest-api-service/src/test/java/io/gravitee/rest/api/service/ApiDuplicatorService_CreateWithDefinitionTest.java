@@ -452,4 +452,59 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
 
         verify(apiMetadataService, times(2)).update(any(UpdateApiMetadataEntity.class));
     }
+
+    @Test
+    public void shouldCreateImportApiEvenIfMemberRoleIsInvalid() throws IOException, TechnicalException {
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+members.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId(API_ID);
+        when(apiService.createWithApiDefinition(any(), any(), any())).thenReturn(apiEntity);
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId("ref-admin");
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId("ref-user");
+        when(userService.findBySource(user.getSource(), user.getSourceId(), false)).thenReturn(user);
+        when(userService.findById(admin.getId())).thenReturn(admin);
+
+        RoleEntity poRoleEntity = new RoleEntity();
+        poRoleEntity.setId("API_PRIMARY_OWNER");
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+
+        MemberEntity po = new MemberEntity();
+        po.setId("admin");
+        po.setReferenceId(API_ID);
+        po.setReferenceType(MembershipReferenceType.API);
+        po.setRoles(Arrays.asList(poRoleEntity));
+        when(membershipService.getMembersByReference(any(), any())).thenReturn(Collections.singleton(po));
+
+        when(
+            membershipService.addRoleToMemberOnReference(
+                MembershipReferenceType.API,
+                API_ID,
+                MembershipMemberType.USER,
+                user.getId(),
+                "API_OWNER"
+            )
+        )
+            .thenThrow(new RoleNotFoundException("API_OWNER Not found"));
+
+        apiDuplicatorService.createWithImportedDefinition(
+            toBeImport,
+            "admin",
+            GraviteeContext.getCurrentOrganization(),
+            GraviteeContext.getCurrentEnvironment()
+        );
+
+        verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
+        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(membershipService, times(1))
+            .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
+        verify(membershipService, never()).transferApiOwnership(any(), any(), any());
+    }
 }

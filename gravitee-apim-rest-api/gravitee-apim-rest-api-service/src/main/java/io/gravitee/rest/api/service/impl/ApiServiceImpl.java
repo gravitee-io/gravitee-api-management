@@ -2166,7 +2166,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 api.getCategories().remove(categoryId);
                 api.setUpdatedAt(new Date());
                 apiRepository.update(api);
-                //                triggerUpdateNotification(apiId, apiEntity);
+                triggerUpdateNotification(api);
                 // Audit
                 auditService.createApiAuditLog(apiId, Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, api);
             } else {
@@ -2510,7 +2510,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             groups.add(group);
 
             apiRepository.update(api);
-            //            triggerUpdateNotification(apiId, apiEntity);
+            triggerUpdateNotification(api);
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to add group {} to API {}: {}", group, apiId, ex);
             throw new TechnicalManagementException("An error occurs while trying to add group " + group + " to API " + apiId, ex);
@@ -2531,7 +2531,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api api = optApi.orElseThrow(() -> new ApiNotFoundException(apiId));
             if (api.getGroups() != null && api.getGroups().remove(group)) {
                 apiRepository.update(api);
-                //                triggerUpdateNotification(apiId, apiEntity);
+                triggerUpdateNotification(api);
             }
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to remove group {} from API {}: {}", group, apiId, ex);
@@ -2689,7 +2689,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (apiDefinition.getTags().remove(tagId)) {
                 api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
                 Api updated = apiRepository.update(api);
-                //                triggerUpdateNotification(apiId, apiEntity);
+                triggerUpdateNotification(api);
                 auditService.createApiAuditLog(api.getId(), Collections.emptyMap(), API_UPDATED, api.getUpdatedAt(), previousApi, updated);
             }
         } catch (Exception ex) {
@@ -3144,6 +3144,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
             }
         }
+    }
+
+    private void triggerUpdateNotification(Api api) {
+        ApiEntity apiEntity = apiConverter.toApiEntity(api);
+        triggerUpdateNotification(apiEntity.getId(), apiEntity);
     }
 
     private void triggerUpdateNotification(String apiId, ApiEntity apiEntity) {
