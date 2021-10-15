@@ -58,6 +58,10 @@ export interface Api {
     labels?: Array<string>;
     owner: User;
     /**
+     * create date and time.
+     */
+    created_at?: Date;
+    /**
      * Last update date and time.
      */
     updated_at?: Date;
