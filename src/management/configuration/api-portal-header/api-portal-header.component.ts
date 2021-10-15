@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import _ = require('lodash');
 
 import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
 import ApiHeaderService from '../../../services/apiHeader.service';
