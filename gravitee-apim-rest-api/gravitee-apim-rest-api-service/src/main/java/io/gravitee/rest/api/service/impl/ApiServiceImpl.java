@@ -947,38 +947,37 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAll() {
+    public Set<ApiEntity> findAllByEnvironment(String environmentId) {
         try {
-            LOGGER.debug("Find all APIs for current environment {}", GraviteeContext.getCurrentEnvironment());
-            return new HashSet<>(
-                convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build()))
-            );
+            LOGGER.debug("Find all APIs for environment {}", environmentId);
+            return new HashSet<>(convert(apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).build())));
         } catch (TechnicalException ex) {
-            LOGGER.error(
-                "An error occurs while trying to find all APIs for current environment {}",
-                GraviteeContext.getCurrentEnvironment(),
-                ex
-            );
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs for current environment", ex);
+            LOGGER.error("An error occurs while trying to find all APIs for environment {}", environmentId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all APIs for environment", ex);
         }
     }
 
     @Override
-    public Set<ApiEntity> findAllLight() {
+    public Set<ApiEntity> findAllLightByEnvironment(String environmentId) {
         try {
-            LOGGER.debug("Find all APIs without some fields (definition, picture...)");
+            LOGGER.debug("Find all APIs without some fields (definition, picture...) for environment {}", environmentId);
             return new HashSet<>(
                 convert(
                     apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                        new ApiCriteria.Builder().environmentId(environmentId).build(),
                         new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
                     )
                 )
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs light", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs light", ex);
+            LOGGER.error("An error occurs while trying to find all APIs light for environment {}", environmentId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all APIs light for environment", ex);
         }
+    }
+
+    @Override
+    public Set<ApiEntity> findAllLight() {
+        return findAllLightByEnvironment(null);
     }
 
     @Override
@@ -2578,7 +2577,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteCategoryFromAPIs(final String categoryId) {
-        findAll()
+        findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
             .forEach(
                 api -> {
                     if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
@@ -2610,7 +2609,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteTagFromAPIs(final String tagId) {
-        findAll()
+        findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
             .forEach(
                 api -> {
                     if (api.getTags() != null && api.getTags().contains(tagId)) {

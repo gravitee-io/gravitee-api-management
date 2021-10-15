@@ -546,6 +546,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
+    public List<PageEntity> search(final PageQuery query, boolean withTranslations) {
+        return this.search(query, null, withTranslations, true, null);
+    }
+
+    @Override
     public List<PageEntity> search(final PageQuery query, boolean withTranslations, String environmentId) {
         return this.search(query, null, withTranslations, true, environmentId);
     }
