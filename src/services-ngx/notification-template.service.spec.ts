@@ -69,4 +69,49 @@ describe('NotificationTemplateService', () => {
       req.flush(notificationTemplates);
     });
   });
+
+  describe('create', () => {
+    it('should call the API', (done) => {
+      const notificationTemplate = {
+        content: 'Content',
+        created_at: 1633417938291,
+        description: 'Email sent to support team of an API or of the platform, when a support ticket is created.',
+        hook: 'SUPPORT_TICKET',
+        name: 'Support ticket',
+        scope: 'TEMPLATES_FOR_ACTION',
+        title: '${ticketSubject}',
+        type: 'EMAIL',
+      } as const;
+
+      const createdNotificationTemplate = fakeNotificationTemplate({ ...notificationTemplate, id: 'templateId' });
+
+      notificationTemplateService.create(notificationTemplate).subscribe((response) => {
+        expect(response).toEqual(createdNotificationTemplate);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/notification-templates`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual(notificationTemplate);
+      req.flush(createdNotificationTemplate);
+    });
+  });
+
+  describe('update', () => {
+    it('should call the API', (done) => {
+      const updatedNotificationTemplate = fakeNotificationTemplate();
+
+      notificationTemplateService.update(updatedNotificationTemplate).subscribe((response) => {
+        expect(response).toEqual(updatedNotificationTemplate);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.baseURL}/configuration/notification-templates/${updatedNotificationTemplate.id}`,
+      );
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body).toEqual(updatedNotificationTemplate);
+      req.flush(updatedNotificationTemplate);
+    });
+  });
 });

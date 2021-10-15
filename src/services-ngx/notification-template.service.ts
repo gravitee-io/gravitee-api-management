@@ -43,4 +43,15 @@ export class NotificationTemplateService {
       params: requestParams,
     });
   }
+
+  create(notificationTemplate: Omit<NotificationTemplate, 'id'>): Observable<NotificationTemplate> {
+    return this.http.post<NotificationTemplate>(`${this.constants.org.baseURL}/configuration/notification-templates`, notificationTemplate);
+  }
+
+  update(notificationTemplate: NotificationTemplate): Observable<NotificationTemplate> {
+    return this.http.put<NotificationTemplate>(
+      `${this.constants.org.baseURL}/configuration/notification-templates/${notificationTemplate.id}`,
+      notificationTemplate,
+    );
+  }
 }
