@@ -81,7 +81,7 @@ public class DocumentationSystemFolderUpgrader implements Upgrader, Ordered {
 
             // Apis documentation
             apiService
-                .findAllLight()
+                .findAllLightByEnvironment(GraviteeContext.getCurrentEnvironment())
                 .forEach(
                     api -> pageService.createSystemFolder(api.getId(), SystemFolderType.ASIDE, 0, GraviteeContext.getDefaultEnvironment())
                 );

@@ -40,7 +40,9 @@ import java.util.Set;
 public interface ApiService {
     ApiEntity findById(String apiId);
 
-    Set<ApiEntity> findAll();
+    Set<ApiEntity> findAllByEnvironment(String environment);
+
+    Set<ApiEntity> findAllLightByEnvironment(String environmentId);
 
     Set<ApiEntity> findAllLight();
 

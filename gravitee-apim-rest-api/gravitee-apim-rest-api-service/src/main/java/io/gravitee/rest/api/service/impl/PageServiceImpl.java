@@ -513,7 +513,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 descriptor = swaggerService.parse(pageEntity.getContent());
             } catch (SwaggerDescriptorException sde) {
                 if (apiId != null) {
-                    logger.error("Parsing error for API: {}", apiId);
+                    logger.error("Parsing error for API id[{}]: {}", apiId, sde.getMessage());
                 }
                 throw sde;
             }
@@ -547,6 +547,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public List<PageEntity> search(final PageQuery query, String environmentId) {
         return search(query, false, environmentId);
+    }
+
+    @Override
+    public List<PageEntity> search(final PageQuery query, boolean withTranslations) {
+        return this.search(query, null, withTranslations, true, null);
     }
 
     @Override
@@ -1182,57 +1187,48 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             // if order change, reorder all pages
             if (page.getOrder() != pageToUpdate.getOrder()) {
                 reorderAndSavePages(page);
-
-                if (createRevision) {
-                    createPageRevision(page);
-                }
-
-                return null;
-            } else {
-                List<String> messages = validateSafeContent(page);
-                Page updatedPage = pageRepository.update(page);
-
-                if (
-                    (
-                        pageToUpdate.isPublished() != page.isPublished() ||
-                        !Objects.equals(pageToUpdate.getVisibility(), page.getVisibility())
-                    ) &&
-                    !PageType.LINK.name().equalsIgnoreCase(pageType) &&
-                    !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)
-                ) {
-                    // if just publishing the page, updatePageEntity.getVisibility() will return null. In that case, we must keep the existing visibility status.
-                    String newVisibility = updatePageEntity.getVisibility() == null
-                        ? pageToUpdate.getVisibility()
-                        : updatePageEntity.getVisibility().name();
-
-                    // update all the related links and translations publication status.
-                    this.changeRelatedPagesPublicationStatusAndVisibility(pageId, updatePageEntity.isPublished(), newVisibility);
-                }
-
-                createAuditLog(
-                    PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
-                    PAGE_UPDATED,
-                    page.getUpdatedAt(),
-                    pageToUpdate,
-                    page
-                );
-
-                if (createRevision) {
-                    createPageRevision(updatedPage);
-                }
-
-                PageEntity pageEntity = convert(updatedPage);
-                pageEntity.setMessages(messages);
-
-                // update document in search engine
-                if (pageToUpdate.isPublished() && !page.isPublished()) {
-                    searchEngineService.delete(convert(pageToUpdate), false);
-                } else {
-                    index(pageEntity);
-                }
-
-                return pageEntity;
             }
+
+            List<String> messages = validateSafeContent(page);
+            Page updatedPage = pageRepository.update(page);
+
+            if (
+                (pageToUpdate.isPublished() != page.isPublished() || !Objects.equals(pageToUpdate.getVisibility(), page.getVisibility())) &&
+                !PageType.LINK.name().equalsIgnoreCase(pageType) &&
+                !PageType.TRANSLATION.name().equalsIgnoreCase(pageType)
+            ) {
+                // if just publishing the page, updatePageEntity.getVisibility() will return null. In that case, we must keep the existing visibility status.
+                String newVisibility = updatePageEntity.getVisibility() == null
+                    ? pageToUpdate.getVisibility()
+                    : updatePageEntity.getVisibility().name();
+
+                // update all the related links and translations publication status.
+                this.changeRelatedPagesPublicationStatusAndVisibility(pageId, updatePageEntity.isPublished(), newVisibility);
+            }
+
+            createAuditLog(
+                PageReferenceType.API.equals(page.getReferenceType()) ? page.getReferenceId() : null,
+                PAGE_UPDATED,
+                page.getUpdatedAt(),
+                pageToUpdate,
+                page
+            );
+
+            if (createRevision) {
+                createPageRevision(updatedPage);
+            }
+
+            PageEntity pageEntity = convert(updatedPage);
+            pageEntity.setMessages(messages);
+
+            // update document in search engine
+            if (pageToUpdate.isPublished() && !page.isPublished()) {
+                searchEngineService.delete(convert(pageToUpdate), false);
+            } else {
+                index(pageEntity);
+            }
+
+            return pageEntity;
         } catch (TechnicalException ex) {
             throw onUpdateFail(pageId, ex);
         }

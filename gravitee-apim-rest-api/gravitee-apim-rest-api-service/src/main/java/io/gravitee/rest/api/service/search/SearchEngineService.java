@@ -26,9 +26,15 @@ import java.util.Collection;
  * @author GraviteeSource Team
  */
 public interface SearchEngineService {
-    void index(Indexable source, boolean locally);
+    default void index(Indexable source, boolean locally) {
+        index(source, locally, true);
+    }
+
+    void index(Indexable source, boolean locally, boolean commit);
 
     void delete(Indexable source, boolean locally);
+
+    void commit();
 
     SearchResult search(Query<? extends Indexable> query);
 

@@ -44,12 +44,14 @@ public class SearchEngineIndexer {
     @Autowired
     private IndexWriter writer;
 
-    public long index(Document document) throws TechnicalException {
+    public long index(Document document, boolean commit) throws TechnicalException {
         logger.debug("Updating a document into the Lucene index");
         String id = document.get(ID_FIELD);
         try {
             long seq = writer.updateDocument(new Term(ID_FIELD, id), document);
-            writer.commit();
+            if (commit) {
+                writer.commit();
+            }
             return seq;
         } catch (IOException ioe) {
             logger.error("Fail to index document with ID: {}", id, ioe);
@@ -72,6 +74,15 @@ public class SearchEngineIndexer {
         } catch (IOException ioe) {
             logger.error("Fail to index document with ID: {}", id, ioe);
             throw new TechnicalException("Fail to index document with ID: " + id, ioe);
+        }
+    }
+
+    public void commit() throws TechnicalException {
+        try {
+            writer.commit();
+        } catch (IOException ioe) {
+            logger.error("Unexpected IO errors while committing Lucene index", ioe);
+            throw new TechnicalException("Unexpected IO errors while committing Lucene index", ioe);
         }
     }
 }
