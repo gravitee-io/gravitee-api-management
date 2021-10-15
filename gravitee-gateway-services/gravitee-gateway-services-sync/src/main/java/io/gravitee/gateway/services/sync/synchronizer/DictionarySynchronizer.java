@@ -163,8 +163,8 @@ public class DictionarySynchronizer extends AbstractSynchronizer {
         try {
             // Read dictionary definition from event
             return Maybe.just(objectMapper.readValue(event.getPayload(), io.gravitee.gateway.dictionary.model.Dictionary.class));
-        } catch (IOException ioe) {
-            logger.error("Error while determining deployed dictionaries into events payload", ioe);
+        } catch (Exception ex) {
+            logger.error("Error while determining deployed dictionaries into events payload", ex);
         }
 
         return Maybe.empty();

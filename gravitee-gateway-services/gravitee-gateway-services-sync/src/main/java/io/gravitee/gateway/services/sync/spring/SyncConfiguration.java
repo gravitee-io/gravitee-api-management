@@ -51,7 +51,7 @@ public class SyncConfiguration {
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
             PARALLELISM,
             PARALLELISM,
-            60L,
+            15L,
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>(),
             new ThreadFactory() {
