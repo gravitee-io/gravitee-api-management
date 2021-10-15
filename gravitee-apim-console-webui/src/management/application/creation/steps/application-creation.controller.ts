@@ -31,6 +31,7 @@ class ApplicationCreationController {
   private messageByPlan: any = {};
   private applicationType: string;
   private apis: any[] = [];
+  private groups: any[];
 
   constructor(
     private Constants,

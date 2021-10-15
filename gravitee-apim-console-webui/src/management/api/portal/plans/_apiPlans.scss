@@ -109,3 +109,17 @@ $border-radius: 10px;
   line-height: 30px;
   text-align: center;
 }
+
+.gravitee-plan-content-div {
+  margin-bottom: 10px;
+  justify-content: center;
+  display: flex;
+  flex-wrap: wrap;
+
+  gv-state {
+    --gv-state--bgc: var(--gv-theme-neutral-color);
+    --gv-state--c: var(--gv-theme-font-color-dark);
+    --gv-state--fw: normal;
+    --gv-state--tt: none;
+  }
+}

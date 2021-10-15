@@ -17,6 +17,7 @@ const ApplicationSubscribeComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
     apis: '<',
+    groups: '<',
     subscriptions: '<',
   },
   template: require('./application-subscribe.html'),

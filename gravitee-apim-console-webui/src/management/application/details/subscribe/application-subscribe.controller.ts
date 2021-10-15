@@ -27,6 +27,7 @@ class ApplicationSubscribeController {
   private selectedAPI: any;
   private apis: any[] = [];
   private plans: any[] = [];
+  private groups: any[] = [];
 
   constructor(
     private ApiService: ApiService,
@@ -66,6 +67,7 @@ class ApplicationSubscribeController {
           return _.includes(authorizedSecurity, plan.security);
         });
         this.selectedAPI = api;
+        this.refreshPlansExcludedGroupsNames();
       });
     } else {
       delete this.plans;
@@ -122,6 +124,15 @@ class ApplicationSubscribeController {
         this.$state.reload();
       });
     });
+  }
+
+  refreshPlansExcludedGroupsNames() {
+    this.plans.forEach(
+      (plan) =>
+        (plan.excluded_groups_names = plan.excluded_groups?.map(
+          (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id == excludedGroupId)?.name,
+        )),
+    );
   }
 }
 

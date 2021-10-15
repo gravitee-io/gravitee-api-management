@@ -121,6 +121,8 @@ class ApiEditPlanController {
         this.groups = [];
       }
     }
+
+    this.refreshPlanExcludedGroupsNames();
   }
 
   hasRestrictionStep() {
@@ -190,6 +192,12 @@ class ApiEditPlanController {
 
   shouldNotEditConditions(): boolean {
     return this.plan.status === 'PUBLISHED' || this.plan.status === 'DEPRECATED';
+  }
+
+  refreshPlanExcludedGroupsNames() {
+    this.plan.excluded_groups_names = this.plan.excluded_groups?.map(
+      (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id == excludedGroupId)?.name,
+    );
   }
 }
 

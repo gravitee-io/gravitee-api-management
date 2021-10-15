@@ -147,6 +147,7 @@
               <label>Groups excluded</label>
               <md-select
                 ng-model="$ctrl.parent.plan.excluded_groups"
+                ng-change="$ctrl.parent.refreshPlanExcludedGroupsNames();"
                 multiple
                 ng-disabled="!($ctrl.parent.groups && $ctrl.parent.groups.length > 0)"
               >

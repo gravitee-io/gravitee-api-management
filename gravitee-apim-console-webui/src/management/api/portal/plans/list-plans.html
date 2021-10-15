@@ -75,8 +75,18 @@
               <md-card-content layout="column">
                 <h4 class="gravitee-plan-content">{{plan.description}}</h4>
                 <md-divider></md-divider>
-                <div ng-repeat="characteristic in plan.characteristics">
-                  <h5 class="gravitee-plan-content">{{characteristic}}</h5>
+                <div ng-if="plan.characteristics.length > 0">
+                  <h5 class="gravitee-plan-content">Characteristics</h5>
+                  <div class="gravitee-plan-content-div">
+                    <gv-state ng-repeat="characteristic in plan.characteristics">{{characteristic}}</gv-state>
+                  </div>
+                  <md-divider></md-divider>
+                </div>
+                <div ng-if="plan.excluded_groups_names.length > 0">
+                  <h5 class="gravitee-plan-content">Excluded groups</h5>
+                  <div class="gravitee-plan-content-div">
+                    <gv-state ng-repeat="excluded_group_name in plan.excluded_groups_names">{{excluded_group_name}}</gv-state>
+                  </div>
                   <md-divider></md-divider>
                 </div>
               </md-card-content>

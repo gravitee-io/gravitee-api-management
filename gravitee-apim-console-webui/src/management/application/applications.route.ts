@@ -63,6 +63,7 @@ function applicationsConfig($stateProvider) {
           ApplicationTypesService.getEnabledApplicationTypes().then((response) =>
             response.data.map((appType) => new ApplicationType(appType)),
           ),
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
       },
       data: {
         perms: {
@@ -281,6 +282,7 @@ function applicationsConfig($stateProvider) {
       component: 'applicationSubscribe',
       resolve: {
         apis: (ApiService: ApiService) => ApiService.list(null, true).then((response) => response.data),
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
         subscriptions: ($stateParams, ApplicationService: ApplicationService) =>
           ApplicationService.listSubscriptions($stateParams.applicationId).then((response) => response.data),
       },

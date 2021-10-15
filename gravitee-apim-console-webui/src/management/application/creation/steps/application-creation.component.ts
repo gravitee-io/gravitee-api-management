@@ -16,6 +16,7 @@
 const ApplicationCreationComponent: ng.IComponentOptions = {
   bindings: {
     enabledApplicationTypes: '<',
+    groups: '<',
   },
   template: require('./application-creation.html'),
   controller: 'ApplicationCreationController',

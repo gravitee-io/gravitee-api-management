@@ -40,6 +40,7 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
             return plan;
           });
           this.selectedAPI = api;
+          this.refreshPlansExcludedGroupsNames();
         });
       } else {
         delete this.plans;
@@ -82,6 +83,15 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
       },
       true,
     );
+
+    this.refreshPlansExcludedGroupsNames = () => {
+      this.plans.forEach(
+        (plan) =>
+          (plan.excluded_groups_names = plan.excluded_groups?.map(
+            (excludedGroupId) => this.parent.groups.find((apiGroup) => apiGroup.id == excludedGroupId)?.name,
+          )),
+      );
+    };
   },
 };
 

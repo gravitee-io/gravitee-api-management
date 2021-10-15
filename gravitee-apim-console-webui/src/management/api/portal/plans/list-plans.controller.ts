@@ -24,6 +24,7 @@ import UserService from '../../../../services/user.service';
 class ApiListPlansController {
   private api: any;
   private plans: any;
+  private groups: any[];
   private dndEnabled: boolean;
   private statusFilters: string[];
   private selectedStatus: string[];
@@ -84,6 +85,8 @@ class ApiListPlansController {
 
     this.isApiDeprecated = this.api.lifecycle_state === 'DEPRECATED';
     this.creationEmptyMessage = this.isApiDeprecated ? 'The API is deprecated' : 'Start creating a plan';
+
+    this.refreshPlansExcludedGroupsNames();
   }
 
   canDesign(plan) {
@@ -100,6 +103,7 @@ class ApiListPlansController {
         this.plans.length = 0;
         Array.prototype.push.apply(this.plans, response.data);
 
+        this.refreshPlansExcludedGroupsNames();
         this.applyFilters();
       });
     });
@@ -249,6 +253,15 @@ class ApiListPlansController {
 
   countPlansByStatus() {
     this.countByStatus = _.countBy(this.plans, 'status');
+  }
+
+  refreshPlansExcludedGroupsNames() {
+    this.plans.forEach(
+      (plan) =>
+        (plan.excluded_groups_names = plan.excluded_groups?.map(
+          (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id == excludedGroupId)?.name,
+        )),
+    );
   }
 }
 

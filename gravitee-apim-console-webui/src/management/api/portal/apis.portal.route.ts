@@ -67,6 +67,7 @@ function apisPortalRouterConfig($stateProvider) {
       component: 'listPlans',
       resolve: {
         plans: ($stateParams, ApiService: ApiService) => ApiService.getApiPlans($stateParams.apiId).then((response) => response.data),
+        groups: (GroupService: GroupService) => GroupService.list().then((response) => response.data),
       },
       data: {
         perms: {
