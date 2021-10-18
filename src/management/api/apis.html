@@ -1,0 +1,156 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <div class="gv-form" ng-show="$ctrl.apis.length > 0 || $ctrl.isSearchResult()">
+      <div class="apis-header-filter">
+        <form flex layout="row" layout-align="center center" name="formSearch" autocomplete="off" ng-submit="$ctrl.gotToPage(1)">
+          <input
+            class="form-control apis-filter"
+            type="text"
+            style="max-width: 960px"
+            ng-model="$ctrl.query"
+            placeholder="Search APIs"
+            autofocus
+          />
+          <md-button class="md-primary gv-search-button" type="submit" aria-label="Search">
+            <ng-md-icon icon="search" ng-disabled="apisLoading"></ng-md-icon>
+          </md-button>
+        </form>
+      </div>
+      <div class="gv-form-content" id="apis-container" style="height: calc(100vh - 200px); max-height: 968px; overflow-y: auto">
+        <div
+          layout="row"
+          layout-wrap
+          class="inset"
+          infinite-scroll="$ctrl.scroll()"
+          infinite-scroll-distance="1"
+          infinite-scroll-container="'#apis-container'"
+        >
+          <md-table-container style="width: 100%; min-height: 200px; text-align: center">
+            <table md-table ng-model="$ctrl.selectedApis">
+              <thead md-head md-order="$ctrl.order">
+                <tr md-row>
+                  <th md-column width="1%"></th>
+                  <th md-column width="15%" md-order-by="name" ng-click="$ctrl.sort($ctrl.order, 'name')"><span>Name</span></th>
+                  <th md-column width="1%"></th>
+                  <th md-column md-order-by="virtual_hosts" ng-click="$ctrl.sort($ctrl.order, 'virtual_hosts')">Context paths</th>
+                  <th md-column width="1%">Tags</th>
+                  <th md-column width="1%" ng-if="$ctrl.isQualityDisplayed">Quality</th>
+                  <th md-column width="1%">Owner</th>
+                  <th md-column width="1%"></th>
+                </tr>
+              </thead>
+              <tbody md-body>
+                <tr ng-if="$ctrl.apis.length == 0">
+                  <td colspan="7" style="text-align: center" md-cell>No APIs found</td>
+                </tr>
+                <tr md-row ng-repeat="api in $ctrl.apis track by api.id">
+                  <td md-cell nowrap>
+                    <gravitee-identity-picture
+                      image-id="api.id"
+                      image-url="::api.picture_url"
+                      image-name="api.name + '  ' + api.version"
+                      image-width="40"
+                    ></gravitee-identity-picture>
+                  </td>
+                  <td md-cell>
+                    <a ui-sref="management.apis.detail.portal.general({apiId: api.id})"> {{api.name}} ({{api.version}}) </a>
+                  </td>
+                  <td md-cell nowrap>
+                    <i ng-if="api.state == 'started'" class="icon-play-circled2" style="color: #43a047; font-size: 16px">
+                      <md-tooltip>Started</md-tooltip>
+                    </i>
+                    <i ng-if="api.state !== 'started'" class="icon-stop-circle-o" style="color: #e53935; font-size: 16px">
+                      <md-tooltip>Stopped</md-tooltip>
+                    </i>
+                    <i
+                      ng-if="$ctrl.syncStatus[api.id] === undefined?false:!$ctrl.syncStatus[api.id]"
+                      class="icon-arrows-cw"
+                      style="color: #e8ac3c; font-size: 14px"
+                    >
+                      <md-tooltip>API out of sync</md-tooltip>
+                    </i>
+                    <ng-md-icon ng-if="api.lifecycle_state === 'published'" icon="cloud_done" size="17" style="top: 3px">
+                      <md-tooltip>Published</md-tooltip>
+                    </ng-md-icon>
+                    <ng-md-icon ng-if="api.lifecycle_state !== 'published'" icon="cloud_queue" size="17" style="top: 3px">
+                      <md-tooltip>Unpublished</md-tooltip>
+                    </ng-md-icon>
+                    <span
+                      class="badge gravitee-policy-method-badge-info ng-binding ng-scope"
+                      ng-if="$ctrl.getWorkflowStateLabel(api)"
+                      ng-style="{'background-color': $ctrl.getWorkflowStateColor(api)}"
+                    >
+                      {{$ctrl.getWorkflowStateLabel(api)}}
+                    </span>
+                  </td>
+                  <td md-cell style="padding: 5px !important">{{$ctrl.getEntrypoints(api)}}</td>
+                  <td md-cell nowrap>{{api.tags.join(', ')}}</td>
+                  <td md-cell nowrap ng-if="$ctrl.isQualityDisplayed">
+                    <span class="gravitee-qm-score-small" ng-class="$ctrl.getQualityMetricCssClass($ctrl.qualityScores[api.id])">
+                      {{$ctrl.qualityScores[api.id] === undefined ? "-" : $ctrl.qualityScores[api.id]}}%
+                    </span>
+                  </td>
+                  <td md-cell nowrap>
+                    <span>
+                      {{::api.owner.displayName}}
+                      <md-tooltip ng-if="api.owner.email">
+                        <span>{{::api.owner.email}}</span>
+                      </md-tooltip>
+                    </span>
+                  </td>
+                  <td md-cell nowrap>
+                    <ng-md-icon icon="{{$ctrl.getVisibilityIcon(api)}}" size="20" style="fill: #cdcdcd">
+                      <md-tooltip>{{$ctrl.getVisibility(api)}}</md-tooltip>
+                    </ng-md-icon>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </div>
+      </div>
+    </div>
+    <gravitee-empty-state
+      ng-if="$ctrl.apis.length == 0 && !$ctrl.isSearchResult()"
+      icon="dashboard"
+      model="API"
+      message="Hmmm, there is no API for you here :("
+      sub-message="{{$ctrl.getSubMessage()}}"
+      create-mode="true"
+    ></gravitee-empty-state>
+
+    <div ng-if="$ctrl.apisProvider.length == 0 && !$ctrl.isSearchResult()" style="text-align: center">
+      <md-button ng-if="!$ctrl.graviteeUser.id" class="md-raised" ui-sref="login" aria-label="login">Login</md-button>
+    </div>
+
+    <div ng-style="{'text-align': $ctrl.apis.length == 0 && !$ctrl.isSearchResult() ? 'center' : 'none' }">
+      <md-button
+        permission
+        permission-only="'environment-api-c'"
+        ng-class="{'md-fab-bottom-right': $ctrl.apis.length > 0 || $ctrl.isSearchResult()}"
+        class="md-fab"
+        aria-label="create-api"
+        ui-sref="management.apis.new"
+      >
+        <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
+      </md-button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms" layout="column">
+  <h1>Transfer ownership</h1>
+
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column" layout-align="start stretch">
+      <div ng-if="apiTransferOwnershipCtrl.isAllowedToTransferOwnership()">
+        <p>Give full access to this API to an other user.</p>
+        <gv-user-autocomplete
+          users-selected="apiTransferOwnershipCtrl.usersSelected"
+          place-holder="'Select a user'"
+          single-user="true"
+          user-filter-fn="apiTransferOwnershipCtrl.userFilterFn"
+          default-users-list="apiTransferOwnershipCtrl.defaultUsersList"
+        >
+        </gv-user-autocomplete>
+        <br />
+        <md-input-container class="md-block">
+          <label>New role for current Primary Owner</label>
+          <md-select ng-model="apiTransferOwnershipCtrl.newPORole">
+            <md-option ng-value="role" ng-repeat="role in apiTransferOwnershipCtrl.newPORoles">{{role.name}}</md-option>
+          </md-select>
+        </md-input-container>
+
+        <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button
+            ng-disabled="!apiTransferOwnershipCtrl.usersSelected || !apiTransferOwnershipCtrl.usersSelected[0]"
+            class="md-primary md-raised"
+            ng-click="apiTransferOwnershipCtrl.showTransferOwnershipConfirm($event)"
+            >Transfer</md-button
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

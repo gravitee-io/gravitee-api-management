@@ -1,0 +1,101 @@
+.theme-component {
+  .theme-component-container {
+    display: flex;
+  }
+
+  .theme-component-actions {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .theme-component-actions-primary {
+    flex: 1;
+    align-items: center;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .theme-component-title {
+    margin-bottom: 0;
+  }
+
+  .theme-component-title md-input-container {
+    margin-bottom: 0;
+  }
+
+  #preview {
+    flex: 1;
+    min-height: 800px;
+    padding: 10px;
+  }
+
+  .gv-form-content {
+    max-height: 850px;
+    max-width: 254px;
+    min-width: 254px;
+    width: 254px;
+    overflow: auto;
+  }
+
+  .theme-component-color-picker label,
+  .theme-component-color-picker input {
+    display: none;
+  }
+
+  .theme-component-colors {
+    display: flex;
+    align-items: center;
+    flex: 1;
+  }
+
+  .theme-component-color-picker .md-color-picker-preview {
+    top: 11px;
+  }
+
+  hr {
+    margin: 10px 0;
+  }
+
+  .theme-component-text {
+    margin-top: 5px;
+
+    ng-md-icon,
+    .md-input-container {
+      margin: 18px 0 0 12px;
+    }
+  }
+
+  .theme-component-label {
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 10px;
+  }
+
+  .theme-component-container-fullscreen v-accordion {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .theme-component-container-fullscreen v-pane {
+    flex: 1;
+    min-width: 254px;
+    padding: 0 5px;
+  }
+
+  .gv-forms {
+    max-width: none;
+    width: 100%;
+  }
+
+  .theme-component-container-fullscreen .gv-form-content,
+  .theme-component-container-fullscreen,
+  .theme-component-container-fullscreen .md-select {
+    max-width: none;
+    width: 100%;
+  }
+
+  v-pane-header {
+    text-transform: capitalize;
+  }
+}
