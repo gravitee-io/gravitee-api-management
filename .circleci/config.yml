@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   gio_action:
     type: enum
-    enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests]
+    enum: [release, standalone_release, standalone_release_replay, nexus_staging, vm_nexus_staging, pull_requests, snyk_test]
     default: pull_requests
   dry_run:
     type: boolean
@@ -29,9 +29,23 @@ parameters:
     type: string
     default: ''
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
+  docker_latest:
+    type: boolean
+    default: true
+    description: "Is the docker published image a latest?"
+  snyk_test:
+    type: boolean
+    default: false
+    description: "Do we need to publish images in private azure registry for security testing?"
+  repo_test:
+    type: enum
+    enum: [gateway, management-webui, portal-ui, rest-api]
+    default: gateway
+    description: "what repository in azure we need to publish docker image"
 orbs:
   slack: circleci/slack@4.4
   gravitee: gravitee-io/gravitee@1.0
+  apim: gravitee-io/gravitee-apim@1.0
   secrethub: secrethub/cli@1.1
   gh: circleci/github-cli@1.0
   sonarcloud: sonarsource/sonarcloud@1.0
@@ -489,7 +503,7 @@ workflows:
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
           container_size: 'large'
-
+  
   standalone_release_dry_run:
     when:
       and:
@@ -662,6 +676,26 @@ workflows:
           # container_gun_image_name: 'openjdk'
           # container_gun_image_tag: '11.0.3-jdk-stretch'
           container_size: 'large'
+
+
+  Docker_Snyk_Test:
+    when:
+      and:
+        - equal: [ snyk_test, << pipeline.parameters.gio_action >> ]
+        - << pipeline.parameters.dry_run >>
+    jobs:
+      - apim/d_apim_package_bundle_secrets:
+          context: cicd-orchestrator
+          name: package_bundle_secrets_resolution
+      - apim/d_apim_snyktest_docker:
+          name: publishing_image_in_azure
+          requires:
+            -  package_bundle_secrets_resolution
+          dry_run: true
+          docker_latest: << pipeline.parameters.docker_latest >>
+          docker_tag: << pipeline.parameters.replayed_release >>
+          snyk_test: << pipeline.parameters.snyk_test >>
+          repo_test: << pipeline.parameters.repo_test >>
 
 
   # ---

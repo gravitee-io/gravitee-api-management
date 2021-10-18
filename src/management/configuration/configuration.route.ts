@@ -741,6 +741,7 @@ function configurationRouterConfig($stateProvider) {
       resolve: {
         clientRegistrationProviders: (ClientRegistrationProviderService: ClientRegistrationProviderService) =>
           ClientRegistrationProviderService.list().then((response) => response),
+        settings: (PortalSettingsService: PortalSettingsService) => PortalSettingsService.get().then((response) => response.data),
       },
       data: {
         menu: null,
