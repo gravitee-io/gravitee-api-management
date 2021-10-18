@@ -16,6 +16,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { isNil } from 'lodash';
 
 import { Constants } from '../entities/Constants';
 import { NotificationTemplate } from '../entities/notification/notificationTemplate';
@@ -33,10 +34,10 @@ export class NotificationTemplateService {
 
   search(params?: SearchParams): Observable<NotificationTemplate[]> {
     const requestParams: { hook?: string; scope?: string } = {};
-    if (params?.scope) {
+    if (!isNil(params?.scope)) {
       requestParams.scope = params.scope;
     }
-    if (params?.hook) {
+    if (!isNil(params?.hook)) {
       requestParams.hook = params.hook;
     }
     return this.http.get<NotificationTemplate[]>(`${this.constants.org.baseURL}/configuration/notification-templates`, {

@@ -68,6 +68,24 @@ describe('NotificationTemplateService', () => {
       expect(req.request.method).toEqual('GET');
       req.flush(notificationTemplates);
     });
+
+    it('should works with empty search params', (done) => {
+      const notificationTemplates = [fakeNotificationTemplate()];
+
+      notificationTemplateService
+        .search({
+          scope: '',
+          hook: '',
+        })
+        .subscribe((response) => {
+          expect(response).toEqual(notificationTemplates);
+          done();
+        });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/notification-templates?scope=&hook=`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(notificationTemplates);
+    });
   });
 
   describe('create', () => {
