@@ -35,7 +35,7 @@ public class VertxReactorConfiguration {
 
     @Bean("gatewayHttpServerConfiguration")
     public HttpServerConfiguration gatewayHttpServerConfiguration(Environment environment) {
-        return HttpServerConfiguration.builder().withEnvironment(environment).withDefaultPort(8082).defaultConfig();
+        return HttpServerConfiguration.builder().withEnvironment(environment).withDefaultPort(8082).build();
     }
 
     @Bean("gatewayHttpServer")
