@@ -37,15 +37,15 @@ export default {
     name: {
       type: { name: 'string', required: false },
     },
-    width: {
+    size: {
       type: { name: 'number', required: false },
     },
     roundedBorder: {
       type: { name: 'boolean', required: false },
     },
   },
-  render: ({ id, src, name, width, roundedBorder }) => ({
-    props: { id, src, name, width, roundedBorder },
+  render: ({ id, src, name, size, roundedBorder }) => ({
+    props: { id, src, name, size, roundedBorder },
   }),
 } as Meta;
 
@@ -66,15 +66,15 @@ ImageWithParentDiv.args = {
 };
 ImageWithParentDiv.decorators = [componentWrapperDecorator((story) => `<div style="width:300px; height:300px">${story}</div>`)];
 
-export const IconWithWidth24Px: Story<GioAvatarComponent> = {};
-IconWithWidth24Px.args = {
-  width: 24,
+export const IconWithSize24Px: Story<GioAvatarComponent> = {};
+IconWithSize24Px.args = {
+  size: 24,
 };
 
-export const ImageWithWidth24Px: Story<GioAvatarComponent> = {};
-ImageWithWidth24Px.args = {
+export const ImageWithSize24Px: Story<GioAvatarComponent> = {};
+ImageWithSize24Px.args = {
   src: 'https://i.pravatar.cc/100',
-  width: 24,
+  size: 24,
 };
 
 export const IconWithRoundedBorder: Story<GioAvatarComponent> = {};

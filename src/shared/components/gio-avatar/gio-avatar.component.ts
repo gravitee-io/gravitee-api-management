@@ -20,16 +20,22 @@ import { toSvg } from 'jdenticon';
   selector: 'gio-avatar',
   template: require('./gio-avatar.component.html'),
   styles: [require('./gio-avatar.component.scss')],
+  host: {
+    '[style.width.px]': 'size',
+    '[style.height.px]': 'size',
+  },
 })
 export class GioAvatarComponent implements AfterViewInit, OnChanges {
   @Input()
   public id: string;
   @Input()
-  public src: string;
+  set src(src: string) {
+    this.imgSrc = src ?? '';
+  }
   @Input()
   public name: string;
-  @Input()
-  public width: number;
+  @Input('size')
+  public inputSize: number;
   @Input()
   public roundedBorder: boolean;
 
@@ -44,12 +50,11 @@ export class GioAvatarComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(): void {
-    this.size = this.width || this.defaultSize;
+    this.size = this.inputSize || this.defaultSize;
   }
 
   ngAfterViewInit(): void {
-    if (this.src) {
-      this.imgSrc = this.src ?? '';
+    if (this.imgSrc) {
       return;
     }
 
