@@ -25,7 +25,7 @@ import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApiServiceCockpit;
 import io.gravitee.rest.api.service.UserService;
 import io.reactivex.observers.TestObserver;
 import org.junit.Before;
@@ -45,7 +45,7 @@ public class DeployModelCommandHandlerTest {
     private UserService userService;
 
     @Mock
-    private ApiService apiService;
+    private ApiServiceCockpit apiService;
 
     private DeployModelCommandHandler cut;
 

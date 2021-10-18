@@ -61,7 +61,6 @@ public interface ApiService {
     Set<ApiEntity> findByVisibility(Visibility visibility);
 
     ApiEntity create(NewApiEntity api, String userId);
-    ApiEntity createFromCockpit(String apiId, String userId, String swaggerDefinition);
     ApiEntity createFromSwagger(SwaggerApiEntity api, String userId, ImportSwaggerDescriptorEntity swaggerDescriptor);
     ApiEntity createWithApiDefinition(UpdateApiEntity api, String userId, JsonNode apiDefinition);
 
@@ -167,4 +166,12 @@ public interface ApiService {
     void removeGroup(String api, String group);
 
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
+
+    void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId);
+    void createOrUpdateDocumentation(
+            ImportSwaggerDescriptorEntity swaggerDescriptor,
+            ApiEntity api,
+            boolean isForCreation
+    );
+    void createSystemFolder(String apiId);
 }

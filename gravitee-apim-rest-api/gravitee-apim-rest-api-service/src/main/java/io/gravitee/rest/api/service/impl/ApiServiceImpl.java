@@ -269,28 +269,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private static final String ENDPOINTS_DELIMITER = "\n";
 
     @Override
-    public ApiEntity createFromCockpit(String apiId, String userId, String swaggerDefinition) {
-        ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
-        swaggerDescriptor.setPayload(swaggerDefinition);
-        swaggerDescriptor.setWithDocumentation(true);
-        swaggerDescriptor.setWithPolicyPaths(true);
-        swaggerDescriptor.setWithPolicies(List.of("mock"));
-
-        final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
-        api.setPaths(null);
-
-        final ObjectNode apiDefinition = objectMapper.valueToTree(api);
-        apiDefinition.put("id", apiId);
-
-        final ApiEntity createdApi = this.createWithApiDefinition(api, userId, apiDefinition);
-        createSystemFolder(createdApi.getId());
-        createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
-        createMetadata(api.getMetadata(), createdApi.getId());
-
-        return createdApi;
-    }
-
-    @Override
     public ApiEntity createFromSwagger(
         final SwaggerApiEntity swaggerApiEntity,
         final String userId,
@@ -335,7 +313,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return groupEntityStream.map(GroupEntity::getId).collect(Collectors.toSet());
     }
 
-    private void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId) {
+    @Override
+    public void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId) {
         if (apiMetadata != null && !apiMetadata.isEmpty()) {
             apiMetadata
                 .stream()
@@ -539,7 +518,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return createdApi;
     }
 
-    private void createOrUpdateDocumentation(
+    @Override
+    public void createOrUpdateDocumentation(
         final ImportSwaggerDescriptorEntity swaggerDescriptor,
         final ApiEntity api,
         boolean isForCreation
@@ -687,7 +667,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return primaryOwnerEntity;
     }
 
-    private void createSystemFolder(String apiId) {
+    @Override
+    public void createSystemFolder(String apiId) {
         NewPageEntity asideSystemFolder = new NewPageEntity();
         asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
         asideSystemFolder.setPublished(true);

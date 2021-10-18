@@ -24,6 +24,7 @@ import io.gravitee.cockpit.api.command.designer.DeployModelReply;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
+import io.gravitee.rest.api.service.ApiServiceCockpit;
 import io.gravitee.rest.api.service.UserService;
 import io.reactivex.Single;
 import org.slf4j.Logger;
@@ -39,10 +40,10 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
     private final Logger logger = LoggerFactory.getLogger(DeployModelCommandHandler.class);
 
-    private final ApiService apiService;
+    private final ApiServiceCockpit apiService;
     private final UserService userService;
 
-    public DeployModelCommandHandler(ApiService apiService, UserService userService) {
+    public DeployModelCommandHandler(ApiServiceCockpit apiService, UserService userService) {
         this.apiService = apiService;
         this.userService = userService;
     }
