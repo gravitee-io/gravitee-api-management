@@ -39,15 +39,23 @@ export class UsersService {
     });
   }
 
+  get(userId: string): Observable<User> {
+    return this.http.get<User>(`${this.constants.org.baseURL}/users/${userId}`);
+  }
+
+  getUserAvatar(userId: string): string {
+    return `${this.constants.org.baseURL}/users/${userId}/avatar`;
+  }
+
+  getUserGroups(userId: string): Observable<Group[]> {
+    return this.http.get<Group[]>(`${this.constants.org.baseURL}/users/${userId}/groups`);
+  }
+
   create(user: NewExternalUser): Observable<User> {
     return this.http.post<User>(`${this.constants.org.baseURL}/users`, user);
   }
 
   remove(userId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.org.baseURL}/users/${userId}`);
-  }
-
-  getUserGroups(userId: string): Observable<Group[]> {
-    return this.http.get<Group[]>(`${this.constants.org.baseURL}/users/${userId}/groups`);
   }
 }
