@@ -201,7 +201,7 @@ public class PageService_UpdateTest {
 
         pageService.update(PAGE_ID, updatePageEntity);
 
-        verify(pageRepository, times(3))
+        verify(pageRepository, times(4))
             .update(
                 argThat(
                     pageToUpdate -> {
@@ -258,7 +258,7 @@ public class PageService_UpdateTest {
 
         pageService.update("3", updatePageEntity);
 
-        verify(pageRepository, times(3))
+        verify(pageRepository, times(4))
             .update(
                 argThat(
                     pageToUpdate -> {

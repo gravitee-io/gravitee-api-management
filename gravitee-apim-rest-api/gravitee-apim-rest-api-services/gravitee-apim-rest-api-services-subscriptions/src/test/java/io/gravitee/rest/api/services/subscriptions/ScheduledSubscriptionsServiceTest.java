@@ -42,26 +42,17 @@ public class ScheduledSubscriptionsServiceTest {
     ScheduledSubscriptionsService service = new ScheduledSubscriptionsService();
 
     @Mock
-    ApiService apiService;
-
-    @Mock
     SubscriptionService subscriptionService;
 
     @Test
     public void shouldCloseOutdatedSubscriptions() {
-        ApiEntity apiEntity = mock(ApiEntity.class);
-        when(apiEntity.getId()).thenReturn("API_ID");
-
         SubscriptionEntity endDateInThePast = mock(SubscriptionEntity.class);
         when(endDateInThePast.getId()).thenReturn("end_date_in_the_past");
-
-        when(apiService.findAllLight()).thenReturn(Collections.singleton(apiEntity));
 
         when(
             subscriptionService.search(
                 argThat(
                     subscriptionQuery ->
-                        subscriptionQuery.getApis().equals(Collections.singleton("API_ID")) &&
                         subscriptionQuery.getStatuses().equals(Collections.singleton(SubscriptionStatus.ACCEPTED)) &&
                         subscriptionQuery.getEndingAtBefore() > 0
                 )
@@ -71,7 +62,6 @@ public class ScheduledSubscriptionsServiceTest {
 
         service.run();
 
-        verify(apiService, times(1)).findAllLight();
         verify(subscriptionService, times(1)).close("end_date_in_the_past");
     }
 }

@@ -23,8 +23,8 @@ import java.util.Objects;
  */
 public class ApiFieldExclusionFilter {
 
-    private boolean definition;
-    private boolean picture;
+    private final boolean definition;
+    private final boolean picture;
 
     private ApiFieldExclusionFilter(ApiFieldExclusionFilter.Builder builder) {
         this.definition = builder.definition;
