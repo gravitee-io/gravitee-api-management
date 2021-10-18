@@ -5,4 +5,35 @@
 }
 
 .org-settings-notification-template {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  &__form {
+    flex: 1 1 auto;
+
+    &__card {
+      margin-bottom: 16px;
+
+      &__title {
+        display: flex;
+        align-items: flex-start;
+
+        &__badge {
+          margin-top: 6px;
+        }
+      }
+
+      &__fields {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+
+        &__content-field {
+          // Default text area height
+          height: 200px;
+        }
+      }
+    }
+  }
 }

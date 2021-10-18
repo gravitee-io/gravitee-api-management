@@ -17,7 +17,13 @@
 export type NotificationTemplateType = 'EMAIL' | 'PORTAL';
 
 export interface NotificationTemplate {
-  id: string;
+  /**
+   * Be careful with the id, it can exist or not according to template
+   * customization. The first time a notification template is fetch it will
+   * have no id but all the other fields will be there. After been customized
+   * once it will always have an id, whether it has all default values or not
+   */
+  id?: string;
   hook?: string;
   scope: string;
   name: string;

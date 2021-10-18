@@ -15,7 +15,7 @@
  */
 import { AlertStatus } from './alertStatus';
 
-export function fakeAlertStatus(attributes?: Partial<AlertStatus>) {
+export function fakeAlertStatus(attributes?: Partial<AlertStatus>): AlertStatus {
   const base: AlertStatus = {
     available_plugins: 1,
     enabled: true,
