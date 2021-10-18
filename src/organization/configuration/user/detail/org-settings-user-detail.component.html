@@ -15,4 +15,43 @@
     limitations under the License.
 
 -->
-Hello 🦊
+<h1><gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-users' }"></gio-go-back-button>User details</h1>
+<mat-card class="org-settings-user-detail__card">
+  <div class="org-settings-user-detail__card__left">
+    <gio-avatar
+      class="org-settings-user-detail__card__left__avatar"
+      [roundedBorder]="true"
+      src="https://material.angular.io/assets/img/examples/shiba2.jpg"
+      size="80"
+    ></gio-avatar>
+    <mat-chip-list class="org-settings-user-detail__card__left__tags" aria-label="Fish selection">
+      <mat-chip>Active</mat-chip>
+    </mat-chip-list>
+    <div class="org-settings-user-detail__card__left__btn">
+      <button mat-raised-button color="warn">Reset password</button>
+    </div>
+  </div>
+
+  <div class="org-settings-user-detail__card__right">
+    <h2>Gaetan Maisse 🌽</h2>
+
+    <div>
+      <dl class="gio-description-list">
+        <dt>Email</dt>
+        <dd gioClipboardCopyWrapper contentToCopy="gravitee">gaetan.maisse+user@graviteesource.com</dd>
+
+        <dt>Source</dt>
+        <dd gioClipboardCopyWrapper contentToCopy="gravitee">gravitee</dd>
+
+        <dt>Organization Role</dt>
+        <dd>ADMIN, USER</dd>
+
+        <dt>Last connection at</dt>
+        <dd>Sep 28, 2021 5:34:40 PM</dd>
+
+        <dt>Created at</dt>
+        <dd>Sep 28, 2021 5:27:00 PM</dd>
+      </dl>
+    </div>
+  </div>
+</mat-card>

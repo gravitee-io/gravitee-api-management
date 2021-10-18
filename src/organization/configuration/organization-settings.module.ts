@@ -64,6 +64,7 @@ import { GioGoBackButtonModule } from '../../shared/components/go-back-button/gi
 import { GioSaveBarModule } from '../../shared/components/gio-save-bar/gio-save-bar.module';
 import { GioFormFocusInvalidModule } from '../../shared/components/form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.module';
+import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 
 @NgModule({
   imports: [
@@ -105,6 +106,7 @@ import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.m
     GioSaveBarModule,
     GioFormFocusInvalidModule,
     GioBannerModule,
+    GioClipboardModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,
