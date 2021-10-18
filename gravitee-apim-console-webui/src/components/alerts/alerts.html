@@ -1,0 +1,133 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <div class="gv-form">
+      <h1>Alerts</h1>
+      <div class="gv-form-content" layout="column">
+        <md-table-container ng-if="$ctrl.alerts.length > 0">
+          <table md-table class="gv-table-dense">
+            <thead md-head>
+              <tr md-row>
+                <th md-column width="1%" nowrap></th>
+                <th md-column>Name</th>
+                <th md-column>Description</th>
+                <th md-column>Last 5m / 1h / 1d / 1M</th>
+                <th md-column>Last alert</th>
+                <th md-column>Last message</th>
+                <th permission permission-only="'environment-alert-d'" width="48px" nowrap></th>
+                <th permission permission-only="'environment-alert-d'" width="48px" nowrap></th>
+              </tr>
+            </thead>
+            <tbody md-body>
+              <tr md-row ng-repeat="alert in $ctrl.alerts" style="height: 25px">
+                <td md-cell>
+                  <span
+                    class="badge gravitee-policy-method-badge-info ng-binding ng-scope"
+                    ng-style="{'background-color': $ctrl.getSeverityColor(alert)}"
+                  >
+                    {{alert.severity}}
+                  </span>
+                </td>
+                <td md-cell permission permission-only="'environment-alert-u'">
+                  <a ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}" ng-click="$ctrl.goTo('alert', alert.id)">
+                    <span ng-if="alert.template">[Template] </span>
+                    {{alert.name}}
+                  </a>
+                </td>
+                <td md-cell>{{alert.description}}</td>
+                <td md-cell permission permission-except="'environment-alert-u'">
+                  <span ng-style="alert.enabled?'':{'font-style': 'italic', 'color': 'grey'}">{{alert.name}}</span>
+                </td>
+                <td md-cell>
+                  <span ng-if="!alert.template">
+                    {{ alert.counters['5m'] }} / {{ alert.counters['1h'] }} / {{ alert.counters['1d'] }} / {{ alert.counters['1M'] }}
+                    <md-tooltip>
+                      {{ alert.counters['5m'] }} during the last 5 minutes / {{ alert.counters['1h'] }} during the last 1 hour / {{
+                      alert.counters['1d'] }} during the last 1 day / {{ alert.counters['1M'] }} during the last 1 month
+                    </md-tooltip>
+                  </span>
+                  <span ng-if="alert.template">-</span>
+                </td>
+                <td md-cell>
+                  <span ng-if="alert.last_alert_at"
+                    >{{ alert.last_alert_at | humanDatetimeFilter }}
+                    <md-tooltip>{{ alert.last_alert_at | date:'medium' }}</md-tooltip>
+                  </span>
+                  <span ng-if="alert.last_alert_at === undefined">-</span>
+                </td>
+                <td md-cell>
+                  <span ng-if="alert.last_alert_message">{{alert.last_alert_message}}</span>
+                  <span ng-if="alert.last_alert_message === undefined">-</span>
+                </td>
+                <td md-cell width="48px">
+                  <ng-md-icon
+                    ng-if="!alert.enabled && !alert.template"
+                    icon="not_interested"
+                    ng-click="$ctrl.toggleEnable(alert)"
+                    style="font-size: 24px; height: 24px"
+                    permission
+                    permission-only="'environment-alert-u'"
+                  >
+                    <md-tooltip md-direction="top" md-visible="false">Enable this alert</md-tooltip>
+                  </ng-md-icon>
+                  <ng-md-icon
+                    ng-if="alert.enabled && !alert.template"
+                    icon="done"
+                    ng-click="$ctrl.toggleEnable(alert)"
+                    style="font-size: 24px; height: 24px"
+                    permission
+                    permission-only="'environment-alert-u'"
+                  >
+                    <md-tooltip md-direction="top" md-visible="false">Disable this alert</md-tooltip>
+                  </ng-md-icon>
+                  <ng-md-icon ng-if="alert.template" icon="content_copy" style="font-size: 24px; height: 24px">
+                    <md-tooltip md-direction="top" md-visible="false">Alert template</md-tooltip>
+                  </ng-md-icon>
+                </td>
+                <td md-cell permission permission-only="'environment-alert-d'">
+                  <ng-md-icon icon="delete" ng-click="$ctrl.delete(alert)"></ng-md-icon>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+        <gravitee-empty-state
+          ng-if="$ctrl.alerts.length === 0"
+          icon="insert_chart"
+          model="Alert"
+          message="Alerts will appear here"
+          sub-message="Start creating an alert"
+          create-mode="true"
+        ></gravitee-empty-state>
+      </div>
+    </div>
+  </div>
+  <div ng-style="{'text-align': $ctrl.alerts.length == 0 ? 'center' : 'none' }">
+    <md-button
+      permission
+      permission-only="['api-alert-c', 'application-alert-c', 'environment-alert-c']"
+      ng-class="{'md-fab-bottom-right': $ctrl.alerts.length > 0}"
+      class="md-fab"
+      aria-label="create-alert"
+      ng-click="$ctrl.goTo('alertnew')"
+    >
+      <ng-md-icon icon="add" style="fill: #fff"></ng-md-icon>
+    </md-button>
+  </div>
+</div>

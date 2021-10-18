@@ -1,0 +1,90 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <h1>Top APIs</h1>
+  <div class="gv-form">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
+      <md-table-container>
+        <table md-table class="gv-table-dense">
+          <thead md-head>
+            <tr md-row>
+              <th md-column width="1%" nowrap>Name</th>
+              <th md-column width="1%" nowrap>Version</th>
+              <th md-column>Description</th>
+              <th md-column width="96px" nowrap></th>
+              <th md-column width="48px" nowrap></th>
+            </tr>
+          </thead>
+          <tbody md-body>
+            <tr md-row ng-repeat="topApi in $ctrl.topApis | orderBy:'order'">
+              <td md-cell width="1%" nowrap>
+                <gravitee-identity-picture
+                  image-id="topApi.api"
+                  image-url="::topApi.picture_url"
+                  image-name="topApi.name + '  ' + topApi.version"
+                  image-width="40"
+                ></gravitee-identity-picture>
+                {{::topApi.name}}
+              </td>
+              <td md-cell width="1%" nowrap>{{::topApi.version}}</td>
+              <td md-cell>{{::topApi.description}}</td>
+              <td md-cell width="96px" style="text-align: center" nowrap>
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-top_apis-u'"
+                  ng-if="!$first"
+                  icon="arrow_upwards"
+                  ng-click="$ctrl.upward(topApi.order)"
+                ></ng-md-icon>
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-top_apis-u'"
+                  ng-if="!$last"
+                  icon="arrow_downward"
+                  ng-click="$ctrl.downward(topApi.order)"
+                ></ng-md-icon>
+              </td>
+              <td md-cell width="48px">
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-top_apis-d'"
+                  icon="delete"
+                  ng-click="$ctrl.delete(topApi)"
+                  style="height: 24px; font-size: 24px"
+                ></ng-md-icon>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+    </div>
+  </div>
+</div>
+
+<md-button
+  permission
+  permission-only="'environment-top_apis-c'"
+  aria-label="Add top API"
+  class="md-fab md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+  ng-click="$ctrl.showAddTopAPIModal()"
+>
+  <md-tooltip md-direction="top" md-visible="false">Add a </md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

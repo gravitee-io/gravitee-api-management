@@ -1,0 +1,65 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="column">
+  <md-switch ng-model="$ctrl.isCustomField" aria-label="Use custom field?">Use custom field?</md-switch>
+
+  <div layout="row">
+    <md-input-container ng-show="!$ctrl.isCustomField">
+      <label>Field</label>
+      <md-select ng-model="$ctrl.field" ng-change="$ctrl.onFieldChanged()">
+        <md-option ng-repeat="field in $ctrl.fields" ng-value="field.value">{{field.label}}</md-option>
+      </md-select>
+    </md-input-container>
+
+    <md-input-container ng-show="$ctrl.isCustomField">
+      <label>Field</label>
+      <input name="Field" ng-model="$ctrl.field" ng-change="$ctrl.onFieldChanged()" />
+    </md-input-container>
+  </div>
+</div>
+
+<div layout="row">
+  <md-input-container>
+    <label>Projection</label>
+    <md-select ng-model="$ctrl.projection" ng-change="$ctrl.onProjectionChanged()">
+      <md-option ng-repeat="projection in $ctrl.projections" ng-value="projection.value">{{projection.label}}</md-option>
+    </md-select>
+  </md-input-container>
+
+  <md-input-container>
+    <label>Order</label>
+    <md-select ng-model="$ctrl.order" ng-change="$ctrl.onProjectionChanged()">
+      <md-option ng-repeat="order in $ctrl.projectionOrders" ng-value="order.value">{{order.label}}</md-option>
+    </md-select>
+  </md-input-container>
+</div>
+
+<div layout="column">
+  <md-input-container>
+    <md-checkbox ng-model="$ctrl.chart.percent" ng-disabled="$ctrl.projection !== '_count'"> Display percentage </md-checkbox>
+  </md-input-container>
+
+  <md-input-container>
+    <md-checkbox ng-model="$ctrl.chart.selectable"> Allows to check a row to filter </md-checkbox>
+  </md-input-container>
+
+  <md-input-container>
+    <label>Paging</label>
+    <input type="number" ng-model="$ctrl.chart.paging" min="5" max="100" required />
+  </md-input-container>
+</div>

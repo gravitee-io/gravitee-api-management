@@ -1,0 +1,135 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <div>
+    <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0"></md-icon>
+    <h1>{{$ctrl.getPageName()}}</h1>
+    <a ng-click="$ctrl.cancel()">Back to Documentation</a>
+  </div>
+
+  <!-- FOLDER or LINK -->
+  <div class="gv-form" ng-switch="$ctrl.page.type">
+    <gv-new-folder ng-switch-when="FOLDER" page="$ctrl.page" on-save="$ctrl.save(true)"></gv-new-folder>
+    <gv-new-link
+      ng-switch-when="LINK"
+      category-resources="$ctrl.categoryResources"
+      folders-by-id="$ctrl.foldersById"
+      page="$ctrl.page"
+      page-list="$ctrl.pageList"
+      on-save="$ctrl.save(false)"
+      system-folders-by-id="$ctrl.systemFoldersById"
+    ></gv-new-link>
+  </div>
+
+  <!-- ASCIIDOC, SWAGGER, MARKDOWN or MARKDOWN_TEMPLATE-->
+  <div class="gv-form" ng-if="!$ctrl.isFolder() && !$ctrl.isLink()">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
+      <div layout="row">
+        <md-input-container class="md-block" flex>
+          <label>Name</label>
+          <input ng-model="$ctrl.page.name" required />
+        </md-input-container>
+      </div>
+      <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
+        <md-checkbox ng-model="$ctrl.page.homepage" aria-label="set as homepage" class="md-warn md-align-top-left" flex>
+          Set as homepage
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container class="md-block gv-input-container-dense">
+        <md-checkbox
+          ng-model="$ctrl.page.published"
+          aria-label="{{!$ctrl.isMarkdownTemplate() ? 'Published' : 'Available'}}"
+          class="md-align-top-left"
+          flex
+        >
+          {{!$ctrl.isMarkdownTemplate() ? 'Publish this page' : 'Make template available'}}
+        </md-checkbox>
+      </md-input-container>
+      <md-input-container ng-if="!$ctrl.isMarkdownTemplate()" class="md-block gv-input-container-dense">
+        <md-checkbox
+          ng-model="$ctrl.page.visibility"
+          ng-false-value="'PUBLIC'"
+          ng-true-value="'PRIVATE'"
+          aria-label="visibility"
+          class="md-align-top-left"
+          flex
+        >
+          Make private <i>(Deny access to anonymous user)</i>
+        </md-checkbox>
+      </md-input-container>
+      <h3>How to get the content ?</h3>
+      <md-radio-group ng-model="getContentMode" ng-change="$ctrl.changeContentMode(getContentMode)">
+        <md-radio-button value="inline" class="md-primary" selected>Fill the content inline</md-radio-button>
+        <md-radio-button value="import">Import from file</md-radio-button>
+        <md-radio-button value="fetcher">Import from an external source (gitlab, bitbucket, ...)</md-radio-button>
+      </md-radio-group>
+
+      <!-- MARKDOWN-TEMPLATE selection -->
+      <div layout-gt-sm="row">
+        <md-input-container ng-if="($ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()) && $ctrl.templates.length > 0" flex-gt-xs>
+          <label>Template</label>
+          <md-select ng-model="$ctrl.selectedTemplate" ng-change="$ctrl.onChangeMarkdownTemplate()">
+            <md-option ng-repeat="template in $ctrl.templates" ng-value="template">
+              <div ng-if="template.type">
+                <md-icon md-svg-src="assets/logo_{{template.type | lowercase}}.svg"></md-icon>
+                <span style="font-style: italic; opacity: 0.5">{{ template.parentPath }}</span>/{{ template.name }}
+              </div>
+            </md-option>
+          </md-select>
+          <div class="hint">Choose a template</div>
+        </md-input-container>
+      </div>
+
+      <div class="gv-page-info-banner" ng-if="($ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()) && $ctrl.templates.length > 0">
+        <ng-md-icon icon="info" class="gv-info"></ng-md-icon>
+        Selecting a template will override the current documentation.
+      </div>
+
+      <!-- edit inline -->
+      <h3 ng-if="'inline' === getContentMode">Type your documentation here:</h3>
+      <gv-edit-page-content
+        ng-if="'inline' === getContentMode"
+        can-update="true"
+        new-page="true"
+        page="$ctrl.page"
+        pages-to-link="$ctrl.pagesToLink"
+      ></gv-edit-page-content>
+
+      <!-- import file -->
+      <div ng-if="'import' === getContentMode" style="display: inline-block">
+        <h3>Select a file to import:</h3>
+        <input type="file" filecontent="$ctrl.page.content" filename="$ctrl.page.name" />
+      </div>
+
+      <!-- Import via fetchers -->
+      <gv-edit-page-fetchers
+        ng-if="'fetcher' === getContentMode"
+        fetchers="$ctrl.resolvedFetchers"
+        page="$ctrl.page"
+        title="'Select your source:'"
+      ></gv-edit-page-fetchers>
+
+      <gv-error error="$ctrl.error"></gv-error>
+
+      <div class="md-actions gravitee-api-save-button" layout="row" style="padding-top: 32px">
+        <md-button class="md-raised md-primary" type="submit" ng-click="$ctrl.save(false)" ng-disabled="!$ctrl.page.name"> Save </md-button>
+      </div>
+    </div>
+  </div>
+</div>

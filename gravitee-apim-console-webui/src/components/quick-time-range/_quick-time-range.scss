@@ -1,0 +1,14 @@
+.gv-quick-time-range {
+  width: 120px;
+  margin: 0;
+}
+
+.gv-quick-time-range-menu {
+  md-select-menu {
+    max-height: 336px;
+
+    md-content {
+      max-height: 336px;
+    }
+  }
+}

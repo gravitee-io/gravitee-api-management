@@ -1,0 +1,34 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="newsletter-box" ng-if="$ctrl.displayNewsletterSubscription">
+  <div class="newsletter-title-box">
+    <div class="newsletter-title">Join the community</div>
+    <a ng-click="$ctrl.close()" title="Maybe later, thanks !"
+      ><ng-md-icon icon="close" style="fill: rgba(0, 0, 0, 0.54)" size="20"></ng-md-icon
+    ></a>
+  </div>
+  <p>Subscribe to get product updates in your inbox</p>
+  <form id="newsletter-form" class="newsletter-form" ng-submit="$ctrl.subscribe()">
+    <input ng-model="$ctrl.email" ng-required="$ctrl.error" name="email" type="email" class="gv-input" placeholder="Email Address" />
+    <button type="submit" class="gv-button">Subscribe</button>
+  </form>
+  <span class="message"
+    >We won’t send you spam, unsubscribe at any time.
+    <a ng-click="$ctrl.unsubscribe()" title="No thanks, don't ask me anymore.">No thanks, don't ask me anymore.</a></span
+  >
+</div>

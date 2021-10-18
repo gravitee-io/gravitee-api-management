@@ -1,0 +1,138 @@
+.login-page {
+  width: 360px;
+  padding: 8% 0 0;
+  margin: auto;
+
+  .title {
+    color: var(--gv-theme-color-darker);
+  }
+
+  md-input-container {
+    margin: 0;
+  }
+
+  .small,
+  small {
+    font-size: 10px;
+  }
+
+  .text-muted {
+    margin-top: 5px;
+    color: #90939a;
+  }
+
+  .form {
+    position: relative;
+    z-index: 1;
+    background: #ffffff;
+    max-width: 360px;
+    margin: 0 auto 100px;
+    padding: 45px;
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  }
+
+  .form .register-form {
+    display: none;
+  }
+
+  .form-content {
+    margin: 10px 0;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    border-radius: 2px;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    min-height: 39px;
+  }
+
+  .btn span {
+    flex: 1 1 auto;
+    text-transform: uppercase;
+  }
+
+  .btn span {
+    font-weight: 500;
+  }
+
+  .btn-signin span {
+    font-weight: 600;
+  }
+
+  .btn-signin {
+    background-color: var(--gv-theme-color-darker);
+    color: #fff;
+  }
+
+  .btn:hover {
+    box-shadow: 0 1px 3px #383e3f;
+  }
+
+  .btn-google {
+    color: #fff;
+    background-color: #4285f4;
+    border: 1px solid #427af4;
+  }
+
+  .btn-facebook {
+    color: #fff;
+    background-color: #3b5998;
+    border: 1px solid #335190;
+  }
+
+  .btn-linkedin {
+    color: #fff;
+    background-color: #007bb6;
+    border: 1px solid #0073ae;
+  }
+
+  .btn-twitter {
+    color: #fff;
+    background-color: #00aced;
+    border: 1px solid #009fdb;
+  }
+
+  .btn-foursquare {
+    color: #fff;
+    background-color: #f94877;
+    border: 1px solid #f8215a;
+  }
+
+  .btn-github {
+    color: #fff;
+    background-color: #444;
+    border: 1px solid #3b3b3b;
+  }
+
+  .btn-instagram {
+    color: #fff;
+    background-color: #3f729b;
+  }
+
+  .btn-yahoo {
+    color: #fff;
+    background-color: #720e9e;
+  }
+
+  .btn-live {
+    color: #fff;
+    background-color: #2672ec;
+  }
+
+  .btn-twitch {
+    color: #fff;
+    background-color: #6441a5;
+  }
+
+  .btn-bitbucket {
+    color: #fff;
+    background-color: #10375e;
+  }
+
+  .btn-spotify {
+    color: #fff;
+    background-color: #2ebd59;
+  }
+}
