@@ -81,6 +81,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             .build();
     }
 
+    private static final String PROJECTION_WITHOUT_PICTURES =
+        "a.id, a.environment_id, a.name, a.description, a.type, a.created_at, a.updated_at, a.status, a.disable_membership_notifications";
+
     private static final JdbcHelper.ChildAdder<Application> CHILD_ADDER = (Application parent, ResultSet rs) -> {
         Map<String, String> metadata = parent.getMetadata();
         if (metadata == null) {
@@ -224,7 +227,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             }
             JdbcHelper.CollatingRowMapper<Application> rowMapper = new JdbcHelper.CollatingRowMapper<>(mapper, CHILD_ADDER, "id");
             jdbcTemplate.query(
-                "select a.*, am.k as am_k, am.v as am_v from " +
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from " +
                 this.tableName +
                 " a left join " +
                 APPLICATION_METADATA +
@@ -252,7 +257,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             List<ApplicationStatus> statuses = Arrays.asList(ass);
 
             StringBuilder query = new StringBuilder(
-                "select a.*, am.k as am_k, am.v as am_v from " +
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from " +
                 this.tableName +
                 " a left join " +
                 APPLICATION_METADATA +
@@ -283,7 +290,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         try {
             final List<ApplicationStatus> statuses = Arrays.asList(ass);
             final StringBuilder query = new StringBuilder(
-                "select a.*, am.k as am_k, am.v as am_v from " +
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from " +
                 this.tableName +
                 " a left join " +
                 APPLICATION_METADATA +
@@ -320,7 +329,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         try {
             final List<ApplicationStatus> statuses = Arrays.asList(ass);
             StringBuilder query = new StringBuilder(
-                "select a.*, am.k as am_k, am.v as am_v from " +
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from " +
                 this.tableName +
                 " a left join " +
                 APPLICATION_METADATA +
@@ -356,7 +367,7 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             "id"
         );
 
-        String projection = "a.*, am.k as am_k, am.v as am_v";
+        String projection = PROJECTION_WITHOUT_PICTURES + ", am.k as am_k, am.v as am_v";
 
         final StringBuilder sbQuery = new StringBuilder("select ")
             .append(projection)
@@ -425,7 +436,9 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
             List<ApplicationStatus> statuses = Arrays.asList(ass);
 
             StringBuilder query = new StringBuilder(
-                "select a.*, am.k as am_k, am.v as am_v from " +
+                "select " +
+                PROJECTION_WITHOUT_PICTURES +
+                ", am.k as am_k, am.v as am_v from " +
                 this.tableName +
                 " a left join " +
                 APPLICATION_METADATA +

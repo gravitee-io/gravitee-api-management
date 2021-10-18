@@ -235,6 +235,6 @@ public class PageService_AutoFetchTest {
         when(graviteeDescriptorService.read(anyString())).thenCallRealMethod();
 
         pageService.execAutoFetch(GraviteeContext.getCurrentEnvironment());
-        verify(pageRepository, times(6)).update(any());
+        verify(pageRepository, times(11)).update(any());
     }
 }

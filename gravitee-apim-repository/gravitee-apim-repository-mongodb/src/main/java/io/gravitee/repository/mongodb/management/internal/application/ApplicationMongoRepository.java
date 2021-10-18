@@ -42,10 +42,10 @@ public interface ApplicationMongoRepository extends MongoRepository<ApplicationM
     @Query("{ name: { $regex: ?0, $options: 'i'}}")
     Set<ApplicationMongo> findByName(String name);
 
-    @Query("{ name: { $regex: ?0, $options: 'i'}, status: {$in: ?1} }")
+    @Query(value = "{ name: { $regex: ?0, $options: 'i'}, status: {$in: ?1} }", fields = "{ 'background' : 0, 'picture': 0}")
     Set<ApplicationMongo> findByNameAndStatuses(String name, List<ApplicationStatus> statuses);
 
-    @Query("{ status: {$in: ?0} }")
+    @Query(value = "{ status: {$in: ?0} }", fields = "{ 'background' : 0, 'picture': 0}")
     List<ApplicationMongo> findAll(List<ApplicationStatus> statuses);
 
     @Query("{ environmentId: ?0, status: {$in: ?1} }")

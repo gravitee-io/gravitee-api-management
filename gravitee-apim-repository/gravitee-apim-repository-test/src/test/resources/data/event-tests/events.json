@@ -1,6 +1,6 @@
 [
   {
-    "id": "event1",
+    "id": "event01",
     "environments": ["DEFAULT"],
     "type": "PUBLISH_API",
     "payload": "{}",
@@ -11,7 +11,7 @@
     "updatedAt": 1451606400000
   },
   {
-    "id": "event2",
+    "id": "event02",
     "environments": ["DEFAULT"],
     "type": "UNPUBLISH_API",
     "payload": "{}",
@@ -22,7 +22,7 @@
     "updatedAt": 1454284800000
   },
   {
-    "id": "event3",
+    "id": "event03",
     "environments": ["DEFAULT"],
     "type": "PUBLISH_API",
     "payload": "{}",
@@ -34,7 +34,7 @@
     "updatedAt": 1456790400000
   },
   {
-    "id": "event4",
+    "id": "event04",
     "environments": ["DEFAULT"],
     "type": "STOP_API",
     "payload": "{}",
@@ -45,7 +45,7 @@
     "updatedAt": 1459468800000
   },
   {
-    "id": "event5",
+    "id": "event05",
     "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
@@ -57,7 +57,7 @@
     "updatedAt": 1462060800000
   },
   {
-    "id": "event6",
+    "id": "event06",
     "environments": ["DEFAULT"],
     "type": "START_API",
     "payload": "{}",
@@ -69,7 +69,7 @@
     "updatedAt": 1464739200000
   },
   {
-    "id": "event7",
+    "id": "event07",
     "environments": ["OTHER_ENV", "OTHER_ENV_2"],
     "type": "GATEWAY_STOPPED",
     "payload": "{}",
@@ -78,7 +78,7 @@
     "updatedAt": 1467331200000
   },
   {
-    "id": "event8",
+    "id": "event08",
     "environments": ["DEFAULT"],
     "type": "STOP_DICTIONARY",
     "payload": "{}",
@@ -90,13 +90,13 @@
     "updatedAt": 1470009600000
   },
   {
-    "id": "event9",
+    "id": "event09",
     "environments": ["DEFAULT"],
-    "type": "START_DICTIONARY",
+    "type": "PUBLISH_DICTIONARY",
     "payload": "{}",
     "parentId": null,
     "properties": {
-      "dictionary_id": "dictionary-1"
+      "dictionary_id": "dictionary-2"
     },
     "createdAt": 1472688000000,
     "updatedAt": 1472688000000
@@ -112,5 +112,29 @@
     },
     "createdAt": 1475280000000,
     "updatedAt": 1475280000000
+  },
+  {
+    "id": "event11",
+    "environments": ["DEFAULT"],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-4"
+    },
+    "createdAt": 1464739200000,
+    "updatedAt": 1464739200000
+  },
+  {
+    "id": "event12",
+    "environments": ["DEFAULT"],
+    "type": "START_API",
+    "payload": "{}",
+    "parentId": null,
+    "properties": {
+      "api_id": "api-5"
+    },
+    "createdAt": 1464739200000,
+    "updatedAt": 1464739200000
   }
 ]

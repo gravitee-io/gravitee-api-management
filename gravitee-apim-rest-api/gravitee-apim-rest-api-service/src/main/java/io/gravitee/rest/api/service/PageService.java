@@ -37,6 +37,8 @@ public interface PageService {
 
     List<PageEntity> search(PageQuery query, String environmentId);
 
+    List<PageEntity> search(PageQuery query, boolean withTranslations);
+
     List<PageEntity> search(PageQuery query, boolean withTranslations, String environmentId);
 
     List<PageEntity> search(PageQuery query, String acceptedLocale, String environmentId);

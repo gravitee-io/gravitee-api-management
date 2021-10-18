@@ -50,7 +50,7 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
         RateLimit newRate = supplier.get();
 
         //TODO: for now, we have to call the supplier for each call, we must find a better way to handle this case
-        List values = redisTemplate.execute(
+        final List values = redisTemplate.execute(
             rateLimitIncrScript,
             Arrays.asList(KEY_PREFIX + key, Long.toString(weight)),
             convertToValuesArray(newRate)

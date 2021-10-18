@@ -4,6 +4,7 @@ const prefix = "";
 db.getCollection(`${prefix}apis`).dropIndexes();
 db.getCollection(`${prefix}apis`).createIndex( { "visibility" : 1 } );
 db.getCollection(`${prefix}apis`).createIndex( { "group" : 1 } );
+db.getCollection(`${prefix}apis`).createIndex( { "name" : 1 } );
 db.getCollection(`${prefix}apis`).reIndex();
 
 // "applications" collection
@@ -17,8 +18,10 @@ db.getCollection(`${prefix}applications`).reIndex();
 db.getCollection(`${prefix}events`).dropIndexes();
 db.getCollection(`${prefix}events`).createIndex( { "type" : 1 } );
 db.getCollection(`${prefix}events`).createIndex( { "updatedAt" : 1 } );
+db.getCollection(`${prefix}events`).createIndex( { "updatedAt" : -1, "_id" : -1 } );
 db.getCollection(`${prefix}events`).createIndex( { "properties.api_id" : 1 } );
 db.getCollection(`${prefix}events`).createIndex( { "properties.api_id":1, "type":1} );
+db.getCollection(`${prefix}events`).createIndex( { "type" : 1, "updatedAt" : 1} );
 db.getCollection(`${prefix}events`).reIndex();
 
 // "plans" collection

@@ -61,6 +61,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             }
             if (apiFieldExclusionFilter.isPicture()) {
                 query.fields().exclude("picture");
+                query.fields().exclude("background");
             }
         }
 

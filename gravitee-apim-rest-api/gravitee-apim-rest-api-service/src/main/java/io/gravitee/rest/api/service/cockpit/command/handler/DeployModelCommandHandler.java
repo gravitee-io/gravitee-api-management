@@ -66,13 +66,8 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
             logger.info("Api imported [{}].", api.getId());
 
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.SUCCEEDED));
-
         } catch (Exception e) {
-            logger.error(
-                    "Error occurred when importing api [{}].",
-                    payload.getModelId(),
-                    e
-            );
+            logger.error("Error occurred when importing api [{}].", payload.getModelId(), e);
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.ERROR));
         }
     }

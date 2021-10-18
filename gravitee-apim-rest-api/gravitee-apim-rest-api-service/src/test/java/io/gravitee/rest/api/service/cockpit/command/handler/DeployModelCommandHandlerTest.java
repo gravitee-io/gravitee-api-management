@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.designer.DeployModelCommand;
@@ -30,9 +33,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Julien GIOVARESCO (julien.giovaresco at graviteesource.com)
@@ -74,18 +74,19 @@ public class DeployModelCommandHandlerTest {
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
         when(apiService.createFromCockpit(payload.getModelId(), user.getId(), payload.getSwaggerDefinition()))
-                .thenAnswer(i -> {
+            .thenAnswer(
+                i -> {
                     ApiEntity apiEntity = new ApiEntity();
                     apiEntity.setId(i.getArgument(0));
                     return apiEntity;
-                });
+                }
+            );
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
         obs.awaitTerminalEvent();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
-
 
     @Test
     public void handleWithException() {
@@ -101,15 +102,8 @@ public class DeployModelCommandHandlerTest {
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-
-        when(
-                apiService.createFromCockpit(
-                        payload.getModelId(),
-                        payload.getUserId(),
-                        payload.getSwaggerDefinition()
-                )
-        )
-                .thenThrow(new RuntimeException("fake error"));
+        when(apiService.createFromCockpit(payload.getModelId(), payload.getUserId(), payload.getSwaggerDefinition()))
+            .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
 
@@ -117,5 +111,4 @@ public class DeployModelCommandHandlerTest {
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
-
 }

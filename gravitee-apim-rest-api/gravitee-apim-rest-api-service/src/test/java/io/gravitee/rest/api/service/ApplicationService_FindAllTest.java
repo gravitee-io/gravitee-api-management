@@ -72,7 +72,6 @@ public class ApplicationService_FindAllTest {
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(new RoleEntity());
         when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any()))
             .thenReturn(new HashSet<>(Collections.singletonList(new MembershipEntity())));
-        when(userService.findByIds(any())).thenReturn(Collections.emptySet());
 
         Set<ApplicationListItem> set = applicationService.findAll();
         assertThat(set).hasSize(1);

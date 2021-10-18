@@ -974,38 +974,37 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     @Override
-    public Set<ApiEntity> findAll() {
+    public Set<ApiEntity> findAllByEnvironment(String environmentId) {
         try {
-            LOGGER.debug("Find all APIs for current environment {}", GraviteeContext.getCurrentEnvironment());
-            return new HashSet<>(
-                convert(apiRepository.search(new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build()))
-            );
+            LOGGER.debug("Find all APIs for environment {}", environmentId);
+            return new HashSet<>(convert(apiRepository.search(new ApiCriteria.Builder().environmentId(environmentId).build())));
         } catch (TechnicalException ex) {
-            LOGGER.error(
-                "An error occurs while trying to find all APIs for current environment {}",
-                GraviteeContext.getCurrentEnvironment(),
-                ex
-            );
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs for current environment", ex);
+            LOGGER.error("An error occurs while trying to find all APIs for environment {}", environmentId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all APIs for environment", ex);
         }
     }
 
     @Override
-    public Set<ApiEntity> findAllLight() {
+    public Set<ApiEntity> findAllLightByEnvironment(String environmentId) {
         try {
-            LOGGER.debug("Find all APIs without some fields (definition, picture...)");
+            LOGGER.debug("Find all APIs without some fields (definition, picture...) for environment {}", environmentId);
             return new HashSet<>(
                 convert(
                     apiRepository.search(
-                        new ApiCriteria.Builder().environmentId(GraviteeContext.getCurrentEnvironment()).build(),
+                        new ApiCriteria.Builder().environmentId(environmentId).build(),
                         new ApiFieldExclusionFilter.Builder().excludeDefinition().excludePicture().build()
                     )
                 )
             );
         } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find all APIs light", ex);
-            throw new TechnicalManagementException("An error occurs while trying to find all APIs light", ex);
+            LOGGER.error("An error occurs while trying to find all APIs light for environment {}", environmentId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find all APIs light for environment", ex);
         }
+    }
+
+    @Override
+    public Set<ApiEntity> findAllLight() {
+        return findAllLightByEnvironment(null);
     }
 
     @Override
@@ -1074,7 +1073,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         //get all public apis
         List<Api> publicApis;
         if (portal) {
-            publicApis = apiRepository.search(queryToCriteria(apiQuery).visibility(PUBLIC).build());
+            // Pictures are not required when looking for APIs
+            publicApis =
+                apiRepository.search(
+                    queryToCriteria(apiQuery).visibility(PUBLIC).build(),
+                    new ApiFieldExclusionFilter.Builder().excludePicture().build()
+                );
         } else {
             publicApis = emptyList();
         }
@@ -1181,7 +1185,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
-        apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
         return findByUser(userId, apiQuery, true);
     }
 
@@ -1190,7 +1194,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
-        apiQuery.setLifecycleStates(Arrays.asList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
+        apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
         return findByUser(userId, apiQuery, sortable, pageable, true);
     }
 
@@ -2277,14 +2281,25 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                             );
 
                             rolesToImport.forEach(
-                                role ->
-                                    membershipService.addRoleToMemberOnReference(
-                                        MembershipReferenceType.API,
-                                        createdOrUpdatedApiEntity.getId(),
-                                        MembershipMemberType.USER,
-                                        userEntity.getId(),
-                                        role
-                                    )
+                                role -> {
+                                    try {
+                                        membershipService.addRoleToMemberOnReference(
+                                            MembershipReferenceType.API,
+                                            createdOrUpdatedApiEntity.getId(),
+                                            MembershipMemberType.USER,
+                                            userEntity.getId(),
+                                            role
+                                        );
+                                    } catch (Exception e) {
+                                        LOGGER.warn(
+                                            "Unable to add role '{}' to member '{}' on API '{}' due to : {}",
+                                            role,
+                                            userEntity.getId(),
+                                            createdOrUpdatedApiEntity.getId(),
+                                            e.getMessage()
+                                        );
+                                    }
+                                }
                             );
                         } catch (UserNotFoundException unfe) {}
                     }
@@ -2597,7 +2612,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteCategoryFromAPIs(final String categoryId) {
-        findAll()
+        findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
             .forEach(
                 api -> {
                     if (api.getCategories() != null && api.getCategories().contains(categoryId)) {
@@ -2629,7 +2644,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Override
     public void deleteTagFromAPIs(final String tagId) {
-        findAll()
+        findAllByEnvironment(GraviteeContext.getCurrentEnvironment())
             .forEach(
                 api -> {
                     if (api.getTags() != null && api.getTags().contains(tagId)) {
@@ -2726,7 +2741,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             LOGGER.debug("Search paginated APIs by {}", query);
 
             // We need to sort on fields which cannot be sort using db engine (ex: api's definition fields). Retrieve all the apis, then sort and paginate in memory.
-            Page<Api> apiPage = sortAndPaginate(apiRepository.search(queryToCriteria(query).build()), sortable, pageable);
+            // Pictures are not required when looking for APIs
+            Page<Api> apiPage = sortAndPaginate(
+                apiRepository.search(queryToCriteria(query).build(), new ApiFieldExclusionFilter.Builder().excludePicture().build()),
+                sortable,
+                pageable
+            );
 
             // Unfortunately, for now, filterApiByQuery can't be invoked because it could break pagination and sort.
             // Pagination MUST be applied before calls to convert as it involved a lot of data fetching and can be very slow.
