@@ -1,0 +1,95 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <div layout="row">
+    <h1 flex>Home board</h1>
+    <md-input-container class="md-block">
+      <gv-quick-time-range on-timeframe-change="$ctrl.refresh(timeframe)"></gv-quick-time-range>
+    </md-input-container>
+    <md-button class="md-primary" ng-click="$ctrl.refresh()">
+      <ng-md-icon icon="refresh" size="20"></ng-md-icon>
+      Refresh
+    </md-button>
+  </div>
+
+  <div>
+    <gv-dashboard model="$ctrl.dashboard" custom-timeframe="$ctrl.customTimeframe" access-logs="false" update-mode="false"></gv-dashboard>
+  </div>
+
+  <div class="gv-form" permission permission-only="['api-event-r', 'environment-platform-r']">
+    <h2>API Events</h2>
+    <div class="gv-form-content" layout="column">
+      <div ng-if="$ctrl.events.content.length > 0">
+        <md-table-container>
+          <table md-table>
+            <thead md-head>
+              <tr md-row>
+                <th md-column></th>
+                <th md-column>Date</th>
+                <th md-column>Label</th>
+                <th md-column>Type</th>
+                <th md-column>API</th>
+              </tr>
+            </thead>
+            <tbody md-body>
+              <tr md-row ng-repeat="event in $ctrl.events.content" style="height: 25px">
+                <td md-cell>
+                  <span class="badge" ng-if="event.properties.deployment_number"># {{event.properties.deployment_number}}</span>
+                </td>
+                <td md-cell>{{event.updated_at | humanDatetimeFilter }}</td>
+                <td md-cell>{{event.properties.deployment_label}}</td>
+                <td md-cell>{{$ctrl.getEventLabel(event.type)}}</td>
+                <td md-cell>
+                  <a
+                    ui-sref="management.apis.detail.analytics.overview({ apiId: event.properties.api_id, from: $ctrl.$state.params.from, to: $ctrl.$state.params.to} )"
+                  >
+                    {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
+                  </a>
+                </td>
+              </tr>
+              <tr ng-if="$ctrl.events.content.length === 0">
+                <td md-cell colspan="2">No event</td>
+              </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+        <md-table-pagination
+          md-limit="$ctrl.query.limit"
+          md-limit-options="[10, 25, 50, 75, 100]"
+          md-page="$ctrl.query.page"
+          md-total="{{$ctrl.events.totalElements}}"
+          md-on-limit="$ctrl.searchEvents"
+          md-on-paginate="$ctrl.searchEvents"
+          md-page-select
+        ></md-table-pagination>
+      </div>
+      <div ng-if="eventsFetchData" layout="column" layout-align="center center" flex>
+        <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+      </div>
+      <div
+        ng-if="!eventsFetchData && $ctrl.events.content.length == 0"
+        class="events-no-result"
+        layout="column"
+        layout-align="center center"
+        flex
+      >
+        No Data to display here
+      </div>
+    </div>
+  </div>
+</div>

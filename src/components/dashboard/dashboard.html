@@ -1,0 +1,44 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-form-content" layout="column" ng-if="$ctrl.model.definition && $ctrl.model.definition.length">
+  <div ng-if="!$ctrl.updateMode && !$ctrl.customTimeframe">
+    <gv-dashboard-timeframe on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-dashboard-timeframe>
+    <gv-dashboard-filter on-filter-change="$ctrl.queryFilterChange(query, widget)"></gv-dashboard-filter>
+    <div layout="row" flex="100" layout-align="end center" ng-if="$ctrl.accessLogs">
+      <md-button md-no-ink class="md-primary" ng-click="$ctrl.viewLogs()">View logs</md-button>
+    </div>
+  </div>
+
+  <div gridster="$ctrl.dashboardOptions" layout="row" style="width: 100%">
+    <md-card gridster-item="widget" ng-repeat="widget in $ctrl.model.definition">
+      <gv-widget
+        widget="widget"
+        update-mode="$ctrl.updateMode"
+        global-query="$ctrl.model.query_filter"
+        custom-timeframe="$ctrl.customTimeframe"
+      ></gv-widget>
+    </md-card>
+  </div>
+</div>
+
+<gravitee-empty-state
+  ng-if="!$ctrl.model.definition || !$ctrl.model.definition.length"
+  icon="insert_chart"
+  model="Dashboard"
+  message="{{$ctrl.updateMode?'Start adding widgets': 'No widget defined'}}"
+></gravitee-empty-state>

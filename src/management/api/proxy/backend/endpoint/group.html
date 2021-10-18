@@ -1,0 +1,131 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="formGroup" ng-submit="groupCtrl.update(groupCtrl.api)" novalidate autocomplete="false">
+  <div class="gv-forms" layout="column">
+    <div class="gv-forms-header">
+      <h1>Group configuration</h1>
+      <a ng-click="groupCtrl.backToEndpointsConfiguration()">Back to endpoints</a>
+    </div>
+
+    <md-tabs md-dynamic-height>
+      <md-tab>
+        <md-tab-label>General</md-tab-label>
+        <md-tab-body>
+          <h3></h3>
+          <md-input-container class="md-block">
+            <label>Name</label>
+            <input
+              ng-model="groupCtrl.group.name"
+              name="groupName"
+              type="text"
+              required
+              ng-change="groupCtrl.checkEndpointNameUniqueness()"
+              ng-pattern="/^[^:]*$/"
+            />
+            <div class="hint" style="color: rgb(221, 44, 0)" ng-if="duplicateEndpointNames">
+              This name is used by another endpoint and/or an endpoint group.
+            </div>
+            <div ng-messages="formGroup.groupName.$error">
+              <div ng-message="pattern">Group name does not support <code>:</code> in its name.</div>
+            </div>
+          </md-input-container>
+          <md-input-container class="md-block">
+            <label>Load balancing algorithm</label>
+            <md-select ng-model="groupCtrl.group.load_balancing.type">
+              <md-option ng-repeat="lb in lbs" value="{{lb.value}}"> {{lb.name}} </md-option>
+            </md-select>
+          </md-input-container>
+        </md-tab-body>
+      </md-tab>
+
+      <md-tab>
+        <md-tab-label>Configuration</md-tab-label>
+        <md-tab-body>
+          <gv-http-configuration http-configuration="groupCtrl.group" form="formGroup"></gv-http-configuration>
+        </md-tab-body>
+      </md-tab>
+
+      <md-tab>
+        <md-tab-label
+          >Service Discovery
+          <span ng-switch on="groupCtrl.discovery.enabled">
+            <span class="proxy-activated" ng-switch-when="true">(active)</span>
+            <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+            <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+          </span>
+        </md-tab-label>
+        <md-tab-body>
+          <h3></h3>
+          <md-checkbox
+            ng-model="groupCtrl.discovery.enabled"
+            aria-label="Enable service discovery"
+            ng-disabled="!groupCtrl.types || groupCtrl.types.length === 0"
+            flex
+            >Enabled service discovery
+            <div class="ipsum">By enabling service discovery, endpoints will be dynamically added or removed (without downtime).</div>
+          </md-checkbox>
+          <div ng-show="groupCtrl.discovery.enabled">
+            <md-content layout="column">
+              <md-input-container class="md-block" flex-gt-xs>
+                <label>Type</label>
+                <md-select
+                  ng-model="groupCtrl.discovery.provider"
+                  placeholder="Type"
+                  ng-required="groupCtrl.discovery.enabled"
+                  ng-change="groupCtrl.onTypeChange()"
+                >
+                  <md-option ng-repeat="type in groupCtrl.types" ng-value="type.id">{{type.name}}</md-option>
+                </md-select>
+              </md-input-container>
+              <div
+                ng-form="groupCtrl.serviceDiscoveryConfigurationForm"
+                sf-schema="groupCtrl.serviceDiscoveryJsonSchema"
+                sf-form="groupCtrl.serviceDiscoveryJsonSchemaForm"
+                sf-model="groupCtrl.discovery.configuration"
+                sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }"
+                novalidate
+              ></div>
+            </md-content>
+          </div>
+        </md-tab-body>
+      </md-tab>
+    </md-tabs>
+
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button
+        permission
+        permission-only="'api-definition-u'"
+        class="md-raised md-primary"
+        type="submit"
+        ng-disabled="duplicateEndpointNames || groupCtrl.serviceDiscoveryConfigurationForm.$invalid || formGroup.$invalid || formGroup.$pristine"
+      >
+        Save
+      </md-button>
+      <md-button
+        permission
+        permission-only="'api-definition-u'"
+        class="md-raised"
+        type="button"
+        ng-click="groupCtrl.reset()"
+        ng-disabled="formGroup.$pristine"
+      >
+        Reset
+      </md-button>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,91 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-toolbar class="topnavbar" id="gv-navbar" layout="row" layout-align="left center" gv-theme-element="portal.navbar" ng-if="$ctrl.visible">
+  <div class="topnavbar-brand navigation-header">
+    <a ui-sref="management.dashboard.home" style="text-decoration: none">
+      <img ng-src="{{$ctrl.getLogo()}}" alt="logo" />
+    </a>
+    <md-button ng-if="$ctrl.portalURL" class="gv-navbar-link" ng-href="{{$ctrl.portalURL}}" target="_blank">Developers portal</md-button>
+  </div>
+  <span flex></span>
+  <md-button
+    class="gv-navbar-button"
+    ng-click="$ctrl.openContextualDocumentation();"
+    aria-label="Display contextual documentation"
+    ng-if="$ctrl.displayContextualDocumentationButton"
+  >
+    <ng-md-icon icon="live_help" gv-theme-element="portal.navbar.help"></ng-md-icon>
+  </md-button>
+  <portal-notifications user="$ctrl.graviteeUser" ng-if="$ctrl.graviteeUser.id && $ctrl.newsletterProposed"></portal-notifications>
+
+  <md-menu ng-if="$ctrl.graviteeUser.id && $ctrl.newsletterProposed" md-offset="0 54">
+    <md-button class="gv-navbar-user-link" ng-click="$mdMenu.open($event)" aria-label="Open user menu">
+      <gravitee-identity-picture
+        ng-if="$ctrl.hasAlert()"
+        image-id="'navbar'"
+        image-url="$ctrl.getUserPicture()"
+        image-name="$ctrl.graviteeUser.displayName"
+        image-width="42"
+        image-border-radius="true"
+        image-theme="'portal.navbar.user.img.alert'"
+      ></gravitee-identity-picture>
+      <gravitee-identity-picture
+        ng-if="!$ctrl.hasAlert()"
+        image-id="'navbar'"
+        image-url="$ctrl.getUserPicture()"
+        image-name="$ctrl.graviteeUser.displayName"
+        image-width="42"
+        image-border-radius="true"
+        image-theme="'portal.navbar.user.img'"
+      ></gravitee-identity-picture>
+
+      <span ng-if="$ctrl.hasAlert()" flex class="gv-menu-badge-alert" gv-theme-element="portal.navbar.user.notification"></span>
+    </md-button>
+    <md-menu-content class="gv-menu-content" ng-mouseleave="$mdMenu.close()">
+      <div layout="column" class="gv-menu-content-main">
+        <div layout="row">
+          <div layout="column" layout-align="start center">
+            <gravitee-identity-picture
+              image-id="'menu'"
+              image-url="$ctrl.getUserPicture()"
+              image-name="$ctrl.graviteeUser.displayName"
+              image-width="42"
+              image-border-radius="true"
+            ></gravitee-identity-picture>
+          </div>
+          <div layout="column" layout-align="start start">
+            <h5>{{$ctrl.userShortName()}}</h5>
+            <small>{{$ctrl.graviteeUser.email}}</small>
+          </div>
+        </div>
+        <md-divider></md-divider>
+        <div layout="column" layout-align="end start" class="gv-menu-content-links">
+          <a ui-sref="user">My account</a>
+          <a ui-sref="management.tasks"
+            >Tasks<span ng-if="$ctrl.getUserTaskCount() > 0" flex class="badge gv-menu-badge">{{$ctrl.getUserTaskCount()}}</span></a
+          >
+          <a ui-sref="management.support.create">Support</a>
+        </div>
+      </div>
+      <md-divider></md-divider>
+      <div layout="row" layout-align="end end" class="gv-menu-content-footer">
+        <md-button ui-sref="logout" style="border: 1px solid grey; font-size: 12px">Sign out</md-button>
+      </div>
+    </md-menu-content>
+  </md-menu>
+</md-toolbar>

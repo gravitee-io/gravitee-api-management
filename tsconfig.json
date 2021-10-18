@@ -1,0 +1,17 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "incremental": true,
+    "lib": ["dom", "es2018"],
+    "noImplicitAny": false,
+    "outDir": "dist-tsc",
+    "removeComments": false,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "target": "ES5",
+    "types": ["jest", "angular-mocks"]
+  },
+  "include": ["src/**/*.ts", "node_modules/@gravitee/ui-components"]
+}
