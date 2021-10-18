@@ -30,7 +30,7 @@ RUN apk update \
   && wget ${GRAVITEEIO_DOWNLOAD_URL}/graviteeio-full-${GRAVITEEIO_VERSION}.zip -P /tmp \
   && unzip /tmp/graviteeio-full-${GRAVITEEIO_VERSION}.zip -d /tmp/ \
   && apk del zip unzip netcat-openbsd wget \
-  && cp -fr /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-management-ui-${GRAVITEEIO_VERSION}/* ${WWW_TARGET} \
+  && cp -fr /tmp/graviteeio-full-${GRAVITEEIO_VERSION}/graviteeio-apim-console-ui-${GRAVITEEIO_VERSION}/* ${WWW_TARGET} \
   && rm -rf /tmp/* \
   && wget -T 5 ${CONFD_URL}/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 -O /bin/confd \
   && chmod +x /bin/confd \

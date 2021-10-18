@@ -1,6 +1,6 @@
 !.gitignore
 
-target/
+gravitee-**/target/
 .idea/
 *.iml
 .DS_Store
@@ -17,14 +17,26 @@ target/
 # gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/data/*
 # gravitee-rest-api-standalone/gravitee-rest-api-standalone-distribution/src/main/resources/plugins/*
 
+# Related to UI
+**/.tmp/
+**/coverage/
+**/dist/
+**/dist-tsc/
+**/node_modules/
+**/npm-debug.log
+gravitee-**/node/
+**/.settings
+**/report.*.json
+**/.vscode
+
 # used in makefile as working directory
 .working/
 # -- Cicd : Git ignore the [.circleci/**/*] which contains
 # files which do not need to be commited (password to artifactory)
-#.circleci/**/*
+.circleci/**/*
 # -- Cicd : Do not git ignore the [!./.circleci/config.yml] which contains
 # the pipeline definition
-#!./.circleci/config.yml
+!./.circleci/config.yml
 # -- Cicd : Git ignore the [gpg.script.snippet.sh] which contains
 # secrets (password to artifactory)
 gpg.script.snippet.sh
