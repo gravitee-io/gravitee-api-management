@@ -24,12 +24,12 @@ import { FormGroup } from '@angular/forms';
   animations: [
     trigger('slideUpDown', [
       transition(':enter', [
-        style({ transform: 'translateY(100px)' }),
-        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ transform: 'translateY(0)' })),
+        style({ transform: 'translateY(40vh)', opacity: '0' }),
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ transform: 'translateY(0)', opacity: '1' })),
       ]),
       transition(':leave', [
-        style({ transform: 'translateY(0)' }),
-        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ transform: 'translateY(100px)' })),
+        style({ transform: 'translateY(0)', opacity: '1' }),
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({ transform: 'translateY(40vh)', opacity: '0' })),
       ]),
     ]),
   ],
