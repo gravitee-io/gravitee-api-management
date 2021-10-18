@@ -30,6 +30,8 @@ import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../..
 import { User } from '../../../../entities/user/user';
 import { fakeUser } from '../../../../entities/user/user.fixture';
 import { User as DeprecatedUser } from '../../../../entities/user';
+import { Role } from '../../../../entities/role/role';
+import { fakeRole } from '../../../../entities/role/role.fixture';
 
 describe('OrgSettingsUserDetailComponent', () => {
   const fakeAjsState = {
@@ -60,6 +62,11 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+
+    expectRolesListRequest('ORGANIZATION', [
+      fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
+      fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
+    ]);
   });
 
   afterEach(() => {
@@ -95,10 +102,43 @@ describe('OrgSettingsUserDetailComponent', () => {
     expect(resetPasswordButton).toBeTruthy();
   });
 
+  it('should display registration banner', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'PENDING',
+    });
+    expectUserGetRequest(user);
+
+    const AcceptUserButton = await loader.getHarness(MatButtonHarness.with({ text: /Accept/ }));
+    expect(AcceptUserButton).toBeTruthy();
+    const RejectUserButton = await loader.getHarness(MatButtonHarness.with({ text: /Reject/ }));
+    expect(RejectUserButton).toBeTruthy();
+  });
+
+  it('should not display registration banner', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserGetRequest(user);
+
+    expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Accept/ }))).toHaveLength(0);
+    expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Reject/ }))).toHaveLength(0);
+  });
+
   function expectUserGetRequest(user: User = fakeUser({ id: 'userId' })) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}`);
     expect(req.request.method).toEqual('GET');
     req.flush(user);
+    fixture.detectChanges();
+  }
+
+  function expectRolesListRequest(scope, roles: Role[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${scope}/roles`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(roles);
     fixture.detectChanges();
   }
 });

@@ -16,6 +16,19 @@
 
 -->
 <h1><gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-users' }"></gio-go-back-button>User details</h1>
+
+<ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
+  <gio-banner-info *ngIf="user && user.status === 'PENDING'" class="org-settings-user-detail__registration-banner mat-elevation-z3">
+    <div class="org-settings-user-detail__registration-banner__content">
+      <div>Validation of the pending registration request</div>
+      <div>
+        <button mat-raised-button aria-label="Accept user registration"><mat-icon>done</mat-icon> Accept</button> &nbsp;&nbsp;
+        <button mat-raised-button color="warn" aria-label="Reject user registration"><mat-icon>block</mat-icon> Reject</button>
+      </div>
+    </div>
+  </gio-banner-info>
+</ng-container>
+
 <mat-card *ngIf="user" class="org-settings-user-detail__card">
   <div class="org-settings-user-detail__card__left">
     <gio-avatar
