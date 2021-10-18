@@ -4,6 +4,7 @@
 @use './gio-palettes' as gio;
 
 @import './gio-badge';
+@import './gio-description-list';
 
 $background: map.get(theme.$gio-theme, background);
 $typography: map.get(theme.$gio-theme, typography);
