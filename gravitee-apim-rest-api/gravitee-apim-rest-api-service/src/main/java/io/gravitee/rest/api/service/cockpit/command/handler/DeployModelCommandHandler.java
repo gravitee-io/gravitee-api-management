@@ -21,9 +21,11 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiServiceCockpit;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.reactivex.Single;
 import org.slf4j.Logger;
@@ -41,10 +43,12 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
     private final ApiServiceCockpit apiService;
     private final UserService userService;
+    private final EnvironmentService environmentService;
 
-    public DeployModelCommandHandler(ApiServiceCockpit apiService, UserService userService) {
+    public DeployModelCommandHandler(ApiServiceCockpit apiService, UserService userService, EnvironmentService environmentService) {
         this.apiService = apiService;
         this.userService = userService;
+        this.environmentService = environmentService;
     }
 
     @Override
@@ -59,10 +63,13 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         String apiId = payload.getModelId();
         String userId = payload.getUserId();
         String swaggerDefinition = payload.getSwaggerDefinition();
+        String environmentId = payload.getEnvironmentId();
 
         try {
             final UserEntity user = userService.findBySource("cockpit", userId, false);
-            final ApiEntity api = apiService.createOrUpdateFromCockpit(apiId, user.getId(), swaggerDefinition);
+            final EnvironmentEntity environment = environmentService.findByCockpitId(environmentId);
+
+            final ApiEntity api = apiService.createOrUpdateFromCockpit(apiId, user.getId(), swaggerDefinition, environment.getId());
             logger.info("Api imported [{}].", api.getId());
 
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.SUCCEEDED));

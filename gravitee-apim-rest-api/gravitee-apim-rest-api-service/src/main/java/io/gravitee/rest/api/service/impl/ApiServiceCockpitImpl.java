@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApiServiceCockpit;
 import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +45,9 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         this.swaggerService = swaggerService;
     }
 
-    public ApiEntity createOrUpdateFromCockpit(String apiId, String userId, String swaggerDefinition) {
+    public ApiEntity createOrUpdateFromCockpit(String apiId, String userId, String swaggerDefinition, String environmentId) {
+        GraviteeContext.setCurrentEnvironment(environmentId);
+
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setPayload(swaggerDefinition);
         swaggerDescriptor.setWithDocumentation(true);

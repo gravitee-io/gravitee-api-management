@@ -23,9 +23,11 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.designer.DeployModelCommand;
 import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiServiceCockpit;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.reactivex.observers.TestObserver;
 import org.junit.Before;
@@ -47,11 +49,14 @@ public class DeployModelCommandHandlerTest {
     @Mock
     private ApiServiceCockpit apiService;
 
+    @Mock
+    private EnvironmentService environmentService;
+
     private DeployModelCommandHandler cut;
 
     @Before
     public void setUp() throws Exception {
-        cut = new DeployModelCommandHandler(apiService, userService);
+        cut = new DeployModelCommandHandler(apiService, userService, environmentService);
     }
 
     @Test
@@ -73,7 +78,11 @@ public class DeployModelCommandHandlerTest {
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        when(apiService.createOrUpdateFromCockpit(payload.getModelId(), user.getId(), payload.getSwaggerDefinition()))
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(apiService.createOrUpdateFromCockpit(payload.getModelId(), user.getId(), payload.getSwaggerDefinition(), environment.getId()))
             .thenAnswer(
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
@@ -102,7 +111,18 @@ public class DeployModelCommandHandlerTest {
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        when(apiService.createOrUpdateFromCockpit(payload.getModelId(), payload.getUserId(), payload.getSwaggerDefinition()))
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(
+            apiService.createOrUpdateFromCockpit(
+                payload.getModelId(),
+                payload.getUserId(),
+                payload.getSwaggerDefinition(),
+                environment.getId()
+            )
+        )
             .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();
