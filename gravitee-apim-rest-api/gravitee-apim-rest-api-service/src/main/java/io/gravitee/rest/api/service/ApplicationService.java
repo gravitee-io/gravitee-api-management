@@ -34,7 +34,9 @@ public interface ApplicationService {
 
     Set<ApplicationListItem> findByUser(String username);
 
-    Set<ApplicationListItem> findByNameAndStatus(String username, String name, String status);
+    Set<ApplicationListItem> findByUserAndNameAndStatus(String username, boolean isAdminUser, String name, String status);
+
+    Set<ApplicationListItem> findByUserAndNameAndStatus(String username, String name, String status);
 
     Set<ApplicationListItem> findByOrganization(String organizationId);
 

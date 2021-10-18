@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.CategoryService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import java.util.Comparator;
@@ -58,9 +59,12 @@ public class CategoriesResource extends AbstractCategoryResource {
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Retrieve list of categories")
     public List<CategoryEntity> getCategories() {
+        //TODO: Total APIs is not required when loading categories for editing an API from the console.
+        // But this service is also used to managed Categories from Settings.
+        // We should find a way to load total API only when necessary (ie. not while editing an API)
         Set<ApiEntity> apis;
         if (isAdmin()) {
-            apis = apiService.findAll();
+            apis = apiService.findAllByEnvironment(GraviteeContext.getCurrentEnvironment());
         } else if (isAuthenticated()) {
             apis = apiService.findByUser(getAuthenticatedUser(), null, true);
         } else {

@@ -84,7 +84,7 @@ public class ApplicationsResource extends AbstractResource {
         }
 
         if (query != null && !query.trim().isEmpty()) {
-            applications = applicationService.findByNameAndStatus(isAdmin() ? null : getAuthenticatedUser(), query, status);
+            applications = applicationService.findByUserAndNameAndStatus(getAuthenticatedUser(), isAdmin(), query, status);
         } else if (isAdmin()) {
             applications =
                 group != null

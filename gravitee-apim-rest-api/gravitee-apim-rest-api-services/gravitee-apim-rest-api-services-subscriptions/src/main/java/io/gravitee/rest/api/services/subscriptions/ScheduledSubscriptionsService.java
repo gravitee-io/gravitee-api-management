@@ -15,12 +15,8 @@
  */
 package io.gravitee.rest.api.services.subscriptions;
 
-import static java.util.stream.Collectors.toSet;
-
 import io.gravitee.common.service.AbstractService;
-import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.SubscriptionService;
@@ -48,7 +44,7 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     @Autowired
     private TaskScheduler scheduler;
 
-    @Value("${services.subscriptions.cron:*/5 * * * * *}")
+    @Value("${services.subscriptions.cron:0 1 * * * *}")
     private String cronTrigger;
 
     @Value("${services.subscriptions.enabled:true}")
@@ -81,10 +77,7 @@ public class ScheduledSubscriptionsService extends AbstractService implements Ru
     @Override
     public void run() {
         logger.debug("Refresh subscriptions #{} started at {}", counter.incrementAndGet(), Instant.now().toString());
-        final Set<String> apiIds = apiService.findAllLight().stream().map(ApiEntity::getId).collect(toSet());
-
         final SubscriptionQuery query = new SubscriptionQuery();
-        query.setApis(apiIds);
         query.setStatuses(Collections.singleton(SubscriptionStatus.ACCEPTED));
         query.setEndingAtBefore(new Date().getTime());
 

@@ -186,24 +186,10 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         try {
             LOGGER.debug("Find applications for user {}", username);
 
-            //find applications where the user is a member
-            Set<String> appIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION)
-                .stream()
-                .map(MembershipEntity::getReferenceId)
-                .collect(toSet());
-            //find user groups
-            List<String> groupIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.GROUP)
-                .stream()
-                .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
-                .map(MembershipEntity::getReferenceId)
-                .collect(toList());
-
-            appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
+            Set<String> userApplicationsIds = findUserApplicationsIds(username);
 
             final Set<Application> applications = applicationRepository
-                .findByIds(new ArrayList<>(appIds))
+                .findByIds(new ArrayList<>(userApplicationsIds))
                 .stream()
                 .filter(app -> ApplicationStatus.ACTIVE.equals(app.getStatus()))
                 .filter(app -> app.getEnvironmentId().equals(GraviteeContext.getCurrentEnvironment()))
@@ -221,44 +207,26 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     @Override
-    public Set<ApplicationListItem> findByNameAndStatus(String userName, String name, String status) {
-        LOGGER.debug("Find applications by name {} and status {}", name, status);
-        try {
-            if (name == null || name.trim().isEmpty()) {
+    public Set<ApplicationListItem> findByUserAndNameAndStatus(String userName, String name, String status) {
+        return findByUserAndNameAndStatus(userName, false, name, status);
+    }
+
+    @Override
+    public Set<ApplicationListItem> findByUserAndNameAndStatus(String userName, boolean isAdminUser, String name, String status) {
+        LOGGER.debug("Find applications by user {} and name {}, with isAdminUser {})", userName, name, isAdminUser);
+        if (name == null || name.trim().isEmpty()) {
+            return emptySet();
+        }
+
+        Set<String> userApplicationsIds = emptySet();
+        if (!isAdminUser) {
+            userApplicationsIds = findUserApplicationsIds(userName);
+            if (userApplicationsIds.isEmpty()) {
                 return emptySet();
             }
-
-            //find applications where the user is a member
-            Set<String> appIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userName, MembershipReferenceType.APPLICATION)
-                .stream()
-                .map(MembershipEntity::getReferenceId)
-                .collect(toSet());
-            //find user groups
-            List<String> groupIds = membershipService
-                .getMembershipsByMemberAndReference(MembershipMemberType.USER, userName, MembershipReferenceType.GROUP)
-                .stream()
-                .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
-                .map(MembershipEntity::getReferenceId)
-                .collect(toList());
-
-            appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
-
-            ApplicationCriteria criteria = new ApplicationCriteria.Builder()
-                .status(ApplicationStatus.valueOf(status))
-                .name(name.trim())
-                .environmentIds(singletonList(GraviteeContext.getCurrentEnvironment()))
-                .ids(appIds.toArray(new String[0]))
-                .build();
-
-            Page<Application> applications = applicationRepository.search(criteria, null);
-            return ApplicationStatus.ACTIVE.equals(status)
-                ? convertToList(new HashSet<>(applications.getContent()))
-                : convertToSimpleList(new HashSet<>(applications.getContent()));
-        } catch (TechnicalException ex) {
-            LOGGER.error("An error occurs while trying to find applications for name {}", name, ex);
-            throw new TechnicalManagementException("An error occurs while trying to find applications for name " + name, ex);
         }
+
+        return searchApplicationsByNameAndStatusAndIds(name, status, userApplicationsIds.toArray(new String[0]));
     }
 
     @Override
@@ -912,8 +880,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         memberships.forEach(membership -> applicationToUser.put(membership.getReferenceId(), membership.getMemberId()));
 
         Map<String, UserEntity> userIdToUserEntity = new HashMap<>(memberships.size());
+        // We don't need user metadata, only global information
         userService
-            .findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(toList()))
+            .findByIds(memberships.stream().map(MembershipEntity::getMemberId).collect(toList()), false)
             .forEach(userEntity -> userIdToUserEntity.put(userEntity.getId(), userEntity));
 
         return applications
@@ -1129,5 +1098,42 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             imageEntity.setContent(DatatypeConverter.parseBase64Binary(base64Content));
         }
         return imageEntity;
+    }
+
+    private Set<String> findUserApplicationsIds(String username) {
+        //find applications where the user is a member
+        Set<String> appIds = membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.APPLICATION)
+            .stream()
+            .map(MembershipEntity::getReferenceId)
+            .collect(toSet());
+        //find user groups
+        List<String> groupIds = membershipService
+            .getMembershipsByMemberAndReference(MembershipMemberType.USER, username, MembershipReferenceType.GROUP)
+            .stream()
+            .filter(m -> m.getRoleId() != null && roleService.findById(m.getRoleId()).getScope().equals(RoleScope.APPLICATION))
+            .map(MembershipEntity::getReferenceId)
+            .collect(toList());
+
+        appIds.addAll(this.findByGroups(groupIds).stream().map(ApplicationListItem::getId).collect(toSet()));
+
+        return appIds;
+    }
+
+    private Set<ApplicationListItem> searchApplicationsByNameAndStatusAndIds(String name, String status, String[] ids) {
+        try {
+            ApplicationCriteria criteria = new ApplicationCriteria.Builder()
+                .status(ApplicationStatus.valueOf(status))
+                .name(name.trim())
+                .environmentIds(singletonList(GraviteeContext.getCurrentEnvironment()))
+                .ids(ids)
+                .build();
+            Page<Application> applications = applicationRepository.search(criteria, null);
+            return convertToList(new HashSet<>(applications.getContent()));
+        } catch (TechnicalException ex) {
+            String errorMessage = String.format("An error occurs while trying to find applications by name %s and id %s", name, ids);
+            LOGGER.error(errorMessage, ex);
+            throw new TechnicalManagementException(errorMessage, ex);
+        }
     }
 }

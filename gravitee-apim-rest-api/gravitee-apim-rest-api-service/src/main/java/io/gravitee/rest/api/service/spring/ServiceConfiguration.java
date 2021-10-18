@@ -50,12 +50,14 @@ import io.gravitee.rest.api.service.quality.ApiQualityMetricLoader;
 import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
 import io.gravitee.rest.api.service.validator.jsonschema.JavaRegexFormatAttribute;
 import java.util.Collections;
+import java.util.concurrent.Executor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
@@ -149,5 +151,15 @@ public class ServiceConfiguration {
     @Bean
     public DataEncryptor apiPropertiesEncryptor() {
         return new DataEncryptor(environment, "api.properties.encryption.secret", "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6");
+    }
+
+    @Bean(name = "indexerThreadPoolTaskExecutor")
+    public Executor threadPoolTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+        executor.setThreadNamePrefix("gio.search-indexer-");
+        executor.setDaemon(true);
+        executor.setCorePoolSize(2);
+        return executor;
     }
 }
