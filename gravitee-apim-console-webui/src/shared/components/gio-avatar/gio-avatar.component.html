@@ -16,5 +16,5 @@
 
 -->
 <div #avatarContainer class="gio-avatar" [class.rounded]="roundedBorder">
-  <img *ngIf="imgSrc" class="gio-avatar__img" [src]="imgSrc" alt="Avatar picture" [width]="size" />
+  <img *ngIf="imgSrc" class="gio-avatar__img" [src]="imgSrc" alt="Avatar picture" [width]="size" (error)="onImgError($event)" />
 </div>
