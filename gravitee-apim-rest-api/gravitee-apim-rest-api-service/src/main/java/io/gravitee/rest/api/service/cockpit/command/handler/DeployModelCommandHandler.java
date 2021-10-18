@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.ApiServiceCockpit;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.reactivex.Single;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -64,12 +65,28 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         String userId = payload.getUserId();
         String swaggerDefinition = payload.getSwaggerDefinition();
         String environmentId = payload.getEnvironmentId();
+        DeployModelPayload.DeploymentMode mode = Optional
+            .ofNullable(payload.getMode())
+            .orElse(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         try {
             final UserEntity user = userService.findBySource("cockpit", userId, false);
             final EnvironmentEntity environment = environmentService.findByCockpitId(environmentId);
 
-            final ApiEntity api = apiService.createOrUpdateFromCockpit(apiId, user.getId(), swaggerDefinition, environment.getId());
+            ApiEntity api;
+
+            switch (mode) {
+                case API_MOCKED:
+                    api = apiService.createOrUpdateMockedApi(apiId, user.getId(), swaggerDefinition, environment.getId());
+                    break;
+                case API_PUBLISHED:
+                    api = apiService.createOrUpdateOnPortalApi(apiId, user.getId(), swaggerDefinition, environment.getId());
+                    break;
+                case API_DOCUMENTED:
+                default:
+                    api = apiService.createOrUpdateDocumentedApi(apiId, user.getId(), swaggerDefinition, environment.getId());
+                    break;
+            }
             logger.info("Api imported [{}].", api.getId());
 
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.SUCCEEDED));

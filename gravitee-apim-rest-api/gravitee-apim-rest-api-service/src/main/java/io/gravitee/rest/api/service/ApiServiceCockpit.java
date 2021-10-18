@@ -22,5 +22,7 @@ import io.gravitee.rest.api.model.api.ApiEntity;
  * @author GraviteeSource Team
  */
 public interface ApiServiceCockpit {
-    ApiEntity createOrUpdateFromCockpit(String apiId, String userId, String swaggerDefinition, String environmentId);
+    ApiEntity createOrUpdateDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId);
+    ApiEntity createOrUpdateMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId);
+    ApiEntity createOrUpdateOnPortalApi(String apiId, String userId, String swaggerDefinition, String environmentId);
 }

@@ -65,11 +65,12 @@ public class DeployModelCommandHandlerTest {
     }
 
     @Test
-    public void handle() {
+    public void handle_API_DOCUMENTED_mode() {
         DeployModelPayload payload = new DeployModelPayload();
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("cockpit_user#id");
+        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -82,7 +83,113 @@ public class DeployModelCommandHandlerTest {
         environment.setId("environment#id");
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
-        when(apiService.createOrUpdateFromCockpit(payload.getModelId(), user.getId(), payload.getSwaggerDefinition(), environment.getId()))
+        when(
+            apiService.createOrUpdateDocumentedApi(payload.getModelId(), user.getId(), payload.getSwaggerDefinition(), environment.getId())
+        )
+            .thenAnswer(
+                i -> {
+                    ApiEntity apiEntity = new ApiEntity();
+                    apiEntity.setId(i.getArgument(0));
+                    return apiEntity;
+                }
+            );
+
+        TestObserver<DeployModelReply> obs = cut.handle(command).test();
+
+        obs.awaitTerminalEvent();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    }
+
+    @Test
+    public void handle_API_MOCKED_mode() {
+        DeployModelPayload payload = new DeployModelPayload();
+        payload.setModelId("model#1");
+        payload.setSwaggerDefinition("swagger-definition");
+        payload.setUserId("cockpit_user#id");
+        payload.setMode(DeployModelPayload.DeploymentMode.API_MOCKED);
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        UserEntity user = new UserEntity();
+        user.setId("user#id");
+        user.setSourceId(payload.getUserId());
+        when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(apiService.createOrUpdateMockedApi(payload.getModelId(), user.getId(), payload.getSwaggerDefinition(), environment.getId()))
+            .thenAnswer(
+                i -> {
+                    ApiEntity apiEntity = new ApiEntity();
+                    apiEntity.setId(i.getArgument(0));
+                    return apiEntity;
+                }
+            );
+
+        TestObserver<DeployModelReply> obs = cut.handle(command).test();
+
+        obs.awaitTerminalEvent();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    }
+
+    @Test
+    public void handle_API_PUBLISHED_mode() {
+        DeployModelPayload payload = new DeployModelPayload();
+        payload.setModelId("model#1");
+        payload.setSwaggerDefinition("swagger-definition");
+        payload.setUserId("cockpit_user#id");
+        payload.setMode(DeployModelPayload.DeploymentMode.API_PUBLISHED);
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        UserEntity user = new UserEntity();
+        user.setId("user#id");
+        user.setSourceId(payload.getUserId());
+        when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(apiService.createOrUpdateOnPortalApi(payload.getModelId(), user.getId(), payload.getSwaggerDefinition(), environment.getId()))
+            .thenAnswer(
+                i -> {
+                    ApiEntity apiEntity = new ApiEntity();
+                    apiEntity.setId(i.getArgument(0));
+                    return apiEntity;
+                }
+            );
+
+        TestObserver<DeployModelReply> obs = cut.handle(command).test();
+
+        obs.awaitTerminalEvent();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+    }
+
+    @Test
+    public void handle_null_mode() {
+        DeployModelPayload payload = new DeployModelPayload();
+        payload.setModelId("model#1");
+        payload.setSwaggerDefinition("swagger-definition");
+        payload.setUserId("cockpit_user#id");
+        payload.setMode(null);
+
+        DeployModelCommand command = new DeployModelCommand(payload);
+
+        UserEntity user = new UserEntity();
+        user.setId("user#id");
+        user.setSourceId(payload.getUserId());
+        when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("environment#id");
+        when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
+
+        when(
+            apiService.createOrUpdateDocumentedApi(payload.getModelId(), user.getId(), payload.getSwaggerDefinition(), environment.getId())
+        )
             .thenAnswer(
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
@@ -103,6 +210,7 @@ public class DeployModelCommandHandlerTest {
         payload.setModelId("model#1");
         payload.setSwaggerDefinition("swagger-definition");
         payload.setUserId("user#id");
+        payload.setMode(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
 
         DeployModelCommand command = new DeployModelCommand(payload);
 
@@ -116,7 +224,7 @@ public class DeployModelCommandHandlerTest {
         when(environmentService.findByCockpitId(payload.getEnvironmentId())).thenReturn(environment);
 
         when(
-            apiService.createOrUpdateFromCockpit(
+            apiService.createOrUpdateDocumentedApi(
                 payload.getModelId(),
                 payload.getUserId(),
                 payload.getSwaggerDefinition(),
