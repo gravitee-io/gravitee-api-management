@@ -13,9 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { User } from '../../../../entities/user/user';
 import { UsersService } from '../../../../services-ngx/users.service';
+
+interface UserDisplayable {
+  roleDisplayable: string;
+  avatarUrl: string;
+}
 
 @Component({
   selector: 'org-settings-user-detail',
@@ -23,13 +32,32 @@ import { UsersService } from '../../../../services-ngx/users.service';
   styles: [require('./org-settings-user-detail.component.scss')],
 })
 export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
-  constructor(private readonly usersService: UsersService) {}
+  user: User & UserDisplayable;
+
+  userAvatar$: Observable<string>;
+
+  private unsubscribe$ = new Subject<boolean>();
+
+  constructor(private readonly usersService: UsersService, @Inject(UIRouterStateParams) private readonly ajsStateParams) {}
 
   ngOnInit(): void {
-    // Will be used in pr
+    this.usersService
+      .get(this.ajsStateParams.userId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((user) => {
+        this.user = {
+          ...user,
+          roleDisplayable: user.roles
+            .filter((r) => r.scope === 'ORGANIZATION')
+            .map((r) => r.name ?? r.id)
+            .join(', '),
+          avatarUrl: this.usersService.getUserAvatar(this.ajsStateParams.userId),
+        };
+      });
   }
 
   ngOnDestroy() {
-    // Will be used in pr
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
   }
 }

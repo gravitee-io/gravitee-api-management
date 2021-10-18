@@ -16,41 +16,52 @@
 
 -->
 <h1><gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-users' }"></gio-go-back-button>User details</h1>
-<mat-card class="org-settings-user-detail__card">
+<mat-card *ngIf="user" class="org-settings-user-detail__card">
   <div class="org-settings-user-detail__card__left">
     <gio-avatar
       class="org-settings-user-detail__card__left__avatar"
       [roundedBorder]="true"
-      src="https://material.angular.io/assets/img/examples/shiba2.jpg"
+      [src]="user.avatarUrl"
+      [name]="user.displayName"
       size="80"
     ></gio-avatar>
-    <mat-chip-list class="org-settings-user-detail__card__left__tags" aria-label="Fish selection">
-      <mat-chip>Active</mat-chip>
+    <mat-chip-list class="org-settings-user-detail__card__left__tags" aria-label="User status">
+      <mat-chip [selectable]="false" [disableRipple]="true">{{ user.status }}</mat-chip>
     </mat-chip-list>
-    <div class="org-settings-user-detail__card__left__btn">
-      <button mat-raised-button color="warn">Reset password</button>
+
+    <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }"></ng-container>
+    <div *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee'" class="org-settings-user-detail__card__left__btn">
+      <button mat-raised-button color="warn" aria-label="User reset password">Reset password</button>
     </div>
   </div>
 
   <div class="org-settings-user-detail__card__right">
-    <h2>Gaetan Maisse 🌽</h2>
+    <h2>{{ user.displayName }}</h2>
 
     <div>
       <dl class="gio-description-list">
         <dt>Email</dt>
-        <dd gioClipboardCopyWrapper contentToCopy="gravitee">gaetan.maisse+user@graviteesource.com</dd>
+        <dd gioClipboardButtonInner [contentToCopy]="user.email">{{ user.email }}</dd>
 
         <dt>Source</dt>
-        <dd gioClipboardCopyWrapper contentToCopy="gravitee">gravitee</dd>
+        <dd gioClipboardButtonInner [contentToCopy]="user.source">{{ user.source }}</dd>
 
-        <dt>Organization Role</dt>
-        <dd>ADMIN, USER</dd>
+        <ng-container *ngFor="let customField of user.customFields | keyvalue">
+          <!-- TODO: try to display custom field Label ? -->
+          <dt>{{ customField.key }}</dt>
+          <dd>{{ customField.value }}</dd>
+        </ng-container>
+
+        <ng-container>
+          <dt>Organization Role</dt>
+          <dd>{{ user.roleDisplayable }}</dd>
+        </ng-container>
 
         <dt>Last connection at</dt>
-        <dd>Sep 28, 2021 5:34:40 PM</dd>
+        <dd>{{ user.lastConnectionAt | date: 'medium' }}</dd>
 
         <dt>Created at</dt>
-        <dd>Sep 28, 2021 5:27:00 PM</dd>
+        <dd>{{ user.created_at | date: 'medium' }}</dd>
       </dl>
     </div>
   </div>
