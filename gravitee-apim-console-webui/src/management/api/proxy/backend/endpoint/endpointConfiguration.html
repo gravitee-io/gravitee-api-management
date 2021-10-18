@@ -1,0 +1,122 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="formEndpoint" ng-submit="endpointCtrl.update(endpointCtrl.api)" novalidate autocomplete="false">
+  <div class="gv-forms" layout="column">
+    <div class="gv-forms-header">
+      <h1>Endpoint configuration</h1>
+      <a ng-click="endpointCtrl.backToEndpointsConfiguration()">Back to endpoints</a>
+    </div>
+
+    <md-tabs md-dynamic-height>
+      <md-tab>
+        <md-tab-label>General</md-tab-label>
+        <md-tab-body>
+          <h3></h3>
+          <div layout="column" layout-wrap layout-gt-sm="row">
+            <div layout="row" flex="100">
+              <md-input-container flex="20">
+                <label>Type</label>
+                <md-select ng-model="endpointCtrl.endpoint.type" required>
+                  <md-option ng-repeat="type in endpointCtrl.types" ng-value="type"> {{type}} </md-option>
+                </md-select>
+              </md-input-container>
+
+              <md-input-container flex="40">
+                <label>Name</label>
+                <input
+                  ng-model="endpointCtrl.endpoint.name"
+                  type="text"
+                  name="endpointName"
+                  required
+                  ng-change="endpointCtrl.checkEndpointNameUniqueness()"
+                  ng-pattern="/^[^:]*$/"
+                />
+                <div class="hint" style="color: rgb(221, 44, 0)" ng-if="duplicateEndpointNames">
+                  This name is used by another endpoint and/or an endpoint group.
+                </div>
+                <div ng-messages="formEndpoint.endpointName.$error">
+                  <div ng-message="pattern">Endpoint name does not support <code>:</code> in its name.</div>
+                </div>
+              </md-input-container>
+            </div>
+            <md-input-container flex="30">
+              <label>Target</label>
+              <input ng-model="endpointCtrl.endpoint.target" type="text" required />
+            </md-input-container>
+            <md-input-container flex="30">
+              <label>Weight</label>
+              <input ng-model="endpointCtrl.endpoint.weight" type="number" min="1" max="99" />
+            </md-input-container>
+            <md-input-container class="flex">
+              <label>Tenants</label>
+              <md-select ng-model="endpointCtrl.endpoint.tenants" multiple>
+                <md-option ng-repeat="tenant in endpointCtrl.tenants" ng-value="tenant.id">
+                  {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
+                </md-option>
+              </md-select>
+            </md-input-container>
+          </div>
+          <section ng-if="endpointCtrl.creation === false">
+            <md-subheader>
+              Health-check
+              <ng-md-icon
+                icon="settings"
+                ui-sref="management.apis.detail.proxy.endpointhc({groupName: groupName, endpointName: endpointCtrl.endpoint.name})"
+              ></ng-md-icon>
+            </md-subheader>
+          </section>
+          <md-checkbox ng-model="endpointCtrl.endpoint.backup" aria-label="Secondary endpoint" class="md-align-top-left" flex>
+            Secondary endpoint<br />
+            <span class="ipsum">
+              A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all primary
+              endpoints are marked as "DOWN" by health-check service.
+            </span>
+          </md-checkbox>
+        </md-tab-body>
+      </md-tab>
+
+      <md-tab>
+        <md-tab-label>Configuration</md-tab-label>
+        <md-tab-body>
+          <gv-http-configuration
+            http-configuration="endpointCtrl.endpoint"
+            inherit-http-configuration="endpointCtrl.group"
+            form="formEndpoint"
+          ></gv-http-configuration>
+        </md-tab-body>
+      </md-tab>
+    </md-tabs>
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button
+        class="md-raised md-primary"
+        type="submit"
+        ng-disabled="duplicateEndpointNames || formEndpoint.$invalid || formEndpoint.$pristine"
+      >
+        Save
+      </md-button>
+      <md-button
+        class="md-raised"
+        type="button"
+        ng-click="endpointCtrl.reset()"
+        ng-disabled="formEndpoint.$invalid || formEndpoint.$pristine"
+      >
+        Reset
+      </md-button>
+    </div>
+  </div>
+</form>

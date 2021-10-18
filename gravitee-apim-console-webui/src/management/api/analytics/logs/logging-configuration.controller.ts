@@ -1,0 +1,137 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import _ = require('lodash');
+import ApiService from '../../../../services/api.service';
+import NotificationService from '../../../../services/notification.service';
+import DialogConfigureLoggingEditorController from './configure-logging-editor.dialog.controller';
+
+class ApiLoggingConfigurationController {
+  private initialApi: any;
+  private api: any;
+  private formLogging: any;
+  private maxDuration: any;
+  private loggingMode: any;
+
+  constructor(
+    private ApiService: ApiService,
+    private NotificationService: NotificationService,
+    private $mdDialog: angular.material.IDialogService,
+    private $stateParams,
+    private $rootScope,
+    private $scope,
+    private Constants,
+  ) {
+    'ngInject';
+
+    this.initialApi = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
+    this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
+    this.initLoggingMode();
+    this.maxDuration = Constants.org.settings.logging.maxDurationMillis;
+
+    this.$scope.loggingModes = [
+      {
+        name: 'None',
+        value: 'NONE',
+      },
+      {
+        name: 'Client only',
+        value: 'CLIENT',
+      },
+      {
+        name: 'Proxy only',
+        value: 'PROXY',
+      },
+      {
+        name: 'Client and proxy',
+        value: 'CLIENT_PROXY',
+      },
+    ];
+
+    this.$scope.$on('apiChangeSuccess', (event, args) => {
+      this.api = args.api;
+    });
+  }
+
+  update() {
+    if (this.loggingMode === 'ON') {
+      this.api.proxy.logging.condition = 'true';
+    }
+    this.ApiService.update(this.api).then((updatedApi) => {
+      this.NotificationService.show('Logging configuration has been updated');
+      this.api = updatedApi.data;
+      this.initLoggingMode();
+      this.api.etag = updatedApi.headers('etag');
+      this.initialApi = _.cloneDeep(updatedApi.data);
+      this.$scope.formLogging.$setPristine();
+      this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
+    });
+  }
+
+  reset() {
+    this.api = _.cloneDeep(this.initialApi);
+    this.initLoggingMode();
+
+    if (this.$scope.formLogging) {
+      this.$scope.formLogging.$setPristine();
+      this.$scope.formLogging.$setUntouched();
+    }
+  }
+
+  initLoggingMode() {
+    if (
+      _.isUndefined(this.api.proxy.logging) ||
+      _.isUndefined(this.api.proxy.logging.condition) ||
+      this.api.proxy.logging.condition === 'true'
+    ) {
+      this.loggingMode = 'ON';
+    } else {
+      this.loggingMode = 'CONDITION';
+    }
+  }
+
+  showConditionEditor(index) {
+    this.$mdDialog
+      .show({
+        controller: DialogConfigureLoggingEditorController,
+        controllerAs: '$ctrl',
+        template: require('./configure-logging-editor.dialog.html'),
+        clickOutsideToClose: true,
+        resolve: {
+          subscribers: ($stateParams, ApiService: ApiService) => {
+            'ngInject';
+            return ApiService.getSubscribers($stateParams.apiId).then((response) => response.data);
+          },
+          plans: ($stateParams, ApiService: ApiService) => {
+            'ngInject';
+            return ApiService.getApiPlans($stateParams.apiId, 'published,deprecated').then((response) => response.data);
+          },
+        },
+      })
+      .then(
+        (condition) => {
+          if (condition) {
+            this.api.proxy.logging.condition = condition;
+            this.$scope.formLogging.$setDirty();
+          }
+        },
+        function () {
+          // Cancel of the dialog
+        },
+      );
+  }
+}
+
+export default ApiLoggingConfigurationController;

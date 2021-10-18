@@ -1,0 +1,371 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="portalCtrl.formApi" ng-submit="portalCtrl.update(portalCtrl.api)" novalidate>
+  <div class="gv-forms" layout="column">
+    <h1>Details</h1>
+
+    <div class="gv-form">
+      <h2>General</h2>
+      <div class="gv-form-content" layout="column">
+        <div layout-gt-sm="row">
+          <div layout="column" flex>
+            <div layout-gt-sm="row">
+              <md-input-container flex>
+                <label>Name</label>
+                <input
+                  permission
+                  permission-only="'api-definition-u'"
+                  permission-on-unauthorized="PermissionStrategies.disableElement"
+                  ng-model="portalCtrl.api.name"
+                  type="text"
+                  required
+                />
+              </md-input-container>
+              <md-input-container>
+                <label>Version</label>
+                <input
+                  permission
+                  permission-only="'api-definition-u'"
+                  permission-on-unauthorized="PermissionStrategies.disableElement"
+                  ng-model="portalCtrl.api.version"
+                  type="text"
+                  required
+                />
+              </md-input-container>
+            </div>
+
+            <md-input-container flex>
+              <label>Description</label>
+              <textarea
+                permission
+                permission-only="'api-definition-u'"
+                permission-on-unauthorized="PermissionStrategies.disableElement"
+                ng-model="portalCtrl.api.description"
+                required
+              ></textarea>
+            </md-input-container>
+          </div>
+          <div
+            class="gravitee-api-header-image"
+            ng-if="portalCtrl.readOnly"
+            ng-style="{'background-image':'url({{portalCtrl.api.picture || portalCtrl.api.picture_url || 'assets/default_api_logo.png'}})'}"
+            layout="column"
+            layout-align="center center"
+          ></div>
+          <gravitee-image
+            ng-if="!portalCtrl.readOnly"
+            image-id="portalCtrl.api.id"
+            image="portalCtrl.api.picture"
+            image-url="portalCtrl.api.picture_url"
+            image-name="portalCtrl.api.name + '  ' + portalCtrl.api.version"
+            success-event-name="apiPictureChangeSuccess"
+            can-delete="true"
+            delete-label="Use default"
+          ></gravitee-image>
+
+          <div
+            class="gravitee-api-header-image"
+            ng-if="portalCtrl.readOnly"
+            ng-style="{'background-image':'url({{portalCtrl.api.background || portalCtrl.api.background_url || 'assets/default_api_logo.png'}})'}"
+            layout="column"
+            layout-align="center center"
+          ></div>
+          <gravitee-image
+            ng-if="!portalCtrl.readOnly"
+            image-id="'bg-' + portalCtrl.api.id"
+            image="portalCtrl.api.background"
+            image-name="'bg-' + portalCtrl.api.name + '  ' + portalCtrl.api.version"
+            image-url="portalCtrl.api.background_url"
+            change-label="Change background"
+            no-default-image="true"
+            success-event-name="apiBackgroundChangeSuccess"
+            can-delete="true"
+            delete-label="Use default"
+          ></gravitee-image>
+        </div>
+
+        <div layout="row">
+          <md-input-container class="md-block" flex>
+            <label>Owner</label>
+            <input type="text" disabled value="{{portalCtrl.api.owner.displayName}}" />
+          </md-input-container>
+          <md-input-container class="md-block" flex>
+            <label>Created at</label>
+            <input type="text" disabled value="{{portalCtrl.api.created_at | humanDateFilter}}" />
+          </md-input-container>
+          <md-input-container class="md-block" flex>
+            <label>Last deployment at</label>
+            <input type="text" disabled value="{{portalCtrl.api.deployed_at | humanDateFilter}}" />
+          </md-input-container>
+        </div>
+
+        <md-input-container permission permission-only="'api-definition-u'" class="flex">
+          <label>Labels</label>
+          <md-chips
+            ng-model="portalCtrl.api.labels"
+            placeholder="Enter a label"
+            md-add-on-blur="true"
+            ng-click="portalCtrl.formApi.$setDirty()"
+            md-autocomplete-snap
+            md-require-match="false"
+          >
+            <md-autocomplete
+              md-search-text="searchLabels"
+              md-items="item in portalCtrl.querySearchLabels(searchLabels)"
+              md-item-text="item"
+              placeholder="Enter a label"
+            >
+              <span md-highlight-text="searchLabels">{{item}}</span>
+            </md-autocomplete>
+          </md-chips>
+        </md-input-container>
+        <div ng-if="portalCtrl.api.labels && portalCtrl.api.labels.length" permission permission-except="'api-definition-u'">
+          <label>Labels</label>
+          <md-chips readonly="true" ng-model="portalCtrl.api.labels"></md-chips>
+        </div>
+
+        <md-input-container permission permission-only="'api-definition-u'" class="flex">
+          <label>Portal categories</label>
+          <md-select ng-model="portalCtrl.api.categories" multiple>
+            <md-option ng-repeat="category in portalCtrl.categories" ng-value="category.key">
+              {{category.name}}<span ng-if="category.description" class="gravitee-general-description"> - {{category.description}}</span>
+            </md-option>
+          </md-select>
+        </md-input-container>
+        <div
+          layout="column"
+          ng-if="portalCtrl.api.categories && portalCtrl.api.categories.length"
+          permission
+          permission-except="'api-definition-u'"
+        >
+          <label>Portal categories</label>
+          <md-chips readonly="true" ng-model="portalCtrl.api.categories"></md-chips>
+        </div>
+
+        <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised md-primary"
+            type="submit"
+            ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine || portalCtrl.isDeprecated()"
+          >
+            Save
+          </md-button>
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised"
+            type="button"
+            ng-click="portalCtrl.reset()"
+            ng-disabled="portalCtrl.formApi.$invalid || portalCtrl.formApi.$pristine"
+          >
+            Reset
+          </md-button>
+
+          <md-button aria-label="Export definition" ng-click="portalCtrl.showExportDialog()">
+            <ng-md-icon icon="file_upload"></ng-md-icon>
+            Export
+          </md-button>
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            aria-label="Import definition"
+            ng-click="portalCtrl.showImportDialog()"
+            ng-disabled="portalCtrl.isDeprecated()"
+          >
+            <ng-md-icon icon="file_download"></ng-md-icon>
+            Import
+          </md-button>
+          <md-button
+            permission
+            permission-only="['environment-api-c']"
+            aria-label="Duplicate API"
+            ng-click="portalCtrl.showDuplicateDialog()"
+          >
+            <ng-md-icon icon="content_copy"></ng-md-icon>
+            Duplicate
+          </md-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="gv-form" ng-if="portalCtrl.isQualityEnabled">
+      <h2>Quality</h2>
+      <div class="gv-form-content" layout="column">
+        <div>
+          <div ng-if="portalCtrl.qualityMetrics === undefined" layout="column" layout-align="center center" flex>
+            <md-progress-circular md-mode="indeterminate" class="md-accent md-hue-1" md-diameter="50"></md-progress-circular>
+          </div>
+          <div ng-if="portalCtrl.qualityMetrics !== undefined" id="qualityMetrics" layout="row" layout-align="start center">
+            <div layout="column" layout-padding>
+              <div style="width: 100px; padding: 0">
+                <circular-percentage score="portalCtrl.qualityMetrics.score"></circular-percentage>
+              </div>
+            </div>
+            <div class="gravitee-qm-metrics-list" style="padding-left: 20px">
+              <div ng-repeat="(k,v) in portalCtrl.qualityMetrics.metrics_passed" class="gravitee-qm-metrics col-sm-12 col-md-6">
+                <ng-md-icon ng-if="v" class="gravitee-qm-metrics-green-icon" icon="check_circle"></ng-md-icon>
+                <ng-md-icon ng-if="!v" class="gravitee-qm-metrics-red-icon" icon="error"></ng-md-icon>
+                {{portalCtrl.qualityMetricsDescription.get(k)}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gv-form gv-form-danger" permission permission-only="['api-definition-u', 'api-definition-d']">
+      <h2>Danger Zone</h2>
+      <div class="gv-form-content" layout="column">
+        <div
+          layout="row"
+          layout-align="space-between center"
+          permission
+          permission-only="'api-definition-u'"
+          ng-if="portalCtrl.canAskForReview()"
+        >
+          <div class="gv-form-danger-text">Ask for a review before to be able to publish / start your API.</div>
+          <div><md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.askForReview()">Ask for a review</md-button></div>
+        </div>
+
+        <div
+          layout="row"
+          layout-align="space-between center"
+          permission
+          permission-only="'api-definition-u'"
+          ng-if="portalCtrl.canChangeLifecycle()"
+        >
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='started'">
+            Stop the API. It will no longer be available on all gateways.
+          </div>
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.state==='stopped'">
+            Start the API. It will be available on all gateways (depending on sharding tags).
+          </div>
+          <div>
+            <md-button
+              class="md-flat md-warn"
+              type="button"
+              ng-click="portalCtrl.changeLifecycle()"
+              ng-if="portalCtrl.api.state==='started'"
+              >Stop the API</md-button
+            >
+            <md-button
+              class="md-flat md-warn"
+              type="button"
+              ng-click="portalCtrl.changeLifecycle()"
+              ng-if="portalCtrl.api.state==='stopped'"
+              >Start the API</md-button
+            >
+          </div>
+        </div>
+
+        <div
+          layout="row"
+          layout-align="space-between center"
+          permission
+          permission-only="'api-definition-u'"
+          ng-if="portalCtrl.canChangeApiLifecycle()"
+        >
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.lifecycle_state==='published'">
+            Unpublish the API. It will no longer be available on portal.
+          </div>
+          <div class="gv-form-danger-text" ng-if="portalCtrl.canPublish()">
+            Publish the API. It will be available on portal (depending on visibility/rights).
+          </div>
+          <div>
+            <md-button
+              class="md-flat md-warn"
+              type="button"
+              ng-click="portalCtrl.changeApiLifecycle('published')"
+              ng-if="portalCtrl.canPublish()"
+              >Publish the API</md-button
+            >
+            <md-button
+              class="md-flat md-warn"
+              type="button"
+              ng-click="portalCtrl.changeApiLifecycle('unpublished')"
+              ng-if="portalCtrl.api.lifecycle_state==='published'"
+              >Unpublish the API</md-button
+            >
+          </div>
+        </div>
+
+        <div
+          layout="row"
+          layout-align="space-between center"
+          permission
+          permission-only="'api-definition-u'"
+          ng-if="!portalCtrl.isDeprecated()"
+        >
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='public'">
+            Make this API private. Only members will see it.
+          </div>
+          <div class="gv-form-danger-text" ng-if="portalCtrl.api.visibility==='private'">Make this API public. Everyone can see it.</div>
+          <div>
+            <md-button
+              class="md-flat md-warn"
+              type="button"
+              ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
+              ng-if="portalCtrl.api.visibility==='public'"
+              >Make Private</md-button
+            >
+            <md-button
+              class="md-flat md-warn"
+              type="button"
+              ng-click="portalCtrl.toggleVisibility(); portalCtrl.update(portalCtrl.api);"
+              ng-if="portalCtrl.api.visibility==='private'"
+              >Make Public</md-button
+            >
+          </div>
+        </div>
+
+        <div
+          layout="row"
+          layout-align="space-between center"
+          permission
+          permission-only="'api-definition-d'"
+          ng-if="!portalCtrl.isDeprecated()"
+        >
+          <div class="gv-form-danger-text">Deprecate this API. It will no longer be published on portal.</div>
+          <div>
+            <md-button class="md-flat md-warn" type="button" ng-click="portalCtrl.changeApiLifecycle('deprecated')">Deprecate</md-button>
+          </div>
+        </div>
+
+        <div layout="row" layout-align="space-between center" permission permission-only="'api-definition-d'">
+          <div class="gv-form-danger-text">
+            Delete this API.
+            <span ng-if="portalCtrl.api.state === 'started' || portalCtrl.api.lifecycle_state==='published'"
+              >A running or published API cannot be deleted</span
+            >
+          </div>
+          <div>
+            <md-button
+              class="md-flat md-warn"
+              type="button"
+              ng-click="portalCtrl.delete(portalCtrl.api.id)"
+              ng-disabled="portalCtrl.api.state === 'started' || portalCtrl.api.lifecycle_state==='published'"
+              >Delete</md-button
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

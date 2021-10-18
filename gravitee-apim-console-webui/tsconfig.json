@@ -1,0 +1,16 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "dist-tsc",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "lib": ["dom", "es2018"],
+    "target": "ES5",
+    "noImplicitAny": false,
+    "removeComments": false,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "types": ["jasmine"]
+  },
+  "include": ["src/**/*.ts", "node_modules/@gravitee/ui-components"]
+}

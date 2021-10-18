@@ -1,0 +1,27 @@
+$userImageSize: 160px;
+
+.gravitee-user-container {
+  ng-md-icon {
+    top: -5px;
+  }
+  md-input-container {
+    width: 80%;
+  }
+}
+
+.gravitee-user-token {
+  font-style: italic;
+  padding: 10px;
+}
+
+.field-label {
+  padding-top: 2em;
+}
+
+.field-input-container {
+  display: inline-block;
+  position: relative;
+  padding: 2px;
+  margin: 10px 0;
+  vertical-align: middle;
+}

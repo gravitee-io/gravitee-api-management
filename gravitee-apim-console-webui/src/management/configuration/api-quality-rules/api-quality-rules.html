@@ -1,0 +1,222 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="$ctrl.formQuality" class="gv-forms" layout="column" ng-submit="$ctrl.save()">
+  <h1>API Quality</h1>
+  <div class="gv-form" layout="column">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
+      <div>
+        <md-checkbox
+          ng-model="$ctrl.settings.apiReview.enabled"
+          aria-label="API reviews"
+          ng-disabled="$ctrl.isReadonlySetting('api.review.enabled')"
+        >
+          Enable API review
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.review.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-checkbox>
+        <md-checkbox
+          ng-model="$ctrl.settings.apiQualityMetrics.enabled"
+          aria-label="Rating"
+          ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.enabled')"
+        >
+          Enable API Quality Metrics
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.enabled')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-checkbox>
+      </div>
+      <h4>General</h4>
+      <div layout="row" layout-wrap="">
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Description weight</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.descriptionWeight"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.description.weight')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.description.weight')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-input-container>
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Description minimum length</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.descriptionMinLength"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.description.min.length')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.description.min.length')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-input-container>
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Logo weight</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.logoWeight"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.logo.weight')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.logo.weight')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
+        </md-input-container>
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Categories weight</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.categoriesWeight"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.categories.weight')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.categories.weight')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-input-container>
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Labels weight</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.labelsWeight"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.labels.weight')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.labels.weight')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-input-container>
+      </div>
+      <h4>Documentation</h4>
+      <div layout="row" layout-wrap="">
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Functional documentation weight</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.functionalDocumentationWeight"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.functional.documentation.weight')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.functional.documentation.weight')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-input-container>
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Technical documentation weight</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.technicalDocumentationWeight"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.technical.documentation.weight')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.technical.documentation.weight')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-input-container>
+      </div>
+      <h4>Endpoint</h4>
+      <div layout="row" layout-wrap="">
+        <md-input-container class="md-block" flex="50" flex-gt-xs="100" flex-gt-sm="50">
+          <label>Healthcheck weight</label>
+          <input
+            type="number"
+            min="0"
+            max="99999"
+            ng-model="$ctrl.settings.apiQualityMetrics.healthcheckWeight"
+            ng-disabled="$ctrl.isReadonlySetting('api.quality.metrics.healthcheck.weight')"
+          />
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('api.quality.metrics.healthcheck.weight')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-input-container>
+      </div>
+
+      <md-card-actions>
+        <md-button
+          type="submit"
+          class="md-raised md-primary"
+          ng-disabled="$ctrl.formQuality.$invalid || $ctrl.formQuality.$pristine"
+          permission
+          permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']"
+          >Save</md-button
+        >
+        <md-button
+          type="button"
+          class="md-raised"
+          ng-click="$ctrl.reset()"
+          ng-disabled="$ctrl.formQuality.$invalid || $ctrl.formQuality.$pristine"
+          permission
+          permission-only="['environment-settings-c', 'environment-settings-u', 'environment-settings-d']"
+          >Reset</md-button
+        >
+      </md-card-actions>
+    </div>
+  </div>
+</form>
+<div class="gv-forms" ng-if="$ctrl.qualityRules && $ctrl.qualityRules.length">
+  <div class="gv-form">
+    <div class="gv-form-content">
+      <div class="gv-forms-header" layout="column">
+        <h2>Manual rules</h2>
+
+        <div class="gv-form-content" layout="column">
+          <md-table-container>
+            <table md-table>
+              <thead md-head>
+                <tr md-row>
+                  <th md-column>Quality rule</th>
+                  <th md-column>Weight</th>
+                  <th permission permission-only="'environment-quality_rule-u'" width="64px" nowrap></th>
+                  <th permission permission-only="'environment-quality_rule-d'" width="64px" nowrap></th>
+                </tr>
+              </thead>
+              <tbody md-body>
+                <tr md-row ng-repeat="qualityRule in $ctrl.qualityRules">
+                  <td md-cell>{{qualityRule.name}}</td>
+                  <td md-cell>{{qualityRule.weight}}</td>
+                  <td md-cell permission permission-only="'environment-quality_rule-u'">
+                    <ng-md-icon icon="edit" ui-sref="management.settings.qualityRule({qualityRuleId: qualityRule.id})"></ng-md-icon>
+                  </td>
+                  <td md-cell permission permission-only="'environment-quality_rule-d'">
+                    <ng-md-icon icon="delete" ng-click="$ctrl.delete(qualityRule)"></ng-md-icon>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<md-button
+  permission
+  permission-only="'environment-quality_rule-c'"
+  aria-label="Add quality rule"
+  class="md-fab md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+  ui-sref="management.settings.qualityRulenew"
+>
+  <md-tooltip md-direction="top" md-visible="false">Add a new quality rule</md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

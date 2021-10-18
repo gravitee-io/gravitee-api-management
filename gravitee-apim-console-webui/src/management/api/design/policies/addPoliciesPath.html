@@ -1,0 +1,53 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="Add a new path">
+  <form name="newPathForm" ng-submit="addPoliciesPathCtrl.add()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>New path</h4>
+      <md-input-container class="md-block" flex-gt-sm>
+        <label>New Path</label>
+        <input
+          required
+          name="path"
+          ui-validate="{
+                    pathAlreadyExists : 'addPoliciesPathCtrl.rootCtrl.pathNotExists($value)',
+                    mustStartWithSlash : 'addPoliciesPathCtrl.rootCtrl.pathStartWithSlash($value)'
+                 }"
+          ng-model="addPoliciesPathCtrl.newPath.path"
+        />
+        <div ng-messages="newPathForm.path.$error" ng-show="newPathForm.path.$dirty">
+          <div ng-message="required">This is required!</div>
+          <div ng-message="pathAlreadyExists">This path is already configured.</div>
+          <div ng-message="mustStartWithSlash">The path must start with /</div>
+        </div>
+      </md-input-container>
+      <md-checkbox
+        ng-model="addPoliciesPathCtrl.newPath.copyFromRootPath"
+        aria-label="Copy from root path"
+        ng-disabled="!addPoliciesPathCtrl.canCopyFromRootPath"
+      >
+        Copy all policies and configuration from the root path ?
+      </md-checkbox>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="addPoliciesPathCtrl.hide()"> Cancel </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="newPathForm.$invalid"> Add </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

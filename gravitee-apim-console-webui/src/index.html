@@ -1,0 +1,128 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title ng-bind="consoleTitle"></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="favicon.ico" />
+    <style type="text/css">
+      [ng\:cloak],
+      [ng-cloak],
+      [data-ng-cloak],
+      [x-ng-cloak],
+      .ng-cloak,
+      .x-ng-cloak,
+      .ng-hide:not(.ng-hide-animate) {
+        display: none !important;
+      }
+
+      .gravitee-splash-screen {
+        background-color: #fdfdfd;
+        bottom: 0;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 99999;
+      }
+
+      img.gravitee-splash-screen {
+        color: silver;
+        display: flex;
+        margin: 0 auto;
+        max-width: 200px;
+        position: relative;
+        top: 40%;
+      }
+
+      .animate-show-hide.ng-hide {
+        opacity: 0;
+      }
+
+      .animate-show-hide.ng-hide-add,
+      .animate-show-hide.ng-hide-remove {
+        transition: all linear 0.5s;
+      }
+
+      #gravitee-error {
+        color: red;
+        font-size: 20px;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 999999;
+      }
+    </style>
+    <script language="JavaScript">
+      /**
+       * detect IE
+       * https://codepen.io/gapcode/pen/vEJNZN
+       *
+       * returns version of IE or false, if browser is not Internet Explorer
+       */
+      function detectIE() {
+        let ua = window.navigator.userAgent;
+        let msie = ua.indexOf('MSIE ');
+        if (msie > 0) {
+          // IE 10 or older => return version number
+          return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+        }
+        let trident = ua.indexOf('Trident/');
+        if (trident > 0) {
+          // IE 11 => return version number
+          let rv = ua.indexOf('rv:');
+          return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+        }
+        let edge = ua.indexOf('Edge/');
+        if (edge > 0) {
+          // Edge (IE 12+) => return version number
+          return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+        }
+        // other browser
+        return false;
+      }
+
+      window.onload = function () {
+        let isIE = detectIE();
+        if (isIE !== false && isIE < 12) {
+          document.getElementById('BrowserNotSupportedBanner').style.display = '';
+        }
+      };
+    </script>
+  </head>
+
+  <body layout="column">
+    <p id="BrowserNotSupportedBanner" class="browsehappy" style="display: none">
+      You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your
+      experience.
+    </p>
+
+    <div id="gravitee-error"></div>
+
+    <div id="loader" ng-show="displayLoader" class="gravitee-splash-screen animate-show-hide"></div>
+
+    <gravitee-navbar></gravitee-navbar>
+    <div flex ui-view></div>
+    <gv-newsletter-reminder></gv-newsletter-reminder>
+    <script src="webcomponents/webcomponents-loader.js"></script>
+  </body>
+</html>

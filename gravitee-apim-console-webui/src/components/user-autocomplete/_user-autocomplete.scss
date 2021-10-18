@@ -1,0 +1,56 @@
+.gv-user-autocomplete-menu {
+  @media (min-width: 960px) {
+    .fixedRows {
+      height: 250px;
+      overflow: hidden;
+    }
+
+    md-list-item {
+      float: left;
+      width: 50%;
+    }
+  }
+
+  .contact-item {
+    box-sizing: border-box;
+  }
+
+  .contact-item h3 {
+    font-size: initial;
+    line-height: 1.2em;
+    margin: 0;
+    overflow: hidden;
+    padding: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .contact-item p {
+    line-height: initial;
+  }
+
+  .contact-item.selected {
+    opacity: 0.5;
+  }
+
+  .fixedRows {
+    margin-top: 16px;
+  }
+
+  .fixedRows .md-list-item-text {
+    padding: 14px 0;
+    max-width: 190px;
+  }
+
+  li {
+    border-bottom: 1px solid #ccc;
+    height: auto;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    white-space: normal;
+  }
+
+  li:last-child {
+    border-bottom-width: 0;
+  }
+}

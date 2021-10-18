@@ -1,0 +1,59 @@
+$healthcheckSidenavWidth: 500px;
+
+@mixin min-max-width($width) {
+  width: $width;
+  height: 100%;
+  min-width: $width;
+  max-width: $width;
+}
+
+md-sidenav.healthcheck {
+  padding-top: 54px;
+  @include min-max-width($healthcheckSidenavWidth);
+  background-color: #fafafa;
+  md-content {
+    background-color: #fafafa;
+  }
+}
+
+.configuration-card {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
+  background: #fff;
+  padding: 10px 10px 10px 10px;
+  margin: 20px 20px 20px 20px;
+}
+
+.configuration-card fieldset {
+  border: none;
+}
+
+.configuration-card fieldset.form-disabled {
+  background-color: #e1e2e1;
+}
+
+.progress-bar-fatal {
+  background-color: #d9534f;
+  color: black;
+}
+
+.healthcheck-summary-timeline {
+  .timeline:before {
+    left: 10%;
+  }
+  timeline-badge {
+    left: 10%;
+    top: 10px;
+  }
+
+  timeline-panel {
+    width: 76%;
+    min-height: 70px;
+  }
+
+  timeline-panel:before {
+    top: 20px;
+  }
+  timeline-panel:after {
+    top: 21px;
+  }
+}
