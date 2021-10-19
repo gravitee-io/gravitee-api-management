@@ -76,6 +76,11 @@ public class LoggableClientResponse implements Response {
     }
 
     @Override
+    public Response endHandler(Handler<Void> endHandler) {
+        return response.endHandler(endHandler);
+    }
+
+    @Override
     public void end(Buffer buffer) {
         calculate(buffer);
         response.end(buffer);
