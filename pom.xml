@@ -105,7 +105,7 @@
         <jsoup.version>1.14.2</jsoup.version>
         <lucene.version>7.5.0</lucene.version>
         <nimbus-jose-jwt.version>8.22.1</nimbus-jose-jwt.version>
-        <owasp-java-html-sanitizer.version>20191001.1</owasp-java-html-sanitizer.version>
+        <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
         <powermock.version>2.0.9</powermock.version>
         <reactor-adapter.version>3.4.3</reactor-adapter.version>
         <snakeyaml.version>1.26</snakeyaml.version>
