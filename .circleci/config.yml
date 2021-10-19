@@ -69,7 +69,7 @@ jobs:
       - run:
           name: "Build project"
           command: |
-            mvn -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
+            mvn -pl '!gravitee-apim-console-webui' -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
             cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.zip ./
       - save_cache:
           paths:
@@ -95,7 +95,7 @@ jobs:
           name: Run tests
           command: |
             # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-            mvn -s .artifactory.settings.xml package --no-transfer-progress -T 2C
+            mvn -pl '!gravitee-apim-console-webui' -s .artifactory.settings.xml package --no-transfer-progress -T 2C
       - run:
           name: Save test results
           command: |
