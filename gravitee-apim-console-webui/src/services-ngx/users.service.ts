@@ -58,4 +58,13 @@ export class UsersService {
   remove(userId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.org.baseURL}/users/${userId}`);
   }
+
+  updateUserRoles(user: string, referenceType: string, referenceId: string, roles: string[]): Observable<void> {
+    return this.http.put<void>(`${this.constants.org.baseURL}/users/${user}/roles`, {
+      user,
+      referenceId,
+      referenceType,
+      roles,
+    });
+  }
 }

@@ -138,6 +138,24 @@ describe('UsersService', () => {
     });
   });
 
+  describe('updateUserRoles', () => {
+    it('should call the API', (done) => {
+      const userId = 'userId';
+      const referenceType = 'referenceType';
+      const referenceId = 'referenceId';
+      const roles = ['role1', 'role2'];
+
+      usersService.updateUserRoles(userId, referenceType, referenceId, roles).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/roles`);
+      expect(req.request.method).toEqual('PUT');
+
+      req.flush({});
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
