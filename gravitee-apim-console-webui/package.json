@@ -1,7 +1,7 @@
 {
-  "name": "gravitee-management-webui",
+  "name": "gravitee-apim-console-webui",
   "version": "3.11.2-SNAPSHOT",
-  "description": "Gravitee.io APIM - Portal",
+  "description": "Gravitee.io APIM - UI Console",
   "dependencies": {
     "@angular/animations": "^12.2.3",
     "@angular/cdk": "^12.2.3",

@@ -30,9 +30,21 @@ parameters:
     default: ''
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 orbs:
-  slack: circleci/slack@4.2.1
   gravitee: gravitee-io/gravitee@1.0
-  secrethub: secrethub/cli@1.1.0
+  secrethub: secrethub/cli@1.1
+  gh: circleci/github-cli@1.0
+
+executors:
+  node-lts:
+    parameters:
+      class:
+        description: The resource class
+        type: enum
+        enum: [ 'small', 'medium', 'large', 'xlarge' ]
+        default: 'medium'
+    docker:
+      - image: cimg/node:14.18
+    resource_class: <<parameters.class>>
 
 jobs:
   publish-on-artifactory-and-nexus:
@@ -74,6 +86,117 @@ jobs:
           command: |
             mvn -s /tmp/.nexus.settings.xml deploy --no-transfer-progress -DskipTests -T 2C -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
 
+  console-webui-install:
+    executor:
+      name: node-lts
+      class: small
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - gravitee-apim-console-webui-cache-v1-{{ checksum "gravitee-apim-console-webui/package-lock.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
+          working_directory: gravitee-apim-console-webui
+      - save_cache:
+          name: Save NPM cache
+          key: gravitee-apim-console-webui-cache-v1-{{ checksum "gravitee-apim-console-webui/package-lock.json" }}
+          paths:
+            - ./gravitee-apim-console-webui/node_modules
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/node_modules
+
+  console-webui-lint-test:
+    executor:
+      name: node-lts
+      class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: npm run lint:license
+          working_directory: gravitee-apim-console-webui
+      - run:
+          name: Run Prettier and ESLint
+          command: npm run lint
+          working_directory: gravitee-apim-console-webui
+      - run:
+          name: Run unit tests
+          command: npm run test:ci
+          working_directory: gravitee-apim-console-webui
+
+  console-webui-build:
+    executor:
+      name: node-lts
+      class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build
+          command: npm run build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+            BACKEND_ENV: element-zero
+          working_directory: gravitee-apim-console-webui
+      - run:
+          name: Zip dist folder
+          command: zip -r dist.zip dist
+          working_directory: gravitee-apim-console-webui
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-console-webui/dist
+      - store_artifacts:
+          path: gravitee-apim-console-webui/dist.zip
+          destination: build-output
+
+  console-webui-deploy-on-azure-storage:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:latest
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Login into Azure Storage and upload dist
+          command: |
+            export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az storage container create -n $BRANCH_ID --public-access blob
+            az storage blob upload-batch -s gravitee-apim-console-webui/dist -d $BRANCH_ID
+
+  console-webui-comment-pr-after-deployment:
+    executor:
+      name: node-lts
+      class: small
+    steps:
+      - checkout
+      - gh/setup
+      - run:
+          name: Comment Pull Request
+          command: |
+            # First check there is an associated pull request, otherwise just stop the job here
+            if ! gh pr view --json title;
+            then
+              echo "No PR found for this branch, stopping the job here."
+              exit 0
+            fi
+
+            export BRANCH_ID=$(echo "$CIRCLE_BRANCH" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr "[:upper:]" "[:lower:]" | cut -c -60)
+            gh pr comment --body "**Gravitee.io Automatic Deployment**
+
+            Congrats, all the CI steps were 🟢 . The Bot was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${BRANCH_ID}/index.html)! 🚀
+
+            _Notes_: The deployed app is linked to the management API of the Element Zero team's environment."
+
 workflows:
   pull_requests:
     when:
@@ -93,28 +216,59 @@ workflows:
       - publish-on-artifactory-and-nexus:
           requires:
             - process_pull_request_qa
-          # filters:
-            # branches:
+              # filters:
+              # branches:
               # ignore:
-                # - master
-      # --- +
-      #  No Standard pull request for Mongo : Only Test Containers
-      # --- +
-      # - gravitee/d_pull_requests_ce:
-          # name: process_pull_request
-          # requires:
+            # - master
+            # --- +
+            #  No Standard pull request for Mongo : Only Test Containers
+            # --- +
+            # - gravitee/d_pull_requests_ce:
+            # name: process_pull_request
+            # requires:
             # - pr_secrets_resolution
-          # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          # maven_profile_id: 'gio-dev'
-          # nexus_snapshots_url: 'https://oss.sonatype.org/content/repositories/snapshots'
-          # nexus_snapshots_server_id: 'sonatype-nexus-snapshots'
-          # container_gun_image_org: 'circleci'
-          # container_gun_image_name: 'openjdk'
-          # container_gun_image_tag: '11.0.3-jdk-stretch'
+            # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
+            # maven_profile_id: 'gio-dev'
+            # nexus_snapshots_url: 'https://oss.sonatype.org/content/repositories/snapshots'
+            # nexus_snapshots_server_id: 'sonatype-nexus-snapshots'
+            # container_gun_image_org: 'circleci'
+            # container_gun_image_name: 'openjdk'
+            # container_gun_image_tag: '11.0.3-jdk-stretch'
             # filters:
             # branches:
             # ignore:
           # - master
+      - console-webui-install:
+          requires:
+            - pr_secrets_resolution
+      - console-webui-lint-test:
+          requires:
+            - console-webui-install
+      - console-webui-build:
+          requires:
+            - console-webui-install
+      - console-webui-deploy-on-azure-storage:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-id
+                var-name: AZURE_APPLICATION_ID
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/tenant
+                var-name: AZURE_TENANT
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-secret
+                var-name: AZURE_APPLICATION_SECRET
+          requires:
+            - console-webui-build
+      - console-webui-comment-pr-after-deployment:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
+                var-name: GITHUB_TOKEN
+          requires:
+            - console-webui-deploy-on-azure-storage
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
@@ -410,8 +564,8 @@ workflows:
         # cron: "0 0 * * *"
         # filters:
         # branches:
-        # only:
-        # - master
+      # only:
+      # - master
       # - /^[0-999].[0-999].x/
     jobs:
       - gravitee/d_all_nightly_secrets:
