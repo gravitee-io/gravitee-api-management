@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.IdentityProvider;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,7 +25,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface IdentityProviderRepository extends FindAllRepository<IdentityProvider> {
-
     Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException;
 
     IdentityProvider create(IdentityProvider identityProvider) throws TechnicalException;

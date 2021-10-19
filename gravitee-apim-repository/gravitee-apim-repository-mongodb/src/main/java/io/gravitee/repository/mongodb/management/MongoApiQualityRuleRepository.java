@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.model.ApiKey;
@@ -23,18 +26,14 @@ import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRuleMo
 import io.gravitee.repository.mongodb.management.internal.model.ApiQualityRulePkMongo;
 import io.gravitee.repository.mongodb.management.internal.quality.ApiQualityRuleMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -159,8 +158,10 @@ public class MongoApiQualityRuleRepository implements ApiQualityRuleRepository {
 
     @Override
     public Set<ApiQualityRule> findAll() throws TechnicalException {
-        return internalApiQualityRuleRepo.findAll().stream()
-                .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class))
-                .collect(Collectors.toSet());
+        return internalApiQualityRuleRepo
+            .findAll()
+            .stream()
+            .map(apiQualityRuleMongo -> mapper.map(apiQualityRuleMongo, ApiQualityRule.class))
+            .collect(Collectors.toSet());
     }
 }

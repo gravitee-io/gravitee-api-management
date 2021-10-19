@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.EntrypointReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.EntrypointMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.EntrypointMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -141,8 +140,10 @@ public class MongoEntrypointRepository implements EntrypointRepository {
 
     @Override
     public Set<Entrypoint> findAll() throws TechnicalException {
-        return internalEntryPointRepo.findAll().stream()
-                .map(entrypointMongo -> mapper.map(entrypointMongo, Entrypoint.class))
-                .collect(Collectors.toSet());
+        return internalEntryPointRepo
+            .findAll()
+            .stream()
+            .map(entrypointMongo -> mapper.map(entrypointMongo, Entrypoint.class))
+            .collect(Collectors.toSet());
     }
 }

@@ -24,16 +24,15 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -161,8 +160,6 @@ public class MongoUserRepository implements UserRepository {
 
     @Override
     public Set<User> findAll() throws TechnicalException {
-        return internalUserRepo.findAll().stream()
-                .map(userMongo -> mapper.map(userMongo, User.class))
-                .collect(Collectors.toSet());
+        return internalUserRepo.findAll().stream().map(userMongo -> mapper.map(userMongo, User.class)).collect(Collectors.toSet());
     }
 }

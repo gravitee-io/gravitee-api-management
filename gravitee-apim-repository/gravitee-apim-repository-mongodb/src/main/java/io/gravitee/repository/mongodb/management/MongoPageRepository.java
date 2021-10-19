@@ -175,12 +175,7 @@ public class MongoPageRepository implements PageRepository {
         try {
             io.gravitee.common.data.domain.Page<PageMongo> page = internalPageRepo.findAll(pageable);
             List<Page> pageItems = mapper.collection2list(page.getContent(), PageMongo.class, Page.class);
-            return new io.gravitee.common.data.domain.Page<>(
-                pageItems,
-                page.getPageNumber(),
-                pageItems.size(),
-                page.getTotalElements()
-            );
+            return new io.gravitee.common.data.domain.Page<>(pageItems, page.getPageNumber(), pageItems.size(), page.getTotalElements());
         } catch (Exception e) {
             logger.error("An error occurred when searching all pages", e);
             throw new TechnicalException("An error occurred when searching all pages");
@@ -211,8 +206,6 @@ public class MongoPageRepository implements PageRepository {
 
     @Override
     public Set<Page> findAll() throws TechnicalException {
-        return internalPageRepo.findAll().stream()
-                .map(pageMongo -> mapper.map(pageMongo, Page.class))
-                .collect(Collectors.toSet());
+        return internalPageRepo.findAll().stream().map(pageMongo -> mapper.map(pageMongo, Page.class)).collect(Collectors.toSet());
     }
 }

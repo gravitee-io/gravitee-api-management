@@ -103,8 +103,6 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
 
     @Override
     public Set<ApiKey> findAll() throws TechnicalException {
-        return internalApiKeyRepo.findAll().stream()
-                .map(apiKeyMongo -> mapper.map(apiKeyMongo, ApiKey.class))
-                .collect(Collectors.toSet());
+        return internalApiKeyRepo.findAll().stream().map(apiKeyMongo -> mapper.map(apiKeyMongo, ApiKey.class)).collect(Collectors.toSet());
     }
 }

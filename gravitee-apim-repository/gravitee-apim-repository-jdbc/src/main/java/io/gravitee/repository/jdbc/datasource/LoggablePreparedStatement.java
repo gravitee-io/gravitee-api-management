@@ -15,15 +15,14 @@
  */
 package io.gravitee.repository.jdbc.datasource;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
 import java.util.Calendar;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,7 +46,7 @@ public class LoggablePreparedStatement implements PreparedStatement {
     @Override
     public int executeUpdate() throws SQLException {
         LOGGER.warn("{}", preparedStatement);
-        return -1 ; // preparedStatement.executeUpdate();
+        return -1; // preparedStatement.executeUpdate();
     }
 
     @Override
@@ -465,7 +464,7 @@ public class LoggablePreparedStatement implements PreparedStatement {
     @Override
     public int[] executeBatch() throws SQLException {
         LOGGER.warn("{}", preparedStatement);
-        return new int[]{-1};
+        return new int[] { -1 };
     }
 
     @Override
@@ -567,7 +566,7 @@ public class LoggablePreparedStatement implements PreparedStatement {
     @Override
     public long[] executeLargeBatch() throws SQLException {
         LOGGER.warn("{}", preparedStatement);
-        return new long[]{ -1L };
+        return new long[] { -1L };
     }
 
     @Override

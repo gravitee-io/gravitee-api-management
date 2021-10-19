@@ -24,7 +24,6 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface DictionaryRepository extends CrudRepository<Dictionary, String> {
-
     /**
      * List all dictionaries for requested environments
      * @param environments

@@ -19,10 +19,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EntrypointRepository;
 import io.gravitee.repository.management.model.Entrypoint;
 import io.gravitee.repository.management.model.EntrypointReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)

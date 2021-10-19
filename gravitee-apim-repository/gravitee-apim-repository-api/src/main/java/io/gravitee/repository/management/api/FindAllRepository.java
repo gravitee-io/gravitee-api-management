@@ -16,7 +16,6 @@
 package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
-
 import java.util.Set;
 
 /**
@@ -24,6 +23,5 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface FindAllRepository<T> {
-
     Set<T> findAll() throws TechnicalException;
 }

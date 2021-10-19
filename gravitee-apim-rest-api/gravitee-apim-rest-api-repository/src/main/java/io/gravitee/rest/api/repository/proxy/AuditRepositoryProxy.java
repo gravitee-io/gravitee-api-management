@@ -21,10 +21,9 @@ import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Audit;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)

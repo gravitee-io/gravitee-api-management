@@ -25,11 +25,10 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.mongodb.management.internal.application.ApplicationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ApplicationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -160,8 +159,6 @@ public class MongoApplicationRepository implements ApplicationRepository {
 
     @Override
     public Set<Application> findAll() throws TechnicalException {
-        return internalApplicationRepo.findAll().stream()
-                .map(this::mapApplication)
-                .collect(Collectors.toSet());
+        return internalApplicationRepo.findAll().stream().map(this::mapApplication).collect(Collectors.toSet());
     }
 }

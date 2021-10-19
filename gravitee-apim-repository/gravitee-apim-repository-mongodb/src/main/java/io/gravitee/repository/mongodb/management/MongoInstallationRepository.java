@@ -21,14 +21,13 @@ import io.gravitee.repository.management.model.Installation;
 import io.gravitee.repository.mongodb.management.internal.installation.InstallationMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.InstallationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -103,8 +102,6 @@ public class MongoInstallationRepository implements InstallationRepository {
 
     @Override
     public Set<Installation> findAll() throws TechnicalException {
-        return internalRepository.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

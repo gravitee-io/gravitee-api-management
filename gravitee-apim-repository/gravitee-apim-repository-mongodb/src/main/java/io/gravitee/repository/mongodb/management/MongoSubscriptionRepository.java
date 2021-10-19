@@ -24,13 +24,12 @@ import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
 import io.gravitee.repository.mongodb.management.internal.plan.SubscriptionMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -110,8 +109,6 @@ public class MongoSubscriptionRepository implements SubscriptionRepository {
 
     @Override
     public Set<Subscription> findAll() throws TechnicalException {
-        return internalSubscriptionRepository.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return internalSubscriptionRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

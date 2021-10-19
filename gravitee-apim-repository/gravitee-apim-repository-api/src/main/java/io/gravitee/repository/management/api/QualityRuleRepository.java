@@ -21,6 +21,4 @@ import io.gravitee.repository.management.model.QualityRule;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface QualityRuleRepository extends CrudRepository<QualityRule, String> {
-
-}
+public interface QualityRuleRepository extends CrudRepository<QualityRule, String> {}

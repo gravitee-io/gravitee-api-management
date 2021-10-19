@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.mongodb.management.internal.flow.FlowMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.FlowMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -108,8 +107,6 @@ public class MongoFlowRepository implements FlowRepository {
 
     @Override
     public Set<Flow> findAll() throws TechnicalException {
-        return internalRepository.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

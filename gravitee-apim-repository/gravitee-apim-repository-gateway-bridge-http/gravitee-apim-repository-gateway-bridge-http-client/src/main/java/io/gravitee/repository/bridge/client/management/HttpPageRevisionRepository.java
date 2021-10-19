@@ -23,7 +23,6 @@ import io.gravitee.repository.management.model.PageRevision;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.springframework.stereotype.Component;
 
 /**

@@ -15,23 +15,22 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
+
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.mongodb.management.internal.api.RatingAnswerMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.RatingAnswerMongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -126,8 +125,6 @@ public class MongoRatingAnswerRepository implements RatingAnswerRepository {
 
     @Override
     public Set<RatingAnswer> findAll() throws TechnicalException {
-        return internalRatingAnswerRepository.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return internalRatingAnswerRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

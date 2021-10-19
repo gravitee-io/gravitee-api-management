@@ -22,11 +22,10 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.ApiQualityRule;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import io.gravitee.repository.management.model.ApiQualityRule;
 import org.springframework.stereotype.Component;
 
 /**

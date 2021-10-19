@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.mongodb.management.internal.message.CommandMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.CommandMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -110,8 +109,10 @@ public class MongoCommandRepository implements CommandRepository {
 
     @Override
     public Set<Command> findAll() throws TechnicalException {
-        return internalMessageRepo.findAll().stream()
-                .map(commandMongo -> mapper.map(commandMongo, Command.class))
-                .collect(Collectors.toSet());
+        return internalMessageRepo
+            .findAll()
+            .stream()
+            .map(commandMongo -> mapper.map(commandMongo, Command.class))
+            .collect(Collectors.toSet());
     }
 }
