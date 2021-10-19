@@ -97,16 +97,16 @@ public class MongoFlowRepository implements FlowRepository {
         internalRepository.deleteAll(internalRepository.findAll(referenceType.name(), referenceId));
     }
 
+    @Override
+    public Set<Flow> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
+    }
+
     private FlowMongo map(Flow flow) {
         return mapper.map(flow, FlowMongo.class);
     }
 
     private Flow map(FlowMongo flow) {
         return mapper.map(flow, Flow.class);
-    }
-
-    @Override
-    public Set<Flow> findAll() throws TechnicalException {
-        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }
