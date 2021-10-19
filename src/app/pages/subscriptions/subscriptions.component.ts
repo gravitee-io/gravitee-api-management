@@ -177,7 +177,7 @@ export class SubscriptionsComponent implements OnInit {
     const entrypoints = this.subscriptionsMetadata[sub.subscription.api].entrypoints;
     const entrypoint = entrypoints && entrypoints[0] && entrypoints[0].target;
     if (entrypoint && keys[0]) {
-      this.curlExample = `curl ${entrypoint} -H "${this.apikeyHeader}:${keys[0].id}"`;
+      this.curlExample = `curl ${entrypoint} -H "${this.apikeyHeader}:${keys[0].key}"`;
     }
   }
 
