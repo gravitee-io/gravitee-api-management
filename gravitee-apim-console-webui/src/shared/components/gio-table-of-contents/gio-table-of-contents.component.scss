@@ -1,0 +1,96 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+
+@use '../../../scss/gio-material-theme' as gio;
+
+$primary: map.get(gio.$gio-theme, primary);
+$accent: map.get(gio.$gio-theme, accent);
+$warn: map.get(gio.$gio-theme, warn);
+$background: map.get(gio.$gio-theme, background);
+$foreground: map.get(gio.$gio-theme, foreground);
+$is-dark-theme: map.get(gio.$gio-theme, is-dark);
+$typography: map.get(gio.$gio-theme, typography);
+
+:host {
+  font-size: 13px;
+  // Width is container width minus content width
+  width: 19%;
+  position: sticky;
+  top: 0;
+  padding-left: 25px;
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.toc {
+  width: 100%;
+  padding: 0 10px;
+
+  & + .toc {
+    padding-top: 8px;
+  }
+
+  &__section-name {
+    margin: 0 0 10px 0;
+    padding: 0;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: capitalize;
+  }
+
+  &__link {
+    @include mat.typography-level($typography, body-1);
+
+    color: mat.get-color-from-palette($foreground, secondary-text);
+    transition: color 300ms;
+    line-height: 16px;
+    position: relative;
+    text-decoration: none;
+    display: block;
+    text-overflow: ellipsis;
+    width: 100%;
+    overflow: hidden;
+    border-left: solid 2px #cccccc;
+    padding: 6px 0 6px 10px;
+    font-weight: 400;
+
+    &:hover,
+    &.active {
+      font-weight: 500;
+      border-left: solid 2px mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
+      color: mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
+    }
+
+    &--level-h2 {
+      padding-left: 12px;
+    }
+
+    &--level-h3 {
+      padding-left: 24px;
+    }
+
+    &--level-h4 {
+      padding-left: 36px;
+    }
+  }
+}
+
+.docs-toc-container {
+  border-left: solid 4px mat.get-color-from-palette($accent);
+
+  .docs-link {
+    @include mat.typography-level($typography, body-1);
+    color: mat.get-color-from-palette($foreground, secondary-text);
+    transition: color 100ms;
+    line-height: 16px;
+
+    &:hover,
+    &.docs-active {
+      @include mat.typography-level($typography, body-2);
+      line-height: 16px;
+
+      color: mat.get-color-from-palette($accent, if($is-dark-theme, light, dark));
+    }
+  }
+}

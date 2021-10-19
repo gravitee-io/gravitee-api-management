@@ -1,0 +1,198 @@
+@mixin min-max-width($width) {
+  width: $width;
+  min-width: $width;
+  max-width: $width;
+}
+
+md-sidenav {
+  @include min-max-width($sidenavWidth);
+  background: var(--gv-theme-background-gradient);
+}
+
+.md-sidenav-min {
+  @include min-max-width($sidenavMinWidth);
+}
+
+.md-sidenav-min span {
+  font-size: 0;
+  opacity: 0;
+}
+
+.md-sidenav-min .sidenav-list h4 {
+  font-size: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.md-sidenav-min .sidenav-list {
+  // navbar-header
+  height: calc(100vh - #{$navbarHeaderHeight} - #{$sidenavFooterHeight});
+}
+
+md-sidenav,
+md-list-item::before,
+md-list-item.subheader,
+md-list-item.subheader::before,
+.sidenav-list h4,
+.sidenav-list hr,
+.sidenav-footer hr,
+.sidenav-list span,
+.sidenav-footer span {
+  transition: 0.4s all;
+  -moz-transition: 0.4s all;
+  -webkit-transition: 0.4s all;
+  -o-transition: 0.4s all;
+}
+
+.md-sidenav-min md-list-item.subheader {
+  min-height: 0;
+}
+
+.md-sidenav-min md-list-item.subheader::before {
+  min-height: 0;
+}
+
+.md-sidenav-min .sidenav-list hr {
+  border-top: 1px solid #eee;
+}
+
+md-sidenav:not(._md-locked-open) {
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
+.sidenav-header {
+  height: $sidenavHeaderHeight;
+
+  md-select {
+    margin: 12px;
+    padding: 0 12px;
+    background-color: white;
+    border-radius: 4px;
+
+    md-select-value {
+      padding-left: 2px;
+    }
+  }
+}
+
+.sidenav-list {
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  // must take into account: navbar-header, sidenav-header & sidenav-footer
+  height: calc(100vh - #{$navbarHeaderHeight} - #{$sidenavHeaderHeight} - #{$sidenavFooterHeight});
+  padding: 0;
+
+  & md-list-item {
+    min-height: 40px;
+    padding: 0;
+    width: 200px;
+  }
+
+  ng-md-icon {
+    fill: var(--gv-theme-font-color-light);
+  }
+
+  a {
+    color: var(--gv-theme-font-color-light);
+    text-decoration: none;
+    width: 100%;
+    padding: 0 0 8px $sidenavItemLeftWidth;
+
+    &:hover,
+    &.sidenav-active {
+      font-weight: bold;
+    }
+
+    &.sidenav-active {
+      border-left: $sidenavItemBorderSize solid var(--gv-theme-font-color-light);
+      padding-left: calc(#{$sidenavItemLeftWidth} - #{$sidenavItemBorderSize});
+      padding-top: 3px;
+    }
+  }
+
+  h4 {
+    text-transform: uppercase;
+    color: #fdfdfd;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    padding: 15px $sidenavItemLeftWidth/2 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+  }
+
+  hr {
+    background-color: white;
+    width: 90%;
+  }
+
+  span {
+    margin-left: 4px;
+  }
+}
+
+.sidenav-footer {
+  height: $sidenavFooterHeight;
+  overflow-x: hidden;
+  padding: 0;
+
+  ng-md-icon {
+    fill: var(--gv-theme-font-color-light);
+  }
+
+  a {
+    color: var(--gv-theme-font-color-light);
+    text-decoration: none;
+  }
+
+  hr {
+    width: 90%;
+  }
+
+  .md-button.sidenav-toggle {
+    bottom: calc(20px + #{$sidenavFooterHeight});
+    position: absolute;
+    right: -15px;
+    width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    line-height: 18px !important;
+  }
+
+  .md-button.sidenav-toggle:hover,
+  .md-button.sidenav-toggle:focus {
+  }
+
+  ng-md-icon.sidenav-toggle-icon {
+    top: 1px;
+    right: 7px;
+  }
+
+  md-list {
+    display: initial;
+  }
+
+  md-list-item {
+    min-height: 40px;
+    padding: 0;
+    width: 200px;
+
+    a {
+      color: var(--gv-theme-font-color-light);
+      text-decoration: none;
+      width: 100%;
+      padding: 0 0 8px $sidenavItemLeftWidth;
+
+      &:hover {
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.gravitee-sidenav {
+  padding-top: 54px;
+  z-index: 1;
+}

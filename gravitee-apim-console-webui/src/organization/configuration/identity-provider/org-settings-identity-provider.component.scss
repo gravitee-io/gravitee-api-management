@@ -1,0 +1,36 @@
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.identity-provider {
+  &__card {
+    margin-bottom: 16px;
+
+    &__form-field {
+      width: 100%;
+
+      &__radio-group {
+        display: flex;
+        flex-direction: column;
+
+        &__button {
+          margin-top: 8px;
+        }
+      }
+    }
+
+    &__provider-type-group {
+      &__button {
+        flex: 1 1 15%;
+        text-align: center;
+
+        &__logo {
+          width: 48px;
+          height: 48px;
+        }
+      }
+    }
+  }
+}

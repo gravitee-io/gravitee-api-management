@@ -1,0 +1,86 @@
+@use '../../node_modules/@angular/material' as mat;
+
+// Primary
+$gio-primary-palette: mat.define-palette(
+  (
+    dark: hsl(236, 50%, 7%),
+    medium: hsl(236, 38%, 17%),
+    light: hsl(220, 38%, 27%),
+    contrast: (
+      dark: #fff,
+      medium: #fff,
+      light: #fff,
+    ),
+  ),
+  medium,
+  light,
+  dark
+);
+
+// Accent
+$gio-accent-palette: mat.define-palette(
+  (
+    dark: hsl(183, 75%, 37%),
+    medium: hsl(183, 75%, 47%),
+    light: hsl(183, 75%, 57%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
+  ),
+  medium,
+  light,
+  dark
+);
+
+// Success color
+$gio-success-palette: mat.define-palette(
+  (
+    dark: hsl(118, 39%, 40%),
+    medium: hsl(122, 39%, 50%),
+    light: hsl(126, 39%, 65%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
+  ),
+  medium,
+  light,
+  dark
+);
+
+// Warning color
+$gio-warning-palette: mat.define-palette(
+  (
+    dark: hsl(30, 100%, 48%),
+    medium: hsl(34, 100%, 50%),
+    light: hsl(38, 100%, 65%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
+  ),
+  medium,
+  light,
+  dark
+);
+
+// Error color
+$gio-error-palette: mat.define-palette(
+  (
+    dark: hsl(356, 80%, 40%),
+    medium: hsl(360, 80%, 50%),
+    light: hsl(4, 80%, 65%),
+    contrast: (
+      dark: #000,
+      medium: #000,
+      light: #000,
+    ),
+  ),
+  medium,
+  light,
+  dark
+);

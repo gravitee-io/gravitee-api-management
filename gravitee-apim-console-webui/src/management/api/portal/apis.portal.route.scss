@@ -1,0 +1,16 @@
+.apis-portal {
+  &__headline {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    &__icon {
+      margin-right: 4px;
+    }
+
+    &__api-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

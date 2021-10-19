@@ -1,0 +1,440 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms" layout="column">
+  <div class="gv-forms-header">
+    <h1 ng-if="$ctrl.updateMode">{{$ctrl.group.name}}</h1>
+    <h1 ng-if="!$ctrl.updateMode">Create a group</h1>
+    <a ui-sref="management.settings.groups.list">Back to groups</a>
+  </div>
+
+  <form name="formGroup" class="gv-form" ng-submit="$ctrl.update()">
+    <h2>General</h2>
+    <div class="gv-form-content" layout="column">
+      <div layout-gt-sm="row">
+        <md-input-container class="md-block" flex-gt-sm>
+          <label>Name</label>
+          <input ng-model="$ctrl.group.name" type="text" required name="name" maxlength="50" />
+          <div class="hint" ng-if="$ctrl.formGroup.name.$valid || $ctrl.formGroup.name.$pristine">Group Name</div>
+          <div ng-messages="$ctrl.formGroup.name.$error">
+            <div ng-message="required">Group name is required.</div>
+            <div ng-message="md-maxlength">The group name has to be less than 50 characters long.</div>
+          </div>
+        </md-input-container>
+      </div>
+    </div>
+
+    <h2>Roles & Members</h2>
+    <div class="gv-form-content" layout="column">
+      <div layout="row" ng-if="$ctrl.updateMode">
+        <div layout="row" flex="50">
+          <b style="margin: 26px 10px 26px 0">Default API Role</b>
+          <md-select
+            placeholder="Default API Role"
+            class="gv-input-number"
+            ng-model="$ctrl.selectedApiRole"
+            aria-label="Default API Role"
+            ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+          >
+            <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="role.system">{{role.name}} </md-option>
+          </md-select>
+        </div>
+        <div layout="row" flex="50">
+          <b style="margin: 26px 10px 26px 0">Default Application Role</b>
+          <md-select
+            placeholder="Default Application Role"
+            ng-model="$ctrl.selectedApplicationRole"
+            class="gv-input-number"
+            aria-label="Default Application Role"
+            ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+          >
+            <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system">{{role.name}} </md-option>
+          </md-select>
+        </div>
+      </div>
+
+      <div permission permission-only="'environment-group-u'">
+        <div layout="column">
+          <md-input-container class="gv-input-number">
+            <label>Max members (default unlimited)</label>
+            <input ng-model="$ctrl.group.max_invitation" type="number" min="0" max="99999" />
+          </md-input-container>
+          <md-checkbox ng-model="$ctrl.group.system_invitation" aria-label="Allows system invitation" class="md-align-top-left" flex>
+            Allows invitation via user search
+          </md-checkbox>
+          <md-checkbox ng-model="$ctrl.group.email_invitation" aria-label="Allows email invitation" class="md-align-top-left" flex>
+            Allows email invitation
+          </md-checkbox>
+          <md-checkbox
+            ng-model="$ctrl.group.lock_api_role"
+            ng-true-value="false"
+            ng-false-value="true"
+            aria-label="Change default API role"
+            class="md-align-top-left"
+            flex
+          >
+            Allows the group admin to change the API role
+          </md-checkbox>
+          <md-checkbox
+            ng-model="$ctrl.group.lock_application_role"
+            ng-true-value="false"
+            ng-false-value="true"
+            aria-label="Change default Application role"
+            class="md-align-top-left"
+            flex
+          >
+            Allows the group admin to change the application role
+          </md-checkbox>
+          <md-checkbox
+            ng-model="$ctrl.group.disable_membership_notifications"
+            ng-true-value="false"
+            ng-false-value="true"
+            aria-label="Enables notifications when members are added to this group"
+            class="md-align-top-left"
+            flex
+          >
+            Enables notifications when members are added to this group
+          </md-checkbox>
+        </div>
+      </div>
+    </div>
+
+    <h2>Associations</h2>
+    <div class="gv-form-content" layout="column">
+      <div layout="column" style="margin-bottom: 10px">
+        <md-checkbox
+          ng-model="$ctrl.apiByDefault"
+          ng-click="$event.stopPropagation()"
+          aria-label="Associate to every new API"
+          class="md-primary md-align-top-left"
+          flex
+        >
+          Associate automatically to every new API
+        </md-checkbox>
+        <md-checkbox
+          ng-model="$ctrl.applicationByDefault"
+          aria-label="Associate to every new application"
+          class="md-primary md-align-top-left"
+          flex
+        >
+          Associate automatically to every new application
+        </md-checkbox>
+      </div>
+      <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.updateMode">
+        <md-button aria-label="Associate to existing APIs" ng-click="$ctrl.associateToApis()" class="md-actions md-raised md-primary">
+          Associate to existing APIs
+        </md-button>
+
+        <md-button
+          aria-label="Associate to existing applications"
+          ng-click="$ctrl.associateToApplications()"
+          class="md-actions md-raised md-primary"
+        >
+          Associate to existing applications
+        </md-button>
+      </div>
+    </div>
+
+    <h2>Actions</h2>
+    <div class="gv-form-content" layout="column">
+      <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.canSave()">
+        <md-button
+          ng-if="$ctrl.updateMode"
+          class="md-raised md-primary"
+          type="submit"
+          ng-disabled="formGroup.$invalid || formGroup.$pristine"
+          permission
+          permission-only="['environment-group-u']"
+        >
+          Update
+        </md-button>
+
+        <md-button
+          ng-if="!$ctrl.updateMode"
+          class="md-raised md-primary"
+          type="submit"
+          ng-disabled="formGroup.$invalid || formGroup.$pristine"
+          permission
+          permission-only="['environment-group-c']"
+        >
+          Create
+        </md-button>
+
+        <md-button class="md-raised" type="button" ng-click="$ctrl.reset()" ng-disabled="formGroup.$invalid || formGroup.$pristine">
+          Reset
+        </md-button>
+      </div>
+    </div>
+  </form>
+
+  <div class="gv-form" ng-if="$ctrl.updateMode">
+    <h2>Dependents</h2>
+    <div class="gv-form-content" layout="column">
+      <md-tabs md-dynamic-height>
+        <md-tab md-on-select="currentTab='users'">
+          <md-tab-label>Members</md-tab-label>
+          <md-tab-body>
+            <div style="margin: 16px 0 8px">
+              You can manage all members of this group.
+              <span permission permission-except="'environment-group-u'" ng-if="$ctrl.group.max_invitation">
+                Limited to {{$ctrl.group.max_invitation}} members.</span
+              >
+              <div
+                ng-if="$ctrl.hasGroupAdmin() && !$ctrl.group.system_invitation && !$ctrl.group.email_invitation"
+                style="font-weight: bold"
+              >
+                Enable email invitation and/or user search to allow the group administrator to add users.
+              </div>
+            </div>
+            <md-table-container ng-if="$ctrl.membersLoaded" ng-cloak>
+              <table md-table ng-init="orderGrp = 'displayName'">
+                <thead md-head md-order="orderGrp">
+                  <tr md-row>
+                    <th md-column width="22%" md-order-by="displayName">Name</th>
+                    <th md-column width="22%">Group Admin</th>
+                    <th md-column width="22%">API Role</th>
+                    <th md-column width="22%">Application Role</th>
+                    <th md-column width="12%"></th>
+                  </tr>
+                </thead>
+                <tbody md-body>
+                  <tr style="height: 30px" ng-if="$ctrl.members.length === 0">
+                    <td md-cell style="text-align: center" colspan="5">None.</td>
+                  </tr>
+                  <tr md-row ng-repeat="member in $ctrl.members | orderBy: orderGrp">
+                    <td md-cell>{{member.displayName}}</td>
+                    <td md-cell>
+                      <md-checkbox
+                        ng-model="member.roles['GROUP']"
+                        ng-true-value="'ADMIN'"
+                        ng-false-value="''"
+                        ng-change="$ctrl.updateRole(member)"
+                        aria-label="Administrator of this group"
+                      >
+                      </md-checkbox>
+                    </td>
+                    <td md-cell>
+                      <md-select
+                        ng-model="member.roles['API']"
+                        aria-label="API Role"
+                        ng-change="$ctrl.updateRole(member)"
+                        ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+                      >
+                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
+                          >{{role.name}}</md-option
+                        >
+                      </md-select>
+                    </td>
+                    <td md-cell>
+                      <md-select
+                        ng-model="member.roles['APPLICATION']"
+                        aria-label="Application Role"
+                        ng-change="$ctrl.updateRole(member)"
+                        ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+                      >
+                        <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
+                          >{{role.name}}</md-option
+                        >
+                      </md-select>
+                    </td>
+                    <td md-cell ng-click="$event.stopPropagation()">
+                      <div layout="row" layout-align="end center">
+                        <span ng-if="$ctrl.group.manageable">
+                          <md-tooltip md-direction="top">delete</md-tooltip>
+                          <ng-md-icon icon="delete" ng-click="$ctrl.removeUser($event, member)" aria-label="delete-user"></ng-md-icon>
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div ng-if="$ctrl.invitations.length > 0">
+                <hr />
+                <h3 style="color: red">Pending invitations</h3>
+                <table md-table ng-init="orderInvitation = 'email'">
+                  <thead md-head md-order="orderInvitation">
+                    <tr md-row>
+                      <th md-column md-order-by="email">Email</th>
+                      <th md-column>API Role</th>
+                      <th md-column>Application Role</th>
+                      <th md-column md-order-by="created_at">Invitation date</th>
+                      <th md-column></th>
+                    </tr>
+                  </thead>
+                  <tbody md-body>
+                    <tr md-row ng-repeat="invitation in $ctrl.invitations | orderBy: orderInvitation">
+                      <td md-cell>{{invitation.email}}</td>
+                      <td md-cell>
+                        <md-select
+                          ng-model="invitation.api_role"
+                          aria-label="API Role"
+                          ng-change="$ctrl.updateInvitation(invitation)"
+                          ng-disabled="!$ctrl.canChangeDefaultApiRole()"
+                        >
+                          <md-option ng-value="role.name" ng-repeat="role in $ctrl.apiRoles" ng-disabled="$ctrl.isApiRoleDisabled(role)"
+                            >{{role.name}}</md-option
+                          >
+                        </md-select>
+                      </td>
+                      <td md-cell>
+                        <md-select
+                          ng-model="invitation.application_role"
+                          aria-label="Application Role"
+                          ng-change="$ctrl.updateInvitation(invitation)"
+                          ng-disabled="!$ctrl.canChangeDefaultApplicationRole()"
+                        >
+                          <md-option ng-value="role.name" ng-repeat="role in $ctrl.applicationRoles" ng-disabled="role.system"
+                            >{{role.name}}</md-option
+                          >
+                        </md-select>
+                      </td>
+                      <td md-cell>{{invitation.created_at | date}}</td>
+                      <td md-cell ng-click="$event.stopPropagation()">
+                        <div layout="row" layout-align="end center">
+                          <span ng-if="$ctrl.group.manageable">
+                            <md-tooltip md-direction="top">delete</md-tooltip>
+                            <ng-md-icon
+                              icon="delete"
+                              ng-click="$ctrl.removeInvitation($event, invitation)"
+                              aria-label="delete-user"
+                            ></ng-md-icon>
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </md-table-container>
+            <gravitee-empty-state message="Loading members..." icon="person" ng-if="!$ctrl.membersLoaded"></gravitee-empty-state>
+            <md-table-pagination
+              ng-if="$ctrl.membersPage.page.size > 0"
+              md-limit="$ctrl.membersPage.page.per_page"
+              md-page="$ctrl.membersPage.page.current"
+              md-total="{{$ctrl.membersPage.page.total_elements}}"
+              md-on-paginate="$ctrl.onPaginate"
+            >
+            </md-table-pagination>
+          </md-tab-body>
+        </md-tab>
+        <md-tab md-on-select="currentTab='apis'; $ctrl.loadGroupApis();">
+          <md-tab-label>APIs</md-tab-label>
+          <md-tab-body>
+            <div style="margin: 16px 0 8px">Here is the list of all APIs of this group.</div>
+            <md-table-container>
+              <table md-table>
+                <thead md-head>
+                  <tr md-row>
+                    <th md-column>Name</th>
+                    <th md-column>Version</th>
+                    <th md-column>Visibility</th>
+                  </tr>
+                </thead>
+                <tbody md-body>
+                  <tr style="height: 30px" ng-if="groupApis.length === 0">
+                    <td md-cell style="text-align: center" colspan="3">None.</td>
+                  </tr>
+                  <tr ng-repeat="api in groupApis" md-row>
+                    <td md-cell>{{api.name}}</td>
+                    <td md-cell>{{api.version}}</td>
+                    <td md-cell>
+                      <ng-md-icon icon="{{api.visibility==='PUBLIC' ? 'public' : 'lock'}}" size="20" style="fill: #cdcdcd">
+                        <md-tooltip>{{api.visibility}}</md-tooltip>
+                      </ng-md-icon>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </md-tab-body>
+        </md-tab>
+        <md-tab md-on-select="currentTab='applications'; $ctrl.loadGroupApplications();">
+          <md-tab-label>Applications</md-tab-label>
+          <md-tab-body>
+            <div style="margin: 16px 0 8px">Here is the list of all applications of this group.</div>
+            <md-table-container>
+              <table md-table>
+                <thead md-head>
+                  <tr md-row>
+                    <th md-column>Name</th>
+                    <th md-column>Type</th>
+                  </tr>
+                </thead>
+                <tbody md-body>
+                  <tr style="height: 30px" ng-if="groupApplications.length === 0">
+                    <td md-cell style="text-align: center" colspan="2">None.</td>
+                  </tr>
+                  <tr ng-repeat="application in groupApplications" md-row>
+                    <td md-cell>{{application.name}}</td>
+                    <td md-cell>{{application.type}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </md-table-container>
+          </md-tab-body>
+        </md-tab>
+      </md-tabs>
+    </div>
+  </div>
+</div>
+
+<md-fab-speed-dial
+  ng-if="$ctrl.canAddMembers() || ($ctrl.group.system_invitation && $ctrl.group.email_invitation)"
+  md-direction="left"
+  md-open="false"
+  class="md-scale md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+>
+  <md-fab-trigger>
+    <md-button aria-label="menu" class="md-fab md-success">
+      <md-tooltip md-direction="top" md-visible="false">Add member</md-tooltip>
+      <ng-md-icon icon="add"></ng-md-icon>
+    </md-button>
+  </md-fab-trigger>
+
+  <md-fab-actions>
+    <md-button
+      ng-if="$ctrl.isSuperAdmin() || $ctrl.group.system_invitation"
+      class="md-fab md-success md-mini"
+      ng-click="$ctrl.showAddMemberModal()"
+      aria-label="Add member"
+    >
+      <md-tooltip md-direction="top">Add member</md-tooltip>
+      <ng-md-icon icon="people"></ng-md-icon>
+    </md-button>
+    <md-button
+      ng-if="$ctrl.isSuperAdmin() || $ctrl.group.email_invitation"
+      class="md-fab md-success md-mini"
+      ng-click="$ctrl.showInviteMemberModal()"
+      aria-label="Invite member"
+    >
+      <md-tooltip md-direction="topmd-fab-bottom-right">Invite member</md-tooltip>
+      <ng-md-icon icon="email"></ng-md-icon>
+    </md-button>
+  </md-fab-actions>
+</md-fab-speed-dial>
+
+<md-button
+  ng-if="!$ctrl.isSuperAdmin() && !($ctrl.group.system_invitation && $ctrl.group.email_invitation) && ($ctrl.group.system_invitation || $ctrl.group.email_invitation)"
+  ng-click="$ctrl.group.system_invitation?$ctrl.showAddMemberModal(): $ctrl.showInviteMemberModal()"
+  aria-label="Add member"
+  class="md-fab md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+>
+  <md-tooltip md-direction="top" md-visible="false">Add member</md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

@@ -1,0 +1,96 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-step label="Secure" md-complete="$ctrl.parent.vm.stepData[1].completed">
+  <md-step-body>
+    <md-content layout-padding class="gv-creation-general-content gv-creation-content">
+      <section>
+        <md-subheader>Authentication</md-subheader>
+        <form name="$ctrl.planGeneralForm">
+          <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label>Authentication type</label>
+              <md-select
+                ng-model="$ctrl.parent.plan.security"
+                placeholder="Security type"
+                required
+                ng-disabled="$ctrl.parent.plan.id"
+                ng-change="$ctrl.onSecurityTypeChange()"
+              >
+                <md-option ng-repeat="type in $ctrl.securityTypes" ng-value="type.id">{{type.name}}</md-option>
+              </md-select>
+              <div class="hint">Select the type of authentication</div>
+            </md-input-container>
+          </div>
+        </form>
+      </section>
+
+      <br />
+
+      <section ng-if="$ctrl.securitySchema">
+        <md-subheader>Configuration</md-subheader>
+        <gv-schema-form
+          ng-attr-schema="{{ $ctrl.securitySchema }}"
+          validate-on-render
+          ng-attr-values="{{ $ctrl.parent.plan.securityDefinition }}"
+          ng-on-gv-schema-form:change="$ctrl.onSecurityDefinitionChange($event)"
+          ng-on-gv-schema-form:fetch-resources="$ctrl.onFetchResources($event)"
+        >
+        </gv-schema-form>
+      </section>
+
+      <br />
+
+      <section ng-if="$ctrl.securitySchema">
+        <md-subheader>Additional selection rule</md-subheader>
+        <form name="$ctrl.planGeneralForm">
+          <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex-gt-sm>
+              <input ng-model="$ctrl.parent.plan.selection_rule" type="text" placeholder="Selection Rule" name="selectionrule" />
+              <div class="hint" style="top: 40px">
+                Define an additional rule when you're managing multiple plans of the same type to improve the plan's selection process. For
+                example, if you want to check the issuer of a jwt token: #context.attributes['jwt'].claims['iss'] == 'my-issuer'
+              </div>
+            </md-input-container>
+          </div>
+        </form>
+      </section>
+
+      <md-step-actions layout="row">
+        <div flex>
+          <md-button ng-click="$ctrl.parent.moveToPreviousStep()">PREVIOUS</md-button>
+          <md-button class="md-raised md-warn" ui-sref="management.apis.detail.portal.plans.list">CANCEL</md-button>
+        </div>
+        <div flex layout="row" layout-align="end top">
+          <md-button
+            ng-if="$ctrl.parent.hasRestrictionStep()"
+            ng-disabled="$ctrl.planGeneralForm.$invalid || $ctrl.securityConfigurationForm.$invalid"
+            ng-click="$ctrl.gotoNextStep()"
+            >NEXT</md-button
+          >
+          <md-button
+            ng-if="!$ctrl.parent.hasRestrictionStep()"
+            ng-disabled="$ctrl.planGeneralForm.$invalid || $ctrl.securityConfigurationForm.$invalid"
+            ng-click="$ctrl.gotoNextStep()"
+            class="md-primary md-raised"
+            >SAVE</md-button
+          >
+        </div>
+      </md-step-actions>
+    </md-content>
+  </md-step-body>
+</md-step>

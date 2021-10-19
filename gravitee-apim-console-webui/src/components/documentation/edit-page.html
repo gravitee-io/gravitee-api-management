@@ -1,0 +1,201 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms gv-forms-fluid gv-edit-page" layout="column">
+  <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="!rename">
+    <div>
+      <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0"></md-icon>
+      <h1>{{$ctrl.page.name}}</h1>
+      <sup ng-if="($ctrl.isLink() && $ctrl.page.configuration.inherit && $ctrl.page.configuration.inherit === 'true')">
+        <ng-md-icon icon="lock" size="12" style="fill: black">
+          <md-tooltip>Inherited</md-tooltip>
+        </ng-md-icon>
+      </sup>
+      <a ng-click="$ctrl.cancel()">Back to Documentation</a>
+    </div>
+    <div ng-if="$ctrl.canUpdate">
+      <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.fetch()"> Fetch </md-button>
+      <md-button
+        type="button"
+        class="md-raised md-primary"
+        ng-click="$ctrl.toggleRename()"
+        aria-label="Rename"
+        ng-disabled="$ctrl.isLink() && $ctrl.page.configuration.inherit && $ctrl.page.configuration.inherit !== 'false'"
+      >
+        Rename
+      </md-button>
+      <md-button
+        ng-if="$ctrl.page.metadata.edit_url"
+        type="button"
+        style="padding: 0 6px"
+        target="_blank"
+        href="{{$ctrl.page.metadata.edit_url}}"
+        aria-label="Edit"
+      >
+        <md-icon
+          md-svg-icon="assets/logo_{{$ctrl.page.metadata.provider_name | lowercase}}-fetcher.svg"
+          style="height: 24px; padding: 0; vertical-align: inherit"
+        ></md-icon>
+        Edit on {{$ctrl.page.metadata.provider_name}}
+      </md-button>
+    </div>
+  </div>
+
+  <div ng-if="$ctrl.usedAsGeneralConditions()" class="page-as-general-conditions">
+    This page is used as general conditions, if you change the content please remember to notify your API subscribers
+  </div>
+  <div class="gv-forms-header" layout="row" layout-align="space-between end" ng-if="rename">
+    <div>
+      <md-icon md-svg-src="assets/logo_{{$ctrl.page.type | lowercase}}.svg" style="margin: 0 8px 12px 0"></md-icon>
+      <input type="text" ng-model="$ctrl.newName" autofocus />
+    </div>
+    <div>
+      <md-button type="button" class="md-raised md-primary" ng-click="$ctrl.rename()" aria-label="Edit"> Save </md-button>
+      <md-button class="md-raised" type="button" ng-click="$ctrl.toggleRename()"> Cancel </md-button>
+    </div>
+  </div>
+
+  <div class="gv-form" ng-if="!$ctrl.isFolder()">
+    <h2></h2>
+    <div class="gv-form-content" layout="column">
+      <div ng-if="editorReadonly && $ctrl.canUpdate" class="gv-page-draft-banner">
+        <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
+        Page's content is retrieved from an external source. If you want to edit content manually,
+        <a ng-click="$ctrl.goToExternalSource()">please change the configuration</a>.
+      </div>
+
+      <md-tabs md-dynamic-height md-selected="$ctrl.selectedTab">
+        <!-- page -->
+        <md-tab md-on-select="$ctrl.selectTab(0)">
+          <md-tab-label>Page</md-tab-label>
+          <md-tab-body>
+            <div ng-if="$ctrl.currentTab === 'content'">
+              <div class="gv-page-draft-banner" ng-if="!$ctrl.page.published">
+                <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
+                {{ $ctrl.getBannerMessage() }}
+              </div>
+
+              <gv-edit-page-content
+                ng-if="!$ctrl.isLink()"
+                can-update="$ctrl.canUpdate"
+                page="$ctrl.page"
+                pages-to-link="$ctrl.pagesToLink"
+              ></gv-edit-page-content>
+              <gv-edit-link-content
+                ng-if="$ctrl.isLink()"
+                category-resources="$ctrl.categoryResources"
+                folders-by-id="$ctrl.foldersById"
+                page="$ctrl.page"
+                page-list="$ctrl.pageList"
+                system-folders-by-id="$ctrl.systemFoldersById"
+              ></gv-edit-link-content>
+            </div>
+          </md-tab-body>
+        </md-tab>
+
+        <!-- translations -->
+        <md-tab md-on-select="$ctrl.selectTab(1)" ng-if="$ctrl.canUpdate && !$ctrl.isMarkdownTemplate()">
+          <md-tab-label>Translations</md-tab-label>
+          <md-tab-body>
+            <gv-edit-page-translations
+              api-id="$ctrl.apiId"
+              can-update="$ctrl.canUpdate"
+              current-translation="$ctrl.currentTranslation"
+              page="$ctrl.page"
+              pages-to-link="$ctrl.pagesToLink"
+            ></gv-edit-page-translations>
+          </md-tab-body>
+        </md-tab>
+
+        <!-- configuration -->
+        <md-tab md-on-select="$ctrl.selectTab(2)" ng-if="$ctrl.canUpdate && !$ctrl.isLink()">
+          <md-tab-label>Configuration</md-tab-label>
+          <md-tab-body>
+            <gv-edit-page-configuration page="$ctrl.page"></gv-edit-page-configuration>
+          </md-tab-body>
+        </md-tab>
+
+        <!-- external source -->
+        <md-tab md-on-select="$ctrl.selectTab(3)" ng-if="$ctrl.canUpdate && !$ctrl.isLink()">
+          <md-tab-label>External Source</md-tab-label>
+          <md-tab-body>
+            <gv-edit-page-fetchers fetchers="$ctrl.resolvedFetchers" page="$ctrl.page" title=""></gv-edit-page-fetchers>
+          </md-tab-body>
+        </md-tab>
+
+        <!-- access control -->
+        <md-tab md-on-select="$ctrl.selectTab(4)" ng-if="$ctrl.canUpdate">
+          <md-tab-label>Access Control</md-tab-label>
+          <md-tab-body>
+            <gv-edit-page-acls page="$ctrl.page" groups="$ctrl.groups" roles="$ctrl.roles" is-api-page="!!$ctrl.apiId"></gv-edit-page-acls>
+          </md-tab-body>
+        </md-tab>
+
+        <!-- Attached resources -->
+        <md-tab
+          md-on-select="$ctrl.selectTab(5)"
+          ng-if="$ctrl.canUpdate && ($ctrl.isMarkdown() || $ctrl.isAsciiDoc() || $ctrl.isAsyncApi())"
+        >
+          <md-tab-label>Attached resources</md-tab-label>
+          <md-tab-body>
+            <gv-edit-page-attached-resources
+              api-id="$ctrl.apiId"
+              attached-resources="$ctrl.attachedResources"
+              page="$ctrl.page"
+              on-save="$ctrl.reset()"
+            ></gv-edit-page-attached-resources>
+          </md-tab-body>
+        </md-tab>
+      </md-tabs>
+
+      <gv-error error="$ctrl.error"></gv-error>
+
+      <div
+        class="md-actions gravitee-api-save-button"
+        layout="row"
+        style="padding-top: 32px"
+        ng-if="$ctrl.canUpdate && $ctrl.currentTab !== 'attached-resources'"
+      >
+        <md-button
+          class="md-raised md-primary"
+          type="submit"
+          ng-click="$ctrl.save()"
+          ng-disabled="!$ctrl.page.name"
+          ng-if="$ctrl.currentTab !== 'translations' || !$ctrl.currentTranslation"
+        >
+          Save
+        </md-button>
+        <md-button
+          permission
+          permission-only="['environment-documentation-u', 'api-documentation-u']"
+          type="button"
+          aria-label="Save translation"
+          class="md-raised md-primary"
+          ng-click="$ctrl.saveTranslation()"
+          ng-if="$ctrl.currentTab === 'translations' && $ctrl.currentTranslation"
+          ng-disabled="!$ctrl.currentTranslation.configuration.lang || !$ctrl.currentTranslation.name"
+        >
+          Save translation
+        </md-button>
+        <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"> Reset </md-button>
+        <md-button class="md-flat md-warn" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.removeFetcher()">
+          Remove External Source Configuration
+        </md-button>
+      </div>
+    </div>
+  </div>
+</div>
