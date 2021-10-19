@@ -123,4 +123,9 @@ public class MongoTagRepository implements TagRepository {
         final List<TagMongo> tags = internalTagRepo.findByReferenceIdAndReferenceType(referenceId, referenceType);
         return tags.stream().map(tagMongo -> mapper.map(tagMongo, Tag.class)).collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<Tag> findAll() throws TechnicalException {
+        return internalTagRepo.findAll().stream().map(tag -> mapper.map(tag, Tag.class)).collect(Collectors.toSet());
+    }
 }

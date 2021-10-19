@@ -37,7 +37,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public class JdbcApiQualityRuleRepository extends JdbcAbstractRepository<ApiQualityRule> implements ApiQualityRuleRepository {
+public class JdbcApiQualityRuleRepository extends JdbcAbstractFindAllRepository<ApiQualityRule> implements ApiQualityRuleRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcApiQualityRuleRepository.class);
 

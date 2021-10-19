@@ -138,4 +138,9 @@ public class MongoTenantRepository implements TenantRepository {
             )
             .collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<Tenant> findAll() throws TechnicalException {
+        return internalTenantRepo.findAll().stream().map(tenant -> mapper.map(tenant, Tenant.class)).collect(Collectors.toSet());
+    }
 }

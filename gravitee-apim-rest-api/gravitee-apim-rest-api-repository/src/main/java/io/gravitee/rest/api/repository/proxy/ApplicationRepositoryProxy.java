@@ -84,4 +84,9 @@ public class ApplicationRepositoryProxy extends AbstractProxy<ApplicationReposit
     public Set<Application> findAllByEnvironment(String environment, ApplicationStatus... statuses) throws TechnicalException {
         return target.findAllByEnvironment(environment, statuses);
     }
+
+    @Override
+    public Set<Application> findAll() throws TechnicalException {
+        return target.findAll();
+    }
 }

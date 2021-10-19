@@ -22,6 +22,8 @@ import io.gravitee.repository.mongodb.management.internal.installation.Installat
 import io.gravitee.repository.mongodb.management.internal.model.InstallationMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +90,11 @@ public class MongoInstallationRepository implements InstallationRepository {
         logger.debug("Delete installation [{}]", id);
         internalRepository.deleteById(id);
         logger.debug("Delete installation [{}] - Done", id);
+    }
+
+    @Override
+    public Set<Installation> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 
     private InstallationMongo map(Installation group) {

@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,13 +52,17 @@ public class HttpParameterRepository extends AbstractRepository implements Param
     }
 
     @Override
-    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType)
-        throws TechnicalException {
+    public List<Parameter> findByKeys(List<String> keys, String referenceId, ParameterReferenceType referenceType) {
         throw new IllegalStateException();
     }
 
     @Override
     public List<Parameter> findAll(String referenceId, ParameterReferenceType referenceType) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Parameter> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

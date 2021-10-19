@@ -21,9 +21,9 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.EventType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -66,5 +66,10 @@ public class EventRepositoryProxy extends AbstractProxy<EventRepository> impleme
     @Override
     public List<Event> search(EventCriteria filter) {
         return target.search(filter);
+    }
+
+    @Override
+    public Set<Event> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

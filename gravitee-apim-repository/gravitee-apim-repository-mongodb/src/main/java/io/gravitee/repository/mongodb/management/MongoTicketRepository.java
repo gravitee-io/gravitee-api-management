@@ -27,6 +27,8 @@ import io.gravitee.repository.mongodb.management.internal.ticket.TicketMongoRepo
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,5 +84,10 @@ public class MongoTicketRepository implements TicketRepository {
         LOGGER.debug("Search ticket {} - Done", ticketId);
 
         return Optional.ofNullable(mapper.map(ticket, Ticket.class));
+    }
+
+    @Override
+    public Set<Ticket> findAll() throws TechnicalException {
+        return internalTicketRepo.findAll().stream().map(ticketMongo -> mapper.map(ticketMongo, Ticket.class)).collect(Collectors.toSet());
     }
 }

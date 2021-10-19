@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.model.ApiQualityRule;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,5 +68,10 @@ public class ApiQualityRuleRepositoryProxy extends AbstractProxy<ApiQualityRuleR
     @Override
     public void deleteByApi(String api) throws TechnicalException {
         target.deleteByApi(api);
+    }
+
+    @Override
+    public Set<ApiQualityRule> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

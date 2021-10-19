@@ -25,7 +25,7 @@ import java.util.Optional;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface MetadataRepository {
+public interface MetadataRepository extends FindAllRepository<Metadata> {
     Metadata create(Metadata metadata) throws TechnicalException;
 
     Metadata update(Metadata metadata) throws TechnicalException;

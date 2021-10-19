@@ -15,10 +15,13 @@
  */
 package io.gravitee.repository.management.api;
 
-import io.gravitee.repository.management.model.QualityRule;
+import io.gravitee.repository.exceptions.TechnicalException;
+import java.util.Set;
 
 /**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface QualityRuleRepository extends CrudRepository<QualityRule, String> {}
+public interface FindAllRepository<T> {
+    Set<T> findAll() throws TechnicalException;
+}

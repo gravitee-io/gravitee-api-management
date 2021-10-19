@@ -17,6 +17,7 @@ package io.gravitee.repository.jdbc.common;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.gravitee.repository.jdbc.datasource.NoOpDataSource;
 import io.gravitee.repository.jdbc.exception.DatabaseInitializationException;
 import java.sql.Connection;
 import java.util.Map;
@@ -155,6 +156,10 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
         Boolean liquibase = readPropertyValue("jdbc.liquibase", Boolean.class, LIQUIBASE_ENABLED);
         if (liquibase) {
             runLiquibase(dataSource);
+        }
+
+        if (readPropertyValue("jdbc.sqlOnly", Boolean.class, false)) {
+            return new NoOpDataSource(dataSource);
         }
 
         return dataSource;

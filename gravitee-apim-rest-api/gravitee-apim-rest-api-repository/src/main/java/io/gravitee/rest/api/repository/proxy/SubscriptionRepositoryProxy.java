@@ -23,6 +23,7 @@ import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -56,5 +57,10 @@ public class SubscriptionRepositoryProxy extends AbstractProxy<SubscriptionRepos
 
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public Set<Subscription> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

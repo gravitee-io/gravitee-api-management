@@ -26,7 +26,7 @@ import java.util.Optional;
  * @author Eric LELEU (eric.leleu at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PageRevisionRepository {
+public interface PageRevisionRepository extends FindAllRepository<PageRevision> {
     Page<PageRevision> findAll(Pageable pageable) throws TechnicalException;
 
     Optional<PageRevision> findById(String pageId, int revision) throws TechnicalException;

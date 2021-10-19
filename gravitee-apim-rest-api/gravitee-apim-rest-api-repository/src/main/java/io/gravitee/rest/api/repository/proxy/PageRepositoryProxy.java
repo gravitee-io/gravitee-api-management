@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.Page;
 import io.gravitee.repository.management.model.PageReferenceType;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,5 +69,10 @@ public class PageRepositoryProxy extends AbstractProxy<PageRepository> implement
     @Override
     public io.gravitee.common.data.domain.Page<Page> findAll(Pageable pageable) throws TechnicalException {
         return target.findAll(pageable);
+    }
+
+    @Override
+    public Set<Page> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

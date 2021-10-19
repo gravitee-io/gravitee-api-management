@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.PortalNotificationRepository;
 import io.gravitee.repository.management.model.PortalNotification;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,7 +41,7 @@ public class HttpPortalNotificationRepository extends AbstractRepository impleme
     }
 
     @Override
-    public List<PortalNotification> findByUser(String user) throws TechnicalException {
+    public List<PortalNotification> findByUser(String user) {
         throw new IllegalStateException();
     }
 
@@ -50,12 +51,17 @@ public class HttpPortalNotificationRepository extends AbstractRepository impleme
     }
 
     @Override
-    public void deleteAll(String user) throws TechnicalException {
+    public void deleteAll(String user) {
         throw new IllegalStateException();
     }
 
     @Override
     public Optional<PortalNotification> findById(String id) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<PortalNotification> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

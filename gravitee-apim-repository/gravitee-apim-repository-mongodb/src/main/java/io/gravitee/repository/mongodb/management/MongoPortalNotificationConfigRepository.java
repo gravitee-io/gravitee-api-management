@@ -24,6 +24,7 @@ import io.gravitee.repository.mongodb.management.internal.model.PortalNotificati
 import io.gravitee.repository.mongodb.management.internal.notification.PortalNotificationConfigMongoRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +82,7 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     @Override
-    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId)
-        throws TechnicalException {
+    public List<PortalNotificationConfig> findByReferenceAndHook(String hook, NotificationReferenceType referenceType, String referenceId) {
         LOGGER.debug("Find PortalNotificationConfigs [{}, {}, {}]", hook, referenceType, referenceId);
         return internalRepo
             .findByReferenceAndHook(hook, referenceType.name(), referenceId)
@@ -92,13 +92,13 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
     }
 
     @Override
-    public void deleteByUser(String user) throws TechnicalException {
+    public void deleteByUser(String user) {
         LOGGER.debug("Delete PortalNotificationConfigs [{}]", user);
         internalRepo.deleteByUser(user);
     }
 
     @Override
-    public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
+    public void deleteReference(NotificationReferenceType referenceType, String referenceId) {
         LOGGER.debug("Delete PortalNotificationConfigs [{}, {}]", referenceType, referenceId);
         internalRepo.deleteByReference(referenceType.name(), referenceId);
     }
@@ -129,5 +129,10 @@ public class MongoPortalNotificationConfigRepository implements PortalNotificati
         cfg.setUpdatedAt(mongo.getUpdatedAt());
 
         return cfg;
+    }
+
+    @Override
+    public Set<PortalNotificationConfig> findAll() throws TechnicalException {
+        return internalRepo.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }
