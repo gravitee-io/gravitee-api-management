@@ -28,7 +28,7 @@ import java.util.Optional;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PageRepository {
+public interface PageRepository extends FindAllRepository<Page> {
     Page create(Page page) throws TechnicalException;
 
     Page update(Page page) throws TechnicalException;

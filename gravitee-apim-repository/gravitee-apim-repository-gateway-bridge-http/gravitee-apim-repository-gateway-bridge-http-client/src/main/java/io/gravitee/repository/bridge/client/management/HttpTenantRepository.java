@@ -60,4 +60,9 @@ public class HttpTenantRepository extends AbstractRepository implements TenantRe
         throws TechnicalException {
         throw new IllegalStateException();
     }
+
+    @Override
+    public Set<Tenant> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

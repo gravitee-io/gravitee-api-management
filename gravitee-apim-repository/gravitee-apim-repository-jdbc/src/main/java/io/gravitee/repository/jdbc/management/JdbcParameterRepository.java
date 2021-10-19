@@ -43,7 +43,7 @@ import org.springframework.stereotype.Repository;
  *
  */
 @Repository
-public class JdbcParameterRepository extends JdbcAbstractRepository<Parameter> implements ParameterRepository {
+public class JdbcParameterRepository extends JdbcAbstractFindAllRepository<Parameter> implements ParameterRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcParameterRepository.class);
 

@@ -83,4 +83,9 @@ public class HttpApplicationRepository extends AbstractRepository implements App
     public Page<Application> search(ApplicationCriteria applicationCriteria, Pageable pageable) throws TechnicalException {
         throw new TechnicalException();
     }
+
+    @Override
+    public Set<Application> findAll() throws TechnicalException {
+        throw new IllegalStateException();
+    }
 }

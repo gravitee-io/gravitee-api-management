@@ -156,4 +156,9 @@ public class MongoApplicationRepository implements ApplicationRepository {
             return mapApplications(internalApplicationRepo.findAllByEnvironmentId(environmentId));
         }
     }
+
+    @Override
+    public Set<Application> findAll() throws TechnicalException {
+        return internalApplicationRepo.findAll().stream().map(this::mapApplication).collect(Collectors.toSet());
+    }
 }

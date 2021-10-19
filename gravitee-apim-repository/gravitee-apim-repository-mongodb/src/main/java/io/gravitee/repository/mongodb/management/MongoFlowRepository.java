@@ -24,6 +24,7 @@ import io.gravitee.repository.mongodb.management.internal.model.FlowMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +96,11 @@ public class MongoFlowRepository implements FlowRepository {
     @Override
     public void deleteByReference(FlowReferenceType referenceType, String referenceId) {
         internalRepository.deleteAll(internalRepository.findAll(referenceType.name(), referenceId));
+    }
+
+    @Override
+    public Set<Flow> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 
     private FlowMongo map(Flow flow) {

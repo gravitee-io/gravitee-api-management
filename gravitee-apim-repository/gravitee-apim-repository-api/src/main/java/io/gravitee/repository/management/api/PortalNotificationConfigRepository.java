@@ -25,7 +25,7 @@ import java.util.Optional;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PortalNotificationConfigRepository {
+public interface PortalNotificationConfigRepository extends FindAllRepository<PortalNotificationConfig> {
     PortalNotificationConfig create(PortalNotificationConfig portalNotificationConfig) throws TechnicalException;
     PortalNotificationConfig update(PortalNotificationConfig portalNotificationConfig) throws TechnicalException;
     void delete(PortalNotificationConfig portalNotificationConfig) throws TechnicalException;

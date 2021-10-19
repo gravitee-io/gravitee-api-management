@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.InstallationRepository;
 import io.gravitee.repository.management.model.Installation;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,5 +52,10 @@ public class InstallationRepositoryProxy extends AbstractProxy<InstallationRepos
     @Override
     public void delete(String s) throws TechnicalException {
         target.delete(s);
+    }
+
+    @Override
+    public Set<Installation> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

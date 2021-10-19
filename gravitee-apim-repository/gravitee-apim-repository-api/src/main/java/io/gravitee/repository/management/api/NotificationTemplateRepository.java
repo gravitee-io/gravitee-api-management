@@ -26,7 +26,7 @@ import java.util.Set;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface NotificationTemplateRepository {
+public interface NotificationTemplateRepository extends FindAllRepository<NotificationTemplate> {
     Optional<NotificationTemplate> findById(String id) throws TechnicalException;
 
     NotificationTemplate create(NotificationTemplate item) throws TechnicalException;
@@ -34,8 +34,6 @@ public interface NotificationTemplateRepository {
     NotificationTemplate update(NotificationTemplate item) throws TechnicalException;
 
     void delete(String id) throws TechnicalException;
-
-    Set<NotificationTemplate> findAll() throws TechnicalException;
 
     Set<NotificationTemplate> findAllByReferenceIdAndReferenceType(String referenceId, NotificationTemplateReferenceType referenceType)
         throws TechnicalException;

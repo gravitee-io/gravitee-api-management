@@ -39,7 +39,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class JdbcPortalNotificationConfigRepository
-    extends JdbcAbstractRepository<PortalNotificationConfig>
+    extends JdbcAbstractFindAllRepository<PortalNotificationConfig>
     implements PortalNotificationConfigRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPortalNotificationConfigRepository.class);

@@ -60,4 +60,9 @@ public class TenantRepositoryProxy extends AbstractProxy<TenantRepository> imple
     public void delete(String s) throws TechnicalException {
         target.delete(s);
     }
+
+    @Override
+    public Set<Tenant> findAll() throws TechnicalException {
+        return target.findAll();
+    }
 }

@@ -24,7 +24,7 @@ import java.util.Optional;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface RatingAnswerRepository {
+public interface RatingAnswerRepository extends FindAllRepository<RatingAnswer> {
     RatingAnswer create(RatingAnswer ratingAnswer) throws TechnicalException;
 
     List<RatingAnswer> findByRating(String rating) throws TechnicalException;

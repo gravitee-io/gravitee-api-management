@@ -24,14 +24,7 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface IdentityProviderRepository {
-    /**
-     * List all identity providers
-     * @return all identity providers
-     * @throws TechnicalException if something goes wrong
-     */
-    Set<IdentityProvider> findAll() throws TechnicalException;
-
+public interface IdentityProviderRepository extends FindAllRepository<IdentityProvider> {
     Set<IdentityProvider> findAllByOrganizationId(String organizationId) throws TechnicalException;
 
     IdentityProvider create(IdentityProvider identityProvider) throws TechnicalException;

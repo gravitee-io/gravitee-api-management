@@ -95,6 +95,10 @@
             <exclude>node_modules/**</exclude>
             <exclude>node/**</exclude>
             <exclude>sonar-project.properties</exclude>
+            <exclude>coverage/**</exclude>
+            <exclude>**/*.snap</exclude>
+            <exclude>**/*.tmpl</exclude>
+            <exclude>**/Dockerfile*</exclude>
           </excludes>
         </configuration>
       </plugin>

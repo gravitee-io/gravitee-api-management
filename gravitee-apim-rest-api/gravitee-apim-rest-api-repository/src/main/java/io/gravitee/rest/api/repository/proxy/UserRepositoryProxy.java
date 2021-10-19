@@ -73,4 +73,9 @@ public class UserRepositoryProxy extends AbstractProxy<UserRepository> implement
     public void delete(String id) throws TechnicalException {
         target.delete(id);
     }
+
+    @Override
+    public Set<User> findAll() throws TechnicalException {
+        return target.findAll();
+    }
 }

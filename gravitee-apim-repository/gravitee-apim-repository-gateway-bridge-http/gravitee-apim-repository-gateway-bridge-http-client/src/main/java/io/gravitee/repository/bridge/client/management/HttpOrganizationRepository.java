@@ -70,7 +70,7 @@ public class HttpOrganizationRepository extends AbstractRepository implements Or
     }
 
     @Override
-    public Collection<Organization> findAll() throws TechnicalException {
+    public Set<Organization> findAll() throws TechnicalException {
         try {
             return blockingGet(get("/organizations", BodyCodecs.set(Organization.class)).send()).payload();
         } catch (TechnicalException te) {

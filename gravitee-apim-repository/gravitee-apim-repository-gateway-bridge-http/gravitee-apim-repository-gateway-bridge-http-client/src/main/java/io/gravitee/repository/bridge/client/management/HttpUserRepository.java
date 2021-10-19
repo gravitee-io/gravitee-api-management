@@ -54,7 +54,7 @@ public class HttpUserRepository extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Set<User> findByIds(List<String> ids) throws TechnicalException {
+    public Set<User> findByIds(List<String> ids) {
         throw new IllegalStateException();
     }
 
@@ -64,12 +64,17 @@ public class HttpUserRepository extends AbstractRepository implements UserReposi
     }
 
     @Override
-    public Optional<User> findBySource(String source, String sourceId, String organizationId) throws TechnicalException {
+    public Optional<User> findBySource(String source, String sourceId, String organizationId) {
         throw new IllegalStateException();
     }
 
     @Override
-    public Optional<User> findByEmail(String email, String organizationId) throws TechnicalException {
+    public Optional<User> findByEmail(String email, String organizationId) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<User> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

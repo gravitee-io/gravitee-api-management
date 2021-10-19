@@ -27,6 +27,8 @@ import io.gravitee.repository.mongodb.management.internal.promotion.PromotionMon
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,5 +109,10 @@ public class MongoPromotionRepository implements PromotionRepository {
 
         logger.debug("Searching promotions - Done");
         return new Page<>(content, promotions.getPageNumber(), (int) promotions.getPageElements(), promotions.getTotalElements());
+    }
+
+    @Override
+    public Set<Promotion> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }
