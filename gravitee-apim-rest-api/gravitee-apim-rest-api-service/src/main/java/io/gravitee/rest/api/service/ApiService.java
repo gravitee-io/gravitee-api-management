@@ -168,10 +168,6 @@ public interface ApiService {
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
 
     void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId);
-    void createOrUpdateDocumentation(
-            ImportSwaggerDescriptorEntity swaggerDescriptor,
-            ApiEntity api,
-            boolean isForCreation
-    );
+    void createOrUpdateDocumentation(ImportSwaggerDescriptorEntity swaggerDescriptor, ApiEntity api, boolean isForCreation);
     void createSystemFolder(String apiId);
 }

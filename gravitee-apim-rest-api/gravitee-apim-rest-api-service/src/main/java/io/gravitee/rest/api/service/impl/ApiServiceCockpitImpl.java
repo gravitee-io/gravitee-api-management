@@ -44,7 +44,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         this.swaggerService = swaggerService;
     }
 
-    public ApiEntity createFromCockpit(String apiId, String userId, String swaggerDefinition) {
+    public ApiEntity createOrUpdateFromCockpit(String apiId, String userId, String swaggerDefinition) {
         ImportSwaggerDescriptorEntity swaggerDescriptor = new ImportSwaggerDescriptorEntity();
         swaggerDescriptor.setPayload(swaggerDefinition);
         swaggerDescriptor.setWithDocumentation(true);
@@ -54,6 +54,19 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
+        if (this.apiService.exists(apiId)) {
+            return this.apiService.updateFromSwagger(apiId, api, swaggerDescriptor);
+        } else {
+            return this.createFromCockpit(apiId, userId, swaggerDescriptor, api);
+        }
+    }
+
+    private ApiEntity createFromCockpit(
+        String apiId,
+        String userId,
+        ImportSwaggerDescriptorEntity swaggerDescriptor,
+        SwaggerApiEntity api
+    ) {
         final ObjectNode apiDefinition = objectMapper.valueToTree(api);
         apiDefinition.put("id", apiId);
 

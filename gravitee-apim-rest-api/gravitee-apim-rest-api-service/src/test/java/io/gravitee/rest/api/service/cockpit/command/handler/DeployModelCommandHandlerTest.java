@@ -73,7 +73,7 @@ public class DeployModelCommandHandlerTest {
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        when(apiService.createFromCockpit(payload.getModelId(), user.getId(), payload.getSwaggerDefinition()))
+        when(apiService.createOrUpdateFromCockpit(payload.getModelId(), user.getId(), payload.getSwaggerDefinition()))
             .thenAnswer(
                 i -> {
                     ApiEntity apiEntity = new ApiEntity();
@@ -102,7 +102,7 @@ public class DeployModelCommandHandlerTest {
         user.setSourceId(payload.getUserId());
         when(userService.findBySource("cockpit", payload.getUserId(), false)).thenReturn(user);
 
-        when(apiService.createFromCockpit(payload.getModelId(), payload.getUserId(), payload.getSwaggerDefinition()))
+        when(apiService.createOrUpdateFromCockpit(payload.getModelId(), payload.getUserId(), payload.getSwaggerDefinition()))
             .thenThrow(new RuntimeException("fake error"));
 
         TestObserver<DeployModelReply> obs = cut.handle(command).test();

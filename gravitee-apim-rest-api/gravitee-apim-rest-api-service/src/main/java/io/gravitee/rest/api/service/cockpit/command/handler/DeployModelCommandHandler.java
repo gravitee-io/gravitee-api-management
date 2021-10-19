@@ -23,7 +23,6 @@ import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
 import io.gravitee.cockpit.api.command.designer.DeployModelReply;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApiServiceCockpit;
 import io.gravitee.rest.api.service.UserService;
 import io.reactivex.Single;
@@ -63,7 +62,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
         try {
             final UserEntity user = userService.findBySource("cockpit", userId, false);
-            final ApiEntity api = apiService.createFromCockpit(apiId, user.getId(), swaggerDefinition);
+            final ApiEntity api = apiService.createOrUpdateFromCockpit(apiId, user.getId(), swaggerDefinition);
             logger.info("Api imported [{}].", api.getId());
 
             return Single.just(new DeployModelReply(command.getId(), CommandStatus.SUCCEEDED));
