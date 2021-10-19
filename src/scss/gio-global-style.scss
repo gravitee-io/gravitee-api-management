@@ -1,0 +1,13 @@
+@use '../../node_modules/@angular/material' as mat;
+
+@use './gio-palettes' as gio;
+
+.gio-snack-bar-success {
+  background-color: mat.get-color-from-palette(gio.$gio-success-palette, 'medium');
+  // color: mat.get-color-from-palette($gio-success-palette, 'medium-contrast');
+}
+
+.gio-snack-bar-error {
+  background-color: mat.get-color-from-palette(gio.$gio-error-palette, medium);
+  // color: mat.get-color-from-palette($gio-error-palette, medium-contrast);
+}

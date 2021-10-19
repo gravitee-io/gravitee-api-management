@@ -1,0 +1,113 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="gv-forms gv-forms-fluid" layout="column">
+  <h1>Categories</h1>
+  <div class="gv-form">
+    <div class="gv-form-content" layout="column">
+      <md-input-container class="gv-input-container-dense">
+        <md-switch
+          ng-model="$ctrl.settings.portal.apis.categoryMode.enabled"
+          aria-label="Category Mode"
+          ng-change="$ctrl.toggleDisplayMode();"
+          ng-disabled="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled')"
+        >
+          Enable Category Mode
+          <md-tooltip ng-if="$ctrl.isReadonlySetting('portal.apis.categoryMode.enabled')"
+            >{{$ctrl.providedConfigurationMessage}}</md-tooltip
+          >
+        </md-switch>
+        <div class="hint">
+          Switch on to enable Category mode and automatically replace API gallery by Category gallery. Switch off to disable this option.
+        </div>
+      </md-input-container>
+
+      <md-table-container ng-if="$ctrl.categories && $ctrl.categories.length > 0">
+        <table md-table>
+          <thead md-head>
+            <tr md-row>
+              <th md-column width="1%"></th>
+              <th md-column width="1%" nowrap>Name</th>
+              <th md-column>Description</th>
+              <th md-column width="1%" nowrap>Visibility</th>
+              <th md-column width="1%" nowrap>APIs</th>
+              <th md-column width="96px" nowrap></th>
+              <th md-column width="48px" nowrap></th>
+            </tr>
+          </thead>
+          <tbody md-body>
+            <tr md-row ng-repeat="category in $ctrl.categories | orderBy:category.order">
+              <td md-cell nowrap>
+                <gravitee-identity-picture
+                  image-id="category.id"
+                  image-url="::category.picture_url"
+                  image-name="category.name"
+                  image-width="40"
+                ></gravitee-identity-picture>
+              </td>
+              <td md-cell width="1%" nowrap><a ui-sref="management.settings.category({categoryId: category.key})">{{category.name}}</a></td>
+              <td md-cell>{{category.description}}</td>
+              <td permission permission-only="'environment-category-u'" md-cell width="1%" nowrap>
+                <ng-md-icon icon="visibility{{category.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility(category)"></ng-md-icon>
+              </td>
+              <td md-cell width="1%" nowrap>{{category.totalApis}}</td>
+              <td md-cell width="96px" nowrap style="text-align: center">
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-category-u'"
+                  ng-if="!$first"
+                  icon="arrow_upwards"
+                  ng-click="$ctrl.upward($index)"
+                ></ng-md-icon>
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-category-u'"
+                  ng-if="!$last"
+                  icon="arrow_downward"
+                  ng-click="$ctrl.downward($index)"
+                ></ng-md-icon>
+              </td>
+              <td md-cell width="48px" style="padding: 0 12px !important">
+                <ng-md-icon permission permission-only="'environment-category-d'" icon="delete" ng-click="$ctrl.deleteCategory(category)">
+                  <md-tooltip md-direction="top" md-visible="false">Delete</md-tooltip>
+                </ng-md-icon>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+    </div>
+  </div>
+  <gravitee-empty-state
+    ng-if="!$ctrl.categories || $ctrl.categories.length == 0"
+    icon="category_module"
+    message="There is no category to manage"
+  ></gravitee-empty-state>
+</div>
+
+<md-button
+  permission
+  permission-only="'environment-category-c'"
+  aria-label="Add category"
+  class="md-fab md-fab-bottom-right md-fab-scrollable"
+  ng-class="{'gv-help-displayed': $ctrl.$rootScope.helpDisplayed}"
+  ui-sref="management.settings.categorynew"
+>
+  <md-tooltip md-direction="top" md-visible="false">Add a new category</md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

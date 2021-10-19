@@ -1,0 +1,354 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="theme-component">
+  <form name="themeForm" class="gv-forms" layout="column" ng-submit="$ctrl.save()">
+    <div class="theme-component-actions" ng-class="{'theme-component-container-fullscreen': onFullscreen()}">
+      <h1 class="theme-component-title">Theme</h1>
+      <div class="theme-component-actions-primary">
+        <md-button
+          class="md-flat"
+          ng-if="hasPreview()"
+          ng-class="{'md-primary': isDetached}"
+          aria-label="Switch fullscreen"
+          type="button"
+          ng-click="$ctrl.open()"
+        >
+          <ng-md-icon ng-if="!isDetached" icon="fullscreen"></ng-md-icon>
+          <span ng-if="!isDetached">Fullscreen</span>
+          <ng-md-icon ng-if="isDetached" icon="fullscreen_exit"></ng-md-icon>
+          <span ng-if="isDetached">Exit</span>
+        </md-button>
+
+        <md-button class="md-flat" type="button" ng-click="$ctrl.reset()" ng-disabled="themeForm.$pristine">
+          <ng-md-icon icon="replay"></ng-md-icon>
+          Reset
+        </md-button>
+
+        <md-button
+          class="md-primary"
+          type="button"
+          ng-click="$ctrl.update()"
+          ng-disabled="themeForm.$invalid || themeForm.$pristine"
+          permission
+          permission-only="'environment-theme-u'"
+        >
+          <ng-md-icon ng-if="themeForm.$dirty" icon="sync_disabled"></ng-md-icon>
+          <ng-md-icon ng-if="!themeForm.$dirty" icon="sync"></ng-md-icon>
+          Save
+        </md-button>
+        <md-switch
+          aria-label="Enabled"
+          ng-model="theme.enabled"
+          ng-change="$ctrl.update()"
+          permission
+          permission-only="'environment-theme-u'"
+        >
+          ENABLED
+        </md-switch>
+      </div>
+
+      <md-button
+        class="md-raised"
+        type="button"
+        ngf-select="$ctrl.importTheme($file,$invalidFiles)"
+        ngf-pattern="'application/json'"
+        ngf-accept="'application/json'"
+        ngf-max-size="{{maxSize}}"
+        permission
+        permission-only="['environment-theme-u']"
+      >
+        Import
+      </md-button>
+      <md-button class="md-raised" type="button" ng-click="$ctrl.exportTheme()"> Export </md-button>
+      <md-button
+        class="md-raised md-warn"
+        type="button"
+        ng-click="$ctrl.restoreDefaultTheme()"
+        permission
+        permission-only="['environment-theme-u']"
+      >
+        Restore default theme
+      </md-button>
+    </div>
+
+    <div class="theme-component-container" ng-class="{'theme-component-container-fullscreen': onFullscreen()}">
+      <div class="gv-form">
+        <div class="gv-form-content">
+          <v-accordion class="vAccordion--default" control="accordion" id="accordion" multiple>
+            <v-pane id="image">
+              <v-pane-header>Images</v-pane-header>
+              <v-pane-content>
+                <div>
+                  <label class="theme-component-label">Logo</label>
+                  <gravitee-image
+                    image-id="'theme-logo'"
+                    image="theme.logo"
+                    image-url="$ctrl.getLogoUrl()"
+                    image-form="themeForm"
+                    success-event-name="themePictureChangeSuccess"
+                    no-default-image="true"
+                    ng-model="theme.logo"
+                    change-label="Change"
+                    checkered-background="true"
+                  >
+                  </gravitee-image>
+                </div>
+
+                <div>
+                  <label class="theme-component-label">Optional logo</label>
+                  <gravitee-image
+                    image-id="'theme-optionalLogo'"
+                    image="theme.optionalLogo"
+                    image-default="theme.logo"
+                    image-url="$ctrl.themeOptionalLogoURL"
+                    image-form="themeForm"
+                    success-event-name="themePictureChangeSuccess"
+                    no-default-image="true"
+                    ng-model="theme.optionalLogo"
+                    can-delete="true"
+                    change-label="Change"
+                    delete-label="Use default logo"
+                    checkered-background="true"
+                  >
+                  </gravitee-image>
+                </div>
+
+                <div>
+                  <label class="theme-component-label">Favicon</label>
+                  <gravitee-image
+                    image-id="'theme-favicon'"
+                    accept="image/png, image/x-icon"
+                    image="theme.favicon"
+                    image-url="$ctrl.getFaviconUrl()"
+                    image-form="themeForm"
+                    success-event-name="themePictureChangeSuccess"
+                    no-default-image="true"
+                    ng-model="theme.favicon"
+                    change-label="Change"
+                    checkered-background="true"
+                  >
+                  </gravitee-image>
+                </div>
+              </v-pane-content>
+            </v-pane>
+            <v-pane>
+              <v-pane-header>Homepage</v-pane-header>
+              <v-pane-content>
+                <div>
+                  <label class="theme-component-label">Homepage background image</label>
+                  <gravitee-image
+                    image-id="'theme-backgroundImage'"
+                    image="theme.backgroundImage"
+                    image-url="$ctrl.themeBackgroundURL"
+                    image-form="themeForm"
+                    success-event-name="themePictureChangeSuccess"
+                    no-default-image="true"
+                    ng-model="theme.backgroundImage"
+                    can-delete="true"
+                    change-label="Change"
+                    checkered-background="true"
+                  >
+                  </gravitee-image>
+                </div>
+
+                <label class="theme-component-label">Colors</label>
+                <div class="theme-component-colors">
+                  <div class="theme-component-colors">
+                    <div
+                      ng-repeat="property in getGlobalHomepageColorVariables()"
+                      title="{{property.description}}: {{property.value}}"
+                      type="text"
+                      class="theme-component-color-picker"
+                      ng-change="$ctrl.onDataChanged()"
+                      md-color-picker
+                      ng-model="property.value"
+                      default="{{property.default}}"
+                      md-color-history="true"
+                      md-color-clear-button="false"
+                    ></div>
+                  </div>
+                </div>
+
+                <div
+                  layout="row"
+                  ng-repeat="property in getGlobalHomepageVariables()"
+                  ng-if="(property.type.toLowerCase() === 'length' || property.type.toLowerCase()=== 'string') && !property.name.endsWith('--ff')"
+                >
+                  <md-input-container class="md-block" flex>
+                    <label>{{property.description}}</label>
+                    <input
+                      ng-model="property.value"
+                      type="text"
+                      placeholder="{{$ctrl.getPlaceholder(property)}}"
+                      aria-label="{{property.description}}"
+                      ng-change="$ctrl.onDataChanged()"
+                    />
+                  </md-input-container>
+                </div>
+              </v-pane-content>
+            </v-pane>
+            <v-pane>
+              <v-pane-header>Colors</v-pane-header>
+              <v-pane-content>
+                <label class="theme-component-label">Primary</label>
+                <div class="theme-component-colors">
+                  <div class="theme-component-colors">
+                    <div
+                      ng-repeat="property in getGlobalPrimaryColorVariables()"
+                      title="{{property.description}}: {{property.value}}"
+                      type="text"
+                      class="theme-component-color-picker"
+                      ng-change="$ctrl.onDataChanged()"
+                      md-color-picker
+                      ng-model="property.value"
+                      default="{{property.default}}"
+                      md-color-history="true"
+                      md-color-clear-button="false"
+                    ></div>
+                  </div>
+                </div>
+                <hr />
+                <label class="theme-component-label">Neutral</label>
+                <div class="theme-component-colors">
+                  <div class="theme-component-colors">
+                    <div
+                      ng-repeat="property in getGlobalNeutralColorVariables()"
+                      type="text"
+                      title="{{property.description}}: {{property.value}}"
+                      class="theme-component-color-picker"
+                      ng-change="$ctrl.onDataChanged()"
+                      md-color-picker
+                      default="{{property.default}}"
+                      ng-model="property.value"
+                      md-color-history="true"
+                      md-color-clear-button="false"
+                    ></div>
+                  </div>
+                </div>
+                <label class="theme-component-label">Fonts</label>
+                <div class="theme-component-colors">
+                  <div class="theme-component-colors">
+                    <div
+                      ng-repeat="property in getGlobalColorVariables()"
+                      type="text"
+                      title="{{property.description}}: {{property.value}}"
+                      class="theme-component-color-picker"
+                      ng-change="$ctrl.onDataChanged()"
+                      md-color-picker
+                      default="{{property.default}}"
+                      ng-model="property.value"
+                      md-color-history="true"
+                      md-color-clear-button="false"
+                    ></div>
+                  </div>
+                </div>
+              </v-pane-content>
+            </v-pane>
+            <v-pane>
+              <v-pane-header>Fonts</v-pane-header>
+              <v-pane-content>
+                <div layout="column" class="theme-component-text">
+                  <div layout="row" ng-repeat="property in getGlobalFontFamilyVariables()">
+                    <md-input-container class="md-block" flex>
+                      <label>Family</label>
+                      <md-select ng-model="property.value" ng-change="$ctrl.onDataChanged()">
+                        <md-option ng-value="property.default" ng-selected="{{property.default === property.value}}">
+                          {{property.default}}
+                        </md-option>
+                        <md-option ng-repeat="font in fonts" ng-value="font" ng-selected="{{font === property.value}}">
+                          {{font}}
+                        </md-option>
+                      </md-select>
+                    </md-input-container>
+                  </div>
+
+                  <div layout="row" ng-repeat="property in getGlobalFontSizeVariables()">
+                    <md-input-container class="md-block" flex>
+                      <input
+                        ng-model="property.value"
+                        type="text"
+                        placeholder="{{property.description}}"
+                        aria-label="{{property.description}}"
+                        ng-change="$ctrl.onDataChanged()"
+                      />
+                    </md-input-container>
+                  </div>
+                </div>
+              </v-pane-content>
+            </v-pane>
+            <v-pane ng-repeat="component in getComponents()" id="{{ ::component.name }}">
+              <v-pane-header>{{ $ctrl.getDisplayName(component.name) }}</v-pane-header>
+              <v-pane-content>
+                <label class="theme-component-label" ng-if="$ctrl.hasColors(component)">Colors</label>
+                <div class="theme-component-colors">
+                  <div class="theme-component-colors">
+                    <div
+                      ng-repeat="property in component.css"
+                      ng-if="property.type.toLowerCase() === 'color'"
+                      title="{{$ctrl.getColorTitle(property)}}"
+                      class="theme-component-color-picker"
+                      ng-change="$ctrl.onDataChanged()"
+                      md-color-picker
+                      ng-model="property.value"
+                      md-color-history="true"
+                      md-color-clear-button="false"
+                    ></div>
+                  </div>
+                </div>
+
+                <div layout="column" class="theme-component-text">
+                  <div layout="row" ng-repeat="property in component.css" ng-if="property.name.endsWith('--ff')">
+                    <md-input-container class="md-block" flex>
+                      <label>Family</label>
+                      <md-select ng-model="property.value" ng-change="$ctrl.onDataChanged()">
+                        <md-option ng-value="property.default" ng-selected="{{property.default === property.value}}">
+                          {{property.default}}
+                        </md-option>
+                        <md-option ng-repeat="font in fonts" ng-value="font" ng-selected="{{font === property.value}}">
+                          {{font}}
+                        </md-option>
+                      </md-select>
+                    </md-input-container>
+                  </div>
+                  <div
+                    layout="row"
+                    ng-repeat="property in component.css"
+                    ng-if="(property.type.toLowerCase() === 'length' || property.type.toLowerCase()=== 'string') && !property.name.endsWith('--ff')"
+                  >
+                    <md-input-container class="md-block" flex>
+                      <label>{{property.description}}</label>
+                      <input
+                        ng-model="property.value"
+                        type="text"
+                        placeholder="{{$ctrl.getPlaceholder(property)}}"
+                        aria-label="{{property.description}}"
+                        ng-change="$ctrl.onDataChanged()"
+                      />
+                    </md-input-container>
+                  </div>
+                </div>
+              </v-pane-content>
+            </v-pane>
+          </v-accordion>
+        </div>
+      </div>
+
+      <iframe id="preview" name="{{previewName}}" ng-if="hasPreview() && !isDetached" ng-src="{{trustSrc(href)}}" frameborder="0"></iframe>
+    </div>
+  </form>
+</div>

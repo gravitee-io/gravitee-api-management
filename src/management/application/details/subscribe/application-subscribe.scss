@@ -1,0 +1,20 @@
+.application-subscribe {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+
+    &__api-selector-container {
+      width: 70%;
+
+      &__selector {
+        width: 100%;
+      }
+    }
+
+    &__subscribed-api {
+      width: 100%;
+    }
+  }
+}

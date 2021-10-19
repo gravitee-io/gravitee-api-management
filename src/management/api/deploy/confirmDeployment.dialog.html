@@ -1,0 +1,36 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="confirm-dialog">
+  <form name="formDeployment" ng-submit="ctrl.confirm()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>{{ctrl.title}}</h4>
+      <p ng-bind-html="ctrl.msg"></p>
+      <md-input-container style="width: 100%">
+        <label for="deploymentLabel">Deployment label</label>
+        <input id="deploymentLabel" type="text" ng-model="ctrl.deploymentLabel" maxlength="32" />
+      </md-input-container>
+
+      <p ng-bind-html="ctrl.more"></p>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="ctrl.cancel()">{{ctrl.cancelButton}}</md-button>
+      <md-button class="md-raised md-primary" type="submit">{{ctrl.confirmButton}}</md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

@@ -1,0 +1,388 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms" layout="column">
+  <div class="gv-forms-header">
+    <h1 ng-if="$ctrl.updateMode">{{$ctrl.dictionary.name}}</h1>
+    <h1 ng-if="!$ctrl.updateMode">Create a new dictionary</h1>
+    <a ui-sref="management.settings.dictionaries.list">Back to dictionaries</a>
+  </div>
+  <form name="$ctrl.formDictionary" ng-submit="$ctrl.update()" novalidate>
+    <div class="gv-form">
+      <h2>General</h2>
+      <div class="gv-form-content" layout="column">
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Name</label>
+            <input ng-model="$ctrl.dictionary.name" type="text" required name="name" maxlength="50" />
+            <div class="hint" ng-if="$ctrl.formDictionary.name.$valid || $ctrl.formDictionary.name.$pristine">Dictionary Name</div>
+            <div ng-messages="$ctrl.formDictionary.name.$error">
+              <div ng-message="required">dictionary name is required.</div>
+              <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+            </div>
+          </md-input-container>
+        </div>
+
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Description</label>
+            <input ng-model="$ctrl.dictionary.description" type="text" name="description" />
+            <div class="hint" ng-if="$ctrl.formDictionary.description.$valid || $ctrl.formDictionary.description.$pristine">
+              Provide a description of the dictionary
+            </div>
+          </md-input-container>
+        </div>
+
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Type</label>
+            <md-select ng-model="$ctrl.dictionary.type" placeholder="Type" required ng-required="true" ng-disabled="$ctrl.dictionary.id">
+              <md-option ng-repeat="type in $ctrl.types" ng-value="type.id">{{type.name}}</md-option>
+            </md-select>
+            <div class="hint" ng-if="$ctrl.formDictionary.type.$valid || $ctrl.formDictionary.type.$pristine">
+              Set the type of the dictionary
+            </div>
+          </md-input-container>
+        </div>
+
+        <div layout-gt-sm="row" ng-if="$ctrl.dictionary.deployed_at">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Last deployment at</label>
+            <input
+              value="{{$ctrl.dictionary.deployed_at | date:'yyyy-MM-dd hh:mm:ss.sss'}}"
+              type="text"
+              name="lastDeploymentAt"
+              ng-disabled="true"
+            />
+          </md-input-container>
+        </div>
+
+        <div
+          layout-gt-sm="row"
+          ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'DYNAMIC'"
+          permission
+          permission-only="['environment-dictionary-u']"
+        >
+          <label>Lifecycle</label>
+          <md-input-container class="md-block" flex-gt-sm>
+            <md-button class="md-raised" type="button" ng-click="$ctrl.start()" ng-disabled="$ctrl.dictionary.state === 'STARTED'">
+              Start
+            </md-button>
+
+            <md-button class="md-raised md-warn" type="button" ng-click="$ctrl.stop()" ng-disabled="$ctrl.dictionary.state === 'STOPPED'">
+              Stop
+            </md-button>
+          </md-input-container>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="gv-form"
+      ng-if="$ctrl.dictionary.type === 'DYNAMIC'"
+      permission
+      permission-only="['environment-dictionary-c', 'environment-dictionary-u', 'environment-dictionary-d']"
+    >
+      <h2>Trigger</h2>
+      <div class="gv-form-content" layout="column">
+        <div layout="row" layout-sm="column">
+          <md-input-container class="md-block" flex-gt-xs>
+            <label>Interval</label>
+            <input required ng-model="$ctrl.dictionary.trigger.rate" md-autofocus type="number" min="1" ng-required="true" />
+          </md-input-container>
+
+          <div flex="5" hide-xs hide-sm>
+            <!-- Spacer //-->
+          </div>
+
+          <md-input-container class="md-block" flex-gt-xs>
+            <label>Time Unit</label>
+            <md-select ng-model="$ctrl.dictionary.trigger.unit" placeholder="Time unit" required ng-required="true">
+              <md-option ng-repeat="timeUnit in $ctrl.timeUnits" ng-value="timeUnit.id">{{timeUnit.name}}</md-option>
+            </md-select>
+          </md-input-container>
+        </div>
+      </div>
+    </div>
+    <div
+      class="gv-form"
+      ng-if="$ctrl.dictionary.type === 'DYNAMIC'"
+      permission
+      permission-only="['environment-dictionary-c', 'environment-dictionary-u', 'environment-dictionary-d']"
+    >
+      <h2>Provider</h2>
+      <div class="gv-form-content" layout="column">
+        <md-input-container class="md-block" flex-gt-xs>
+          <label>Type</label>
+          <md-select ng-model="$ctrl.dictionary.provider.type" placeholder="Type" required ng-required="true">
+            <md-option ng-repeat="provider in $ctrl.providers" ng-value="provider.id">{{provider.name}}</md-option>
+          </md-select>
+        </md-input-container>
+
+        <br />
+
+        <div ng-if="$ctrl.dictionary.provider">
+          <h6>
+            Configuration
+
+            <md-button
+              ng-if="$ctrl.dictionary.provider.type == 'HTTP'"
+              class="md-icon-button"
+              aria-label="Expected HTTP provider output"
+              ng-click="$ctrl.showExpectedProviderOutput()"
+            >
+              <ng-md-icon class="no-top" icon="info" style="fill: #b1bdc5"></ng-md-icon>
+            </md-button>
+          </h6>
+
+          <div ng-if="$ctrl.dictionary.provider.type == 'HTTP'" layout="column" layout-sm="column">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label>HTTP Service URL</label>
+              <input ng-model="$ctrl.dictionary.provider.configuration.url" type="url" ng-required="true" />
+            </md-input-container>
+
+            <md-checkbox ng-model="$ctrl.dictionary.provider.configuration.useSystemProxy" aria-label="Use system proxy"
+              >Use system proxy</md-checkbox
+            >
+
+            <md-input-container class="md-block" flex-gt-sm>
+              <label>HTTP Method</label>
+              <md-select ng-model="$ctrl.dictionary.provider.configuration.method" placeholder="HTTP Methods" required ng-required="true">
+                <md-option ng-value="method" ng-repeat="method in $ctrl.getHttpMethods()">{{method}}</md-option>
+              </md-select>
+            </md-input-container>
+
+            <md-input-container class="md-block" flex-gt-sm>
+              <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important"> Request body </label>
+
+              <textarea
+                ui-codemirror="{ onLoad : $ctrl.codemirrorLoaded }"
+                ui-codemirror-opts="$ctrl.requestBodyOptions"
+                ng-model="$ctrl.dictionary.provider.configuration.body"
+                rows="5"
+              ></textarea>
+            </md-input-container>
+
+            <div layout="column" layout-sm="column" style="margin-bottom: 15px">
+              <h5 style="color: grey">
+                <span>Headers</span>
+                <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5" aria-label="Add HTTP header" ng-click="$ctrl.addHTTPHeader()"
+                  >Add headers</ng-md-icon
+                >
+              </h5>
+              <div
+                layout="row"
+                layout-sm="column"
+                layout-align="center center"
+                ng-repeat="header in $ctrl.dictionary.provider.configuration.headers"
+              >
+                <ng-md-icon
+                  icon="remove_circle_outline"
+                  style="fill: #b1bdc5"
+                  aria-label="Delete header"
+                  ng-click="$ctrl.removeHTTPHeader($index)"
+                ></ng-md-icon>
+
+                <div flex="5" hide-xs hide-sm>
+                  <!-- Spacer //-->
+                </div>
+
+                <md-input-container flex-gt-sm>
+                  <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true" />
+                </md-input-container>
+
+                <div flex="5" hide-xs hide-sm>
+                  <!-- Spacer //-->
+                </div>
+
+                <md-input-container flex-gt-sm>
+                  <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true" />
+                </md-input-container>
+              </div>
+            </div>
+
+            <md-input-container class="md-block" flex-gt-sm>
+              <label style="transform: translate3d(0, 6px, 0) scale(0.75) !important"> Transformation (JOLT Specification) </label>
+
+              <textarea
+                ui-codemirror="{ onLoad : $ctrl.codemirrorLoaded }"
+                ui-codemirror-opts="$ctrl.joltSpecificationOptions"
+                ng-model="$ctrl.dictionary.provider.configuration.specification"
+                ng-required="true"
+                rows="5"
+              ></textarea>
+            </md-input-container>
+          </div>
+
+          <br />
+        </div>
+      </div>
+    </div>
+
+    <div class="md-actions gravitee-api-save-button" layout="row">
+      <md-button
+        ng-if="$ctrl.updateMode"
+        class="md-raised md-primary"
+        type="submit"
+        ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine"
+        permission
+        permission-only="['environment-dictionary-u']"
+      >
+        Update
+      </md-button>
+      <md-button
+        ng-if="!$ctrl.updateMode"
+        class="md-raised md-primary"
+        type="submit"
+        ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine"
+        permission
+        permission-only="['environment-dictionary-c']"
+      >
+        Create
+      </md-button>
+
+      <md-button
+        class="md-raised md-primary"
+        ng-if="$ctrl.updateMode && $ctrl.dictionary.type === 'MANUAL'"
+        permission
+        permission-only="['environment-dictionary-u']"
+        ng-click="$ctrl.deploy()"
+      >
+        <ng-md-icon icon="backup" style="fill: white"></ng-md-icon>
+        Deploy
+      </md-button>
+
+      <md-button
+        class="md-raised"
+        type="button"
+        ng-click="$ctrl.reset()"
+        permission
+        permission-only="['environment-dictionary-u']"
+        ng-disabled="$ctrl.formDictionary.$invalid || $ctrl.formDictionary.$pristine"
+      >
+        Reset
+      </md-button>
+
+      <md-button
+        ng-if="$ctrl.updateMode"
+        class="md-raised md-warn float-right"
+        type="button"
+        ng-click="$ctrl.delete()"
+        permission
+        permission-only="['environment-dictionary-d']"
+      >
+        Delete
+      </md-button>
+    </div>
+  </form>
+
+  <div class="gv-form" ng-if="$ctrl.updateMode">
+    <h2>Properties</h2>
+    <div class="gv-form-content" layout="column">
+      <form name="formProperties" ng-submit="$ctrl.saveProperties()" novalidate>
+        <md-table-container ng-if="$ctrl.hasProperties()">
+          <table md-table ng-init="reverse = false">
+            <thead md-head md-order="name">
+              <tr md-row>
+                <th md-column ng-if="$ctrl.dictionary.type === 'MANUAL'">
+                  <md-checkbox
+                    aria-label="Select all"
+                    ng-model="$ctrl.selectAll"
+                    ng-change="$ctrl.toggleSelectAll($ctrl.selectAll)"
+                  ></md-checkbox>
+                </th>
+                <th md-column md-order-by="name" ng-click="reverse = !reverse">Key</th>
+                <th md-column>Value</th>
+                <th md-column md-column width="80px" nowrap ng-if="$ctrl.dictionary.type === 'MANUAL'"></th>
+              </tr>
+            </thead>
+            <tbody md-body>
+              <tr md-row ng-repeat="entry in $ctrl.getPropertiesPage(reverse)">
+                <td md-cell ng-if="$ctrl.dictionary.type === 'MANUAL'">
+                  <md-checkbox
+                    aria-label="Select {{entry.key}}"
+                    ng-model="$ctrl.selectedProperties[entry.key]"
+                    ng-change="$ctrl.checkSelectAll()"
+                  ></md-checkbox>
+                </td>
+                <td md-cell>{{::entry.key}}</td>
+                <td md-cell ng-click="$ctrl.editProperty($event, entry.key, entry.value)" ng-class="{'gravitee-placeholder': entry.value}">
+                  {{entry.value || 'Set value'}}
+                </td>
+                <td md-cell ng-if="$ctrl.dictionary.type === 'MANUAL'">
+                  <ng-md-icon
+                    permission
+                    permission-only="['environment-dictionary-u']"
+                    ng-click="$ctrl.deleteProperty(entry.key)"
+                    icon="delete"
+                  ></ng-md-icon>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+        <md-table-pagination
+          ng-if="$ctrl.hasProperties()"
+          md-limit="$ctrl.query.limit"
+          md-limit-options="[10, 25, 50, 75, 100]"
+          md-page="$ctrl.query.page"
+          md-total="{{$ctrl.query.total}}"
+          md-on-limit="$ctrl.searchEvents"
+          md-on-paginate="$ctrl.searchEvents"
+          md-page-select
+        ></md-table-pagination>
+
+        <gravitee-empty-state
+          ng-if="!$ctrl.hasProperties()"
+          icon="assignment"
+          model="Property"
+          message="Properties will appear here"
+          sub-message="{{$ctrl.dictionary.type === 'DYNAMIC' ? 'Properties will be updated automatically' : 'Start creating property'}}"
+          create-mode="!$ctrl.updateMode"
+        ></gravitee-empty-state>
+
+        <div class="md-actions gravitee-api-save-button" layout="row" ng-if="$ctrl.dictionary.type === 'MANUAL'">
+          <md-button class="md-raised md-primary" type="submit" permission permission-only="['environment-dictionary-u']">
+            Save properties
+          </md-button>
+          <md-button
+            class="md-raised md-warn float-right"
+            type="button"
+            ng-click="$ctrl.deleteSelectedProperties()"
+            permission
+            permission-only="['environment-dictionary-u']"
+            ng-disabled="!$ctrl.hasSelectedProperties()"
+          >
+            Delete
+          </md-button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<md-button
+  ng-if="$ctrl.dictionary.type === 'MANUAL' && $ctrl.dictionary.id"
+  permission
+  permission-only="'environment-dictionary-u'"
+  aria-label="Create property"
+  class="md-fab md-fab-bottom-right"
+  ng-click="$ctrl.addProperty()"
+>
+  <md-tooltip md-direction="top" md-visible="false">Create property</md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

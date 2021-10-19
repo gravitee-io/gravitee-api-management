@@ -1,0 +1,44 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="Set expiration date for API Key">
+  <form name="formExpireSubscriptionProperty" ng-submit="dialogApiKeyExpirationController.save()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>Expire API Key</h4>
+      <div ng-cloak class="md-inline-form">
+        <md-input-container style="margin-bottom: 0">
+          <label>New Expiration Date</label>
+          <input
+            moment-picker="$ctrl.endDateFormated"
+            format="YYYY-MM-DD HH:mm"
+            min-date="minDate"
+            max-date="maxDate"
+            ng-model="expiration"
+            ng-model-options="{ updateOn: 'blur' }"
+          />
+        </md-input-container>
+
+        <md-subheader class="md-warn" ng-bind="error"></md-subheader>
+      </div>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="dialogApiKeyExpirationController.hide()">Cancel</md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formExpireSubscriptionProperty.$invalid">Expire</md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

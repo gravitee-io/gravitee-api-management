@@ -1,0 +1,44 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div layout="row">
+  <md-input-container class="md-block" flex-gt-sm flex="30">
+    <label>Multiplier</label>
+    <input
+      ng-model="$ctrl.condition.multiplier"
+      required
+      type="number"
+      min="1"
+      name="condition-compare-multiplier"
+      aria-label="compare multiplier"
+    />
+    <div ng-messages="$ctrl.formAlert['condition-compare-multiplier'].$error">
+      <div ng-message="required">Multiplier is required.</div>
+      <div ng-message="min">Multiplier must be higher than 0.</div>
+    </div>
+  </md-input-container>
+
+  <md-input-container class="md-block" flex-gt-sm flex="30">
+    <label>Property</label>
+    <md-select ng-model="$ctrl.condition.property2" required name="condition-compare-property" aria-label="compare property">
+      <md-option ng-value="type.key" ng-repeat="type in $ctrl.metrics"> {{::type.name}} </md-option>
+    </md-select>
+    <div ng-messages="$ctrl.formAlert['condition-compare-property'].$error">
+      <div ng-message="required">Property is required.</div>
+    </div>
+  </md-input-container>
+</div>
