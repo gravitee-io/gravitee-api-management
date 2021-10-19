@@ -27,7 +27,7 @@ import java.util.Set;
  * @author Florent CHAMFROY (forent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface RoleRepository {
+public interface RoleRepository extends FindAllRepository<Role> {
     Optional<Role> findById(String roleId) throws TechnicalException;
 
     Role create(Role role) throws TechnicalException;
@@ -62,12 +62,6 @@ public interface RoleRepository {
      */
     Set<Role> findByScopeAndReferenceIdAndReferenceType(RoleScope scope, String referenceId, RoleReferenceType referenceType)
         throws TechnicalException;
-
-    /**
-     * @return get all roles
-     * @throws TechnicalException if something wrong happen
-     */
-    Set<Role> findAll() throws TechnicalException;
 
     Set<Role> findAllByReferenceIdAndReferenceType(String referenceId, RoleReferenceType referenceType) throws TechnicalException;
 }

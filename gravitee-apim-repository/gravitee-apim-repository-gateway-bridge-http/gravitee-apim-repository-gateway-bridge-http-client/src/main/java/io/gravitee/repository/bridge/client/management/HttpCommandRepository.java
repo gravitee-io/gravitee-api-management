@@ -21,6 +21,7 @@ import io.gravitee.repository.management.api.search.CommandCriteria;
 import io.gravitee.repository.management.model.Command;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -52,6 +53,11 @@ public class HttpCommandRepository extends AbstractRepository implements Command
 
     @Override
     public void delete(String s) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<Command> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

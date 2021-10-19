@@ -38,7 +38,7 @@ import org.springframework.stereotype.Repository;
  * @author njt
  */
 @Repository
-public class JdbcMetadataRepository extends JdbcAbstractRepository<Metadata> implements MetadataRepository {
+public class JdbcMetadataRepository extends JdbcAbstractFindAllRepository<Metadata> implements MetadataRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcMetadataRepository.class);
 

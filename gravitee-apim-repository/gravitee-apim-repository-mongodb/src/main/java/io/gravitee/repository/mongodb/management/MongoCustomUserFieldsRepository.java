@@ -25,6 +25,7 @@ import io.gravitee.repository.mongodb.management.internal.user.CustomUserFieldsM
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +71,7 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
             field.getReferenceType().name()
         );
         final Optional<CustomUserFieldMongo> previousField = internalMongoRepo.findById(id);
-        if (!previousField.isPresent()) {
+        if (previousField.isEmpty()) {
             throw new IllegalStateException(String.format("No CustomUserField found with id [%s]", id));
         }
 
@@ -109,5 +110,14 @@ public class MongoCustomUserFieldsRepository implements CustomUserFieldsReposito
 
         logger.debug("Find CustomUserField by Reference [{}/{}] - Done", refId, referenceType);
         return fields.stream().map(f -> mapper.map(f, CustomUserField.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public Set<CustomUserField> findAll() throws TechnicalException {
+        return internalMongoRepo
+            .findAll()
+            .stream()
+            .map(customUserFieldMongo -> mapper.map(customUserFieldMongo, CustomUserField.class))
+            .collect(Collectors.toSet());
     }
 }

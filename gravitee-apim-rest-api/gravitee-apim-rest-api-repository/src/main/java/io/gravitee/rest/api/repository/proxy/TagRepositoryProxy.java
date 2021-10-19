@@ -59,4 +59,9 @@ public class TagRepositoryProxy extends AbstractProxy<TagRepository> implements 
     public void delete(String s) throws TechnicalException {
         target.delete(s);
     }
+
+    @Override
+    public Set<Tag> findAll() throws TechnicalException {
+        return target.findAll();
+    }
 }

@@ -20,6 +20,7 @@ import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.model.RatingAnswer;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,7 +36,7 @@ public class HttpRatingAnswerRepository extends AbstractRepository implements Ra
     }
 
     @Override
-    public List<RatingAnswer> findByRating(String rating) throws TechnicalException {
+    public List<RatingAnswer> findByRating(String rating) {
         throw new IllegalStateException();
     }
 
@@ -51,6 +52,11 @@ public class HttpRatingAnswerRepository extends AbstractRepository implements Ra
 
     @Override
     public void delete(String id) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Set<RatingAnswer> findAll() throws TechnicalException {
         throw new IllegalStateException();
     }
 }

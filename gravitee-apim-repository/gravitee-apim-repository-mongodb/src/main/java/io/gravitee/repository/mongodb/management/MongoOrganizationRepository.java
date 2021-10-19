@@ -21,7 +21,6 @@ import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.mongodb.management.internal.model.OrganizationMongo;
 import io.gravitee.repository.mongodb.management.internal.organization.OrganizationMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -119,13 +118,13 @@ public class MongoOrganizationRepository implements OrganizationRepository {
     }
 
     @Override
-    public List<Organization> findAll() throws TechnicalException {
+    public Set<Organization> findAll() throws TechnicalException {
         try {
             return internalOrganizationRepo
                 .findAll()
                 .stream()
                 .map(organization -> mapper.map(organization, Organization.class))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
         } catch (Exception e) {
             LOGGER.error("An error occurred when counting organizations", e);
             throw new TechnicalException("An error occurred when counting organization");

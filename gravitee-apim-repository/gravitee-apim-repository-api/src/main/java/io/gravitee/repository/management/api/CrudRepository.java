@@ -22,7 +22,7 @@ import java.util.Optional;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-interface CrudRepository<T, ID> {
+public interface CrudRepository<T, ID> extends FindAllRepository<T> {
     Optional<T> findById(ID id) throws TechnicalException;
 
     T create(T item) throws TechnicalException;

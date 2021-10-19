@@ -23,9 +23,12 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AlertEvent;
 import io.gravitee.repository.mongodb.management.internal.api.AlertEventMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.AlertEventMongo;
+import io.gravitee.repository.mongodb.management.internal.model.AlertTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,5 +125,14 @@ public class MongoAlertEventRepository implements AlertEventRepository {
             (int) alertEventsMongo.getPageElements(),
             alertEventsMongo.getTotalElements()
         );
+    }
+
+    @Override
+    public Set<AlertEvent> findAll() throws TechnicalException {
+        return internalAlertEventRepo
+            .findAll()
+            .stream()
+            .map(alertEventMongo -> mapper.map(alertEventMongo, AlertEvent.class))
+            .collect(Collectors.toSet());
     }
 }

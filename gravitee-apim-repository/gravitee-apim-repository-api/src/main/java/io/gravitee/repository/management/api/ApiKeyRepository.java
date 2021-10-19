@@ -26,7 +26,7 @@ import java.util.Set;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface ApiKeyRepository {
+public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     /**
      * Give the API Key detail from the given key
      *

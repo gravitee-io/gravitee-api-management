@@ -18,7 +18,6 @@ package io.gravitee.rest.api.repository.proxy;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -56,7 +55,7 @@ public class OrganizationRepositoryProxy extends AbstractProxy<OrganizationRepos
     }
 
     @Override
-    public Collection<Organization> findAll() throws TechnicalException {
+    public Set<Organization> findAll() throws TechnicalException {
         return target.findAll();
     }
 

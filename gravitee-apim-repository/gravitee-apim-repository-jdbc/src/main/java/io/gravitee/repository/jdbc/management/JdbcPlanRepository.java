@@ -37,7 +37,7 @@ import org.springframework.stereotype.Repository;
  * @author njt
  */
 @Repository
-public class JdbcPlanRepository extends JdbcAbstractRepository<Plan> implements PlanRepository {
+public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> implements PlanRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPlanRepository.class);
     private final String PLAN_TAGS;

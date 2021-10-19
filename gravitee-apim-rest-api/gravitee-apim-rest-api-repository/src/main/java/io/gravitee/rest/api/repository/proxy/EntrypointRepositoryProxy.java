@@ -60,4 +60,9 @@ public class EntrypointRepositoryProxy extends AbstractProxy<EntrypointRepositor
     public Set<Entrypoint> findByReference(String referenceId, EntrypointReferenceType referenceType) throws TechnicalException {
         return target.findByReference(referenceId, referenceType);
     }
+
+    @Override
+    public Set<Entrypoint> findAll() throws TechnicalException {
+        return target.findAll();
+    }
 }

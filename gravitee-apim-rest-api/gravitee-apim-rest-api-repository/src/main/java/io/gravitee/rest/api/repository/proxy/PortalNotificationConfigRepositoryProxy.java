@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.PortalNotificationConfig;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,5 +68,10 @@ public class PortalNotificationConfigRepositoryProxy
     @Override
     public void deleteReference(NotificationReferenceType referenceType, String referenceId) throws TechnicalException {
         target.deleteReference(referenceType, referenceId);
+    }
+
+    @Override
+    public Set<PortalNotificationConfig> findAll() throws TechnicalException {
+        return target.findAll();
     }
 }

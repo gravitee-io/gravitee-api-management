@@ -28,6 +28,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.sql.*;
@@ -401,5 +402,10 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
             filter.getTypes() +
             " }"
         );
+    }
+
+    @Override
+    public Set<Event> findAll() throws TechnicalException {
+        throw new IllegalStateException("not implemented cause of high amount of data. Use pageable search instead");
     }
 }
