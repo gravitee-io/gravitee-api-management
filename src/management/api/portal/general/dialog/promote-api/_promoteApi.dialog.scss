@@ -1,0 +1,66 @@
+.promote-api-dialog {
+  min-width: 500px;
+
+  &__title {
+    padding: 8px;
+  }
+
+  &__content {
+    padding: 8px;
+
+    &__loading {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      &__text {
+        margin-top: 8px;
+      }
+    }
+
+    &__environments {
+      margin-top: 12px;
+      max-height: 200px;
+      overflow: auto;
+      padding-left: 12px;
+      padding-top: 4px;
+    }
+
+    &__promotion-in-progress {
+      margin-top: 2px;
+      margin-left: 8px;
+      font-size: 12px;
+      color: hsl(0, 0%, 45%);
+    }
+
+    &__no-environment {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      gv-icon {
+        --gv-icon--s: 80px;
+        --gv-icon--c: var(--gv-theme-neutral-color-dark);
+      }
+    }
+  }
+
+  &__meet-cockpit {
+    padding: 8px;
+    width: 600px;
+
+    &__content {
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      &__logo {
+        margin: 32px;
+      }
+    }
+  }
+}

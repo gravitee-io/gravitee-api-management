@@ -1,0 +1,86 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+  <div class="gv-forms" layout="column">
+    <div class="gv-forms-header">
+      <h1>Tickets history</h1>
+      <a ui-sref="management.support.create">Back to ticket creation</a>
+    </div>
+
+    <div class="gv-form">
+      <md-table-container layout-padding>
+        <table
+          md-table
+          class="gravitee-analytics-top-hits-table gv-table-dense"
+          multiple
+          md-row-select="ticketsListCtrl.widget.chart.selectable"
+          data-ng-model="ticketsListCtrl.selected"
+        >
+          <thead md-head md-order="ticketsListCtrl.query.order">
+            <tr md-row>
+              <th md-column width="1%" md-order-by="created_at" nowrap>Date</th>
+              <th md-column width="1%" md-order-by="api" nowrap>Api</th>
+              <th md-column width="1%" md-order-by="application" nowrap>Application</th>
+              <th md-column width="1%" md-order-by="subject" nowrap>Subject</th>
+              <th md-column width="1%"></th>
+            </tr>
+          </thead>
+          <tbody md-body>
+            <tr
+              ng-if="ticketsListCtrl.tickets.content.length > 0"
+              md-row
+              ng-repeat="ticket in ticketsListCtrl.tickets.content | limitTo: ticketsListCtrl.query.size"
+              md-auto-select
+              md-select="ticket"
+              md-select-id="key"
+            >
+              <td md-cell nowrap>{{ticket.created_at | date:'yyyy-MM-dd HH:mm:ss.sss'}}</td>
+              <td md-cell nowrap>{{ticket.api}}</td>
+              <td md-cell nowrap>{{ticket.application}}</td>
+              <td md-cell nowrap>{{ticket.subject}}</td>
+              <td md-cell nowrap>
+                <ng-md-icon
+                  ui-sref="management.support.ticket({
+              ticketId: ticket.id,
+              page: ticketsListCtrl.query.page,
+              order: ticketsListCtrl.query.order,
+              size: ticketsListCtrl.query.size
+              })"
+                  icon="remove_red_eye"
+                >
+                </ng-md-icon>
+              </td>
+            </tr>
+            <tr ng-if="ticketsListCtrl.tickets.totalElements === 0">
+              <td md-cell colspan="9" style="text-align: center">No ticket</td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <md-table-pagination
+        md-limit="ticketsListCtrl.query.size"
+        md-limit-options="[5, 10, 15, 20, 30, 50, 100]"
+        md-page="ticketsListCtrl.query.page"
+        md-total="{{ticketsListCtrl.tickets.totalElements}}"
+        md-on-paginate="ticketsListCtrl.onPaginate"
+      >
+      </md-table-pagination>
+    </div>
+  </div>
+</div>

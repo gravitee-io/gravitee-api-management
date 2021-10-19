@@ -1,0 +1,65 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-autocomplete
+  md-selected-item="selectedItem"
+  md-search-text="$ctrl.searchText"
+  md-selected-item-change="$ctrl.selectUser(user)"
+  md-items="user in $ctrl.searchUser($ctrl.searchText)"
+  md-item-text="user.displayName"
+  md-min-length="$ctrl.minLength"
+  md-delay="500"
+  placeholder="{{ $ctrl.placeHolder }}"
+  md-autofocus="$ctrl.autofocus"
+  md-menu-class="gv-user-autocomplete-menu"
+  ng-disabled="$ctrl.disabled"
+>
+  <md-item-template>
+    <md-list-item>
+      <gravitee-identity-picture
+        image-id="'auto-'+$index"
+        image-url="$ctrl.getUserAvatar(user.id)"
+        image-name="user.displayName"
+        image-width="32"
+        image-border-radius="true"
+        class="md-avatar"
+      ></gravitee-identity-picture>
+      <div class="md-list-item-text contact-item" layout="column">
+        <h3>{{user.displayName}}</h3>
+        <p>{{user.email}}</p>
+      </div>
+    </md-list-item>
+  </md-item-template>
+  <md-not-found> No user matching "{{$ctrl.searchText}}" were found, or users already selected. </md-not-found>
+</md-autocomplete>
+
+<md-list class="fixedRows" ng-if="!$ctrl.singleUser" ng-show="$ctrl.usersSelected.length > 0">
+  <md-subheader class="md-no-sticky">Selected users</md-subheader>
+  <md-list-item ng-repeat="(index, user) in $ctrl.usersSelected">
+    <gravitee-identity-picture
+      image-id="'selected-'+index"
+      image-url="$ctrl.getUserAvatar(user.id)"
+      image-name="user.displayName"
+      image-width="40"
+      image-border-radius="true"
+      class="md-avatar"
+    ></gravitee-identity-picture>
+    <div class="md-list-item-text contact-item">
+      <h3>{{user.displayName}}</h3>
+    </div>
+  </md-list-item>
+</md-list>

@@ -1,0 +1,87 @@
+// Sky Blue - Primary
+$gio-sky-blue-palette: (
+  dark: hsl(236, 50%, 7%),
+  medium: hsl(236, 38%, 17%),
+  light: hsl(220, 38%, 27%),
+  contrast: (
+    dark: #fff,
+    medium: #fff,
+    light: #fff,
+  ),
+);
+
+// Cyan - Primary
+$gio-sky-cyan-palette: (
+  dark: hsl(183, 75%, 37%),
+  medium: hsl(183, 75%, 47%),
+  light: hsl(183, 75%, 57%),
+  contrast: (
+    dark: #000,
+    medium: #000,
+    light: #000,
+  ),
+);
+
+// Info color
+$gio-info-palette: (
+  darker: hsl(218, 80%, 25%),
+  dark: hsl(222, 80%, 40%),
+  medium: hsl(226, 80%, 50%),
+  light: hsl(210, 70%, 60%),
+  lighter: hsl(210, 80%, 75%),
+  contrast: (
+    darker: #000,
+    dark: #000,
+    medium: #000,
+    light: #000,
+    lighter: #000,
+  ),
+);
+
+// Success color
+$gio-success-palette: (
+  darker: hsl(114, 39%, 25%),
+  dark: hsl(118, 39%, 40%),
+  medium: hsl(122, 39%, 50%),
+  light: hsl(126, 39%, 65%),
+  lighter: hsl(130, 39%, 75%),
+  contrast: (
+    darker: #000,
+    dark: #000,
+    medium: #000,
+    light: #000,
+    lighter: #000,
+  ),
+);
+
+// Warning color
+$gio-warning-palette: (
+  darker: hsl(26, 100%, 40%),
+  dark: hsl(30, 100%, 48%),
+  medium: hsl(34, 100%, 50%),
+  light: hsl(38, 100%, 65%),
+  lighter: hsl(42, 100%, 75%),
+  contrast: (
+    darker: #000,
+    dark: #000,
+    medium: #000,
+    light: #000,
+    lighter: #000,
+  ),
+);
+
+// Error color
+$gio-error-palette: (
+  darker: hsl(352, 80%, 25%),
+  dark: hsl(356, 80%, 40%),
+  medium: hsl(360, 80%, 50%),
+  light: hsl(4, 80%, 65%),
+  lighter: hsl(8, 80%, 75%),
+  contrast: (
+    darker: #000,
+    dark: #000,
+    medium: #000,
+    light: #000,
+    lighter: #000,
+  ),
+);

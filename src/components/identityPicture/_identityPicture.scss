@@ -1,0 +1,27 @@
+.gravitee-identity-picture {
+  display: inline-block;
+  margin: 0px 8px;
+  text-align: center;
+  padding: 0px !important;
+
+  div {
+    padding: 0px !important;
+  }
+}
+
+.avatar,
+.jdenticon {
+  display: none !important;
+}
+
+.avatar.show,
+.jdenticon.show {
+  object-fit: contain;
+  display: flex !important;
+}
+
+.jdenticon.rounded,
+.jdenticon.rounded svg,
+.avatar.rounded {
+  border-radius: 50%;
+}

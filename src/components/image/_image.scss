@@ -1,0 +1,59 @@
+.gravitee-upload-image {
+  position: relative;
+  height: 110px;
+  line-height: 110px;
+  margin: 0 10px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(25, 25, 34, 0.12);
+  text-align: center;
+
+  img,
+  gravitee-identity-picture {
+    width: 110px;
+    height: 110px;
+  }
+
+  gravitee-identity-picture {
+    transition: opacity 0.5s ease;
+    margin-top: 5px;
+  }
+
+  .background {
+    position: absolute;
+    width: 100%;
+    height: 110px;
+    text-align: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0s, opacity 0.5s ease-in-out;
+  }
+}
+
+.gravitee-upload-image.checkered {
+  background-position: 0px 0px, 10px 10px;
+  background-size: 20px 20px;
+  background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee 100%),
+    linear-gradient(45deg, #eee 25%, white 25%, white 75%, #eee 75%, #eee 100%);
+}
+
+.gravitee-upload-image:hover {
+  cursor: pointer;
+
+  gravitee-identity-picture {
+    opacity: 0.1;
+  }
+
+  .background {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+.gravitee-upload-image-button {
+  display: flex;
+  justify-content: center;
+
+  a {
+    text-align: center;
+    margin: 5px 10px;
+  }
+}

@@ -1,0 +1,18 @@
+.api-events-timeline {
+  .timeline:before {
+    width: 1px;
+  }
+
+  .timeline li timeline-badge {
+    z-index: 0;
+    box-shadow: none;
+    height: 40px;
+    width: 40px;
+    line-height: 40px;
+    left: 51%;
+  }
+
+  .timeline li timeline-panel {
+    padding: 7px;
+  }
+}

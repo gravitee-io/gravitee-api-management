@@ -1,0 +1,109 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <div layout="row">
+      <h1 flex>APIs Status</h1>
+      <div class="gv-apis-healthcheck_control" ng-if="$ctrl.apis.length > 0">
+        <md-input-container class="md-block">
+          <md-switch class="" ng-model="$ctrl.viewAllApis" ng-change="$ctrl.updateDisplayedApis()">View all APIs</md-switch>
+        </md-input-container>
+        <md-input-container class="md-block">
+          <gv-quick-time-range on-timeframe-change="$ctrl.timeframeChange(timeframe)"></gv-quick-time-range>
+        </md-input-container>
+        <md-button class="md-primary" ng-click="$ctrl.refresh()">
+          <ng-md-icon icon="refresh"></ng-md-icon>
+          Refresh data
+        </md-button>
+      </div>
+    </div>
+    <div layout="column" ng-if="$ctrl.displayedApis.length > 0">
+      <div
+        class="gv-apis-healthcheck_current-status"
+        layout="row"
+        layout-align="center center"
+        ng-if="$ctrl.startedAPIsWithHC.length > 0"
+        ng-style="{
+        'background-color':
+          $ctrl.apisInError && $ctrl.apisInError > 0 ? $ctrl.RED_COLOR :
+          $ctrl.apisInWarning && $ctrl.apisInWarning > 0 ? $ctrl.ORANGE_COLOR :
+          $ctrl.GREEN_COLOR
+          }"
+      >
+        <span ng-if="(!$ctrl.apisInError || $ctrl.apisInError === 0) && (!$ctrl.apisInWarning || $ctrl.apisInWarning === 0)">
+          All APIs operational
+        </span>
+        <span ng-if="($ctrl.apisInError && $ctrl.apisInError > 0)">
+          {{$ctrl.apisInError == 1 ? '1 API is in error' : $ctrl.apisInError + ' APIs are in error'}}
+        </span>
+        <span ng-if="(!$ctrl.apisInError || $ctrl.apisInError === 0) && ($ctrl.apisInWarning && $ctrl.apisInWarning > 0)">
+          {{$ctrl.apisInWarning == 1 ? '1 API is in warning' : $ctrl.apisInWarning + ' APIs are in warning'}}
+        </span>
+        <span> &nbsp;in the {{$ctrl.currentTimeframe.title.toLowerCase()}}. </span>
+      </div>
+      <div class="gv-apis-healthcheck_list">
+        <md-card
+          ng-repeat="api in $ctrl.displayedApis"
+          ng-class="{
+          'apiError': $ctrl.isInError(api),
+          'apiWarn': $ctrl.isInWarning(api)
+          }"
+        >
+          <md-card-header>
+            <md-card-avatar>
+              <gravitee-identity-picture
+                class="md-user-avatar"
+                image-id="'hc_' + api.id"
+                image-url=""
+                image-name="$ctrl.getPictureDisplayName(api)"
+                image-width="40"
+              ></gravitee-identity-picture>
+            </md-card-avatar>
+            <md-card-header-text>
+              <span class="md-title" title="{{api.name}} {{api.version}}">{{api.name}} <small>({{api.version}})</small></span>
+              <a ui-sref="management.apis.detail.proxy.healthcheck.visualize({apiId: api.id})">View detail</a>
+            </md-card-header-text>
+            <md-card-avatar ng-if="$ctrl.isInError(api) || $ctrl.isInWarning(api)">
+              <ng-md-icon icon="error" size="40px"></ng-md-icon>
+            </md-card-avatar>
+          </md-card-header>
+
+          <md-card-content ng-if="$ctrl.hasHealthcheck(api) && !$ctrl.isStopped(api) && api.availability >= 0">
+            <gv-chart-gauge ng-attr-series="{{api.uptimeSeries}}" max="100"></gv-chart-gauge>
+            <div>
+              <gravitee-chart options="api.chartData" type="areaspline" height="100"></gravitee-chart>
+            </div>
+          </md-card-content>
+
+          <md-card-content ng-if="!$ctrl.hasHealthcheck(api) || $ctrl.isStopped(api) || api.availability === -1">
+            <div class="noData" ng-if="$ctrl.isStopped(api)">API is stopped</div>
+            <div class="noData" ng-if="!$ctrl.hasHealthcheck(api)">Health-check has not been configured</div>
+            <div class="noData" ng-if="api.availability === -1">No data to display</div>
+          </md-card-content>
+        </md-card>
+      </div>
+    </div>
+
+    <gravitee-empty-state
+      ng-if="$ctrl.displayedApis.length === 0"
+      icon="grid_off"
+      model="API"
+      message="There is no API to monitor"
+    ></gravitee-empty-state>
+  </div>
+</div>

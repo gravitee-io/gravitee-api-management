@@ -1,0 +1,68 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-sidenav
+  class="md-sidenav-left md-whiteframe-z2 md-sidenav-theme"
+  md-component-id="left"
+  md-is-locked-open="true"
+  ng-class="{'md-sidenav-min': $ctrl.reducedMode}"
+  style="overflow: inherit"
+>
+  <div class="sidenav-header" ng-if="!$ctrl.reducedMode">
+    <md-select
+      aria-label="environments"
+      ng-model="$ctrl.Constants.org.currentEnv"
+      ng-model-options="{trackBy: '$value.id'}"
+      ng-change="$ctrl.changeCurrentEnv()"
+      ng-disabled="$ctrl.Constants.org.environments.length <= 1"
+    >
+      <md-option ng-value="environment" ng-repeat="environment in $ctrl.Constants.org.environments"> {{environment.name}} </md-option>
+    </md-select>
+  </div>
+
+  <md-list class="sidenav-list">
+    <md-list-item ng-repeat="menuItem in $ctrl.menuItems|orderBy:'data.menu.order' track by menuItem.name">
+      <a
+        ui-sref="{{ :: menuItem.name}}"
+        ui-sref-opts="{inherit: false}"
+        title="{{ :: menuItem.data.menu.label}}"
+        ng-class="{'sidenav-active': $ctrl.isActive(menuItem)}"
+      >
+        <ng-md-icon icon="{{ :: menuItem.data.menu.icon }}"></ng-md-icon>
+        <span>{{ :: menuItem.data.menu.label }}</span>
+      </a>
+    </md-list-item>
+
+    <gv-submenu all-menu-items="$ctrl.allMenuItems" reduced-mode="$ctrl.reducedMode"></gv-submenu>
+  </md-list>
+
+  <div class="sidenav-footer">
+    <md-list permission permission-only="'organization-settings-r'">
+      <hr />
+      <md-list-item>
+        <a ui-sref="organization" title="Organization settings">
+          <ng-md-icon icon="settings_applications"></ng-md-icon>
+          <span>Organization settings</span>
+        </a>
+      </md-list-item>
+    </md-list>
+
+    <md-button class="md-fab md-mini sidenav-toggle" md-no-focus-style ng-click="$ctrl.toggleReducedMode()" aria-label="Mini FAB">
+      <ng-md-icon class="sidenav-toggle-icon" size="16" icon="{{$ctrl.reducedMode?'chevron_right':'chevron_left'}}"></ng-md-icon>
+    </md-button>
+  </div>
+</md-sidenav>

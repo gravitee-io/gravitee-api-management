@@ -1,0 +1,88 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="apiProxyCtrl.formApi" ng-submit="apiProxyCtrl.update(apiProxyCtrl.api)" novalidate>
+  <div class="gv-forms" layout="column">
+    <h1>Failover</h1>
+    <div class="gv-form">
+      <div class="gv-forms-header">
+        <h2>Failover</h2>
+        <div ng-switch on="apiProxyCtrl.failoverEnabled">
+          <span class="proxy-activated" ng-switch-when="true">(active)</span>
+          <span class="proxy-deactivated" ng-switch-when="false">(not active)</span>
+          <span class="proxy-deactivated" ng-switch-default>(not active)</span>
+        </div>
+      </div>
+      <div class="gv-form-content">
+        <md-checkbox ng-model="apiProxyCtrl.failoverEnabled" aria-label="Enable CORS" flex
+          >Enabled
+          <div class="ipsum">
+            When gateway receives a connect timeout from backend servers, it redirects traffic to the next server until "max attempts" or
+            "timeout" have been reached.
+          </div>
+        </md-checkbox>
+        <md-input-container class="md-block" flex>
+          <label>Max attempts</label>
+          <input
+            ng-model="apiProxyCtrl.api.proxy.failover.maxAttempts"
+            type="number"
+            ng-required="apiProxyCtrl.failoverEnabled"
+            min="1"
+            ng-disabled="!apiProxyCtrl.failoverEnabled"
+          />
+          <div class="hint">
+            Limits the number of possible tries before returning an error. Each try get an endpoint according to the load balancing
+            algorithm. Must be greater than 0.
+          </div>
+        </md-input-container>
+        <md-input-container class="md-block" flex>
+          <label>Timeout (ms)</label>
+          <input
+            ng-model="apiProxyCtrl.api.proxy.failover.retryTimeout"
+            type="number"
+            min="1"
+            ng-required="apiProxyCtrl.failoverEnabled"
+            ng-disabled="!apiProxyCtrl.failoverEnabled"
+          />
+          <div class="hint">Limits the time allowed to try another attempt. Must be greater than 0.</div>
+        </md-input-container>
+
+        <div class="md-actions gravitee-api-save-button" layout="row">
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised md-primary"
+            type="submit"
+            ng-disabled="apiProxyCtrl.formApi.$invalid || apiProxyCtrl.formApi.$pristine"
+          >
+            Save
+          </md-button>
+          <md-button
+            permission
+            permission-only="'api-definition-u'"
+            class="md-raised"
+            type="button"
+            ng-click="apiProxyCtrl.reset()"
+            ng-disabled="apiProxyCtrl.formApi.$pristine"
+          >
+            Reset
+          </md-button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

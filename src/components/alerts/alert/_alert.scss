@@ -1,0 +1,27 @@
+.gv-alerts-alert {
+  md-tab-content {
+    padding-bottom: 2rem;
+  }
+
+  .gv-alerts-alert_trigger-msg {
+    font-style: italic;
+    margin: 1rem 0;
+  }
+
+  .gv-trigger-timeframe_form {
+    margin-top: 0.5rem;
+    --gv-expandable--bdb: thin dashed lightgray;
+  }
+
+  .gv-trigger-timeframe_form[open] {
+    border-left: 1px dashed lightgray;
+  }
+
+  .gv-trigger-timeframe_form > div {
+    padding-left: 1rem;
+  }
+
+  .gv-trigger-timeframe_form-details {
+    padding-bottom: 1rem;
+  }
+}
