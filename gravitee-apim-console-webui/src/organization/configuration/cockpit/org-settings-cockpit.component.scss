@@ -1,0 +1,35 @@
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.org-settings-cockpit {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &__card {
+    width: 400px;
+    padding: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    &__icon {
+      height: 96px;
+      width: 96px;
+      font-size: 96px;
+    }
+
+    &__title {
+      margin-top: 32px;
+    }
+
+    &__message {
+      text-align: center;
+    }
+  }
+}

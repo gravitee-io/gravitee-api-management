@@ -1,0 +1,32 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+
+@use '../../../scss/gio-material-theme' as gio;
+@use '../../../scss/gio-palettes' as gio-palettes;
+
+$primary: map.get(gio.$gio-theme, primary);
+
+.right {
+  float: right;
+  cursor: pointer;
+  color: mat.get-color-from-palette($primary);
+
+  &:not(.clicked) {
+    opacity: 0.12;
+  }
+
+  &.clicked {
+    opacity: 1;
+    color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium');
+  }
+}
+
+:host(:hover) {
+  .right {
+    opacity: 0.42;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}

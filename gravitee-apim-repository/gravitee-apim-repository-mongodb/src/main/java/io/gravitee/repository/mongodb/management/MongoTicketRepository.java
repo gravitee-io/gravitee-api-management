@@ -25,15 +25,14 @@ import io.gravitee.repository.management.model.Ticket;
 import io.gravitee.repository.mongodb.management.internal.model.TicketMongo;
 import io.gravitee.repository.mongodb.management.internal.ticket.TicketMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -89,8 +88,6 @@ public class MongoTicketRepository implements TicketRepository {
 
     @Override
     public Set<Ticket> findAll() throws TechnicalException {
-        return internalTicketRepo.findAll().stream()
-                .map(ticketMongo -> mapper.map(ticketMongo, Ticket.class))
-                .collect(Collectors.toSet());
+        return internalTicketRepo.findAll().stream().map(ticketMongo -> mapper.map(ticketMongo, Ticket.class)).collect(Collectors.toSet());
     }
 }

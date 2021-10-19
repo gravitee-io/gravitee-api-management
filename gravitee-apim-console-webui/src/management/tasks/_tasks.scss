@@ -1,0 +1,73 @@
+@import './promotion/promotion-task';
+
+.tasks {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  max-width: 1000px;
+  margin: auto;
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+
+    &__title {
+      margin: 8px;
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 32px;
+    }
+
+    &__task {
+      padding: 16px;
+      width: 100%;
+
+      &__header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+
+        &__left,
+        &__right {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+
+          &__icon {
+            --gv-icon--c: hsl(183, 75%, 47%);
+            --gv-icon--s: 22px;
+          }
+
+          &__title {
+            margin-left: 8px;
+            font-size: 16px;
+            color: hsl(0, 0%, 20%);
+          }
+
+          &__date {
+            align-self: flex-end;
+            color: hsl(0, 0%, 45%);
+          }
+        }
+      }
+
+      &__description {
+        margin: 16px 0 8px 0;
+        font-size: 14px;
+      }
+
+      &__actions {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+      }
+    }
+  }
+
+  &__empty {
+    margin-top: 16px;
+  }
+}

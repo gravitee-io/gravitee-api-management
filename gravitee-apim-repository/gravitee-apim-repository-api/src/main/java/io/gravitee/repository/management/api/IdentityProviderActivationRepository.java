@@ -18,7 +18,6 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.IdentityProviderActivation;
 import io.gravitee.repository.management.model.IdentityProviderActivationReferenceType;
-
 import java.util.Optional;
 import java.util.Set;
 

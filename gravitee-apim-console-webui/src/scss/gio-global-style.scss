@@ -1,0 +1,49 @@
+@use '../../node_modules/@angular/material' as mat;
+@use 'sass:map';
+@use '../scss/gio-material-theme' as theme;
+@use './gio-palettes' as gio;
+
+@import './gio-badge';
+@import './gio-description-list';
+
+$background: map.get(theme.$gio-theme, background);
+$typography: map.get(theme.$gio-theme, typography);
+
+.gio-snack-bar-success {
+  background-color: mat.get-color-from-palette(gio.$gio-success-palette, 'medium');
+  // color: mat.get-color-from-palette($gio-success-palette, 'medium-contrast');
+}
+
+.gio-snack-bar-error {
+  background-color: mat.get-color-from-palette(gio.$gio-error-palette, medium);
+  // color: mat.get-color-from-palette($gio-error-palette, medium-contrast);
+}
+
+/**
+ * Change default material card elevation to 3 if no elevation was added or if its not a child card
+ **/
+.mat-card:not(.mat-card .mat-card):not([class*='mat-elevation-z']) {
+  @include mat.elevation(3);
+}
+
+/**
+ * Reset `box-sizing` for all elements
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/**
+ * Mat table related styles
+ */
+.mat-table {
+  tbody tr:hover {
+    background-color: mat.get-color-from-palette($background, hover);
+  }
+}
+
+.mat-hint {
+  font-size: mat.font-size(theme.$gio-typography, caption);
+}

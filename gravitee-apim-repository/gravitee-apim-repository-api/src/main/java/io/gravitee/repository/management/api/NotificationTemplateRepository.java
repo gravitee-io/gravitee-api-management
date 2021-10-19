@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.NotificationTemplate;
 import io.gravitee.repository.management.model.NotificationTemplateReferenceType;
 import io.gravitee.repository.management.model.NotificationTemplateType;
-
 import java.util.Optional;
 import java.util.Set;
 

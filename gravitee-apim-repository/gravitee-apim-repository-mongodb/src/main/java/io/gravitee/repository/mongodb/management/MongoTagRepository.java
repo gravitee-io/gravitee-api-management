@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.TagReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.TagMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.TagMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -127,8 +126,6 @@ public class MongoTagRepository implements TagRepository {
 
     @Override
     public Set<Tag> findAll() throws TechnicalException {
-        return internalTagRepo.findAll().stream()
-                .map(tagMongo -> mapper.map(tagMongo, Tag.class))
-                .collect(Collectors.toSet());
+        return internalTagRepo.findAll().stream().map(tagMongo -> mapper.map(tagMongo, Tag.class)).collect(Collectors.toSet());
     }
 }

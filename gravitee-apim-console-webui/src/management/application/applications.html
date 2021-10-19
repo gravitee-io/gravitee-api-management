@@ -1,0 +1,185 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-sub-content">
+  <div class="gv-forms gv-forms-fluid" layout="column">
+    <div class="gv-form" ng-show="$ctrl.isAdmin() || !isLoading && $ctrl.applications.length > 0">
+      <div class="apis-header-filter">
+        <form
+          flex
+          layout="row"
+          layout-align="center center"
+          name="formSearch"
+          autocomplete="off"
+          ng-submit="$ctrl.loadMore(query.order, searchApplications, false)"
+        >
+          <input
+            class="form-control apis-filter"
+            type="text"
+            style="max-width: 960px"
+            ng-model="searchApplications"
+            placeholder="Search Applications"
+            autofocus
+          />
+          <md-button class="md-primary gv-search-button" type="submit" aria-label="Search">
+            <ng-md-icon icon="search"></ng-md-icon>
+          </md-button>
+        </form>
+      </div>
+      <md-tabs ng-if="$ctrl.isAdmin()" md-selected="$ctrl.selectedTab" md-dynamic-height>
+        <md-tab md-on-select="$ctrl.selectTab(0)">
+          <md-tab-label>ACTIVE</md-tab-label>
+          <md-tab-body></md-tab-body>
+        </md-tab>
+        <md-tab md-on-select="$ctrl.selectTab(1)">
+          <md-tab-label>ARCHIVED</md-tab-label>
+          <md-tab-body></md-tab-body>
+        </md-tab>
+      </md-tabs>
+      <div
+        class="gv-form-content"
+        id="applications-container"
+        ng-if="$ctrl.applications.length > 0"
+        style="height: calc(100vh - 200px); overflow-y: auto"
+      >
+        <div
+          layout="row"
+          layout-wrap
+          class="inset"
+          infinite-scroll="$ctrl.loadMore(query.order, $ctrl.searchApplications, true)"
+          infinite-scroll-distance="1"
+          infinite-scroll-container="'#applications-container'"
+        >
+          <md-table-container style="width: 100%">
+            <table
+              md-table
+              ng-model="$ctrl.selectedApplications"
+              ng-init="query.order = $ctrl.currentTab === 'active' ? 'name' : '-updated_at'"
+            >
+              <thead md-head md-order="query.order">
+                <tr md-row>
+                  <th md-column width="1%"></th>
+                  <th md-column md-order-by="name" ng-click="$ctrl.loadMore(query.order, $ctrl.searchApplications, false)">
+                    <span>Name</span>
+                  </th>
+                  <th md-column width="1%" md-order-by="type" ng-click="$ctrl.loadMore(query.order, $ctrl.searchApplications, false)">
+                    Type
+                  </th>
+                  <th
+                    md-column
+                    ng-if="$ctrl.currentTab === 'active'"
+                    width="1%"
+                    md-order-by="owner.displayName"
+                    ng-click="$ctrl.loadMore(query.order, $ctrl.searchApplications, false)"
+                  >
+                    Owner
+                  </th>
+                  <th
+                    md-column
+                    width="1%"
+                    md-order-by="updated_at"
+                    ng-if="$ctrl.currentTab === 'archived'"
+                    ng-click="$ctrl.loadMore(query.order, $ctrl.searchApplications, false)"
+                  >
+                    Archived at
+                  </th>
+                  <th md-column ng-if="$ctrl.currentTab === 'archived'" width="1%"></th>
+                </tr>
+              </thead>
+              <tbody md-body>
+                <tr md-row ng-repeat="application in $ctrl.applicationsToDisplay track by application.id">
+                  <td md-cell nowrap>
+                    <gravitee-identity-picture
+                      image-id="application.id"
+                      image-url="::application.picture_url"
+                      image-name="application.name + '  ' + application.type + '  ' + application.owner.displayName"
+                      image-width="40"
+                    ></gravitee-identity-picture>
+                  </td>
+                  <td md-cell>
+                    <a
+                      ng-if="$ctrl.currentTab === 'active'"
+                      ui-sref="management.applications.application.general({applicationId: application.id})"
+                    >
+                      {{application.name}}
+                    </a>
+                    <span ng-if="$ctrl.currentTab === 'archived'">{{application.name}}</span>
+                  </td>
+                  <td md-cell nowrap>{{application.type | lowercase}}</td>
+                  <td ng-if="$ctrl.currentTab === 'active'" md-cell nowrap>
+                    <span>
+                      {{application.owner.displayName}}
+                      <md-tooltip>
+                        <span ng-if="application.owner.email">{{::application.owner.email}}</span>
+                      </md-tooltip>
+                    </span>
+                  </td>
+                  <td ng-if="$ctrl.currentTab === 'archived'" md-cell nowrap>
+                    <span>{{ application.updated_at | humanDatetimeFilter }}</span>
+                  </td>
+                  <td ng-if="$ctrl.currentTab === 'archived'" md-cell nowrap>
+                    <md-button
+                      type="button"
+                      class="md-raised md-warn"
+                      ng-click="$ctrl.showRestoreConfirm($event, application.id, application.name)"
+                      aria-label="restore"
+                    >
+                      RESTORE</md-button
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </md-table-container>
+        </div>
+      </div>
+      <gravitee-empty-state
+        ng-if="$ctrl.applications.length == 0 && $ctrl.isAdmin() && !$ctrl.loading"
+        icon="list"
+        model="Application"
+        message="{{ $ctrl.currentTab === 'active' ? 'There is no application (yet).' : 'There is no archived application'}}"
+        sub-message="{{ $ctrl.currentTab === 'active' ? $ctrl.subMessage : '' }}"
+        create-mode="true"
+      ></gravitee-empty-state>
+    </div>
+
+    <gravitee-empty-state
+      ng-if="$ctrl.applications.length == 0 && !$ctrl.isAdmin()"
+      icon="list"
+      model="Application"
+      message="There is no application (yet)."
+      sub-message="{{$ctrl.subMessage}}"
+      create-mode="true"
+    ></gravitee-empty-state>
+
+    <div
+      permission
+      permission-only="'environment-application-c'"
+      ng-show="$ctrl.currentTab === 'active' && !$ctrl.loading"
+      ng-style="$ctrl.applications.length == 0 && {'text-align':'center'}"
+    >
+      <md-button
+        ng-class="{'md-fab-bottom-right': $ctrl.applications.length > 0 && !$ctrl.loading}"
+        class="md-fab"
+        aria-label="Create New Application"
+        ui-sref="management.applications.create"
+      >
+        <ng-md-icon icon="add"></ng-md-icon>
+      </md-button>
+    </div>
+  </div>
+</div>

@@ -22,10 +22,9 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)

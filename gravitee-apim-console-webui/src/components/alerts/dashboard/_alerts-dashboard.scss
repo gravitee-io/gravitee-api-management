@@ -1,0 +1,68 @@
+.gv-alerts_list {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  md-card {
+    width: calc((100% / 5) - 16px);
+
+    md-card-header {
+      padding: 8px;
+
+      md-card-header-text {
+        width: 75%;
+        .md-title {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+
+      md-card-avatar {
+        ng-md-icon {
+          position: initial;
+        }
+      }
+    }
+
+    md-card-content {
+      text-align: center;
+
+      h1 {
+        font-size: 2.5em;
+      }
+
+      .noData {
+        color: darkgray;
+        font-size: large;
+        font-weight: bold;
+        margin: 10px;
+        padding: 10px;
+      }
+    }
+  }
+
+  .alert-critical {
+    border: 2px solid #d9534f;
+    background-color: #f2dede;
+    color: #b94a48;
+    ng-md-icon {
+      fill: #d9534f;
+    }
+  }
+
+  .alert-warning {
+    border: 2px solid #f0ad4e;
+    ng-md-icon {
+      fill: #f0ad4e;
+    }
+  }
+
+  .alert-info {
+    border: 2px solid #54a3ff;
+    ng-md-icon {
+      fill: #54a3ff;
+    }
+  }
+}

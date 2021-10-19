@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.jdbc.datasource;
 
-import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.*;
 import java.util.logging.Logger;
+import javax.sql.DataSource;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -1,0 +1,202 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="md-actions" layout="row">
+  <md-button ui-sref="management.applications.application.logs($ctrl.backStateParams)">
+    <ng-md-icon icon="reply"></ng-md-icon>
+    <span style="color: rgba(0, 0, 0, 0.54)">Back to logs</span>
+  </md-button>
+</div>
+
+<div class="log-table" layout="row" flex layout-padding layout-align="space-around center">
+  <div layout="column" flex="33">
+    <span class="log-header" style="text-align: center">Request</span>
+    <md-table-container class="gv-log-request-header">
+      <table md-table class="gv-table-dense">
+        <tbody md-body>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Date</span></td>
+            <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Request ID</span></td>
+            <td md-cell>{{$ctrl.log.id}}</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Transaction ID</span></td>
+            <td md-cell>{{$ctrl.log.transactionId}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+  </div>
+
+  <div layout="column" flex="33">
+    <span class="log-header" style="text-align: center">Context</span>
+    <md-table-container ng-class="{'gv-log-response-header-{{$ctrl.log.status / 100 | number:0}}': true}">
+      <table md-table class="gv-table-dense">
+        <tbody md-body>
+          <tr md-row style="height: 30px" ng-if="$ctrl.log.apiKey">
+            <td md-cell><span style="font-weight: bold">API Key</span></td>
+            <td md-cell>{{$ctrl.log.apiKey}}</td>
+          </tr>
+          <tr md-row style="height: 30px" ng-if="$ctrl.log.api">
+            <td md-cell><span style="font-weight: bold">API</span></td>
+            <td md-cell>{{$ctrl.log.metadata[$ctrl.log.api].name}}</td>
+          </tr>
+          <tr md-row style="height: 30px" ng-if="$ctrl.log.plan">
+            <td md-cell><span style="font-weight: bold">Plan</span></td>
+            <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
+          </tr>
+          <tr md-row style="height: 30px" ng-if="$ctrl.log.user && $ctrl.Constants.org.settings.logging.user.displayed">
+            <td md-cell><span style="font-weight: bold">User</span></td>
+            <td md-cell>{{$ctrl.log.user}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+  </div>
+</div>
+
+<hr />
+
+<div class="log-table" layout="row" flex layout-padding layout-align="center">
+  <div layout="column" layout-padding style="background-color: #e1f5fe; border: 1px solid #b3e5fc" flex="50">
+    <div flex="5" layout="row" style="background-color: #b3e5fc" layout-align="center center">
+      <span class="log-header" style="text-align: center">REQUEST</span>
+    </div>
+
+    <md-table-container>
+      <table md-table class="gv-table-dense">
+        <tbody md-body>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Method</span></td>
+            <td md-cell>
+              <span
+                class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected"
+              >
+                {{$ctrl.log.method | uppercase}}
+              </span>
+            </td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">URI</span></td>
+            <td md-cell>{{$ctrl.log.uri}}</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Content-length</span></td>
+            <td md-cell>{{$ctrl.log.requestContentLength | number}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+
+    <md-table-container>
+      <table md-table class="gv-table-dense">
+        <tbody md-body>
+          <tr md-row ng-repeat="(key, value) in $ctrl.log.request.headers" style="height: 30px">
+            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+            <td md-cell>{{value[0]}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+
+    <br />
+
+    <div ng-if="$ctrl.log.request.body" class="log-body">
+      <div
+        ui-codemirror
+        ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.request)}"
+        ng-model="$ctrl.log.request.body"
+      ></div>
+      <button class="copy">
+        <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+        <ng-md-icon
+          icon="content_copy"
+          ngclipboard
+          data-clipboard-text="{{$ctrl.log.request.body}}"
+          ngclipboard-success="$ctrl.onCopyBodySuccess(e);"
+          role="button"
+        ></ng-md-icon>
+      </button>
+    </div>
+  </div>
+
+  <div flex="5" layout="column" layout-align="center center"></div>
+
+  <div
+    layout="column"
+    layout-padding
+    ng-class="{'gv-log-response-panel-{{$ctrl.log.status / 100 | number:0}}': true}"
+    style="margin-top: 3px"
+    flex="50"
+  >
+    <div flex="5" layout="row" layout-align="center center">
+      <span class="log-header" style="text-align: center">RESPONSE</span>
+    </div>
+
+    <md-table-container>
+      <table md-table class="gv-table-dense">
+        <tbody md-body>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Status</span></td>
+            <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status | number}}</span></td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Content-length</span></td>
+            <td md-cell>{{$ctrl.log.responseContentLength | number}}</td>
+          </tr>
+          <tr md-row style="height: 30px">
+            <td md-cell><span style="font-weight: bold">Response time</span></td>
+            <td md-cell>{{$ctrl.log.responseTime | number}} ms</td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+
+    <md-table-container>
+      <table md-table class="gv-table-dense">
+        <tbody md-body>
+          <tr md-row ng-repeat="(key, value) in $ctrl.log.response.headers" style="height: 30px">
+            <td md-cell><span style="font-weight: bold">{{key}}</span></td>
+            <td md-cell>{{value[0]}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </md-table-container>
+
+    <div ng-if="$ctrl.log.response.body" class="log-body">
+      <div
+        ui-codemirror
+        ui-codemirror-opts="{lineNumbers: true, lineWrapping: true, readOnly: true, mode: $ctrl.getMimeType($ctrl.log.response)}"
+        ng-model="$ctrl.log.response.body"
+      ></div>
+      <button class="copy">
+        <md-tooltip md-direction="top">Copy to clipboard</md-tooltip>
+        <ng-md-icon
+          icon="content_copy"
+          ngclipboard
+          data-clipboard-text="{{$ctrl.log.response.body}}"
+          ngclipboard-success="$ctrl.onCopyBodySuccess(e);"
+          role="button"
+        ></ng-md-icon>
+      </button>
+    </div>
+  </div>
+</div>

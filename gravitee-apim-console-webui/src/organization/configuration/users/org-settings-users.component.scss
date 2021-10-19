@@ -1,0 +1,34 @@
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  &__form-field {
+    flex: 0 1 auto;
+    margin-right: 48px;
+  }
+
+  &__add-btn {
+    flex: 0 1 auto;
+    padding-bottom: 1.34375em;
+  }
+}
+
+.mat-column-userPicture,
+.mat-column-displayName,
+.mat-column-status,
+.mat-column-email,
+.mat-column-source,
+.mat-column-actions {
+  padding: 0 4px;
+}
+
+.mat-column-displayName {
+  cursor: pointer;
+}

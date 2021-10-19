@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Dashboard;
-
 import java.util.List;
 
 /**
@@ -25,6 +24,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface DashboardRepository extends CrudRepository<Dashboard, String> {
-
     List<Dashboard> findByReferenceType(String referenceType) throws TechnicalException;
 }

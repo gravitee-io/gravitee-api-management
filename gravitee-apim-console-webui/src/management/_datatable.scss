@@ -1,0 +1,68 @@
+table.md-table {
+  border: 0;
+  .md-cell,
+  .md-column {
+    padding: 0 18px !important;
+  }
+
+  thead {
+    background: #fff;
+    th.column-with-logo {
+      padding-left: 52px !important;
+    }
+  }
+  tbody {
+    tr {
+      background-color: #fff;
+      height: 44px !important;
+
+      .md-row {
+        transition: background-color 0.2s;
+      }
+      &:hover {
+        background-color: #eee !important;
+      }
+    }
+  }
+}
+
+//////////////////////////////////////
+// Add more density
+//////////////////////////////////////
+table.md-table.gv-table-dense {
+  margin-bottom: 1.1rem;
+  .md-cell,
+  .md-column {
+    padding: 4px 12px !important;
+  }
+
+  tbody {
+    tr {
+      height: 28px !important;
+    }
+  }
+
+  md-list-item {
+    min-height: 32px;
+
+    .md-avatar {
+      width: 32px;
+      height: 32px;
+    }
+  }
+}
+
+.md-table-pagination.gv-table-dense > * {
+  height: 42px;
+}
+
+.audit-properties {
+  display: grid;
+  grid-gap: 5px;
+  grid-template-columns: auto 1fr;
+  line-height: 20px;
+}
+
+.audit-property {
+  font-weight: bold;
+}

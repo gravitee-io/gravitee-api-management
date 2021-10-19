@@ -1,0 +1,73 @@
+{
+  "portal": {
+    "navbar": {
+      "background-color": "#010002",
+      "color": "#fff",
+      "help": {
+        "fill": "#fff"
+      },
+      "notifications": {
+        "fill": "#fff"
+      },
+      "user": {
+        "img": {
+          "border": "2px solid #F5F5F5",
+          "alert": {
+            "border": "2px solid #B8D9FF"
+          }
+        },
+        "notification": {
+          "background-color": "#B8D9FF",
+          "border": "1px solid #010002",
+          "color": "#010002",
+          "padding-top": "2px"
+        }
+      }
+    },
+    "footer": {
+      "content": {
+        "background-color": "#2d323e",
+        "color": "#e1e2e1"
+      },
+      "links": {
+        "color": "#f5f5f6"
+      }
+    },
+    "home": {
+      "header": {
+        "background-color": "#2d323e",
+        "color": "#fff"
+      },
+      "homepage": {
+        "background-color": "#f7f7f7"
+      },
+      "content": {
+        "background-color": "#34a0d4"
+      },
+      "topapis": {
+        "background-color": "#34a0d4"
+      }
+    },
+    "apisList": {
+      "background-color": "#0f0"
+    },
+    "api": {
+      "header": {
+        "background-color": "#eff4f9"
+      },
+      "plans": {
+        "background-color": "#eff4f9",
+        "title": {
+          "color": "#555"
+        }
+      },
+      "plan": {
+        "color": "#555",
+        "border": "1px solid #ccc"
+      }
+    },
+    "login": {
+      "background-color": "#ededed"
+    }
+  }
+}

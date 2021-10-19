@@ -23,11 +23,10 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldExclusionFilter;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.Api;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

@@ -1,0 +1,106 @@
+gv-newsletter-reminder.newsletter-open {
+  opacity: 1;
+  visibility: visible;
+  transition: all 350ms ease-in-out 1s;
+}
+
+gv-newsletter-reminder {
+  position: fixed;
+  padding: 1rem;
+  border: 1px solid #bfbfbf;
+  right: 2px;
+  bottom: 2px;
+  z-index: 100;
+  background-color: white;
+  border-radius: 4px;
+  opacity: 0;
+  visibility: hidden;
+
+  .newsletter-box,
+  .newsletter-title {
+    flex: 1;
+  }
+
+  .newsletter-title-box {
+    display: flex;
+  }
+
+  .newsletter-error,
+  .newsletter-success {
+    display: none;
+  }
+
+  .newsletter-error {
+    color: #ff5722;
+  }
+
+  .newsletter-success {
+    color: #86c3d0;
+  }
+
+  .newsletter-box p {
+    font-size: 14px;
+    margin: 1rem 0;
+  }
+
+  .newsletter-box form {
+    margin-bottom: 0.5rem;
+  }
+
+  .newsletter-title {
+    font-size: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.2rem;
+  }
+
+  .newsletter-form {
+    display: grid;
+    grid-template-columns: 320px 150px;
+    grid-gap: 0.5rem;
+  }
+
+  .gv-input {
+    border: var(--gv-input--bdw, 1px) var(--gv-input--bds, solid) var(--gv-input--bdc, var(--gv-theme-neutral-color-dark, #d9d9d9));
+    box-sizing: border-box;
+    border-radius: 4px;
+    font-style: normal;
+    font-weight: normal;
+    outline: none;
+    width: 100%;
+    -webkit-appearance: none;
+    padding: 10px 5px;
+    font-size: 14px;
+    line-height: 17px;
+    height: calc(17px + 10px + 10px);
+  }
+
+  .gv-button {
+    border: 1px solid #86c3d0;
+    outline: 0;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    text-decoration: none;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    transition: all 75ms ease-in-out;
+    background-color: #86c3d0;
+    color: #1c1d1f;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .gv-button:focus,
+  .gv-button:hover {
+    box-shadow: 0 1px 3px var(--gv-theme-color-darker, #383e3f);
+  }
+
+  .message {
+    font-size: 12px;
+  }
+}

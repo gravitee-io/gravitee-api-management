@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Environment;
-
 import java.util.Optional;
 import java.util.Set;
 

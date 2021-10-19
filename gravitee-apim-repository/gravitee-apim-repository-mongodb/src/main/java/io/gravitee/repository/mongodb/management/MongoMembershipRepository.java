@@ -22,15 +22,14 @@ import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import io.gravitee.repository.mongodb.management.internal.membership.MembershipMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.MembershipMongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -365,8 +364,6 @@ public class MongoMembershipRepository implements MembershipRepository {
 
     @Override
     public Set<Membership> findAll() throws TechnicalException {
-        return internalMembershipRepo.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return internalMembershipRepo.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

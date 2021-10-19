@@ -113,8 +113,10 @@ public class MongoPageRevisionRepository implements PageRevisionRepository {
 
     @Override
     public Set<PageRevision> findAll() throws TechnicalException {
-        return internalPageRevisionRepo.findAll().stream()
-                .map(pageRevisionMongo -> mapper.map(pageRevisionMongo, PageRevision.class))
-                .collect(Collectors.toSet());
+        return internalPageRevisionRepo
+            .findAll()
+            .stream()
+            .map(pageRevisionMongo -> mapper.map(pageRevisionMongo, PageRevision.class))
+            .collect(Collectors.toSet());
     }
 }

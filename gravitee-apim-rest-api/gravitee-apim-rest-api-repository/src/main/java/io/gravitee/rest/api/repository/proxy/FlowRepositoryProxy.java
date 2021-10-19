@@ -19,11 +19,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.Flow;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)

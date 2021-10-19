@@ -21,10 +21,9 @@ import io.gravitee.repository.management.api.AlertEventRepository;
 import io.gravitee.repository.management.api.search.AlertEventCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AlertEvent;
-import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)

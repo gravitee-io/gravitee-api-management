@@ -19,11 +19,10 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataReferenceType;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)

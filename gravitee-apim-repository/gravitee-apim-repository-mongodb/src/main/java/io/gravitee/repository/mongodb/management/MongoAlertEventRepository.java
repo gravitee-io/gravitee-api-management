@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,7 +129,9 @@ public class MongoAlertEventRepository implements AlertEventRepository {
 
     @Override
     public Set<AlertEvent> findAll() throws TechnicalException {
-        return internalAlertEventRepo.findAll().stream()
+        return internalAlertEventRepo
+            .findAll()
+            .stream()
             .map(alertEventMongo -> mapper.map(alertEventMongo, AlertEvent.class))
             .collect(Collectors.toSet());
     }

@@ -1,0 +1,95 @@
+$healthcheckSidenavWidth: 500px;
+
+@mixin min-max-width($width) {
+  width: $width;
+  height: 100%;
+  min-width: $width;
+  max-width: $width;
+}
+
+md-sidenav.healthcheck {
+  padding-top: 54px;
+  @include min-max-width($healthcheckSidenavWidth);
+  background-color: #fafafa;
+
+  md-content {
+    background-color: #fafafa;
+  }
+}
+
+.configuration-card {
+  gv-cron-editor {
+    margin: 0;
+  }
+}
+
+.healthcheck-summary-timeline-wrapper {
+  padding: 10px 8px;
+}
+
+.configuration-card fieldset {
+  border: none;
+}
+
+.configuration-card fieldset.form-disabled {
+  background-color: #e1e2e1;
+}
+
+.progress-bar-fatal {
+  background-color: #d9534f;
+  color: black;
+}
+
+.healthcheck-summary-timeline {
+  .timeline:before {
+    left: 10%;
+  }
+
+  timeline-badge {
+    left: 10%;
+    top: 10px;
+  }
+
+  timeline-panel {
+    width: 76%;
+    min-height: 70px;
+  }
+
+  timeline-panel:before {
+    top: 20px;
+  }
+
+  timeline-panel:after {
+    top: 21px;
+  }
+
+  .healthcheck-summary-timeline-title {
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+.healthcheck-endpoint-headers {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  &__remove {
+    flex: 0;
+  }
+
+  &__key {
+    flex: 1;
+  }
+
+  &__value {
+    flex: 2;
+  }
+}
+
+.healthcheck-timeline-icon {
+  --gv-icon--c: white;
+  --gv-icon--s: 32px;
+}

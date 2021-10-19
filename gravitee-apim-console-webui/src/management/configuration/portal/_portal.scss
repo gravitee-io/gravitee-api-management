@@ -1,0 +1,15 @@
+.portal-component__sub-input {
+  margin-left: 35px !important;
+
+  md-checkbox {
+    min-height: 30px;
+
+    .md-container {
+      margin-top: 5px;
+    }
+
+    .md-label {
+      margin-top: -10px;
+    }
+  }
+}

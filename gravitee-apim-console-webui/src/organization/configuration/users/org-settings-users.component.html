@@ -1,0 +1,113 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h1>Users</h1>
+
+<div class="search-bar">
+  <mat-form-field class="search-bar__form-field" appearance="outline">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput type="search" placeholder="Search users" [formControl]="searchFormControl" />
+    <mat-label>Search users</mat-label>
+    <button *ngIf="searchFormControl.value" matSuffix mat-icon-button aria-label="Clear" (click)="searchFormControl.setValue('')">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+  <div class="search-bar__add-btn">
+    <button (click)="onAddUserClick()" mat-raised-button color="primary"><mat-icon>person_add</mat-icon> Add user</button>
+  </div>
+</div>
+
+<div class="mat-elevation-z3">
+  <table mat-table [dataSource]="dataSource" class="users-table" id="usersTable" aria-label="User table">
+    <!-- Position Column -->
+    <ng-container matColumnDef="userPicture">
+      <th mat-header-cell *matHeaderCellDef id="userPicture" width="1%"></th>
+      <td mat-cell *matCellDef="let element">
+        <gio-avatar [src]="element.userPicture" [name]="element.displayName" size="32" [roundedBorder]="true"></gio-avatar>
+      </td>
+    </ng-container>
+
+    <!-- Display name Column -->
+    <ng-container matColumnDef="displayName">
+      <th mat-header-cell *matHeaderCellDef id="displayName">Display name</th>
+      <td mat-cell *matCellDef="let element" (click)="onDisplayNameClick(element.userId)">
+        <a>{{ element.displayName }}</a>
+        <span class="gio-badge" *ngIf="element.primary_owner">Primary Owner</span>
+        <span class="gio-badge-error" *ngIf="element.number_of_active_tokens > 0">
+          Active Token{{ element.number_of_active_tokens > 1 ? 's' : '' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Status Column -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef id="status" width="15%">Status</th>
+      <td mat-cell *matCellDef="let element">
+        <span *ngIf="element.status === 'ACTIVE'" style="color: green">{{ element.status }}</span>
+        <span *ngIf="element.status === 'PENDING'" style="color: orange">{{ element.status }}</span>
+        <span *ngIf="element.status === 'REJECTED'" style="color: red">{{ element.status }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Email Column -->
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef id="email" width="15%">Email</th>
+      <td mat-cell *matCellDef="let element">{{ element.email }}</td>
+    </ng-container>
+
+    <!-- Source Column -->
+    <ng-container matColumnDef="source">
+      <th mat-header-cell *matHeaderCellDef id="source" width="15%">Source</th>
+      <td mat-cell *matCellDef="let element">{{ element.source }}</td>
+    </ng-container>
+
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef id="actions" width="1%"></th>
+      <td mat-cell *matCellDef="let element">
+        <ng-container *gioPermission="{ anyOf: ['organization-user-d'] }">
+          <button
+            *ngIf="!element.primary_owner"
+            (click)="onDeleteUserClick(element)"
+            mat-icon-button
+            color="primary"
+            aria-label="Button to delete user"
+            matTooltip="Delete user"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <!-- Row shown when there is no data -->
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="4">No user</td>
+    </tr>
+  </table>
+
+  <mat-paginator
+    [length]="resultsLength"
+    [pageSizeOptions]="pageSizeOptions"
+    [pageIndex]="matPaginatorPageIndex"
+    (page)="onPageChange($event)"
+    aria-label="Select page of user list"
+  ></mat-paginator>
+</div>

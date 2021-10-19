@@ -22,16 +22,15 @@ import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.repository.mongodb.management.internal.api.ParameterMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterMongo;
 import io.gravitee.repository.mongodb.management.internal.model.ParameterPkMongo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -139,8 +138,6 @@ public class MongoParameterRepository implements ParameterRepository {
 
     @Override
     public Set<Parameter> findAll() throws TechnicalException {
-        return internalParameterRepo.findAll().stream()
-                .map(this::map)
-                .collect(Collectors.toSet());
+        return internalParameterRepo.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }
