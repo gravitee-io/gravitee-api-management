@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { MatChipHarness } from '@angular/material/chips/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -32,6 +33,7 @@ import { fakeUser } from '../../../../entities/user/user.fixture';
 import { User as DeprecatedUser } from '../../../../entities/user';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
+import { GioSaveBarHarness } from '../../../../shared/components/gio-save-bar/gio-save-bar.harness';
 
 describe('OrgSettingsUserDetailComponent', () => {
   const fakeAjsState = {
@@ -62,11 +64,6 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-
-    expectRolesListRequest('ORGANIZATION', [
-      fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
-      fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
-    ]);
   });
 
   afterEach(() => {
@@ -88,6 +85,10 @@ describe('OrgSettingsUserDetailComponent', () => {
       customFields,
     });
     expectUserGetRequest(user);
+    expectRolesListRequest('ORGANIZATION', [
+      fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
+      fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
+    ]);
 
     const userCard = await loader.getHarness(MatCardHarness);
 
@@ -109,6 +110,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'PENDING',
     });
     expectUserGetRequest(user);
+    expectRolesListRequest('ORGANIZATION', []);
 
     const AcceptUserButton = await loader.getHarness(MatButtonHarness.with({ text: /Accept/ }));
     expect(AcceptUserButton).toBeTruthy();
@@ -123,9 +125,36 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectUserGetRequest(user);
+    expectRolesListRequest('ORGANIZATION', []);
 
     expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Accept/ }))).toHaveLength(0);
     expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Reject/ }))).toHaveLength(0);
+  });
+
+  it('should save organization roles', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+      roles: [{ id: 'roleOrgUserId', name: 'ROLE_ORG_USER', scope: 'ORGANIZATION' }],
+    });
+    expectUserGetRequest(user);
+    expectRolesListRequest('ORGANIZATION', [
+      fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
+      fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
+    ]);
+
+    const orgRoleCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__org-role-card' }));
+    const rolesSelect = await orgRoleCard.getHarness(MatSelectHarness);
+    await rolesSelect.open();
+    await rolesSelect.clickOptions({ text: 'ROLE_ORG_ADMIN' });
+
+    expect(await rolesSelect.getValueText()).toBe('ROLE_ORG_USER, ROLE_ORG_ADMIN');
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectUpdateUserRolesRequest(user.id, ['roleOrgUserId', 'roleOrgAdminId']);
   });
 
   function expectUserGetRequest(user: User = fakeUser({ id: 'userId' })) {
@@ -140,5 +169,12 @@ describe('OrgSettingsUserDetailComponent', () => {
     expect(req.request.method).toEqual('GET');
     req.flush(roles);
     fixture.detectChanges();
+  }
+
+  function expectUpdateUserRolesRequest(userId: string, roles: string[]) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/roles`);
+    expect(req.request.method).toEqual('PUT');
+    expect(req.request.body.roles).toEqual(roles);
+    req.flush({});
   }
 });
