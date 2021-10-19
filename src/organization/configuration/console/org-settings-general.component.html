@@ -1,0 +1,547 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="settings-general" #container>
+  <form
+    *ngIf="!isLoading"
+    class="settings-general__form"
+    [formGroup]="formSettings"
+    (ngSubmit)="onSubmit()"
+    autocomplete="off"
+    gioFormFocusInvalid
+  >
+    <h1>Settings</h1>
+    <gio-banner-info>
+      Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
+      information.
+    </gio-banner-info>
+
+    <mat-card class="settings-general__form__card" formGroupName="management">
+      <h2 gioTableOfContents>Management</h2>
+
+      <mat-card-content>
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('management.title')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('management.title')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" />
+        </mat-form-field>
+
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('management.url')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('management.url')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Management URL</mat-label>
+          <input matInput formControlName="url" />
+        </mat-form-field>
+
+        <mat-divider></mat-divider>
+
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('management.support.enabled')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+          formGroupName="support"
+        >
+          <mat-icon *ngIf="isReadonlySetting('management.support.enabled')" gioFormPrefix>lock</mat-icon>
+          <gio-form-label>Activate Support</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Activate Support" name="support"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <mat-divider></mat-divider>
+
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('management.userCreation.enabled')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+          formGroupName="userCreation"
+        >
+          <mat-icon *ngIf="isReadonlySetting('management.userCreation.enabled')" gioFormPrefix>lock</mat-icon>
+          <gio-form-label>Allow User Registration</gio-form-label>
+          <mat-slide-toggle
+            #managementUserCreationSlideToggle
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Allow user creation"
+            name="userCreation"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <ng-container *ngIf="managementUserCreationSlideToggle.checked">
+          <mat-divider></mat-divider>
+
+          <gio-form-slide-toggle
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('management.automaticValidation.enabled')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+            formGroupName="automaticValidation"
+          >
+            <mat-icon *ngIf="isReadonlySetting('management.automaticValidation.enabled')" gioFormPrefix>lock</mat-icon>
+            <gio-form-label>Enable automatic validation of registration requests</gio-form-label>
+            <mat-slide-toggle
+              gioFormSlideToggle
+              formControlName="enabled"
+              aria-label="Enable auto validation of creation"
+              name="automaticValidation"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </ng-container>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="theme">
+      <h2 gioTableOfContents>Theme</h2>
+      <mat-card-content>
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('theme.name')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('theme.name')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('theme.logo')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('theme.logo')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
+          <mat-label>Logo</mat-label>
+          <input matInput formControlName="logo" />
+        </mat-form-field>
+
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('theme.loader')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('theme.loader')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Loader</mat-label>
+          <input matInput formControlName="loader" />
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="scheduler">
+      <h2 gioTableOfContents>Schedulers</h2>
+      <mat-card-content>
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('scheduler.tasks')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('scheduler.tasks')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Tasks (in seconds)</mat-label>
+          <input matInput formControlName="tasks" type="number" min="0" />
+        </mat-form-field>
+
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('scheduler.notifications')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('scheduler.notifications')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Notifications (in seconds)</mat-label>
+          <input #schedulerNotificationsInput matInput formControlName="notifications" type="number" min="0" />
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="alert">
+      <h2 gioTableOfContents>Alerting</h2>
+      <mat-card-content>
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('alert.enabled')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('alert.enabled')" class="settings-general__form__card__form-field__icon" gioFormPrefix
+            >lock</mat-icon
+          >
+          <gio-form-label>Enable Alerting</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="enabled" aria-label="Alerting enabled " name="alert"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="cors">
+      <h2 gioTableOfContents>CORS</h2>
+      <mat-card-content>
+        <div class="settings-general__form__card__label">Allow-Origin</div>
+        <p>
+          The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
+          <em>same-origin</em> definition. <br />
+          If you choose to enable '*' it means that is allows all requests, regardless of origin.
+        </p>
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.allowOrigin')"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-icon *ngIf="isReadonlySetting('cors.allowOrigin')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Allow-Origin</mat-label>
+          <gio-form-tags-input
+            formControlName="allowOrigin"
+            placeholder="*, https://mydomain.com, (http|https).*.mydomain.com, ..."
+            [tagValidationHook]="confirmAllowAllOrigins()"
+          >
+          </gio-form-tags-input>
+
+          <mat-error *ngIf="formSettings.get('cors.allowOrigin')?.errors?.allowOrigin">{{
+            formSettings.get('cors.allowOrigin')?.errors?.allowOrigin
+          }}</mat-error>
+          <mat-hint>Regular Expressions are also supported</mat-hint>
+        </mat-form-field>
+
+        <div class="settings-general__form__card__label">Access-Control-Allow-Methods</div>
+        <p>Specifies the method or methods allowed when accessing the resource. This is used in response to a preflight request.</p>
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.allowMethods')"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-icon *ngIf="isReadonlySetting('cors.allowMethods')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Access-Control-Allow-Methods</mat-label>
+          <mat-select formControlName="allowMethods" multiple>
+            <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="settings-general__form__card__label">Allow-Headers</div>
+        <p>Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.</p>
+        <mat-form-field
+          *ngIf="formSettings.get('cors.allowHeaders'); let allowHeadersFormControl"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.allowHeaders')"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-icon *ngIf="isReadonlySetting('cors.allowHeaders')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Allow-Headers</mat-label>
+          <mat-chip-list #allowHeadersChipList aria-label="Allow-Headers selection" multiple [disabled]="allowHeadersFormControl.disabled">
+            <mat-chip
+              *ngFor="let header of allowHeadersFormControl.value"
+              [selectable]="false"
+              [removable]="!allowHeadersFormControl.disabled"
+              (removed)="removeChipToFormControl(header, 'cors.allowHeaders', allowHeadersChipList)"
+            >
+              {{ header }}
+              <mat-icon *ngIf="!allowHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
+            </mat-chip>
+            <input
+              *ngIf="!allowHeadersFormControl.disabled"
+              placeholder="Content-Type, ..."
+              [formControl]="allowHeadersInputFormControl"
+              [matAutocomplete]="auto"
+              [matChipInputFor]="allowHeadersChipList"
+              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.allowHeaders', allowHeadersChipList)"
+            />
+          </mat-chip-list>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.allowHeaders')">
+            <mat-option *ngFor="let defaultHeader of allowHeadersFilteredOptions$ | async" [value]="defaultHeader">
+              {{ defaultHeader }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <div class="settings-general__form__card__label">Exposed-Headers</div>
+        <p>Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.</p>
+        <mat-form-field
+          *ngIf="formSettings.get('cors.exposedHeaders'); let exposedHeadersFormControl"
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.exposedHeaders')"
+          class="settings-general__form__card__form-field"
+          appearance="fill"
+        >
+          <mat-icon *ngIf="isReadonlySetting('cors.exposedHeaders')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Exposed-Headers</mat-label>
+          <mat-chip-list
+            #exposedHeadersChipList
+            aria-label="Exposed-Headers selection"
+            multiple
+            [disabled]="exposedHeadersFormControl.disabled"
+          >
+            <mat-chip
+              *ngFor="let header of exposedHeadersFormControl.value"
+              [selectable]="false"
+              [removable]="!exposedHeadersFormControl.disabled"
+              (removed)="removeChipToFormControl(header, 'cors.exposedHeaders', exposedHeadersChipList)"
+            >
+              {{ header }}
+              <mat-icon *ngIf="!exposedHeadersFormControl.disabled" matChipRemove>cancel</mat-icon>
+            </mat-chip>
+            <input
+              *ngIf="!exposedHeadersFormControl.disabled"
+              placeholder="Content-Type, ..."
+              [formControl]="exposedHeadersInputFormControl"
+              [matAutocomplete]="auto"
+              [matChipInputFor]="exposedHeadersChipList"
+              (matChipInputTokenEnd)="addChipToFormControl($event, 'cors.exposedHeaders', exposedHeadersChipList)"
+            />
+          </mat-chip-list>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="addSelectedToFormControl($event, 'cors.exposedHeaders')">
+            <mat-option *ngFor="let defaultHeader of exposedHeadersFilteredOptions$ | async" [value]="defaultHeader">
+              {{ defaultHeader }}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <div class="settings-general__form__card__label">Max age</div>
+        <p>How long the response from a pre-flight request can be cached by clients</p>
+        <mat-form-field
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('cors.maxAge')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('cors.maxAge')" class="settings-general__form__card__form-field__icon" matPrefix
+            >lock</mat-icon
+          >
+          <mat-label>Max age</mat-label>
+          <input #maxAgeInput matInput formControlName="maxAge" type="number" min="0" />
+          <mat-hint>(seconds)</mat-hint>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="settings-general__form__card" formGroupName="email">
+      <h2 gioTableOfContents>SMTP</h2>
+      <mat-card-content>
+        <gio-form-slide-toggle
+          [matTooltip]="providedConfigurationMessage"
+          [matTooltipDisabled]="!isReadonlySetting('email.enabled')"
+          appearance="fill"
+          class="settings-general__form__card__form-field"
+        >
+          <mat-icon *ngIf="isReadonlySetting('email.enabled')" class="settings-general__form__card__form-field__icon" gioFormPrefix
+            >lock</mat-icon
+          >
+          <gio-form-label>Enable Emailing</gio-form-label>
+          <mat-slide-toggle
+            #emailEnabledSlideToggle
+            gioFormSlideToggle
+            formControlName="enabled"
+            aria-label="Email enabled"
+            name="emailEnabled"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+
+        <ng-container *ngIf="emailEnabledSlideToggle.checked">
+          <mat-divider></mat-divider>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.host')"
+            appearance="fill"
+            class="settings-general__form__card__form-field margin-top"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.host')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Host</mat-label>
+            <input matInput formControlName="host" />
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.port')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.port')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Port</mat-label>
+            <input matInput formControlName="port" type="number" min="0" />
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.username')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.username')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Username</mat-label>
+            <input matInput formControlName="username" />
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.password')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.password')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" type="password" />
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.protocol')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.protocol')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Protocol</mat-label>
+            <input matInput formControlName="protocol" />
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.subject')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.subject')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>Subject</mat-label>
+            <input matInput formControlName="subject" />
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="providedConfigurationMessage"
+            [matTooltipDisabled]="!isReadonlySetting('email.from')"
+            appearance="fill"
+            class="settings-general__form__card__form-field"
+          >
+            <mat-icon *ngIf="isReadonlySetting('email.from')" class="settings-general__form__card__form-field__icon" matPrefix
+              >lock</mat-icon
+            >
+            <mat-label>From</mat-label>
+            <input matInput formControlName="from" type="email" />
+          </mat-form-field>
+
+          <h3 class="settings-general__form__card__h3">Mail properties</h3>
+          <ng-container formGroupName="properties">
+            <gio-form-slide-toggle
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!isReadonlySetting('email.properties.auth')"
+              appearance="fill"
+              class="settings-general__form__card__form-field"
+            >
+              <mat-icon
+                *ngIf="isReadonlySetting('email.properties.auth')"
+                class="settings-general__form__card__form-field__icon"
+                gioFormPrefix
+                >lock</mat-icon
+              >
+              <gio-form-label>Enable Auth</gio-form-label>
+              <mat-slide-toggle
+                gioFormSlideToggle
+                formControlName="auth"
+                aria-label="Alerting enabled"
+                name="emailPropertiesAuth"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+
+            <mat-divider></mat-divider>
+
+            <gio-form-slide-toggle
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!isReadonlySetting('email.properties.startTlsEnable')"
+              appearance="fill"
+              class="settings-general__form__card__form-field"
+            >
+              <mat-icon
+                *ngIf="isReadonlySetting('email.properties.startTlsEnable')"
+                class="settings-general__form__card__form-field__icon"
+                gioFormPrefix
+                >lock</mat-icon
+              >
+              <gio-form-label>Enable Start TLS</gio-form-label>
+              <mat-slide-toggle
+                gioFormSlideToggle
+                formControlName="startTlsEnable"
+                aria-label="Start TLS enabled"
+                name="emailPropertiesStartTlsEnable"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+
+            <mat-divider></mat-divider>
+
+            <mat-form-field
+              [matTooltip]="providedConfigurationMessage"
+              [matTooltipDisabled]="!isReadonlySetting('email.sslTrust')"
+              appearance="fill"
+              class="settings-general__form__card__form-field margin-top"
+            >
+              <mat-icon *ngIf="isReadonlySetting('email.sslTrust')" class="settings-general__form__card__form-field__icon" matPrefix
+                >lock</mat-icon
+              >
+              <mat-label>SSL Trust</mat-label>
+              <input #emailPropertiesSslTrustInput matInput formControlName="sslTrust" />
+            </mat-form-field>
+          </ng-container>
+        </ng-container>
+      </mat-card-content>
+    </mat-card>
+    <gio-save-bar [form]="formSettings" [formInitialValues]="formInitialValues"> </gio-save-bar>
+  </form>
+
+  <gio-table-of-contents
+    class="settings-general__toc"
+    [sectionNames]="{ '': 'Settings' }"
+    scrollingContainer="ng-console-settings"
+  ></gio-table-of-contents>
+</div>

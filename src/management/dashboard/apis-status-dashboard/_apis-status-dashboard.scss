@@ -1,0 +1,104 @@
+.gv-apis-healthcheck_title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gv-apis-healthcheck_control {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 20px 0 10px 0;
+
+  > * {
+    margin: 0 5px;
+  }
+}
+
+.gv-apis-healthcheck_current-status {
+  height: 60px;
+  width: 100%;
+  margin: 5px 0;
+  border-radius: 8px;
+
+  span {
+    font-size: large;
+    font-weight: bold;
+    color: white;
+  }
+}
+
+.gv-apis-healthcheck_list {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  md-card {
+    width: calc((100% / 6) - 16px);
+
+    md-card-header {
+      padding: 8px;
+
+      md-card-header-text {
+        width: 75%;
+        .md-title {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+
+      md-card-avatar {
+        ng-md-icon {
+          position: initial;
+        }
+      }
+    }
+
+    md-card-content {
+      text-align: center;
+
+      .noData {
+        color: darkgray;
+        font-size: large;
+        font-weight: bold;
+        margin: 10px;
+        padding: 10px;
+      }
+    }
+  }
+
+  .apiError,
+  .apiWarn {
+    md-card-header-text {
+      width: 50%;
+    }
+  }
+
+  .apiError {
+    border: 2px solid #d9534f;
+    ng-md-icon {
+      fill: #d9534f;
+    }
+  }
+
+  .apiWarn {
+    border: 2px solid #f0ad4e;
+    ng-md-icon {
+      fill: #f0ad4e;
+    }
+  }
+}
+
+gv-chart-gauge {
+  height: 140px;
+}
+
+.gauge-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: black;
+}

@@ -1,0 +1,95 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!-- edit LINK -->
+<div style="display: inline-block; width: 100%">
+  <md-input-container class="md-block">
+    <label>Type of link</label>
+    <md-select ng-model="$ctrl.page.configuration.resourceType" required ng-change="$ctrl.onChangeLinkType()">
+      <md-option ng-value="'external'">External link</md-option>
+      <md-option ng-value="'page'">Link to an existing documentation page</md-option>
+      <md-option ng-value="'category'">Link to a category</md-option>
+    </md-select>
+  </md-input-container>
+
+  <!-- external link-->
+  <div ng-if="'external' === $ctrl.page.configuration.resourceType">
+    <md-input-container class="md-block" flex-gt-xs>
+      <label>URL</label>
+      <input ng-model="$ctrl.page.content" required />
+    </md-input-container>
+  </div>
+
+  <!-- category link -->
+  <div ng-if="'category' === $ctrl.page.configuration.resourceType">
+    <md-input-container ng-if="'category' === $ctrl.page.configuration.resourceType" class="md-block" flex-gt-xs>
+      <label>Target</label>
+      <md-select ng-model="$ctrl.page.content" required>
+        <md-option ng-repeat="resource in $ctrl.categoryResources" ng-value="resource.key" ng-click="$ctrl.updateLinkName(resource.name)"
+          >{{ resource.name }}
+        </md-option>
+      </md-select>
+    </md-input-container>
+
+    <div ng-if="$ctrl.page.content">
+      <md-switch
+        ng-model="$ctrl.page.configuration.inherit"
+        ng-true-value="'true'"
+        ng-false-value="'false'"
+        aria-label="Inherit from related category"
+        ng-change="$ctrl.updateLinkNameWithCategoryId($ctrl.page.content)"
+      >
+        Inherit name from category
+      </md-switch>
+      <div class="hint">
+        <div ng-if="$ctrl.page.configuration.inherit === 'false'">Switch on to inherit name from category.</div>
+        <div ng-if="$ctrl.page.configuration.inherit === 'true'">Switch off to be able to modify the name of the link.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- page link -->
+  <div ng-if="'page' === $ctrl.page.configuration.resourceType">
+    <md-input-container ng-if="'page' === $ctrl.page.configuration.resourceType" class="md-block" flex-gt-xs>
+      <label>Target</label>
+      <md-select ng-model="$ctrl.page.content" required ng-change="$ctrl.checkIfFolder()">
+        <md-option ng-repeat="resource in $ctrl.pageList" ng-value="resource.id" ng-click="$ctrl.updateLinkName(resource.name)">
+          <md-icon md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
+          <span style="font-style: italic; opacity: 0.5">{{ resource.parentPath }}</span>/{{ resource.name }}
+        </md-option>
+      </md-select>
+    </md-input-container>
+
+    <div ng-if="$ctrl.page.content && $ctrl.page.content !== 'root'">
+      <md-switch
+        ng-model="$ctrl.page.configuration.inherit"
+        ng-true-value="'true'"
+        ng-false-value="'false'"
+        aria-label="Inherit from related page"
+        ng-change="$ctrl.updateLinkNameWithPageId($ctrl.page.content)"
+      >
+        Inherit name and translations from page
+      </md-switch>
+      <div class="hint">
+        <div ng-if="$ctrl.page.configuration.inherit === 'false'">Switch on to inherit name and translations from page.</div>
+        <div ng-if="$ctrl.page.configuration.inherit === 'true'">
+          Switch off to be able to modify the name of the link and add custom translations.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

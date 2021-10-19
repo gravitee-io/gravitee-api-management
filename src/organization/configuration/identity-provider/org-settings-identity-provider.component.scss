@@ -1,0 +1,66 @@
+@use '../../../scss/gio-layout' as gio-layout;
+
+// Use identity provider components common scss
+@import './org-settings-identity-provider.common-style';
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.identity-provider {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  &__card {
+    margin-bottom: 16px;
+
+    &__form-field {
+      width: 100%;
+
+      &__radio-group {
+        display: flex;
+        flex-direction: column;
+
+        &__button {
+          margin-top: 8px;
+        }
+      }
+
+      &.radio-group {
+        padding: 0 0.75em 0 0.75em;
+      }
+    }
+
+    &__provider-type-group {
+      &__button {
+        flex: 1 1 15%;
+        text-align: center;
+
+        &__logo {
+          width: 48px;
+          height: 48px;
+        }
+      }
+    }
+
+    &__group-mapping,
+    &__role-mapping {
+      display: flex;
+      flex-direction: column;
+
+      & + & {
+        margin-top: 16px;
+      }
+    }
+    &__role-mapping {
+      &__table {
+        .mat-cell.mat-column-actions {
+          display: flex;
+          flex-direction: column;
+          margin-top: 16px;
+        }
+      }
+    }
+  }
+}

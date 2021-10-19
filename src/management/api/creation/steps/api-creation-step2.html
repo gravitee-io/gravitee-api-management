@@ -1,0 +1,69 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-step label="Gateway" md-complete="$ctrl.parent.vm.stepData[1].data.completed" ng-disabled="$ctrl.parent.vm.stepProgress < 2">
+  <md-step-body>
+    <md-content layout-padding class="gv-creation-content">
+      <div layout="row" layout-align="end start"><a ng-click="$ctrl.toggleAdvancedMode()">Advanced mode</a></div>
+      <form
+        name="apiGatewayForm"
+        ng-submit="$ctrl.parent.selectEndpoint(); $ctrl.parent.submitCurrentStep($ctrl.parent.vm.stepData[1].data)"
+      >
+        <div layout-gt-sm="row">
+          <md-input-container class="md-block" flex-gt-sm>
+            <label>Backend</label>
+            <input ng-model="$ctrl.parent.endpoint" type="url" required name="endpoint" />
+            <div class="hint" ng-if="$ctrl.shouldDisplayHint(apiGatewayForm.endpoint)">
+              Target backend when a request is received for the API context-path
+            </div>
+            <div ng-messages="apiGatewayForm.endpoint.$error">
+              <div ng-message="required">Endpoint is required.</div>
+              <div ng-message="url">Endpoint is not a valid URL.</div>
+            </div>
+          </md-input-container>
+
+          <md-input-container class="md-block" flex-gt-sm flex="25" ng-if="$ctrl.advancedMode">
+            <label>Tenants</label>
+            <md-select ng-model="$ctrl.parent.selectedTenants" multiple>
+              <md-option ng-repeat="tenant in $ctrl.parent.tenants" ng-value="tenant.id">
+                {{tenant.name}}<span ng-if="tenant.description" class="gravitee-general-description"> - {{tenant.description}}</span>
+              </md-option>
+            </md-select>
+            <div class="hint">Select tenants you want to use for this backend.</div>
+          </md-input-container>
+        </div>
+        <md-input-container class="md-block" ng-if="$ctrl.advancedMode">
+          <label>Sharding tags</label>
+          <md-select ng-model="$ctrl.parent.api.tags" multiple>
+            <md-option ng-repeat="tag in $ctrl.parent.tags" ng-value="tag.id">
+              {{tag.name}}<span ng-if="tag.description" class="gravitee-general-description"> - {{tag.description}}</span>
+            </md-option>
+          </md-select>
+          <div class="hint">Select sharding tags you want to use for this backend.</div>
+        </md-input-container>
+        <md-step-actions layout="row">
+          <div flex>
+            <md-button ng-click="$ctrl.parent.moveToPreviousStep()">PREVIOUS</md-button>
+          </div>
+          <div flex layout="row" layout-align="end top">
+            <md-button type="submit" ng-disabled="apiGatewayForm.$invalid">NEXT</md-button>
+          </div>
+        </md-step-actions>
+      </form>
+    </md-content>
+  </md-step-body>
+</md-step>

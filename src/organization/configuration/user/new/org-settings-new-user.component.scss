@@ -1,0 +1,22 @@
+@use '../../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.org-settings-new-user {
+  &__card {
+    margin-bottom: 16px;
+
+    &__form-field {
+      width: 100%;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    margin-top: 16px;
+  }
+}

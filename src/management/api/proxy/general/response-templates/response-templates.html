@@ -1,0 +1,95 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form name="apiProxyCtrl.formApi" ng-submit="apiProxyCtrl.update(apiProxyCtrl.api)" novalidate>
+  <div class="gv-forms" layout="column">
+    <h1>Response Templates</h1>
+    <div class="gv-form">
+      <div class="gv-forms-header">
+        <h2>Templates</h2>
+        <div class="ipsum">Define your own response templates if you're looking for overriding default responses from the gateway.</div>
+      </div>
+
+      <div class="gv-form-content" layout="column">
+        <md-table-container ng-if="ctrl.hasTemplates()">
+          <table md-table>
+            <thead md-head>
+              <tr md-row>
+                <th md-column width="1%" nowrap>Key</th>
+                <th md-column width="1%" nowrap>Content-Type</th>
+                <th md-column width="1%" nowrap>Status Code</th>
+                <th md-column nowrap>Body</th>
+                <th md-column width="48px"></th>
+              </tr>
+            </thead>
+            <tbody md-body ng-repeat="(key, templates) in ctrl.api.response_templates">
+              <tr md-row ng-repeat="(type, template) in ctrl.api.response_templates[key]">
+                <td ng-if="$first" md-cell rowspan="{{ctrl.countTypes(templates)}}">
+                  <a
+                    ui-sref="management.apis.detail.proxy.responsetemplates.edit({key: key})"
+                    permission
+                    permission-only="['api-response_templates-u','api-response_templates-r']"
+                    >{{key}}</a
+                  >
+                </td>
+                <td md-cell>{{type}}</td>
+                <td md-cell>{{template.status}}</td>
+                <td md-cell>
+                  <div
+                    ui-codemirror
+                    ui-refresh="true"
+                    ui-codemirror-opts="{lineWrapping: true, readOnly: nocursor, mode: type}"
+                    ng-model="template.body"
+                    ng-if="template.display"
+                  ></div>
+                  <a ng-if="!template.display" ng-click="template.display=true">show</a>
+                  <a ng-if="template.display" ng-click="template.display=false">hide</a>
+                </td>
+                <td ng-if="$first" md-cell rowspan="{{ctrl.countTypes(templates)}}" width="100px">
+                  <ng-md-icon icon="delete" ng-click="ctrl.remove(key)" permission permission-only="'api-response_templates-d'">
+                    style="font-size: 24px; height: 24px;">
+                    <md-tooltip md-direction="top" md-visible="false">Remove</md-tooltip>
+                  </ng-md-icon>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </md-table-container>
+
+        <gravitee-empty-state
+          ng-if="!ctrl.hasTemplates()"
+          icon="assignment"
+          model="Response template"
+          message="Response templates will appear here"
+          sub-message="Start creating a response template"
+          create-mode="true"
+        ></gravitee-empty-state>
+      </div>
+    </div>
+  </div>
+</form>
+
+<md-button
+  permission
+  permission-only="'api-response_templates-c'"
+  aria-label="Create response template"
+  class="md-fab md-fab-bottom-right"
+  ui-sref="management.apis.detail.proxy.responsetemplates.new"
+>
+  <md-tooltip md-direction="top" md-visible="false">Add a new response template</md-tooltip>
+  <ng-md-icon icon="add"></ng-md-icon>
+</md-button>

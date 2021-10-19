@@ -1,0 +1,249 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="identity-provider">
+  <form *ngIf="!isLoading" [formGroup]="identityProviderFormGroup" (ngSubmit)="onSubmit()" autocomplete="off" gioFormFocusInvalid>
+    <h1>
+      <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-identityproviders' }"></gio-go-back-button>
+      <ng-container *ngIf="mode === 'new'">Create a new identity provider</ng-container>
+      <ng-container *ngIf="mode === 'edit'">Update {{ identityProviderType | titlecase }} identity provider</ng-container>
+    </h1>
+
+    <mat-card *ngIf="mode === 'new'" class="identity-provider__card">
+      <h2 gioTableOfContents>Provider type</h2>
+
+      <gio-form-card-group class="identity-provider__card__provider-type-group" formControlName="type">
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="GRAVITEEIO_AM">
+          <img
+            class="identity-provider__card__provider-type-group__button__logo"
+            src="/assets/logo_graviteeio_am-idp.svg"
+            alt="ravitee.io AM Logo"
+          />
+          <p class="identity-provider__card__provider-type-group__button__label">Gravitee.io AM</p>
+        </gio-form-card>
+
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="OIDC">
+          <img
+            class="identity-provider__card__provider-type-group__button__logo"
+            src="/assets/logo_oidc-idp.svg"
+            alt="OpenID Connect Logo"
+          />
+          <p class="identity-provider__card__provider-type-group__button__label">OpenID Connect</p>
+        </gio-form-card>
+
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="GOOGLE">
+          <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_google-idp.svg" alt="Google Logo" />
+          <p class="identity-provider__card__provider-type-group__button__label">Google</p>
+        </gio-form-card>
+
+        <gio-form-card class="identity-provider__card__provider-type-group__button" value="GITHUB">
+          <img class="identity-provider__card__provider-type-group__button__logo" src="/assets/logo_github-idp.svg" alt="Github Logo" />
+          <p class="identity-provider__card__provider-type-group__button__label">Github</p>
+        </gio-form-card>
+      </gio-form-card-group>
+    </mat-card>
+
+    <mat-card class="identity-provider__card">
+      <h2 gioTableOfContents>General</h2>
+
+      <mat-form-field class="identity-provider__card__form-field" appearance="fill">
+        <mat-label>Name</mat-label>
+        <input matInput name="name" minlength="2" maxlength="50" formControlName="name" required />
+        <mat-hint>Identity provider name. The name will be used to define the authentication endpoint</mat-hint>
+
+        <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('required')">Identity provider name is required.</mat-error>
+        <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('maxlength')"
+          >The identity provider has to be less than 50 characters long.</mat-error
+        >
+        <mat-error *ngIf="this.identityProviderFormGroup.get('name').hasError('minlength')"
+          >The identity provider has to be more than 2 characters long.</mat-error
+        >
+      </mat-form-field>
+
+      <mat-form-field class="identity-provider__card__form-field" appearance="fill">
+        <mat-label>Description</mat-label>
+        <input matInput name="description" formControlName="description" />
+        <mat-hint>Provide a description of the identity provider</mat-hint>
+      </mat-form-field>
+
+      <!-- Note: Token exchange endpoint ?? -->
+
+      <gio-form-slide-toggle class="identity-provider__card__form-field" appearance="fill">
+        <gio-form-label>Allow portal authentication to use this identity provider</gio-form-label>
+        <mat-slide-toggle
+          gioFormSlideToggle
+          aria-label="Allow identity provider for portal"
+          name="identityProviderEnabled"
+          formControlName="enabled"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <gio-form-slide-toggle class="identity-provider__card__form-field" appearance="fill">
+        <gio-form-label>A public email is required to be able to authenticate</gio-form-label>
+        <mat-slide-toggle
+          gioFormSlideToggle
+          aria-label="A public email is required"
+          name="identityProviderEmailRequired"
+          formControlName="emailRequired"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <div class="identity-provider__card__form-field radio-group">
+        <label class="mat-body-strong">Group and role mappings</label>
+        <div>Platform administrators still have the ability to override mappings</div>
+        <mat-radio-group
+          class="identity-provider__card__form-field__radio-group"
+          aria-label="Select an option"
+          formControlName="syncMappings"
+        >
+          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" [value]="false"
+            >Computed only during first user authentication</mat-radio-button
+          >
+          <mat-radio-button class="identity-provider__card__form-field__radio-group__button" [value]="true"
+            >Computed during each user authentication</mat-radio-button
+          >
+        </mat-radio-group>
+      </div>
+    </mat-card>
+
+    <ng-container [ngSwitch]="identityProviderType">
+      <org-settings-identity-provider-oidc *ngSwitchCase="'OIDC'" #providerConfiguration></org-settings-identity-provider-oidc>
+      <org-settings-identity-provider-google *ngSwitchCase="'GOOGLE'" #providerConfiguration></org-settings-identity-provider-google>
+      <org-settings-identity-provider-github *ngSwitchCase="'GITHUB'" #providerConfiguration></org-settings-identity-provider-github>
+      <org-settings-identity-provider-graviteeio-am
+        *ngSwitchCase="'GRAVITEEIO_AM'"
+        #providerConfiguration
+      ></org-settings-identity-provider-graviteeio-am>
+    </ng-container>
+
+    <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="groupMappings">
+      <h2 gioTableOfContents>Groups Mapping</h2>
+      <mat-card
+        *ngFor="let _ of this.identityProviderFormGroup.get('groupMappings')?.controls; index as groupMappingIndex"
+        class="identity-provider__card__group-mapping"
+        [formGroupName]="groupMappingIndex"
+      >
+        <mat-form-field class="identity-provider__card__group-mapping__form-field" appearance="fill">
+          <mat-label>Condition</mat-label>
+          <input matInput name="condition" formControlName="condition" required />
+          <mat-hint>The condition which should be validated to associate below groups at login time</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field class="identity-provider__card__group-mapping__form-field" appearance="fill">
+          <mat-label>Group</mat-label>
+          <mat-select formControlName="groups" multiple required>
+            <mat-option *ngFor="let group of groups$ | async" [value]="group.id">{{ group.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-card-actions align="end">
+          <button mat-button type="button" (click)="removeGroupMappingFromIdentityProviderFormGroup(groupMappingIndex)">
+            <mat-icon>delete</mat-icon> Remove
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card-actions>
+        <button mat-button color="accent" type="button" (click)="addGroupMappingToIdentityProviderFormGroup()">
+          <mat-icon>add</mat-icon> Add group mapping
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="roleMappings">
+      <h2 gioTableOfContents>Roles Mapping</h2>
+      <mat-card
+        *ngFor="let _ of this.identityProviderFormGroup.get('roleMappings')?.controls; index as roleMappingIndex"
+        class="identity-provider__card__role-mapping"
+        [formGroupName]="roleMappingIndex"
+      >
+        <mat-form-field class="identity-provider__card__role-mapping__form-field" appearance="fill">
+          <mat-label>Condition</mat-label>
+          <input matInput name="condition" formControlName="condition" required />
+          <mat-hint>The condition which should be validated to associate below groups at login time</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field class="identity-provider__card__role-mapping__form-field" appearance="fill">
+          <mat-label>Organization roles</mat-label>
+          <mat-select formControlName="organizations" multiple required>
+            <mat-option *ngFor="let role of organizationRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <table
+          mat-table
+          [dataSource]="environments$ | async"
+          class="identity-provider__card__role-mapping__table"
+          aria-label="Environment role selection"
+        >
+          <!-- Name Column -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell id="name" *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let environment">{{ environment.name }}</td>
+          </ng-container>
+
+          <!-- Description Column -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell id="description" *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let environment">{{ environment.description }}</td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell id="actions" *matHeaderCellDef>Roles selected</th>
+            <td mat-cell *matCellDef="let environment" formGroupName="environments">
+              <mat-form-field appearance="fill">
+                <mat-label>Roles</mat-label>
+                <mat-select [formControlName]="environment.id" multiple required>
+                  <mat-option *ngFor="let role of environmentRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="environmentTableDisplayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: environmentTableDisplayedColumns"></tr>
+        </table>
+
+        <mat-card-actions align="end">
+          <button mat-button type="button" (click)="removeRoleMappingFromIdentityProviderFormGroup(roleMappingIndex)">
+            <mat-icon>delete</mat-icon> Remove
+          </button>
+        </mat-card-actions>
+      </mat-card>
+
+      <mat-card-actions>
+        <button mat-button color="accent" type="button" (click)="addRoleMappingToIdentityProviderFormGroup()">
+          <mat-icon>add</mat-icon> Add role mapping
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <gio-save-bar
+      [creationMode]="mode === 'new'"
+      [form]="identityProviderFormGroup"
+      [formInitialValues]="initialIdentityProviderValue"
+      (reset)="onFormReset()"
+    >
+    </gio-save-bar>
+  </form>
+
+  <gio-table-of-contents
+    [sectionNames]="{ '': 'Identity provider' }"
+    scrollingContainer="ng-org-settings-identity-provider"
+  ></gio-table-of-contents>
+</div>

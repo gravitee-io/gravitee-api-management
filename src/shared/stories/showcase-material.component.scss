@@ -1,0 +1,16 @@
+.sc {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-items: center;
+
+  &__zone {
+    margin: 16px;
+    flex: 1 1 calc(50% - 16px * 2);
+
+    &.center {
+      text-align: center;
+    }
+  }
+}

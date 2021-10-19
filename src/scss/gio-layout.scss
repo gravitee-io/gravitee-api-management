@@ -1,0 +1,68 @@
+@import '../constants';
+
+// Value extracted from https://material.io/design/layout/responsive-layout-grid.html#breakpoints
+$small-desktop-width: 905px;
+$desktop-width: 1240px;
+$large-desktop-width: 1440px;
+
+$container-padding-top: 24px;
+
+$container-padding-top: 24px;
+$container-padding-bottom: 48px;
+
+@mixin small-desktop {
+  @media (min-width: #{$small-desktop-width}) and (max-width: #{$desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$desktop-width}) and (max-width: #{$large-desktop-width - 1px}) {
+    @content;
+  }
+}
+
+@mixin large-desktop {
+  @media (min-width: #{$large-desktop-width}) {
+    @content;
+  }
+}
+
+@mixin gio-responsive-margin-container {
+  overflow: auto;
+  height: calc(100vh - #{$navbarHeaderHeight});
+  padding-top: $container-padding-top;
+  padding-bottom: $container-padding-bottom;
+
+  @include small-desktop {
+    padding-left: calc((100% - 840px) / 2);
+    padding-right: calc((100% - 840px) / 2);
+  }
+
+  @include desktop {
+    padding-left: 200px;
+    padding-right: 200px;
+  }
+
+  @include large-desktop {
+    padding-left: calc((100% - 1040px) / 2);
+    padding-right: calc((100% - 1040px) / 2);
+  }
+}
+
+@mixin gio-responsive-content-container {
+  overflow: auto;
+  height: calc(100vh - #{$navbarHeaderHeight});
+  padding: $container-padding-top 8px $container-padding-bottom 8px;
+
+  @include large-desktop {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+}
+
+@mixin gio-full-width-content-container {
+  padding: 0;
+  overflow: auto;
+  height: calc(100vh - 54px);
+}

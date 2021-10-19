@@ -1,0 +1,73 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+
+@use '../../../scss/gio-material-theme' as gio;
+@use '../../../scss/gio-palettes' as gio-palettes;
+
+$foreground: map-get(gio.$gio-theme, foreground);
+$background: map-get(gio.$gio-theme, background);
+
+// Map for palette by type
+$types: (
+  error: gio-palettes.$gio-error-palette,
+  info: gio-palettes.$gio-info-palette,
+  success: gio-palettes.$gio-success-palette,
+  warning: gio-palettes.$gio-warning-palette,
+);
+
+:host {
+  display: block;
+  margin: 8px 0px;
+}
+
+.banner {
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+
+  @each $typeName, $typePalette in $types {
+    &.#{$typeName} {
+      color: mat.get-color-from-palette($typePalette, darker);
+      background-color: mat.get-color-from-palette($background, card);
+      border: 1px solid mat.get-color-from-palette($typePalette, medium);
+
+      box-shadow: 8px 0px 0px 0px mat.get-color-from-palette($typePalette, light, 0.12) inset;
+
+      $typeTarget: &; // current css target
+      // when banner is inside mat-card
+      :host-context(.mat-card) {
+        #{$typeTarget} {
+          box-shadow: none;
+          background-color: mat.get-color-from-palette($typePalette, light, 0.12);
+        }
+      }
+    }
+  }
+
+  &__icon {
+    padding-top: 8px;
+    margin-right: 16px;
+    opacity: 0.9;
+  }
+
+  &__content {
+    line-height: normal;
+    padding: 8px 0;
+  }
+}

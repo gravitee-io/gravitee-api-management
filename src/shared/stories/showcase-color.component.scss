@@ -1,0 +1,19 @@
+.sc-table {
+  text-align: center;
+  width: 100%;
+
+  td.palette-name {
+    width: 20%;
+    font-weight: bolder;
+  }
+
+  td.palette {
+    display: flex;
+
+    .color {
+      flex: 1;
+      height: 64px;
+      line-height: 64px;
+    }
+  }
+}

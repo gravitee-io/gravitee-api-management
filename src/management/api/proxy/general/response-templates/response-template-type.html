@@ -1,0 +1,107 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-form">
+  <div class="gv-forms-header">
+    <h2>Template</h2>
+    <a ng-click="$ctrl.deleteTemplate()" permission permission-only="['api-response_templates-u']">Delete</a>
+  </div>
+
+  <div class="gv-form-content">
+    <!-- Content-Type -->
+    <div flex-xs flex="50">
+      <md-input-container class="md-block">
+        <label>Content-type</label>
+        <input ng-model="$ctrl.template.type" type="text" required />
+      </md-input-container>
+      <div class="hint">The content-type for which this template response must be send.</div>
+    </div>
+
+    <!-- Status Code -->
+    <div flex-xs flex="50">
+      <md-autocomplete
+        flex
+        required
+        md-input-name="autocompleteStatusCodeField"
+        md-selected-item="$ctrl.selectedStatusCode"
+        md-selected-item-change="$ctrl.onSelectedStatusCode(status)"
+        md-search-text="$ctrl.searchStatusCode"
+        md-items="status in $ctrl.querySearchStatusCode($ctrl.searchStatusCode)"
+        md-item-text="status.label"
+        md-min-length="0"
+        md-require-match="false"
+        md-floating-label="HTTP status Code"
+      >
+        <md-item-template>
+          <span md-highlight-text="$ctrl.searchStatusCode" md-highlight-flags="^i">{{status.label}}</span>
+        </md-item-template>
+      </md-autocomplete>
+      <div class="hint">The status code send to the API consumer.</div>
+    </div>
+
+    <!-- Headers -->
+    <div flex-xs flex="50" layout="column" layout-sm="column">
+      <h5 style="color: rgba(0, 0, 0, 0.54); font-size: 12px; font-weight: 700">
+        <span>HTTP Headers</span>
+        <ng-md-icon icon="add_circle_outline" style="fill: #b1bdc5" aria-label="Add HTTP header" ng-click="$ctrl.addHTTPHeader()"
+          >Add headers</ng-md-icon
+        >
+      </h5>
+      <div layout="row" layout-sm="column" layout-align="center center" ng-repeat="header in $ctrl.template.headers">
+        <ng-md-icon
+          icon="remove_circle_outline"
+          style="fill: #b1bdc5"
+          aria-label="Delete header"
+          ng-click="$ctrl.removeHTTPHeader($index)"
+        ></ng-md-icon>
+
+        <div flex="5" hide-xs hide-sm>
+          <!-- Spacer //-->
+        </div>
+
+        <md-input-container flex-gt-sm>
+          <input aria-label="Header name" ng-model="header.name" type="text" placeholder="Header name" ng-required="true" />
+        </md-input-container>
+
+        <div flex="5" hide-xs hide-sm>
+          <!-- Spacer //-->
+        </div>
+
+        <md-input-container flex-gt-sm>
+          <input aria-label="Header value" ng-model="header.value" type="text" placeholder="Header value" ng-required="true" />
+        </md-input-container>
+      </div>
+    </div>
+
+    <!-- Body-->
+    <div flex-xs flex="50">
+      <md-input-container class="md-block" flex-gt-sm>
+        <h5 style="color: rgba(0, 0, 0, 0.54); font-size: 12px; font-weight: 700">
+          <span>Body</span>
+        </h5>
+
+        <textarea
+          ui-codemirror
+          ui-codemirror-opts="$ctrl.bodyOptions"
+          ng-model="$ctrl.template.body"
+          rows="5"
+          aria-label="Response template body"
+        ></textarea>
+      </md-input-container>
+    </div>
+  </div>
+</div>
