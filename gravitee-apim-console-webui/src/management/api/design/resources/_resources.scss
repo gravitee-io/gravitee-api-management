@@ -1,0 +1,17 @@
+$resourceSidenavWidth: 500px;
+
+@mixin min-max-width($width) {
+  width: $width;
+  height: 100%;
+  min-width: $width;
+  max-width: $width;
+}
+
+md-sidenav.resource {
+  padding-top: 54px;
+  @include min-max-width($resourceSidenavWidth);
+  background-color: #fafafa;
+  md-content {
+    background-color: #fafafa;
+  }
+}

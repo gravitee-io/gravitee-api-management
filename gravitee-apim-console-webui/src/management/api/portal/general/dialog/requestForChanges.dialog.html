@@ -1,0 +1,31 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog aria-label="confirm-dialog">
+  <md-dialog-content layout-padding>
+    <h4>Are you sure you want to request for changes on the API?</h4>
+    <p ng-bind-html="msg"></p>
+    <md-input-container class="md-block">
+      <label>Comments</label>
+      <textarea aria-label="Review message" ng-model="$ctrl.message" maxlength="500" rows="2" cols="50"></textarea>
+    </md-input-container>
+  </md-dialog-content>
+  <md-dialog-actions layout="row">
+    <md-button ng-click="$ctrl.cancel()">Cancel</md-button>
+    <md-button class="md-raised md-warn" ng-click="$ctrl.confirm()">Request for changes</md-button>
+  </md-dialog-actions>
+</md-dialog>

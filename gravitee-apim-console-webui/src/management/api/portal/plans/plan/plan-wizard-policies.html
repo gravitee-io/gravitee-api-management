@@ -1,0 +1,128 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-step label="Policies" md-complete="$ctrl.parent.vm.stepData[3].completed">
+  <md-step-body>
+    <md-content layout-padding class="gv-creation-general-content gv-creation-content">
+      <section>
+        <form name="$ctrl.planPolicyForm">
+          <div layout-gt-sm="row">
+            <md-input-container class="md-block" flex-gt-sm>
+              <label>Select policy</label>
+              <md-select ng-model="$ctrl.selectedPolicy" placeholder="Choose a policy">
+                <md-option ng-repeat="policy in $ctrl.parent.policies" ng-value="policy.id">{{policy.name}}</md-option>
+              </md-select>
+              <div class="hint">Select a policy to add at the end of the policy chain.</div>
+            </md-input-container>
+
+            <md-button ng-disabled="! $ctrl.selectedPolicy" ng-click="$ctrl.addPolicy()">ADD</md-button>
+          </div>
+        </form>
+      </section>
+
+      <section ng-if="$ctrl.parent.planPolicies && $ctrl.parent.planPolicies.length > 0">
+        <md-subheader>Policy Chain</md-subheader>
+
+        <md-card
+          ng-repeat="policy in $ctrl.parent.planPolicies"
+          ng-click="$ctrl.editPolicy($index, $event)"
+          class="gravitee-card gravitee-policy-card"
+          ng-class="$ctrl.getPolicyClass(policy)"
+          layout="row"
+          layout-align="space-between start"
+        >
+          <md-card-content layout="column" layout-align="start start" layout-fill>
+            <div ng-if="!policy.name" layout="column" layout-align="start start">
+              <span class="md-subhead">Unknown policy</span>
+              <i>Please check that the policy '{{policy.id}}' is installed in plugins</i>
+            </div>
+            <span class="md-subhead">{{policy.name}}</span>
+            <span class="gravitee-policy-card-description">{{policy.description}}</span>
+          </md-card-content>
+          <div layout="column" permission permission-only="'api-definition-u'">
+            <ng-md-icon
+              icon="close"
+              style="fill: #757575"
+              size="18px"
+              class="gravitee-card-close"
+              ng-click="$ctrl.removePolicy($index, path, $event)"
+            >
+              <md-tooltip md-direction="right"> Remove policy </md-tooltip>
+            </ng-md-icon>
+            <ng-md-icon
+              ng-if="policy.name"
+              icon="mode_edit"
+              style="fill: #757575"
+              size="18px"
+              class="gravitee-card-close"
+              ng-click="$ctrl.editPolicyDescription($index, path, $event)"
+            >
+              <md-tooltip md-direction="right"> Edit policy description </md-tooltip>
+            </ng-md-icon>
+            <ng-md-icon
+              icon="done"
+              ng-if="policy.enabled"
+              style="fill: #437536"
+              size="18px"
+              class="gravitee-card-close"
+              ng-click="$ctrl.switchPolicyEnabled($index, path, $event)"
+            >
+              <md-tooltip md-direction="right"> Policy is enabled. Click to disable it. </md-tooltip>
+            </ng-md-icon>
+            <ng-md-icon
+              icon="pause_circle_outline"
+              ng-if="!policy.enabled"
+              style="fill: #751c16"
+              size="18px"
+              class="gravitee-card-close"
+              ng-click="$ctrl.switchPolicyEnabled($index, path, $event)"
+            >
+              <md-tooltip md-direction="right"> Policy is disabled. Click to enable it. </md-tooltip>
+            </ng-md-icon>
+          </div>
+        </md-card>
+      </section>
+
+      <section ng-if="$ctrl.editablePolicy">
+        <md-subheader>Edit policy Configuration</md-subheader>
+
+        <form
+          name="$ctrl.policyConfigurationForm"
+          sf-schema="$ctrl.policySchema"
+          sf-form="['*']"
+          sf-model="$ctrl.policyDefinition"
+          sf-options="{ validateOnRender: true, formDefaults: { startEmpty: true } }"
+          novalidate
+        ></form>
+      </section>
+
+      <br />
+
+      <md-step-actions layout="row">
+        <div flex>
+          <md-button ng-click="$ctrl.parent.moveToPreviousStep()">PREVIOUS</md-button>
+          <md-button class="md-raised md-warn" ui-sref="management.apis.detail.portal.plans.list">CANCEL</md-button>
+        </div>
+        <div flex layout="row" layout-align="end top">
+          <md-button ng-disabled="$ctrl.policyConfigurationForm.$invalid" ng-click="$ctrl.gotoNextStep()" class="md-primary md-raised"
+            >SAVE</md-button
+          >
+        </div>
+      </md-step-actions>
+    </md-content>
+  </md-step-body>
+</md-step>

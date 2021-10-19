@@ -1,0 +1,68 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<md-dialog>
+  <form name="formApiDefinition" ng-submit="$ctrl.duplicate()" novalidate>
+    <md-dialog-content layout-padding>
+      <h4>What do you want to duplicate?</h4>
+      <div layout="column">
+        <div layout="row">
+          <md-input-container layout="row" flex>
+            <label>Context path</label>
+            <input
+              type="text"
+              ng-model="$ctrl.contextPath"
+              name="contextPath"
+              ng-change="$ctrl.onContextPathChanged()"
+              minlength="3"
+              ng-pattern="/^\/[\/.a-zA-Z0-9-_]+$/"
+              placeholder="{{$ctrl.contextPathPlaceholder}}"
+              required
+            />
+            <div ng-messages="$ctrl.contextPath.$error">
+              <div ng-message="required">Context path is required.</div>
+              <div ng-message="minlength">Context path has to be more than 3 characters long.</div>
+              <div ng-message="pattern">
+                Context path is not valid (must start with a '/' and must contain any letter, capitalize letter, number, dash or underscore)
+              </div>
+            </div>
+            <ng-md-icon icon="close" style="fill: red" ng-if="$ctrl.contextPathInvalid === true"></ng-md-icon>
+            <ng-md-icon icon="check" style="fill: green" ng-if="$ctrl.contextPathInvalid === false"></ng-md-icon>
+          </md-input-container>
+
+          <md-input-container flex="30">
+            <label>Version</label>
+            <input ng-model="$ctrl.version" type="text" maxlength="32" name="version" placeholder="{{$ctrl.versionPlaceholder}}" />
+            <div class="hint" ng-if="$ctrl.version.$valid || $ctrl.version.$pristine">API Version (ex: 1.0)</div>
+            <div ng-messages="$ctrl.version.$error">
+              <div ng-message="required">API Version is required.</div>
+              <div ng-message="md-maxlength">The version has to be less than 32 characters long.</div>
+            </div>
+          </md-input-container>
+        </div>
+
+        <md-checkbox ng-repeat="fl in $ctrl.filteredFields" aria-label="fl.id" ng-model="fl.checked"> {{ fl.description }} </md-checkbox>
+      </div>
+    </md-dialog-content>
+    <md-dialog-actions layout="row">
+      <md-button md-no-ink ng-click="$ctrl.hide()"> Cancel </md-button>
+      <md-button type="submit" class="md-raised md-primary" ng-disabled="formApiDefinition.$invalid || $ctrl.contextPathInvalid">
+        Duplicate
+      </md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

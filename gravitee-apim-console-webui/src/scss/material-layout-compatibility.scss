@@ -1,0 +1,16 @@
+// Correction of the styles applied to the menu when the bootstrap is disabled in favor of the material
+
+@mixin material-layout-compatibility() {
+  .gv-sub-menu {
+    box-sizing: border-box;
+    line-height: 1.42857143;
+
+    p {
+      margin: 0 0 10px;
+    }
+  }
+
+  .topnavbar {
+    line-height: 1.42857143;
+  }
+}

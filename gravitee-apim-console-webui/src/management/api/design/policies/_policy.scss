@@ -1,0 +1,151 @@
+.gravitee-policy-dropzone {
+  border-radius: 4px;
+  padding: 20px;
+  border: thick dotted rgba(0, 0, 0, 0.1);
+  text-align: center;
+  span.gravitee-policy-dropzone-msg {
+    color: rgba(0, 0, 0, 0.2);
+    font-size: 2.2em;
+    font-weight: bold;
+  }
+  md-card md-card-content {
+    padding: 8px;
+  }
+  .gravitee-policy-card:hover {
+    cursor: grab;
+  }
+}
+
+.gravitee-policy-dropzone-filled {
+  border-width: thin;
+}
+.gravitee-card-close {
+  margin: 5px 5px 0 0;
+  cursor: pointer;
+}
+
+.gravitee-policy-card .md-subhead {
+  font-size: 14px;
+}
+
+.gravitee-policy-draggable {
+  md-card md-card-content {
+    padding: 8px;
+  }
+  #policy-version md-chips md-chip {
+    font-size: 0.6em;
+  }
+  .gravitee-policy-card:hover {
+    cursor: grab;
+  }
+}
+
+.gravitee-policy-draggable-selected {
+  cursor: grab;
+  .gu-transit {
+    background-color: #0000aa;
+    color: #0000aa;
+  }
+}
+
+.gravitee-policy-card-selected {
+  background-color: #eee;
+  border: 1px solid #999;
+}
+
+.gravitee-policy-card-description {
+  color: rgba(0, 0, 0, 0.54);
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 11px;
+  text-align: left;
+}
+
+.gravitee-policy-card-disabled {
+  opacity: 0.5;
+  background-color: #eee;
+}
+
+.gravitee-policy-card-missed {
+  color: #eee;
+  background-color: #e53935;
+}
+
+.gravitee-policy-card-method {
+  padding-top: 5px;
+  border-top: 1px solid rgba(117, 117, 117, 0.31);
+}
+
+.gravitee-policy-method-badge-filter {
+  margin: 2px 5px;
+  font-size: 0.67em;
+}
+
+.gravitee-policy-method-badge-info {
+  margin: 2px 0;
+  font-size: 0.7em;
+}
+
+.gravitee-policy-method-badge-GET-selected {
+  background-color: #43a047 !important;
+}
+
+.gravitee-policy-method-badge-POST-selected {
+  background-color: #fb8c00 !important;
+}
+
+.gravitee-policy-method-badge-PUT-selected {
+  background-color: #039be5 !important;
+}
+
+.gravitee-policy-method-badge-DELETE-selected {
+  background-color: #e53935 !important;
+}
+
+.gravitee-policy-method-badge-HEAD-selected,
+.gravitee-policy-method-badge-PATCH-selected,
+.gravitee-policy-method-badge-OPTIONS-selected,
+.gravitee-policy-method-badge-TRACE-selected,
+.gravitee-policy-method-badge-CONNECT-selected {
+  background-color: #757575 !important;
+}
+
+.gravitee-policy-method-badge-GET-unselected,
+.gravitee-policy-method-badge-POST-unselected,
+.gravitee-policy-method-badge-PUT-unselected,
+.gravitee-policy-method-badge-DELETE-unselected,
+.gravitee-policy-method-badge-HEAD-unselected,
+.gravitee-policy-method-badge-PATCH-unselected,
+.gravitee-policy-method-badge-OPTIONS-unselected,
+.gravitee-policy-method-badge-TRACE-unselected,
+.gravitee-policy-method-badge-CONNECT-unselected {
+  background-color: #e0e0e0 !important;
+  color: #757575;
+}
+
+.gravitee-policy-filters {
+  margin-bottom: 10px;
+}
+
+.gravitee-policy-path {
+  font-size: 1.4em;
+}
+
+.gravitee-policy-panel {
+  overflow-y: auto;
+  padding: 0 10px;
+}
+.gravitee-policy-panel-left {
+  height: calc(100vh - 172px);
+}
+.gravitee-policy-panel-center {
+  height: calc(100vh - 148px);
+}
+.gravitee-policy-panel-right {
+  height: calc(100vh - 200px);
+}
+
+.gravitee-policy-migration-button {
+  margin-right: 75px;
+  margin-bottom: 14px;
+}

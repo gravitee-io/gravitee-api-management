@@ -1,0 +1,57 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<!-- edit AsciiDoc or AsynApi Or Swagger inline -->
+<div ng-if="$ctrl.isSwagger() || $ctrl.isAsciiDoc() || $ctrl.isAsyncApi()" style="display: inline-block; width: 100%">
+  <div layout="row" ng-class="{'newPageEditor': $ctrl.newPage, 'editPageEditor': !$ctrl.newPage}">
+    <gv-code
+      ng-if="$ctrl.canUpdate"
+      class="editPanel"
+      flex="50"
+      autofocus
+      ng-attr-value="{{$ctrl.page.content}}"
+      ng-attr-options="{{$ctrl.codeMirrorOptions}}"
+      ng-model="$ctrl.page.content"
+      gv-model
+    ></gv-code>
+    <gv-page-ascii-doc ng-if="$ctrl.isAsciiDoc()" class="editPanel" flex="50" page-content="$ctrl.page.content"></gv-page-ascii-doc>
+    <gv-page-async-api ng-if="$ctrl.isAsyncApi()" class="editPanel" flex="50" page-content="$ctrl.page.content"></gv-page-async-api>
+    <gv-page-swagger
+      ng-if="$ctrl.isSwagger()"
+      class="editPanel"
+      flex="50"
+      page="$ctrl.page"
+      page-content="$ctrl.page.content"
+      page-configuration="$ctrl.page.configuration"
+      edit="$ctrl.canUpdate"
+    ></gv-page-swagger>
+  </div>
+</div>
+
+<!-- edit MARKDOWN inline -->
+<div ng-if="$ctrl.isMarkdown() || $ctrl.isMarkdownTemplate()" style="display: inline-block; width: 100%">
+  <div class="md-block">
+    <gv-page-editor-markdown ng-if="$ctrl.canUpdate" page="$ctrl.page" pages-to-link="$ctrl.pagesToLink"></gv-page-editor-markdown>
+    <gv-page-markdown ng-if="!$ctrl.canUpdate" page="$ctrl.page"></gv-page-markdown>
+  </div>
+</div>
+
+<!-- import file -->
+<div style="display: inline-block" ng-if="$ctrl.canUpdate">
+  <h3>Select a file to import:</h3>
+  <input type="file" filecontent="$ctrl.page.content" filename="pageContentFile.name" />
+</div>

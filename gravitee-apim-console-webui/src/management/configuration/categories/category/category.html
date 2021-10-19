@@ -1,0 +1,200 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="gv-forms" layout="column">
+  <div class="gv-forms-header">
+    <h1>{{$ctrl.createMode ? 'New' : 'Edit'}} category</h1>
+    <a ui-sref="management.settings.categories">Back to categories</a>
+  </div>
+  <div class="gv-form">
+    <h2>General</h2>
+    <div class="gv-form-content" layout="column">
+      <form name="$ctrl.categoryForm">
+        <div layout="row">
+          <div layout="column" flex>
+            <div layout-gt-sm="row">
+              <md-input-container class="md-block" flex-gt-sm>
+                <label>Name</label>
+                <input ng-model="$ctrl.category.name" type="text" required name="name" maxlength="50" />
+                <div class="hint" ng-if="$ctrl.categoryForm.name.$valid || $ctrl.categoryForm.name.$pristine">Category Name</div>
+                <div ng-messages="$ctrl.categoryForm.name.$error">
+                  <div ng-message="required">Category name is required.</div>
+                  <div ng-message="md-maxlength">The name has to be less than 50 characters long.</div>
+                </div>
+              </md-input-container>
+            </div>
+
+            <div layout-gt-sm="row">
+              <md-input-container class="md-block" flex-gt-sm>
+                <label>Description</label>
+                <input ng-model="$ctrl.category.description" type="text" name="description" />
+                <div class="hint" ng-if="$ctrl.categoryForm.description.$valid || $ctrl.categoryForm.description.$pristine">
+                  Provide a description of your category
+                </div>
+              </md-input-container>
+            </div>
+
+            <div layout-gt-sm="row" class="new-category-form-input-action">
+              <md-input-container class="md-block" flex-gt-sm>
+                <label>Visibility</label>
+                <ng-md-icon icon="visibility{{$ctrl.category.hidden?'_off':''}}" ng-click="$ctrl.toggleVisibility()"></ng-md-icon>
+                <div class="hint" ng-if="$ctrl.categoryForm.name.$valid || $ctrl.categoryForm.name.$pristine">
+                  Choose to display or hide the category
+                </div>
+              </md-input-container>
+            </div>
+
+            <div layout-gt-sm="row">
+              <md-input-container class="md-block" flex-gt-xs>
+                <label>Documentation page</label>
+                <md-select ng-model="$ctrl.category.page">
+                  <md-option ng-repeat="resource in $ctrl.pages" ng-value="resource.id">
+                    <md-icon ng-if="resource.type" md-svg-src="assets/logo_{{resource.type | lowercase}}.svg"></md-icon>
+                    <div ng-if="resource.type">
+                      <span style="font-style: italic; opacity: 0.5">{{ resource.parentPath }}</span>/{{ resource.name }}
+                    </div>
+                  </md-option>
+                </md-select>
+                <div class="hint">Provide a documentation page for your category</div>
+              </md-input-container>
+            </div>
+          </div>
+          <div>
+            <gravitee-image
+              image-id="'category'"
+              image="$ctrl.category.picture"
+              image-url="$ctrl.category.picture_url"
+              image-name="$ctrl.category.name"
+              success-event-name="categoryPictureChangeSuccess"
+            ></gravitee-image>
+          </div>
+          <div>
+            <gravitee-image
+              image-id="'bg-category'"
+              image="$ctrl.category.background"
+              image-url="$ctrl.category.background_url"
+              image-name="'bg-' + $ctrl.category.name"
+              change-label="Change background"
+              no-default-image="true"
+              success-event-name="categoryBackgroundChangeSuccess"
+              can-delete="true"
+              delete-label="Use default"
+            ></gravitee-image>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="gv-form">
+    <h2>APIs</h2>
+    <div class="gv-form-content" layout="column">
+      <blockquote style="border-left: none">
+        <p style="font-size: 12px">
+          <ng-md-icon icon="info" style="fill: grey"></ng-md-icon>
+          Choose among APIs which one will be attached to the category.
+        </p>
+      </blockquote>
+
+      <div layout="row" layout-align="space-around center">
+        <md-autocomplete
+          md-input-id="new-category-apis-autocomplete-id"
+          flex="70"
+          md-search-text="$ctrl.searchText"
+          md-selected-item-change="$ctrl.selectedApiChange(api)"
+          md-items="api in $ctrl.searchAPI($ctrl.searchText)"
+          md-item-text="api.name"
+          placeholder="Select an API"
+          md-autofocus="false"
+          md-delay="500"
+          md-min-length="0"
+          md-no-cache="true"
+          md-menu-class="autocomplete-custom-template"
+        >
+          <md-item-template>
+            <md-list-item class="md-2-line contact-item">
+              <div class="md-list-item-text compact">
+                <h3><ng-md-icon icon="collections_bookmark" style="fill: grey"></ng-md-icon> {{api.name}}</h3>
+                <h4 ng-if="api.version">
+                  <ng-md-icon icon="watch_later" style="fill: grey" size="14px"></ng-md-icon> <small>{{api.version}}</small>
+                </h4>
+              </div>
+            </md-list-item>
+          </md-item-template>
+          <md-not-found> No API matching "{{$ctrl.searchText}}" were found. </md-not-found>
+        </md-autocomplete>
+      </div>
+
+      <md-table-container style="margin-top: 10px" ng-if="$ctrl.getApis().length > 0">
+        <table md-table>
+          <thead md-head>
+            <tr md-row>
+              <th md-column><span>Name</span></th>
+              <th md-column>Version</th>
+              <th md-column>Context path</th>
+              <th md-column>Highlight API <md-tooltip md-direction="top">Highlight API will put your API in the spotlights</md-tooltip></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody md-body>
+            <tr md-row ng-repeat="api in $ctrl.getApis() track by api.id">
+              <td md-cell>{{api.name}}</td>
+              <td md-cell>{{api.version}}</td>
+              <td md-cell>{{api.context_path}}</td>
+              <td md-cell>
+                <md-checkbox
+                  ng-click="$ctrl.toggleHighlightAPI(api)"
+                  aria-label="highlight API"
+                  ng-checked="$ctrl.isHighlightApi(api)"
+                ></md-checkbox>
+              </td>
+              <td md-cell>
+                <ng-md-icon
+                  permission
+                  permission-only="'environment-category-u'"
+                  icon="delete"
+                  ng-click="$ctrl.removeApi(api)"
+                ></ng-md-icon>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </md-table-container>
+
+      <div layout="row">
+        <md-button
+          ng-disabled="$ctrl.categoryForm.$invalid || $ctrl.categoryForm.$pristine && !$ctrl.formChanged"
+          ng-click="$ctrl.save()"
+          permission
+          permission-only="['environment-category-c', 'environment-category-u']"
+          class="md-raised md-primary"
+        >
+          Save
+        </md-button>
+        <md-button
+          ng-disabled="$ctrl.categoryForm.$invalid || $ctrl.categoryForm.$pristine && !$ctrl.formChanged"
+          ng-click="$ctrl.reset()"
+          permission
+          permission-only="['environment-category-c', 'environment-category-u']"
+          class="md-raised"
+        >
+          Reset
+        </md-button>
+      </div>
+    </div>
+  </div>
+</div>
