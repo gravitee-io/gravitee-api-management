@@ -1,4 +1,7 @@
+@use 'node_modules/@angular/material' as mat;
+
 @use '../../../../scss/gio-layout' as gio-layout;
+@use '../../../../scss/gio-palettes' as gio-palettes;
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
@@ -6,6 +9,7 @@
 
 .org-settings-user-detail {
   &__registration-banner {
+    margin: 16px 0;
     &__content {
       display: flex;
       justify-content: space-between;
@@ -14,31 +18,75 @@
   }
 
   &__card {
-    display: flex;
+    margin: 16px 0;
 
-    &__left {
-      flex: 1 1 80px;
-      padding: 0 16px;
-
+    &__head {
       display: flex;
-      flex-direction: column;
       align-items: center;
 
-      &__avatar {
-        margin: 8px 16px 8px 16px;
+      &__left {
+        flex: 0 0 80px;
+        margin-right: 16px;
       }
 
-      &__tags {
-        margin: 8px 0;
+      &__middle {
+        flex: 1 1 auto;
+
+        &__name {
+          margin: 0;
+        }
+
+        &__email {
+          margin: 0 0 8px 0;
+        }
+
+        &__tags {
+          margin: 8px 0;
+
+          .active {
+            background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium');
+            color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium-contrast');
+          }
+          .pending {
+            background-color: mat.get-color-from-palette(gio-palettes.$gio-warning-palette, 'medium');
+            color: mat.get-color-from-palette(gio-palettes.$gio-warning-palette, 'medium-contrast');
+          }
+          .rejected {
+            background-color: mat.get-color-from-palette(gio-palettes.$gio-error-palette, 'medium');
+            color: mat.get-color-from-palette(gio-palettes.$gio-error-palette, 'medium-contrast');
+          }
+        }
       }
 
-      &__btn {
-        margin: 8px 0;
+      &__right {
+        flex: 0 0 auto;
+        &__btn {
+          margin: 8px 0;
+        }
       }
     }
 
-    &__right {
-      flex: 1 1 auto;
+    &__registration-banner {
+      flex: 1 1 100%;
+      padding-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      &__accept-btn {
+        background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium');
+        color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium-contrast');
+      }
     }
+  }
+
+  &__environments-card,
+  &__groups-card,
+  &__apis-card,
+  &__applications-card,
+  &__org-role-card {
+    margin: 16px 0;
+    display: flex;
+    flex-direction: column;
   }
 }

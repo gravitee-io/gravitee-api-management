@@ -17,65 +17,101 @@
 -->
 <h1><gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-users' }"></gio-go-back-button>User details</h1>
 
-<ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
-  <gio-banner-info *ngIf="user && user.status === 'PENDING'" class="org-settings-user-detail__registration-banner mat-elevation-z3">
-    <div class="org-settings-user-detail__registration-banner__content">
-      <div>Validation of the pending registration request</div>
-      <div>
-        <button mat-raised-button aria-label="Accept user registration"><mat-icon>done</mat-icon> Accept</button> &nbsp;&nbsp;
-        <button mat-raised-button color="warn" aria-label="Reject user registration"><mat-icon>block</mat-icon> Reject</button>
-      </div>
-    </div>
-  </gio-banner-info>
-</ng-container>
-
 <mat-card *ngIf="user" class="org-settings-user-detail__card">
-  <div class="org-settings-user-detail__card__left">
-    <gio-avatar
-      class="org-settings-user-detail__card__left__avatar"
-      [roundedBorder]="true"
-      [src]="user.avatarUrl"
-      [name]="user.displayName"
-      size="80"
-    ></gio-avatar>
-    <mat-chip-list class="org-settings-user-detail__card__left__tags" aria-label="User status">
-      <mat-chip [selectable]="false" [disableRipple]="true">{{ user.status }}</mat-chip>
-    </mat-chip-list>
+  <div class="org-settings-user-detail__card__head">
+    <div class="org-settings-user-detail__card__head__left">
+      <gio-avatar
+        class="org-settings-user-detail__card__head__left__avatar"
+        [roundedBorder]="true"
+        [src]="user.avatarUrl"
+        [name]="user.displayName"
+        size="80"
+      ></gio-avatar>
+    </div>
 
-    <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }"></ng-container>
-    <div *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee'" class="org-settings-user-detail__card__left__btn">
-      <button mat-raised-button color="warn" aria-label="User reset password">Reset password</button>
+    <div class="org-settings-user-detail__card__head__middle">
+      <h2 class="org-settings-user-detail__card__head__middle__name">{{ user.displayName }}</h2>
+      <h4 class="org-settings-user-detail__card__head__middle__email" gioClipboardCopyWrapper [contentToCopy]="user.email">
+        <mat-icon [inline]="true">email</mat-icon> {{ user.email }}
+      </h4>
+
+      <mat-chip-list class="org-settings-user-detail__card__head__middle__tags" aria-label="User status">
+        <mat-chip [selectable]="false" [disableRipple]="true" [ngClass]="user.status | lowercase">{{ user.status }}</mat-chip>
+      </mat-chip-list>
+    </div>
+
+    <div class="org-settings-user-detail__card__head__right">
+      <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
+        <div *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee'" class="org-settings-user-detail__card__head__left__btn">
+          <button mat-stroked-button aria-label="User reset password">Reset password</button>
+        </div>
+      </ng-container>
     </div>
   </div>
 
-  <div class="org-settings-user-detail__card__right">
-    <h2>{{ user.displayName }}</h2>
+  <div>
+    <dl class="gio-description-list">
+      <dt>Source</dt>
+      <dd gioClipboardCopyWrapper [contentToCopy]="user.source">{{ user.source }}</dd>
 
-    <div>
-      <dl class="gio-description-list">
-        <dt>Email</dt>
-        <dd gioClipboardButtonInner [contentToCopy]="user.email">{{ user.email }}</dd>
+      <dt>Organization Role</dt>
+      <dd>{{ user.organizationRoles }}</dd>
 
-        <dt>Source</dt>
-        <dd gioClipboardButtonInner [contentToCopy]="user.source">{{ user.source }}</dd>
+      <ng-container *ngFor="let customField of user.customFields | keyvalue">
+        <!-- TODO: try to display custom field Label ? -->
+        <dt>{{ customField.key }}</dt>
+        <dd gioClipboardCopyWrapper [contentToCopy]="customField.value">{{ customField.value }}</dd>
+      </ng-container>
 
-        <ng-container *ngFor="let customField of user.customFields | keyvalue">
-          <!-- TODO: try to display custom field Label ? -->
-          <dt>{{ customField.key }}</dt>
-          <dd>{{ customField.value }}</dd>
-        </ng-container>
+      <dt>Last connection at</dt>
+      <dd>{{ user.lastConnectionAt | date: 'medium' }}</dd>
 
-        <ng-container>
-          <dt>Organization Role</dt>
-          <dd>{{ user.roleDisplayable }}</dd>
-        </ng-container>
-
-        <dt>Last connection at</dt>
-        <dd>{{ user.lastConnectionAt | date: 'medium' }}</dd>
-
-        <dt>Created at</dt>
-        <dd>{{ user.created_at | date: 'medium' }}</dd>
-      </dl>
-    </div>
+      <dt>Created at</dt>
+      <dd>{{ user.created_at | date: 'medium' }}</dd>
+    </dl>
   </div>
+
+  <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
+    <ng-container *ngIf="user && user.status === 'PENDING'">
+      <mat-divider></mat-divider>
+
+      <div class="org-settings-user-detail__card__registration-banner">
+        <div>Validation of the pending registration request</div>
+        <div>
+          <button mat-stroked-button aria-label="Reject user registration">Reject</button> &nbsp;&nbsp;
+          <button
+            class="org-settings-user-detail__card__registration-banner__accept-btn"
+            mat-flat-button
+            aria-label="Accept user registration"
+          >
+            <mat-icon>done</mat-icon> Accept
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</mat-card>
+
+<mat-card class="org-settings-user-detail__org-role-card">
+  <h2>Organization</h2>
+</mat-card>
+
+<mat-card class="org-settings-user-detail__environments-card">
+  <h2>Environments</h2>
+  <p>Here is the list of all environment this user can access.</p>
+</mat-card>
+
+<mat-card class="org-settings-user-detail__groups-card">
+  <h2>Groups</h2>
+  <p>You can manage all groups of this user.</p>
+</mat-card>
+
+<mat-card class="org-settings-user-detail__apis-card">
+  <h2>APIs</h2>
+  <p>Here is the list of all APIs of this user.</p>
+</mat-card>
+
+<mat-card class="org-settings-user-detail__applications-card">
+  <h2>Applications</h2>
+  <p>Here is the list of all applications of this user.</p>
 </mat-card>

@@ -5,6 +5,7 @@
 @use './gio-material-theme' as gio;
 
 $foreground: map.get(gio.$gio-theme, foreground);
+$background: map.get(gio.$gio-theme, background);
 
 dl.gio-description-list {
   display: flex;
@@ -13,12 +14,9 @@ dl.gio-description-list {
   dt {
     flex: 1 1 30%;
     padding: 4px 8px;
-    text-align: right;
     color: mat.get-color-from-palette($foreground, disabled);
   }
-  dt::after {
-    content: ':';
-  }
+
   dd {
     flex: 1 1 70%;
     margin: 0;
@@ -27,6 +25,6 @@ dl.gio-description-list {
 
   dd ~ dd,
   dd ~ dt {
-    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: 1px solid mat.get-color-from-palette($foreground, divider);
   }
 }

@@ -23,7 +23,7 @@ import { RoleService } from '../../../../services-ngx/role.service';
 import { UsersService } from '../../../../services-ngx/users.service';
 
 interface UserVM extends User {
-  roleDisplayable: string;
+  organizationRoles: string;
   avatarUrl: string;
 }
 
@@ -50,12 +50,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .get(this.ajsStateParams.userId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((user) => {
+        const organizationRoles = user.roles.filter((r) => r.scope === 'ORGANIZATION');
         this.user = {
           ...user,
-          roleDisplayable: user.roles
-            .filter((r) => r.scope === 'ORGANIZATION')
-            .map((r) => r.name ?? r.id)
-            .join(', '),
+          organizationRoles: organizationRoles.map((r) => r.name ?? r.id).join(', '),
           avatarUrl: this.usersService.getUserAvatar(this.ajsStateParams.userId),
         };
       });

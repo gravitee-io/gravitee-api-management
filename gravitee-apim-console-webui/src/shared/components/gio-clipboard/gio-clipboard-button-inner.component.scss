@@ -7,12 +7,12 @@
 $primary: map.get(gio.$gio-theme, primary);
 
 .right {
-  float: right;
+  margin-left: 4px;
   cursor: pointer;
   color: mat.get-color-from-palette($primary);
 
   &:not(.clicked) {
-    opacity: 0.12;
+    opacity: 0;
   }
 
   &.clicked {

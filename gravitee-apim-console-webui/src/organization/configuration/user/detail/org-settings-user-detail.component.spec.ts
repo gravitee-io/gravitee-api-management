@@ -95,7 +95,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       expect(await userCard.getText()).toContain(value);
     });
 
-    const userStatus = await userCard.getHarness(MatChipHarness.with({ ancestor: '.org-settings-user-detail__card__left__tags' }));
+    const userStatus = await userCard.getHarness(MatChipHarness.with({ ancestor: '.org-settings-user-detail__card__head__middle__tags' }));
     expect(await userStatus.getText()).toContain(user.status);
 
     const resetPasswordButton = await userCard.getHarness(MatButtonHarness.with({ text: 'Reset password' }));
