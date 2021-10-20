@@ -31,7 +31,7 @@ parameters:
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 orbs:
   slack: circleci/slack@4.2.1
-  gravitee: gravitee-io/gravitee@dev:1.0.4
+  gravitee: gravitee-io/gravitee@1.0
   secrethub: secrethub/cli@1.1.0
   # secrethub: secrethub/cli@1.0.0
 
