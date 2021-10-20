@@ -19,7 +19,7 @@ import ResourceService from '../../services/resource.service';
 import SpelService from '../../services/spel.service';
 import '@gravitee/ui-components/wc/gv-policy-studio';
 
-const PolicyStudioWrapperComponent: ng.IComponentOptions = {
+const OldPolicyStudioWrapperComponent: ng.IComponentOptions = {
   bindings: {
     flowsTitle: '@',
     canAdd: '@',
@@ -40,7 +40,7 @@ const PolicyStudioWrapperComponent: ng.IComponentOptions = {
     dynamicPropertySchema: '<',
     debugResponse: '<',
   },
-  template: require('./policy-studio-wrapper.html'),
+  template: require('./old-policy-studio-wrapper.html'),
   controller: function (
     PolicyService: PolicyService,
     FlowService: FlowService,
@@ -133,4 +133,4 @@ const PolicyStudioWrapperComponent: ng.IComponentOptions = {
   },
 };
 
-export default PolicyStudioWrapperComponent;
+export default OldPolicyStudioWrapperComponent;
