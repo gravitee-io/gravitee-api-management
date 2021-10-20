@@ -1,19 +1,33 @@
 {
-    "name": "gravitee-api-management-cypress",
-    "version": "1.0.0",
+    "name": "gravitee-apim-cypress",
+    "version": "3.13.0-SNAPSHOT",
     "private": true,
-    "description": "Cypress tests for Gravitee.io API Management",
+    "description": "Gravitee.io APIM - Cypress",
     "scripts": {
         "test": "cypress open",
         "test:bulk": "cypress run --config-file cypress/bulk/cypress-config.json",
-        "test:ci": "cypress run"
+        "test:ci": "cypress run",
+        "test:e2e": "cypress open --config-file cypress/e2e/cypress-config.json",
+        "test:dev": "cypress run --env printLogsToConsole=always",
+        "test:parallel": "cypress run --record --group apis --spec 'cypress/nrt/apis/**/*'",
+        "lint": "echo 'Lint to be configured'",
+        "lint:fix": "npm run prettier:fix && npm run lint:license:fix",
+        "lint:license": "license-check-and-add check -f license-check-config.json",
+        "lint:license:fix": "license-check-and-add add -f license-check-config.json -r",
+        "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
+        "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
+        "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\""
     },
     "license": "MIT License",
     "devDependencies": {
-        "@types/node": "14.17.32",
-        "@types/faker": "5.5.9",
-        "cypress": "7.7.0",
-        "typescript": "4.3.5"
+        "@types/faker": "^5.5.7",
+        "@types/node": "^14.17.7",
+        "cypress": "^8.6.0",
+        "cypress-terminal-report": "^3.3.3",
+        "license-check-and-add": "^4.0.2",
+        "prettier": "^2.4.1",
+        "typescript": "^4.3.5",
+        "ansi-regex": "^6.0.1"
     },
     "dependencies": {
         "faker": "5.5.3"

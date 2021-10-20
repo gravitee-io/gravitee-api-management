@@ -206,6 +206,53 @@ jobs:
             docker push ${IMAGE_TAG}
       - notify-on-failure
 
+  cypress-install:
+    executor:
+      name: node-lts
+      class: small
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - gravitee-apim-cypress-cache-v1-{{ checksum "gravitee-apim-cypress/package-lock.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
+          working_directory: gravitee-apim-cypress
+      - notify-on-failure
+      - save_cache:
+          name: Save NPM cache
+          key: gravitee-apim-cypress-cache-v1-{{ checksum "gravitee-apim-cypress/package-lock.json" }}
+          paths:
+            - ./gravitee-apim-cypress/node_modules
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-cypress/node_modules
+
+  cypress-lint-test:
+    executor:
+      name: node-lts
+      class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: npm run lint:license
+          working_directory: gravitee-apim-cypress
+      - run:
+          name: Run Prettier and ESLint
+          command: npm run lint
+          working_directory: gravitee-apim-cypress
+      - run:
+          name: Run unit tests
+          command: echo "Will run 'npm run test:ci' in the future"
+          working_directory: gravitee-apim-cypress
+      - notify-on-failure
+
   console-webui-install:
     executor:
       name: node-lts
@@ -777,6 +824,13 @@ workflows:
             branches:
               only:
                 - master
+        # To be modified when testing strategy will be defined
+      - cypress-install:
+          requires:
+            - build
+      - cypress-lint-test:
+          requires:
+            - cypress-install
 
 
   # ---

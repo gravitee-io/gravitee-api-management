@@ -57,3 +57,4 @@ graviteebot.gpg.pub.key
 
 # Cypress
 gravitee-apim-cypress/cypress/videos/
+gravitee-apim-cypress/cypress/screenshots/

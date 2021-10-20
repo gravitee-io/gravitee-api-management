@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Api1User} from "../fixtures/users";
-import {Apis} from "../fixtures/apis";
-import {createFakeAPI} from "../fixtures/test-data";
+import { RequestInfo } from './technical';
+import { HttpClient } from '../commands/common/http.commands';
 
-const fakeApi = createFakeAPI();
+export abstract class HttpConnector {
+  protected requestInfo: RequestInfo;
+  protected httpClient: HttpClient;
 
-describe("create API", () => {
-
-  it("should create API", () => {
-    Apis.create(Api1User, fakeApi)
-      .should((response) => {
-        const apiId = response.body.id;
-        expect(apiId).not.undefined;
-        expect(response.status).to.eq(201);
-        expect(response.body.state).to.eq("STOPPED");
-      });
-  });
-
-});
+  protected constructor(requestInfo: RequestInfo) {
+    this.requestInfo = requestInfo;
+    this.httpClient = new HttpClient(requestInfo);
+  }
+}

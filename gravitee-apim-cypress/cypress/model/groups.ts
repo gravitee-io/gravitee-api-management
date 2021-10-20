@@ -13,6 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const testUrls = {
-    managementApi: "http://localhost:8083/management/organizations/DEFAULT/environments/DEFAULT",
-};
+export class Group {
+  id?: string;
+  name: string;
+  manageable?: boolean;
+  roles?: object;
+  event_rules: EventRule[];
+  lock_api_role: boolean;
+  lock_application_role: boolean;
+  disable_membership_notifications: boolean;
+  created_at?: number;
+  updated_at?: number;
+  system_invitation?: boolean;
+  email_invitation?: boolean;
+  primary_owner?: boolean;
+}
+
+export class EventRule {
+  event: GroupEvent;
+}
+
+export enum GroupEvent {
+  API_CREATE = 'API_CREATE',
+  APPLICATION_CREATE = 'APPLICATION_CREATE',
+}

@@ -32,6 +32,10 @@
  */
 // eslint-disable-next-line no-unused-vars
 module.exports = (on, config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
-}
+  const options = {
+    // Log console output only
+    printLogsToConsole: config.env.printLogsToConsole || 'onFail',
+    includeSuccessfulHookLogs: config.env.printLogsToConsole === 'always',
+  };
+  require('cypress-terminal-report/src/installLogsPrinter')(on, options);
+};

@@ -13,38 +13,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {createFakeAPI} from '../fixtures/test-data';
-import {Api1User} from '../fixtures/users';
-import {Apis} from '../fixtures/apis';
+
+import { ApiFakers } from '../fakers/apis';
+import { API_PUBLISHER_USER } from '../fakers/users/users';
+import { Api } from '../model/apis';
+import { gio } from '../commands/gravitee.commands';
 
 const bulkSize = 50;
 
 function createPublishAndStart() {
-  Apis.create(Api1User, createFakeAPI()).should((createResponse) => {
-    const apiId = createResponse.body.id;
-    expect(apiId).not.undefined;
-    expect(createResponse.status).to.eq(201);
-    expect(createResponse.body.state).to.eq("STOPPED");
+  gio
+    .management(API_PUBLISHER_USER)
+    .apis()
+    .create(ApiFakers.api())
+    .created()
+    .should((createResponse) => {
+      const apiId = createResponse.body.id;
+      expect(apiId).not.undefined;
+      expect(createResponse.body.state).to.eq('STOPPED');
 
-    Apis.publish(Api1User, apiId, createResponse.body).should((publishResponse) => {
-      expect(publishResponse.status).to.eq(200);
-      expect(publishResponse.body.lifecycle_state).to.eq("PUBLISHED");
-      expect(publishResponse.body.visibility).to.eq("PUBLIC");
-    });
+      gio
+        .management(API_PUBLISHER_USER)
+        .apis()
+        .update(apiId, createResponse.body)
+        .ok()
+        .should((publishResponse) => {
+          expect(publishResponse.body.lifecycle_state).to.eq('PUBLISHED');
+          expect(publishResponse.body.visibility).to.eq('PUBLIC');
+        });
 
-    Apis.start(Api1User, apiId).should((startResponse) => {
-      expect(startResponse.status).to.eq(204);
+      gio
+        .management(API_PUBLISHER_USER)
+        .apis()
+        .start(apiId)
+        .noContent()
+        .should((response) => {
+          const result: Api = response.body;
+          expect(result.state).to.equal('STARTED');
+        });
     });
-  });
 }
 
-describe("Bulk APIs", () => {
-
+describe('Bulk APIs', () => {
   it(`should create, publish and start ${bulkSize} APIs`, () => {
     // Useful to run in parallel
-    for (let i = 0; i < bulkSize; i++){
+    for (let i = 0; i < bulkSize; i++) {
       createPublishAndStart();
     }
   });
-
 });

@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export class Member {
+  reference: string;
+  roles: MemberRole[];
+}
 
-import './common/tools.commands';
-import './common/http.commands';
-import './common/ui.commands';
-
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
-require('cypress-terminal-report/src/installLogsCollector')({ enableExtendedCollector: Cypress.env('printLogsToConsole') === 'always' });
-
-Cypress.Cookies.defaults({ preserve: ['Auth-Graviteeio-APIM'] });
-before(() => {
-  cy.clearCookie('Auth-Graviteeio-APIM');
-});
-
-after(() => {
-  cy.clearCookie('Auth-Graviteeio-APIM');
-});
+export class MemberRole {
+  scope: string;
+  name: string;
+}

@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { RequestInfo, RequestInfoHolder } from '../model/technical';
+import { ApiPortalCommands } from './portal/apis.portal.commands';
 
-import './common/tools.commands';
-import './common/http.commands';
-import './common/ui.commands';
+export class PortalCommands extends RequestInfoHolder {
+  constructor(requestInfo: RequestInfo) {
+    super(requestInfo);
+  }
 
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
-require('cypress-terminal-report/src/installLogsCollector')({ enableExtendedCollector: Cypress.env('printLogsToConsole') === 'always' });
-
-Cypress.Cookies.defaults({ preserve: ['Auth-Graviteeio-APIM'] });
-before(() => {
-  cy.clearCookie('Auth-Graviteeio-APIM');
-});
-
-after(() => {
-  cy.clearCookie('Auth-Graviteeio-APIM');
-});
+  apis(): ApiPortalCommands {
+    return new ApiPortalCommands(this.requestInfo);
+  }
+}
