@@ -71,6 +71,48 @@ describe('UsersService', () => {
     });
   });
 
+  describe('get', () => {
+    it('should call the API', (done) => {
+      const userId = 'userId';
+      const userToGet = fakeUser({ id: userId });
+
+      usersService.get(userId).subscribe((user) => {
+        expect(user).toMatchObject(userToGet);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(userToGet);
+    });
+  });
+
+  describe('getUserAvatar', () => {
+    it('should return url', () => {
+      const userId = 'userId';
+
+      expect(usersService.getUserAvatar(userId)).toEqual(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/avatar`);
+    });
+  });
+
+  describe('getUserGroups', () => {
+    it('should call the API', (done) => {
+      const userId = 'userId';
+      const fakeGroups = [fakeGroup()];
+
+      usersService.getUserGroups(userId).subscribe((groups) => {
+        expect(groups).toMatchObject(fakeGroups);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/groups`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(fakeGroups);
+    });
+  });
+
   describe('create', () => {
     it('should call the API', (done) => {
       const userToCreate = fakeNewExternalUser();
@@ -96,20 +138,21 @@ describe('UsersService', () => {
     });
   });
 
-  describe('getUserGroups', () => {
+  describe('updateUserRoles', () => {
     it('should call the API', (done) => {
       const userId = 'userId';
-      const fakeGroups = [fakeGroup()];
+      const referenceType = 'referenceType';
+      const referenceId = 'referenceId';
+      const roles = ['role1', 'role2'];
 
-      usersService.getUserGroups(userId).subscribe((groups) => {
-        expect(groups).toMatchObject(fakeGroups);
+      usersService.updateUserRoles(userId, referenceType, referenceId, roles).subscribe(() => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/groups`);
-      expect(req.request.method).toEqual('GET');
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/roles`);
+      expect(req.request.method).toEqual('PUT');
 
-      req.flush(fakeGroups);
+      req.flush({});
     });
   });
 

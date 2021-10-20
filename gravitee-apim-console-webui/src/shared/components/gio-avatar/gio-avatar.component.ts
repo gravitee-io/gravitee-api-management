@@ -63,4 +63,9 @@ export class GioAvatarComponent implements AfterViewInit, OnChanges {
       this.avatarContainerEleRef.nativeElement.innerHTML = svgString;
     }
   }
+
+  onImgError() {
+    this.imgSrc = null;
+    this.ngAfterViewInit();
+  }
 }

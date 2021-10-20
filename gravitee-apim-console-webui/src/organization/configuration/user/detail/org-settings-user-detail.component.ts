@@ -13,9 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormControl } from '@angular/forms';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, shareReplay, takeUntil, tap } from 'rxjs/operators';
 
+import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { User } from '../../../../entities/user/user';
+import { RoleService } from '../../../../services-ngx/role.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
+
+interface UserVM extends User {
+  organizationRoles: string;
+  avatarUrl: string;
+}
 
 @Component({
   selector: 'org-settings-user-detail',
@@ -23,13 +35,81 @@ import { UsersService } from '../../../../services-ngx/users.service';
   styles: [require('./org-settings-user-detail.component.scss')],
 })
 export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
-  constructor(private readonly usersService: UsersService) {}
+  user: UserVM;
+
+  organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay());
+
+  organizationRolesControl: FormControl;
+
+  openSaveBar = false;
+
+  private unsubscribe$ = new Subject<boolean>();
+
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly roleService: RoleService,
+    private readonly snackBarService: SnackBarService,
+    @Inject(UIRouterStateParams) private readonly ajsStateParams,
+  ) {}
 
   ngOnInit(): void {
-    // Will be used in pr
+    this.usersService
+      .get(this.ajsStateParams.userId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((user) => {
+        const organizationRoles = user.roles.filter((r) => r.scope === 'ORGANIZATION');
+        this.user = {
+          ...user,
+          organizationRoles: organizationRoles.map((r) => r.name ?? r.id).join(', '),
+          avatarUrl: this.usersService.getUserAvatar(this.ajsStateParams.userId),
+        };
+
+        this.initOrganizationRolesForm();
+      });
   }
 
   ngOnDestroy() {
-    // Will be used in pr
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.complete();
+  }
+
+  toggleSaveBar(open?: boolean) {
+    this.openSaveBar = open ?? !this.openSaveBar;
+  }
+
+  onSaveBarSubmit() {
+    if (this.organizationRolesControl.dirty) {
+      this.usersService
+        .updateUserRoles(this.user.id, 'ORGANIZATION', 'DEFAULT', this.organizationRolesControl.value)
+        .pipe(
+          takeUntil(this.unsubscribe$),
+          tap(() => {
+            this.snackBarService.success('Roles for organization "DEFAULT" updated');
+          }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error.message);
+            return EMPTY;
+          }),
+        )
+        .subscribe();
+    }
+    this.toggleSaveBar(false);
+  }
+
+  onSaveBarReset() {
+    if (this.organizationRolesControl.touched) {
+      this.initOrganizationRolesForm();
+    }
+    this.toggleSaveBar(false);
+  }
+
+  private initOrganizationRolesForm() {
+    const organizationRoles = this.user.roles.filter((r) => r.scope === 'ORGANIZATION');
+
+    this.organizationRolesControl = new FormControl({ value: organizationRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' });
+
+    this.organizationRolesControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
+      this.toggleSaveBar(true);
+    });
   }
 }

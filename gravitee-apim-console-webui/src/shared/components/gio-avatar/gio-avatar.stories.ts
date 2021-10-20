@@ -56,6 +56,11 @@ ImageDefault.args = {
   src: 'https://i.pravatar.cc/500',
 };
 
+export const ImageWithBadUrl: Story<GioAvatarComponent> = {};
+ImageDefault.args = {
+  src: 'https://nope.nope',
+};
+
 export const IconWithParentDiv: Story<GioAvatarComponent> = {};
 IconWithParentDiv.args = {};
 IconWithParentDiv.decorators = [componentWrapperDecorator((story) => `<div style="width:300px; height:300px">${story}</div>`)];
