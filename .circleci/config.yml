@@ -26,6 +26,13 @@ commands:
           keys:
             - gravitee-api-management-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
 
+  notify-on-failure:
+    steps:
+      - slack/notify:
+          branch_pattern: master
+          event: fail
+          template: basic_fail_1
+
 parameters:
   gio_action:
     type: enum
@@ -71,6 +78,7 @@ jobs:
           command: |
             mvn -pl '!gravitee-apim-console-webui' -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
             cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.zip ./
+      - notify-on-failure
       - save_cache:
           paths:
             - ~/.m2
@@ -102,6 +110,7 @@ jobs:
             mkdir -p ~/test-results/junit/
             find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
           when: always
+      - notify-on-failure
       - store_test_results:
           path: ~/test-results
       - store_artifacts:
@@ -120,6 +129,7 @@ jobs:
           name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
           command: |
             mvn deploy --no-transfer-progress -DskipTests -T 2C -s .artifactory.settings.xml -P gio-dev
+      - notify-on-failure
 
   publish-on-nexus:
     docker:
@@ -137,6 +147,7 @@ jobs:
           name: "Maven Package and deploy to Nexus Snapshots"
           command: |
             mvn deploy --no-transfer-progress -DskipTests -T 2C -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
+      - notify-on-failure
 
   publish-images-azure-registry:
     docker:
@@ -173,6 +184,7 @@ jobs:
 
             echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
             docker push ${IMAGE_TAG}
+      - notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
@@ -230,6 +242,7 @@ jobs:
                          --reuse-values \
                          --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
                          --set "api.image.tag=${TAG}"
+      - notify-on-failure
 
   publish-to-bintray:
     docker:
@@ -250,7 +263,7 @@ jobs:
           name: Run magic package_bundle_and_publish
           command: |
             RELEASE_VERSION=master python ./jenkins-scripts/src/main/python/package_bundles.py
-
+      - notify-on-failure
 
   console-webui-install:
     executor:
@@ -266,6 +279,7 @@ jobs:
           name: Install dependencies
           command: npm install
           working_directory: gravitee-apim-console-webui
+      - notify-on-failure
       - save_cache:
           name: Save NPM cache
           key: gravitee-apim-console-webui-cache-v1-{{ checksum "gravitee-apim-console-webui/package-lock.json" }}
@@ -296,6 +310,7 @@ jobs:
           name: Run unit tests
           command: npm run test:ci
           working_directory: gravitee-apim-console-webui
+      - notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
@@ -314,6 +329,7 @@ jobs:
           name: Run Sonarcloud Analysis
           command: sonar-scanner
           working_directory: gravitee-apim-console-webui
+      - notify-on-failure
 
   console-webui-build:
     executor:
@@ -336,6 +352,7 @@ jobs:
           #  - Use gzip instead of zip
           command: zip -r dist.zip dist
           working_directory: gravitee-apim-console-webui
+      - notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
@@ -358,6 +375,7 @@ jobs:
           working_directory: gravitee-apim-console-webui
           environment:
             NODE_OPTIONS: --max_old_space_size=3072
+      - notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
@@ -394,7 +412,7 @@ jobs:
 
             📚 View the storybook of this branch [here](${SB_URL})
             "
-
+      - notify-on-failure
 
 
   console-webui-deploy-on-azure-storage:
@@ -413,6 +431,7 @@ jobs:
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az storage container create -n $BRANCH_ID --public-access blob
             az storage blob upload-batch -s gravitee-apim-console-webui/dist -d $BRANCH_ID
+      - notify-on-failure
 
 
   console-webui-comment-pr-after-deployment:
@@ -438,6 +457,7 @@ jobs:
             Congrats, all the CI steps were 🟢 . The Bot was able to deploy the build of this PR, so you can now try it directly [here](https://apimnightlywebui24386.blob.core.windows.net/${BRANCH_ID}/index.html)! 🚀
 
             _Notes_: The deployed app is linked to the management API of the Element Zero team's environment."
+      - notify-on-failure
 
 
 
@@ -470,6 +490,7 @@ jobs:
             echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
             docker push ${IMAGE_TAG}
           working_directory: gravitee-apim-console-webui
+      - notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
@@ -527,6 +548,7 @@ jobs:
                         apim3 \
                         --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
                         --set "ui.image.tag=$TAG"
+      - notify-on-failure
 
   purge-master-azure-registry:
     docker:
@@ -540,6 +562,7 @@ jobs:
           command: |
             az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
             az acr run --cmd "acr purge --filter 'apim-console-webui:master-.*' --untagged --ago 1d --keep 3" --registry graviteeio /dev/null
+      - notify-on-failure
 
 workflows:
   pull_requests:
