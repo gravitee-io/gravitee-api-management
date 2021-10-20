@@ -92,16 +92,16 @@ public class MongoInstallationRepository implements InstallationRepository {
         logger.debug("Delete installation [{}] - Done", id);
     }
 
+    @Override
+    public Set<Installation> findAll() throws TechnicalException {
+        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
+    }
+
     private InstallationMongo map(Installation group) {
         return mapper.map(group, InstallationMongo.class);
     }
 
     private Installation map(InstallationMongo installationMongoMongo) {
         return mapper.map(installationMongoMongo, Installation.class);
-    }
-
-    @Override
-    public Set<Installation> findAll() throws TechnicalException {
-        return internalRepository.findAll().stream().map(this::map).collect(Collectors.toSet());
     }
 }

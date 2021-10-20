@@ -110,7 +110,7 @@ jobs:
   publish-on-artifactory:
     docker:
       - image: cimg/openjdk:11.0
-    resource_class: medium
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -124,7 +124,7 @@ jobs:
   publish-on-nexus:
     docker:
       - image: cimg/openjdk:11.0
-    resource_class: medium
+    resource_class: large
     environment:
       NEXUS_SNAPSHOTS_URL: "https://oss.sonatype.org/content/repositories/snapshots"
       NEXUS_SNAPSHOTS_SERVER_ID: "sonatype-nexus-snapshots"

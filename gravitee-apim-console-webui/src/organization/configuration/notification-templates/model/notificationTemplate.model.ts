@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.api;
 
-import io.gravitee.repository.exceptions.TechnicalException;
-import java.util.Optional;
-
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface CrudRepository<T, ID> extends FindAllRepository<T> {
-    Optional<T> findById(ID id) throws TechnicalException;
-
-    T create(T item) throws TechnicalException;
-
-    T update(T item) throws TechnicalException;
-
-    void delete(ID id) throws TechnicalException;
+export class NotificationTemplate {
+  public id: string;
+  public hook: string;
+  public scope: string;
+  public name: string;
+  public description: string;
+  public title: string;
+  public content: string;
+  public type: string;
+  public created_at: Date;
+  public updated_at: Date;
+  public enabled: boolean;
 }
