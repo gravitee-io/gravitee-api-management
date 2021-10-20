@@ -123,6 +123,7 @@
             <configuration>
               <nodeVersion>${node.version}</nodeVersion>
               <npmVersion>${npm.version}</npmVersion>
+              <skip>${skip.npm}</skip>
             </configuration>
           </execution>
           <execution>
@@ -192,6 +193,7 @@
               <descriptors>
                 <descriptor>assembly.xml</descriptor>
               </descriptors>
+              <skipAssembly>${skip.npm}</skipAssembly>
             </configuration>
           </execution>
         </executions>
