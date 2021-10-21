@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 
 import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.component';
 
@@ -37,5 +37,6 @@ import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.com
   imports: [],
   declarations: [GioPolicyStudioWrapperComponent],
   exports: [GioPolicyStudioWrapperComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GioPolicyStudioWrapperModule {}

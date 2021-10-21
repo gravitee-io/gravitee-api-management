@@ -1,11 +1,12 @@
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   stories: ['../**/*.stories.@(ts|mdx)'],
-  addons: ['storybook-addon-designs','@storybook/addon-essentials'],
+  addons: ['storybook-addon-designs', '@storybook/addon-essentials'],
   features: {
     previewCsfV3: true,
-    storyStoreV7: false, 
+    storyStoreV7: false,
   },
   angularOptions: {
     enableIvy: true,
@@ -37,15 +38,19 @@ module.exports = {
       {
         test: /\.(scss)$/,
         exclude: [path.resolve(__dirname, '../src/index.scss')],
-        use: ['to-string-loader', 'css-loader', {
-          loader: 'sass-loader',
+        use: [
+          'to-string-loader',
+          'css-loader',
+          {
+            loader: 'sass-loader',
             options: {
               webpackImporter: false,
               sassOptions: {
                 includePaths: ['node_modules'],
               },
+            },
           },
-        }],
+        ],
       },
       { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       {
@@ -71,9 +76,60 @@ module.exports = {
       },
     ];
 
+    config.plugins.push(
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: './constants.json',
+            to: '',
+          },
+          {
+            from: './build.json',
+            to: '',
+          },
+          {
+            from: './themes',
+            to: './themes',
+          },
+          {
+            from: './docs',
+            to: './docs',
+          },
+          {
+            from: './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
+            to: 'webcomponents/webcomponents-loader.js',
+          },
+          {
+            from: './node_modules/@gravitee/ui-components/assets/css',
+            to: 'css',
+          },
+          {
+            from: './node_modules/@gravitee/ui-components/assets/i18n',
+            to: 'i18n',
+          },
+          {
+            from: './node_modules/@gravitee/ui-components/assets/icons',
+            to: 'icons',
+          },
+          {
+            from: './src/assets',
+            to: 'assets',
+          },
+          {
+            from: './src/libraries',
+            to: 'libraries',
+          },
+          {
+            from: './src/favicon.ico',
+            to: '',
+          },
+        ],
+      }),
+    );
+
     return config;
   },
-  previewHead :(head) => (
+  previewHead: (head) =>
     `${head}
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">`)
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">`,
 };

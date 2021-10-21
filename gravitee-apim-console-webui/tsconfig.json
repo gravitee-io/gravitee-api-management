@@ -11,7 +11,8 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "target": "ES5",
-    "types": ["jest", "angular-mocks", "node"]
+    "types": ["jest", "angular-mocks", "node"],
+    "resolveJsonModule": true
   },
   "include": ["src/**/*.ts", "node_modules/@gravitee/ui-components"]
 }

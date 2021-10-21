@@ -15,4 +15,27 @@
     limitations under the License.
 
 -->
-<div>It works</div>
+
+<div class="policy-studio-wrapper">
+  <gv-policy-studio
+    [policies]="policies"
+    [services]="services"
+    [resourceTypes]="resourceTypes"
+    [propertyProviders]="propertyProviders"
+    [dynamicPropertySchema]="dynamicPropertySchema"
+    [definition]="definition"
+    [flowSchema]="flowSchema"
+    [configurationSchema]="configurationSchema"
+    [configurationInformation]="configurationInformation"
+    [attr.can-add]="canAdd ? canAdd : null"
+    [attr.can-debug]="canDebug ? canDebug : null"
+    [attr.has-resources]="hasResources ? hasResources : null"
+    [attr.has-properties]="hasProperties ? hasProperties : null"
+    [attr.has-policy-filter]="hasPolicyFilter ? hasPolicyFilter : null"
+    [attr.sortable]="sortable ? sortable : null"
+    [attr.readonly-plans]="readonlyPlans ? readonlyPlans : null"
+    [flowsTitle]="flowsTitle"
+    [debugResponse]="debugResponse"
+  >
+  </gv-policy-studio>
+</div>
