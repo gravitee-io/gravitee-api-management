@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone.vertx;
 
+import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.vertx.core.Vertx;
@@ -41,9 +42,10 @@ public class VertxReactorConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public VertxHttpServerFactory vertxHttpServerFactory(
         Vertx vertx,
-        @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration
+        @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
+        KeyStoreLoaderManager keyStoreLoaderManager
     ) {
-        return new VertxHttpServerFactory(vertx, httpServerConfiguration);
+        return new VertxHttpServerFactory(vertx, httpServerConfiguration, keyStoreLoaderManager);
     }
 
     @Bean

@@ -33,8 +33,10 @@ import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.node.GatewayNodeMetadataResolver;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
 import io.gravitee.node.api.NodeMetadataResolver;
+import io.gravitee.node.certificates.spring.NodeCertificatesConfiguration;
 import io.gravitee.node.cluster.spring.ClusterConfiguration;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.node.kubernetes.spring.NodeKubernetesConfiguration;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
 import io.gravitee.plugin.core.spring.PluginConfiguration;
@@ -55,6 +57,8 @@ import org.springframework.context.annotation.Import;
         ClusterConfiguration.class,
         VertxConfiguration.class,
         ReactorConfiguration.class,
+        NodeCertificatesConfiguration.class,
+        NodeKubernetesConfiguration.class,
         VertxReactorConfiguration.class,
         PluginConfiguration.class,
         PolicyPluginConfiguration.class,
