@@ -60,6 +60,7 @@
               <directory>node_modules</directory>
             </fileset>
           </filesets>
+          <skip>${skip.npm}</skip>
         </configuration>
       </plugin>
       <plugin>
