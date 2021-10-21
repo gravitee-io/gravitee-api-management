@@ -7,7 +7,6 @@ coverage/
 browserslist
 package*.json
 *.ico
-**/.*
 *.adoc
 docker
 *.xml
