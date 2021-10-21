@@ -113,8 +113,6 @@ jobs:
       - notify-on-failure
       - store_test_results:
           path: ~/test-results
-      - store_artifacts:
-          path: ~/test-results/junit
 
   publish-on-artifactory:
     docker:
@@ -357,9 +355,6 @@ jobs:
           root: .
           paths:
             - gravitee-apim-console-webui/dist
-      - store_artifacts:
-          path: gravitee-apim-console-webui/dist.zip
-          destination: build-output
 
   console-webui-build-storybook:
     executor:
