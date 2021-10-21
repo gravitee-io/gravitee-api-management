@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { EMPTY, Subject } from 'rxjs';
-import { catchError, shareReplay, takeUntil, tap } from 'rxjs/operators';
+import { FormControl, FormGroup } from '@angular/forms';
+import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
+import { catchError, map, mapTo, mergeMap, shareReplay, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
+import { Environment } from '../../../../entities/environment/environment';
 import { User } from '../../../../entities/user/user';
+import { EnvironmentService } from '../../../../services-ngx/environment.service';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
@@ -27,6 +29,13 @@ import { UsersService } from '../../../../services-ngx/users.service';
 interface UserVM extends User {
   organizationRoles: string;
   avatarUrl: string;
+}
+
+interface EnvironmentDS {
+  id: string;
+  name?: string;
+  description?: string;
+  roles: string;
 }
 
 @Component({
@@ -38,8 +47,13 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   user: UserVM;
 
   organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay());
+  environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay());
 
   organizationRolesControl: FormControl;
+  environmentsRolesFormGroup: FormGroup;
+
+  environmentsTableDS: EnvironmentDS[];
+  environmentsTableDisplayedColumns = ['name', 'description', 'roles'];
 
   openSaveBar = false;
 
@@ -49,14 +63,14 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly usersService: UsersService,
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
+    private readonly environmentService: EnvironmentService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
   ngOnInit(): void {
-    this.usersService
-      .get(this.ajsStateParams.userId)
+    combineLatest([this.usersService.get(this.ajsStateParams.userId), this.environmentService.list()])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((user) => {
+      .subscribe(([user, environments]) => {
         const organizationRoles = user.roles.filter((r) => r.scope === 'ORGANIZATION');
         this.user = {
           ...user,
@@ -65,6 +79,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         };
 
         this.initOrganizationRolesForm();
+
+        this.environmentsTableDS = environments.map((e) => ({ id: e.id, name: e.name, description: e.description, roles: '' }));
+
+        this.initEnvironmentsRolesForm(environments);
       });
   }
 
@@ -78,28 +96,55 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   onSaveBarSubmit() {
+    let observableToZip: Observable<string>[] = [];
+
+    // Organization
     if (this.organizationRolesControl.dirty) {
-      this.usersService
-        .updateUserRoles(this.user.id, 'ORGANIZATION', 'DEFAULT', this.organizationRolesControl.value)
-        .pipe(
-          takeUntil(this.unsubscribe$),
-          tap(() => {
-            this.snackBarService.success('Roles for organization "DEFAULT" updated');
-          }),
-          catchError(({ error }) => {
-            this.snackBarService.error(error.message);
+      observableToZip.push(
+        this.usersService
+          .updateUserRoles(this.user.id, 'ORGANIZATION', 'DEFAULT', this.organizationRolesControl.value)
+          .pipe(takeUntil(this.unsubscribe$), mapTo('Roles for organization "DEFAULT" updated')),
+      );
+    }
+
+    // Environments
+    if (this.environmentsRolesFormGroup.dirty) {
+      observableToZip.push(
+        from(Object.keys(this.environmentsRolesFormGroup.controls)).pipe(
+          mergeMap((envId) => {
+            const envRolesControl = this.environmentsRolesFormGroup.get(envId) as FormControl;
+            if (envRolesControl.dirty) {
+              return this.usersService.updateUserRoles(this.user.id, 'ENVIRONMENT', envId, envRolesControl.value).pipe(mapTo(envId));
+            }
+            // skip if no change on environment roles
             return EMPTY;
           }),
-        )
-        .subscribe();
+          map((envId) => `Roles for environment "${envId}" updated`),
+        ),
+      );
     }
-    this.toggleSaveBar(false);
+
+    // After all observables emit, emit all success message as an array
+    zip(...observableToZip)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((successMessages) => {
+          this.snackBarService.success(successMessages.join('\n'));
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => {
+        observableToZip = [];
+        this.toggleSaveBar(false);
+      });
   }
 
   onSaveBarReset() {
-    if (this.organizationRolesControl.touched) {
-      this.initOrganizationRolesForm();
-    }
+    this.ngOnInit();
+
     this.toggleSaveBar(false);
   }
 
@@ -109,6 +154,23 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     this.organizationRolesControl = new FormControl({ value: organizationRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' });
 
     this.organizationRolesControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
+      this.toggleSaveBar(true);
+    });
+  }
+
+  private initEnvironmentsRolesForm(environments: Environment[]) {
+    this.environmentsRolesFormGroup = new FormGroup(
+      environments.reduce((result, environment) => {
+        const userEnvRoles = this.user.envRoles[environment.id] ?? [];
+
+        return {
+          ...result,
+          [environment.id]: new FormControl({ value: userEnvRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' }),
+        };
+      }, {}),
+    );
+
+    this.environmentsRolesFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
       this.toggleSaveBar(true);
     });
   }

@@ -10,11 +10,13 @@ $background: map.get(theme.$gio-theme, background);
 $typography: map.get(theme.$gio-theme, typography);
 
 .gio-snack-bar-success {
+  white-space: pre-wrap;
   background-color: mat.get-color-from-palette(gio.$gio-success-palette, 'medium');
   // color: mat.get-color-from-palette($gio-success-palette, 'medium-contrast');
 }
 
 .gio-snack-bar-error {
+  white-space: pre-wrap;
   background-color: mat.get-color-from-palette(gio.$gio-error-palette, medium);
   // color: mat.get-color-from-palette($gio-error-palette, medium-contrast);
 }

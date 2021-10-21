@@ -34,6 +34,8 @@ import { User as DeprecatedUser } from '../../../../entities/user';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
 import { GioSaveBarHarness } from '../../../../shared/components/gio-save-bar/gio-save-bar.harness';
+import { Environment } from '../../../../entities/environment/environment';
+import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 
 describe('OrgSettingsUserDetailComponent', () => {
   const fakeAjsState = {
@@ -85,6 +87,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       customFields,
     });
     expectUserGetRequest(user);
+    expectEnvironmentListRequest();
     expectRolesListRequest('ORGANIZATION', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
@@ -110,7 +113,8 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'PENDING',
     });
     expectUserGetRequest(user);
-    expectRolesListRequest('ORGANIZATION', []);
+    expectEnvironmentListRequest();
+    expectRolesListRequest('ORGANIZATION');
 
     const AcceptUserButton = await loader.getHarness(MatButtonHarness.with({ text: /Accept/ }));
     expect(AcceptUserButton).toBeTruthy();
@@ -125,7 +129,8 @@ describe('OrgSettingsUserDetailComponent', () => {
       status: 'ACTIVE',
     });
     expectUserGetRequest(user);
-    expectRolesListRequest('ORGANIZATION', []);
+    expectEnvironmentListRequest();
+    expectRolesListRequest('ORGANIZATION');
 
     expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Accept/ }))).toHaveLength(0);
     expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Reject/ }))).toHaveLength(0);
@@ -139,6 +144,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       roles: [{ id: 'roleOrgUserId', name: 'ROLE_ORG_USER', scope: 'ORGANIZATION' }],
     });
     expectUserGetRequest(user);
+    expectEnvironmentListRequest();
     expectRolesListRequest('ORGANIZATION', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
@@ -157,6 +163,37 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUpdateUserRolesRequest(user.id, ['roleOrgUserId', 'roleOrgAdminId']);
   });
 
+  it('should save environments roles', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+      envRoles: { environmentAlphaId: [{ id: 'roleEnvApiId' }], environmentBetaId: [] },
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest([
+      fakeEnvironment({ id: 'environmentAlphaId', name: 'Environment Alpha' }),
+      fakeEnvironment({ id: 'environmentBetaId', name: 'Environment Beta' }),
+    ]);
+    expectRolesListRequest('ENVIRONMENT', [
+      fakeRole({ id: 'roleEnvApiId', name: 'ROLE_ENV_API' }),
+      fakeRole({ id: 'roleEnvUserId', name: 'ROLE_ENV_USER' }),
+    ]);
+    expectRolesListRequest('ORGANIZATION');
+
+    const environmentsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__environments-card' }));
+    const environmentAlphaRolesSelect = await environmentsCard.getHarness(MatSelectHarness.with({ selector: '[id=environmentAlphaId]' }));
+
+    await environmentAlphaRolesSelect.clickOptions({ text: 'ROLE_ENV_USER' });
+
+    expect(await environmentAlphaRolesSelect.getValueText()).toBe('ROLE_ENV_API, ROLE_ENV_USER');
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectUpdateUserRolesRequest(user.id, ['roleEnvApiId', 'roleEnvUserId']);
+  });
+
   function expectUserGetRequest(user: User = fakeUser({ id: 'userId' })) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}`);
     expect(req.request.method).toEqual('GET');
@@ -164,7 +201,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectRolesListRequest(scope, roles: Role[]) {
+  function expectRolesListRequest(scope, roles: Role[] = []) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${scope}/roles`);
     expect(req.request.method).toEqual('GET');
     req.flush(roles);
@@ -176,5 +213,12 @@ describe('OrgSettingsUserDetailComponent', () => {
     expect(req.request.method).toEqual('PUT');
     expect(req.request.body.roles).toEqual(roles);
     req.flush({});
+  }
+
+  function expectEnvironmentListRequest(environments: Environment[] = []) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(environments);
+    fixture.detectChanges();
   }
 });
