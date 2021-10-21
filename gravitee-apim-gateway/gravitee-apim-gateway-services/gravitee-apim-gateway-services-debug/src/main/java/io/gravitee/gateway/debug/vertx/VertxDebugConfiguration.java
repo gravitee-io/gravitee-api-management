@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactor.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFactory;
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
+import io.gravitee.node.certificates.KeyStoreLoaderManager;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.vertx.core.Vertx;
@@ -85,9 +86,10 @@ public class VertxDebugConfiguration {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public VertxHttpServerFactory vertxHttpServerFactory(
         Vertx vertx,
-        @Qualifier("debugHttpServerConfiguration") HttpServerConfiguration httpServerConfiguration
+        @Qualifier("debugHttpServerConfiguration") HttpServerConfiguration httpServerConfiguration,
+        KeyStoreLoaderManager keyStoreLoaderManager
     ) {
-        return new VertxHttpServerFactory(vertx, httpServerConfiguration);
+        return new VertxHttpServerFactory(vertx, httpServerConfiguration, keyStoreLoaderManager);
     }
 
     @Bean("debugHttpClientConfiguration")

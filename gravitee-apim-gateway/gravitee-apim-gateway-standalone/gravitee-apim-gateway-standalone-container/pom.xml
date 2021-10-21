@@ -114,6 +114,11 @@
         </dependency>
 
         <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-kubernetes</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-reactor</artifactId>
             <version>${project.version}</version>
