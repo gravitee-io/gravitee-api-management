@@ -1,0 +1,85 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="page__content">
+  <div class="main">
+    <h1 *ngIf="currentUser" class="title">
+      {{ 'dashboard.welcome' | translate: { username: currentUser.first_name || currentUser.display_name } }}
+    </h1>
+
+    <section *ngIf="empty">
+      <gv-message class="message-empty">
+        <gv-icon shape="code:plus"></gv-icon>
+        <div class="title" [innerHTML]="'dashboard.empty' | translate"></div>
+        <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'" href="/applications/creation/">
+          {{ 'dashboard.applications.createFirst' | translate }}
+        </gv-button>
+      </gv-message>
+    </section>
+
+    <section *ngIf="!hasApplicationPermission()">
+      <gv-message class="message-empty">
+        <gv-icon shape="layout:layout-arrange"></gv-icon>
+        <div class="title" [innerHTML]="'dashboard.noApplicationPermission' | translate"></div>
+      </gv-message>
+    </section>
+
+    <section *ngIf="applications && applications.length">
+      <h3 class="title" translate="dashboard.applications.title"></h3>
+      <div class="content" [ngClass]="{ 'one-card': applications.length === 1, 'two-cards': applications.length === 2 }">
+        <gv-card-list [items]="applications" [style]="cardListGridTemplate"></gv-card-list>
+
+        <div class="buttons">
+          <gv-button primary *ngIf="applicationCreationEnabled()" [routerLink]="'/applications/creation/'" href="/applications/creation/">
+            <div>
+              <gv-icon shape="code:plus"></gv-icon>
+              <h4 translate="dashboard.applications.create"></h4>
+            </div>
+          </gv-button>
+
+          <gv-button *ngIf="applications && applications.length" [routerLink]="'/applications/'" href="/applications/">
+            <div>
+              <gv-icon shape="general:other#2"></gv-icon>
+              <h4 translate="dashboard.applications.list"></h4>
+            </div>
+          </gv-button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div *ngIf="subscriptions && subscriptions.length">
+        <h3 class="title">{{ 'dashboard.subscriptions.title' | translate }}</h3>
+        <div class="subscriptions">
+          <gv-table
+            [format]="format"
+            [emptymessage]="'dashboard.subscriptions.list.empty' | translate"
+            order="api.name"
+            (:gv-table:select)="onSubscriptionClick($event)"
+            [items]="subscriptions"
+            [options]="optionsSubscriptions"
+            nosort
+          ></gv-table>
+          <div>
+            <div class="empty" *ngIf="!stats" translate="dashboard.subscriptions.subtitle"></div>
+            <gv-stats *ngIf="stats" [stats]="stats" [options]="optionsStats"></gv-stats>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

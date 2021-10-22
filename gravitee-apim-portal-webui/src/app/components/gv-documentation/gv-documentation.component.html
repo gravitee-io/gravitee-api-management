@@ -1,0 +1,44 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div *ngIf="!isEmpty()" class="gv-documentation">
+  <div class="gv-documentation__loading" *ngIf="!isLoaded">
+    <gv-icon shape="navigation:waiting"></gv-icon>
+  </div>
+  <div #treeMenu class="gv-documentation__menu" [ngClass]="{ show: isLoaded }">
+    <gv-tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
+  </div>
+  <app-gv-page
+    *ngIf="currentPage"
+    [page]="currentPage"
+    withToc="true"
+    [ngClass]="{ 'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded, fullscreen: this.hasTreeClosed }"
+    [fragment]="this.fragment"
+    class="gv-documentation__content"
+  ></app-gv-page>
+</div>
+
+<div class="page__content" *ngIf="isEmpty()">
+  <section>
+    <gv-message class="message-empty">
+      <gv-icon shape="home:library"></gv-icon>
+      <div class="title">
+        {{ 'gv-documentation.empty' | translate }}
+      </div>
+    </gv-message>
+  </section>
+</div>

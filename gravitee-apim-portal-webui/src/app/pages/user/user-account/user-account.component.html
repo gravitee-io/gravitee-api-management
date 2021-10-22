@@ -1,0 +1,120 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<form *ngIf="canDisplayForm" class="page__content page__content-with-aside form" [formGroup]="userForm" (ngSubmit)="submit()">
+  <div class="main">
+    <div class="page__box">
+      <div class="page__box-title">
+        <h3 class="title">{{ 'user.account.title' | translate }}</h3>
+      </div>
+
+      <div class="page__box-content grid">
+        <div>
+          <gv-file-upload
+            [label]="'user.change_picture' | translate"
+            name="avatar"
+            formControlName="avatar"
+            ngDefaultControl
+            accept="image/*"
+            except=".svg"
+            limit="500000"
+            [value]="avatar"
+          ></gv-file-upload>
+        </div>
+        <div>
+          <gv-input
+            class="form__control"
+            label="{{ 'user.first_name' | translate }}"
+            formControlName="first_name"
+            name="first_name"
+            ngDefaultControl
+          ></gv-input>
+          <gv-input
+            class="form__control"
+            label="{{ 'user.last_name' | translate }}"
+            formControlName="last_name"
+            name="last_name"
+            ngDefaultControl
+          ></gv-input>
+          <gv-input
+            class="form__control"
+            label="{{ 'user.email' | translate }}"
+            formControlName="email"
+            name="email"
+            ngDefaultControl
+          ></gv-input>
+          <div *ngFor="let field of customUserFields">
+            <gv-input
+              *ngIf="!field.values"
+              large
+              class="form__control"
+              type="text"
+              label="{{
+                ('register.field.' + field.key | translate) === 'register.field.' + field.key
+                  ? field.label
+                  : ('register.field.' + field.key | translate)
+              }}"
+              [formControlName]="field.key"
+              [name]="field.key"
+              autocomplete="on"
+              [required]="field.required"
+              ngDefaultControl
+              gvControl
+            >
+            </gv-input>
+
+            <gv-select
+              *ngIf="field.values"
+              large
+              [options]="field.values"
+              class="form__control"
+              type="text"
+              label="{{
+                ('register.field.' + field.key | translate) === 'register.field.' + field.key
+                  ? field.label
+                  : ('register.field.' + field.key | translate)
+              }}"
+              [formControlName]="field.key"
+              [name]="field.key"
+              [required]="field.required"
+              ngDefaultControl
+              gvControl
+            >
+            </gv-select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="aside">
+    <div class="page__box">
+      <div class="page__box-title">
+        <h4 class="title">{{ 'common.options' | translate }}</h4>
+      </div>
+      <div class="page__box-content form__actions">
+        <gv-button type="submit" [disabled]="userForm.invalid || userForm.pristine" primary [loading]="isSaving" icon="general:save">
+          {{ 'common.update' | translate }}
+        </gv-button>
+        <gv-button outlined (:gv-button:click)="reset()" [disabled]="userForm.pristine">
+          {{ 'common.reset' | translate }}
+        </gv-button>
+      </div>
+    </div>
+  </aside>
+</form>
