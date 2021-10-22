@@ -1,0 +1,90 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="form step">
+  <div class="form-control">
+    <gv-option [options]="allowedTypes" autofocus [value]="applicationType.id" class="application-types"></gv-option>
+  </div>
+
+  <form [formGroup]="appForm" class="form" *ngIf="isSimpleApp">
+    <div class="form-control" formGroupName="app">
+      <gv-input
+        name="type"
+        formControlName="type"
+        ngDefaultControl
+        label="{{ 'applicationType.security.simple.title' | translate }}"
+        placeholder="{{ 'applicationType.security.simple.description' | translate }}"
+      ></gv-input>
+    </div>
+
+    <div class="form-control" formGroupName="app">
+      <gv-input
+        id="appClientId"
+        formControlName="client_id"
+        ngDefaultControl
+        label="{{ 'applicationType.security.clientId.label' | translate }}"
+        placeholder="{{ 'applicationType.security.clientId.description' | translate }}"
+      ></gv-input>
+    </div>
+  </form>
+
+  <form [formGroup]="oauthForm" class="form step-grid-content" *ngIf="!isSimpleApp">
+    <div class="step-grid-column" formGroupName="oauth">
+      <div class="form-control" formArrayName="grant_types">
+        <div [ngClass]="{ invalid: grantTypes.invalid }">{{ 'applicationCreation.security.label' | translate }}</div>
+        <div style="opacity: 0.7">{{ 'applicationCreation.security.description' | translate }}</div>
+
+        <gv-switch
+          *ngFor="let grantType of allGrantTypes"
+          [label]="grantType.name"
+          [value]="grantType.value"
+          [disabled]="grantType.disabled"
+          (input)="onSwitchGrant($event, grantType)"
+        >
+        </gv-switch>
+      </div>
+    </div>
+    <div class="step-grid-column" formGroupName="oauth">
+      <div class="form-control" *ngIf="requiresRedirectUris" formArrayName="redirect_uris">
+        <gv-input
+          [required]="requiresRedirectUris"
+          autofocus
+          clickable
+          (:gv-input:submit)="addRedirectUri($event)"
+          (blur)="addRedirectUri($event)"
+          [label]="'applicationType.security.redirectUris.label' | translate"
+          [valid]="hasRedirectUris"
+          [invalid]="!hasRedirectUris"
+          type="url"
+          placeholder="https://example.com"
+          icon="code:plus"
+        ></gv-input>
+      </div>
+      <div *ngIf="redirectURIs.controls.length > 0">
+        <div class="label">{{ 'applicationType.security.redirectUris.description' | translate }}</div>
+        <gv-tag
+          *ngFor="let control of redirectURIs.controls; index as i"
+          icon-right="general:close"
+          minor
+          clickable
+          (:gv-tag:click)="removeRedirectUri(i)"
+          >{{ control.value }}</gv-tag
+        >
+      </div>
+    </div>
+  </form>
+</div>
