@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.debug.vertx;
 
+import io.vertx.core.http.HttpServerOptions;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
@@ -26,16 +27,16 @@ public class VertxDebugHttpClientConfiguration {
     private static final int MAX_CONNECTION_TIMEOUT = 5000;
     private static final int MAX_REQUEST_TIMEOUT = 10000;
 
-    @Value("${http.compressionSupported}")
+    @Value("${http.compressionSupported:" + HttpServerOptions.DEFAULT_COMPRESSION_SUPPORTED + "}")
     private boolean compressionSupported;
 
-    @Value("${http.alpn}")
+    @Value("${http.alpn:false}")
     private boolean alpn;
 
-    @Value("${http.secured}")
+    @Value("${http.secured:false}")
     private boolean secured;
 
-    @Value("${http.ssl.openssl}")
+    @Value("${http.ssl.openssl:false}")
     private boolean openssl;
 
     @Value("${debug.timeout.connect:5000}")
