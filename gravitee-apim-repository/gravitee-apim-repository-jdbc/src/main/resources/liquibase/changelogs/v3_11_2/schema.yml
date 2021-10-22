@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3.11.2
+      author: GraviteeSource Team
+      changes:
+        # dbms: mariadb, mysql
+        - sql:
+            dbms: mariadb, mysql
+            sql: delete from `${gravitee_prefix}event_properties` where event_id in (select id from `${gravitee_prefix}events` WHERE type = 'DEBUG_API') AND property_key = 'api_id';
+        # dbms: postgresql, mssql
+        - sql:
+            dbms: postgresql, mssql
+            sql: delete from ${gravitee_prefix}event_properties where event_id in (select id from ${gravitee_prefix}events WHERE type = 'DEBUG_API') AND property_key = 'api_id';

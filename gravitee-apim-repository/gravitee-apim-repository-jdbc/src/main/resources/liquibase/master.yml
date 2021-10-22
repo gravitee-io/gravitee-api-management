@@ -110,5 +110,5 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v3_10_4/schema.yml
   - include:
-      - file: liquibase/changelogs/v3_11_1/schema.yml
+      - file: liquibase/changelogs/v3_11_2/schema.yml
 
