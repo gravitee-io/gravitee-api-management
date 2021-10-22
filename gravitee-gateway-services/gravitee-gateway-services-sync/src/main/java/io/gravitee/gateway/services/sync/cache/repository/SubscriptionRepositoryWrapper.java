@@ -22,10 +22,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.model.Subscription;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -77,5 +74,10 @@ public class SubscriptionRepositoryWrapper implements SubscriptionRepository {
             Subscription subscription = this.cache.get(key);
             return (subscription != null) ? Collections.singletonList(subscription) : null;
         }
+    }
+
+    @Override
+    public Set<Subscription> findAll() {
+        throw new IllegalStateException();
     }
 }
