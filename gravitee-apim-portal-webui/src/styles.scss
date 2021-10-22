@@ -1,0 +1,291 @@
+/* You can add global styles to this file, and also import other style files */
+$font-prefix: '~@ibm/plex';
+@import '~@ibm/plex/scss/ibm-plex.scss';
+@import '~@gravitee/ui-components/assets/css/gravitee-theme.generated.css';
+
+:root {
+  font-family: var(--gv-theme-font-family);
+  font-size: var(--gv-theme-font-size-m);
+  color: var(--gv-theme-font-color-dark);
+
+  // ********** Layout ************
+  --gv-theme-layout--pb: 1rem;
+  --gv-theme-layout--pl: 8rem;
+  --gv-theme-layout--pr: 8rem;
+  --gv-theme-layout--pt: 1rem;
+  --gv-theme-layout-footer-bottom--h: 150px;
+  --gv-theme-layout-footer-top--h: 338px;
+  --gv-theme-layout-header--h: 3.8rem;
+
+  // ********** Page ************
+  --gv-theme-page--pb: 4rem;
+  --gv-theme-page--pt: 4rem;
+}
+
+/* (1920x1080) Full HD Display */
+@media screen and (max-width: 1920px) {
+  :root {
+    --gv-theme-layout--pr: 250px;
+    --gv-theme-layout--pl: 250px;
+  }
+}
+
+/* (1680x1050) WSXGA+ Display */
+@media screen and (max-width: 1680px) {
+  :root {
+    --gv-theme-layout--pr: 130px;
+    --gv-theme-layout--pl: 130px;
+  }
+}
+
+/* (1600x900) HD+ Display */
+@media screen and (max-width: 1600px) {
+  :root {
+    --gv-theme-layout--pr: 90px;
+    --gv-theme-layout--pl: 90px;
+  }
+}
+
+/* (1440x900) WXGA+ Display */
+@media screen and (max-width: 1440px) {
+  :root {
+    --gv-theme-layout--pr: 10px;
+    --gv-theme-layout--pl: 10px;
+  }
+}
+
+/* (1366x768) WXGA Display */
+@media screen and (max-width: 1366px) {
+  :root {
+    --gv-theme-layout--pr: 8px;
+    --gv-theme-layout--pl: 8px;
+  }
+}
+
+/* (1280x720) Galaxy Note 2, WXGA */
+@media only screen and (max-device-width: 1280px) {
+  :root {
+    --gv-theme-layout--pr: 5px;
+    --gv-theme-layout--pl: 5px;
+  }
+}
+
+.page__content {
+  word-break: break-word;
+  padding: var(--gv-theme-page--pt) var(--gv-theme-layout--pr) var(--gv-theme-page--pb) var(--gv-theme-layout--pl);
+  max-width: calc(1412 + var(--gv-theme-page--pr) + var(--gv-theme-page--pl));
+  min-height: 30vh;
+}
+
+.page__content-with-aside {
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+}
+
+.page__content section {
+  margin: 42px 0;
+}
+
+.page__content-back-button {
+  margin: 0.2rem 0;
+  position: absolute;
+  top: -30px;
+}
+
+.page__box {
+  background-color: var(--gv-theme-neutral-color-lightest);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  margin: 0 0 1rem 0;
+}
+
+.main {
+  flex: 1;
+  position: relative;
+}
+
+.main .page__box {
+  margin-right: 1rem;
+}
+
+.aside,
+.main {
+  display: flex;
+  flex-direction: column;
+}
+
+.aside {
+  width: 280px;
+}
+
+.page__box-title {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--gv-theme-neutral-color);
+}
+
+.page__box-title .title {
+  flex: 1;
+}
+
+.aside .page__box-title,
+.aside .page__box-content,
+.aside .page__box-footer {
+  padding: 24px;
+}
+
+.aside .page__box-title gv-identity-picture {
+  width: 32px;
+  height: 32px;
+}
+
+.page__box-title,
+.page__box-content,
+.page__box-footer {
+  padding: 2rem 4rem;
+}
+
+.page__box-footer {
+  border-top: 1px solid var(--gv-theme-neutral-color);
+}
+
+.aside .page__box-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.page__box-title h1,
+.page__box-title h2,
+.page__box-title h3 {
+  text-transform: uppercase;
+}
+
+.title {
+  letter-spacing: 0.05rem;
+  margin: 0;
+}
+
+h1.title {
+  font-size: var(--gv-theme-font-size-xxl);
+  line-height: var(--gv-theme-font-size-xxl);
+}
+
+.title span {
+  font-weight: 600;
+  font-size: var(--gv-theme-font-size-s);
+  line-height: var(--gv-theme-font-size-s);
+  margin-left: 8px;
+  opacity: 0.7;
+}
+
+h2.title {
+  font-size: var(--gv-theme-font-size-xl);
+  line-height: var(--gv-theme-font-size-xl);
+  opacity: 0.5;
+}
+
+h3.title {
+  font-size: var(--gv-theme-font-size-l);
+  line-height: var(--gv-theme-font-size-l);
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+h3.title p {
+  opacity: 0.5;
+}
+
+h4.title {
+  font-size: var(--gv-theme-font-size-m);
+  line-height: var(--gv-theme-font-size-m);
+  opacity: 0.6;
+}
+
+.text-center {
+  text-align: center;
+}
+
+h4.title span {
+  color: var(--gv-theme-neutral-color-darker);
+}
+
+.skeleton,
+.skeleton a {
+  animation-direction: alternate;
+  animation-duration: 500ms;
+  animation-iteration-count: infinite;
+  animation-name: skeleton-pulse;
+  color: transparent;
+  cursor: progress;
+  user-select: none;
+}
+
+@keyframes skeleton-pulse {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0.45;
+  }
+}
+
+body {
+  margin: 0;
+}
+
+.pagination__block {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pagination__size__block {
+  width: 60px;
+}
+
+.pagination__pagination__block {
+  display: flex;
+}
+
+.empty,
+.error {
+  align-items: center;
+  box-sizing: border-box;
+  color: var(--gv-theme-font-color-dark);
+  font-size: var(--gv-theme-font-size-l, 20px);
+  font-weight: bold;
+  height: 100%;
+  opacity: 0.5;
+  padding: 3rem;
+  text-align: center;
+  width: 100%;
+  justify-content: center;
+  display: flex;
+}
+
+.message-empty {
+  --gv-icon--s: 128px;
+  --gv-icon--c: var(--gv-theme-color);
+}
+
+.message-empty > * {
+  margin: 2rem 0;
+}
+
+.message-empty .title {
+  font-size: var(--gv-theme-font-size-xxl);
+  text-align: center;
+  opacity: 0.6;
+}
+
+.invalid {
+  color: var(--gv-theme-color-danger);
+}
+
+.invalid::after {
+  content: '*';
+  margin: 0 0.2rem;
+}
