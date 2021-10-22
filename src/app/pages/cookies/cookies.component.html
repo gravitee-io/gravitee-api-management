@@ -1,0 +1,40 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="page__content">
+  <section class="cookies__section">
+    <h1>{{ 'cookies.title' | translate }}</h1>
+    <div class="cookies__section__block">
+      <p class="large">{{ 'cookies.information.common' | translate }}</p>
+    </div>
+
+    <div class="cookies__section__block" *ngIf="displayGACookie()">
+      <p [innerHTML]="'cookies.information.withAnalytics' | translate"></p>
+    </div>
+    <div class="cookies__section__block" *ngIf="displayGACookie()">
+      <p>{{ 'cookies.manage' | translate }}</p>
+      <div class="cookies__switches">
+        <gv-switch
+          (:gv-switch:input)="toggleGACookie($event)"
+          label="Google Analytics"
+          [description]="'cookies.googleAnalyticsDescription' | translate"
+          [value]="this.gaCookieEnabled"
+        ></gv-switch>
+      </div>
+    </div>
+  </section>
+</div>

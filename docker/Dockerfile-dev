@@ -1,0 +1,33 @@
+FROM alpine:3 AS build-env
+LABEL maintainer="contact@graviteesource.com"
+
+ADD dist dist
+
+FROM nginx:1.21-alpine
+LABEL maintainer="contact@graviteesource.com"
+
+ENV GRAVITEE_APIM_UI /opt/gravitee-apim-ui
+ENV WWW_TARGET /usr/share/nginx/html
+ENV CONFD_VERSION="0.16.0"
+ENV CONFD_URL="https://github.com/kelseyhightower/confd/releases/download"
+
+COPY --from=build-env /dist ${WWW_TARGET}
+
+RUN wget -T 5 ${CONFD_URL}/v${CONFD_VERSION}/confd-${CONFD_VERSION}-linux-amd64 -O /bin/confd \
+      && chmod +x /bin/confd \
+      && ln -sf /dev/stdout /var/log/nginx/access.log \
+      && ln -sf /dev/stderr /var/log/nginx/error.log \
+      && sed -i '/user  nginx;/d' /etc/nginx/nginx.conf \
+      && sed -i 's,/var/run/nginx.pid,/tmp/nginx.pid,' /etc/nginx/nginx.conf \
+      && sed -i "/^http {/a \    proxy_temp_path /tmp/proxy_temp;\n    client_body_temp_path /tmp/client_temp;\n    fastcgi_temp_path /tmp/fastcgi_temp;\n    uwsgi_temp_path /tmp/uwsgi_temp;\n    scgi_temp_path /tmp/scgi_temp;\n" /etc/nginx/nginx.conf \
+      && chown -R 101:0 /usr/share/nginx /var/log/nginx /var/cache/nginx /etc/nginx /var/run \
+      && chmod -R g+w /var/cache/nginx \
+      && chmod -R g+w /etc/nginx
+
+WORKDIR ${GRAVITEE_APIM_UI}
+
+ADD config /etc/confd
+
+COPY run.sh /run.sh
+
+CMD ["sh", "/run.sh"]

@@ -1,0 +1,265 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout__header {
+  background-color: var(--gv-theme-neutral-color-lightest);
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 110;
+}
+
+.layout__header gv-message {
+  height: 0;
+}
+
+.layout__homepage .layout__header {
+  position: fixed;
+  background-color: transparent;
+  transition: height 350ms ease-in-out;
+}
+
+.layout__header__background {
+  background-color: transparent;
+}
+
+.layout__header__block {
+  background-color: var(--gv-theme-neutral-color);
+}
+
+.sticky .layout__header__container {
+  padding-bottom: 0.2rem;
+  padding-top: 0.2rem;
+  --gv-link-a--pv: 0.5rem;
+  transition: all 250ms ease-in-out;
+}
+
+.layout__api {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.layout__api__search {
+  margin-right: 25px;
+}
+
+.layout__api__search,
+.layout__api__actions {
+  flex: 1;
+}
+
+.layout__api__actions {
+  border-left: 1px solid lightgrey;
+  padding-left: 20px;
+}
+
+.layout__header__homepage__background {
+  display: none;
+}
+
+.layout__homepage .layout__header__homepage__background {
+  background-size: cover;
+  background-color: var(--gv-theme-homepage-background-color);
+  background-image: var(--gv-theme-homepage-background-image);
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: var(--gv-theme-homepage-background-height);
+  color: var(--gv-theme-neutral-color-lightest);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.sticky-homepage .layout__header__homepage__background {
+  height: 70px;
+  overflow: hidden;
+  color: transparent;
+  position: fixed;
+  width: 100%;
+  z-index: 105;
+}
+
+.layer {
+  transition: all 250ms ease-in-out;
+}
+
+.sticky-homepage .layer {
+  background-color: var(--gv-theme-homepage-background-color);
+  opacity: 0.8;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sticky-homepage .layout__content__homepage {
+  padding-top: var(--gv-theme-homepage-background-height);
+}
+
+.sticky .layout__header__homepage__container {
+  display: none;
+}
+
+.layout__header__container {
+  display: grid;
+  grid-template-columns: 75px 1fr auto;
+  grid-gap: 0.5rem;
+  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pr) var(--gv-theme-layout--pb) var(--gv-theme-layout--pl);
+}
+
+.layout__header__logo {
+  background-image: var(--gv-theme-logo);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: var(--gv-theme-layout-header--h);
+}
+
+.layout__header__homepage__logo {
+  background-image: var(--gv-theme-optional-logo);
+}
+
+.layout__header__homepage__title {
+  --gv-button--p: 1rem 2rem;
+  --gv-button--bdrs: 5px;
+  transition: opacity 250ms ease-in-out;
+  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
+}
+
+.sticky .layout__header__homepage__title {
+  opacity: 0;
+}
+
+.layout__header__homepage__title h1 {
+  font-size: 45px;
+  font-weight: 700;
+  line-height: 1.4em;
+  text-shadow: 1px 1px 1px #000;
+  color: var(--gv-theme-neutral-color-lightest);
+}
+
+.layout__nav__container {
+  text-align: right;
+}
+
+.layout__nav {
+  --gv-link--c: var(--gv-theme-neutral-color-lightest);
+  --gv-link--tsh: 1px 1px 1px #000;
+}
+
+.layout__user-menu {
+  --gv-user-menu--c: var(--gv-theme-neutral-color-lightest);
+  --gv-user-menu-icon--c: var(--gv-theme-neutral-color-lightest);
+  --gv-user-menu--tsh: 1px 1px 1px #000;
+}
+
+.layout__content {
+  background-color: var(--gv-theme-neutral-color);
+  flex-grow: 1;
+}
+
+.layout__footer {
+  height: 0px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout__footer__top {
+  background-color: var(--gv-theme-color-dark);
+  color: var(--gv-theme-font-color-light);
+  height: var(--gv-theme-layout-footer-top--h);
+  padding: var(--gv-theme-layout--pt) var(--gv-theme-layout--pl);
+  display: grid;
+  grid-template-columns: 20% repeat(7, 1fr);
+  column-gap: 10px;
+}
+
+.layout__footer__top__category {
+  padding-top: 70px;
+}
+
+.layout__footer__top__category__title,
+.layout__footer__top__category__title_border {
+  margin: 0.3rem 0.5rem;
+}
+
+.layout__footer__top__category__title_border {
+  border-bottom: 2px solid var(--gv-theme-color-light);
+  padding-top: 10px;
+  width: 15%;
+}
+
+.layout__footer__top__category__links {
+  list-style: none;
+  padding: 15px 0;
+  --gv-link--c: var(--gv-theme-font-color-light);
+  --gv-link-a--pv: 0px;
+  --gv-link-a--ph: 0px;
+}
+
+.layout__footer__top__category__links li {
+  opacity: 0.4;
+  padding-top: 7px;
+}
+
+.layout__footer__top__logo {
+  background-image: var(--gv-theme-optional-logo);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  max-height: 158px;
+}
+
+.layout__footer__bottom {
+  background-color: var(--gv-theme-color-darker);
+  color: var(--gv-theme-font-color-light);
+  height: var(--gv-theme-layout-footer-bottom--h);
+  padding: 55px 0px;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.layout__footer__bottom li {
+  display: inline;
+  padding-right: 30px;
+  vertical-align: middle;
+}
+
+.layout__footer__bottom ul {
+  --gv-link--c: var(--gv-theme-font-color-light);
+  --gv-link-a--pv: 0px;
+  --gv-link-a--ph: 0px;
+}
+
+gv-menu gv-input {
+  width: 100%;
+}
+
+gv-nav {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+}
