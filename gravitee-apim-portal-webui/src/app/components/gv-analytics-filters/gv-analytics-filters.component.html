@@ -1,0 +1,182 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="page__box">
+  <div class="page__box-title">
+    <h3 class="title">{{ 'common.filters.title' | translate }}</h3>
+
+    <gv-button class="gv-analytics-filter__reset" link (:gv-button:click)="reset()">
+      {{ 'common.reset' | translate }}
+    </gv-button>
+  </div>
+
+  <form class="form" [formGroup]="analyticsForm" (ngSubmit)="search()">
+    <div class="page__box-content">
+      <div class="form__control timeframe">
+        <gv-option
+          [options]="analyticsService.timeframes"
+          formControlName="timeframe"
+          name="timeframe"
+          ngDefaultControl
+          reverse
+        ></gv-option>
+      </div>
+      <div class="form__control timepicker">
+        <div>
+          <gv-date-picker
+            label="{{ 'common.date.range.title' | translate }}"
+            time
+            range
+            formControlName="range"
+            name="range"
+            ngDefaultControl
+            [max]="maxDate"
+            class="form__control"
+          >
+          </gv-date-picker>
+        </div>
+
+        <gv-button link (:gv-button:click)="toggleFilters()" class="gv-analytics-filter__showhide">
+          <span *ngIf="advancedFiltersDisplayed">{{ 'application.analytics.filters.advanced.hide' | translate }}</span>
+          <span *ngIf="!advancedFiltersDisplayed">{{ 'application.analytics.filters.advanced.show' | translate }}</span>
+        </gv-button>
+      </div>
+
+      <div *ngIf="advancedFiltersDisplayed" class="grid-filters">
+        <gv-input
+          label="{{ 'application.analytics.filters.requestId.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.requestId.label' | translate }}"
+          formControlName="requestId"
+          name="requestId"
+          ngDefaultControl
+        ></gv-input>
+
+        <gv-input
+          label="{{ 'application.analytics.filters.transactionId.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.transactionId.label' | translate }}"
+          formControlName="transactionId"
+          name="transactionId"
+          ngDefaultControl
+        ></gv-input>
+
+        <gv-select
+          label="{{ 'application.analytics.filters.methods.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.methods.label' | translate }}"
+          [options]="analyticsService.methods"
+          multiple
+          formControlName="methods"
+          name="methods"
+          ngDefaultControl
+        ></gv-select>
+
+        <gv-select
+          label="{{ 'application.analytics.filters.status.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.status.label' | translate }}"
+          [options]="analyticsService.httpStatus"
+          multiple
+          formControlName="status"
+          name="status"
+          ngDefaultControl
+        ></gv-select>
+
+        <gv-select
+          label="{{ 'application.analytics.filters.responseTimes.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.responseTimes.label' | translate }}"
+          [options]="analyticsService.responseTimes"
+          multiple
+          formControlName="responseTimes"
+          name="responseTimes"
+          ngDefaultControl
+        ></gv-select>
+
+        <gv-select
+          label="{{ 'application.analytics.filters.api.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.api.label' | translate }}"
+          [options]="apisOptions"
+          multiple
+          formControlName="api"
+          name="api"
+          ngDefaultControl
+        ></gv-select>
+
+        <gv-input
+          label="{{ 'application.analytics.filters.payloads.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.payloads.label' | translate }}"
+          formControlName="payloads"
+          name="payloads"
+          ngDefaultControl
+        ></gv-input>
+
+        <gv-input
+          *ngIf="withURI"
+          label="{{ 'application.analytics.filters.path.title' | translate }}"
+          placeholder="{{ 'application.analytics.filters.path.label' | translate }}"
+          formControlName="path"
+          name="path"
+          ngDefaultControl
+        ></gv-input>
+      </div>
+    </div>
+
+    <div class="page__box-footer form__actions">
+      <gv-tag
+        class="gv-analytics-filter__tags"
+        *ngFor="let tag of tags"
+        [clickable]="true"
+        icon-right="general:close"
+        (:gv-tag:click)="onTagRemove(tag)"
+        major
+        >{{ tag }}</gv-tag
+      >
+
+      <div class="gv-analytics-filter__inputs">
+        <gv-button
+          *ngIf="export.observers.length"
+          (:gv-button:click)="export.emit()"
+          [disabled]="exportDisabled"
+          type="button"
+          class="gv-analytics-filter__input"
+          [loading]="exportLoading"
+          icon="finance:export"
+          outlined
+        >
+          {{ 'application.analytics.exportCSV' | translate }}
+        </gv-button>
+        <gv-button
+          *ngIf="link"
+          (:gv-button:click)="goTo(link.relativePath)"
+          type="button"
+          class="gv-analytics-filter__input"
+          [icon]="link.icon"
+        >
+          {{ link.label }}
+        </gv-button>
+        <gv-button
+          type="submit"
+          class="gv-analytics-filter__input"
+          icon="general:search"
+          [disabled]="this.analyticsForm.invalid"
+          primary
+          [loading]="searchLoading"
+        >
+          {{ 'application.analytics.search' | translate }}
+        </gv-button>
+      </div>
+    </div>
+  </form>
+</div>
