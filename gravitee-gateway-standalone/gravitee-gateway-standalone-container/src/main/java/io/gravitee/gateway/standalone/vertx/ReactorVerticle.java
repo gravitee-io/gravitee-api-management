@@ -49,6 +49,7 @@ public class ReactorVerticle extends AbstractVerticle {
     private Reactor reactor;
 
     @Autowired
+    @Qualifier("httpServerConfiguration")
     private HttpServerConfiguration httpServerConfiguration;
 
     @Autowired

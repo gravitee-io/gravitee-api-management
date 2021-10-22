@@ -45,6 +45,7 @@ public class DebugReactorVerticle extends AbstractVerticle {
     private Reactor reactor;
 
     @Autowired
+    @Qualifier("debugHttpServerConfiguration")
     private HttpServerConfiguration debugHttpServerConfiguration;
 
     @Value("${handlers.request.format:uuid}")

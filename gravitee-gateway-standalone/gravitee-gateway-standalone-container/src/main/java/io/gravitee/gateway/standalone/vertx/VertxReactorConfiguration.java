@@ -17,13 +17,12 @@ package io.gravitee.gateway.standalone.vertx;
 
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
-import io.gravitee.node.vertx.configuration.HttpServerConfiguration.HttpServerConfigurationBuilder;
 import io.vertx.core.Vertx;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 /**
@@ -33,15 +32,15 @@ import org.springframework.core.env.Environment;
 @Configuration
 public class VertxReactorConfiguration {
 
-    @Bean("gatewayHttpServerConfiguration")
-    public HttpServerConfiguration gatewayHttpServerConfiguration(Environment environment) {
+    @Bean("httpServerConfiguration")
+    public HttpServerConfiguration httpServerConfiguration(Environment environment) {
         return HttpServerConfiguration.builder().withEnvironment(environment).withDefaultPort(8082).build();
     }
 
     @Bean("gatewayHttpServer")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public VertxHttpServerFactory vertxHttpServerFactory(Vertx vertx, HttpServerConfiguration gatewayHttpServerConfiguration) {
-        return new VertxHttpServerFactory(vertx, gatewayHttpServerConfiguration);
+    public VertxHttpServerFactory vertxHttpServerFactory(Vertx vertx, @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration) {
+        return new VertxHttpServerFactory(vertx, httpServerConfiguration);
     }
 
     @Bean

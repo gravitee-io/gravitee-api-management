@@ -24,8 +24,8 @@ import io.gravitee.gateway.reactor.processor.transaction.TraceContextProcessorFa
 import io.gravitee.gateway.reactor.processor.transaction.TransactionProcessorFactory;
 import io.gravitee.node.vertx.VertxHttpServerFactory;
 import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
-import io.gravitee.node.vertx.configuration.HttpServerConfiguration.HttpServerConfigurationBuilder;
 import io.vertx.core.Vertx;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -72,7 +72,7 @@ public class VertxDebugConfiguration {
     }
 
     @Bean("debugHttpServerConfiguration")
-    public HttpServerConfiguration gatewayDebugHttpServerConfiguration(Environment environment) {
+    public HttpServerConfiguration debugHttpServerConfiguration(Environment environment) {
         return HttpServerConfiguration
             .builder()
             .withEnvironment(environment)
@@ -83,8 +83,8 @@ public class VertxDebugConfiguration {
 
     @Bean("gatewayDebugHttpServer")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public VertxHttpServerFactory vertxHttpServerFactory(Vertx vertx, HttpServerConfiguration gatewayDebugHttpServerConfiguration) {
-        return new VertxHttpServerFactory(vertx, gatewayDebugHttpServerConfiguration);
+    public VertxHttpServerFactory vertxHttpServerFactory(Vertx vertx, @Qualifier("debugHttpServerConfiguration") HttpServerConfiguration httpServerConfiguration) {
+        return new VertxHttpServerFactory(vertx, httpServerConfiguration);
     }
 
     @Bean("debugHttpClientConfiguration")
