@@ -39,7 +39,10 @@ public class VertxReactorConfiguration {
 
     @Bean("gatewayHttpServer")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public VertxHttpServerFactory vertxHttpServerFactory(Vertx vertx, @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration) {
+    public VertxHttpServerFactory vertxHttpServerFactory(
+        Vertx vertx,
+        @Qualifier("httpServerConfiguration") HttpServerConfiguration httpServerConfiguration
+    ) {
         return new VertxHttpServerFactory(vertx, httpServerConfiguration);
     }
 
