@@ -1,0 +1,90 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+.gv-documentation {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  padding: 42px;
+  background-color: var(--gv-theme-neutral-color);
+  height: 100%;
+}
+
+.gv-documentation__menu {
+  display: none;
+  position: fixed;
+  left: 42px;
+  z-index: 100;
+  height: 75vh;
+  bottom: 42px;
+}
+
+/* (1440x900) WXGA+ Display */
+@media screen and (max-width: 1440px) {
+  .gv-documentation {
+    padding: 42px 5px;
+  }
+
+  .gv-documentation__menu {
+    left: 5px;
+  }
+}
+
+.gv-documentation__menu.show {
+  display: block;
+}
+
+.gv-documentation__content {
+  background-color: var(--gv-theme-neutral-color);
+  flex: 1;
+  margin-left: calc(300px + 1rem);
+  transition: margin-left 350ms ease-in-out;
+}
+
+.gv-documentation__content.fullscreen {
+  margin-left: calc(42px + 1rem);
+}
+
+app-gv-page {
+  overflow: auto;
+  display: none;
+  opacity: 0;
+  transition: opacity 1000ms ease-in-out;
+}
+
+app-gv-page.show {
+  display: block;
+  opacity: 1;
+}
+
+.gv-documentation__loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  flex: 1;
+  height: 100vh;
+}
+
+.gv-documentation__loading gv-icon {
+  --gv-icon--s: 32px;
+  animation: spinner 1.6s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
