@@ -1,4 +1,4 @@
-FROM alpine:3 AS build-env
+FROM alpine:3.14 AS build-env
 LABEL maintainer="contact@graviteesource.com"
 
 ADD dist dist
