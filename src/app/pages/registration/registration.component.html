@@ -1,0 +1,130 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form *ngIf="canDisplayForm" class="page__content form" [formGroup]="registrationForm" (ngSubmit)="onSubmitRegistration()">
+  <ng-container *ngIf="!isSubmitted">
+    <div class="page__box">
+      <div class="page__box-title">
+        <h3>{{ 'registration.title' | translate }}</h3>
+      </div>
+
+      <div class="page__box-content">
+        <gv-input
+          large
+          class="form__control"
+          required
+          label="{{ 'registration.firstname' | translate }}"
+          formControlName="firstname"
+          name="firstname"
+          autocomplete="on"
+          autofocus
+          ngDefaultControl
+          gvControl
+        >
+        </gv-input>
+        <gv-input
+          large
+          class="form__control"
+          label="{{ 'registration.lastname' | translate }}"
+          formControlName="lastname"
+          autocomplete="on"
+          name="lastname"
+          ngDefaultControl
+          gvControl
+        >
+        </gv-input>
+        <gv-input
+          large
+          class="form__control"
+          type="email"
+          label="{{ 'registration.email' | translate }}"
+          formControlName="email"
+          autocomplete="on"
+          name="email"
+          ngDefaultControl
+          gvControl
+        >
+        </gv-input>
+        <div *ngFor="let field of customUserFields">
+          <gv-input
+            *ngIf="!field.values"
+            large
+            class="form__control"
+            type="text"
+            label="{{
+              ('register.field.' + field.key | translate) === 'register.field.' + field.key
+                ? field.label
+                : ('register.field.' + field.key | translate)
+            }}"
+            [formControlName]="field.key"
+            [name]="field.key"
+            autocomplete="on"
+            [required]="field.required"
+            ngDefaultControl
+            gvControl
+          >
+          </gv-input>
+
+          <gv-select
+            *ngIf="field.values"
+            large
+            [options]="field.values"
+            class="form__control"
+            type="text"
+            label="{{
+              ('register.field.' + field.key | translate) === 'register.field.' + field.key
+                ? field.label
+                : ('register.field.' + field.key | translate)
+            }}"
+            [formControlName]="field.key"
+            [name]="field.key"
+            [required]="field.required"
+            ngDefaultControl
+            gvControl
+          >
+          </gv-select>
+        </div>
+      </div>
+
+      <div class="page__box-footer form__actions form__actions-column">
+        <gv-button [disabled]="this.registrationForm.pristine || this.registrationForm.invalid" primary class="form__control" type="submit">
+          {{ 'registration.button' | translate }}
+        </gv-button>
+
+        <p class="text-center">
+          <gv-button link routerLink="/user/login">{{ 'registration.backLogin' | translate }}</gv-button>
+        </p>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="isSubmitted">
+    <div class="page__box">
+      <div class="page__box-title">
+        <h3>{{ 'registration.success.title' | translate }}</h3>
+      </div>
+
+      <div class="page__box-content">
+        <div class="form__message">
+          <gv-icon shape="communication:sending-mail"></gv-icon>
+          <h2>{{ 'registration.success.message' | translate: { email: this.registrationForm.value.email } }}</h2>
+          <gv-button link routerLink="/" [innerHTML]="'registration.backHome' | translate"></gv-button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</form>
