@@ -126,7 +126,7 @@ jobs:
       - run:
           name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
           command: |
-            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .artifactory.settings.xml -P gio-dev
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml -P gio-dev
       - notify-on-failure
 
   publish-on-nexus:
@@ -144,7 +144,7 @@ jobs:
       - run:
           name: "Maven Package and deploy to Nexus Snapshots"
           command: |
-            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
       - notify-on-failure
 
   publish-images-azure-registry:
