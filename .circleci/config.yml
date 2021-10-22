@@ -67,7 +67,7 @@ jobs:
   build:
     docker:
       - image: cimg/openjdk:11.0
-    resource_class: xlarge
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -76,7 +76,7 @@ jobs:
       - run:
           name: "Build project"
           command: |
-            mvn -pl '!gravitee-apim-console-webui' -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
+            mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
             cp ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/gravitee-apim-rest-api-standalone-distribution-zip/target/gravitee-apim-rest-api-distribution-*.zip ./
       - notify-on-failure
       - save_cache:
@@ -103,7 +103,7 @@ jobs:
           name: Run tests
           command: |
             # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
-            mvn -pl '!gravitee-apim-console-webui' -s .artifactory.settings.xml package --no-transfer-progress -T 2C
+            mvn -pl '!gravitee-apim-console-webui, !gravitee-apim-portal-webui' -s .artifactory.settings.xml package --no-transfer-progress -T 2C
       - run:
           name: Save test results
           command: |
@@ -559,6 +559,188 @@ jobs:
             az acr run --cmd "acr purge --filter 'apim-console-webui:master-.*' --untagged --ago 1d --keep 3" --registry graviteeio /dev/null
       - notify-on-failure
 
+  portal-webui-install:
+    executor:
+      name: node-lts
+      class: small
+    steps:
+      - checkout
+      - restore_cache:
+          name: Restore NPM cache
+          keys:
+            - gravitee-apim-portal-webui-cache-v1-{{ checksum "gravitee-apim-portal-webui/package-lock.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
+          working_directory: gravitee-apim-portal-webui
+      - notify-on-failure
+      - save_cache:
+          name: Save NPM cache
+          key: gravitee-apim-portal-webui-cache-v1-{{ checksum "gravitee-apim-portal-webui/package-lock.json" }}
+          paths:
+            - ./gravitee-apim-portal-webui/node_modules
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/node_modules
+
+  portal-webui-lint-test:
+    executor:
+      name: node-lts
+      class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: npm run lint:license
+          working_directory: gravitee-apim-portal-webui
+      - run:
+          name: Run Prettier and ESLint
+          command: npm run lint
+          working_directory: gravitee-apim-portal-webui
+      - run:
+          name: Run unit tests
+          command: npm run test:coverage
+          working_directory: gravitee-apim-portal-webui
+      - notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/coverage
+      - store_test_results:
+          path: gravitee-apim-portal-webui/coverage
+
+  portal-webui-sonarcloud-analysis:
+    docker:
+      - image: sonarsource/sonar-scanner-cli
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Run Sonarcloud Analysis
+          command: sonar-scanner
+          working_directory: gravitee-apim-portal-webui
+      - notify-on-failure
+
+  portal-webui-build:
+    executor:
+      name: node-lts
+      class: large
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run:
+          name: Build
+          command: npm run build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui
+      - run:
+          name: Zip dist folder
+          # TODO:
+          #  - Use gzip instead of zip
+          command: zip -r dist.zip dist
+          working_directory: gravitee-apim-portal-webui
+      - notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/dist
+
+  portal-webui-publish-images-azure-registry:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker
+      - run:
+          name: Compute Tag for Docker images
+          command: |
+            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+            export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Docker images will be tagged with: ${TAG}"
+            echo $TAG > docker-tag.txt
+      - run:
+          name: Build & Publish Web UI Docker Image to Azure Registry
+          command: |
+            cp -fr docker/config .
+            cp -fr docker/run.sh .
+
+            export IMAGE_TAG=graviteeio.azurecr.io/apim-portal-webui:${TAG}
+            docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
+            echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+            docker push ${IMAGE_TAG}
+          working_directory: gravitee-apim-portal-webui
+      - notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./docker-tag.txt
+
+  portal-webui-deploy-on-azure-cluster:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:latest
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Read tag of Docker images to deploy
+          command: |
+            export TAG=$(cat ./docker-tag.txt)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Will deploy Docker images with tag: ${TAG}"
+      - run:
+          name: Install Helm
+          command: |
+            curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+            helm version
+      - run:
+          name: Install Kubectl
+          command: |
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client=true
+      - run:
+          name: Helm upgrade and 🚀 to Element Zero cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group element-zero --name element-zero
+
+            helm upgrade --repo https://helm.gravitee.io \
+                        --install apim \
+                        -n apim \
+                        --reuse-values \
+                        apim3 \
+                        --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                        --set "portal.image.tag=$TAG"
+      - run:
+          name: Helm upgrade and 🚀 to APIM cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group apim-hprod --name apim-hprod
+
+            helm upgrade --repo https://helm.gravitee.io \
+                        --install apim \
+                        -n apim-master \
+                        --reuse-values \
+                        apim3 \
+                        --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                        --set "portal.image.tag=$TAG"
+      - notify-on-failure
+
+
 workflows:
   pull_requests:
     when:
@@ -715,6 +897,63 @@ workflows:
                 - master
                 # To remove after the merge and validation on master
                 - merge-master
+
+
+      - portal-webui-install:
+          requires:
+            - pr_secrets_resolution
+      - portal-webui-lint-test:
+          requires:
+            - portal-webui-install
+      - portal-webui-sonarcloud-analysis:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/graviteebot/infra/sonarcloud.io.token
+                var-name: SONAR_TOKEN
+          requires:
+            - portal-webui-lint-test
+      - portal-webui-build:
+          requires:
+            - portal-webui-install
+      - portal-webui-publish-images-azure-registry:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+          requires:
+            - portal-webui-build
+          filters:
+            branches:
+              only:
+                - master
+                # To remove after the merge and validation on master
+                - merge-master
+      - portal-webui-deploy-on-azure-cluster:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-id
+                var-name: AZURE_APPLICATION_ID
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/tenant
+                var-name: AZURE_TENANT
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-secret
+                var-name: AZURE_APPLICATION_SECRET
+          requires:
+            - portal-webui-publish-images-azure-registry
+          filters:
+            branches:
+              only:
+                - master
+                # To remove after the merge and validation on master
+                - merge-master
+
 
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
