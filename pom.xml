@@ -702,6 +702,7 @@
                         <exclude>**/.*</exclude>
                         <exclude>**/.*/**</exclude>
                         <exclude>**/*.adoc</exclude>
+                        <exclude>docker-tag.txt</exclude>
                     </excludes>
                     <mapping>
                         <ts>SLASHSTAR_STYLE</ts>

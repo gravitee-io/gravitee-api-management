@@ -32,6 +32,15 @@ commands:
           branch_pattern: master
           event: fail
           template: basic_fail_1
+  
+  get-apim-tag:
+    steps:
+      - run:
+          name: Read tag of Docker images to deploy
+          command: |
+            export TAG=$(cat ./docker-tag.txt)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
 
 parameters:
   gio_action:
@@ -64,6 +73,32 @@ parameters:
     description: "What is the version number of the release you want to replay? (Mandatory, only for the 'standalone_release_replay' Workflow / see 'gio_action' pipeline parameter)"
 
 jobs:
+  compute-apim-tag:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: small
+    steps:
+      - checkout
+      - run:
+          name: Compute APIM Version
+          command: |
+            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+            echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
+            echo "Gravitee APIM version: ${APIM_VERSION}"
+      - run:
+          name: Compute Tag for Docker images
+          command: |
+            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+            export TAG=${APIM_VERSION}-$(echo "${CIRCLE_BRANCH:0:15}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)-${CIRCLE_SHA1:0:7}
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Docker images will be tagged with: ${TAG}"
+            echo $TAG > docker-tag.txt
+      - persist_to_workspace:
+          root: .
+          paths:
+            - docker-tag.txt
+
   build:
     docker:
       - image: cimg/openjdk:11.0
@@ -156,24 +191,11 @@ jobs:
       - attach_workspace:
           at: .
       - setup_remote_docker
-      - run:
-          name: Compute APIM Version
-          command: |
-            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
-            echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
-            echo "Gravitee APIM version: ${APIM_VERSION}"
-      - run:
-          name: Compute Tag for Docker images
-          command: |
-            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-            export TAG=$(echo "${APIM_VERSION}-${CIRCLE_BRANCH:0:15}+${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
-            # Workaround for sharing this variable to the next steps
-            echo "export TAG=$TAG" >> $BASH_ENV
-            echo "Docker images will be tagged with: ${TAG}"
-            echo $TAG > docker-tag.txt
+      - get-apim-tag
       - run:
           name: Build & Publish Management API Docker Image to Azure Registry
           command: |
+            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
             export IMAGE_TAG=graviteeio.azurecr.io/apim-management-api:${TAG}
 
             docker build -f gravitee-apim-rest-api/docker/Dockerfile-dev \
@@ -182,64 +204,6 @@ jobs:
 
             echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
             docker push ${IMAGE_TAG}
-      - notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./docker-tag.txt
-
-  deploy-on-azure-aks:
-    docker:
-      - image: mcr.microsoft.com/azure-cli:latest
-    resource_class: small
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Read tag of Docker images to deploy
-          command: |
-            export TAG=$(cat ./docker-tag.txt)
-            # Workaround for sharing this variable to the next steps
-            echo "export TAG=$TAG" >> $BASH_ENV
-            echo "Will deploy Docker images with tag: ${TAG}"
-      - run:
-          name: Install Helm
-          command: |
-            curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-            helm version
-      - run:
-          name: Install Kubectl
-          command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            mv ./kubectl /usr/local/bin/kubectl
-            kubectl version --client=true
-      - run:
-          name: Helm upgrade and 🚀 to Element Zero cluster
-          command: |
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --resource-group element-zero --name element-zero
-
-            helm upgrade --repo https://helm.gravitee.io \
-                         --install apim \
-                         -n apim \
-                         apim3 \
-                         --reuse-values \
-                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                         --set "api.image.tag=${TAG}"
-      - run:
-          name: Helm upgrade and 🚀 to APIM cluster
-          command: |
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --resource-group apim-hprod --name apim-hprod
-
-            helm upgrade --repo https://helm.gravitee.io \
-                         --install apim \
-                         -n apim-master \
-                         apim3 \
-                         --reuse-values \
-                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                         --set "api.image.tag=${TAG}"
       - notify-on-failure
 
   publish-to-bintray:
@@ -465,15 +429,7 @@ jobs:
       - attach_workspace:
           at: .
       - setup_remote_docker
-      - run:
-          name: Compute Tag for Docker images
-          command: |
-            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-            export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
-            # Workaround for sharing this variable to the next steps
-            echo "export TAG=$TAG" >> $BASH_ENV
-            echo "Docker images will be tagged with: ${TAG}"
-            echo $TAG > docker-tag.txt
+      - get-apim-tag
       - run:
           name: Build & Publish Web UI Docker Image to Azure Registry
           command: |
@@ -485,64 +441,6 @@ jobs:
             echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
             docker push ${IMAGE_TAG}
           working_directory: gravitee-apim-console-webui
-      - notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./docker-tag.txt
-
-  console-webui-deploy-on-azure-cluster:
-    docker:
-      - image: mcr.microsoft.com/azure-cli:latest
-    resource_class: small
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: Read tag of Docker images to deploy
-          command: |
-            export TAG=$(cat ./docker-tag.txt)
-            # Workaround for sharing this variable to the next steps
-            echo "export TAG=$TAG" >> $BASH_ENV
-            echo "Will deploy Docker images with tag: ${TAG}"
-      - run:
-          name: Install Helm
-          command: |
-            curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-            helm version
-      - run:
-          name: Install Kubectl
-          command: |
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            mv ./kubectl /usr/local/bin/kubectl
-            kubectl version --client=true
-      - run:
-          name: Helm upgrade and 🚀 to Element Zero cluster
-          command: |
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --resource-group element-zero --name element-zero
-
-            helm upgrade --repo https://helm.gravitee.io \
-                        --install apim \
-                        -n apim \
-                        --reuse-values \
-                        apim3 \
-                        --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
-                        --set "ui.image.tag=$TAG"
-      - run:
-          name: Helm upgrade and 🚀 to APIM cluster
-          command: |
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --resource-group apim-hprod --name apim-hprod
-
-            helm upgrade --repo https://helm.gravitee.io \
-                        --install apim \
-                        -n apim-master \
-                        --reuse-values \
-                        apim3 \
-                        --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
-                        --set "ui.image.tag=$TAG"
       - notify-on-failure
 
   purge-master-azure-registry:
@@ -660,15 +558,7 @@ jobs:
       - attach_workspace:
           at: .
       - setup_remote_docker
-      - run:
-          name: Compute Tag for Docker images
-          command: |
-            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-            export TAG=$(echo "${CIRCLE_BRANCH:0:15}-${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
-            # Workaround for sharing this variable to the next steps
-            echo "export TAG=$TAG" >> $BASH_ENV
-            echo "Docker images will be tagged with: ${TAG}"
-            echo $TAG > docker-tag.txt
+      - get-apim-tag
       - run:
           name: Build & Publish Web UI Docker Image to Azure Registry
           command: |
@@ -681,25 +571,15 @@ jobs:
             docker push ${IMAGE_TAG}
           working_directory: gravitee-apim-portal-webui
       - notify-on-failure
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./docker-tag.txt
 
-  portal-webui-deploy-on-azure-cluster:
+  deploy-on-azure-cluster:
     docker:
       - image: mcr.microsoft.com/azure-cli:latest
     resource_class: small
     steps:
       - attach_workspace:
           at: .
-      - run:
-          name: Read tag of Docker images to deploy
-          command: |
-            export TAG=$(cat ./docker-tag.txt)
-            # Workaround for sharing this variable to the next steps
-            echo "export TAG=$TAG" >> $BASH_ENV
-            echo "Will deploy Docker images with tag: ${TAG}"
+      - get-apim-tag
       - run:
           name: Install Helm
           command: |
@@ -723,8 +603,12 @@ jobs:
                         -n apim \
                         --reuse-values \
                         apim3 \
-                        --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
-                        --set "portal.image.tag=$TAG"
+                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                         --set "api.image.tag=${TAG}" \
+                         --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                         --set "portal.image.tag=${TAG}" \
+                         --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
+                         --set "ui.image.tag=${TAG}"
       - run:
           name: Helm upgrade and 🚀 to APIM cluster
           command: |
@@ -732,12 +616,16 @@ jobs:
             az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
             helm upgrade --repo https://helm.gravitee.io \
-                        --install apim \
-                        -n apim-master \
-                        --reuse-values \
-                        apim3 \
-                        --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
-                        --set "portal.image.tag=$TAG"
+                         --install apim \
+                         -n apim-master \
+                         --reuse-values \
+                         apim3 \
+                         --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                         --set "api.image.tag=${TAG}" \
+                         --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                         --set "portal.image.tag=${TAG}" \
+                         --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
+                         --set "ui.image.tag=${TAG}"
       - notify-on-failure
 
 
@@ -750,10 +638,12 @@ workflows:
       - gravitee/d_pull_requests_secrets:
           context: cicd-orchestrator
           name: pr_secrets_resolution
+      - compute-apim-tag
       - build:
           context: gravitee-qa
           requires:
             - pr_secrets_resolution
+            - compute-apim-tag
       - test:
           requires:
             - build
@@ -790,29 +680,10 @@ workflows:
                 - master
                 - /^\d+\.\d+\.x$/
                 - merge-master
-      - deploy-on-azure-aks:
-          context: cicd-orchestrator
-          pre-steps:
-            - secrethub/env-export:
-                secret-path: graviteeio/cicd/azure/application-id
-                var-name: AZURE_APPLICATION_ID
-            - secrethub/env-export:
-                secret-path: graviteeio/cicd/azure/tenant
-                var-name: AZURE_TENANT
-            - secrethub/env-export:
-                secret-path: graviteeio/cicd/azure/application-secret
-                var-name: AZURE_APPLICATION_SECRET
-          requires:
-            - publish-images-azure-registry
-          filters:
-            branches:
-              only:
-                - master
-                - /^\d+\.\d+\.x$/
-                - merge-master
       - console-webui-install:
           requires:
             - pr_secrets_resolution
+            - compute-apim-tag
       - console-webui-lint-test:
           requires:
             - console-webui-install
@@ -877,31 +748,10 @@ workflows:
                 - master
                 # To remove after the merge and validation on master
                 - merge-master
-      - console-webui-deploy-on-azure-cluster:
-          context: cicd-orchestrator
-          pre-steps:
-            - secrethub/env-export:
-                secret-path: graviteeio/cicd/azure/application-id
-                var-name: AZURE_APPLICATION_ID
-            - secrethub/env-export:
-                secret-path: graviteeio/cicd/azure/tenant
-                var-name: AZURE_TENANT
-            - secrethub/env-export:
-                secret-path: graviteeio/cicd/azure/application-secret
-                var-name: AZURE_APPLICATION_SECRET
-          requires:
-            - console-webui-publish-images-azure-registry
-          filters:
-            branches:
-              only:
-                - master
-                # To remove after the merge and validation on master
-                - merge-master
-
-
       - portal-webui-install:
           requires:
             - pr_secrets_resolution
+            - compute-apim-tag
       - portal-webui-lint-test:
           requires:
             - portal-webui-install
@@ -933,7 +783,7 @@ workflows:
                 - master
                 # To remove after the merge and validation on master
                 - merge-master
-      - portal-webui-deploy-on-azure-cluster:
+      - deploy-on-azure-cluster:
           context: cicd-orchestrator
           pre-steps:
             - secrethub/env-export:
@@ -946,6 +796,8 @@ workflows:
                 secret-path: graviteeio/cicd/azure/application-secret
                 var-name: AZURE_APPLICATION_SECRET
           requires:
+            - publish-images-azure-registry
+            - console-webui-publish-images-azure-registry
             - portal-webui-publish-images-azure-registry
           filters:
             branches:
