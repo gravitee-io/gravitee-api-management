@@ -1,0 +1,136 @@
+/**
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+.catalog__category__documentation {
+  width: 100%;
+}
+
+.catalog__category__documentation.hidden {
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  height: 5em;
+  padding-bottom: 3rem;
+}
+
+.catalog__category__documentation.hidden .hideDoc,
+.catalog__category__documentation:not(.hidden) .showDoc {
+  display: none;
+}
+
+.catalog__category__documentation.hidden .showDoc,
+.catalog__category__documentation:not(.hidden) .hideDoc {
+  display: block;
+}
+
+.catalog__category__documentation gv-button {
+  width: 100%;
+  margin: 0.2rem 0;
+  direction: rtl;
+}
+
+.catalog__section__top {
+  display: flex;
+  margin-bottom: 2rem;
+  flex: 1;
+}
+
+gv-promote,
+app-gv-page {
+  flex: 1 1 auto;
+}
+
+.catalog__article__random {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: 1rem;
+  max-width: 320px;
+}
+
+.catalog__article__random .title {
+  margin-left: 1rem;
+}
+
+.catalog__cards {
+  display: grid;
+}
+
+.catalog__cards__random {
+  flex: 1;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 1rem;
+}
+
+.catalog__list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.5rem;
+}
+
+.catalog__section__content__title {
+  display: flex;
+  line-height: 24px;
+  min-height: 24px;
+  margin-bottom: 1rem;
+}
+
+.catalog__section__content__title .title {
+  flex: 1;
+}
+
+.catalog__section__content__pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+gv-row {
+  background-color: var(--gv-theme-neutral-color-lightest);
+  padding: 10px 5px;
+}
+
+@media only screen and (max-device-width: 1280px) {
+  .catalog__section__top {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+  }
+
+  .catalog__section__content {
+    margin-top: 1rem;
+  }
+
+  gv-promote-api,
+  app-gv-page {
+    display: none;
+  }
+
+  .catalog__cards {
+    display: flex;
+  }
+
+  .catalog__cards > * {
+    flex: 0 1 auto;
+  }
+
+  .catalog__article__random {
+    padding-top: 2rem;
+    align-items: flex-start;
+  }
+
+  .categories__section > gv {
+    flex: 0 1 auto;
+  }
+}
