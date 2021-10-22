@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync;
 
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.gateway.services.sync.synchronizer.ApiSynchronizer;
 import io.gravitee.gateway.services.sync.synchronizer.DictionarySynchronizer;
@@ -26,6 +27,7 @@ import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +59,9 @@ public class SyncManagerTest {
     private OrganizationSynchronizer organizationSynchronizer;
 
     private List<String> environments;
+
+    @Mock
+    private ThreadPoolExecutor executor;
 
     @Before
     public void setUp() {

@@ -32,7 +32,7 @@
         <!-- Copy startup scripts and config files -->
         <fileSet>
             <directory>src/main/resources</directory>
-            <outputDirectory>/</outputDirectory>
+            <outputDirectory></outputDirectory>
             <includes>
                 <include>**/*</include>
             </includes>
@@ -42,7 +42,7 @@
         <!-- Just to create an empty logs directory -->
         <fileSet>
             <directory>src/main/assembly</directory>
-            <outputDirectory>/logs</outputDirectory>
+            <outputDirectory>logs</outputDirectory>
             <excludes>
                 <exclude>*</exclude>
             </excludes>
@@ -51,7 +51,7 @@
         <!-- Just to create an empty metrics directory -->
         <fileSet>
             <directory>src/main/assembly</directory>
-            <outputDirectory>/metrics</outputDirectory>
+            <outputDirectory>metrics</outputDirectory>
             <excludes>
                 <exclude>*</exclude>
             </excludes>
@@ -59,15 +59,74 @@
 
         <fileSet>
             <directory>src/main/assembly</directory>
-            <outputDirectory>/apis</outputDirectory>
+            <outputDirectory>apis</outputDirectory>
             <excludes>
                 <exclude>*</exclude>
             </excludes>
         </fileSet>
 
         <fileSet>
-            <directory>target/staging</directory>
-            <outputDirectory>/plugins</outputDirectory>
+            <directory>target/staging/gateway_plugins</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>target/staging/connectors</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>target/staging/policies</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>target/staging/repositories</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+            <excludes>
+                <exclude>*gravitee-repository-elasticsearch*</exclude>
+            </excludes>
+        </fileSet>
+        <!-- Just to create an empty data directory -->
+        <fileSet>
+            <directory>src/main/assembly</directory>
+            <outputDirectory>plugins/ext/repository-jdbc</outputDirectory>
+            <excludes>
+                <exclude>*</exclude>
+            </excludes>
+        </fileSet>
+
+        <fileSet>
+            <directory>target/staging/reporters</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>target/staging/resources</directory>
+            <outputDirectory>plugins</outputDirectory>
+            <includes>
+                <include>*.zip</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>target/staging/services</directory>
+            <outputDirectory>plugins</outputDirectory>
             <includes>
                 <include>*.zip</include>
             </includes>
@@ -75,16 +134,17 @@
 
         <fileSet>
             <directory>target/staging</directory>
-            <outputDirectory>/boot</outputDirectory>
+            <outputDirectory>boot</outputDirectory>
             <includes>
                 <include>*.jar</include>
             </includes>
         </fileSet>
+
     </fileSets>
 
     <dependencySets>
         <dependencySet>
-            <outputDirectory>/lib</outputDirectory>
+            <outputDirectory>lib</outputDirectory>
             <unpack>false</unpack>
             <includes>
                 <include>io.gravitee.*:*:jar</include>
@@ -92,7 +152,7 @@
             <useProjectArtifact>false</useProjectArtifact>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>/lib/ext</outputDirectory>
+            <outputDirectory>lib/ext</outputDirectory>
             <unpack>false</unpack>
             <excludes>
                 <exclude>io.gravitee.*:*</exclude>

@@ -36,9 +36,190 @@ orbs:
   secrethub: secrethub/cli@1.1.0
   # secrethub: secrethub/cli@1.0.0
 
+commands:
+  restore-maven-cache:
+    description: "Restore Maven cache"
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-gateway-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+jobs:
+  build:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: "Build project"
+          command: |
+            mvn -s .artifactory.settings.xml clean package --no-transfer-progress -DskipTests -T 2C
+            cp ./gravitee-gateway-standalone/gravitee-gateway-standalone-distribution/gravitee-gateway-standalone-distribution-zip/target/gravitee-gateway-distribution-*.zip ./
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: gravitee-gateway-v4-{{ .Branch }}-{{ checksum "pom.xml" }}
+          when: always
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./gravitee-*/*/target/*
+            - ./gravitee-gateway-distribution-*.zip
+
+  test:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: Run tests
+          command: |
+            # Need to use `package` phase to get repo-test's jar build and shared to mongodb and jdbc repos
+            mvn -s .artifactory.settings.xml package --no-transfer-progress
+      - run:
+          name: Save test results
+          command: |
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - store_test_results:
+          path: ~/test-results
+      - store_artifacts:
+          path: ~/test-results/junit
+
+  publish-on-artifactory:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: "Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)"
+          command: |
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .artifactory.settings.xml -P gio-dev
+
+  publish-on-nexus:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: medium
+    environment:
+      NEXUS_SNAPSHOTS_URL: "https://oss.sonatype.org/content/repositories/snapshots"
+      NEXUS_SNAPSHOTS_SERVER_ID: "sonatype-nexus-snapshots"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore-maven-cache
+      - run:
+          name: "Maven Package and deploy to Nexus Snapshots"
+          command: |
+            mvn deploy --no-transfer-progress -DskipTests -T 2C -s .nexus.settings.xml  -DaltDeploymentRepository=${NEXUS_SNAPSHOTS_SERVER_ID}::default::${NEXUS_SNAPSHOTS_URL}
+
+  publish-images-azure-registry:
+    docker:
+      - image: cimg/openjdk:11.0
+    resource_class: small
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker
+      - run:
+          name: Compute APIM Version
+          command: |
+            export APIM_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+            echo "export APIM_VERSION=$APIM_VERSION" >> $BASH_ENV
+            echo "Gravitee APIM version: ${APIM_VERSION}"
+      - run:
+          name: Compute Tag for Docker images
+          command: |
+            # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+            export TAG=$(echo "${APIM_VERSION}-${CIRCLE_BRANCH:0:15}+${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Docker images will be tagged with: ${TAG}"
+            echo $TAG > docker-tag.txt
+      - run:
+          name: Build & Publish Gateway Docker Image to Azure Registry
+          command: |
+            export IMAGE_TAG=graviteeio.azurecr.io/apim-gateway:${TAG}
+
+            docker build -f docker/Dockerfile-dev \
+            --build-arg GRAVITEEIO_VERSION=${APIM_VERSION} \
+            -t ${IMAGE_TAG} .
+
+            echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+            docker push ${IMAGE_TAG}
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./docker-tag.txt
+
+  deploy-on-azure-aks:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:latest
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Read tag of Docker images to deploy
+          command: |
+            export TAG=$(cat ./docker-tag.txt)
+            # Workaround for sharing this variable to the next steps
+            echo "export TAG=$TAG" >> $BASH_ENV
+            echo "Will deploy Docker images with tag: ${TAG}"
+      - run:
+          name: Install Helm
+          command: |
+            curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+            helm version
+      - run:
+          name: Install Kubectl
+          command: |
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client=true
+      - run:
+          name: Helm upgrade and 🚀 to Element Zero cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group element-zero --name element-zero
+
+            helm upgrade --repo https://helm.gravitee.io \
+                         --install apim \
+                         -n apim \
+                         apim3 \
+                         --reuse-values \
+                         --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
+                         --set "gateway.image.tag=${TAG}"
+      - run:
+          name: Helm upgrade and 🚀 to APIM cluster
+          command: |
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --resource-group apim-hprod --name apim-hprod
+
+            helm upgrade --repo https://helm.gravitee.io \
+                         --install apim \
+                         -n apim-master \
+                         apim3 \
+                         --reuse-values \
+                         --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
+                         --set "gateway.image.tag=${TAG}"
+
 workflows:
   version: 2.1
-  # -- typically this workflow is executed on pull requests events for Community Edition Gravitee Repositories
   pull_requests:
     when:
       and:
@@ -47,33 +228,64 @@ workflows:
       - gravitee/d_pull_requests_secrets:
           context: cicd-orchestrator
           name: pr_secrets_resolution
-      # - gravitee/d_pr_tests_containers_qa:
-          # context: gravitee-qa
-          # name: process_pull_request_qa
-          # requires:
-            # - pr_secrets_resolution
-          # # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          # maven_profile_id: 'gio-dev'
-          # filters:
-            # branches:
-              # ignore:
-                # - master
-      - gravitee/d_pull_requests_ce:
-          name: process_pull_request
+      - build:
+          context: gravitee-qa
           requires:
             - pr_secrets_resolution
-          # "What is the maven ID of the maven profile to use to build and deploy SNAPSHOTS to Prviate Artifactory ?"
-          maven_profile_id: 'gio-dev'
-          # nexus_snapshots_url: 'https://oss.sonatype.org/content/repositories/snapshots'
-          # nexus_snapshots_server_id: 'sonatype-nexus-snapshots'
-          # container_gun_image_org: 'circleci'
-          # container_gun_image_name: 'openjdk'
-          # container_gun_image_tag: '11.0.3-jdk-stretch'
-          container_size: 'medium'
-          # filters:
-            # branches:
-              # ignore:
-                # - master
+      - test:
+          requires:
+            - build
+      - publish-on-artifactory:
+          filters:
+            branches:
+              only:
+                - master
+                - /^\d+\.\d+\.x$/
+          requires:
+            - test
+      - publish-on-nexus:
+          filters:
+            branches:
+              only:
+                - master
+                - /^\d+\.\d+\.x$/
+          requires:
+            - test
+      - publish-images-azure-registry:
+          context: cicd-orchestrator
+          requires:
+            - test
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/username
+                var-name: AZURE_DOCKER_REGISTRY_USERNAME
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/docker-registries/graviteeio/password
+                var-name: AZURE_DOCKER_REGISTRY_PASSWORD
+          filters:
+            branches:
+              only:
+                - master
+                - 6170-deploy-on-apim-cluster
+      - deploy-on-azure-aks:
+          context: cicd-orchestrator
+          pre-steps:
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-id
+                var-name: AZURE_APPLICATION_ID
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/tenant
+                var-name: AZURE_TENANT
+            - secrethub/env-export:
+                secret-path: graviteeio/cicd/azure/application-secret
+                var-name: AZURE_APPLICATION_SECRET
+          requires:
+            - publish-images-azure-registry
+          filters:
+            branches:
+              only:
+                - master
+                - 6170-deploy-on-apim-cluster
   # ---
   # The 2 Workflows Below are there for the CICD Orchestrator to be able to
   # release Gravitee Kubernetes in an APIM release Process, with Docker executors instead of VMs
