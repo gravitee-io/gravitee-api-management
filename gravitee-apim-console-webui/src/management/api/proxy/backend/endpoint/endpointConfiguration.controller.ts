@@ -42,7 +42,7 @@ class ApiEndpointController {
   ) {
     'ngInject';
 
-    this.api = this.$scope.$parent.apiCtrl.api;
+    this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.tenants = resolvedTenants.data;
     this.connectors = resolvedConnectors.data;
     this.$scope.groupName = $stateParams.groupName;
@@ -116,7 +116,7 @@ class ApiEndpointController {
   }
 
   checkEndpointNameUniqueness() {
-    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.$scope.endpoint.name, this.creation);
+    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.$scope.endpoint.name);
   }
 
   updateEndpoint(event) {

@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.ConnectorPluginEntity;
 import io.gravitee.rest.api.model.ResourceListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.platform.plugin.PluginEntity;
 import io.gravitee.rest.api.service.ConnectorService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -59,7 +58,7 @@ public class ConnectorsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "List connector plugins", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiOperation(value = "List connector plugins", notes = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponses(
         {
             @ApiResponse(code = 200, message = "List of connectors", response = ResourceListItem.class, responseContainer = "List"),

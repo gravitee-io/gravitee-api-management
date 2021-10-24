@@ -49,7 +49,7 @@ public class ConnectorResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a connector", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiOperation(value = "Get a connector", notes = "User must have the ENVIRONMENT_API[READ] permission to use this service")
     @ApiResponses(
         {
             @ApiResponse(code = 200, message = "Connector plugin", response = PluginEntity.class),
@@ -65,7 +65,14 @@ public class ConnectorResource {
     @GET
     @Path("schema")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiOperation(value = "Get a connector's schema", notes = "User must have the MANAGEMENT_API[READ] permission to use this service")
+    @ApiOperation(value = "Get a connector's schema", notes = "User must have the ENVIRONMENT_API[READ] permission to use this service")
+    @ApiResponses(
+        {
+            @ApiResponse(code = 200, message = "Connector schema", response = String.class),
+            @ApiResponse(code = 404, message = "Connector not found"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
+    )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public String getConnectorSchema(@PathParam("connector") String connector) {
         // Check that the connector exists
@@ -79,7 +86,14 @@ public class ConnectorResource {
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(
         value = "Get a connector's documentation",
-        notes = "User must have the MANAGEMENT_API[READ] permission to use this service"
+        notes = "User must have the ENVIRONMENT_API[READ] permission to use this service"
+    )
+    @ApiResponses(
+        {
+            @ApiResponse(code = 200, message = "Connector documentation", response = String.class),
+            @ApiResponse(code = 404, message = "Connector not found"),
+            @ApiResponse(code = 500, message = "Internal server error"),
+        }
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public String getConnectorDoc(@PathParam("connector") String connector) {

@@ -1,0 +1,549 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:connector:http:configuration:HttpConnectorConfiguration",
+  "properties": {
+    "http": {
+      "type": "object",
+      "title": "HTTP Options",
+      "id": "urn:jsonschema:io:gravitee:connector:http:configuration:HttpOptions",
+      "properties": {
+        "version": {
+          "title": "HTTP Protocol version",
+          "description": "The version of the HTTP protocol to use",
+          "type": "string",
+          "default": "HTTP_1_1",
+          "enum": ["HTTP_1_1", "HTTP_2"],
+          "x-schema-form": {
+            "type": "select",
+            "titleMap": {
+              "HTTP_1_1": "HTTP 1.1",
+              "HTTP_2": "HTTP 2"
+            }
+          }
+        },
+        "keepAlive": {
+          "title": "Enable keep-alive",
+          "description": "Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.",
+          "type": "boolean",
+          "default": true
+        },
+        "connectTimeout": {
+          "type": "integer",
+          "title": "Connect timeout (ms)",
+          "description": "Maximum time to connect to the remote host.",
+          "default": 5000
+        },
+        "pipelining": {
+          "title": "Enable HTTP pipelining",
+          "description": "When pipe-lining is enabled requests will be written to connections without waiting for previous responses to return.\n",
+          "type": "boolean",
+          "default": false
+        },
+        "readTimeout": {
+          "type": "integer",
+          "title": "Read timeout (ms)",
+          "description": "Maximum time to complete the request (including response).",
+          "default": 10000
+        },
+        "useCompression": {
+          "title": "Enable compression (gzip, deflate)",
+          "description": "The gateway can let the remote http server know that it supports compression, and will be able to handle compressed response bodies.",
+          "type": "boolean",
+          "default": true
+        },
+        "idleTimeout": {
+          "type": "integer",
+          "title": "Idle timeout (ms)",
+          "description": "Maximum time a connection will timeout and be closed if no data is received within the timeout.",
+          "default": 60000
+        },
+        "followRedirects": {
+          "title": "Follow HTTP redirects",
+          "description": "When the client receives an 301, 302, 303 or 307 status code, it follows the redirection provided by the Location response header",
+          "type": "boolean",
+          "default": false
+        },
+        "maxConcurrentConnections": {
+          "type": "integer",
+          "title": "Max Concurrent Connections",
+          "description": "Maximum pool size for connections.",
+          "default": 100
+        },
+        "clearTextUpgrade": {
+          "title": "Allow h2c Clear Text Upgrade",
+          "description": "If enabled, an h2c connection is established using an HTTP/1.1 Upgrade request. If disabled, h2c connection is established directly (with prior knowledge) ",
+          "type": "boolean",
+          "default": true,
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "http.version": "HTTP_1_1"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": ["connectTimeout", "readTimeout", "idleTimeout", "maxConcurrentConnections"]
+    },
+    "headers": {
+      "type": "array",
+      "title": "HTTP Headers",
+      "description": "Default HTTP headers added by the API gateway to upstream",
+      "items": {
+        "type": "object",
+        "title": "Header",
+        "id": "urn:jsonschema:io:gravitee:connector:http:configuration:HttpHeader",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "required": ["name", "value"]
+      }
+    },
+    "proxy": {
+      "type": "object",
+      "title": "Proxy Options",
+      "id": "urn:jsonschema:io:gravitee:connector:http:configuration:HttpProxyOptions",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Use proxy",
+          "description": "Use proxy for client connections",
+          "default": false
+        },
+        "type": {
+          "type": "string",
+          "title": "Proxy Type",
+          "description": "The type of the proxy",
+          "default": "HTTP",
+          "enum": ["HTTP", "SOCKS4", "SOCKS5"],
+          "x-schema-form": {
+            "type": "select",
+            "titleMap": {
+              "HTTP": "HTTP CONNECT proxy",
+              "SOCKS4": "SOCKS4/4a tcp proxy",
+              "SOCKS5": "SOCKS5 tcp proxy"
+            },
+            "hidden": [
+              {
+                "$eq": {
+                  "proxy.enabled": false
+                }
+              }
+            ],
+            "disabled": [
+              {
+                "$eq": {
+                  "proxy.useSystemProxy": true
+                }
+              }
+            ]
+          }
+        },
+        "useSystemProxy": {
+          "type": "boolean",
+          "title": "Use system proxy",
+          "description": "Use proxy configured at system level",
+          "default": false,
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "proxy.enabled": false
+                }
+              }
+            ]
+          }
+        },
+        "host": {
+          "type": "string",
+          "title": "Proxy host",
+          "description": "Proxy host to connect to",
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "proxy.enabled": false
+                }
+              }
+            ],
+            "disabled": [
+              {
+                "$eq": {
+                  "proxy.useSystemProxy": true
+                }
+              }
+            ]
+          }
+        },
+        "port": {
+          "type": "integer",
+          "title": "Proxy port",
+          "description": "Proxy port to connect to",
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "proxy.enabled": false
+                }
+              }
+            ],
+            "disabled": [
+              {
+                "$eq": {
+                  "proxy.useSystemProxy": true
+                }
+              }
+            ]
+          }
+        },
+        "username": {
+          "type": "string",
+          "title": "Proxy username",
+          "description": "Optional proxy username",
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "proxy.enabled": false
+                }
+              }
+            ],
+            "disabled": [
+              {
+                "$eq": {
+                  "proxy.useSystemProxy": true
+                }
+              }
+            ]
+          }
+        },
+        "password": {
+          "type": "string",
+          "title": "Proxy password",
+          "description": "Optional proxy password",
+          "x-schema-form": {
+            "type": "password",
+            "hidden": [
+              {
+                "$eq": {
+                  "proxy.enabled": false
+                }
+              }
+            ],
+            "disabled": [
+              {
+                "$eq": {
+                  "proxy.useSystemProxy": true
+                }
+              }
+            ]
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": { "enabled": { "const": false } }
+        },
+        {
+          "properties": { "useSystemProxy": { "const": true } }
+        },
+        {
+          "properties": { "enabled": { "const": true }, "useSystemProxy": { "const": false } },
+          "required": ["host", "port"]
+        }
+      ]
+    },
+    "ssl": {
+      "type": "object",
+      "title": "SSL Options",
+      "id": "urn:jsonschema:io:gravitee:connector:http:configuration:SslOptions",
+      "properties": {
+        "hostnameVerifier": {
+          "title": "Verify Host",
+          "description": "Use to enable host name verification",
+          "type": "boolean",
+          "default": false
+        },
+        "trustAll": {
+          "title": "Trust all",
+          "description": "Use this with caution (if over Internet). The gateway must trust any origin certificates. The connection will still be encrypted but this mode is vulnerable to 'man in the middle' attacks.",
+          "type": "boolean",
+          "default": false
+        },
+        "trustStore": {
+          "type": "object",
+          "title": "Trust store",
+          "id": "urn:jsonschema:io:gravitee:connector:http:configuration:SslTrustStoreOptions",
+          "properties": {
+            "type": {
+              "type": "string",
+              "title": "Type",
+              "description": "The type of the trust store",
+              "default": "",
+              "enum": ["", "JKS", "PKCS12", "PEM"],
+              "x-schema-form": {
+                "type": "select",
+                "titleMap": {
+                  "": "None",
+                  "JKS": "Java Trust Store (.jks)",
+                  "PKCS12": "PKCS#12 (.p12) / PFX (.pfx)",
+                  "PEM": "PEM (.pem)"
+                }
+              }
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "description": "Trust store password",
+              "x-schema-form": {
+                "type": "password",
+                "hidden": [
+                  {
+                    "$eq": {
+                      "ssl.trustStore.type": ["", "PEM"]
+                    }
+                  }
+                ]
+              }
+            },
+            "path": {
+              "type": "string",
+              "title": "Path to trust store",
+              "description": "Path to the trust store file",
+              "x-schema-form": {
+                "hidden": [
+                  {
+                    "$eq": {
+                      "ssl.trustStore.type": ""
+                    }
+                  }
+                ]
+              }
+            },
+            "content": {
+              "type": "string",
+              "title": "Content",
+              "description": "Binary content",
+              "x-schema-form": {
+                "type": "text",
+                "hidden": [
+                  {
+                    "$eq": {
+                      "ssl.trustStore.type": ""
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "oneOf": [
+            {
+              "properties": { "type": { "const": "" } }
+            },
+            {
+              "properties": { "type": { "const": "PEM" } },
+              "required": ["content"]
+            },
+            {
+              "properties": { "type": { "const": "PEM" } },
+              "required": ["path"]
+            },
+            {
+              "properties": { "type": { "pattern": "JKS|PKCS12" } },
+              "required": ["content", "password"]
+            },
+            {
+              "properties": { "type": { "pattern": "JKS|PKCS12" } },
+              "required": ["path", "password"]
+            }
+          ],
+          "x-schema-form": {
+            "hidden": [
+              {
+                "$eq": {
+                  "ssl.trustAll": true
+                }
+              }
+            ]
+          }
+        },
+        "keyStore": {
+          "type": "object",
+          "title": "Key store",
+          "id": "urn:jsonschema:io:gravitee:connector:http:configuration:SslKeyStoreOptions",
+          "properties": {
+            "type": {
+              "type": "string",
+              "title": "Type",
+              "description": "The type of the key store",
+              "default": "",
+              "enum": ["", "JKS", "PKCS12", "PEM"],
+              "x-schema-form": {
+                "type": "select",
+                "titleMap": {
+                  "": "None",
+                  "JKS": "Java Trust Store (.jks)",
+                  "PKCS12": "PKCS#12 (.p12) / PFX (.pfx)",
+                  "PEM": "PEM (.pem)"
+                }
+              }
+            },
+            "password": {
+              "type": "string",
+              "title": "Password",
+              "description": "Key store password",
+              "x-schema-form": {
+                "type": "password",
+                "hidden": [
+                  {
+                    "$eq": {
+                      "ssl.keyStore.type": ["", "PEM"]
+                    }
+                  }
+                ]
+              }
+            },
+            "path": {
+              "type": "string",
+              "title": "Path to key store",
+              "description": "Path to the key store file",
+              "x-schema-form": {
+                "hidden": [
+                  {
+                    "$eq": {
+                      "ssl.keyStore.type": ["", "PEM"]
+                    }
+                  }
+                ]
+              }
+            },
+            "content": {
+              "type": "string",
+              "title": "Content",
+              "description": "Binary content",
+              "x-schema-form": {
+                "type": "text",
+                "hidden": [
+                  {
+                    "$eq": {
+                      "ssl.keyStore.type": ["", "PEM"]
+                    }
+                  }
+                ]
+              }
+            },
+            "certPath": {
+              "type": "string",
+              "title": "Path to cert file",
+              "description": "Path to cert file (.PEM)",
+              "x-schema-form": {
+                "hidden": [
+                  {
+                    "$neq": {
+                      "ssl.keyStore.type": "PEM"
+                    }
+                  }
+                ]
+              }
+            },
+            "certContent": {
+              "type": "string",
+              "title": "Certificate",
+              "x-schema-form": {
+                "type": "text",
+                "hidden": [
+                  {
+                    "$neq": {
+                      "ssl.keyStore.type": "PEM"
+                    }
+                  }
+                ]
+              }
+            },
+            "keyPath": {
+              "type": "string",
+              "title": "Path to private key file",
+              "description": "Path to private key file (.PEM)",
+              "x-schema-form": {
+                "hidden": [
+                  {
+                    "$neq": {
+                      "ssl.keyStore.type": "PEM"
+                    }
+                  }
+                ]
+              }
+            },
+            "keyContent": {
+              "type": "string",
+              "title": "Private key",
+              "x-schema-form": {
+                "type": "text",
+                "hidden": [
+                  {
+                    "$neq": {
+                      "ssl.keyStore.type": "PEM"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "oneOf": [
+            {
+              "properties": { "type": { "const": "" } }
+            },
+            {
+              "properties": { "type": { "const": "PEM" } },
+              "required": ["certContent", "keyContent"]
+            },
+            {
+              "properties": { "type": { "const": "PEM" } },
+              "required": ["certPath", "keyPath"]
+            },
+            {
+              "properties": { "type": { "const": "PEM" } },
+              "required": ["certContent", "keyPath"]
+            },
+            {
+              "properties": { "type": { "const": "PEM" } },
+              "required": ["certPath", "keyContent"]
+            },
+            {
+              "properties": { "type": { "pattern": "JKS|PKCS12" } },
+              "required": ["content", "password"]
+            },
+            {
+              "properties": { "type": { "pattern": "JKS|PKCS12" } },
+              "required": ["path", "password"]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "x-schema-form": {
+    "errors": {
+      "proxy": {
+        "oneOf": "The host and port are <span class=\"error\">required</span>"
+      },
+      "ssl": {
+        "trustStore": {
+          "oneOf": "A path or a content is <span class=\"error\">required</span> - for JKS and PKCS#12 a password is also <span class=\"error\">required</span>"
+        },
+        "keyStore": {
+          "oneOf": "Paths or contents are <span class=\"error\">required</span> - for JKS and PKCS#12, a password is also <span class=\"error\">required</span>."
+        }
+      }
+    }
+  }
+}

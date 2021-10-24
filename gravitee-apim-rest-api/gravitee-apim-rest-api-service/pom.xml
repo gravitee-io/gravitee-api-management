@@ -197,8 +197,18 @@
 
 		<!-- Json Schema Validation -->
 		<dependency>
-			<groupId>com.github.java-json-tools</groupId>
-			<artifactId>json-schema-validator</artifactId>
+			<groupId>com.github.erosb</groupId>
+			<artifactId>everit-json-schema</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.damnhandy</groupId>
+					<artifactId>handy-uri-templates</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-validator</groupId>
+					<artifactId>commons-validator</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Swagger parser -->

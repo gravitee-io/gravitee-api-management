@@ -676,7 +676,7 @@ export class ApiService {
     return this.$http.get(`${this.Constants.env.baseURL}/apis/${apiId}/headers`);
   }
 
-  isEndpointNameAlreadyUsed(api: { proxy: { groups: any[] } }, name: string, onCreate: boolean): boolean {
+  isEndpointNameAlreadyUsed(api: { proxy: { groups: any[] } }, name: string): boolean {
     const endpointsName: string[] = [];
     api.proxy.groups.forEach((group) => {
       endpointsName.push(group.name);
@@ -684,9 +684,7 @@ export class ApiService {
         endpointsName.push(endpoint.name);
       });
     });
-    // in update mode, the api endpoint is updated when the form is filled.
-    // that's why we have to count it twice to detect non uniqueness
-    return endpointsName.filter((endpointName) => name === endpointName).length > (onCreate ? 0 : 1);
+    return endpointsName.filter((endpointName) => name === endpointName).length > 1;
   }
 
   askForReview(api: { id: string; etag: any }, message?: any): IHttpPromise<any> {

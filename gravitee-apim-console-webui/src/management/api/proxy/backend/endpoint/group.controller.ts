@@ -47,7 +47,7 @@ class ApiEndpointGroupController {
   }
 
   $onInit() {
-    this.api = this.$scope.$parent.apiCtrl.api;
+    this.api = _.cloneDeep(this.$scope.$parent.apiCtrl.api);
     this.group = _.find(this.api.proxy.groups, { name: this.$stateParams.groupName });
     this.$scope.duplicateEndpointNames = false;
     this.schema = this.resolvedConnectors.data.find((connector) => connector.supportedTypes.includes('http'))?.schema;
@@ -57,7 +57,6 @@ class ApiEndpointGroupController {
         type: 'http',
       };
       this.api.proxy.groups.push(this.group);
-      this.creation = true;
     }
 
     this.serviceDiscoveryJsonSchemaForm = ['*'];
@@ -170,7 +169,7 @@ class ApiEndpointGroupController {
   }
 
   checkEndpointNameUniqueness() {
-    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.group.name, this.creation);
+    this.$scope.duplicateEndpointNames = this.ApiService.isEndpointNameAlreadyUsed(this.api, this.group.name);
   }
 }
 
