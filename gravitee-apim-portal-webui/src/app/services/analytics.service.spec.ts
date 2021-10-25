@@ -17,7 +17,6 @@ import { TestBed } from '@angular/core/testing';
 import { TranslateTestingModule } from '../test/translate-testing-module';
 
 import { AnalyticsService } from './analytics.service';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('AnalyticsService', () => {
@@ -30,5 +29,27 @@ describe('AnalyticsService', () => {
   it('should be created', () => {
     const service: AnalyticsService = TestBed.inject(AnalyticsService);
     expect(service).toBeTruthy();
+  });
+
+  describe('buildQueryParam()', () => {
+    it('should use "starts with" wildcard for uri parameter', () => {
+      const resultQueryParam = AnalyticsService.buildQueryParam('/test/uri?bala=test', 'uri');
+      expect(resultQueryParam).toBe('\\\\/test\\\\/uri\\\\?bala\\\\=test*');
+    });
+
+    it('should use "contains" wildcard for body parameter', () => {
+      const resultQueryParam = AnalyticsService.buildQueryParam('part of body content', 'body');
+      expect(resultQueryParam).toBe('*part of body content*');
+    });
+
+    it('should use quotes for other parameters', () => {
+      const resultQueryParam = AnalyticsService.buildQueryParam('exact = text * search', 'another');
+      expect(resultQueryParam).toBe('\\"exact = text * search\\"');
+    });
+
+    it('should not quote the "?" wildcard', () => {
+      const resultQueryParam = AnalyticsService.buildQueryParam('?', 'another');
+      expect(resultQueryParam).toBe('?');
+    });
   });
 });
