@@ -28,19 +28,28 @@ describe('GioFormCardGroupModule', () => {
   describe('simple usage', () => {
     const onResetMock = jest.fn();
     const onSubmitMock = jest.fn();
+    const onSubmitInvalidStateMock = jest.fn();
 
     @Component({
       template: `
         <div>
           <input />
-          <gio-save-bar [opened]="opened" (reset)="onReset($event)" (submit)="onSubmit($event)"></gio-save-bar>
+          <gio-save-bar
+            [opened]="opened"
+            [invalidState]="invalidState"
+            (reset)="onReset($event)"
+            (submit)="onSubmit($event)"
+            (submitInvalidState)="onSubmitInvalidState($event)"
+          ></gio-save-bar>
         </div>
       `,
     })
     class TestComponent {
       opened = false;
+      invalidState = false;
       onReset = onResetMock;
       onSubmit = onSubmitMock;
+      onSubmitInvalidState = onSubmitInvalidStateMock;
     }
 
     let component: TestComponent;
@@ -82,6 +91,28 @@ describe('GioFormCardGroupModule', () => {
 
       await saveBar.clickReset();
       expect(onResetMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('should invalidate form submit button', async () => {
+      fixture.detectChanges();
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      // Visible after opened
+      expect(await saveBar.isVisible()).toBeFalsy();
+      component.opened = true;
+      fixture.detectChanges();
+      expect(await saveBar.isVisible()).toBeTruthy();
+
+      // Invalidate button when invalidState input is true
+      expect(await saveBar.isSubmitButtonInvalid()).toBeFalsy();
+      component.invalidState = true;
+      fixture.detectChanges();
+      expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
+
+      // submit output is not triggered when invalidSubmit is true
+      await saveBar.clickSubmit();
+      expect(onSubmitMock).not.toHaveBeenCalled();
+      expect(onSubmitInvalidStateMock).toHaveBeenCalled();
     });
   });
 

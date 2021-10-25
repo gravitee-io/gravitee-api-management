@@ -38,6 +38,13 @@ export class GioSaveBarComponent {
   @Input()
   opened = false;
 
+  /**
+   * When true, the submit button have invalidate display
+   * And on submit clicked the output event is emit on submitInvalidState (and not on submit)
+   */
+  @Input()
+  invalidState?: boolean = false;
+
   @Input()
   creationMode = false;
 
@@ -52,6 +59,9 @@ export class GioSaveBarComponent {
 
   @Output()
   submit = new EventEmitter();
+
+  @Output()
+  submitInvalidState = new EventEmitter();
 
   isOpen() {
     if (this.creationMode) {
@@ -73,8 +83,10 @@ export class GioSaveBarComponent {
   }
 
   onSubmitClicked(): void {
-    if (this.form && this.form.invalid) {
-      this.form.markAllAsTouched();
+    if ((this.form && this.form.invalid) || this.invalidState) {
+      this.form?.markAllAsTouched();
+      this.submitInvalidState.emit();
+      return;
     }
 
     this.submit.emit();

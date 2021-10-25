@@ -37,6 +37,7 @@ export const Default: Story = {
     template: `
     <div style="padding-bottom: 400px">
       <button (click)="opened = !opened">Click to toggle the Save Bar</button>
+      <button *ngIf="opened" (click)="invalidSubmit = !invalidSubmit">Click to toggle submit button validation</button>
       <div>A long form, with many many fields</div>
       <div style="display: flex; flex-direction: column;"
            *ngFor="let item of [].constructor(40)">
@@ -45,6 +46,7 @@ export const Default: Story = {
       </div>
       <gio-save-bar
         [opened]="opened"
+        [invalidSubmit]="invalidSubmit"
         (reset)="onReset($event)"
         (submit)="onSubmit($event)">
       </gio-save-bar>
