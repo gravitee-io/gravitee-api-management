@@ -23,6 +23,7 @@ import { fakeAdminUser, fakeUser } from '../entities/user/user.fixture';
 import { fakePagedResult } from '../entities/pagedResult';
 import { fakeNewExternalUser } from '../entities/user/newExternalUser.fixture';
 import { fakeGroup } from '../entities/group/group.fixture';
+import { fakeUserMembership } from '../entities/user/userMembership.fixture';
 
 describe('UsersService', () => {
   let httpTestingController: HttpTestingController;
@@ -153,6 +154,24 @@ describe('UsersService', () => {
       expect(req.request.method).toEqual('PUT');
 
       req.flush({});
+    });
+  });
+
+  describe('getMemberships', () => {
+    it('should call the API', (done) => {
+      const userId = 'userId';
+      const type = 'application';
+      const userMembership = fakeUserMembership('application');
+
+      usersService.getMemberships(userId, type).subscribe((memberships) => {
+        expect(memberships).toEqual(userMembership);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/memberships?type=${type}`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(userMembership);
     });
   });
 

@@ -22,6 +22,7 @@ import { PagedResult } from '../entities/pagedResult';
 import { User } from '../entities/user/user';
 import { NewExternalUser } from '../entities/user/newExternalUser';
 import { Group } from '../entities/group/group';
+import { UserMembership } from '../entities/user/userMembership';
 
 @Injectable({
   providedIn: 'root',
@@ -66,5 +67,11 @@ export class UsersService {
       referenceType,
       roles,
     });
+  }
+
+  getMemberships(id: string, type: 'api'): Observable<UserMembership<'api'>>;
+  getMemberships(id: string, type: 'application'): Observable<UserMembership<'application'>>;
+  getMemberships(id: string, type: string): Observable<UserMembership> {
+    return this.http.get<UserMembership>(`${this.constants.org.baseURL}/users/${id}/memberships?type=${type}`);
   }
 }
