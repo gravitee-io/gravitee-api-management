@@ -277,7 +277,7 @@
         <gravitee-bom.version>1.4</gravitee-bom.version>
         <gravitee-api-management.version>3.12.1-SNAPSHOT</gravitee-api-management.version>
         <gravitee-definition.version>1.29.1</gravitee-definition.version>
-        <gravitee-common.version>1.22.1-SNAPSHOT</gravitee-common.version>
+        <gravitee-common.version>1.22.1</gravitee-common.version>
         <gravitee-expression-language.version>1.7.1-SNAPSHOT</gravitee-expression-language.version>
         <gravitee-license-node.version>1.2.1</gravitee-license-node.version>
         <gravitee-node.version>1.17.1-SNAPSHOT</gravitee-node.version>
