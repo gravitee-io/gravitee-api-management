@@ -54,13 +54,14 @@ public class AlertEventMongoRepositoryImpl implements AlertEventMongoRepositoryC
         // set sort by updated at
         query.with(Sort.by(Sort.Direction.DESC, "createdAt"));
 
+        long total = mongoTemplate.count(query, AlertEventMongo.class);
+
         // set pageable
         if (pageable != null) {
             query.with(PageRequest.of(pageable.pageNumber(), pageable.pageSize()));
         }
 
         List<AlertEventMongo> events = mongoTemplate.find(query, AlertEventMongo.class);
-        long total = mongoTemplate.count(query, AlertEventMongo.class);
 
         return new Page<>(events, (pageable != null) ? pageable.pageNumber() : 0, events.size(), total);
     }
