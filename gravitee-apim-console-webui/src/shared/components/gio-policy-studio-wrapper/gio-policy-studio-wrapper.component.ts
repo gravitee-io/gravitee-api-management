@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 
 import '@gravitee/ui-components/wc/gv-policy-studio';
 
@@ -22,7 +23,7 @@ import '@gravitee/ui-components/wc/gv-policy-studio';
   template: require('./gio-policy-studio-wrapper.component.html'),
   styles: [require('./gio-policy-studio-wrapper.component.scss')],
 })
-export class GioPolicyStudioWrapperComponent {
+export class GioPolicyStudioWrapperComponent implements OnInit {
   @Input()
   canAdd: boolean;
 
@@ -48,7 +49,7 @@ export class GioPolicyStudioWrapperComponent {
   definition: unknown;
 
   @Input()
-  services: unknown;
+  services: Record<string, unknown> = {};
 
   @Input()
   flowSchema: unknown;
@@ -63,10 +64,10 @@ export class GioPolicyStudioWrapperComponent {
   readonlyPlans: boolean;
 
   @Input()
-  configurationSchema: unknown;
+  configurationSchema: unknown = {};
 
   @Input()
-  dynamicPropertySchema: unknown;
+  dynamicPropertySchema: unknown = {};
 
   @Input()
   debugResponse: unknown;
@@ -77,4 +78,22 @@ export class GioPolicyStudioWrapperComponent {
   @Input()
   configurationInformation =
     'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
+
+  tabId: string;
+
+  constructor(private readonly location: Location) {}
+
+  ngOnInit(): void {
+    const pathParts = this.location.path(false).split('#');
+    if (pathParts.length > 1) {
+      this.tabId = pathParts[1];
+    }
+  }
+
+  public onTabChanged(tabName: string): void {
+    // TODO: Improve this with Angular Router
+    // Hack to add the tab as Fragment part of the URL
+    const path = this.location.path(false).split('#')[0];
+    this.location.go(`${path}#${tabName}`);
+  }
 }

@@ -18,6 +18,7 @@ import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.component';
+import { GioPolicyStudioWrapperModule } from './gio-policy-studio-wrapper.module';
 
 const apimPolicies = require('./stories-resources/apim-policies.json');
 const apimResourceTypes = require('./stories-resources/apim-resource-types.json');
@@ -31,6 +32,7 @@ export default {
   component: GioPolicyStudioWrapperComponent,
   decorators: [
     moduleMetadata({
+      imports: [GioPolicyStudioWrapperModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }),
   ],

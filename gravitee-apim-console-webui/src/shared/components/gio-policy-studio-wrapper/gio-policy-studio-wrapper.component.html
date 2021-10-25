@@ -36,6 +36,8 @@
     [attr.readonly-plans]="readonlyPlans ? readonlyPlans : null"
     [flowsTitle]="flowsTitle"
     [debugResponse]="debugResponse"
+    [tabId]="tabId"
+    (:gv-policy-studio:change-tab)="onTabChanged($event.detail)"
   >
   </gv-policy-studio>
 </div>

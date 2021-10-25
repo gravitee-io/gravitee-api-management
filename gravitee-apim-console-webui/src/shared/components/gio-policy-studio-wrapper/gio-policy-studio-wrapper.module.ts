@@ -29,14 +29,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CommonModule, Location } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 
 import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.component';
 
 @NgModule({
-  imports: [],
+  imports: [CommonModule],
   declarations: [GioPolicyStudioWrapperComponent],
   exports: [GioPolicyStudioWrapperComponent],
+  entryComponents: [GioPolicyStudioWrapperComponent],
+  providers: [Location],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GioPolicyStudioWrapperModule {}
