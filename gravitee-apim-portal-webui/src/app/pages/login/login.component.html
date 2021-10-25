@@ -1,0 +1,76 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<form class="page__content form" [formGroup]="loginForm" (ngSubmit)="login()">
+  <div class="page__box">
+    <div class="page__box-title">
+      <h3 *ngIf="loginForm || providers">{{ 'login.title' | translate }}</h3>
+    </div>
+
+    <div class="page__box-content" *ngIf="loginEnabled">
+      <gv-input
+        autofocus
+        class="form__control"
+        name="username"
+        label="{{ 'login.username' | translate }}"
+        formControlName="username"
+        ngDefaultControl
+        gvControl
+        icon-left="communication:shield-user"
+      >
+        <input />
+      </gv-input>
+      <gv-input
+        class="form__control"
+        type="password"
+        name="password"
+        label="{{ 'login.password' | translate }}"
+        formControlName="password"
+        ngDefaultControl
+        gvControl
+        icon-left="general:shield-protected"
+      >
+        <input />
+      </gv-input>
+    </div>
+
+    <div class="page__box-footer form__actions form__actions-column">
+      <gv-button *ngIf="loginEnabled" class="signin" [disabled]="!isFormValid()" primary icon="navigation:sign-in" type="submit">{{
+        'login.button' | translate
+      }}</gv-button>
+
+      <gv-button
+        *ngFor="let provider of providers"
+        class="btn__provider"
+        [provider]="provider.type.toLowerCase()"
+        [style]="getProviderStyle(provider)"
+        (:gv-button:click)="authenticate(provider)"
+      >
+        {{ provider.name }}
+      </gv-button>
+
+      <div *ngIf="loginEnabled && registrationEnabled" class="row">
+        <div>{{ 'login.signup.text' | translate }}</div>
+        <gv-button link routerLink="/user/registration">{{ 'login.signup.link' | translate }}</gv-button>
+      </div>
+      <div *ngIf="loginEnabled" class="row">
+        <gv-button link routerLink="/user/resetPassword">{{ 'login.resetPassword' | translate }}</gv-button>
+      </div>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,113 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<gv-theme *ngIf="isPreview"></gv-theme>
+<app-gv-cookie-consent></app-gv-cookie-consent>
+
+<div class="layout" [ngClass]="{ sticky: this.isSticky, 'sticky-homepage': this.isStickyHomepage, layout__homepage: isHomepage }">
+  <div #homepageBackground class="layout__header__homepage__background">
+    <div *ngIf="isHomepage" class="layout__header__homepage__title">
+      <h1>{{ this.homepageTitle }}</h1>
+      <div class="layout__api">
+        <app-gv-search-api class="layout__api__search"></app-gv-search-api>
+        <div class="layout__api__actions">
+          <gv-button (:gv-button:click)="goTo('/catalog')" outlined>{{ 'homepage.explore' | translate }}</gv-button>
+          <gv-button (:gv-button:click)="goTo('/user/registration')" *ngIf="displaySignUp()" outlined>{{
+            'homepage.signup' | translate
+          }}</gv-button>
+        </div>
+      </div>
+    </div>
+    <div class="layer"></div>
+  </div>
+
+  <header class="layout__header">
+    <div class="layout__header__container">
+      <a
+        [routerLink]="'/'"
+        title="{{ 'site.title' | translate }}"
+        class="layout__header__logo"
+        [ngClass]="{ layout__header__homepage__logo: isHomepage }"
+      ></a>
+
+      <gv-nav
+        *ngIf="!forceLogin() || (forceLogin() && !isInLoginOrRegistration())"
+        [routes]="mainRoutes"
+        [ngClass]="{ layout__nav: isHomepage }"
+      ></gv-nav>
+
+      <div class="layout__nav__container" [ngClass]="{ layout__nav: displayShadowNav() }" *ngIf="!isInLoginOrRegistration()">
+        <gv-user-menu [routes]="userRoutes" [ngClass]="{ 'layout__user-menu': isHomepage }" [username]="userName">
+          <gv-identity-picture
+            *ngIf="currentUser"
+            rounded
+            [display_name]="currentUser.display_name"
+            [picture]="userPicture"
+            [notification]="numberOfPortalNotifications"
+          ></gv-identity-picture>
+        </gv-user-menu>
+      </div>
+    </div>
+
+    <gv-menu [routes]="menuRoutes" [sticky]="this.isSticky">
+      <ng-template gvMenuTopSlot></ng-template>
+      <ng-template gvMenuRightTransitionSlot></ng-template>
+      <ng-template gvMenuRightSlot></ng-template>
+    </gv-menu>
+    <gv-message
+      *ngIf="notification"
+      [type]="notification.type"
+      [innerHtml]="notification.message"
+      [closable]="notification.closable"
+      (:gv-message:close)="onCloseNotification()"
+    ></gv-message>
+  </header>
+
+  <div class="layout__content" [ngClass]="{ layout__content__homepage: isHomepage }">
+    <div [@routeAnimations]="prepareRoute(outlet)">
+      <router-outlet #outlet="outlet"></router-outlet>
+    </div>
+  </div>
+
+  <footer class="layout__footer">
+    <section class="layout__footer__top" *ngIf="links.topfooter">
+      <a [routerLink]="'/'" title="{{ 'site.title' | translate }}" class="layout__footer__top__logo"></a>
+      <div class="layout__footer__top__category" *ngFor="let category of links.topfooter">
+        <span class="layout__footer__top__category__title">{{ category.title | translate }}</span>
+        <div class="layout__footer__top__category__title_border"></div>
+        <ul class="layout__footer__top__category__links">
+          <li *ngFor="let link of category.links">
+            <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>
+          </li>
+        </ul>
+      </div>
+    </section>
+    <section class="layout__footer__bottom">
+      <ul>
+        <li>
+          <gv-link path="cookies" title="{{ 'route.cookies' | translate }}"></gv-link>
+        </li>
+        <li>{{ 'footer.rights' | translate }}</li>
+      </ul>
+      <ul *ngIf="links.footer">
+        <li *ngFor="let link of links.footer">
+          <gv-link [path]="link.path" [target]="link.target" title="{{ link.title | translate }}"></gv-link>
+        </li>
+      </ul>
+    </section>
+  </footer>
+</div>

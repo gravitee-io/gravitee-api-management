@@ -1,0 +1,179 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "gravitee-portal-webui": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "tsconfig.app.json",
+            "aot": true,
+            "extractCss": true,
+            "assets": [
+              "src/favicon.ico",
+              "src/favicon.png",
+              "src/assets",
+              {
+                "glob": "**/*.js",
+                "input": "node_modules/@webcomponents/webcomponentsjs",
+                "output": "webcomponents/"
+              },
+              {
+                "glob": "*",
+                "input": "node_modules/@gravitee/ui-components/assets/images",
+                "output": "images/"
+              },
+              {
+                "glob": "**/*.css",
+                "input": "node_modules/@gravitee/ui-components/assets/css",
+                "output": "css/"
+              },
+              {
+                "glob": "**/*.svg",
+                "input": "node_modules/@gravitee/ui-components/assets/icons",
+                "output": "icons/"
+              },
+              {
+                "glob": "oauth2-redirect.html",
+                "input": "node_modules/swagger-ui-dist",
+                "output": "/"
+              },
+              {
+                "glob": "build.json",
+                "input": ".",
+                "output": "/"
+              }
+            ],
+            "styles": [
+              "src/styles.scss",
+              "node_modules/highlight.js/styles/a11y-light.css",
+              {
+                "input": "node_modules/swagger-ui-dist/swagger-ui.css",
+                "lazy": true,
+                "bundleName": "swagger-ui"
+              }
+            ],
+            "scripts": [
+              "node_modules/marked/lib/marked.js",
+              {
+                "input": "node_modules/redoc/bundles/redoc.standalone.js",
+                "lazy": true,
+                "bundleName": "redoc"
+              }
+            ]
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "10kb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "gravitee-portal-webui:build",
+            "proxyConfig": "src/proxy.conf.json"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "gravitee-portal-webui:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "gravitee-portal-webui:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-builders/jest:run",
+          "options": {
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "tsconfig.spec.json",
+            "testMatch": ["**/__tests__/**/*.[t]s?(x)", "**/?(*.)+(spec).[t]s?(x)"]
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": ["tsconfig.app.json", "tsconfig.spec.json", "e2e/tsconfig.json"],
+            "exclude": ["**/node_modules/**", "**/tmp/**"]
+          }
+        },
+        "e2e": {
+          "builder": "@angular-devkit/build-angular:protractor",
+          "options": {
+            "protractorConfig": "e2e/protractor.conf.js",
+            "devServerTarget": "gravitee-portal-webui:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "gravitee-portal-webui:serve:production"
+            }
+          }
+        }
+      }
+    },
+    "portal-webclient-sdk": {
+      "projectType": "library",
+      "root": "projects/portal-webclient-sdk",
+      "sourceRoot": "projects/portal-webclient-sdk/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/portal-webclient-sdk/tsconfig.lib.json",
+            "project": "projects/portal-webclient-sdk/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/portal-webclient-sdk/tsconfig.lib.prod.json"
+            }
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "gravitee-portal-webui",
+  "cli": {
+    "analytics": false
+  }
+}
