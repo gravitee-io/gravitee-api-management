@@ -72,6 +72,7 @@ public class SyncManager extends AbstractService<SyncManager> {
     private String lastErrorMessage;
     private final ThreadPoolTaskScheduler scheduler;
     private ScheduledFuture<?> scheduledFuture;
+    private boolean synced;
 
     public SyncManager() {
         scheduler = new ThreadPoolTaskScheduler();
@@ -147,6 +148,9 @@ public class SyncManager extends AbstractService<SyncManager> {
             if (lastRefreshAt == -1) {
                 // When first sync is entirely done, we can reduce number of threads to the minimum for next sync
                 executor.setCorePoolSize(1);
+
+                // A first full sync has been done
+                synced = true;
             }
             // We refresh the date even if process did not run (not a master node) to ensure that we sync the same way as
             // soon as the node is becoming the master later.
@@ -168,6 +172,14 @@ public class SyncManager extends AbstractService<SyncManager> {
 
     public long getCounter() {
         return counter.longValue();
+    }
+
+    /**
+     * This method returns if a first full sync occurs successfully.
+     * @return
+     */
+    public boolean isSynced() {
+        return synced;
     }
 
     public int getTotalErrors() {
