@@ -1,9 +1,14 @@
 databaseChangeLog:
   - changeSet:
-      id: 3.12.0
+      id: 3.12.1
       author: GraviteeSource Team
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: ${gravitee_prefix}keys
+              columnName: id
       changes:
-
         - addColumn:
             tableName: ${gravitee_prefix}keys
             columns:
@@ -14,8 +19,11 @@ databaseChangeLog:
             dbms: mariadb, mysql
             sql: update `${gravitee_prefix}keys` set `id` = `key`
         - sql:
-            dbms: postgresql, mssql
+            dbms: postgresql
             sql: update ${gravitee_prefix}keys set id = key
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}keys set id = [key]
         - addNotNullConstraint:
             tableName: ${gravitee_prefix}keys
             columnDataType: nvarchar(64)
