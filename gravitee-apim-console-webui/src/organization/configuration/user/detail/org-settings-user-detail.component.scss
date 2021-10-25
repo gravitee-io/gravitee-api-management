@@ -49,23 +49,6 @@
             vertical-align: middle;
           }
         }
-
-        &__status {
-          margin: 8px 0;
-
-          &.active {
-            background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
-            color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium-contrast');
-          }
-          &.pending {
-            background-color: mat.get-color-from-palette(gio.$mat-warning-palette, 'medium');
-            color: mat.get-color-from-palette(gio.$mat-warning-palette, 'medium-contrast');
-          }
-          &.rejected {
-            background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'medium');
-            color: mat.get-color-from-palette(gio.$mat-error-palette, 'medium-contrast');
-          }
-        }
       }
 
       &__right {

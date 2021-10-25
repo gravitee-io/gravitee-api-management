@@ -31,10 +31,12 @@ import { UsersService } from '../../../../services-ngx/users.service';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { UserHelper } from '../../../../entities/user/userHelper';
 
 interface UserVM extends User {
   organizationRoles: string;
   avatarUrl: string;
+  badgeCSSClass: string;
 }
 
 interface EnvironmentDS {
@@ -119,6 +121,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           ...user,
           organizationRoles: organizationRoles.map((r) => r.name ?? r.id).join(', '),
           avatarUrl: this.usersService.getUserAvatar(this.ajsStateParams.userId),
+          badgeCSSClass: UserHelper.getStatusBadgeCSSClass(user),
         };
 
         this.initOrganizationRolesForm();

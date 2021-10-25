@@ -414,8 +414,8 @@ describe('OrgSettingsUserDetailComponent', () => {
     const apiTable = await apiCard.getHarness(MatTableHarness);
 
     expect(await apiTable.getCellTextByIndex()).toEqual([
-      ['API Alpha', '1.0.0', 'public PUBLIC'],
-      ['API Beta', '42.0.0', 'lock PRIVATE'],
+      ['API Alpha', '1.0.0', 'public Public'],
+      ['API Beta', '42.0.0', 'lock Private'],
     ]);
   });
 

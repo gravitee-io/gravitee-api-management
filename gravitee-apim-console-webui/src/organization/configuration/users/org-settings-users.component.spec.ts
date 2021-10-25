@@ -152,6 +152,7 @@ describe('OrgSettingsUsersComponent', () => {
         source: '',
         number_of_active_tokens: 0,
         primary_owner: true,
+        badgeCSSClass: '',
       });
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);

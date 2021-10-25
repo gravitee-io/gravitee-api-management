@@ -57,7 +57,7 @@
     <ng-container matColumnDef="status">
       <th mat-header-cell *matHeaderCellDef id="status" width="15%">Status</th>
       <td mat-cell *matCellDef="let element">
-        <span class="gio-badge" [ngClass]="element.status | lowercase">{{ element.status | titlecase }}</span>
+        <span class="gio-badge" [ngClass]="element.badgeCSSClass">{{ element.status | titlecase }}</span>
       </td>
     </ng-container>
 

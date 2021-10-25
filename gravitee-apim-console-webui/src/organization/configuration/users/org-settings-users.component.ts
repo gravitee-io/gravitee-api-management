@@ -29,6 +29,7 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PagedResult } from '../../../entities/pagedResult';
 import { User } from '../../../entities/user/user';
+import { UserHelper } from '../../../entities/user/userHelper';
 
 type TableData = {
   userId: string;
@@ -39,6 +40,7 @@ type TableData = {
   source: string;
   primary_owner: boolean;
   number_of_active_tokens: number;
+  badgeCSSClass: string;
 };
 
 @Component({
@@ -169,6 +171,7 @@ export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
         userPicture: u.picture,
         primary_owner: u.primary_owner,
         number_of_active_tokens: u.number_of_active_tokens,
+        badgeCSSClass: UserHelper.getStatusBadgeCSSClass(u),
       })),
     );
     this.resultsLength = users.page.total_elements;
