@@ -1,13 +1,17 @@
 databaseChangeLog:
   - changeSet:
-      id: 3.10.1
+      id: 3.10.4
       author: GraviteeSource Team
       changes:
         # dbms: mariadb, mysql
         - sql:
             dbms: mariadb, mysql
             sql: update `${gravitee_prefix}parameters` set value = 'themes/assets/gravitee-logo.svg' where `key` = 'theme.logo' AND `value` = 'themes/assets/GRAVITEE_LOGO1-01.png';
-        # dbms: postgresql, mssql
+        # dbms: postgresql
         - sql:
-            dbms: postgresql, mssql
+            dbms: postgresql
             sql: update ${gravitee_prefix}parameters set value = 'themes/assets/gravitee-logo.svg' where key = 'theme.logo' AND value = 'themes/assets/GRAVITEE_LOGO1-01.png';
+        # dbms: mssql
+        - sql:
+            dbms: mssql
+            sql: update ${gravitee_prefix}parameters set value = 'themes/assets/gravitee-logo.svg' where [key] = 'theme.logo' AND value = 'themes/assets/GRAVITEE_LOGO1-01.png';
