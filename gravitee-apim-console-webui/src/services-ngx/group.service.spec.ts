@@ -20,6 +20,8 @@ import { GroupService } from './group.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeGroup } from '../entities/group/group.fixture';
+import { GroupMembership } from '../entities/group/groupMember';
+import { fakeGroupMembership } from '../entities/group/groupMember.fixture';
 
 describe('GroupService', () => {
   let httpTestingController: HttpTestingController;
@@ -47,6 +49,34 @@ describe('GroupService', () => {
       expect(req.request.method).toEqual('GET');
 
       req.flush(fakeGroups);
+    });
+  });
+
+  describe('addOrUpdateMemberships', () => {
+    it('should call the API', (done) => {
+      const groupId = 'GROUP_ID';
+      const groupMemberships: GroupMembership[] = [fakeGroupMembership()];
+
+      groupService.addOrUpdateMemberships(groupId, groupMemberships).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${groupId}/members`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual(groupMemberships);
+
+      req.flush({});
+    });
+
+    it('should filter membership with empty roles', (done) => {
+      const groupId = 'GROUP_ID';
+      const groupMemberships: GroupMembership[] = [fakeGroupMembership({ roles: [] })];
+
+      groupService.addOrUpdateMemberships(groupId, groupMemberships).subscribe(() => {
+        done();
+      });
+
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${groupId}/members`);
     });
   });
 

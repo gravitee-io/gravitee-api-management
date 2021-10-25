@@ -15,10 +15,12 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { isEmpty } from 'lodash';
+import { Observable, of } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { Group } from '../entities/group/group';
+import { GroupMembership } from '../entities/group/groupMember';
 
 @Injectable({
   providedIn: 'root',
@@ -28,5 +30,17 @@ export class GroupService {
 
   list(): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.constants.env.baseURL}/configuration/groups`);
+  }
+
+  addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[]): Observable<void> {
+    // Remove Membership with empty roles
+    const filterEmptyMembershipRoles = (groupMembership: GroupMembership[]) => groupMembership.filter((m) => !isEmpty(m.roles));
+
+    const groupMembershipToSend = filterEmptyMembershipRoles(groupMemberships);
+    if (isEmpty(groupMembershipToSend)) {
+      return of(void 0);
+    }
+
+    return this.http.post<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members`, groupMembershipToSend);
   }
 }
