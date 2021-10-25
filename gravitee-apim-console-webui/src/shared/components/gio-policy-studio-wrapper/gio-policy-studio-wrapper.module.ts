@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule, HashLocationStrategy, Location, LocationStrategy } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 
 import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.component';
@@ -39,7 +39,7 @@ import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.com
   declarations: [GioPolicyStudioWrapperComponent],
   exports: [GioPolicyStudioWrapperComponent],
   entryComponents: [GioPolicyStudioWrapperComponent],
-  providers: [Location],
+  providers: [Location, { provide: LocationStrategy, useClass: HashLocationStrategy }],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GioPolicyStudioWrapperModule {}

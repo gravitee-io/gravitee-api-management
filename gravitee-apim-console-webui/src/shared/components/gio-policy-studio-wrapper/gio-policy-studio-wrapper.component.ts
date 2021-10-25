@@ -81,10 +81,12 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
 
   tabId: string;
 
+  private readonly pathFragmentSeparator = '#';
+
   constructor(private readonly location: Location) {}
 
   ngOnInit(): void {
-    const pathParts = this.location.path(false).split('#');
+    const pathParts = this.location.path(false).split(this.pathFragmentSeparator);
     if (pathParts.length > 1) {
       this.tabId = pathParts[1];
     }
@@ -93,7 +95,11 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   public onTabChanged(tabName: string): void {
     // TODO: Improve this with Angular Router
     // Hack to add the tab as Fragment part of the URL
-    const path = this.location.path(false).split('#')[0];
-    this.location.go(`${path}#${tabName}`);
+    const currentPath = this.location.path();
+    const futureBasePath = currentPath.includes(this.pathFragmentSeparator)
+      ? currentPath.split(this.pathFragmentSeparator)[0]
+      : currentPath;
+
+    this.location.go(`${futureBasePath}${this.pathFragmentSeparator}${tabName}`);
   }
 }
