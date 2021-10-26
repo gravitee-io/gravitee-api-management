@@ -1,0 +1,59 @@
+{
+    "extends": ["config:js-app", "schedule:daily"],
+    "prConcurrentLimit": 5,
+    "dependencyDashboard": true,
+    "commitMessageTopic": "{{depName}}",
+    "packageRules": [
+        {
+            "packagePatterns": [
+                "^@angular/*",
+                "^@angular-builders/*",
+                "^@angular-devkit/*",
+                "^@angular-ru/*",
+                "^@angular-builders/*",
+                "^@angular-devkit/*",
+                "^@angular/cli$",
+                "^@angular/cdk$",
+                "^@angular/cdk-experimental$",
+                "^@angular/fire$",
+                "^@angular/flex-layout$",
+                "^@angular/material",
+                "ng-packagr"
+            ],
+            "groupName": "angular"
+        },
+        {
+            "packagePatterns": ["^@typescript-eslint/*", "^eslint*", "^@angular-eslint/*"],
+            "groupName": "eslint"
+        },
+        {
+            "packagePatterns": ["@types/jest", "^jest*", "ts-jest", "jest-preset-angular"],
+            "groupName": "jest"
+        },
+        {
+            "packagePatterns": ["^@storybook/*"],
+            "groupName": "storybook"
+        },
+        {
+            "packageNames": ["typescript", "rxjs", "tslib"],
+            "separateMinorPatch": true
+        },
+        {
+            "packageNames": ["typescript", "rxjs", "tslib"],
+            "updateTypes": ["major"],
+            "enabled": false
+        },
+        {
+            "packageNames": ["typescript"],
+            "updateTypes": ["minor"],
+            "enabled": false
+        },
+        {
+            "matchDepTypes": ["devDependencies"],
+            "matchUpdateTypes": ["patch", "minor"],
+            "excludePackagePatterns": ["typescript"],
+            "groupName": "devDependencies (non-major)",
+            "groupSlug": "devdependencies-non-major"
+        }
+    ]
+}
