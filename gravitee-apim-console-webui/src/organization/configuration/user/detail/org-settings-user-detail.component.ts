@@ -51,6 +51,11 @@ interface ApiDS {
   visibility: string;
 }
 
+interface ApplicationDS {
+  id: string;
+  name: string;
+}
+
 @Component({
   selector: 'org-settings-user-detail',
   template: require('./org-settings-user-detail.component.html'),
@@ -76,6 +81,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   apisTableDS: ApiDS[];
   apisTableDisplayedColumns = ['name', 'version', 'visibility'];
+
+  applicationsTableDS: ApplicationDS[];
+  applicationsTableDisplayedColumns = ['name'];
 
   openSaveBar = false;
   invalidStateSaveBar = false;
@@ -129,6 +137,16 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           name: apiMetadata.name,
           version: apiMetadata.version,
           visibility: apiMetadata.visibility,
+        }));
+      });
+
+    this.usersService
+      .getMemberships(this.ajsStateParams.userId, 'application')
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(({ metadata }) => {
+        this.applicationsTableDS = Object.entries(metadata).map(([applicationId, applicationMetadata]: [string, any]) => ({
+          id: applicationId,
+          name: applicationMetadata.name,
         }));
       });
   }

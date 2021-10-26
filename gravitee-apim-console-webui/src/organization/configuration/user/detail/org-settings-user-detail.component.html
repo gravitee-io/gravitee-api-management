@@ -285,6 +285,28 @@
 <mat-card class="org-settings-user-detail__applications-card">
   <h2>Applications</h2>
   <p>Here is the list of all applications of this user.</p>
+  <table
+    *ngIf="applicationsTableDS"
+    class="org-settings-user-detail__applications-card__table"
+    mat-table
+    [dataSource]="applicationsTableDS"
+    aria-label="Applications table"
+  >
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+      <td mat-cell *matCellDef="let group">
+        {{ group.name }}
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="applicationsTableDisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: applicationsTableDisplayedColumns"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="apisTableDisplayedColumns.length">No application</td>
+    </tr>
+  </table>
 </mat-card>
 
 <gio-save-bar
