@@ -239,6 +239,47 @@
 <mat-card class="org-settings-user-detail__apis-card">
   <h2>APIs</h2>
   <p>Here is the list of all APIs of this user.</p>
+
+  <table
+    *ngIf="apisTableDS"
+    class="org-settings-user-detail__apis-card__table"
+    mat-table
+    [dataSource]="apisTableDS"
+    aria-label="APIs table"
+  >
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+      <td mat-cell *matCellDef="let api">
+        {{ api.name }}
+      </td>
+    </ng-container>
+
+    <!-- Version Column -->
+    <ng-container matColumnDef="version">
+      <th mat-header-cell *matHeaderCellDef id="version">Version</th>
+      <td mat-cell *matCellDef="let api">
+        {{ api.version }}
+      </td>
+    </ng-container>
+
+    <!-- Visibility Column -->
+    <ng-container matColumnDef="visibility">
+      <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
+      <td mat-cell *matCellDef="let api">
+        <span class="gio-badge">
+          <mat-icon [inline]="true">{{ api.visibility === 'PUBLIC' ? 'public' : 'lock' }}</mat-icon> {{ api.visibility }}
+        </span>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="apisTableDisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: apisTableDisplayedColumns"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="apisTableDisplayedColumns.length">No API</td>
+    </tr>
+  </table>
 </mat-card>
 
 <mat-card class="org-settings-user-detail__applications-card">

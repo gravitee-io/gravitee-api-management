@@ -45,6 +45,12 @@ interface GroupDS {
   name: string;
 }
 
+interface ApiDS {
+  id: string;
+  version: string;
+  visibility: string;
+}
+
 @Component({
   selector: 'org-settings-user-detail',
   template: require('./org-settings-user-detail.component.html'),
@@ -67,6 +73,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   groupsTableDS: GroupDS[];
   groupsTableDisplayedColumns = ['name', 'groupAdmin', 'apiRoles', 'applicationRole', 'delete'];
+
+  apisTableDS: ApiDS[];
+  apisTableDisplayedColumns = ['name', 'version', 'visibility'];
 
   openSaveBar = false;
   invalidStateSaveBar = false;
@@ -109,6 +118,18 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         }));
 
         this.initGroupsRolesForm(groups);
+      });
+
+    this.usersService
+      .getMemberships(this.ajsStateParams.userId, 'api')
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe(({ metadata }) => {
+        this.apisTableDS = Object.entries(metadata).map(([apiId, apiMetadata]: [string, any]) => ({
+          id: apiId,
+          name: apiMetadata.name,
+          version: apiMetadata.version,
+          visibility: apiMetadata.visibility,
+        }));
       });
   }
 

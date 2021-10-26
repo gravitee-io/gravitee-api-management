@@ -42,6 +42,8 @@ import { Group } from '../../../../entities/group/group';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { GroupMembership } from '../../../../entities/group/groupMember';
 import { fakeGroupMembership } from '../../../../entities/group/groupMember.fixture';
+import { fakeUserMembership } from '../../../../entities/user/userMembership.fixture';
+import { UserMembership } from '../../../../entities/user/userMembership';
 
 describe('OrgSettingsUserDetailComponent', () => {
   const fakeAjsState = {
@@ -95,6 +97,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
     expectRolesListRequest('ORGANIZATION', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
@@ -122,6 +125,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
     expectRolesListRequest('ORGANIZATION');
 
     const AcceptUserButton = await loader.getHarness(MatButtonHarness.with({ text: /Accept/ }));
@@ -139,6 +143,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
     expectRolesListRequest('ORGANIZATION');
 
     expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Accept/ }))).toHaveLength(0);
@@ -155,6 +160,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
     expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
     expectRolesListRequest('ORGANIZATION', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
@@ -182,6 +188,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     });
     expectUserGetRequest(user);
     expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
     expectEnvironmentListRequest([
       fakeEnvironment({ id: 'environmentAlphaId', name: 'Environment Alpha' }),
       fakeEnvironment({ id: 'environmentBetaId', name: 'Environment Beta' }),
@@ -216,6 +223,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectUserGroupsGetRequest(user.id, [
       fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
     ]);
+    expectUserMembershipGetRequest(user.id, 'api');
     expectRolesListRequest('ORGANIZATION');
     expectRolesListRequest('API', [fakeRole({ id: 'roleApiId', name: 'ROLE_API' })]);
     expectRolesListRequest('APPLICATION', [
@@ -247,6 +255,37 @@ describe('OrgSettingsUserDetailComponent', () => {
         id: user.id,
         roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }],
       }),
+    ]);
+  });
+
+  it('should display APIs user membership', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(
+      user.id,
+      'api',
+      fakeUserMembership('api', {
+        metadata: {
+          apiAlphaId: { name: 'API Alpha', version: '1.0.0', visibility: 'PUBLIC' },
+          apiBetaId: { name: 'API Beta', version: '42.0.0', visibility: 'PRIVATE' },
+        },
+      }),
+    );
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+
+    const apiCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__apis-card' }));
+    const apiTable = await apiCard.getHarness(MatTableHarness);
+
+    expect(await apiTable.getCellTextByIndex()).toEqual([
+      ['API Alpha', '1.0.0', 'public PUBLIC'],
+      ['API Beta', '42.0.0', 'lock PRIVATE'],
     ]);
   });
 
@@ -290,5 +329,11 @@ describe('OrgSettingsUserDetailComponent', () => {
     expect(req.request.method).toEqual('POST');
     req.flush(groupMembership);
     fixture.detectChanges();
+  }
+
+  function expectUserMembershipGetRequest<T extends 'api' | 'application'>(userId: string, type: T, userMembership?: UserMembership<T>) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/memberships?type=${type}`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(userMembership ?? {});
   }
 });
