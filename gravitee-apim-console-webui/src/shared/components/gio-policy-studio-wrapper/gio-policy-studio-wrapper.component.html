@@ -41,6 +41,7 @@
     [documentation]="policyDocumentation"
     (:gv-policy-studio:fetch-documentation)="fetchPolicyDocumentation($event.detail)"
     (:gv-resources:fetch-documentation)="fetchResourceDocumentation($event.detail)"
+    (:gv-expression-language:ready)="fetchSpelGrammar($event.detail)"
   >
   </gv-policy-studio>
 </div>

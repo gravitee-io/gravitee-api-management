@@ -24,6 +24,8 @@ import { FlowService } from '../../../services-ngx/flow.service';
 import { FlowConfigurationSchema } from '../../../entities/flow/configurationSchema';
 import { PolicyService } from '../../../services-ngx/policy.service';
 import { ResourceService } from '../../../services-ngx/resource.service';
+import { SpelService } from '../../../services-ngx/spel.service';
+import { Grammar } from '../../../entities/spel/grammar';
 
 @Component({
   selector: 'gio-policy-studio-wrapper',
@@ -94,6 +96,7 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
     private readonly flowService: FlowService,
     private readonly policyService: PolicyService,
     private readonly resourceService: ResourceService,
+    private readonly spelService: SpelService,
   ) {}
 
   ngOnInit(): void {
@@ -146,6 +149,13 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
           return EMPTY;
         }),
       )
+      .subscribe();
+  }
+
+  public fetchSpelGrammar({ currentTarget }: { currentTarget: { grammar: Grammar } }): void {
+    this.spelService
+      .getGrammar()
+      .pipe(tap((grammar) => (currentTarget.grammar = grammar)))
       .subscribe();
   }
 }

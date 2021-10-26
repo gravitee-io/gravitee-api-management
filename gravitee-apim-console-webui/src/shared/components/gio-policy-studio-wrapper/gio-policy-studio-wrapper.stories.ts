@@ -24,6 +24,8 @@ import { GioPolicyStudioWrapperModule } from './gio-policy-studio-wrapper.module
 import { FlowService } from '../../../services-ngx/flow.service';
 import { PolicyService } from '../../../services-ngx/policy.service';
 import { ResourceService } from '../../../services-ngx/resource.service';
+import { SpelService } from '../../../services-ngx/spel.service';
+import { fakeGrammar } from '../../../entities/spel/grammar.fixture';
 
 const apimPolicies = require('./stories-resources/apim-policies.json');
 const apimResourceTypes = require('./stories-resources/apim-resource-types.json');
@@ -55,6 +57,12 @@ export default {
           provide: ResourceService,
           useValue: {
             getDocumentation: (id: string) => of(buildDoc(`${id} documentation`)),
+          },
+        },
+        {
+          provide: SpelService,
+          useValue: {
+            getGrammar: () => of(fakeGrammar()),
           },
         },
       ],
