@@ -22,6 +22,8 @@ import { MatCardHarness } from '@angular/material/card/testing';
 import { MatChipHarness } from '@angular/material/chips/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -36,6 +38,10 @@ import { fakeRole } from '../../../../entities/role/role.fixture';
 import { GioSaveBarHarness } from '../../../../shared/components/gio-save-bar/gio-save-bar.harness';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
+import { Group } from '../../../../entities/group/group';
+import { fakeGroup } from '../../../../entities/group/group.fixture';
+import { GroupMembership } from '../../../../entities/group/groupMember';
+import { fakeGroupMembership } from '../../../../entities/group/groupMember.fixture';
 
 describe('OrgSettingsUserDetailComponent', () => {
   const fakeAjsState = {
@@ -88,6 +94,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     });
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
     expectRolesListRequest('ORGANIZATION', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
@@ -114,6 +121,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     });
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
     expectRolesListRequest('ORGANIZATION');
 
     const AcceptUserButton = await loader.getHarness(MatButtonHarness.with({ text: /Accept/ }));
@@ -130,6 +138,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     });
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
     expectRolesListRequest('ORGANIZATION');
 
     expect(await loader.getAllHarnesses(MatButtonHarness.with({ text: /Accept/ }))).toHaveLength(0);
@@ -145,6 +154,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     });
     expectUserGetRequest(user);
     expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
     expectRolesListRequest('ORGANIZATION', [
       fakeRole({ id: 'roleOrgUserId', name: 'ROLE_ORG_USER' }),
       fakeRole({ id: 'roleOrgAdminId', name: 'ROLE_ORG_ADMIN' }),
@@ -171,6 +181,7 @@ describe('OrgSettingsUserDetailComponent', () => {
       envRoles: { environmentAlphaId: [{ id: 'roleEnvApiId' }], environmentBetaId: [] },
     });
     expectUserGetRequest(user);
+    expectUserGroupsGetRequest(user.id);
     expectEnvironmentListRequest([
       fakeEnvironment({ id: 'environmentAlphaId', name: 'Environment Alpha' }),
       fakeEnvironment({ id: 'environmentBetaId', name: 'Environment Beta' }),
@@ -192,6 +203,51 @@ describe('OrgSettingsUserDetailComponent', () => {
     await saveBar.clickSubmit();
 
     expectUpdateUserRolesRequest(user.id, ['roleEnvApiId', 'roleEnvUserId']);
+  });
+
+  it('should save group roles', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [
+      fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN', API: 'ROLE_API', APPLICATION: 'ROLE_APP_OWNER' } }),
+    ]);
+    expectRolesListRequest('ORGANIZATION');
+    expectRolesListRequest('API', [fakeRole({ id: 'roleApiId', name: 'ROLE_API' })]);
+    expectRolesListRequest('APPLICATION', [
+      fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }),
+      fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' }),
+    ]);
+
+    const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
+    const groupsTable = await groupsCard.getHarness(MatTableHarness);
+
+    const groupAdminCheckbox = await (await (await groupsTable.getRows())[0].getCells())[1].getHarness(MatCheckboxHarness);
+    const apiRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[2].getHarness(MatSelectHarness);
+    const applicationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[3].getHarness(MatSelectHarness);
+
+    // expect initial value
+    expect(await groupAdminCheckbox.isChecked()).toBe(true);
+    expect(await apiRoleSelect.getValueText()).toBe('ROLE_API');
+    expect(await applicationRoleSelect.getValueText()).toBe('ROLE_APP_OWNER');
+
+    // change values
+    await groupAdminCheckbox.uncheck();
+    await applicationRoleSelect.clickOptions({ text: 'ROLE_APP_USER' });
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectAddOrUpdateGroupMembershipRequest('groupA', [
+      fakeGroupMembership({
+        id: user.id,
+        roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }],
+      }),
+    ]);
   });
 
   function expectUserGetRequest(user: User = fakeUser({ id: 'userId' })) {
@@ -219,6 +275,20 @@ describe('OrgSettingsUserDetailComponent', () => {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments`);
     expect(req.request.method).toEqual('GET');
     req.flush(environments);
+    fixture.detectChanges();
+  }
+
+  function expectUserGroupsGetRequest(userId: string, groups: Group[] = []) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/groups`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(groups);
+    fixture.detectChanges();
+  }
+
+  function expectAddOrUpdateGroupMembershipRequest(groupId: string, groupMembership: GroupMembership[] = []) {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${groupId}/members`);
+    expect(req.request.method).toEqual('POST');
+    req.flush(groupMembership);
     fixture.detectChanges();
   }
 });

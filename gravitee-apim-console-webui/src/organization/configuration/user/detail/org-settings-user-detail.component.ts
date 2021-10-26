@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
 import { catchError, map, mapTo, mergeMap, shareReplay, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Environment } from '../../../../entities/environment/environment';
+import { Group } from '../../../../entities/group/group';
 import { User } from '../../../../entities/user/user';
 import { EnvironmentService } from '../../../../services-ngx/environment.service';
+import { GroupService } from '../../../../services-ngx/group.service';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
@@ -38,6 +40,11 @@ interface EnvironmentDS {
   roles: string;
 }
 
+interface GroupDS {
+  id: string;
+  name: string;
+}
+
 @Component({
   selector: 'org-settings-user-detail',
   template: require('./org-settings-user-detail.component.html'),
@@ -48,29 +55,41 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   organizationRoles$ = this.roleService.list('ORGANIZATION').pipe(shareReplay());
   environmentRoles$ = this.roleService.list('ENVIRONMENT').pipe(shareReplay());
+  apiRoles$ = this.roleService.list('API').pipe(shareReplay());
+  applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay());
 
   organizationRolesControl: FormControl;
   environmentsRolesFormGroup: FormGroup;
+  groupsRolesFormGroup: FormGroup;
 
   environmentsTableDS: EnvironmentDS[];
   environmentsTableDisplayedColumns = ['name', 'description', 'roles'];
 
+  groupsTableDS: GroupDS[];
+  groupsTableDisplayedColumns = ['name', 'groupAdmin', 'apiRoles', 'applicationRole', 'delete'];
+
   openSaveBar = false;
+  invalidStateSaveBar = false;
 
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
     private readonly usersService: UsersService,
     private readonly roleService: RoleService,
+    private readonly groupService: GroupService,
     private readonly snackBarService: SnackBarService,
     private readonly environmentService: EnvironmentService,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.usersService.get(this.ajsStateParams.userId), this.environmentService.list()])
+    combineLatest([
+      this.usersService.get(this.ajsStateParams.userId),
+      this.environmentService.list(),
+      this.usersService.getUserGroups(this.ajsStateParams.userId),
+    ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([user, environments]) => {
+      .subscribe(([user, environments, groups]) => {
         const organizationRoles = user.roles.filter((r) => r.scope === 'ORGANIZATION');
         this.user = {
           ...user,
@@ -83,6 +102,13 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         this.environmentsTableDS = environments.map((e) => ({ id: e.id, name: e.name, description: e.description, roles: '' }));
 
         this.initEnvironmentsRolesForm(environments);
+
+        this.groupsTableDS = groups.map((g) => ({
+          id: g.id,
+          name: g.name,
+        }));
+
+        this.initGroupsRolesForm(groups);
       });
   }
 
@@ -124,6 +150,36 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       );
     }
 
+    // Groups
+    if (this.groupsRolesFormGroup.dirty) {
+      observableToZip.push(
+        from(Object.keys(this.groupsRolesFormGroup.controls)).pipe(
+          mergeMap((groupId) => {
+            const groupRolesFormGroup = this.groupsRolesFormGroup.get(groupId) as FormGroup;
+            if (groupRolesFormGroup.dirty) {
+              const { GROUP, API, APPLICATION } = groupRolesFormGroup.value;
+
+              return this.groupService
+                .addOrUpdateMemberships(groupId, [
+                  {
+                    id: this.user.id,
+                    roles: [
+                      { scope: 'GROUP' as const, name: GROUP ? 'ADMIN' : '' },
+                      { scope: 'API' as const, name: API },
+                      { scope: 'APPLICATION' as const, name: APPLICATION },
+                    ],
+                  },
+                ])
+                .pipe(mapTo(groupId));
+            }
+            // skip if no change on groups roles
+            return EMPTY;
+          }),
+          map(() => `Roles for groups updated`),
+        ),
+      );
+    }
+
     // After all observables emit, emit all success message as an array
     zip(...observableToZip)
       .pipe(
@@ -158,6 +214,11 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  onDeleteGroupClick(groupId: string) {
+    // eslint-disable-next-line no-console, angular/log
+    console.log('onDeleteGroupClick', { groupId });
+  }
+
   private initEnvironmentsRolesForm(environments: Environment[]) {
     this.environmentsRolesFormGroup = new FormGroup(
       environments.reduce((result, environment) => {
@@ -172,6 +233,47 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
     this.environmentsRolesFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
       this.toggleSaveBar(true);
+    });
+  }
+
+  private initGroupsRolesForm(groups: Group[]) {
+    const leastOneGroupRoleIsRequiredValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+      const groupRolesFormGroup = control as FormGroup;
+
+      const GROUP = groupRolesFormGroup.get('GROUP').value;
+      const API = groupRolesFormGroup.get('API').value;
+      const APPLICATION = groupRolesFormGroup.get('APPLICATION').value;
+
+      if (GROUP || API || APPLICATION) {
+        return null;
+      }
+
+      return {
+        leastOneIsRequired: true,
+      };
+    };
+
+    this.groupsRolesFormGroup = new FormGroup({
+      ...groups.reduce((result, group) => {
+        return {
+          ...result,
+          [group.id]: new FormGroup(
+            {
+              GROUP: new FormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' }),
+              API: new FormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' }),
+              APPLICATION: new FormControl({ value: group.roles['APPLICATION'], disabled: this.user.status !== 'ACTIVE' }),
+            },
+            [leastOneGroupRoleIsRequiredValidator],
+          ),
+        };
+      }, {}),
+    });
+
+    this.groupsRolesFormGroup.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
+      this.toggleSaveBar(true);
+    });
+    this.groupsRolesFormGroup.statusChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((status) => {
+      this.invalidStateSaveBar = status !== 'VALID';
     });
   }
 }

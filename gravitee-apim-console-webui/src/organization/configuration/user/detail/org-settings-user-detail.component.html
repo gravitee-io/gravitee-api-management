@@ -153,9 +153,87 @@
   </table>
 </mat-card>
 
-<mat-card class="org-settings-user-detail__groups-card">
+<mat-card *ngIf="groupsTableDS && groupsRolesFormGroup" class="org-settings-user-detail__groups-card">
   <h2>Groups</h2>
   <p>You can manage all groups of this user.</p>
+
+  <table
+    class="org-settings-user-detail__groups-card__table"
+    mat-table
+    [dataSource]="groupsTableDS"
+    [formGroup]="groupsRolesFormGroup"
+    aria-label="Groups table"
+  >
+    <!-- Position Name -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+      <td mat-cell *matCellDef="let group">
+        {{ group.name }}
+
+        <div *ngIf="groupsRolesFormGroup.get(group.id).errors" class="mat-caption error">At least one role is mandatory</div>
+      </td>
+    </ng-container>
+
+    <!-- Group Admin Column -->
+    <ng-container matColumnDef="groupAdmin">
+      <th mat-header-cell *matHeaderCellDef id="groupAdmin">Group Admin</th>
+      <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
+        <mat-checkbox formControlName="GROUP"></mat-checkbox>
+      </td>
+    </ng-container>
+
+    <!-- API Role Column -->
+    <ng-container matColumnDef="apiRoles">
+      <th mat-header-cell *matHeaderCellDef id="apiRoles">API Role</th>
+      <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
+        <mat-form-field appearance="fill">
+          <mat-label>API role</mat-label>
+          <mat-select [id]="group.id" [aria-label]="'API roles for ' + group.id" formControlName="API">
+            <mat-option>-- None --</mat-option>
+            <mat-option *ngFor="let role of apiRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <!-- Application Role Column -->
+    <ng-container matColumnDef="applicationRole">
+      <th mat-header-cell *matHeaderCellDef id="applicationRole">Application Role</th>
+      <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
+        <mat-form-field appearance="fill">
+          <mat-label>Application role</mat-label>
+          <mat-select [id]="group.id" [aria-label]="'Application roles for ' + group.id" formControlName="APPLICATION">
+            <mat-option>-- None --</mat-option>
+            <mat-option *ngFor="let role of applicationRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <!-- Delete Column -->
+    <ng-container matColumnDef="delete">
+      <th mat-header-cell *matHeaderCellDef id="roles" width="5%">Delete</th>
+      <td mat-cell *matCellDef="let group">
+        <button
+          *gioPermission="{ anyOf: ['organization-user-d'] }"
+          (click)="onDeleteGroupClick(group.id)"
+          mat-icon-button
+          color="primary"
+          aria-label="Button to delete user group"
+          matTooltip="Delete"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="groupsTableDisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let group; columns: groupsTableDisplayedColumns" [class.error]="groupsRolesFormGroup.get(group.id).errors"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="groupsTableDisplayedColumns.length">No group</td>
+    </tr>
+  </table>
 </mat-card>
 
 <mat-card class="org-settings-user-detail__apis-card">
@@ -168,4 +246,11 @@
   <p>Here is the list of all applications of this user.</p>
 </mat-card>
 
-<gio-save-bar [creationMode]="false" [opened]="openSaveBar" (submit)="onSaveBarSubmit()" (reset)="onSaveBarReset()"> </gio-save-bar>
+<gio-save-bar
+  [creationMode]="false"
+  [opened]="openSaveBar"
+  [invalidState]="invalidStateSaveBar"
+  (submit)="onSaveBarSubmit()"
+  (reset)="onSaveBarReset()"
+>
+</gio-save-bar>
