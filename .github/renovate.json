@@ -1,6 +1,7 @@
 {
     "extends": ["config:js-app", "schedule:daily"],
     "prConcurrentLimit": 5,
+    "rebaseWhen": "conflicted",
     "dependencyDashboard": true,
     "commitMessageTopic": "{{depName}}",
     "packageRules": [
