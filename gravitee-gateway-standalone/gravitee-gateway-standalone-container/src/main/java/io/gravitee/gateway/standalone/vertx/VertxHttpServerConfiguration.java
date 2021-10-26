@@ -58,7 +58,7 @@ public class VertxHttpServerConfiguration implements InitializingBean {
 
     private ClientAuthMode clientAuth;
 
-    @Value("${http.ssl.keystore.type:#{null}}")
+    @Value("${http.ssl.keystore.type:jks}")
     private String keyStoreType;
 
     @Value("${http.ssl.keystore.path:#{null}}")
@@ -69,7 +69,7 @@ public class VertxHttpServerConfiguration implements InitializingBean {
     @Value("${http.ssl.keystore.password:#{null}}")
     private String keyStorePassword;
 
-    @Value("${http.ssl.truststore.type:#{null}}")
+    @Value("${http.ssl.truststore.type:jks}")
     private String trustStoreType;
 
     private List<String> trustStorePaths;
