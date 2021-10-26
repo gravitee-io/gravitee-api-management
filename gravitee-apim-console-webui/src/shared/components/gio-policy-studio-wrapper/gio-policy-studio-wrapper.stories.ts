@@ -22,6 +22,7 @@ import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.com
 import { GioPolicyStudioWrapperModule } from './gio-policy-studio-wrapper.module';
 
 import { FlowService } from '../../../services-ngx/flow.service';
+import { PolicyService } from '../../../services-ngx/policy.service';
 
 const apimPolicies = require('./stories-resources/apim-policies.json');
 const apimResourceTypes = require('./stories-resources/apim-resource-types.json');
@@ -41,6 +42,12 @@ export default {
           provide: FlowService,
           useValue: {
             getConfigurationSchemaForm: () => of(apimConfiguration),
+          },
+        },
+        {
+          provide: PolicyService,
+          useValue: {
+            getDocumentation: (id: string) => of(buildDoc(`${id} documentation`)),
           },
         },
       ],
@@ -77,19 +84,6 @@ Mock documentation in story...
 </user>
 ----
       `;
-};
-
-const fetchPolicyDocumentation = (event) => {
-  const detail = event.detail;
-  const component = event.target;
-  if (detail && detail.policy) {
-    component.documentation = {
-      image: detail.policy.icon,
-      content: buildDoc(`${detail.policy.name || detail.policy.type} documentation`),
-    };
-  } else {
-    component.documentation = null;
-  }
 };
 
 const fetchResourceDocumentation = (event) => {
@@ -143,7 +137,6 @@ export const Default: StoryObj = {
       'By default, the selection of a flow is based on the operator defined in the flow itself.' +
       ' This operator allows either to select a flow when the path matches exactly, or when the start of the path matches.' +
       ' The "Best match" option allows you to select the flow from the path that is closest.',
-    '@gv-policy-studio:fetch-documentation': fetchPolicyDocumentation.bind(this),
     '@gv-resources:fetch-documentation': fetchResourceDocumentation.bind(this),
     flowsTitle: 'API Flows',
     hasResources: true,

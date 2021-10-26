@@ -16,6 +16,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PolicyDocumentation, PolicyListItem, PolicySchema } from '../entities/policy';
@@ -59,6 +60,10 @@ export class PolicyService {
   }
 
   getDocumentation(policyId: string): Observable<PolicyDocumentation> {
-    return this.http.get<PolicyDocumentation>(`${this.constants.env.baseURL}/policies/${policyId}/documentation`);
+    return this.http
+      .get(`${this.constants.env.baseURL}/policies/${policyId}/documentation`, {
+        responseType: 'text',
+      })
+      .pipe(map((buffer) => buffer.toString()));
   }
 }

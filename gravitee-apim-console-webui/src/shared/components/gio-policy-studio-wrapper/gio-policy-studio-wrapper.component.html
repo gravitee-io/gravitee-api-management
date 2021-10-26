@@ -38,6 +38,8 @@
     [debugResponse]="debugResponse"
     [tabId]="tabId"
     (:gv-policy-studio:change-tab)="onTabChanged($event.detail)"
+    [documentation]="policyDocumentation"
+    (:gv-policy-studio:fetch-documentation)="fetchPolicyDocumentation($event.detail)"
   >
   </gv-policy-studio>
 </div>

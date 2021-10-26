@@ -21,6 +21,7 @@ import '@gravitee/ui-components/wc/gv-policy-studio';
 
 import { FlowService } from '../../../services-ngx/flow.service';
 import { FlowConfigurationSchema } from '../../../entities/flow/configurationSchema';
+import { PolicyService } from '../../../services-ngx/policy.service';
 
 @Component({
   selector: 'gio-policy-studio-wrapper',
@@ -82,10 +83,15 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
 
   tabId: string;
   configurationSchema: FlowConfigurationSchema;
+  policyDocumentation: { id: string; image: string; content: string };
 
   private readonly pathFragmentSeparator = '#';
 
-  constructor(private readonly location: Location, private readonly flowService: FlowService) {}
+  constructor(
+    private readonly location: Location,
+    private readonly flowService: FlowService,
+    private readonly policyService: PolicyService,
+  ) {}
 
   ngOnInit(): void {
     this.flowService
@@ -112,5 +118,12 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
       : currentPath;
 
     this.location.go(`${futureBasePath}${this.pathFragmentSeparator}${tabName}`);
+  }
+
+  public fetchPolicyDocumentation({ policy }: { policy: { id: string; icon: string } }): void {
+    this.policyService
+      .getDocumentation(policy.id)
+      .pipe(tap((documentation) => (this.policyDocumentation = { id: policy.id, image: policy.icon, content: documentation })))
+      .subscribe();
   }
 }
