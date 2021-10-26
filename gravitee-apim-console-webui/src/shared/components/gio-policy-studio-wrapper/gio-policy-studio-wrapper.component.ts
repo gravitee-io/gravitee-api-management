@@ -15,8 +15,12 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
+import { tap } from 'rxjs/operators';
 
 import '@gravitee/ui-components/wc/gv-policy-studio';
+
+import { FlowService } from '../../../services-ngx/flow.service';
+import { FlowConfigurationSchema } from '../../../entities/flow/configurationSchema';
 
 @Component({
   selector: 'gio-policy-studio-wrapper',
@@ -64,9 +68,6 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   readonlyPlans: boolean;
 
   @Input()
-  configurationSchema: unknown = {};
-
-  @Input()
   dynamicPropertySchema: unknown = {};
 
   @Input()
@@ -80,12 +81,22 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
     'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
 
   tabId: string;
+  configurationSchema: FlowConfigurationSchema;
 
   private readonly pathFragmentSeparator = '#';
 
-  constructor(private readonly location: Location) {}
+  constructor(private readonly location: Location, private readonly flowService: FlowService) {}
 
   ngOnInit(): void {
+    this.flowService
+      .getConfigurationSchemaForm()
+      .pipe(
+        tap((configurationSchema) => {
+          this.configurationSchema = configurationSchema;
+        }),
+      )
+      .subscribe();
+
     const pathParts = this.location.path(false).split(this.pathFragmentSeparator);
     if (pathParts.length > 1) {
       this.tabId = pathParts[1];

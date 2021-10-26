@@ -16,9 +16,12 @@
  */
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { moduleMetadata, StoryObj } from '@storybook/angular';
+import { of } from 'rxjs';
 
 import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.component';
 import { GioPolicyStudioWrapperModule } from './gio-policy-studio-wrapper.module';
+
+import { FlowService } from '../../../services-ngx/flow.service';
 
 const apimPolicies = require('./stories-resources/apim-policies.json');
 const apimResourceTypes = require('./stories-resources/apim-resource-types.json');
@@ -33,6 +36,14 @@ export default {
   decorators: [
     moduleMetadata({
       imports: [GioPolicyStudioWrapperModule],
+      providers: [
+        {
+          provide: FlowService,
+          useValue: {
+            getConfigurationSchemaForm: () => of(apimConfiguration),
+          },
+        },
+      ],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     }),
   ],
@@ -114,7 +125,6 @@ export const Default: StoryObj = {
       [flowsTitle]='flowsTitle'
       [propertyProviders]='propertyProviders'
       [readonlyPlans]='readonlyPlans'
-      [configurationSchema]='configurationSchema'
       [dynamicPropertySchema]='dynamicPropertySchema'
       [debugResponse]='debugResponse'
       [configurationInformation]='configurationInformation'
@@ -129,7 +139,6 @@ export const Default: StoryObj = {
     propertyProviders: apimPropertyProviders.data,
     definition: apimDefinition,
     flowSchema: apimFlow,
-    configurationSchema: apimConfiguration,
     configurationInformation:
       'By default, the selection of a flow is based on the operator defined in the flow itself.' +
       ' This operator allows either to select a flow when the path matches exactly, or when the start of the path matches.' +

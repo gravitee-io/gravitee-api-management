@@ -29,24 +29,38 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { GioPolicyStudioWrapperComponent } from './gio-policy-studio-wrapper.component';
 import { GioPolicyStudioWrapperModule } from './gio-policy-studio-wrapper.module';
 
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
+import { fakeFlowConfigurationSchema } from '../../../entities/flow/configurationSchema.fixture';
+
 describe('GioPolicyStudioWrapperComponent', () => {
   let component: GioPolicyStudioWrapperComponent;
   let fixture: ComponentFixture<GioPolicyStudioWrapperComponent>;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioPolicyStudioWrapperModule],
+      imports: [GioPolicyStudioWrapperModule, GioHttpTestingModule],
     });
+    httpTestingController = TestBed.inject(HttpTestingController);
+
     fixture = TestBed.createComponent(GioPolicyStudioWrapperComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
   it('should match snapshot', () => {
-    fixture.detectChanges();
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/flows/configuration-schema`,
+      })
+      .flush(fakeFlowConfigurationSchema());
+
     expect(component).toBeDefined();
   });
 });
