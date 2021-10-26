@@ -42,6 +42,8 @@
     (:gv-policy-studio:fetch-documentation)="fetchPolicyDocumentation($event.detail)"
     (:gv-resources:fetch-documentation)="fetchResourceDocumentation($event.detail)"
     (:gv-expression-language:ready)="fetchSpelGrammar($event.detail)"
+    [attr.selected-flows-id]="selectedFlowsId ? readonlyPlans : null"
+    (:gv-policy-studio:select-flows)="onFlowSelectionChanged($event.detail)"
   >
   </gv-policy-studio>
 </div>

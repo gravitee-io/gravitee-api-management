@@ -29,6 +29,12 @@ import { PolicyListItem } from '../../../entities/policy';
 
 import '@gravitee/ui-components/wc/gv-policy-studio';
 
+interface UrlParams {
+  path: string;
+  tabId: string;
+  flows: string[];
+}
+
 @Component({
   selector: 'gio-policy-studio-wrapper',
   template: require('./gio-policy-studio-wrapper.component.html'),
@@ -98,10 +104,12 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
     'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
 
   tabId: string;
+  selectedFlowsId: string[];
   configurationSchema: FlowConfigurationSchema;
   policyDocumentation: { id: string; image: string; content: string };
 
   private readonly pathFragmentSeparator = '#';
+  private readonly flowsQueryParamKey = 'flows';
   private readonly unknownPolicyCategory = 'others';
   private readonly policyCategoriesOrder = ['security', 'performance', 'transformation', this.unknownPolicyCategory];
   private _policies: PolicyListItem[];
@@ -124,21 +132,18 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
       )
       .subscribe();
 
-    const pathParts = this.location.path(false).split(this.pathFragmentSeparator);
-    if (pathParts.length > 1) {
-      this.tabId = pathParts[1];
-    }
+    const { tabId, flows } = this.parseUrl();
+
+    this.tabId = tabId;
+    this.selectedFlowsId = flows;
   }
 
-  public onTabChanged(tabName: string): void {
-    // TODO: Improve this with Angular Router
-    // Hack to add the tab as Fragment part of the URL
-    const currentPath = this.location.path();
-    const futureBasePath = currentPath.includes(this.pathFragmentSeparator)
-      ? currentPath.split(this.pathFragmentSeparator)[0]
-      : currentPath;
+  public onTabChanged(tabId: string): void {
+    this.updateUrl({ ...this.parseUrl(), tabId });
+  }
 
-    this.location.go(`${futureBasePath}${this.pathFragmentSeparator}${tabName}`);
+  public onFlowSelectionChanged({ flows }: { flows: string[] }): void {
+    this.updateUrl({ ...this.parseUrl(), flows });
   }
 
   public fetchPolicyDocumentation({ policy }: { policy: { id: string; icon: string } }): void {
@@ -172,5 +177,36 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
       .getGrammar()
       .pipe(tap((grammar) => (currentTarget.grammar = grammar)))
       .subscribe();
+  }
+
+  private parseUrl(): UrlParams {
+    // TODO: Improve this with Angular Router
+    // Hack to add the tab as Fragment part of the URL
+    let path = this.location.path();
+
+    const tabId = path.includes(this.pathFragmentSeparator) ? path.split(this.pathFragmentSeparator)[1] : '';
+
+    path = path.replace(`#${tabId}`, '');
+
+    const [basePath, ...flows] = path.split(this.flowsQueryParamKey);
+
+    const cleanedPath = basePath.replace('?', '');
+    const cleanedFlows = (flows ?? []).map((flow) => flow.replace('=', ''));
+
+    return {
+      path: cleanedPath,
+      tabId,
+      flows: cleanedFlows,
+    };
+  }
+
+  private updateUrl({ path, tabId, flows }: UrlParams): void {
+    // TODO: Improve this with Angular Router
+    // Hack to add the tab as Fragment part of the URL
+    const flowsQueryParams = (flows ?? []).map((value) => `${this.flowsQueryParamKey}=${value}`).join('&');
+
+    const queryParams = flowsQueryParams.length > 0 ? `?${flowsQueryParams}` : '';
+
+    this.location.go(`${path}${queryParams}${this.pathFragmentSeparator}${tabId}`);
   }
 }
