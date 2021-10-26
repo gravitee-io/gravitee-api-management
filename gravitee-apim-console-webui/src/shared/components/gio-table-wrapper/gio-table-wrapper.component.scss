@@ -1,0 +1,30 @@
+@use 'sass:map';
+@use 'node_modules/@angular/material' as mat;
+
+@use '../../../scss/gio-material-theme' as gio;
+
+$background: map.get(gio.$gio-theme, background);
+$foreground: map.get(gio.$gio-theme, foreground);
+$typography: map.get(gio.$gio-theme, typography);
+
+.gio-table-wrapper {
+  &__header-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 56px;
+    background: mat.get-color-from-palette($background, 'card');
+    padding: 8px 16px 0 16px;
+    border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
+
+    &__search-field {
+      font-family: mat.font-family($typography, caption);
+      font-size: mat.font-size($typography, caption);
+    }
+  }
+
+  &__footer-bar {
+    background: mat.get-color-from-palette($background, 'card');
+  }
+}
