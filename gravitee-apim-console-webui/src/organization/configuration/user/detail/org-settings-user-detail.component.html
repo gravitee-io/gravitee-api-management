@@ -97,15 +97,60 @@
 
   <mat-form-field *ngIf="organizationRolesControl" appearance="fill">
     <mat-label>Roles</mat-label>
-    <mat-select [formControl]="organizationRolesControl" aria-label="organization Role" multiple>
+    <mat-select [formControl]="organizationRolesControl" aria-label="Organization role" multiple>
       <mat-option *ngFor="let role of organizationRoles$ | async" [value]="role.id">{{ role.name }}</mat-option>
     </mat-select>
   </mat-form-field>
 </mat-card>
 
-<mat-card class="org-settings-user-detail__environments-card">
+<mat-card *ngIf="environmentsTableDS && environmentsRolesFormGroup" class="org-settings-user-detail__environments-card">
   <h2>Environments</h2>
   <p>Here is the list of all environment this user can access.</p>
+
+  <table
+    class="org-settings-user-detail__environments-card__table"
+    mat-table
+    [dataSource]="environmentsTableDS"
+    [formGroup]="environmentsRolesFormGroup"
+    aria-label="Environments table"
+  >
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef id="name" width="33%">Name</th>
+      <td mat-cell *matCellDef="let environment">{{ environment.name }}</td>
+    </ng-container>
+
+    <!-- Description Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef id="description" width="33%">Description</th>
+      <td mat-cell *matCellDef="let environment">{{ environment.description }}</td>
+    </ng-container>
+
+    <!-- Roles Column -->
+    <ng-container matColumnDef="roles">
+      <th mat-header-cell *matHeaderCellDef id="roles" width="33%">Roles</th>
+      <td mat-cell *matCellDef="let environment">
+        <mat-form-field appearance="fill">
+          <mat-label>Environment roles</mat-label>
+          <mat-select
+            [id]="environment.id"
+            [formControlName]="environment.id"
+            [aria-label]="'Environment roles for ' + environment.id"
+            multiple
+          >
+            <mat-option *ngFor="let role of environmentRoles$ | async" [value]="role.id">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="environmentsTableDisplayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: environmentsTableDisplayedColumns"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" [attr.colspan]="environmentsTableDisplayedColumns.length">No environment</td>
+    </tr>
+  </table>
 </mat-card>
 
 <mat-card class="org-settings-user-detail__groups-card">

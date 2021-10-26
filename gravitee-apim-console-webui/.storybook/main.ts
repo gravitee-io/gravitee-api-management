@@ -2,11 +2,12 @@ const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
-  stories: ['../**/*.stories.@(ts|mdx)'],
+  framework: '@storybook/angular',
+  stories: ['../src/**/*.stories.@(ts|mdx)'],
   addons: ['storybook-addon-designs', '@storybook/addon-essentials'],
   features: {
     previewCsfV3: true,
-    storyStoreV7: false,
+    storyStoreV7: true,
   },
   angularOptions: {
     enableIvy: true,

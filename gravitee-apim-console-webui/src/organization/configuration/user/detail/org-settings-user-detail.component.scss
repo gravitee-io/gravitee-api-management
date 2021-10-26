@@ -89,4 +89,14 @@
     display: flex;
     flex-direction: column;
   }
+
+  &__environments-card {
+    &__table {
+      .mat-cell.mat-column-roles {
+        display: flex;
+        flex-direction: column;
+        padding-top: 1.34375em; // to center mat-form-field in cell. Same value of mat-form-field's bottom padding
+      }
+    }
+  }
 }
