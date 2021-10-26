@@ -15,13 +15,15 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
 
 import '@gravitee/ui-components/wc/gv-policy-studio';
 
 import { FlowService } from '../../../services-ngx/flow.service';
 import { FlowConfigurationSchema } from '../../../entities/flow/configurationSchema';
 import { PolicyService } from '../../../services-ngx/policy.service';
+import { ResourceService } from '../../../services-ngx/resource.service';
 
 @Component({
   selector: 'gio-policy-studio-wrapper',
@@ -91,6 +93,7 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
     private readonly location: Location,
     private readonly flowService: FlowService,
     private readonly policyService: PolicyService,
+    private readonly resourceService: ResourceService,
   ) {}
 
   ngOnInit(): void {
@@ -124,6 +127,25 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
     this.policyService
       .getDocumentation(policy.id)
       .pipe(tap((documentation) => (this.policyDocumentation = { id: policy.id, image: policy.icon, content: documentation })))
+      .subscribe();
+  }
+
+  public fetchResourceDocumentation({
+    resourceType,
+    target,
+  }: {
+    resourceType: { id: string; icon: string };
+    target: { documentation: any };
+  }): void {
+    this.resourceService
+      .getDocumentation(resourceType.id)
+      .pipe(
+        tap((documentation) => (target.documentation = { image: resourceType.icon, content: documentation })),
+        catchError(() => {
+          target.documentation = null;
+          return EMPTY;
+        }),
+      )
       .subscribe();
   }
 }

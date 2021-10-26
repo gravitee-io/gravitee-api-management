@@ -23,6 +23,7 @@ import { GioPolicyStudioWrapperModule } from './gio-policy-studio-wrapper.module
 
 import { FlowService } from '../../../services-ngx/flow.service';
 import { PolicyService } from '../../../services-ngx/policy.service';
+import { ResourceService } from '../../../services-ngx/resource.service';
 
 const apimPolicies = require('./stories-resources/apim-policies.json');
 const apimResourceTypes = require('./stories-resources/apim-resource-types.json');
@@ -46,6 +47,12 @@ export default {
         },
         {
           provide: PolicyService,
+          useValue: {
+            getDocumentation: (id: string) => of(buildDoc(`${id} documentation`)),
+          },
+        },
+        {
+          provide: ResourceService,
           useValue: {
             getDocumentation: (id: string) => of(buildDoc(`${id} documentation`)),
           },
@@ -84,18 +91,6 @@ Mock documentation in story...
 </user>
 ----
       `;
-};
-
-const fetchResourceDocumentation = (event) => {
-  const detail = event.detail;
-  const component = detail.target;
-  if (detail && detail.resourceType) {
-    component.documentation = {
-      content: buildDoc(`${detail.resourceType.name} documentation`),
-    };
-  } else {
-    component.documentation = null;
-  }
 };
 
 const save = (event) => {
@@ -137,7 +132,6 @@ export const Default: StoryObj = {
       'By default, the selection of a flow is based on the operator defined in the flow itself.' +
       ' This operator allows either to select a flow when the path matches exactly, or when the start of the path matches.' +
       ' The "Best match" option allows you to select the flow from the path that is closest.',
-    '@gv-resources:fetch-documentation': fetchResourceDocumentation.bind(this),
     flowsTitle: 'API Flows',
     hasResources: true,
     hasProperties: true,
