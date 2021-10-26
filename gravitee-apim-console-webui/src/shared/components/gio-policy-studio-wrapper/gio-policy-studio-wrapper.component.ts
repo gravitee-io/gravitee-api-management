@@ -17,8 +17,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { catchError, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
-
-import '@gravitee/ui-components/wc/gv-policy-studio';
+import { chain, isNil } from 'lodash';
 
 import { FlowService } from '../../../services-ngx/flow.service';
 import { FlowConfigurationSchema } from '../../../entities/flow/configurationSchema';
@@ -26,6 +25,9 @@ import { PolicyService } from '../../../services-ngx/policy.service';
 import { ResourceService } from '../../../services-ngx/resource.service';
 import { SpelService } from '../../../services-ngx/spel.service';
 import { Grammar } from '../../../entities/spel/grammar';
+import { PolicyListItem } from '../../../entities/policy';
+
+import '@gravitee/ui-components/wc/gv-policy-studio';
 
 @Component({
   selector: 'gio-policy-studio-wrapper',
@@ -52,7 +54,17 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   sortable: boolean;
 
   @Input()
-  policies: unknown[];
+  set policies(policies: PolicyListItem[]) {
+    this._policies = chain(policies)
+      .map((policy) => (!isNil(policy.category) ? policy : { ...policy, category: this.unknownPolicyCategory }))
+      // First sort by category (based on category order) and then by name
+      .sortBy([(policy) => this.policyCategoriesOrder.indexOf(policy.category), (policy) => policy.name])
+      .value();
+  }
+
+  get policies() {
+    return this._policies;
+  }
 
   @Input()
   definition: unknown;
@@ -90,6 +102,9 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   policyDocumentation: { id: string; image: string; content: string };
 
   private readonly pathFragmentSeparator = '#';
+  private readonly unknownPolicyCategory = 'others';
+  private readonly policyCategoriesOrder = ['security', 'performance', 'transformation', this.unknownPolicyCategory];
+  private _policies: PolicyListItem[];
 
   constructor(
     private readonly location: Location,

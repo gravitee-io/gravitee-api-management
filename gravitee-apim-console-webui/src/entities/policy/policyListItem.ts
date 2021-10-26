@@ -20,7 +20,7 @@ export interface PolicyListItem {
   version: string;
   schema: string;
   icon: string;
-  category: string;
+  category?: string;
   onRequest: boolean;
   onResponse: boolean;
   // FIXME: Are these attributes still used? There are never sent by the backend on dev environment
