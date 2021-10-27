@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { DOCUMENT, Location } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, Inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { flatten, sortBy } from 'lodash';
 import { fromEvent, Observable, Subscription } from 'rxjs';
-import { debounceTime, map } from 'rxjs/operators';
+import { debounceTime, map, shareReplay, tap } from 'rxjs/operators';
 
 import { TocSection, TocSectionLink } from './TocSection';
 import { GioTableOfContentsService } from './gio-table-of-contents.service';
@@ -55,6 +55,7 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
     @Inject(DOCUMENT) private readonly document: Document,
     private readonly elementRef: ElementRef,
     private readonly location: Location,
+    private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -91,13 +92,16 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
         .subscribe(() => this.onScroll()),
     );
 
-    this.sections$ = this.tableOfContentsService.getSections$().pipe(map((s) => Object.values(s)));
-
-    // Get all links for the scroll activation mechanism
-    this.subscriptions.add(
-      this.sections$.subscribe((s) => {
-        this.allLinks = this.sortByTopOffset(flatten(s.map((s) => s.links)));
-      }),
+    this.sections$ = this.tableOfContentsService.getSections$().pipe(
+      map((s) => Object.values(s)),
+      tap((s) =>
+        // Get all links for the scroll activation mechanism
+        {
+          this.allLinks = this.sortByTopOffset(flatten(s.map((s) => s.links)));
+          this.changeDetectorRef.detectChanges();
+        },
+      ),
+      shareReplay(),
     );
   }
 
