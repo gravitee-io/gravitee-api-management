@@ -228,11 +228,11 @@ class ApiHealthCheckConfigureController {
       this.$scope.formApiHealthCheckResponse.$setPristine();
       this.$rootScope.$broadcast('apiChangeSuccess', { api: this.api });
 
-      if (this.endpoint !== undefined) {
-        this.NotificationService.show('Health-check configuration for endpoint [' + this.endpoint.name + '] has been updated');
-      } else {
-        this.NotificationService.show('Global health-check configuration  has been updated');
-      }
+      const notification = this.endpoint ?
+          `Health-check configuration for endpoint [${this.endpoint.name}] has been updated` :
+          'Global health-check configuration  has been updated';
+
+      this.NotificationService.show(notification);
     });
   }
 }

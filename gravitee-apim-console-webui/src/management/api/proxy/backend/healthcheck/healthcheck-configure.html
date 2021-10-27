@@ -25,10 +25,10 @@
       >Back to Health-check</a
     >
   </div>
-  <div ng-if="!healthCheckCtrl.hasHealthCheck">
+  <div ng-show="!healthCheckCtrl.hasHealthCheck">
     <h3>The healtcheck is not yet available for "{{healthCheckCtrl.endpoint.type}}" endpoints</h3>
   </div>
-  <div ng-if="healthCheckCtrl.hasHealthCheck" class="gv-form">
+  <div ng-show="healthCheckCtrl.hasHealthCheck" class="gv-form">
     <h2></h2>
     <div class="gv-form-content" layout="column">
       <div layout="row" flex>
