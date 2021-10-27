@@ -28,3 +28,12 @@ $typography: map.get(gio.$gio-theme, typography);
     background: mat.get-color-from-palette($background, 'card');
   }
 }
+
+::ng-deep {
+  // Force mat-table to full width only inside gio-table-wrapper
+  gio-table-wrapper {
+    .mat-table {
+      width: 100%;
+    }
+  }
+}

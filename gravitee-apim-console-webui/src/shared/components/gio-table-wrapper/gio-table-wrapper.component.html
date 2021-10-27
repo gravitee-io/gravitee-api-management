@@ -17,7 +17,7 @@
 -->
 
 <div class="gio-table-wrapper__header-bar">
-  <mat-form-field class="gio-table-wrapper__header-bar__search-field" appearance="fill">
+  <mat-form-field class="gio-table-wrapper__header-bar__search-field" appearance="outline">
     <mat-icon matPrefix>search</mat-icon>
     <mat-label>Search</mat-label>
     <input class="search-input" [formControl]="inputSearch" type="search" matInput />
@@ -33,5 +33,5 @@
 <ng-content></ng-content>
 
 <div class="gio-table-wrapper__footer-bar">
-  <mat-paginator #paginatorBottom [pageSizeOptions]="[5, 10, 25, 100]" aria-label="Select page"></mat-paginator>
+  <mat-paginator #paginatorBottom [hidePageSize]="true" aria-label="Select page"></mat-paginator>
 </div>
