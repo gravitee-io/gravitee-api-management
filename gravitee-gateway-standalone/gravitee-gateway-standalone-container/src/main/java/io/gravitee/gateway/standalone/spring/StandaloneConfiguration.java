@@ -21,6 +21,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.el.ExpressionLanguageInitializer;
+import io.gravitee.gateway.connector.spring.ConnectorConfiguration;
 import io.gravitee.gateway.dictionary.spring.DictionaryConfiguration;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.spring.ApiHandlerConfiguration;
@@ -63,6 +64,7 @@ import org.springframework.context.annotation.Import;
         ServiceDiscoveryPluginConfiguration.class,
         PolicyConfiguration.class,
         PlatformConfiguration.class,
+        ConnectorConfiguration.class,
     }
 )
 public class StandaloneConfiguration {
@@ -76,7 +78,6 @@ public class StandaloneConfiguration {
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new GraviteeMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
         return mapper;
     }
 

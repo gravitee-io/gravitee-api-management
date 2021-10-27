@@ -17,7 +17,7 @@ package io.gravitee.gateway.services.healthcheck.grpc;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.definition.model.endpoint.GrpcEndpoint;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.services.healthcheck.EndpointRule;
 import io.gravitee.gateway.services.healthcheck.http.HttpEndpointRuleHandler;
@@ -30,11 +30,11 @@ import java.net.URI;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<GrpcEndpoint> {
+public class GrpcEndpointRuleHandler extends HttpEndpointRuleHandler<HttpEndpoint> {
 
     private static final String GRPC_TRAILERS_TE = "trailers";
 
-    GrpcEndpointRuleHandler(Vertx vertx, EndpointRule<GrpcEndpoint> rule, TemplateEngine templateEngine) {
+    GrpcEndpointRuleHandler(Vertx vertx, EndpointRule<HttpEndpoint> rule, TemplateEngine templateEngine) {
         super(vertx, rule, templateEngine);
     }
 

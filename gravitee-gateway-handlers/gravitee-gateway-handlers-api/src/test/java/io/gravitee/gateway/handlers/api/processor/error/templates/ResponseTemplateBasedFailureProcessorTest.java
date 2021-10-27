@@ -25,7 +25,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.handler.Handler;
-import io.gravitee.gateway.core.processor.ProcessorFailure;
+import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.reporter.api.http.Metrics;
 import java.util.Collections;
 import java.util.HashMap;

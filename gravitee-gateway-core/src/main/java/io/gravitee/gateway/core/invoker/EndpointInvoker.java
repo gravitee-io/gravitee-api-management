@@ -63,6 +63,7 @@ public class EndpointInvoker implements Invoker {
                     .connector()
                     .request(
                         proxyRequest,
+                        context,
                         proxyConnection -> {
                             final ProxyConnection decoratedProxyConnection = LoggableProxyConnectionDecorator.decorate(
                                 proxyConnection,

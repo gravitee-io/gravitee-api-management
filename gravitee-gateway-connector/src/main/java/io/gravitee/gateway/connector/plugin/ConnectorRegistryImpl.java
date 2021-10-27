@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.core.endpoint.factory.template;
+package io.gravitee.gateway.connector.plugin;
 
-import java.util.Map;
+import io.gravitee.connector.api.ConnectorFactory;
+import io.gravitee.gateway.connector.ConnectorRegistry;
+import io.gravitee.plugin.connector.ConnectorPluginManager;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointContext {
+public class ConnectorRegistryImpl implements ConnectorRegistry {
 
-    private Map<String, ?> properties;
+    private final ConnectorPluginManager pluginManager;
 
-    public Map<String, ?> getProperties() {
-        return properties;
+    public ConnectorRegistryImpl(final ConnectorPluginManager pluginManager) {
+        this.pluginManager = pluginManager;
     }
 
-    public void setProperties(Map<String, ?> properties) {
-        this.properties = properties;
+    @Override
+    public ConnectorFactory<?> getConnector(String type) {
+        return pluginManager.getConnectorByType(type);
     }
 }

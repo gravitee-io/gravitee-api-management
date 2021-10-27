@@ -24,8 +24,8 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.processor.ProcessorFailure;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
-import io.gravitee.gateway.core.processor.ProcessorFailure;
 import java.util.List;
 
 /**

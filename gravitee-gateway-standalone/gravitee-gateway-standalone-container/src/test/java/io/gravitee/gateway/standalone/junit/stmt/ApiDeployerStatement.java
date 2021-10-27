@@ -22,10 +22,12 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.standalone.ApiLoaderInterceptor;
+import io.gravitee.gateway.standalone.connector.ConnectorRegister;
 import io.gravitee.gateway.standalone.container.GatewayTestContainer;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
 import io.gravitee.gateway.standalone.policy.PolicyRegister;
 import io.gravitee.gateway.standalone.vertx.VertxEmbeddedContainer;
+import io.gravitee.plugin.connector.ConnectorPluginManager;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.net.URL;
@@ -65,6 +67,11 @@ public class ApiDeployerStatement extends Statement {
         DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) (
             (ConfigurableApplicationContext) container.applicationContext()
         ).getBeanFactory();
+
+        if (target instanceof ConnectorRegister) {
+            ConnectorPluginManager cpm = container.applicationContext().getBean(ConnectorPluginManager.class);
+            ((ConnectorRegister) target).registerConnector(cpm);
+        }
 
         if (target instanceof PolicyRegister) {
             String[] beanNamesForType = container

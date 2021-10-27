@@ -13,27 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.http.endpoint;
+package io.gravitee.gateway.connector;
 
-import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.EndpointType;
-import io.gravitee.definition.model.endpoint.GrpcEndpoint;
-import io.gravitee.gateway.api.Connector;
-import io.gravitee.gateway.http.connector.grpc.GrpcConnector;
+import io.gravitee.connector.api.Connector;
+import io.gravitee.connector.api.ConnectorFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class GrpcEndpointFactory extends HttpEndpointFactory {
-
-    @Override
-    public boolean support(Endpoint endpointType) {
-        return EndpointType.GRPC == endpointType.getType();
-    }
-
-    @Override
-    protected Connector create(io.gravitee.definition.model.Endpoint endpoint) {
-        return new GrpcConnector((GrpcEndpoint) endpoint);
-    }
+public interface ConnectorRegistry {
+    ConnectorFactory<? extends Connector<?, ?>> getConnector(String type);
 }
