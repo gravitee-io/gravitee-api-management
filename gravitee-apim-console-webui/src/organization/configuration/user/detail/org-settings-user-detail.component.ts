@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
-import { catchError, filter, map, mapTo, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Environment } from '../../../../entities/environment/environment';
@@ -168,14 +168,14 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   onSaveBarSubmit() {
-    let observableToZip: Observable<string>[] = [];
+    let observableToZip: Observable<void>[] = [];
 
     // Organization
     if (this.organizationRolesControl.dirty) {
       observableToZip.push(
         this.usersService
           .updateUserRoles(this.user.id, 'ORGANIZATION', 'DEFAULT', this.organizationRolesControl.value)
-          .pipe(takeUntil(this.unsubscribe$), mapTo('Roles for organization "DEFAULT" updated')),
+          .pipe(takeUntil(this.unsubscribe$)),
       );
     }
 
@@ -186,12 +186,11 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           mergeMap((envId) => {
             const envRolesControl = this.environmentsRolesFormGroup.get(envId) as FormControl;
             if (envRolesControl.dirty) {
-              return this.usersService.updateUserRoles(this.user.id, 'ENVIRONMENT', envId, envRolesControl.value).pipe(mapTo(envId));
+              return this.usersService.updateUserRoles(this.user.id, 'ENVIRONMENT', envId, envRolesControl.value);
             }
             // skip if no change on environment roles
             return EMPTY;
           }),
-          map((envId) => `Roles for environment "${envId}" updated`),
         ),
       );
     }
@@ -205,23 +204,20 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
             if (groupRolesFormGroup.dirty) {
               const { GROUP, API, APPLICATION } = groupRolesFormGroup.value;
 
-              return this.groupService
-                .addOrUpdateMemberships(groupId, [
-                  {
-                    id: this.user.id,
-                    roles: [
-                      { scope: 'GROUP' as const, name: GROUP ? 'ADMIN' : '' },
-                      { scope: 'API' as const, name: API },
-                      { scope: 'APPLICATION' as const, name: APPLICATION },
-                    ],
-                  },
-                ])
-                .pipe(mapTo(groupId));
+              return this.groupService.addOrUpdateMemberships(groupId, [
+                {
+                  id: this.user.id,
+                  roles: [
+                    { scope: 'GROUP' as const, name: GROUP ? 'ADMIN' : '' },
+                    { scope: 'API' as const, name: API },
+                    { scope: 'APPLICATION' as const, name: APPLICATION },
+                  ],
+                },
+              ]);
             }
             // skip if no change on groups roles
             return EMPTY;
           }),
-          map(() => `Roles for groups updated`),
         ),
       );
     }
@@ -230,8 +226,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     zip(...observableToZip)
       .pipe(
         takeUntil(this.unsubscribe$),
-        tap((successMessages) => {
-          this.snackBarService.success(successMessages.join('\n'));
+        tap(() => {
+          this.snackBarService.success('Roles successfully updated');
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
