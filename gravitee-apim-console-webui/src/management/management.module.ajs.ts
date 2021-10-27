@@ -572,6 +572,7 @@ import { OrgSettingsCockpitComponent } from '../organization/configuration/cockp
 import { OrgSettingsNotificationTemplateComponent } from '../organization/configuration/notification-templates/org-settings-notification-template.component';
 import { OrgSettingsUserDetailComponent } from '../organization/configuration/user/detail/org-settings-user-detail.component';
 import { OrgSettingsPlatformPoliciesComponent } from '../organization/configuration/policies/org-settings-platform-policies.component';
+import { GioPolicyStudioWrapperComponent } from '../shared/components/gio-policy-studio-wrapper/gio-policy-studio-wrapper.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -859,6 +860,7 @@ graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPi
 graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
 graviteeManagementModule.component('gvError', ErrorComponent);
 graviteeManagementModule.component('gvPolicyStudioWrapper', PolicyStudioWrapperComponent);
+graviteeManagementModule.directive('gioPolicyStudioWrapper', downgradeComponent({ component: GioPolicyStudioWrapperComponent }));
 graviteeManagementModule.controller('ErrorController', ErrorController);
 
 graviteeManagementModule.component('categories', CategoriesComponent);

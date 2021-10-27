@@ -15,4 +15,14 @@
     limitations under the License.
 
 -->
-<div>It Works!</div>
+<gio-policy-studio-wrapper
+  *ngIf="!isLoading"
+  flowsTitle="Platform flows"
+  [canAdd]="true"
+  [hasPolicyFilter]="true"
+  [sortable]="true"
+  [flowSchema]="platformFlowSchema"
+  [policies]="policies"
+  [definition]="definition"
+  (save)="onSave($event)"
+></gio-policy-studio-wrapper>
