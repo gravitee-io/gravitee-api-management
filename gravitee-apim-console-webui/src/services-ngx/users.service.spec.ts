@@ -207,6 +207,23 @@ describe('UsersService', () => {
     });
   });
 
+  describe('processRegistration', () => {
+    it('should call the API', (done) => {
+      const userId = 'userId';
+      const accepted = true;
+
+      usersService.processRegistration(userId, accepted).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/_process`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual(accepted);
+
+      req.flush({});
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

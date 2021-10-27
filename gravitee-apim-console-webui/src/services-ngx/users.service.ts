@@ -84,4 +84,8 @@ export class UsersService {
   resetPassword(id: string): Observable<void> {
     return this.http.post<void>(`${this.constants.org.baseURL}/users/${id}/resetPassword`, {});
   }
+
+  processRegistration(userId: string, accepted: boolean): Observable<void> {
+    return this.http.post<void>(`${this.constants.org.baseURL}/users/${userId}/_process`, accepted);
+  }
 }
