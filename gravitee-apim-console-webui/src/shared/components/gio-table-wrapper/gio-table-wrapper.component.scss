@@ -15,12 +15,17 @@ $typography: map.get(gio.$gio-theme, typography);
     align-items: center;
     min-height: 56px;
     background: mat.get-color-from-palette($background, 'card');
-    padding: 8px 16px 0 16px;
+    padding: 8px 16px 8px 16px;
+    border-top: 1px solid mat.get-color-from-palette($foreground, divider);
     border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
 
     &__search-field {
       font-family: mat.font-family($typography, caption);
       font-size: mat.font-size($typography, caption);
+
+      & > .mat-form-field-wrapper {
+        padding-bottom: 0;
+      }
     }
   }
 
@@ -34,6 +39,14 @@ $typography: map.get(gio.$gio-theme, typography);
   gio-table-wrapper {
     .mat-table {
       width: 100%;
+    }
+
+    // ⚠️ Material deep override
+    // Remove form field padding provided to display mat-hint and mat-error. Not used here
+    .gio-table-wrapper__header-bar__search-field {
+      .mat-form-field-wrapper {
+        padding-bottom: 0;
+      }
     }
   }
 }
