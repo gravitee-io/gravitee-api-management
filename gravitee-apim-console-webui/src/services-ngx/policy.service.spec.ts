@@ -49,9 +49,7 @@ describe('PolicyService', () => {
           done();
         });
 
-      const req = httpTestingController.expectOne(
-        `${CONSTANTS_TESTING.env.baseURL}/policies?expandSchema=true&expandIcon=true&withResource=false`,
-      );
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=schema&expand=icon&withResource=false`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(policies);
@@ -70,7 +68,7 @@ describe('PolicyService', () => {
           done();
         });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expandIcon=true`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/policies?expand=icon`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(policies);

@@ -37,10 +37,10 @@ export class PolicyService {
     let httpParams = new HttpParams();
 
     if (params.expandSchema) {
-      httpParams = httpParams.set('expandSchema', true);
+      httpParams = httpParams.append('expand', 'schema');
     }
     if (params.expandIcon) {
-      httpParams = httpParams.set('expandIcon', true);
+      httpParams = httpParams.append('expand', 'icon');
     }
     if (params.withoutResource) {
       httpParams = httpParams.set('withResource', false);
