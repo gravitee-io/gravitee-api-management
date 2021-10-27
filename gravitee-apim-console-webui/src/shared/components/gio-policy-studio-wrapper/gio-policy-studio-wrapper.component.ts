@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { Location } from '@angular/common';
 import { catchError, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
@@ -102,6 +102,9 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   @Input()
   configurationInformation =
     'By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the path that is closest.';
+
+  @Output()
+  save = new EventEmitter<unknown>();
 
   tabId: string;
   selectedFlowsId: string[];
