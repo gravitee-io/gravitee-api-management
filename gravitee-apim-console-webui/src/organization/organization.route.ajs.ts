@@ -447,6 +447,19 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-policies', {
+      url: '/ng-policies',
+      component: 'ngPlatformPolicies',
+      data: {
+        useAngularMaterial: true,
+        docs: {
+          page: 'management-configuration-policies',
+        },
+        perms: {
+          only: ['organization-policies-r'],
+        },
+      },
+    })
     .state('organization.settings.newEntrypoint', {
       url: '/tags/entrypoint/new',
       component: 'entrypoint',

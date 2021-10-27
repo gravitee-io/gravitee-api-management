@@ -571,6 +571,7 @@ import { OrgSettingsNotificationTemplatesComponent } from '../organization/confi
 import { OrgSettingsCockpitComponent } from '../organization/configuration/cockpit/org-settings-cockpit.component';
 import { OrgSettingsNotificationTemplateComponent } from '../organization/configuration/notification-templates/org-settings-notification-template.component';
 import { OrgSettingsUserDetailComponent } from '../organization/configuration/user/detail/org-settings-user-detail.component';
+import { OrgSettingsPlatformPoliciesComponent } from '../organization/configuration/policies/org-settings-platform-policies.component';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -881,6 +882,7 @@ graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidato
 graviteeManagementModule.component('customUserFields', CustomUserFieldsComponent);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponent);
 graviteeManagementModule.component('policies', PoliciesComponent);
+graviteeManagementModule.directive('ngPlatformPolicies', downgradeComponent({ component: OrgSettingsPlatformPoliciesComponent }));
 
 graviteeManagementModule.component('instances', InstancesComponent);
 graviteeManagementModule.component('instance', InstanceComponent);
