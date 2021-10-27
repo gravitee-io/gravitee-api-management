@@ -282,7 +282,7 @@ const EditPageComponent: ng.IComponentOptions = {
 
       this.page.source = {
         type: fetcher.id,
-        configuration: {},
+        configuration: this.page?.source?.configuration || {},
       };
       $scope.fetcherJsonSchema = JSON.parse(fetcher.schema);
     };
