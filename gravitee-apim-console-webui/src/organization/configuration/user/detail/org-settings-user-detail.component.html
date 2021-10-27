@@ -43,7 +43,7 @@
     <div class="org-settings-user-detail__card__head__right">
       <ng-container *gioPermission="{ anyOf: ['organization-user-u'] }">
         <div *ngIf="user.status === 'ACTIVE' && user.source === 'gravitee'" class="org-settings-user-detail__card__head__left__btn">
-          <button mat-stroked-button aria-label="User reset password">Reset password</button>
+          <button (click)="onRestPassword()" mat-stroked-button aria-label="User reset password">Reset password</button>
         </div>
       </ng-container>
     </div>

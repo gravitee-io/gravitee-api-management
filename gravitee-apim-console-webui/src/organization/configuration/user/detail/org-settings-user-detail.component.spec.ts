@@ -24,6 +24,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -53,6 +54,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
   let fixture: ComponentFixture<OrgSettingsUserDetailComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
@@ -72,6 +74,7 @@ describe('OrgSettingsUserDetailComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(OrgSettingsUserDetailComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -116,6 +119,31 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     const resetPasswordButton = await userCard.getHarness(MatButtonHarness.with({ text: 'Reset password' }));
     expect(resetPasswordButton).toBeTruthy();
+  });
+
+  it('should reset password after confirm dialog', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    const resetButton = await userCard.getHarness(MatButtonHarness.with({ text: 'Reset password' }));
+
+    await resetButton.click();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getHarness(MatButtonHarness.with({ text: 'Reset' }))).click();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}/resetPassword`);
+    expect(req.request.method).toEqual('POST');
+    // No flush to stop test here
   });
 
   it('should display registration banner', async () => {

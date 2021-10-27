@@ -15,8 +15,9 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
-import { catchError, map, mapTo, mergeMap, shareReplay, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, mapTo, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { Environment } from '../../../../entities/environment/environment';
@@ -27,6 +28,7 @@ import { GroupService } from '../../../../services-ngx/group.service';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
@@ -100,6 +102,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly groupService: GroupService,
     private readonly snackBarService: SnackBarService,
     private readonly environmentService: EnvironmentService,
+    private readonly matDialog: MatDialog,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
   ) {}
 
@@ -239,6 +242,36 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         observableToZip = [];
         this.toggleSaveBar(false);
       });
+  }
+
+  onRestPassword() {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Reset user password',
+          content: `
+          Are you sure you want to reset password of user <strong>${this.user.displayName}</strong> ?
+          <br>
+          The user will receive an email with a link to set new password.
+          `,
+          confirmButton: 'Reset',
+        },
+        role: 'alertdialog',
+        id: 'resetUserPasswordConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.usersService.resetPassword(this.user.id)),
+        tap(() => this.snackBarService.success(`The password of user "${this.user.displayName}" has been successfully reset`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   onFiltersChanged(tableDSPropertyKey: string, filters: GioTableWrapperFilters) {
