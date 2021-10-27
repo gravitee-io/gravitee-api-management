@@ -63,7 +63,10 @@ class ApiEndpointController {
         type: 'http',
       };
       this.creation = true;
+    } else if (this.$scope.endpoint.type) {
+      this.$scope.endpoint.type = this.$scope.endpoint.type.toLowerCase();
     }
+
     this.updateSchema();
   }
 
