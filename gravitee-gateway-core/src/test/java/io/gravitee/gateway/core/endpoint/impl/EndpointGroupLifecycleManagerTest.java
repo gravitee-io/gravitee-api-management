@@ -15,16 +15,10 @@
  */
 package io.gravitee.gateway.core.endpoint.impl;
 
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.gravitee.common.environment.Configuration;
 import io.gravitee.connector.api.ConnectorBuilder;
 import io.gravitee.connector.api.ConnectorFactory;
 import io.gravitee.definition.model.Api;
@@ -37,12 +31,19 @@ import io.gravitee.gateway.core.endpoint.EndpointException;
 import io.gravitee.gateway.core.endpoint.factory.EndpointFactory;
 import io.gravitee.gateway.core.endpoint.lifecycle.impl.EndpointGroupLifecycleManager;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
-import java.util.Collections;
+import io.gravitee.node.api.configuration.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Collections;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -81,7 +82,7 @@ public class EndpointGroupLifecycleManagerTest {
     private ObjectMapper mapper;
 
     @Mock
-    private Configuration environmentConfiguration;
+    private Configuration configuration;
 
     @Before
     public void setUp() throws JsonProcessingException {
@@ -89,7 +90,7 @@ public class EndpointGroupLifecycleManagerTest {
         endpointLifecycleManager.setEndpointFactory(endpointFactory);
         endpointLifecycleManager.setReferenceRegister(referenceRegister);
         endpointLifecycleManager.setApi(api);
-        endpointLifecycleManager.setGraviteeEnvironment(environmentConfiguration);
+        endpointLifecycleManager.setConfiguration(configuration);
         when(connectorFactory.create(anyString(), anyString(), any(ConnectorBuilder.class))).thenReturn(connector);
         when(connectorRegistry.getConnector(any())).thenReturn(connectorFactory);
         endpointLifecycleManager.setConnectorRegistry(connectorRegistry);

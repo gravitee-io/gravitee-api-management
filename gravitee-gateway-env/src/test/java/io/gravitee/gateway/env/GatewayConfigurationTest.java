@@ -17,9 +17,10 @@ package io.gravitee.gateway.env;
 
 import static org.mockito.Mockito.when;
 
-import io.gravitee.common.environment.Configuration;
 import java.util.List;
 import java.util.Optional;
+
+import io.gravitee.node.api.configuration.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class GatewayConfigurationTest {
     private GatewayConfiguration gatewayConfiguration;
 
     @Mock
-    private Configuration graviteeEnvironment;
+    private Configuration configuration;
 
     @Before
     public void setUp() {
@@ -45,7 +46,7 @@ public class GatewayConfigurationTest {
         System.clearProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY);
         System.clearProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY);
         System.clearProperty("vertx.disableWebsockets");
-        when(graviteeEnvironment.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(false);
+        when(configuration.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(false);
     }
 
     @Test
@@ -57,7 +58,7 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldDisableWebSockets() {
-        when(graviteeEnvironment.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(true);
+        when(configuration.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(true);
         gatewayConfiguration.afterPropertiesSet();
 
         Assert.assertFalse(Boolean.parseBoolean(System.getProperty("vertx.disableWebsockets")));
@@ -125,7 +126,7 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldReturnShardingTagsFromConfiguration() {
-        when(graviteeEnvironment.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("public,private");
+        when(configuration.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("public,private");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
@@ -139,7 +140,7 @@ public class GatewayConfigurationTest {
 
     @Test
     public void shouldReturnTenantFromConfiguration() {
-        when(graviteeEnvironment.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
+        when(configuration.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();
@@ -151,7 +152,7 @@ public class GatewayConfigurationTest {
     @Test
     public void shouldReturnShardingTagsWithPrecedence() {
         System.setProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY, "public,private");
-        when(graviteeEnvironment.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("intern,extern");
+        when(configuration.getProperty(GatewayConfiguration.SHARDING_TAGS_SYSTEM_PROPERTY)).thenReturn("intern,extern");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<List<String>> shardingTagsOpt = gatewayConfiguration.shardingTags();
@@ -166,7 +167,7 @@ public class GatewayConfigurationTest {
     @Test
     public void shouldReturnTenantWithPrecedence() {
         System.setProperty(GatewayConfiguration.MULTI_TENANT_SYSTEM_PROPERTY, "asia");
-        when(graviteeEnvironment.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
+        when(configuration.getProperty(GatewayConfiguration.MULTI_TENANT_CONFIGURATION)).thenReturn("europe");
         gatewayConfiguration.afterPropertiesSet();
 
         Optional<String> tenantOpt = gatewayConfiguration.tenant();

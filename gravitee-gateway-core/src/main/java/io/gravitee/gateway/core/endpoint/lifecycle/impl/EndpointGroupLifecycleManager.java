@@ -18,7 +18,6 @@ package io.gravitee.gateway.core.endpoint.lifecycle.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.AbstractLifecycleComponent;
-import io.gravitee.common.environment.Configuration;
 import io.gravitee.common.util.ChangeListener;
 import io.gravitee.common.util.ObservableCollection;
 import io.gravitee.common.util.ObservableSet;
@@ -40,6 +39,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import javax.inject.Inject;
+
+import io.gravitee.node.api.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -155,7 +156,7 @@ public class EndpointGroupLifecycleManager
                 Connector<Connection, ProxyRequest> connector = connectorFactory.create(
                     model.getTarget(),
                     getEndpointConfiguration(model),
-                    ConnectorBuilder.create().context(context).mapper(mapper).environmentConfiguration(configuration).build()
+                    ConnectorBuilder.create().context(context).mapper(mapper).configuration(configuration).build()
                 );
 
                 io.gravitee.gateway.api.endpoint.Endpoint endpoint = endpointFactory.create(model, connector);
@@ -277,7 +278,7 @@ public class EndpointGroupLifecycleManager
         return endpoint.getConfiguration();
     }
 
-    public void setGraviteeEnvironment(Configuration graviteeEnvironment) {
-        this.configuration = graviteeEnvironment;
+    public void setConfiguration(Configuration configuration) {
+        this.configuration = configuration;
     }
 }
