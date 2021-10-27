@@ -524,6 +524,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-tenants', {
+      url: '/ng-tenants',
+      component: 'ngTenants',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'management-configuration-tenants',
+        },
+        perms: {
+          only: ['organization-tenant-r'],
+        },
+      },
+    })
     .state('organization.settings.notificationTemplates', {
       url: '/notification-templates',
       component: 'notificationTemplatesComponent',
