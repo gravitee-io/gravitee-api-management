@@ -206,27 +206,6 @@ jobs:
             docker push ${IMAGE_TAG}
       - notify-on-failure
 
-  publish-to-bintray:
-    docker:
-      - image: graviteeio/python:3
-    resource_class: small
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            - "ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c"
-      - run:
-          name: Setup Git config and clone jenkins-scripts repo
-          command: |
-            # For details see https://circleci.com/docs/2.0/gh-bb-integration/#establishing-the-authenticity-of-an-ssh-host
-            ssh-keyscan github.com >> ~/.ssh/known_hosts
-
-            git clone --branch ci2 git@github.com:gravitee-io/jenkins-scripts.git jenkins-scripts
-      - run:
-          name: Run magic package_bundle_and_publish
-          command: |
-            RELEASE_VERSION=master python ./jenkins-scripts/src/main/python/package_bundles.py
-      - notify-on-failure
-
   console-webui-install:
     executor:
       name: node-lts
@@ -1122,14 +1101,3 @@ workflows:
               only:
                 - master
                 - /^[0-999].[0-999].x/
-
-  publish-to-bintray:
-    triggers:
-      - schedule:
-          cron: "0 2 * * *"
-          filters:
-            branches:
-              only:
-                - master
-    jobs:
-      - publish-to-bintray
