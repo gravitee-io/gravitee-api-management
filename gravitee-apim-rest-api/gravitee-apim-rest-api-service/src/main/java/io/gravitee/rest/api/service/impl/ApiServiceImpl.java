@@ -1485,11 +1485,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 }
 
                 if (ApiLifecycleState.DEPRECATED.equals(api.getApiLifecycleState())) {
-                    notifierService.trigger(
-                        ApiHook.API_DEPRECATED,
-                        apiId,
-                        new NotificationParamsBuilder().api(apiToCheck).user(userService.findById(getAuthenticatedUsername())).build()
-                    );
+                    triggerApiDeprecatedNotification(apiId, apiToCheck);
                 }
 
                 Api updatedApi = apiRepository.update(api);
@@ -1512,7 +1508,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 ApiEntity apiEntity = convert(singletonList(updatedApi)).iterator().next();
                 ApiEntity apiWithMetadata = fetchMetadataForApi(apiEntity);
 
-                triggerUpdateNotification(apiId, apiEntity);
+                triggerNotification(apiId, ApiHook.API_UPDATED, apiEntity);
 
                 searchEngineService.index(apiWithMetadata, false);
 
@@ -3132,14 +3128,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void triggerUpdateNotification(Api api) {
         ApiEntity apiEntity = apiConverter.toApiEntity(api);
-        triggerUpdateNotification(apiEntity.getId(), apiEntity);
+        triggerNotification(apiEntity.getId(), ApiHook.API_UPDATED, apiEntity);
     }
 
-    private void triggerUpdateNotification(String apiId, ApiEntity apiEntity) {
-        notifierService.trigger(
-            ApiHook.API_UPDATED,
-            apiId,
-            new NotificationParamsBuilder().api(apiEntity).user(userService.findById(getAuthenticatedUsername())).build()
-        );
+    private void triggerApiDeprecatedNotification(String apiId, ApiEntity apiEntity) {
+        triggerNotification(apiId, ApiHook.API_DEPRECATED, apiEntity);
+    }
+
+    private void triggerNotification(String apiId, ApiHook hook, ApiEntity apiEntity) {
+        String userId = getAuthenticatedUsername();
+
+        if (userId != null) {
+            notifierService.trigger(hook, apiId, new NotificationParamsBuilder().api(apiEntity).user(userService.findById(userId)).build());
+        }
     }
 }
