@@ -1,0 +1,53 @@
+== Gravitee API Management - Console
+
+== Description
+
+This repo contains the source code of APIM Console.
+
+APIM Console is a client-side only Angular application and can be deployed on any HTTP server, such as Apache or Nginx.
+
+For more information about installation and usage, see https://docs.gravitee.io/apim/3.x/apim_installguide_management_ui_install_zip.html[Gravitee.io Documentation Website].
+
+== Contributing
+
+=== Install
+
+Prerequisites:
+
+- Install https://github.com/nvm-sh/nvm[nvm]
+- Use with `nvm use` or install with `nvm install` the version of Node.js declared in `.nvmrc`
+
+- Then install dependencies with:
+[source,bash]
+----
+npm install
+----
+
+=== Getting started
+
+Here are the useful NPM scripts available when developing in APIM Console:
+
+ - `serve`: Start the app in dev mode (with hot reload) and proxy backend calls to `http://localhost:8083`
+ - `serve:nightly`: Start the app in dev mode (with hot reload) and proxy backend calls to `https://nightly.gravitee.io`
+ - `lint:eslint`: Run ESLint and Prettier
+ - `lint:eslint:fix`: Run ESLint in auto fix mode and Prettier in write mode
+ - `test`: Run unit tests with Jest
+ - `build:prod`: Build the app in production mode and output the result to `dist`
+ - `serve:prod`: Start the built app (from `dist` folder) and proxy backend calls to `http://localhost:8083`. Don't forget to run `npm run build:prod` to build the app before starting serving it.
+
+
+=== About WIP dependencies
+
+This project uses https://github.com/gravitee-io/gravitee-ui-components[Gravitee UI Components] library and sometimes changes need to be done in both projects at the same time. If you want to develop in parallel, you can clone the repository and link to the project.
+
+[source,bash]
+----
+git clone git@github.com:gravitee-io/gravitee-ui-components.git
+cd gravitee-ui-components
+npm link
+
+# Go to gravitee-apim-console-webui folder
+npm link @gravitee/ui-components
+----
+
+⚠️ The npm link will be removed if you run `npm install`, and so you will need to rerun the previous snippet to link the library.
