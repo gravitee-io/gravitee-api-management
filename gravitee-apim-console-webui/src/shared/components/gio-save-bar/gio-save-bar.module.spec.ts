@@ -109,7 +109,7 @@ describe('GioFormCardGroupModule', () => {
       fixture.detectChanges();
       expect(await saveBar.isSubmitButtonInvalid()).toBeTruthy();
 
-      // submit output is not triggered when invalidSubmit is true
+      // submit output is not triggered when invalidState is true
       await saveBar.clickSubmit();
       expect(onSubmitMock).not.toHaveBeenCalled();
       expect(onSubmitInvalidStateMock).toHaveBeenCalled();
