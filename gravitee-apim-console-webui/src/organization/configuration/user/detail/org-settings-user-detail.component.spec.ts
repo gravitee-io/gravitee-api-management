@@ -25,6 +25,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -68,7 +69,13 @@ describe('OrgSettingsUserDetailComponent', () => {
         { provide: UIRouterStateParams, useValue: { userId: 'userId' } },
         { provide: CurrentUserService, useValue: { currentUser } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+        },
+      })
+      .compileComponents();
   });
 
   beforeEach(() => {
