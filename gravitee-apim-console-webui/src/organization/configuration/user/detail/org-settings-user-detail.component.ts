@@ -274,6 +274,45 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       .subscribe(() => this.ngOnInit());
   }
 
+  onProcessRegistration(state: 'accept' | 'reject') {
+    const wording = {
+      accept: {
+        content: `Are you sure you want to accept the registration request of <strong>${this.user.displayName}</strong> ?`,
+        confirmButton: 'Accept',
+        success: `User "${this.user.displayName}" has been accepted`,
+      },
+      reject: {
+        content: `Are you sure you want to reject the registration request of <strong>${this.user.displayName}</strong> ?`,
+        confirmButton: 'Reject',
+        success: `User "${this.user.displayName}" has been rejected`,
+      },
+    };
+
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'User registration',
+          content: wording[state].content,
+          confirmButton: wording[state].confirmButton,
+        },
+        role: 'alertdialog',
+        id: 'userRegistrationConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.usersService.processRegistration(this.user.id, state === 'accept')),
+        tap(() => this.snackBarService.success(wording[state].success)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
   onFiltersChanged(tableDSPropertyKey: string, filters: GioTableWrapperFilters) {
     let initialCollection = this.initialTableDS[tableDSPropertyKey];
 

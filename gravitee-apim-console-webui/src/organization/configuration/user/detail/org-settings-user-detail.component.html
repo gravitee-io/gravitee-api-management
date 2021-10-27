@@ -78,8 +78,10 @@
       <div class="org-settings-user-detail__card__registration-banner">
         <div>Validation of the pending registration request</div>
         <div>
-          <button mat-stroked-button aria-label="Reject user registration">Reject</button> &nbsp;&nbsp;
+          <button (click)="onProcessRegistration('reject')" mat-stroked-button aria-label="Reject user registration">Reject</button>
+          &nbsp;&nbsp;
           <button
+            (click)="onProcessRegistration('accept')"
             class="org-settings-user-detail__card__registration-banner__accept-btn"
             mat-flat-button
             aria-label="Accept user registration"

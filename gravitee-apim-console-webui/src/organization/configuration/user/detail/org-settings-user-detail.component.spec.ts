@@ -146,6 +146,64 @@ describe('OrgSettingsUserDetailComponent', () => {
     // No flush to stop test here
   });
 
+  it('should accept user registration after confirm dialog', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'PENDING',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    const acceptUserRegistrationButton = await userCard.getHarness(
+      MatButtonHarness.with({ selector: '[aria-label="Accept user registration"]' }),
+    );
+
+    await acceptUserRegistrationButton.click();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getHarness(MatButtonHarness.with({ text: 'Accept' }))).click();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}/_process`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(true);
+    // No flush to stop test here
+  });
+
+  it('should reject user registration after confirm dialog', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'PENDING',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+
+    const userCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__card' }));
+    const acceptUserRegistrationButton = await userCard.getHarness(
+      MatButtonHarness.with({ selector: '[aria-label="Reject user registration"]' }),
+    );
+
+    await acceptUserRegistrationButton.click();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getHarness(MatButtonHarness.with({ text: 'Reject' }))).click();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${user.id}/_process`);
+    expect(req.request.method).toEqual('POST');
+    expect(req.request.body).toEqual(false);
+    // No flush to stop test here
+  });
+
   it('should display registration banner', async () => {
     const user = fakeUser({
       id: 'userId',
