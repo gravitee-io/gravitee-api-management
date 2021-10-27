@@ -80,6 +80,23 @@ describe('GroupService', () => {
     });
   });
 
+  describe('deleteMember', () => {
+    it('should call the API', (done) => {
+      const groupId = 'groupId';
+      const memberId = 'memberId';
+
+      groupService.deleteMember(groupId, memberId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${groupId}/members/${memberId}`,
+      });
+      req.flush({});
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

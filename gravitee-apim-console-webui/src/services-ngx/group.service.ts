@@ -43,4 +43,8 @@ export class GroupService {
 
     return this.http.post<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members`, groupMembershipToSend);
   }
+
+  deleteMember(groupId: string, memberId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.baseURL}/configuration/groups/${groupId}/members/${memberId}`);
+  }
 }
