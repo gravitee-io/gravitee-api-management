@@ -116,41 +116,36 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
             if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)) {
                 if (httpServerConfiguration.getKeyStorePath() == null || httpServerConfiguration.getKeyStorePath().isEmpty()) {
-                    logger.error("A JKS Keystore is missing. Skipping SSL keystore configuration...");
-                } else {
-                    options.setKeyStoreOptions(
-                        new JksOptions()
-                            .setPath(httpServerConfiguration.getKeyStorePath())
-                            .setPassword(httpServerConfiguration.getKeyStorePassword())
-                    );
+                    throw new Exception("Keystore path configuration is mandatory to use JKS keystore");
                 }
+                options.setKeyStoreOptions(
+                    new JksOptions()
+                        .setPath(httpServerConfiguration.getKeyStorePath())
+                        .setPassword(httpServerConfiguration.getKeyStorePassword())
+                );
             } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
                 if (
                     httpServerConfiguration.getKeyStoreCertificates() == null || httpServerConfiguration.getKeyStoreCertificates().isEmpty()
                 ) {
-                    logger.error("A PEM Keystore is missing. Skipping SSL keystore configuration...");
-                } else {
-                    final PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
-
-                    httpServerConfiguration
-                        .getKeyStoreCertificates()
-                        .forEach(
-                            certificate ->
-                                pemKeyCertOptions.addCertPath(certificate.getCertificate()).addKeyPath(certificate.getPrivateKey())
-                        );
-
-                    options.setPemKeyCertOptions(pemKeyCertOptions);
+                    throw new Exception("Keystore path configuration is mandatory to use PEM keystore");
                 }
+                final PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
+                httpServerConfiguration
+                    .getKeyStoreCertificates()
+                    .forEach(
+                        certificate -> pemKeyCertOptions.addCertPath(certificate.getCertificate()).addKeyPath(certificate.getPrivateKey())
+                    );
+
+                options.setPemKeyCertOptions(pemKeyCertOptions);
             } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
                 if (httpServerConfiguration.getKeyStorePath() == null || httpServerConfiguration.getKeyStorePath().isEmpty()) {
-                    logger.error("A PKCS#12 Keystore is missing. Skipping SSL keystore configuration...");
-                } else {
-                    options.setPfxKeyCertOptions(
-                        new PfxOptions()
-                            .setPath(httpServerConfiguration.getKeyStorePath())
-                            .setPassword(httpServerConfiguration.getKeyStorePassword())
-                    );
+                    throw new Exception("Keystore path configuration is mandatory to use PKCS#12 keystore");
                 }
+                options.setPfxKeyCertOptions(
+                    new PfxOptions()
+                        .setPath(httpServerConfiguration.getKeyStorePath())
+                        .setPassword(httpServerConfiguration.getKeyStorePassword())
+                );
             } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_SELF_SIGNED)) {
                 options.setPemKeyCertOptions(SelfSignedCertificate.create().keyCertOptions());
             }
