@@ -37,7 +37,8 @@ class EditPageFetchersComponentController implements IController {
   }
 
   $onInit() {
-    this.$scope.fetcherJsonSchema = emptyFetcher;
+    const fetcher = this.fetchers.find(f => f.id === this.page?.source?.type);
+    this.$scope.fetcherJsonSchema = angular.fromJson(fetcher?.schema) || emptyFetcher;
     this.fetcherJsonSchemaForm = ['*'];
   }
 
@@ -48,7 +49,7 @@ class EditPageFetchersComponentController implements IController {
 
     this.page.source = {
       type: fetcher.id,
-      configuration: {},
+      configuration: this.page?.source?.configuration || {},
     };
     this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
   }
