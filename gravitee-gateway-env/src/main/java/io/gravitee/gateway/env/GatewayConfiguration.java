@@ -16,12 +16,11 @@
 package io.gravitee.gateway.env;
 
 import io.gravitee.common.util.EnvironmentUtils;
+import io.gravitee.node.api.configuration.Configuration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import io.gravitee.node.api.configuration.Configuration;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
