@@ -196,7 +196,7 @@ class ApiEditPlanController {
 
   refreshPlanExcludedGroupsNames() {
     this.plan.excluded_groups_names = this.plan.excluded_groups?.map(
-      (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id == excludedGroupId)?.name,
+      (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id === excludedGroupId)?.name,
     );
   }
 }

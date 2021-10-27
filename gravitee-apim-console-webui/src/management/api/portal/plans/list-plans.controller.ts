@@ -259,7 +259,7 @@ class ApiListPlansController {
     this.plans.forEach(
       (plan) =>
         (plan.excluded_groups_names = plan.excluded_groups?.map(
-          (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id == excludedGroupId)?.name,
+          (excludedGroupId) => this.groups.find((apiGroup) => apiGroup.id === excludedGroupId)?.name,
         )),
     );
   }

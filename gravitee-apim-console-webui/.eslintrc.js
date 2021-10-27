@@ -49,7 +49,7 @@ module.exports = {
     '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    eqeqeq: ['warn', 'smart'],
+    eqeqeq: ['error', 'smart'],
     'guard-for-in': 'warn',
     'id-blacklist': 'off',
     'id-match': 'off',
