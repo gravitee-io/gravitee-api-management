@@ -83,6 +83,19 @@ describe('OrganizationService', () => {
     });
   });
 
+  describe('update', () => {
+    it('should call the API', (done) => {
+      const updatedOrganization = fakeOrganization({ description: 'Updated description' });
+
+      organizationService.update(updatedOrganization).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.org.baseURL}` });
+      expect(req.request.body).toStrictEqual(updatedOrganization);
+
+      req.flush({});
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

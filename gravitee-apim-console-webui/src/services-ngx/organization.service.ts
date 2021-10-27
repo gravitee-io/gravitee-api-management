@@ -38,4 +38,8 @@ export class OrganizationService {
   get(): Observable<Organization> {
     return this.http.get<Organization>(`${this.constants.org.baseURL}`);
   }
+
+  update(organization: Organization): Observable<void> {
+    return this.http.put<void>(`${this.constants.org.baseURL}`, organization);
+  }
 }
