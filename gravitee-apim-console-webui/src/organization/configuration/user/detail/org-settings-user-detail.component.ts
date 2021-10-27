@@ -250,7 +250,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       initialCollection = this[tableDSPropertyKey];
     }
 
-    this[tableDSPropertyKey] = gioTableFilterCollection(initialCollection, filters);
+    this[tableDSPropertyKey] = gioTableFilterCollection(initialCollection, filters, {
+      searchTermIgnoreKeys: ['id'],
+    });
   }
 
   onSaveBarReset() {

@@ -74,6 +74,18 @@ describe('gioTableFilterCollection', () => {
     expect(collectionFiltered2).toEqual([ELEMENT_DATA[7], ELEMENT_DATA[8]]);
   });
 
+  it('should filter by searchTerm with searchTermIgnoreKeys', () => {
+    const collectionFiltered = gioTableFilterCollection(
+      ELEMENT_DATA,
+      {
+        searchTerm: '4',
+      },
+      { searchTermIgnoreKeys: ['weight'] },
+    );
+
+    expect(collectionFiltered).toEqual([ELEMENT_DATA[3]]);
+  });
+
   it('should sort by name asc', () => {
     const collectionSorted = gioTableFilterCollection(ELEMENT_DATA, {
       sort: {

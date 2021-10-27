@@ -18,7 +18,13 @@ import { cloneDeep, sortBy, toString } from 'lodash';
 
 import { GioTableWrapperFilters } from './gio-table-wrapper.component';
 
-export const gioTableFilterCollection = <T extends unknown>(collection: T[], filters: Partial<GioTableWrapperFilters>): T[] => {
+export const gioTableFilterCollection = <T>(
+  collection: T[],
+  filters: Partial<GioTableWrapperFilters>,
+  options?: {
+    searchTermIgnoreKeys?: string[];
+  },
+): T[] => {
   let sortedCollection: T[] = cloneDeep(collection);
 
   if (filters?.pagination) {
@@ -30,7 +36,9 @@ export const gioTableFilterCollection = <T extends unknown>(collection: T[], fil
 
   if (filters?.searchTerm) {
     sortedCollection = sortedCollection.filter((element) => {
-      return Object.values(element).some((value) => toString(value).toLowerCase().includes(filters.searchTerm.toLowerCase()));
+      return Object.entries(element)
+        .filter(([key]) => !(options?.searchTermIgnoreKeys ?? []).includes(key))
+        .some(([, value]) => toString(value).toLowerCase().includes(filters.searchTerm.toLowerCase()));
     });
   }
 
