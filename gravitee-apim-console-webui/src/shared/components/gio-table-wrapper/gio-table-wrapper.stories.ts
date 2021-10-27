@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { sortBy } from 'lodash';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { action } from '@storybook/addon-actions';
@@ -24,6 +23,7 @@ import { MatSortModule } from '@angular/material/sort';
 
 import { GioTableWrapperComponent, GioTableWrapperFilters } from './gio-table-wrapper.component';
 import { GioTableWrapperModule } from './gio-table-wrapper.module';
+import { gioTableFilterCollection } from './gio-table-wrapper.util';
 
 export interface PeriodicElement {
   name: string;
@@ -111,30 +111,7 @@ export const Default: Story = {
       displayedColumns: ['position', 'name', 'weight', 'symbol'],
       // dumb function to simulate filters
       filterDataSource(filter: GioTableWrapperFilters) {
-        let dataSource = ELEMENT_DATA;
-
-        if (filter?.pagination) {
-          dataSource = dataSource.slice(
-            (filter.pagination.index - 1) * filter.pagination.size,
-            filter.pagination.index * filter.pagination.size,
-          );
-        }
-
-        if (filter?.searchTerm) {
-          dataSource = dataSource.filter((element) => {
-            return element.name.toLowerCase().includes(filter.searchTerm.toLowerCase());
-          });
-        }
-
-        if (filter?.sort) {
-          dataSource = sortBy(dataSource, filter.sort.active);
-
-          if (filter.sort.direction === 'desc') {
-            dataSource = dataSource.reverse();
-          }
-        }
-
-        return dataSource;
+        return gioTableFilterCollection(ELEMENT_DATA, filter);
       },
       filtersChange: action('filtersChange'),
     },
