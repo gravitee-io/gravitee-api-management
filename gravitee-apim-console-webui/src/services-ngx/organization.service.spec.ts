@@ -20,10 +20,11 @@ import { OrganizationService } from './organization.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeIdentityProviderActivation, IdentityProviderActivation } from '../entities/identity-provider';
+import { fakeOrganization } from '../entities/organization/organization.fixture';
 
 describe('OrganizationService', () => {
   let httpTestingController: HttpTestingController;
-  let identityProviderService: OrganizationService;
+  let organizationService: OrganizationService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -31,7 +32,7 @@ describe('OrganizationService', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    identityProviderService = TestBed.inject<OrganizationService>(OrganizationService);
+    organizationService = TestBed.inject<OrganizationService>(OrganizationService);
   });
 
   describe('listActivatedIdentityProviders', () => {
@@ -41,7 +42,7 @@ describe('OrganizationService', () => {
         fakeIdentityProviderActivation({ identityProvider: 'github' }),
       ];
 
-      identityProviderService.listActivatedIdentityProviders().subscribe((identityProviders) => {
+      organizationService.listActivatedIdentityProviders().subscribe((identityProviders) => {
         expect(identityProviders).toEqual(activatedIdentityProviders);
         done();
       });
@@ -55,7 +56,7 @@ describe('OrganizationService', () => {
 
   describe('updateActivatedIdentityProviders', () => {
     it('should send identity providers to activate', (done) => {
-      identityProviderService
+      organizationService
         .updateActivatedIdentityProviders([{ identityProvider: 'google' }, { identityProvider: 'github' }])
         .subscribe(() => {
           done();
@@ -66,6 +67,19 @@ describe('OrganizationService', () => {
       expect(req.request.body).toEqual([{ identityProvider: 'google' }, { identityProvider: 'github' }]);
 
       req.flush(null);
+    });
+  });
+
+  describe('get', () => {
+    it('should call the API', (done) => {
+      const organization = fakeOrganization();
+
+      organizationService.get().subscribe((response) => {
+        expect(response).toStrictEqual(organization);
+        done();
+      });
+
+      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.org.baseURL}` }).flush(organization);
     });
   });
 

@@ -19,6 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { IdentityProviderActivation } from '../entities/identity-provider';
+import { Organization } from '../entities/organization/organization';
 
 @Injectable({
   providedIn: 'root',
@@ -32,5 +33,9 @@ export class OrganizationService {
 
   updateActivatedIdentityProviders(idpsToActivate: { identityProvider: string }[]): Observable<void> {
     return this.http.put<void>(`${this.constants.org.baseURL}/identities`, idpsToActivate);
+  }
+
+  get(): Observable<Organization> {
+    return this.http.get<Organization>(`${this.constants.org.baseURL}`);
   }
 }
