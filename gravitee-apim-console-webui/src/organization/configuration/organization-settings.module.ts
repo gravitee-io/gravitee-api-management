@@ -67,6 +67,7 @@ import { GioFormFocusInvalidModule } from '../../shared/components/form-focus-fi
 import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.module';
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';
 import { GioPolicyStudioWrapperModule } from '../../shared/components/gio-policy-studio-wrapper/gio-policy-studio-wrapper.module';
+import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   imports: [
@@ -110,6 +111,7 @@ import { GioPolicyStudioWrapperModule } from '../../shared/components/gio-policy
     GioBannerModule,
     GioClipboardModule,
     GioPolicyStudioWrapperModule,
+    GioTableWrapperModule,
   ],
   declarations: [
     OrgSettingsGeneralComponent,

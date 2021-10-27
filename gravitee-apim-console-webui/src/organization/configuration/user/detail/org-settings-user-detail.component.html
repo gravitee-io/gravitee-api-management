@@ -103,210 +103,216 @@
   </mat-form-field>
 </mat-card>
 
-<mat-card *ngIf="environmentsTableDS && environmentsRolesFormGroup" class="org-settings-user-detail__environments-card">
+<mat-card class="org-settings-user-detail__environments-card">
   <h2>Environments</h2>
   <p>Here is the list of all environment this user can access.</p>
 
-  <table
-    class="org-settings-user-detail__environments-card__table"
-    mat-table
-    [dataSource]="environmentsTableDS"
-    [formGroup]="environmentsRolesFormGroup"
-    aria-label="Environments table"
-  >
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef id="name" width="33%">Name</th>
-      <td mat-cell *matCellDef="let environment">{{ environment.name }}</td>
-    </ng-container>
+  <gio-table-wrapper *ngIf="groupsTableDS && groupsRolesFormGroup" (filtersChange)="onFiltersChanged('environmentsTableDS', $event)">
+    <table
+      class="org-settings-user-detail__environments-card__table"
+      mat-table
+      [dataSource]="environmentsTableDS"
+      [formGroup]="environmentsRolesFormGroup"
+      aria-label="Environments table"
+    >
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name" width="33%">Name</th>
+        <td mat-cell *matCellDef="let environment">{{ environment.name }}</td>
+      </ng-container>
 
-    <!-- Description Column -->
-    <ng-container matColumnDef="description">
-      <th mat-header-cell *matHeaderCellDef id="description" width="33%">Description</th>
-      <td mat-cell *matCellDef="let environment">{{ environment.description }}</td>
-    </ng-container>
+      <!-- Description Column -->
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef id="description" width="33%">Description</th>
+        <td mat-cell *matCellDef="let environment">{{ environment.description }}</td>
+      </ng-container>
 
-    <!-- Roles Column -->
-    <ng-container matColumnDef="roles">
-      <th mat-header-cell *matHeaderCellDef id="roles" width="33%">Roles</th>
-      <td mat-cell *matCellDef="let environment">
-        <mat-form-field appearance="fill">
-          <mat-label>Environment roles</mat-label>
-          <mat-select
-            [id]="environment.id"
-            [formControlName]="environment.id"
-            [aria-label]="'Environment roles for ' + environment.id"
-            multiple
-          >
-            <mat-option *ngFor="let role of environmentRoles$ | async" [value]="role.id">{{ role.name }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </td>
-    </ng-container>
+      <!-- Roles Column -->
+      <ng-container matColumnDef="roles">
+        <th mat-header-cell *matHeaderCellDef id="roles" width="33%">Roles</th>
+        <td mat-cell *matCellDef="let environment">
+          <mat-form-field appearance="fill">
+            <mat-label>Environment roles</mat-label>
+            <mat-select
+              [id]="environment.id"
+              [formControlName]="environment.id"
+              [aria-label]="'Environment roles for ' + environment.id"
+              multiple
+            >
+              <mat-option *ngFor="let role of environmentRoles$ | async" [value]="role.id">{{ role.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="environmentsTableDisplayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: environmentsTableDisplayedColumns"></tr>
+      <tr mat-header-row *matHeaderRowDef="environmentsTableDisplayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: environmentsTableDisplayedColumns"></tr>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="environmentsTableDisplayedColumns.length">No environment</td>
-    </tr>
-  </table>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="environmentsTableDisplayedColumns.length">No environment</td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
 </mat-card>
 
-<mat-card *ngIf="groupsTableDS && groupsRolesFormGroup" class="org-settings-user-detail__groups-card">
+<mat-card class="org-settings-user-detail__groups-card">
   <h2>Groups</h2>
   <p>You can manage all groups of this user.</p>
 
-  <table
-    class="org-settings-user-detail__groups-card__table"
-    mat-table
-    [dataSource]="groupsTableDS"
-    [formGroup]="groupsRolesFormGroup"
-    aria-label="Groups table"
-  >
-    <!-- Position Name -->
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-      <td mat-cell *matCellDef="let group">
-        {{ group.name }}
+  <gio-table-wrapper *ngIf="groupsTableDS && groupsRolesFormGroup" (filtersChange)="onFiltersChanged('groupsTableDS', $event)">
+    <table
+      class="org-settings-user-detail__groups-card__table"
+      mat-table
+      [dataSource]="groupsTableDS"
+      [formGroup]="groupsRolesFormGroup"
+      aria-label="Groups table"
+    >
+      <!-- Position Name -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+        <td mat-cell *matCellDef="let group">
+          {{ group.name }}
 
-        <div *ngIf="groupsRolesFormGroup.get(group.id).errors" class="mat-caption error">At least one role is mandatory</div>
-      </td>
-    </ng-container>
+          <div *ngIf="groupsRolesFormGroup.get(group.id).errors" class="mat-caption error">At least one role is mandatory</div>
+        </td>
+      </ng-container>
 
-    <!-- Group Admin Column -->
-    <ng-container matColumnDef="groupAdmin">
-      <th mat-header-cell *matHeaderCellDef id="groupAdmin">Group Admin</th>
-      <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-        <mat-checkbox formControlName="GROUP"></mat-checkbox>
-      </td>
-    </ng-container>
+      <!-- Group Admin Column -->
+      <ng-container matColumnDef="groupAdmin">
+        <th mat-header-cell *matHeaderCellDef id="groupAdmin">Group Admin</th>
+        <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
+          <mat-checkbox formControlName="GROUP"></mat-checkbox>
+        </td>
+      </ng-container>
 
-    <!-- API Role Column -->
-    <ng-container matColumnDef="apiRoles">
-      <th mat-header-cell *matHeaderCellDef id="apiRoles">API Role</th>
-      <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-        <mat-form-field appearance="fill">
-          <mat-label>API role</mat-label>
-          <mat-select [id]="group.id" [aria-label]="'API roles for ' + group.id" formControlName="API">
-            <mat-option>-- None --</mat-option>
-            <mat-option *ngFor="let role of apiRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </td>
-    </ng-container>
+      <!-- API Role Column -->
+      <ng-container matColumnDef="apiRoles">
+        <th mat-header-cell *matHeaderCellDef id="apiRoles">API Role</th>
+        <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
+          <mat-form-field appearance="fill">
+            <mat-label>API role</mat-label>
+            <mat-select [id]="group.id" [aria-label]="'API roles for ' + group.id" formControlName="API">
+              <mat-option>-- None --</mat-option>
+              <mat-option *ngFor="let role of apiRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </td>
+      </ng-container>
 
-    <!-- Application Role Column -->
-    <ng-container matColumnDef="applicationRole">
-      <th mat-header-cell *matHeaderCellDef id="applicationRole">Application Role</th>
-      <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
-        <mat-form-field appearance="fill">
-          <mat-label>Application role</mat-label>
-          <mat-select [id]="group.id" [aria-label]="'Application roles for ' + group.id" formControlName="APPLICATION">
-            <mat-option>-- None --</mat-option>
-            <mat-option *ngFor="let role of applicationRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </td>
-    </ng-container>
+      <!-- Application Role Column -->
+      <ng-container matColumnDef="applicationRole">
+        <th mat-header-cell *matHeaderCellDef id="applicationRole">Application Role</th>
+        <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
+          <mat-form-field appearance="fill">
+            <mat-label>Application role</mat-label>
+            <mat-select [id]="group.id" [aria-label]="'Application roles for ' + group.id" formControlName="APPLICATION">
+              <mat-option>-- None --</mat-option>
+              <mat-option *ngFor="let role of applicationRoles$ | async" [value]="role.name">{{ role.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </td>
+      </ng-container>
 
-    <!-- Delete Column -->
-    <ng-container matColumnDef="delete">
-      <th mat-header-cell *matHeaderCellDef id="roles" width="5%">Delete</th>
-      <td mat-cell *matCellDef="let group">
-        <button
-          *gioPermission="{ anyOf: ['organization-user-d'] }"
-          (click)="onDeleteGroupClick(group.id)"
-          mat-icon-button
-          color="primary"
-          aria-label="Button to delete user group"
-          matTooltip="Delete"
-        >
-          <mat-icon>delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
+      <!-- Delete Column -->
+      <ng-container matColumnDef="delete">
+        <th mat-header-cell *matHeaderCellDef id="roles" width="5%">Delete</th>
+        <td mat-cell *matCellDef="let group">
+          <button
+            *gioPermission="{ anyOf: ['organization-user-d'] }"
+            (click)="onDeleteGroupClick(group.id)"
+            mat-icon-button
+            color="primary"
+            aria-label="Button to delete user group"
+            matTooltip="Delete"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="groupsTableDisplayedColumns"></tr>
-    <tr mat-row *matRowDef="let group; columns: groupsTableDisplayedColumns" [class.error]="groupsRolesFormGroup.get(group.id).errors"></tr>
+      <tr mat-header-row *matHeaderRowDef="groupsTableDisplayedColumns"></tr>
+      <tr
+        mat-row
+        *matRowDef="let group; columns: groupsTableDisplayedColumns"
+        [class.error]="groupsRolesFormGroup.get(group.id).errors"
+      ></tr>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="groupsTableDisplayedColumns.length">No group</td>
-    </tr>
-  </table>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="groupsTableDisplayedColumns.length">No group</td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
 </mat-card>
 
 <mat-card class="org-settings-user-detail__apis-card">
   <h2>APIs</h2>
   <p>Here is the list of all APIs of this user.</p>
 
-  <table
-    *ngIf="apisTableDS"
-    class="org-settings-user-detail__apis-card__table"
-    mat-table
-    [dataSource]="apisTableDS"
-    aria-label="APIs table"
-  >
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-      <td mat-cell *matCellDef="let api">
-        {{ api.name }}
-      </td>
-    </ng-container>
+  <gio-table-wrapper *ngIf="apisTableDS" (filtersChange)="onFiltersChanged('apisTableDS', $event)">
+    <table mat-table [dataSource]="apisTableDS" aria-label="APIs table">
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+        <td mat-cell *matCellDef="let api">
+          {{ api.name }}
+        </td>
+      </ng-container>
 
-    <!-- Version Column -->
-    <ng-container matColumnDef="version">
-      <th mat-header-cell *matHeaderCellDef id="version">Version</th>
-      <td mat-cell *matCellDef="let api">
-        {{ api.version }}
-      </td>
-    </ng-container>
+      <!-- Version Column -->
+      <ng-container matColumnDef="version">
+        <th mat-header-cell *matHeaderCellDef id="version">Version</th>
+        <td mat-cell *matCellDef="let api">
+          {{ api.version }}
+        </td>
+      </ng-container>
 
-    <!-- Visibility Column -->
-    <ng-container matColumnDef="visibility">
-      <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
-      <td mat-cell *matCellDef="let api">
-        <span class="gio-badge">
-          <mat-icon [inline]="true">{{ api.visibility === 'PUBLIC' ? 'public' : 'lock' }}</mat-icon> {{ api.visibility }}
-        </span>
-      </td>
-    </ng-container>
+      <!-- Visibility Column -->
+      <ng-container matColumnDef="visibility">
+        <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
+        <td mat-cell *matCellDef="let api">
+          <span class="gio-badge">
+            <mat-icon [inline]="true">{{ api.visibility === 'PUBLIC' ? 'public' : 'lock' }}</mat-icon> {{ api.visibility }}
+          </span>
+        </td>
+      </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="apisTableDisplayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: apisTableDisplayedColumns"></tr>
+      <tr mat-header-row *matHeaderRowDef="apisTableDisplayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: apisTableDisplayedColumns"></tr>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="apisTableDisplayedColumns.length">No API</td>
-    </tr>
-  </table>
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="apisTableDisplayedColumns.length">No API</td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
 </mat-card>
 
 <mat-card class="org-settings-user-detail__applications-card">
   <h2>Applications</h2>
   <p>Here is the list of all applications of this user.</p>
-  <table
-    *ngIf="applicationsTableDS"
-    class="org-settings-user-detail__applications-card__table"
-    mat-table
-    [dataSource]="applicationsTableDS"
-    aria-label="Applications table"
-  >
-    <!-- Name Column -->
-    <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-      <td mat-cell *matCellDef="let group">
-        {{ group.name }}
-      </td>
-    </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="applicationsTableDisplayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: applicationsTableDisplayedColumns"></tr>
+  <gio-table-wrapper *ngIf="applicationsTableDS" (filtersChange)="onFiltersChanged('applicationsTableDS', $event)">
+    <table
+      class="org-settings-user-detail__applications-card__table"
+      mat-table
+      [dataSource]="applicationsTableDS"
+      aria-label="Applications table"
+    >
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+        <td mat-cell *matCellDef="let group">
+          {{ group.name }}
+        </td>
+      </ng-container>
 
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="apisTableDisplayedColumns.length">No application</td>
-    </tr>
-  </table>
+      <tr mat-header-row *matHeaderRowDef="applicationsTableDisplayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: applicationsTableDisplayedColumns"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell" [attr.colspan]="apisTableDisplayedColumns.length">No application</td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
 </mat-card>
 
 <gio-save-bar

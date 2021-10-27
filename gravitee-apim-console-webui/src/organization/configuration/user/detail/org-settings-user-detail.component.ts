@@ -27,6 +27,8 @@ import { GroupService } from '../../../../services-ngx/group.service';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { UsersService } from '../../../../services-ngx/users.service';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 interface UserVM extends User {
   organizationRoles: string;
@@ -87,6 +89,8 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   openSaveBar = false;
   invalidStateSaveBar = false;
+
+  private initialTableDS: Record<string, unknown[]> = {};
 
   private unsubscribe$ = new Subject<boolean>();
 
@@ -235,6 +239,18 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
         observableToZip = [];
         this.toggleSaveBar(false);
       });
+  }
+
+  onFiltersChanged(tableDSPropertyKey: string, filters: GioTableWrapperFilters) {
+    let initialCollection = this.initialTableDS[tableDSPropertyKey];
+
+    if (!initialCollection) {
+      // If no initial collection save the first one
+      this.initialTableDS[tableDSPropertyKey] = this[tableDSPropertyKey];
+      initialCollection = this[tableDSPropertyKey];
+    }
+
+    this[tableDSPropertyKey] = gioTableFilterCollection(initialCollection, filters);
   }
 
   onSaveBarReset() {

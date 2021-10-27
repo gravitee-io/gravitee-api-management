@@ -16,6 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
@@ -72,6 +73,11 @@ export class UsersService {
   getMemberships(id: string, type: 'api'): Observable<UserMembership<'api'>>;
   getMemberships(id: string, type: 'application'): Observable<UserMembership<'application'>>;
   getMemberships(id: string, type: string): Observable<UserMembership> {
-    return this.http.get<UserMembership>(`${this.constants.org.baseURL}/users/${id}/memberships?type=${type}`);
+    return this.http.get<UserMembership>(`${this.constants.org.baseURL}/users/${id}/memberships?type=${type}`).pipe(
+      map((response) => ({
+        memberships: response.memberships ?? [],
+        metadata: response.metadata ?? {},
+      })),
+    );
   }
 }

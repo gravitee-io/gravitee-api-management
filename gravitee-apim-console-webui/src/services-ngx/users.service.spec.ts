@@ -173,6 +173,22 @@ describe('UsersService', () => {
 
       req.flush(userMembership);
     });
+
+    it('should init memberships and metadata if empty response', (done) => {
+      const userId = 'userId';
+      const type = 'application';
+
+      usersService.getMemberships(userId, type).subscribe((memberships) => {
+        expect(memberships.memberships).toEqual([]);
+        expect(memberships.metadata).toEqual({});
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/memberships?type=${type}`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush({});
+    });
   });
 
   afterEach(() => {

@@ -44,6 +44,7 @@ import { GroupMembership } from '../../../../entities/group/groupMember';
 import { fakeGroupMembership } from '../../../../entities/group/groupMember.fixture';
 import { fakeUserMembership } from '../../../../entities/user/userMembership.fixture';
 import { UserMembership } from '../../../../entities/user/userMembership';
+import { GioTableWrapperHarness } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('OrgSettingsUserDetailComponent', () => {
   const fakeAjsState = {
@@ -321,6 +322,41 @@ describe('OrgSettingsUserDetailComponent', () => {
     const apiTable = await apiCard.getHarness(MatTableHarness);
 
     expect(await apiTable.getCellTextByIndex()).toEqual([['Application Fox'], ['Application Dog']]);
+  });
+
+  it('should filter applications user membership table', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(
+      user.id,
+      'application',
+      fakeUserMembership('application', {
+        metadata: {
+          appFoxId: { name: 'Application Fox' },
+          appDogId: { name: 'Application Dog' },
+        },
+      }),
+    );
+    expectRolesListRequest('ORGANIZATION');
+
+    const applicationsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__applications-card' }));
+    const applicationTable = await applicationsCard.getHarness(MatTableHarness);
+    const apiTableWrapper = await applicationsCard.getHarness(GioTableWrapperHarness);
+
+    expect(await applicationTable.getCellTextByIndex()).toEqual([['Application Fox'], ['Application Dog']]);
+
+    await apiTableWrapper.setSearchValue('fox');
+    expect(await applicationTable.getCellTextByIndex()).toEqual([['Application Fox']]);
+
+    await apiTableWrapper.setSearchValue('');
+    expect(await applicationTable.getCellTextByIndex()).toEqual([['Application Fox'], ['Application Dog']]);
   });
 
   function expectUserGetRequest(user: User = fakeUser({ id: 'userId' })) {
