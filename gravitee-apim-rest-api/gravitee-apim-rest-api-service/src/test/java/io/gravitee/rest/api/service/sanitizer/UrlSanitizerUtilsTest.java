@@ -15,14 +15,15 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
-import static org.junit.Assert.*;
-
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
-import java.util.Collections;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.text.RandomStringGenerator;
 import org.junit.Test;
+
+import java.util.Collections;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -47,7 +48,7 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void checkAllowed_public() {
-        UrlSanitizerUtils.checkAllowed("https://demo.gravitee.io", Collections.emptyList(), false);
+        UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.emptyList(), false);
     }
 
     @Test(expected = InvalidDataException.class)
@@ -58,7 +59,7 @@ public class UrlSanitizerUtilsTest {
 
     @Test(expected = UrlForbiddenException.class)
     public void checkAllowed_notWhitelisted() {
-        UrlSanitizerUtils.checkAllowed("https://demo.gravitee.io", Collections.singletonList("http://localhost:8080"), false);
+        UrlSanitizerUtils.checkAllowed("https://www.gravitee.io/", Collections.singletonList("http://localhost:8080"), false);
     }
 
     @Test
@@ -87,7 +88,7 @@ public class UrlSanitizerUtilsTest {
 
     @Test
     public void isNotPrivate() {
-        assertFalse("Url should not be considered private", UrlSanitizerUtils.isPrivate("https://demo.gravitee.io/"));
+        assertFalse("Url should not be considered private", UrlSanitizerUtils.isPrivate("https://www.gravitee.io/"));
     }
 
     @Test(expected = UrlForbiddenException.class)
