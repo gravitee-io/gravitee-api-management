@@ -59,7 +59,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
   beforeEach(async () => {
     const currentUser = new DeprecatedUser();
-    currentUser.userPermissions = ['organization-user-u'];
+    currentUser.userPermissions = ['organization-user-u', 'organization-user-d'];
 
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
@@ -349,6 +349,37 @@ describe('OrgSettingsUserDetailComponent', () => {
         roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }],
       }),
     ]);
+  });
+
+  it('should remove user from group after confirm dialog', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'PENDING',
+    });
+    expectUserGetRequest(user);
+    expectEnvironmentListRequest();
+    expectUserGroupsGetRequest(user.id, [fakeGroup({ id: 'groupA', roles: { GROUP: 'ADMIN' } })]);
+    expectUserMembershipGetRequest(user.id, 'api');
+    expectUserMembershipGetRequest(user.id, 'application');
+    expectRolesListRequest('ORGANIZATION');
+    expectRolesListRequest('API');
+    expectRolesListRequest('APPLICATION');
+
+    const groupsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__groups-card' }));
+    const groupsTable = await groupsCard.getHarness(MatTableHarness);
+
+    // First row and delete column
+    const deleteUserGroupButton = await (await (await groupsTable.getRows())[0].getCells())[4].getHarness(MatButtonHarness);
+
+    await deleteUserGroupButton.click();
+
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
+    await (await dialog.getHarness(MatButtonHarness.with({ text: 'Remove' }))).click();
+
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/groupA/members/${user.id}`);
+    expect(req.request.method).toEqual('DELETE');
+    // No flush to stop test here
   });
 
   it('should display APIs user membership', async () => {

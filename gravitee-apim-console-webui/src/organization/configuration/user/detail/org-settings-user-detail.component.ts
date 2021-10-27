@@ -333,6 +333,32 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     this.toggleSaveBar(false);
   }
 
+  onDeleteGroupClick(group: Group) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Remove user form the group',
+          content: `Are you sure you want to remove the user from the group <strong>${group.name}</strong> ?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'removeGroupMemberConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.groupService.deleteMember(group.id, this.user.id)),
+        tap(() => this.snackBarService.success(`"${this.user.displayName}" has been removed from the group "${group.name}"`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
   private initOrganizationRolesForm() {
     const organizationRoles = this.user.roles.filter((r) => r.scope === 'ORGANIZATION');
 
@@ -341,11 +367,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     this.organizationRolesControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
       this.toggleSaveBar(true);
     });
-  }
-
-  onDeleteGroupClick(groupId: string) {
-    // eslint-disable-next-line no-console, angular/log
-    console.log('onDeleteGroupClick', { groupId });
   }
 
   private initEnvironmentsRolesForm(environments: Environment[]) {

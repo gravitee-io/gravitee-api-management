@@ -221,7 +221,7 @@
         <td mat-cell *matCellDef="let group">
           <button
             *gioPermission="{ anyOf: ['organization-user-d'] }"
-            (click)="onDeleteGroupClick(group.id)"
+            (click)="onDeleteGroupClick(group)"
             mat-icon-button
             color="primary"
             aria-label="Button to delete user group"
