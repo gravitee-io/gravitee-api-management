@@ -37,6 +37,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatRippleModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -96,6 +97,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     MatRadioModule,
     MatRippleModule,
     MatListModule,
+    MatProgressBarModule,
 
     GioPermissionModule,
     GioConfirmDialogModule,

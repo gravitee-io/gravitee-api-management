@@ -15,10 +15,10 @@
     limitations under the License.
 
 -->
-<div class="org-settings-user-detail">
+<div *ngIf="user" class="org-settings-user-detail">
   <h1><gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-users' }"></gio-go-back-button>User details</h1>
 
-  <mat-card *ngIf="user" class="org-settings-user-detail__card">
+  <mat-card class="org-settings-user-detail__card">
     <div class="org-settings-user-detail__card__head">
       <div class="org-settings-user-detail__card__head__left">
         <gio-avatar
@@ -110,7 +110,10 @@
     <h2 gioTableOfContents>Environments</h2>
     <p>Here is the list of all environment this user can access.</p>
 
-    <gio-table-wrapper *ngIf="groupsTableDS && groupsRolesFormGroup" (filtersChange)="onFiltersChanged('environmentsTableDS', $event)">
+    <gio-table-wrapper
+      *ngIf="environmentsTableDS && environmentsRolesFormGroup"
+      (filtersChange)="onFiltersChanged('environmentsTableDS', $event)"
+    >
       <table
         class="org-settings-user-detail__environments-card__table"
         mat-table
@@ -156,6 +159,10 @@
         </tr>
       </table>
     </gio-table-wrapper>
+
+    <mat-card-footer>
+      <mat-progress-bar *ngIf="!(environmentsTableDS && environmentsRolesFormGroup)" mode="indeterminate"></mat-progress-bar>
+    </mat-card-footer>
   </mat-card>
 
   <mat-card class="org-settings-user-detail__groups-card">
@@ -245,6 +252,10 @@
         </tr>
       </table>
     </gio-table-wrapper>
+
+    <mat-card-footer>
+      <mat-progress-bar *ngIf="!(groupsTableDS && groupsRolesFormGroup)" mode="indeterminate"></mat-progress-bar>
+    </mat-card-footer>
   </mat-card>
 
   <mat-card class="org-settings-user-detail__apis-card">
@@ -287,6 +298,10 @@
         </tr>
       </table>
     </gio-table-wrapper>
+
+    <mat-card-footer>
+      <mat-progress-bar *ngIf="!apisTableDS" mode="indeterminate"></mat-progress-bar>
+    </mat-card-footer>
   </mat-card>
 
   <mat-card class="org-settings-user-detail__applications-card">
@@ -316,6 +331,10 @@
         </tr>
       </table>
     </gio-table-wrapper>
+
+    <mat-card-footer>
+      <mat-progress-bar *ngIf="!applicationsTableDS" mode="indeterminate"></mat-progress-bar>
+    </mat-card-footer>
   </mat-card>
 
   <gio-save-bar
