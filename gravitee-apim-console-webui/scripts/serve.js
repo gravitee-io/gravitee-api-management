@@ -21,7 +21,8 @@ const app = express();
 app.use(compression());
 app.use(express.static('dist/'));
 app.use('/management', createProxyMiddleware({ target: 'http://localhost:8083', changeOrigin: true }));
-
+// If you want to try webapp with an other target
+// app.use('/management', createProxyMiddleware({ target: 'https://apim-master-api.cloud.gravitee.io', changeOrigin: true, secure: false }));
 app.all('/*', (req, res) => {
   res.sendFile('index.html', { root: 'dist/' });
 });
