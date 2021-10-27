@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.definition.model.ssl;
+package io.gravitee.definition.model.ssl.none;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.ssl.TrustStore;
+import io.gravitee.definition.model.ssl.TrustStoreType;
 
-/**
- * @author David BRASSELY (david.brassely at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum TrustStoreType {
-    PEM,
-    PKCS12,
-    JKS,
-    None;
+public class NoneTrustStore extends TrustStore {
 
-    @JsonCreator
-    public static TrustStoreType forValues(@JsonProperty("type") String type) {
-        if (type.isEmpty()) {
-            return None;
-        }
-        return TrustStoreType.valueOf(type);
+    public NoneTrustStore(TrustStoreType type) {
+        super(type);
     }
 }

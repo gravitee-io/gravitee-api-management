@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.ssl.jks.JKSKeyStore;
+import io.gravitee.definition.model.ssl.none.NoneKeyStore;
 import io.gravitee.definition.model.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.ssl.pkcs12.PKCS12KeyStore;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
@@ -43,6 +44,7 @@ import java.io.Serializable;
         @JsonSubTypes.Type(name = "JKS", value = JKSKeyStore.class),
         @JsonSubTypes.Type(name = "PEM", value = PEMKeyStore.class),
         @JsonSubTypes.Type(name = "PKCS12", value = PKCS12KeyStore.class),
+        @JsonSubTypes.Type(value = NoneKeyStore.class),
         // legacy support
         @JsonSubTypes.Type(name = "jks", value = JKSKeyStore.class),
         @JsonSubTypes.Type(name = "pem", value = PEMKeyStore.class),

@@ -15,6 +15,9 @@
  */
 package io.gravitee.definition.model.ssl;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
@@ -23,4 +26,13 @@ public enum KeyStoreType {
     PEM,
     PKCS12,
     JKS,
+    None;
+
+    @JsonCreator
+    public static KeyStoreType forValues(@JsonProperty("type") String type) {
+        if (type.isEmpty()) {
+            return None;
+        }
+        return KeyStoreType.valueOf(type);
+    }
 }
