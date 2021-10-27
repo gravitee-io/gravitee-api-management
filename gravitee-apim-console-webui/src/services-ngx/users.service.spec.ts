@@ -191,6 +191,22 @@ describe('UsersService', () => {
     });
   });
 
+  describe('resetPassword', () => {
+    it('should call the API', (done) => {
+      const userId = 'userId';
+
+      usersService.resetPassword(userId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.org.baseURL}/users/${userId}/resetPassword`,
+      });
+      req.flush({});
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
