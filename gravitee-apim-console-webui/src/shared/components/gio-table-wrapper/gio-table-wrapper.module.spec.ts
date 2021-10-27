@@ -180,6 +180,34 @@ describe('GioTableWrapperComponent', () => {
         searchTerm: '',
       });
     });
+
+    it('should emit and reset pagination when search term change', async () => {
+      component.filters = {
+        pagination: {
+          index: 4,
+          length: 100,
+          size: 10,
+        },
+        searchTerm: 'fox',
+      };
+      fixture.detectChanges();
+      const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
+      const paginator = await tableWrapper.getPaginator();
+
+      // initial filtersChange
+      expect(component.filtersChange).toHaveBeenCalledTimes(1);
+      await tableWrapper.setSearchValue('Fox');
+
+      expect(component.filtersChange).toHaveBeenNthCalledWith(3, {
+        pagination: {
+          index: 1,
+          length: 100,
+          size: 10,
+        },
+        searchTerm: 'Fox',
+      });
+      expect(await paginator.getRangeLabel()).toEqual('1 – 10 of 100');
+    });
   });
 
   describe('with sort usage', () => {

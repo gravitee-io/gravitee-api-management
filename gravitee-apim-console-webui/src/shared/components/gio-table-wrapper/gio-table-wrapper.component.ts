@@ -29,7 +29,7 @@ import { FormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { merge, of, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map, startWith, takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, scan, startWith, takeUntil } from 'rxjs/operators';
 
 export interface GioTableWrapperFilters {
   searchTerm: string;
@@ -144,6 +144,20 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
           return filters;
         }),
         distinctUntilChanged(),
+        scan((prev, curr) => {
+          if (prev.searchTerm !== curr.searchTerm) {
+            const firstIndexPagination = {
+              ...curr.pagination,
+              index: 1,
+            };
+            this.initPaginator(firstIndexPagination);
+            return {
+              ...curr,
+              pagination: firstIndexPagination,
+            };
+          }
+          return curr;
+        }),
         debounceTime(300),
         // Alway start with initial filters values
         startWith(this.filters ?? INITIAL_FILTERS_VALUE),
