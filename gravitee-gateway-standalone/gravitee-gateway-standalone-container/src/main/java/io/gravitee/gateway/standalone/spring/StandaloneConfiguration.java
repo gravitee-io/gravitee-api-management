@@ -17,8 +17,6 @@ package io.gravitee.gateway.standalone.spring;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.common.environment.Configuration;
-import io.gravitee.common.environment.SpringEnvironmentConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -42,14 +40,14 @@ import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.env.Environment;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-@org.springframework.context.annotation.Configuration
+@Configuration
 @Import(
     {
         ClusterConfiguration.class,
@@ -96,10 +94,5 @@ public class StandaloneConfiguration {
     @Bean
     public static GatewayConfiguration gatewayConfiguration() {
         return new GatewayConfiguration();
-    }
-
-    @Bean
-    public static Configuration graviteeEnvironment(Environment environment) {
-        return new SpringEnvironmentConfiguration(environment);
     }
 }
