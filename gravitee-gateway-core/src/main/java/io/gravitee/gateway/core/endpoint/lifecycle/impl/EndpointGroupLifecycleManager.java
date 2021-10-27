@@ -35,12 +35,11 @@ import io.gravitee.gateway.core.endpoint.lifecycle.LoadBalancedEndpointGroup;
 import io.gravitee.gateway.core.endpoint.ref.EndpointReference;
 import io.gravitee.gateway.core.endpoint.ref.ReferenceRegister;
 import io.gravitee.gateway.core.loadbalancer.*;
+import io.gravitee.node.api.configuration.Configuration;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 import javax.inject.Inject;
-
-import io.gravitee.node.api.configuration.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

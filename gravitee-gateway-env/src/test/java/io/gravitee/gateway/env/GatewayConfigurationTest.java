@@ -17,10 +17,9 @@ package io.gravitee.gateway.env;
 
 import static org.mockito.Mockito.when;
 
+import io.gravitee.node.api.configuration.Configuration;
 import java.util.List;
 import java.util.Optional;
-
-import io.gravitee.node.api.configuration.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
