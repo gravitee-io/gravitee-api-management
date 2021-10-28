@@ -320,7 +320,7 @@
         <powermock.version>2.0.9</powermock.version>
         <nimbus-jwt.version>8.22.1</nimbus-jwt.version>
         <protobuf-java.version>3.17.3</protobuf-java.version>
-        <hazelcast.version>4.1.1</hazelcast.version>
+        <hazelcast.version>5.0</hazelcast.version>
         <jmh.version>1.26</jmh.version>
         <netty-tcnative-boringssl-static.version>2.0.42.Final</netty-tcnative-boringssl-static.version>
         <!-- Fix the asm version at gateway level -->
