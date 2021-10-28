@@ -42,7 +42,7 @@
     (:gv-policy-studio:fetch-documentation)="fetchPolicyDocumentation($event.detail)"
     (:gv-resources:fetch-documentation)="fetchResourceDocumentation($event.detail)"
     (:gv-expression-language:ready)="fetchSpelGrammar($event.detail)"
-    [attr.selected-flows-id]="selectedFlowsId ? readonlyPlans : null"
+    [attr.selected-flows-id]="selectedFlowsIds ? selectedFlowsIds : null"
     (:gv-policy-studio:select-flows)="onFlowSelectionChanged($event.detail)"
     (:gv-policy-studio:save)="save.emit($event.detail)"
   >

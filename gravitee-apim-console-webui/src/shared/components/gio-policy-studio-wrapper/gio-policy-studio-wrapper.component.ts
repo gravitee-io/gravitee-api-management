@@ -32,7 +32,7 @@ import '@gravitee/ui-components/wc/gv-policy-studio';
 interface UrlParams {
   path: string;
   tabId: string;
-  flows: string[];
+  flowsIds: string[];
 }
 
 @Component({
@@ -107,12 +107,10 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   save = new EventEmitter<unknown>();
 
   tabId: string;
-  selectedFlowsId: string[];
+  selectedFlowsIds: string;
   configurationSchema: FlowConfigurationSchema;
   policyDocumentation: { id: string; image: string; content: string };
 
-  private readonly pathFragmentSeparator = '#';
-  private readonly flowsQueryParamKey = 'flows';
   private readonly unknownPolicyCategory = 'others';
   private readonly policyCategoriesOrder = ['security', 'performance', 'transformation', this.unknownPolicyCategory];
   private _policies: PolicyListItem[];
@@ -135,10 +133,10 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
       )
       .subscribe();
 
-    const { tabId, flows } = this.parseUrl();
+    const { tabId, flowsIds } = this.parseUrl();
 
     this.tabId = tabId;
-    this.selectedFlowsId = flows;
+    this.selectedFlowsIds = JSON.stringify(flowsIds);
   }
 
   public onTabChanged(tabId: string): void {
@@ -146,7 +144,7 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   }
 
   public onFlowSelectionChanged({ flows }: { flows: string[] }): void {
-    this.updateUrl({ ...this.parseUrl(), flows });
+    this.updateUrl({ ...this.parseUrl(), flowsIds: flows });
   }
 
   public fetchPolicyDocumentation({ policy }: { policy: { id: string; icon: string } }): void {
@@ -185,31 +183,27 @@ export class GioPolicyStudioWrapperComponent implements OnInit {
   private parseUrl(): UrlParams {
     // TODO: Improve this with Angular Router
     // Hack to add the tab as Fragment part of the URL
-    let path = this.location.path();
+    const [path, tabId] = this.location.path(true).split(/#(\w*)$/);
 
-    const tabId = path.includes(this.pathFragmentSeparator) ? path.split(this.pathFragmentSeparator)[1] : '';
-
-    path = path.replace(`#${tabId}`, '');
-
-    const [basePath, ...flows] = path.split(this.flowsQueryParamKey);
+    const [basePath, ...flowsIds] = path.split('flows');
 
     const cleanedPath = basePath.replace('?', '');
-    const cleanedFlows = (flows ?? []).map((flow) => flow.replace('=', ''));
+    const cleanedFlows = (flowsIds ?? []).map((flow) => flow.replace('=', ''));
 
     return {
       path: cleanedPath,
-      tabId,
-      flows: cleanedFlows,
+      tabId: tabId ?? '',
+      flowsIds: cleanedFlows,
     };
   }
 
-  private updateUrl({ path, tabId, flows }: UrlParams): void {
+  private updateUrl({ path, tabId, flowsIds }: UrlParams): void {
     // TODO: Improve this with Angular Router
     // Hack to add the tab as Fragment part of the URL
-    const flowsQueryParams = (flows ?? []).map((value) => `${this.flowsQueryParamKey}=${value}`).join('&');
+    const flowsQueryParams = (flowsIds ?? []).map((value) => `flows=${value}`).join('&');
 
     const queryParams = flowsQueryParams.length > 0 ? `?${flowsQueryParams}` : '';
 
-    this.location.go(`${path}${queryParams}${this.pathFragmentSeparator}${tabId}`);
+    this.location.go(`${path}${queryParams}#${tabId}`);
   }
 }
