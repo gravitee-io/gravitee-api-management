@@ -15,17 +15,29 @@
  */
 package io.gravitee.gateway.debug.vertx;
 
-import io.gravitee.gateway.http.vertx.VertxHttpServerConfiguration;
+import io.vertx.core.http.HttpServerOptions;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Guillaume Cusnieux (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class VertxDebugHttpConfiguration extends VertxHttpServerConfiguration {
+public class VertxDebugHttpClientConfiguration {
 
     private static final int MAX_CONNECTION_TIMEOUT = 5000;
     private static final int MAX_REQUEST_TIMEOUT = 10000;
+
+    @Value("${http.compressionSupported:" + HttpServerOptions.DEFAULT_COMPRESSION_SUPPORTED + "}")
+    private boolean compressionSupported;
+
+    @Value("${http.alpn:false}")
+    private boolean alpn;
+
+    @Value("${http.secured:false}")
+    private boolean secured;
+
+    @Value("${http.ssl.openssl:false}")
+    private boolean openssl;
 
     @Value("${debug.timeout.connect:5000}")
     private int connectTimeout;
@@ -39,12 +51,26 @@ public class VertxDebugHttpConfiguration extends VertxHttpServerConfiguration {
     @Value("${debug.host:localhost}")
     private String host;
 
-    @Override
+    public boolean isCompressionSupported() {
+        return compressionSupported;
+    }
+
+    public boolean isAlpn() {
+        return alpn;
+    }
+
+    public boolean isSecured() {
+        return secured;
+    }
+
+    public boolean isOpenssl() {
+        return openssl;
+    }
+
     public int getPort() {
         return port;
     }
 
-    @Override
     public String getHost() {
         return host;
     }

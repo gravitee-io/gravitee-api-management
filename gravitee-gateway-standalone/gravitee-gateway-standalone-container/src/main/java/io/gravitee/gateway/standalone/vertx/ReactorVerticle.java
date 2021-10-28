@@ -18,9 +18,9 @@ package io.gravitee.gateway.standalone.vertx;
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.gateway.http.vertx.VertxHttpServerConfiguration;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.standalone.vertx.ws.VertxWebSocketReactorHandler;
+import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -49,7 +49,8 @@ public class ReactorVerticle extends AbstractVerticle {
     private Reactor reactor;
 
     @Autowired
-    private VertxHttpServerConfiguration httpServerConfiguration;
+    @Qualifier("httpServerConfiguration")
+    private HttpServerConfiguration httpServerConfiguration;
 
     @Autowired
     private Vertx vertx;

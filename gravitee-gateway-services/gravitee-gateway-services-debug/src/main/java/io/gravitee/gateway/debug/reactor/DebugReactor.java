@@ -21,7 +21,7 @@ import io.gravitee.common.event.Event;
 import io.gravitee.definition.model.HttpRequest;
 import io.gravitee.definition.model.HttpResponse;
 import io.gravitee.gateway.debug.definition.DebugApi;
-import io.gravitee.gateway.debug.vertx.VertxDebugHttpConfiguration;
+import io.gravitee.gateway.debug.vertx.VertxDebugHttpClientConfiguration;
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
@@ -56,7 +56,7 @@ public class DebugReactor extends DefaultReactor {
     private Vertx vertx;
 
     @Autowired
-    private VertxDebugHttpConfiguration debugHttpConfiguration;
+    private VertxDebugHttpClientConfiguration debugHttpClientConfiguration;
 
     @Autowired
     @Qualifier("debugReactorHandlerRegistry")
@@ -177,15 +177,15 @@ public class DebugReactor extends DefaultReactor {
 
     private HttpClientOptions buildClientOptions() {
         HttpClientOptions options = new HttpClientOptions();
-        options.setDefaultHost(debugHttpConfiguration.getHost());
-        options.setDefaultPort(debugHttpConfiguration.getPort());
-        options.setConnectTimeout(debugHttpConfiguration.getConnectTimeout());
-        options.setTryUseCompression(debugHttpConfiguration.isCompressionSupported());
-        options.setUseAlpn(debugHttpConfiguration.isAlpn());
-        if (debugHttpConfiguration.isSecured()) {
-            options.setSsl(debugHttpConfiguration.isSecured());
+        options.setDefaultHost(debugHttpClientConfiguration.getHost());
+        options.setDefaultPort(debugHttpClientConfiguration.getPort());
+        options.setConnectTimeout(debugHttpClientConfiguration.getConnectTimeout());
+        options.setTryUseCompression(debugHttpClientConfiguration.isCompressionSupported());
+        options.setUseAlpn(debugHttpClientConfiguration.isAlpn());
+        if (debugHttpClientConfiguration.isSecured()) {
+            options.setSsl(debugHttpClientConfiguration.isSecured());
             options.setTrustAll(true);
-            if (debugHttpConfiguration.isOpenssl()) {
+            if (debugHttpClientConfiguration.isOpenssl()) {
                 options.setSslEngineOptions(new OpenSSLEngineOptions());
             }
         }
@@ -204,7 +204,7 @@ public class DebugReactor extends DefaultReactor {
                     .setHeaders(buildHeaders(debugApi, req))
                     // TODO: Need to manage entrypoints in future release: https://github.com/gravitee-io/issues/issues/6143
                     .setURI(debugApi.getProxy().getVirtualHosts().get(0).getPath() + req.getPath())
-                    .setTimeout(debugHttpConfiguration.getRequestTimeout())
+                    .setTimeout(debugHttpClientConfiguration.getRequestTimeout())
             )
             .map(
                 httpClientRequest -> {

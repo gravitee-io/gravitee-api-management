@@ -21,9 +21,9 @@ import io.gravitee.common.utils.Hex;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.gateway.reactor.Reactor;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
+import io.gravitee.node.vertx.configuration.HttpServerConfiguration;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,8 @@ public class DebugReactorVerticle extends AbstractVerticle {
     private Reactor reactor;
 
     @Autowired
-    private VertxDebugHttpConfiguration debugHttpConfiguration;
+    @Qualifier("debugHttpServerConfiguration")
+    private HttpServerConfiguration debugHttpServerConfiguration;
 
     @Value("${handlers.request.format:uuid}")
     private String requestFormat;
@@ -75,7 +76,7 @@ public class DebugReactorVerticle extends AbstractVerticle {
         httpServer.listen(
             res -> {
                 if (res.succeeded()) {
-                    logger.info("Debug HTTP listener ready to accept requests on port {}", debugHttpConfiguration.getPort());
+                    logger.info("Debug HTTP listener ready to accept requests on port {}", debugHttpServerConfiguration.getPort());
                     startPromise.complete();
                 } else {
                     logger.error("Unable to start Debug HTTP Server", res.cause());
