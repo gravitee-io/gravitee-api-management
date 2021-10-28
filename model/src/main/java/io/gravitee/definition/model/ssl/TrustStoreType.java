@@ -28,7 +28,7 @@ public enum TrustStoreType {
     JKS,
     None;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static TrustStoreType forValues(@JsonProperty("type") String type) {
         if (type.isEmpty()) {
             return None;

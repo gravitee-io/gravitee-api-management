@@ -28,7 +28,7 @@ public enum KeyStoreType {
     JKS,
     None;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static KeyStoreType forValues(@JsonProperty("type") String type) {
         if (type.isEmpty()) {
             return None;
