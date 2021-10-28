@@ -668,6 +668,7 @@ workflows:
                           only:
                               - master
                               - /^\d+\.\d+\.x$/
+                              - implement-continuous-deployment-to-azure
             - console-webui-install:
                   requires:
                       - pr_secrets_resolution
@@ -734,6 +735,8 @@ workflows:
                       branches:
                           only:
                               - master
+                              - /^\d+\.\d+\.x$/
+                              - implement-continuous-deployment-to-azure
             - portal-webui-install:
                   requires:
                       - pr_secrets_resolution
@@ -767,6 +770,8 @@ workflows:
                       branches:
                           only:
                               - master
+                              - /^\d+\.\d+\.x$/
+                              - implement-continuous-deployment-to-azure
             - deploy-on-azure-cluster:
                   context: cicd-orchestrator
                   pre-steps:
@@ -787,6 +792,8 @@ workflows:
                       branches:
                           only:
                               - master
+                              - /^\d+\.\d+\.x$/
+                              - implement-continuous-deployment-to-azure
 
 
     # ---
