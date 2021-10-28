@@ -15,15 +15,21 @@ $background: map.get(gio.$gio-theme, background);
   justify-content: space-between;
   align-items: flex-start;
 
-  &__card {
-    margin-bottom: 32px;
-  }
+  &__content {
+    // Hack to match place not used by the Table of Content
+    // Classic flex setup aren't working because of list's mat-line
+    width: 81%;
 
-  &__list {
-    &__item {
-      cursor: pointer;
-      &:hover {
-        background-color: mat.get-color-from-palette($background, hover);
+    &__card {
+      margin-bottom: 32px;
+    }
+
+    &__list {
+      &__item {
+        cursor: pointer;
+        &:hover {
+          background-color: mat.get-color-from-palette($background, hover);
+        }
       }
     }
   }
