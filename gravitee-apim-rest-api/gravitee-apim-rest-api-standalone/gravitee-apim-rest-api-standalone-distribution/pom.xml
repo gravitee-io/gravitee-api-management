@@ -24,10 +24,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>io.gravitee.apim.rest.api.standalone</groupId>
-		<artifactId>gravitee-apim-rest-api-standalone</artifactId>
+		<groupId>io.gravitee.apim.distribution</groupId>
+		<artifactId>gravitee-apim-distribution</artifactId>
         <version>3.10.4-SNAPSHOT</version>
-    </parent>
+		<relativePath>../../../gravitee-apim-distribution/pom.xml</relativePath>
+	</parent>
 
 	<groupId>io.gravitee.apim.rest.api.standalone.distribution</groupId>
     <artifactId>gravitee-apim-rest-api-standalone-distribution</artifactId>
@@ -146,20 +147,19 @@
 
 	<build>
 		<finalName>distribution</finalName>
-
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>copy-plugins</id>
+						<id>copy-apim-plugins</id>
 						<phase>package</phase>
 						<goals>
 							<goal>copy</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${basedir}/target/staging</outputDirectory>
+							<outputDirectory>${basedir}/target/staging/apim_plugins</outputDirectory>
 							<artifactItems>
 								<artifactItem>
 									<groupId>io.gravitee.apim.rest.api.idp</groupId>
@@ -231,6 +231,7 @@
 			</plugin>
 		</plugins>
 	</build>
+
 	<modules>
 		<module>gravitee-apim-rest-api-standalone-distribution-zip</module>
 	</modules>
