@@ -67,4 +67,10 @@ public class EndpointHealthcheckService extends AbstractService {
     protected String name() {
         return "Health-check service";
     }
+
+    @Override
+    public int getOrder() {
+        // ensure service is started before SyncService, as it consumes its events
+        return 900;
+    }
 }
