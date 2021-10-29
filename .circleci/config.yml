@@ -535,7 +535,7 @@ jobs:
             - run:
                   name: Helm upgrade and 🚀 to Element Zero cluster
                   command: |
-                      if [ "master" == "${CIRCLE_BRANCH}"]
+                      if [ "master" == "${CIRCLE_BRANCH}" ]
                       then
                           az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                           az aks get-credentials --resource-group element-zero --name element-zero

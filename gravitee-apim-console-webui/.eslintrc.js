@@ -8,7 +8,7 @@ module.exports = {
     project: './tsconfig.json',
     sourceType: 'module',
   },
-  ignorePatterns: ['**/*.js'],
+  ignorePatterns: ['**/*.js', '**/*.json'],
   plugins: ['eslint-plugin-jsdoc', '@typescript-eslint'],
   extends: [
     'angular',
