@@ -180,11 +180,12 @@
         mat-table
         [dataSource]="groupsTableDS"
         [formGroup]="groupsRolesFormGroup"
+        matSort
         aria-label="Groups table"
       >
         <!-- Position Name -->
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+          <th mat-header-cell *matHeaderCellDef id="name" mat-sort-header>Name</th>
           <td mat-cell *matCellDef="let group">
             {{ group.name }}
 
@@ -194,7 +195,7 @@
 
         <!-- Group Admin Column -->
         <ng-container matColumnDef="groupAdmin">
-          <th mat-header-cell *matHeaderCellDef id="groupAdmin">Group Admin</th>
+          <th mat-header-cell *matHeaderCellDef id="groupAdmin" mat-sort-header>Group Admin</th>
           <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
             <mat-checkbox formControlName="GROUP"></mat-checkbox>
           </td>
@@ -202,7 +203,7 @@
 
         <!-- API Role Column -->
         <ng-container matColumnDef="apiRoles">
-          <th mat-header-cell *matHeaderCellDef id="apiRoles">API Role</th>
+          <th mat-header-cell *matHeaderCellDef id="apiRoles" mat-sort-header>API Role</th>
           <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
             <mat-form-field appearance="fill">
               <mat-label>API role</mat-label>
@@ -216,7 +217,7 @@
 
         <!-- Application Role Column -->
         <ng-container matColumnDef="applicationRole">
-          <th mat-header-cell *matHeaderCellDef id="applicationRole">Application Role</th>
+          <th mat-header-cell *matHeaderCellDef id="applicationRole" mat-sort-header>Application Role</th>
           <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
             <mat-form-field appearance="fill">
               <mat-label>Application role</mat-label>
@@ -268,10 +269,10 @@
     <p>Here is the list of all APIs of this user.</p>
 
     <gio-table-wrapper *ngIf="apisTableDS" [length]="apisTableDS.length" (filtersChange)="onFiltersChanged('apisTableDS', $event)">
-      <table mat-table [dataSource]="apisTableDS" aria-label="APIs table">
+      <table mat-table [dataSource]="apisTableDS" matSort aria-label="APIs table">
         <!-- Name Column -->
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+          <th mat-header-cell *matHeaderCellDef id="name" mat-sort-header>Name</th>
           <td mat-cell *matCellDef="let api">
             {{ api.name }}
           </td>
@@ -279,7 +280,7 @@
 
         <!-- Version Column -->
         <ng-container matColumnDef="version">
-          <th mat-header-cell *matHeaderCellDef id="version">Version</th>
+          <th mat-header-cell *matHeaderCellDef id="version" mat-sort-header>Version</th>
           <td mat-cell *matCellDef="let api">
             {{ api.version }}
           </td>
@@ -287,7 +288,7 @@
 
         <!-- Visibility Column -->
         <ng-container matColumnDef="visibility">
-          <th mat-header-cell *matHeaderCellDef id="visibility">Visibility</th>
+          <th mat-header-cell *matHeaderCellDef id="visibility" mat-sort-header>Visibility</th>
           <td mat-cell *matCellDef="let api">
             <span class="gio-badge">
               <mat-icon [inline]="true">{{ api.visibility === 'PUBLIC' ? 'public' : 'lock' }}</mat-icon> {{ api.visibility }}
