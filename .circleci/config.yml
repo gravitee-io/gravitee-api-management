@@ -204,13 +204,15 @@ jobs:
                           az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                           az aks get-credentials --resource-group element-zero --name element-zero
 
+                          # FIXME: change redis.repositoryVersion
                           helm upgrade --repo https://helm.gravitee.io \
                                        --install apim \
                                        -n apim \
                                        apim3 \
                                        --reuse-values \
                                        --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                       --set "gateway.image.tag=${TAG}"
+                                       --set "gateway.image.tag=${TAG}" \
+                                       --set "redis.repositoryVersion=3.12.1"
                       fi
             - run:
                   name: Helm upgrade and 🚀 to APIM cluster
@@ -220,13 +222,15 @@ jobs:
                       az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
                       az aks get-credentials --resource-group apim-hprod --name apim-hprod
 
+                      # FIXME: change redis.repositoryVersion
                       helm upgrade --repo https://helm.gravitee.io \
                                    --install apim \
                                    -n ${K8S_NAMESPACE} \
                                    apim3 \
                                    --reuse-values \
                                    --set "gateway.image.repository=graviteeio.azurecr.io/apim-gateway" \
-                                   --set "gateway.image.tag=${TAG}"
+                                   --set "gateway.image.tag=${TAG}" \
+                                   --set "redis.repositoryVersion=3.12.1"
 
 workflows:
     version: 2.1
