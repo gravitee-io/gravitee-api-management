@@ -7,7 +7,20 @@ $background: map.get(gio.$gio-theme, background);
 $foreground: map.get(gio.$gio-theme, foreground);
 $typography: map.get(gio.$gio-theme, typography);
 
+:host {
+  display: block;
+}
+
+// remove card padding when table is inside a card
+:host-context(.mat-card > :last-child:not(.mat-card-footer)) {
+  margin-left: -16px;
+  margin-right: -16px;
+  margin-bottom: -12px;
+}
+
 .gio-table-wrapper {
+  border-radius: 4px;
+
   &__header-bar {
     display: flex;
     flex-wrap: nowrap;
@@ -15,7 +28,7 @@ $typography: map.get(gio.$gio-theme, typography);
     align-items: center;
     min-height: 56px;
     background: mat.get-color-from-palette($background, 'card');
-    padding: 8px 16px 8px 16px;
+    padding: 0px 16px 0px 16px;
     border-top: 1px solid mat.get-color-from-palette($foreground, divider);
     border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
 
@@ -30,7 +43,7 @@ $typography: map.get(gio.$gio-theme, typography);
   }
 
   &__footer-bar {
-    background: mat.get-color-from-palette($background, 'card');
+    background-color: mat.get-color-from-palette($background, 'card');
   }
 }
 
@@ -39,6 +52,11 @@ $typography: map.get(gio.$gio-theme, typography);
   gio-table-wrapper {
     .mat-table {
       width: 100%;
+
+      .mat-header-row {
+        height: 42px;
+        background-color: mat.get-color-from-palette($background, 'background');
+      }
     }
 
     // ⚠️ Material deep override

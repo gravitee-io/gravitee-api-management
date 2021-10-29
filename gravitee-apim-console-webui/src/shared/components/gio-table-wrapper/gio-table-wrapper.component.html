@@ -30,8 +30,13 @@
     aria-label="Select page"
   ></mat-paginator>
 </div>
-<ng-content></ng-content>
+<ng-content select="[mat-table]"></ng-content>
 
 <div class="gio-table-wrapper__footer-bar">
-  <mat-paginator #paginatorBottom [hidePageSize]="true" aria-label="Select page"></mat-paginator>
+  <mat-paginator
+    #paginatorBottom
+    class="gio-table-wrapper__footer-bar__paginator"
+    [hidePageSize]="true"
+    aria-label="Select page"
+  ></mat-paginator>
 </div>

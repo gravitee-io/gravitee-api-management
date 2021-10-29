@@ -160,8 +160,8 @@
       </table>
     </gio-table-wrapper>
 
-    <mat-card-footer>
-      <mat-progress-bar *ngIf="!(environmentsTableDS && environmentsRolesFormGroup)" mode="indeterminate"></mat-progress-bar>
+    <mat-card-footer *ngIf="!(environmentsTableDS && environmentsRolesFormGroup)">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </mat-card-footer>
   </mat-card>
 
@@ -253,8 +253,8 @@
       </table>
     </gio-table-wrapper>
 
-    <mat-card-footer>
-      <mat-progress-bar *ngIf="!(groupsTableDS && groupsRolesFormGroup)" mode="indeterminate"></mat-progress-bar>
+    <mat-card-footer *ngIf="!(groupsTableDS && groupsRolesFormGroup)">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </mat-card-footer>
   </mat-card>
 
@@ -299,8 +299,8 @@
       </table>
     </gio-table-wrapper>
 
-    <mat-card-footer>
-      <mat-progress-bar *ngIf="!apisTableDS" mode="indeterminate"></mat-progress-bar>
+    <mat-card-footer *ngIf="!apisTableDS">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </mat-card-footer>
   </mat-card>
 
@@ -332,8 +332,8 @@
       </table>
     </gio-table-wrapper>
 
-    <mat-card-footer>
-      <mat-progress-bar *ngIf="!applicationsTableDS" mode="indeterminate"></mat-progress-bar>
+    <mat-card-footer *ngIf="!applicationsTableDS">
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     </mat-card-footer>
   </mat-card>
 
