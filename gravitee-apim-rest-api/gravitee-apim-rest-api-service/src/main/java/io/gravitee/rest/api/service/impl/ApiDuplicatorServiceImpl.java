@@ -287,17 +287,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             environmentId
         );
         if (search.isEmpty()) {
-            this.createSystemFolder(createdApiEntity.getId(), environmentId);
+            pageService.createAsideFolder(createdApiEntity.getId(), environmentId);
         }
-    }
-
-    private void createSystemFolder(String apiId, String environmentId) {
-        NewPageEntity asideSystemFolder = new NewPageEntity();
-        asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
-        asideSystemFolder.setPublished(true);
-        asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
-        asideSystemFolder.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
-        pageService.createPage(apiId, asideSystemFolder, environmentId);
     }
 
     private String fetchApiDefinitionContentFromURL(String apiDefinitionOrURL) {

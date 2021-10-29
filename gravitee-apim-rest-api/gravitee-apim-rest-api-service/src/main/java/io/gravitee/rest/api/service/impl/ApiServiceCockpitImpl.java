@@ -23,7 +23,9 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApiServiceCockpit;
+import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -38,11 +40,13 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     private final ObjectMapper objectMapper;
     private final ApiService apiService;
     private final SwaggerService swaggerService;
+    private final PageService pageService;
 
-    public ApiServiceCockpitImpl(ObjectMapper objectMapper, ApiService apiService, SwaggerService swaggerService) {
+    public ApiServiceCockpitImpl(ObjectMapper objectMapper, ApiService apiService, SwaggerService swaggerService, PageService pageService) {
         this.objectMapper = objectMapper;
         this.apiService = apiService;
         this.swaggerService = swaggerService;
+        this.pageService = pageService;
     }
 
     public ApiEntity createOrUpdateFromCockpit(String apiId, String userId, String swaggerDefinition, String environmentId) {
@@ -74,7 +78,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         apiDefinition.put("id", apiId);
 
         final ApiEntity createdApi = apiService.createWithApiDefinition(api, userId, apiDefinition);
-        apiService.createSystemFolder(createdApi.getId());
+        pageService.createAsideFolder(apiId, GraviteeContext.getCurrentEnvironment());
         apiService.createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
         apiService.createMetadata(api.getMetadata(), createdApi.getId());
 

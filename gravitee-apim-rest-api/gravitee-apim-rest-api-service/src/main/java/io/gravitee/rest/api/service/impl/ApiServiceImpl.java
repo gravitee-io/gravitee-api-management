@@ -511,7 +511,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final ImportSwaggerDescriptorEntity swaggerDescriptor
     ) {
         final ApiEntity createdApi = this.createWithApiDefinition(apiEntity, userId, null);
-        createSystemFolder(createdApi.getId());
+        pageService.createAsideFolder(createdApi.getId(), GraviteeContext.getCurrentEnvironment());
         createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
         return createdApi;
     }
@@ -663,16 +663,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
         }
         return primaryOwnerEntity;
-    }
-
-    @Override
-    public void createSystemFolder(String apiId) {
-        NewPageEntity asideSystemFolder = new NewPageEntity();
-        asideSystemFolder.setName(SystemFolderType.ASIDE.folderName());
-        asideSystemFolder.setPublished(true);
-        asideSystemFolder.setType(PageType.SYSTEM_FOLDER);
-        asideSystemFolder.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
-        pageService.createPage(apiId, asideSystemFolder, GraviteeContext.getCurrentEnvironment());
     }
 
     private void checkEndpointsConfiguration(UpdateApiEntity api) {

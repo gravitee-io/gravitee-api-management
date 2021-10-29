@@ -81,6 +81,7 @@ public interface PageService {
 
     Map<SystemFolderType, String> initialize(String environmentId);
 
+    PageEntity createAsideFolder(String apiId, String environmentId);
     PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId);
 
     PageEntity createWithDefinition(String apiId, String toString, String environmentId);

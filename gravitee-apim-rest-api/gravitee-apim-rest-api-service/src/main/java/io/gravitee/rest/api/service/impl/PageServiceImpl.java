@@ -2485,6 +2485,11 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     @Override
+    public PageEntity createAsideFolder(String apiId, String environmentId) {
+        return createSystemFolder(apiId, SystemFolderType.ASIDE, 0, environmentId);
+    }
+
+    @Override
     public PageEntity createSystemFolder(String apiId, SystemFolderType systemFolderType, int order, String environmentId) {
         NewPageEntity newSysFolder = new NewPageEntity();
         newSysFolder.setName(systemFolderType.folderName());

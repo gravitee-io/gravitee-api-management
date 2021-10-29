@@ -241,7 +241,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
         verify(membershipService, never()).transferApiOwnership(any(), any(), any());
@@ -305,7 +305,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -335,7 +335,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -365,8 +365,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-
-        verify(pageService, times(1)).createPage(any(), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -392,7 +391,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
     }
 
     @Test
@@ -502,7 +501,7 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         );
 
         verify(apiService, times(1)).createWithApiDefinition(any(), eq("admin"), any());
-        verify(pageService, times(1)).createPage(eq(API_ID), any(NewPageEntity.class), eq(GraviteeContext.getCurrentEnvironment()));
+        verify(pageService, times(1)).createAsideFolder(eq(API_ID), eq(GraviteeContext.getCurrentEnvironment()));
         verify(membershipService, times(1))
             .addRoleToMemberOnReference(MembershipReferenceType.API, API_ID, MembershipMemberType.USER, user.getId(), "API_OWNER");
         verify(membershipService, never()).transferApiOwnership(any(), any(), any());

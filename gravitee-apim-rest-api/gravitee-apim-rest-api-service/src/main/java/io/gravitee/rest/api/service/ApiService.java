@@ -169,5 +169,4 @@ public interface ApiService {
 
     void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId);
     void createOrUpdateDocumentation(ImportSwaggerDescriptorEntity swaggerDescriptor, ApiEntity api, boolean isForCreation);
-    void createSystemFolder(String apiId);
 }
