@@ -15,15 +15,14 @@
  */
 package io.gravitee.rest.api.service.sanitizer;
 
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
-import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
-import org.apache.commons.text.RandomStringGenerator;
-import org.junit.Test;
-
-import java.util.Collections;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
+import java.util.Collections;
+import org.apache.commons.text.RandomStringGenerator;
+import org.junit.Test;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
