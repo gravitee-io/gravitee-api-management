@@ -8,6 +8,7 @@
 
 # API Management version for docker images pulling
 APIM_VERSION:=nightly
+AE_VERSION:=1.4.0
 
 # Retrieve current file name, must be done before doing "include .env" ...
 makefile := $(MAKEFILE_LIST)
@@ -18,7 +19,7 @@ makefile := $(MAKEFILE_LIST)
 # -----------------------------------------------------------------------------
 
 help: ## Print this message
-	@echo "\033[0;36m Will run by default with 'nightly' images, but you can pass version with: \033[0mmake \033[0;33m{target}\033[0m \033[0mAPIM_VERSION=\033[0;33m{version} \036"
+	@echo "\033[0;36m Will run by default with 'nightly' images, but you can pass version with: \033[0mmake \033[0;33m{target}\033[0m \033[0mAPIM_VERSION=\033[0;33m{version} \033[0mAE_VERSION=\033[0;33m{version} \036"
 	@echo "\033[0;36m Example: \033[0mmake \033[0;33mtags-internal-external\033[0m \033[0mAPIM_VERSION=\033[0;33m3.10.0 \036"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(makefile) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-35s\033[0m %s\n", $$1, $$2}'
 
@@ -47,6 +48,9 @@ mongodb: ## Run API Management with MongoDB as database.
 keycloak: ## Run API Management with MongoDB as database.
 	cd ./quick-setup/keycloak && docker-compose down -v && docker-compose pull && docker-compose up -d
 
+ee-with-alert-engine: ## Run API Management Enterprise Edition with Alert Engine. ⚠️ No nightly image for this for the moment. Do not forget to suffix version with '-ee'.
+	cd ./quick-setup/ee-with-alert-engine && docker-compose down -v && docker-compose pull && docker-compose up -d
+
 start: ## Start a docker-compose based on target. Example: make start TARGET=tags-internal-external. You can use the optional SERVICES to provide the service to start. Example: make start TARGET=tags-internal-external SERVICES=elasticsearch
 ifeq ($(TARGET),)
 	@echo "\033[0;31m ⚠️ Please provide the target you want to start \033[0m"
@@ -72,4 +76,4 @@ else
 endif
 
 .DEFAULT_GOAL := help
-.PHONY: http-bridge, tags-internal-external, redis-rate-limit, opentracing, prometheus, https-gateway, mongodb, keycloak
+.PHONY: http-bridge, tags-internal-external, redis-rate-limit, opentracing, prometheus, https-gateway, mongodb, keycloak, ee-with-alert-engine

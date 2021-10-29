@@ -35,6 +35,7 @@ gravitee-**/node/
 # used in makefile for docker-compose quick setups
 .logs/
 .plugins/
+.license/
 # -- Cicd : Git ignore the [.circleci/**/*] which contains
 # files which do not need to be commited (password to artifactory)
 .circleci/**/*
