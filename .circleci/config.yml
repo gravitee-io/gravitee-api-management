@@ -143,8 +143,13 @@ jobs:
             - run:
                   name: Compute Tag for Docker images
                   command: |
-                      # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
-                      export TAG=$(echo "${APIM_VERSION}-${CIRCLE_BRANCH:0:15}+${CIRCLE_SHA1:0:7}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)
+                      if [[${CIRCLE_BRANCH} =~ ^(\d+\.\d+\.x|master)$ ]];
+                      then
+                        # Compute tag with branch name, commmit SHA and timestamp. Then slugify it to be sure it can be handled by Docker
+                        export TAG=${APIM_VERSION}-$(echo "${CIRCLE_BRANCH:0:15}" | sed -E 's/[~^]+//g' | sed -E 's/[^a-zA-Z0-9]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z)-${CIRCLE_SHA1:0:7}
+                      else
+                        export TAG=${CIRCLE_BRANCH}
+                      fi
                       # Workaround for sharing this variable to the next steps
                       echo "export TAG=$TAG" >> $BASH_ENV
                       echo "Docker images will be tagged with: ${TAG}"
