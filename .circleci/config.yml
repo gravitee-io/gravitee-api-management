@@ -79,6 +79,10 @@ jobs:
         resource_class: small
         steps:
             - checkout
+            - restore_cache:
+                  name: Restore Maven cache for compute-tag job
+                  keys:
+                      - gravitee-api-management-compute-tag-{{ .Branch }}-{{ checksum "pom.xml" }}
             - run:
                   name: Compute APIM Version
                   command: |
@@ -99,6 +103,12 @@ jobs:
                       echo "export TAG=$TAG" >> $BASH_ENV
                       echo "Docker images will be tagged with: ${TAG}"
                       echo $TAG > docker-tag.txt
+            - save_cache:
+                  name: Save Maven cache for compute-tag job
+                  paths:
+                      - ~/.m2
+                  key: gravitee-api-management-compute-tag-{{ .Branch }}-{{ checksum "pom.xml" }}
+                  when: always
             - persist_to_workspace:
                   root: .
                   paths:
