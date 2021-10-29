@@ -39,6 +39,8 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -216,6 +218,29 @@ public class ApiMetadataServiceTest {
 
         verify(metadataRepository).create(newApiMetadata);
         verify(auditService).createApiAuditLog(eq(API_ID), any(), eq(METADATA_CREATED), any(), eq(null), eq(newApiMetadata));
+    }
+
+    @Test
+    public void shouldCreateMany() {
+        final ApiMetadataEntity metadata1 = new ApiMetadataEntity();
+        metadata1.setFormat(MetadataFormat.STRING);
+        metadata1.setName("metadata1");
+        metadata1.setValue("metadata1");
+
+        final ApiMetadataEntity metadata2 = new ApiMetadataEntity();
+        metadata2.setFormat(MetadataFormat.STRING);
+        metadata2.setName("metadata2");
+        metadata2.setValue("metadata2");
+
+        final List<ApiMetadataEntity> created = apiMetadataService.create(List.of(metadata1, metadata2), API_ID);
+
+        Assertions
+            .assertThat(created)
+            .extracting(ApiMetadataEntity::getFormat, ApiMetadataEntity::getName, ApiMetadataEntity::getValue, ApiMetadataEntity::getApiId)
+            .contains(
+                Tuple.tuple(MetadataFormat.STRING, "metadata1", "metadata1", API_ID),
+                Tuple.tuple(MetadataFormat.STRING, "metadata2", "metadata2", API_ID)
+            );
     }
 
     @Test

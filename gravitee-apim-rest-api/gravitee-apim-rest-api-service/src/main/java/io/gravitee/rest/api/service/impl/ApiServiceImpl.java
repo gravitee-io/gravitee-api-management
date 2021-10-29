@@ -274,7 +274,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) throws ApiAlreadyExistsException {
         final ApiEntity createdApi = createFromUpdateApiEntity(swaggerApiEntity, userId, swaggerDescriptor);
 
-        createMetadata(swaggerApiEntity.getMetadata(), createdApi.getId());
+        apiMetadataService.create(swaggerApiEntity.getMetadata(), createdApi.getId());
 
         return createdApi;
     }
@@ -309,25 +309,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         }
 
         return groupEntityStream.map(GroupEntity::getId).collect(Collectors.toSet());
-    }
-
-    @Override
-    public void createMetadata(List<ApiMetadataEntity> apiMetadata, String apiId) {
-        if (apiMetadata != null && !apiMetadata.isEmpty()) {
-            apiMetadata
-                .stream()
-                .map(
-                    data -> {
-                        NewApiMetadataEntity newMD = new NewApiMetadataEntity();
-                        newMD.setFormat(data.getFormat());
-                        newMD.setName(data.getName());
-                        newMD.setValue(data.getValue());
-                        newMD.setApiId(apiId);
-                        return newMD;
-                    }
-                )
-                .forEach(this.apiMetadataService::create);
-        }
     }
 
     @Override

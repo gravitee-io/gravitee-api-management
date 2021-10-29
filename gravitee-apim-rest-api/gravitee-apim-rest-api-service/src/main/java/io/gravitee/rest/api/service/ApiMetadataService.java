@@ -27,6 +27,7 @@ public interface ApiMetadataService {
 
     ApiMetadataEntity findByIdAndApi(String metadataId, String apiId);
 
+    List<ApiMetadataEntity> create(List<ApiMetadataEntity> apiMetadata, String apiId);
     ApiMetadataEntity create(NewApiMetadataEntity metadata);
 
     ApiMetadataEntity update(UpdateApiMetadataEntity metadata);

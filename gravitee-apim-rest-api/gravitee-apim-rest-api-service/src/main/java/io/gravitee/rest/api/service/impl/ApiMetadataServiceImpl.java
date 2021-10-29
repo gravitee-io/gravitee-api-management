@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.MetadataReferenceType.API;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.repository.management.model.MetadataReferenceType;
@@ -24,7 +25,9 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -61,6 +64,28 @@ public class ApiMetadataServiceImpl extends AbstractReferenceMetadataService imp
     public void deleteAllByApi(String apiId) {
         final List<ReferenceMetadataEntity> allMetadata = findAllByReference(API, apiId, false);
         allMetadata.stream().forEach(referenceMetadataEntity -> delete(referenceMetadataEntity.getKey(), API, apiId));
+    }
+
+    @Override
+    public List<ApiMetadataEntity> create(List<ApiMetadataEntity> apiMetadata, String apiId) {
+        if (apiMetadata == null || apiMetadata.isEmpty()) {
+            return emptyList();
+        }
+
+        return apiMetadata
+            .stream()
+            .map(
+                data -> {
+                    NewApiMetadataEntity newMD = new NewApiMetadataEntity();
+                    newMD.setFormat(data.getFormat());
+                    newMD.setName(data.getName());
+                    newMD.setValue(data.getValue());
+                    newMD.setApiId(apiId);
+                    return newMD;
+                }
+            )
+            .map(this::create)
+            .collect(toList());
     }
 
     @Override

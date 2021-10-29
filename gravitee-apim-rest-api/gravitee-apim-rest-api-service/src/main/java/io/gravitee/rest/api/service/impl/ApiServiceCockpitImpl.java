@@ -21,10 +21,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
-import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.ApiServiceCockpit;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
@@ -41,12 +38,20 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     private final ApiService apiService;
     private final SwaggerService swaggerService;
     private final PageService pageService;
+    private final ApiMetadataService apiMetadataService;
 
-    public ApiServiceCockpitImpl(ObjectMapper objectMapper, ApiService apiService, SwaggerService swaggerService, PageService pageService) {
+    public ApiServiceCockpitImpl(
+        ObjectMapper objectMapper,
+        ApiService apiService,
+        SwaggerService swaggerService,
+        PageService pageService,
+        ApiMetadataService apiMetadataService
+    ) {
         this.objectMapper = objectMapper;
         this.apiService = apiService;
         this.swaggerService = swaggerService;
         this.pageService = pageService;
+        this.apiMetadataService = apiMetadataService;
     }
 
     public ApiEntity createOrUpdateFromCockpit(String apiId, String userId, String swaggerDefinition, String environmentId) {
@@ -80,7 +85,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         final ApiEntity createdApi = apiService.createWithApiDefinition(api, userId, apiDefinition);
         pageService.createAsideFolder(apiId, GraviteeContext.getCurrentEnvironment());
         apiService.createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
-        apiService.createMetadata(api.getMetadata(), createdApi.getId());
+        apiMetadataService.create(api.getMetadata(), createdApi.getId());
 
         return createdApi;
     }

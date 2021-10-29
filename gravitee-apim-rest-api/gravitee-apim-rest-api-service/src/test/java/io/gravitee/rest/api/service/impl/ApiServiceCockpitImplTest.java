@@ -32,6 +32,7 @@ import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.SwaggerService;
@@ -69,6 +70,9 @@ public class ApiServiceCockpitImplTest {
     @Mock
     private PageService pageService;
 
+    @Mock
+    private ApiMetadataService apiMetadataService;
+
     private ApiServiceCockpitImpl service;
 
     @Captor
@@ -79,7 +83,7 @@ public class ApiServiceCockpitImplTest {
 
     @Before
     public void setUp() throws Exception {
-        service = new ApiServiceCockpitImpl(new ObjectMapper(), apiService, swaggerService, pageService);
+        service = new ApiServiceCockpitImpl(new ObjectMapper(), apiService, swaggerService, pageService, apiMetadataService);
         PowerMockito.spy(GraviteeContext.class);
     }
 
@@ -115,7 +119,7 @@ public class ApiServiceCockpitImplTest {
 
         verify(pageService).createAsideFolder(API_ID, ENVIRONMENT_ID);
         verify(apiService).createOrUpdateDocumentation(any(ImportSwaggerDescriptorEntity.class), eq(api), eq(true));
-        verify(apiService).createMetadata(same(swaggerApi.getMetadata()), eq(API_ID));
+        verify(apiMetadataService).create(same(swaggerApi.getMetadata()), eq(API_ID));
     }
 
     @Test
