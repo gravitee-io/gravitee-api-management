@@ -37,9 +37,11 @@ export class GioTableWrapperHarness extends ComponentHarness {
 
   private readonly inputSearchSelector = '.gio-table-wrapper__header-bar__search-field ';
   private readonly topPaginatorSelector = '.gio-table-wrapper__header-bar__paginator';
+  private readonly bottomPaginatorSelector = '.gio-table-wrapper__footer-bar__paginator';
 
   protected getInputSearch = this.locatorFor(MatInputHarness.with({ ancestor: this.inputSearchSelector }));
   protected getTopPaginatorButton = this.locatorFor(MatPaginatorHarness.with({ selector: this.topPaginatorSelector }));
+  protected getBottomPaginatorButton = this.locatorFor(MatPaginatorHarness.with({ selector: this.bottomPaginatorSelector }));
 
   async getSearchValue(): Promise<string> {
     const inputSearch = await this.getInputSearch();
@@ -51,7 +53,12 @@ export class GioTableWrapperHarness extends ComponentHarness {
     await inputSearch.setValue(value);
   }
 
-  getPaginator(): Promise<MatPaginatorHarness> {
-    return this.getTopPaginatorButton();
+  getPaginator(zone: 'header' | 'footer' = 'header'): Promise<MatPaginatorHarness | null> {
+    if (zone === 'header') {
+      return this.getTopPaginatorButton();
+    }
+    if (zone === 'footer') {
+      return this.getBottomPaginatorButton();
+    }
   }
 }

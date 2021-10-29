@@ -40,8 +40,6 @@ export interface GioTableWrapperFilters {
     direction: 'asc' | 'desc' | '';
   };
   pagination: {
-    /** The current total number of items being paged (only for display) */
-    length: number;
     /** The pagination index start with 1 */
     index: number;
     /** The pagination size */
@@ -53,7 +51,6 @@ const INITIAL_FILTERS_VALUE: GioTableWrapperFilters = {
   pagination: {
     index: 1,
     size: 10,
-    length: 0,
   },
   searchTerm: '',
 };
@@ -68,6 +65,10 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   // Emit filtersChange on change
   @Input()
   filters: GioTableWrapperFilters = INITIAL_FILTERS_VALUE;
+
+  /** The current total number of items being paged (only for display) */
+  @Input()
+  length = 0;
 
   // Combine the paginator, sort and filter into a single output
   // Alway sent initial filters values
@@ -138,7 +139,6 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
               // paginatorTop is used as master. keep it in sync before
               index: this.paginatorTop.pageIndex + 1,
               size: this.paginatorTop.pageSize,
-              length: this.paginatorTop.length,
             },
           };
           return filters;
@@ -182,10 +182,8 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
     if (this.paginatorTop && this.paginatorBottom && pagination) {
       this.paginatorTop.pageIndex = pagination.index - 1;
       this.paginatorTop.pageSize = pagination.size;
-      this.paginatorTop.length = pagination.length;
       this.paginatorBottom.pageIndex = pagination.index - 1;
       this.paginatorBottom.pageSize = pagination.size;
-      this.paginatorBottom.length = pagination.length;
     }
   }
 

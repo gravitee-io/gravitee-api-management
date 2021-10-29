@@ -42,7 +42,6 @@ describe('gioTableFilterCollection', () => {
     const collectionFilteredPage1 = gioTableFilterCollection(ELEMENT_DATA, {
       pagination: {
         index: 1,
-        length: 10,
         size: 2,
       },
     });
@@ -52,7 +51,6 @@ describe('gioTableFilterCollection', () => {
     const collectionFilteredPage2 = gioTableFilterCollection(ELEMENT_DATA, {
       pagination: {
         index: 2,
-        length: 10,
         size: 2,
       },
     });

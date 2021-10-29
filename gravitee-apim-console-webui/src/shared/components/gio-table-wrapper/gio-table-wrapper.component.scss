@@ -44,6 +44,13 @@ $typography: map.get(gio.$gio-theme, typography);
 
   &__footer-bar {
     background-color: mat.get-color-from-palette($background, 'card');
+    min-height: 12px;
+
+    &__paginator {
+      &.hidden {
+        display: none;
+      }
+    }
   }
 }
 

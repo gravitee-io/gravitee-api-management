@@ -112,6 +112,7 @@
 
     <gio-table-wrapper
       *ngIf="environmentsTableDS && environmentsRolesFormGroup"
+      [length]="environmentsTableDS.length"
       (filtersChange)="onFiltersChanged('environmentsTableDS', $event)"
     >
       <table
@@ -169,7 +170,11 @@
     <h2 gioTableOfContents>Groups</h2>
     <p>You can manage all groups of this user.</p>
 
-    <gio-table-wrapper *ngIf="groupsTableDS && groupsRolesFormGroup" (filtersChange)="onFiltersChanged('groupsTableDS', $event)">
+    <gio-table-wrapper
+      *ngIf="groupsTableDS && groupsRolesFormGroup"
+      [length]="groupsTableDS.length"
+      (filtersChange)="onFiltersChanged('groupsTableDS', $event)"
+    >
       <table
         class="org-settings-user-detail__groups-card__table"
         mat-table
@@ -262,7 +267,7 @@
     <h2 gioTableOfContents>APIs</h2>
     <p>Here is the list of all APIs of this user.</p>
 
-    <gio-table-wrapper *ngIf="apisTableDS" (filtersChange)="onFiltersChanged('apisTableDS', $event)">
+    <gio-table-wrapper *ngIf="apisTableDS" [length]="apisTableDS.length" (filtersChange)="onFiltersChanged('apisTableDS', $event)">
       <table mat-table [dataSource]="apisTableDS" aria-label="APIs table">
         <!-- Name Column -->
         <ng-container matColumnDef="name">
@@ -308,7 +313,11 @@
     <h2 gioTableOfContents>Applications</h2>
     <p>Here is the list of all applications of this user.</p>
 
-    <gio-table-wrapper *ngIf="applicationsTableDS" (filtersChange)="onFiltersChanged('applicationsTableDS', $event)">
+    <gio-table-wrapper
+      *ngIf="applicationsTableDS"
+      [length]="applicationsTableDS.length"
+      (filtersChange)="onFiltersChanged('applicationsTableDS', $event)"
+    >
       <table
         class="org-settings-user-detail__applications-card__table"
         mat-table

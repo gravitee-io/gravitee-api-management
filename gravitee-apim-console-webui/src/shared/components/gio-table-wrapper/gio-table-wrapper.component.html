@@ -26,6 +26,7 @@
   <mat-paginator
     class="gio-table-wrapper__header-bar__paginator"
     #paginatorTop
+    [length]="length"
     [pageSizeOptions]="[5, 10, 25, 100]"
     aria-label="Select page"
   ></mat-paginator>
@@ -36,6 +37,8 @@
   <mat-paginator
     #paginatorBottom
     class="gio-table-wrapper__footer-bar__paginator"
+    [class.hidden]="length <= paginatorBottom.pageSize"
+    [length]="length"
     [hidePageSize]="true"
     aria-label="Select page"
   ></mat-paginator>

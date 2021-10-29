@@ -30,7 +30,7 @@ describe('GioTableWrapperComponent', () => {
   describe('simple usage', () => {
     @Component({
       template: `
-        <gio-table-wrapper [filters]="filters" (filtersChange)="filtersChange($event)">
+        <gio-table-wrapper [length]="length" [filters]="filters" (filtersChange)="filtersChange($event)">
           <table mat-table [dataSource]="dataSource">
             <!-- Name Column -->
             <ng-container matColumnDef="name">
@@ -49,6 +49,7 @@ describe('GioTableWrapperComponent', () => {
       `,
     })
     class TestComponent {
+      length = 0;
       dataSource = [{ name: '🦊' }, { name: '🐙' }, { name: '🐶' }];
       displayedColumns = ['name'];
       filters: GioTableWrapperFilters;
@@ -80,7 +81,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenCalledWith({
         pagination: {
           index: 1,
-          length: 0,
           size: 10,
         },
         searchTerm: '',
@@ -92,11 +92,11 @@ describe('GioTableWrapperComponent', () => {
       component.filters = {
         pagination: {
           index: 2,
-          length: 100,
           size: 25,
         },
         searchTerm: 'fox',
       };
+      component.length = 100;
       fixture.detectChanges();
       const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
 
@@ -104,7 +104,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenCalledWith({
         pagination: {
           index: 2,
-          length: 100,
           size: 25,
         },
         searchTerm: 'fox',
@@ -126,7 +125,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenNthCalledWith(2, {
         pagination: {
           index: 1,
-          length: 0,
           size: 10,
         },
         searchTerm: '',
@@ -135,7 +133,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenNthCalledWith(3, {
         pagination: {
           index: 1,
-          length: 0,
           size: 10,
         },
         searchTerm: 'Fox',
@@ -146,11 +143,11 @@ describe('GioTableWrapperComponent', () => {
       component.filters = {
         pagination: {
           index: 1,
-          length: 100,
           size: 25,
         },
         searchTerm: '',
       };
+      component.length = 100;
       fixture.detectChanges();
       const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
 
@@ -163,7 +160,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenNthCalledWith(2, {
         pagination: {
           index: 2,
-          length: 100,
           size: 25,
         },
         searchTerm: '',
@@ -174,22 +170,36 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenNthCalledWith(3, {
         pagination: {
           index: 6,
-          length: 100,
           size: 5,
         },
         searchTerm: '',
       });
     });
 
+    it('should hide pagination when length < pagination size ', async () => {
+      component.length = 0;
+      component.filters = {
+        pagination: {
+          index: 1,
+          size: 25,
+        },
+        searchTerm: '',
+      };
+      fixture.detectChanges();
+      const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
+
+      expect(await (await (await tableWrapper.getPaginator('footer')).host()).hasClass('hidden')).toBe(true);
+    });
+
     it('should emit and reset pagination when search term change', async () => {
       component.filters = {
         pagination: {
           index: 4,
-          length: 100,
           size: 10,
         },
         searchTerm: 'fox',
       };
+      component.length = 100;
       fixture.detectChanges();
       const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
       const paginator = await tableWrapper.getPaginator();
@@ -201,7 +211,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenNthCalledWith(3, {
         pagination: {
           index: 1,
-          length: 100,
           size: 10,
         },
         searchTerm: 'Fox',
@@ -213,7 +222,7 @@ describe('GioTableWrapperComponent', () => {
   describe('with sort usage', () => {
     @Component({
       template: `
-        <gio-table-wrapper [filters]="filters" (filtersChange)="filtersChange($event)">
+        <gio-table-wrapper [length]="length" [filters]="filters" (filtersChange)="filtersChange($event)">
           <table mat-table [dataSource]="dataSource" matSort>
             <!-- Name Column -->
             <ng-container matColumnDef="name">
@@ -232,6 +241,7 @@ describe('GioTableWrapperComponent', () => {
       `,
     })
     class TestComponentWithSort {
+      length = 100;
       dataSource = [{ name: '🦊' }, { name: '🐙' }, { name: '🐶' }];
       displayedColumns = ['name'];
       filters: GioTableWrapperFilters;
@@ -263,7 +273,6 @@ describe('GioTableWrapperComponent', () => {
       component.filters = {
         pagination: {
           index: 2,
-          length: 100,
           size: 25,
         },
         searchTerm: 'fox',
@@ -277,7 +286,7 @@ describe('GioTableWrapperComponent', () => {
       expect(await (await matSort.getActiveHeader()).getLabel()).toEqual('Name');
 
       expect(component.filtersChange).toHaveBeenNthCalledWith(2, {
-        pagination: { index: 2, size: 25, length: 100 },
+        pagination: { index: 2, size: 25 },
         searchTerm: 'fox',
         sort: {
           active: 'name',
@@ -303,7 +312,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenNthCalledWith(2, {
         pagination: {
           index: 1,
-          length: 0,
           size: 10,
         },
         searchTerm: '',
@@ -317,7 +325,6 @@ describe('GioTableWrapperComponent', () => {
       expect(component.filtersChange).toHaveBeenNthCalledWith(3, {
         pagination: {
           index: 1,
-          length: 0,
           size: 10,
         },
         searchTerm: '',

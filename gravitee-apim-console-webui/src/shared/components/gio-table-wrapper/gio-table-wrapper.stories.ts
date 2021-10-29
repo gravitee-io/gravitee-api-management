@@ -21,7 +21,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { MatCardModule } from '@angular/material/card';
-import { CommonModule } from '@angular/common';
 
 import { GioTableWrapperComponent, GioTableWrapperFilters } from './gio-table-wrapper.component';
 import { GioTableWrapperModule } from './gio-table-wrapper.module';
@@ -71,7 +70,7 @@ export const Default: Story = {
     <ng-template #contentTemplate>
       <h2>The title</h2>
       <p>Some content bla bla bla ...</p>
-      <gio-table-wrapper [filters]="filters" (filtersChange)="filtersChange($event); _filters = $event" >
+      <gio-table-wrapper [length]="length" [filters]="filters" (filtersChange)="filtersChange($event); _filters = $event" >
         <table
           mat-table
           [dataSource]="filterDataSource(_filters)"
@@ -114,6 +113,7 @@ export const Default: Story = {
     `,
     props: {
       insideMatCard: args.insideMatCard,
+      length: args.length,
       filters: {
         ...(args.filterSearchTerm ? { searchTerm: args.filterSearchTerm } : {}),
         ...(args.filterPagination ? { pagination: args.filterPagination } : {}),
@@ -147,8 +147,13 @@ export const Default: Story = {
       defaultValue: {
         index: 1,
         size: 10,
-        length: ELEMENT_DATA.length,
       },
+    },
+    length: {
+      control: {
+        type: 'number',
+      },
+      defaultValue: ELEMENT_DATA.length,
     },
     filterSort: {
       control: {
