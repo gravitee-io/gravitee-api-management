@@ -16,8 +16,11 @@
 package io.gravitee.gateway.flow.condition.evaluation.el;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.el.exceptions.ExpressionEvaluationException;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.flow.condition.ConditionEvaluator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This {@link ConditionEvaluator} evaluates to true if the condition of the flow is evaluated to <code>true</code>.
@@ -27,12 +30,18 @@ import io.gravitee.gateway.flow.condition.ConditionEvaluator;
  */
 public class ExpressionLanguageBasedConditionEvaluator implements ConditionEvaluator {
 
+    private final Logger logger = LoggerFactory.getLogger(ExpressionLanguageBasedConditionEvaluator.class);
+
     @Override
     public boolean evaluate(Flow flow, ExecutionContext context) {
         if (flow.getCondition() != null && !flow.getCondition().isEmpty()) {
-            return context.getTemplateEngine().getValue(flow.getCondition(), Boolean.class);
+            try {
+                return context.getTemplateEngine().getValue(flow.getCondition(), Boolean.class);
+            } catch (ExpressionEvaluationException ex) {
+                logger.warn("EL condition could not be evaluate: {}", ex.getMessage());
+                return false;
+            }
         }
-
         return true;
     }
 }

@@ -41,7 +41,7 @@ public class ExpressionLanguageConditionFlowTest extends AbstractWiremockGateway
         wireMockRule.stubFor(get("/team/my_team").willReturn(ok()));
 
         final HttpResponse response = execute(Request.Get("http://localhost:8082/test/my_team?my-param=value")).returnResponse();
-        assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR_500, response.getStatusLine().getStatusCode());
+        assertEquals(HttpStatusCode.OK_200, response.getStatusLine().getStatusCode());
         wireMockRule.verify(getRequestedFor(urlPathEqualTo("/team/my_team")));
     }
 
