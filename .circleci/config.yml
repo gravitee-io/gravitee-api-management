@@ -304,60 +304,6 @@ jobs:
                   paths:
                       - gravitee-apim-console-webui/dist
 
-    console-webui-build-storybook:
-        executor:
-            name: node-lts
-            class: large
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - run:
-                  name: Build
-                  command: npm run build-storybook
-                  working_directory: gravitee-apim-console-webui
-                  environment:
-                      NODE_OPTIONS: --max_old_space_size=3072
-            - notify-on-failure
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - gravitee-apim-console-webui/storybook-static
-
-    console-webui-chromatic-deployment:
-        executor:
-            class: small
-            name: node-lts
-        steps:
-            - checkout
-            - attach_workspace:
-                  at: .
-            - secrethub/exec:
-                  step-name: Running Chromatic
-                  # TODO:
-                  #  - Handle npx chromatic command failure, make the job fails
-                  #  - Create a new project in Chromatic and update the token
-                  command: |
-                      SB_URL=$(cd gravitee-apim-console-webui && npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --exit-once-uploaded -d=storybook-static | grep -o "View your Storybook at https:\/\/[0-9a-z-]*\.chromatic\.com" | grep -o "https:.*")
-                      echo "export SB_URL=$SB_URL" >> $BASH_ENV
-            - gh/setup
-            - run:
-                  name: Comment Pull Request
-                  command: |
-                      # First check there is an associated pull request, otherwise just stop the job here
-                      if ! gh pr view --json title;
-                      then
-                        echo "No PR found for this branch, stopping the job here."
-                        exit 0
-                      fi
-
-                      gh pr comment --body "**Gravitee.io Automatic Deployment**
-
-                      📚 View the storybook of this branch [here](${SB_URL})
-                      "
-            - notify-on-failure
-
-
     console-webui-deploy-on-azure-storage:
         docker:
             - image: mcr.microsoft.com/azure-cli:latest
@@ -687,9 +633,6 @@ workflows:
             - console-webui-build:
                   requires:
                       - console-webui-install
-            - console-webui-build-storybook:
-                  requires:
-                      - console-webui-install
             - console-webui-deploy-on-azure-storage:
                   context: cicd-orchestrator
                   pre-steps:
@@ -712,14 +655,6 @@ workflows:
                             var-name: GITHUB_TOKEN
                   requires:
                       - console-webui-deploy-on-azure-storage
-            - console-webui-chromatic-deployment:
-                  context: cicd-orchestrator
-                  requires:
-                      - console-webui-build-storybook
-                  pre-steps:
-                      - secrethub/env-export:
-                            secret-path: graviteeio/cicd/graviteebot/github_personal_access_token
-                            var-name: GITHUB_TOKEN
             - console-webui-publish-images-azure-registry:
                   context: cicd-orchestrator
                   pre-steps:
