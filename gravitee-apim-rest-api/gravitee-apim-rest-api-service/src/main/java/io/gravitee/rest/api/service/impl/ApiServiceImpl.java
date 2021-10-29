@@ -19,7 +19,6 @@ import static io.gravitee.repository.management.model.Api.AuditEvent.*;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
-import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
@@ -68,7 +67,6 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
-import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.notification.GenericNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -493,56 +491,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     ) {
         final ApiEntity createdApi = this.createWithApiDefinition(apiEntity, userId, null);
         pageService.createAsideFolder(createdApi.getId(), GraviteeContext.getCurrentEnvironment());
-        createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
+        pageService.createOrUpdateSwaggerPage(createdApi.getId(), swaggerDescriptor, true);
         return createdApi;
-    }
-
-    @Override
-    public void createOrUpdateDocumentation(
-        final ImportSwaggerDescriptorEntity swaggerDescriptor,
-        final ApiEntity api,
-        boolean isForCreation
-    ) {
-        if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
-            List<PageEntity> apiDocs = pageService.search(
-                new PageQuery.Builder().api(api.getId()).type(PageType.SWAGGER).build(),
-                GraviteeContext.getCurrentEnvironment()
-            );
-
-            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
-                final NewPageEntity page = new NewPageEntity();
-                page.setName("Swagger");
-                page.setType(SWAGGER);
-                page.setOrder(1);
-                if (INLINE.equals(swaggerDescriptor.getType())) {
-                    page.setContent(swaggerDescriptor.getPayload());
-                } else {
-                    final PageSourceEntity source = new PageSourceEntity();
-                    page.setSource(source);
-                    source.setType("http-fetcher");
-                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
-                }
-                pageService.createPage(api.getId(), page, GraviteeContext.getCurrentEnvironment());
-            } else if (apiDocs.size() == 1) {
-                PageEntity pageToUpdate = apiDocs.get(0);
-                final UpdatePageEntity page = new UpdatePageEntity();
-                page.setName(pageToUpdate.getName());
-                page.setOrder(pageToUpdate.getOrder());
-                page.setHomepage(pageToUpdate.isHomepage());
-                page.setPublished(pageToUpdate.isPublished());
-                page.setParentId(pageToUpdate.getParentId());
-                page.setConfiguration(pageToUpdate.getConfiguration());
-                if (INLINE.equals(swaggerDescriptor.getType())) {
-                    page.setContent(swaggerDescriptor.getPayload());
-                } else {
-                    final PageSourceEntity source = new PageSourceEntity();
-                    page.setSource(source);
-                    source.setType("http-fetcher");
-                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
-                }
-                pageService.update(pageToUpdate.getId(), page);
-            }
-        }
     }
 
     public PrimaryOwnerEntity findPrimaryOwner(JsonNode apiDefinition, String userId) {
@@ -1257,7 +1207,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
         }
 
-        createOrUpdateDocumentation(swaggerDescriptor, apiEntityToUpdate, false);
+        pageService.createOrUpdateSwaggerPage(apiEntityToUpdate.getId(), swaggerDescriptor, false);
 
         final ApiEntity updatedApi = update(apiId, updateApiEntity);
 

@@ -118,7 +118,7 @@ public class ApiServiceCockpitImplTest {
         assertThat(apiDefinitionCaptor.getValue().get("id")).isEqualTo(new JsonNodeFactory(false).textNode(API_ID));
 
         verify(pageService).createAsideFolder(API_ID, ENVIRONMENT_ID);
-        verify(apiService).createOrUpdateDocumentation(any(ImportSwaggerDescriptorEntity.class), eq(api), eq(true));
+        verify(pageService).createOrUpdateSwaggerPage(eq(API_ID), any(ImportSwaggerDescriptorEntity.class), eq(true));
         verify(apiMetadataService).create(same(swaggerApi.getMetadata()), eq(API_ID));
     }
 

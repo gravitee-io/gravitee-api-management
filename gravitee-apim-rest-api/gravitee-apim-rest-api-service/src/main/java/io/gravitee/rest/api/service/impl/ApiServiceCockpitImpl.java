@@ -23,7 +23,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.SwaggerApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -84,7 +83,7 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
 
         final ApiEntity createdApi = apiService.createWithApiDefinition(api, userId, apiDefinition);
         pageService.createAsideFolder(apiId, GraviteeContext.getCurrentEnvironment());
-        apiService.createOrUpdateDocumentation(swaggerDescriptor, createdApi, true);
+        pageService.createOrUpdateSwaggerPage(apiId, swaggerDescriptor, true);
         apiMetadataService.create(api.getMetadata(), createdApi.getId());
 
         return createdApi;

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import java.util.List;
@@ -87,6 +88,8 @@ public interface PageService {
     PageEntity createWithDefinition(String apiId, String toString, String environmentId);
 
     void createOrUpdatePages(List<PageEntity> pages, String environmentId, String apiId);
+
+    void createOrUpdateSwaggerPage(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor, boolean isForCreation);
 
     void duplicatePages(List<PageEntity> pages, String environmentId, String apiId);
 

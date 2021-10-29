@@ -166,6 +166,4 @@ public interface ApiService {
     void removeGroup(String api, String group);
 
     void checkPolicyConfigurations(Map<String, List<Rule>> paths, List<Flow> flows, List<Plan> plans);
-
-    void createOrUpdateDocumentation(ImportSwaggerDescriptorEntity swaggerDescriptor, ApiEntity api, boolean isForCreation);
 }

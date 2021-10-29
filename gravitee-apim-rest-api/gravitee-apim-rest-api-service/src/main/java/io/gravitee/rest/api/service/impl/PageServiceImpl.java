@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE;
 import static io.gravitee.repository.management.model.Page.AuditEvent.*;
+import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
+import static io.gravitee.rest.api.model.PageType.SWAGGER;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
@@ -45,6 +47,7 @@ import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
@@ -2547,6 +2550,48 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         final PageServiceImpl.PageEntityTreeNode pageEntityTreeNode = new PageServiceImpl.PageEntityTreeNode(new PageEntity());
         pageEntityTreeNode.appendListToTree(pages);
         createOrUpdateChildrenPages(apiId, null, pageEntityTreeNode.children, environmentId);
+    }
+
+    @Override
+    public void createOrUpdateSwaggerPage(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor, boolean isForCreation) {
+        if (swaggerDescriptor != null && swaggerDescriptor.isWithDocumentation()) {
+            List<PageEntity> apiDocs =
+                this.search(new PageQuery.Builder().api(apiId).type(PageType.SWAGGER).build(), GraviteeContext.getCurrentEnvironment());
+
+            if (isForCreation || (apiDocs == null || apiDocs.isEmpty())) {
+                final NewPageEntity page = new NewPageEntity();
+                page.setName("Swagger");
+                page.setType(SWAGGER);
+                page.setOrder(1);
+                if (INLINE.equals(swaggerDescriptor.getType())) {
+                    page.setContent(swaggerDescriptor.getPayload());
+                } else {
+                    final PageSourceEntity source = new PageSourceEntity();
+                    page.setSource(source);
+                    source.setType("http-fetcher");
+                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
+                }
+                this.createPage(apiId, page, GraviteeContext.getCurrentEnvironment());
+            } else if (apiDocs.size() == 1) {
+                PageEntity pageToUpdate = apiDocs.get(0);
+                final UpdatePageEntity page = new UpdatePageEntity();
+                page.setName(pageToUpdate.getName());
+                page.setOrder(pageToUpdate.getOrder());
+                page.setHomepage(pageToUpdate.isHomepage());
+                page.setPublished(pageToUpdate.isPublished());
+                page.setParentId(pageToUpdate.getParentId());
+                page.setConfiguration(pageToUpdate.getConfiguration());
+                if (INLINE.equals(swaggerDescriptor.getType())) {
+                    page.setContent(swaggerDescriptor.getPayload());
+                } else {
+                    final PageSourceEntity source = new PageSourceEntity();
+                    page.setSource(source);
+                    source.setType("http-fetcher");
+                    source.setConfiguration(objectMapper.convertValue(singletonMap("url", swaggerDescriptor.getPayload()), JsonNode.class));
+                }
+                this.update(pageToUpdate.getId(), page);
+            }
+        }
     }
 
     @Override
