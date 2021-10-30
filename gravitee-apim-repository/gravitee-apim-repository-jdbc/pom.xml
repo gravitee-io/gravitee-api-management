@@ -41,7 +41,7 @@
         <postgresql.version>42.2.16</postgresql.version>
         <postgresql-embedded.version>2.10</postgresql-embedded.version>
         <testcontainers.version>1.15.3</testcontainers.version>
-        <wix-embedded-mysql.version>4.6.0</wix-embedded-mysql.version>
+        <wix-embedded-mysql.version>4.6.1</wix-embedded-mysql.version>
 
         <!-- Plugin configuration -->
         <default-database.jdbcType>postgresql-te</default-database.jdbcType>
