@@ -21,14 +21,15 @@ import static org.junit.Assert.assertEquals;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.standalone.AbstractWiremockGatewayTest;
 import io.gravitee.gateway.standalone.junit.annotation.ApiDescriptor;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import java.util.concurrent.*;
-import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,6 +37,8 @@ import org.junit.Test;
  */
 @ApiDescriptor("/io/gravitee/gateway/standalone/http/teams.json")
 public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest {
+
+    private final Logger logger = LoggerFactory.getLogger(ParallelizedRequestsGatewayTest.class);
 
     private final int NUMBER_OF_CLIENTS = 10;
     private final int NUMBER_OF_REQUESTS = 1000;
@@ -55,29 +58,22 @@ public class ParallelizedRequestsGatewayTest extends AbstractWiremockGatewayTest
             for (int i = 0; i < NUMBER_OF_REQUESTS; i++) {
                 client.request(
                     new RequestOptions().setAbsoluteURI("http://localhost:8082/test/my_team").setMethod(HttpMethod.GET),
-                    new Handler<AsyncResult<HttpClientRequest>>() {
-                        @Override
-                        public void handle(AsyncResult<HttpClientRequest> httpClientRequestEvt) {
-                            if (httpClientRequestEvt.succeeded()) {
-                                httpClientRequestEvt
-                                    .result()
-                                    .send(
-                                        new Handler<AsyncResult<HttpClientResponse>>() {
-                                            @Override
-                                            public void handle(AsyncResult<HttpClientResponse> httpClientResponseEvt) {
-                                                if (httpClientResponseEvt.succeeded()) {
-                                                    assertEquals(HttpStatusCode.OK_200, httpClientResponseEvt.result().statusCode());
-                                                } else {
-                                                    Assert.fail();
-                                                }
-                                            }
+                    httpClientRequestEvt -> {
+                        if (httpClientRequestEvt.succeeded()) {
+                            httpClientRequestEvt
+                                .result()
+                                .send(
+                                    httpClientResponseEvt -> {
+                                        if (httpClientResponseEvt.succeeded()) {
+                                            assertEquals(HttpStatusCode.OK_200, httpClientResponseEvt.result().statusCode());
+                                            latch.countDown(); // We count down only when we are sure the response has been received.
+                                        } else {
+                                            logger.error("An error occurred during client response", httpClientResponseEvt.cause());
                                         }
-                                    );
-                            } else {
-                                Assert.fail();
-                            }
-
-                            latch.countDown();
+                                    }
+                                );
+                        } else {
+                            logger.error("An error occurred during client request", httpClientRequestEvt.cause());
                         }
                     }
                 );
