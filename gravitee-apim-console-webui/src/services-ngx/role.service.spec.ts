@@ -51,6 +51,90 @@ describe('RoleService', () => {
     });
   });
 
+  describe('getPermissionsByScopes', () => {
+    it('should call the API', (done) => {
+      const scopes: Record<'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION', string[]> = {
+        ORGANIZATION: [
+          'CUSTOM_USER_FIELDS',
+          'ENTRYPOINT',
+          'ENVIRONMENT',
+          'IDENTITY_PROVIDER',
+          'IDENTITY_PROVIDER_ACTIVATION',
+          'INSTALLATION',
+          'NOTIFICATION_TEMPLATES',
+          'POLICIES',
+          'ROLE',
+          'SETTINGS',
+          'TAG',
+          'TENANT',
+          'USER',
+        ],
+        ENVIRONMENT: [
+          'ALERT',
+          'API',
+          'API_HEADER',
+          'APPLICATION',
+          'AUDIT',
+          'CATEGORY',
+          'CLIENT_REGISTRATION_PROVIDER',
+          'DASHBOARD',
+          'DICTIONARY',
+          'DOCUMENTATION',
+          'ENTRYPOINT',
+          'GROUP',
+          'IDENTITY_PROVIDER_ACTIVATION',
+          'INSTANCE',
+          'MESSAGE',
+          'METADATA',
+          'NOTIFICATION',
+          'PLATFORM',
+          'QUALITY_RULE',
+          'SETTINGS',
+          'TAG',
+          'TENANT',
+          'THEME',
+          'TOP_APIS',
+        ],
+        API: [
+          'ALERT',
+          'ANALYTICS',
+          'AUDIT',
+          'DEFINITION',
+          'DISCOVERY',
+          'DOCUMENTATION',
+          'EVENT',
+          'GATEWAY_DEFINITION',
+          'HEALTH',
+          'LOG',
+          'MEMBER',
+          'MESSAGE',
+          'METADATA',
+          'NOTIFICATION',
+          'PLAN',
+          'QUALITY_RULE',
+          'RATING',
+          'RATING_ANSWER',
+          'RESPONSE_TEMPLATES',
+          'REVIEWS',
+          'SUBSCRIPTION',
+        ],
+        APPLICATION: ['ALERT', 'ANALYTICS', 'DEFINITION', 'LOG', 'MEMBER', 'METADATA', 'NOTIFICATION', 'SUBSCRIPTION'],
+      };
+
+      roleService.getPermissionsByScopes().subscribe((response) => {
+        expect(response).toStrictEqual(scopes);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes`,
+        })
+        .flush(scopes);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

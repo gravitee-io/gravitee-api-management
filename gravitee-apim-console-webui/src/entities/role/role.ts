@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export type RoleScope = 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM';
 
 export interface Role {
   id: string;
   name?: string;
   description?: string;
-  scope?: 'MANAGEMENT' | 'PORTAL' | 'API' | 'APPLICATION' | 'GROUP' | string;
+  scope?: RoleScope;
   system?: boolean;
   permissions?: Record<string, string[]>;
   default?: boolean;

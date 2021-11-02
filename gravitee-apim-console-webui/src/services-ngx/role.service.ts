@@ -20,7 +20,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
-import { Role } from '../entities/role/role';
+import { Role, RoleScope } from '../entities/role/role';
 
 @Injectable({
   providedIn: 'root',
@@ -29,10 +29,12 @@ export class RoleService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   list(scope: string): Observable<Role[]> {
-    return this.http.get<Role[]>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles`).pipe(
-      map((roles) => {
-        return roles.map((role: any) => ({ ...role, scope: toUpper(role.scope) }));
-      }),
-    );
+    return this.http
+      .get<Role[]>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles`)
+      .pipe(map((roles) => roles.map((role) => ({ ...role, scope: toUpper(role.scope) as RoleScope }))));
+  }
+
+  getPermissionsByScopes(): Observable<Record<Extract<RoleScope, 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION'>, string[]>> {
+    return this.http.get<Record<string, string[]>>(`${this.constants.org.baseURL}/configuration/rolescopes`);
   }
 }
