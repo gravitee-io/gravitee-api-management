@@ -27,6 +27,7 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { Tenant } from '../../../entities/tenant/tenant';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'org-settings-tenants',
@@ -82,8 +83,27 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
       .subscribe(() => this.ngOnInit());
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
-  onDeleteTenantClicked(element: any) {}
+  onDeleteTenantClicked(tenant: Tenant) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: '450px',
+        data: {
+          title: 'Delete a tenant',
+          content: `Are you sure you want to remove the tenant <strong>${tenant.name}</strong>?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'deleteIdentityProviderConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.tenantService.delete(tenant.id)),
+        tap(() => this.snackBarService.success(`Tenant successfully deleted!`)),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   onEditTenantClicked(tenant: Tenant) {
     this.matDialog

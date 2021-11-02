@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatCellHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { OrgSettingsTenantsComponent } from './org-settings-tenants.component';
 
@@ -53,6 +54,10 @@ describe('OrgSettingsTenantsComponent', () => {
           useValue: { currentUser },
         },
       ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsTenantsComponent);
@@ -175,6 +180,28 @@ describe('OrgSettingsTenantsComponent', () => {
     ];
     req.flush(serverResponse);
     respondToGetTenants(serverResponse);
+  });
+
+  it('should delete a tenant', async () => {
+    currentUser.userPermissions = ['organization-tenant-d'];
+    respondToGetTenants([fakeTenant({ id: 'tenant-1', name: 'Tenant 1', description: 'Tenant 1 description' })]);
+
+    fixture.detectChanges();
+
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tenant"]' }));
+    await deleteButton.click();
+
+    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+    await confirmDialogButton.click();
+
+    httpTestingController
+      .expectOne({
+        method: 'DELETE',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tenants/tenant-1`,
+      })
+      .flush({ status: 204 });
+
+    respondToGetTenants([]);
   });
 
   afterEach(() => {
