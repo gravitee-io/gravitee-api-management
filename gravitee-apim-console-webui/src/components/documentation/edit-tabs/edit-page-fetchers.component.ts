@@ -37,7 +37,7 @@ class EditPageFetchersComponentController implements IController {
   }
 
   $onInit() {
-    const fetcher = this.fetchers.find(f => f.id === this.page?.source?.type);
+    const fetcher = this.fetchers.find((f) => f.id === this.page?.source?.type);
     this.$scope.fetcherJsonSchema = angular.fromJson(fetcher?.schema) || emptyFetcher;
     this.fetcherJsonSchemaForm = ['*'];
   }
