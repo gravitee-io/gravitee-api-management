@@ -83,10 +83,10 @@
     "@angular-devkit/architect": "0.1202.3",
     "@angular-devkit/build-angular": "12.2.3",
     "@angular/compiler-cli": "12.2.3",
-    "@babel/core": "7.15.8",
-    "@babel/preset-env": "7.15.8",
-    "@storybook/addon-essentials": "6.4.0-beta.20",
-    "@storybook/angular": "6.4.0-beta.20",
+    "@babel/core": "7.16.0",
+    "@babel/preset-env": "7.16.0",
+    "@storybook/addon-essentials": "6.4.0-beta.25",
+    "@storybook/angular": "6.4.0-beta.25",
     "@types/angular": "1.8.3",
     "@types/angular-local-storage": "0.7.0",
     "@types/angular-material": "1.1.73",
@@ -102,7 +102,7 @@
     "babel-core": "6.26.3",
     "babel-jest": "27.3.1",
     "babel-loader": "7.1.5",
-    "chromatic": "6.0.4",
+    "chromatic": "6.0.5",
     "clean-webpack-plugin": "3.0.0",
     "compression": "1.7.4",
     "copy-webpack-plugin": "6.4.1",
@@ -121,7 +121,7 @@
     "ignore-loader": "0.1.2",
     "jest": "27.3.1",
     "jest-preset-angular": "10.1.0",
-    "license-check-and-add": "4.0.2",
+    "license-check-and-add": "4.0.3",
     "mini-css-extract-plugin": "1.6.2",
     "ng-annotate-loader": "0.7.0",
     "prettier": "2.4.1",
@@ -136,7 +136,7 @@
     "url-loader": "1.1.2",
     "webpack": "4.46.0",
     "webpack-cli": "4.9.1",
-    "webpack-dev-server": "4.3.1"
+    "webpack-dev-server": "4.4.0"
   },
   "engines": {
     "node": ">=14.15"
