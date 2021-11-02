@@ -15,13 +15,18 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
+import { EMPTY, Subject } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+
+import { OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData } from './org-settings-add-tenant.component';
 
 import { TenantService } from '../../../services-ngx/tenant.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { Tenant } from '../../../entities/tenant/tenant';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'org-settings-tenants',
@@ -35,7 +40,11 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
   private tenants: Tenant[] = [];
 
-  constructor(private readonly tenantService: TenantService) {}
+  constructor(
+    private readonly tenantService: TenantService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit(): void {
     this.tenantService.list().subscribe((tenants) => {
@@ -49,14 +58,58 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onAddTenantClicked(): void {}
+  onAddTenantClicked(): void {
+    this.matDialog
+      .open<OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData, Tenant>(OrgSettingAddTenantComponent, {
+        width: '450px',
+        data: {},
+        role: 'dialog',
+        id: 'addTenantDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((result) => !!result),
+        switchMap((newTenant) => this.tenantService.create([newTenant])),
+        tap(() => {
+          this.snackBarService.success('Tenant successfully created!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
   onDeleteTenantClicked(element: any) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
-  onEditTenantClicked(element: any) {}
+  onEditTenantClicked(tenant: Tenant) {
+    this.matDialog
+      .open<OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData, Tenant>(OrgSettingAddTenantComponent, {
+        width: '450px',
+        data: {
+          tenant,
+        },
+        role: 'dialog',
+        id: 'editTenantDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((result) => !!result),
+        switchMap((updatedTenant) => this.tenantService.update([updatedTenant])),
+        tap(() => {
+          this.snackBarService.success('Tenant successfully updated!');
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
     this.tenantsDataSource.data = gioTableFilterCollection(this.tenants, filters);
