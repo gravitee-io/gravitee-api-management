@@ -52,7 +52,7 @@
         {
             "matchDepTypes": ["devDependencies"],
             "matchUpdateTypes": ["patch", "minor"],
-            "excludePackagePatterns": ["typescript"],
+            "excludePackagePatterns": ["typescript", "@angular*"],
             "groupName": "devDependencies (non-major)",
             "groupSlug": "devdependencies-non-major"
         }
