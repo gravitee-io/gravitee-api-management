@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { cloneDeep, sortBy, toString } from 'lodash';
+import { cloneDeep, orderBy, toString } from 'lodash';
 
 import { GioTableWrapperFilters } from './gio-table-wrapper.component';
 
@@ -43,11 +43,8 @@ export const gioTableFilterCollection = <T>(
   }
 
   if (filters?.sort) {
-    sortedCollection = sortBy(sortedCollection, filters.sort.active);
-
-    if (filters.sort.direction === 'desc') {
-      sortedCollection = sortedCollection.reverse();
-    }
+    const sortDirection = filters.sort.direction === '' ? 'asc' : filters.sort.direction;
+    sortedCollection = orderBy(sortedCollection, filters.sort.active, sortDirection);
   }
 
   return sortedCollection;
