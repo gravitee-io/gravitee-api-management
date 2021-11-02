@@ -21,7 +21,7 @@
       <md-tab-label><ng-md-icon icon="home" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> Home</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>
-    <md-tab ui-sref="management.dashboard.apis-status">
+    <md-tab ui-sref="management.dashboard.apis-status" ng-if="$ctrl.canViewApiStatus">
       <md-tab-label><ng-md-icon icon="favorite" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> APIs Status</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>
@@ -29,7 +29,7 @@
       <md-tab-label><ng-md-icon icon="insert_chart" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> Analytics</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>
-    <md-tab ng-if="$ctrl.alertsEnabled" ui-sref="management.dashboard.alerts">
+    <md-tab ng-if="$ctrl.canViewAlerts" ui-sref="management.dashboard.alerts">
       <md-tab-label><ng-md-icon icon="alarm" style="fill: var(--gv-theme-color-darker)"></ng-md-icon> Alerts</md-tab-label>
       <md-tab-body></md-tab-body>
     </md-tab>

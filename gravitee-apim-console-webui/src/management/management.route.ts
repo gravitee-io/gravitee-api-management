@@ -69,7 +69,12 @@ function managementRouterConfig($stateProvider) {
       controller: 'ApisStatusDashboardController',
       controllerAs: '$ctrl',
       resolve: {
-        apis: (ApiService: ApiService) => ApiService.list().then((response) => response.data),
+        apis: (ApiService: ApiService, Constants, $state: StateParams) => {
+          if (Constants.env.settings.dashboards.apiStatus.enabled) {
+            return ApiService.list().then((response) => response.data);
+          }
+          return $state.go('management.dashboard.home');
+        },
       },
       data: {
         docs: {

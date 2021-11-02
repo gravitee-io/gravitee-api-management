@@ -17,25 +17,31 @@ import { StateService } from '@uirouter/core';
 import UserService from '../../services/user.service';
 
 class DashboardController {
-  canViewAnalytics: boolean;
-  private selectedIndex;
-  private alertsEnabled;
+  private canViewAnalytics: boolean;
+  private canViewApiStatus: boolean;
+  private selectedIndex: number;
+  private canViewAlerts: boolean;
 
   constructor(private $state: StateService, private UserService: UserService, private Constants) {
     'ngInject';
+  }
 
-    this.alertsEnabled = Constants.org.settings.alert.enabled && UserService.isUserHasPermissions(['environment-alert-r']);
-    if (this.$state.is('management.dashboard.alerts')) {
-      this.selectedIndex = 3;
-    } else if (this.$state.is('management.dashboard.analytics')) {
-      this.selectedIndex = 2;
-    } else if (this.$state.is('management.dashboard.apis-status')) {
-      this.selectedIndex = 1;
-    } else {
-      this.selectedIndex = 0;
+  $onInit() {
+    const tabs = ['management.dashboard.home'];
+    this.canViewApiStatus = this.Constants.env.settings.dashboards.apiStatus.enabled;
+    this.canViewAnalytics = this.UserService.isUserHasAllPermissions(['environment-platform-r']);
+    this.canViewAlerts = this.Constants.org.settings.alert.enabled && this.UserService.isUserHasPermissions(['environment-alert-r']);
+    if (this.canViewApiStatus) {
+      tabs.push('management.dashboard.apis-status');
     }
-
-    this.canViewAnalytics = UserService.isUserHasAllPermissions(['environment-platform-r']);
+    if (this.canViewAnalytics) {
+      tabs.push('management.dashboard.analytics');
+    }
+    if (this.canViewAlerts) {
+      tabs.push('management.dashboard.alerts');
+    }
+    const candidateIndex = tabs.findIndex((tab) => this.$state.is(tab));
+    this.selectedIndex = candidateIndex > -1 ? candidateIndex : 0;
   }
 }
 
