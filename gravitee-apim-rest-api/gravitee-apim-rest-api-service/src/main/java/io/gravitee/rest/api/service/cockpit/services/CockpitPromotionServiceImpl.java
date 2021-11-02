@@ -35,18 +35,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CockpitServiceImpl implements CockpitService {
+public class CockpitPromotionServiceImpl implements CockpitPromotionService {
 
     /**
      * Logger.
      */
-    private final Logger logger = LoggerFactory.getLogger(CockpitServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(CockpitPromotionServiceImpl.class);
 
     private final BridgeCommandFactory bridgeCommandFactory;
     private final CockpitCommandService cockpitCommandService;
     private final ObjectMapper objectMapper;
 
-    public CockpitServiceImpl(
+    public CockpitPromotionServiceImpl(
         BridgeCommandFactory bridgeCommandFactory,
         CockpitCommandService cockpitCommandService,
         ObjectMapper objectMapper

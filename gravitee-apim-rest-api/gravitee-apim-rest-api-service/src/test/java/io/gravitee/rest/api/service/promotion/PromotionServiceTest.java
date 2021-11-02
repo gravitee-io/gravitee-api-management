@@ -36,8 +36,7 @@ import io.gravitee.rest.api.model.promotion.*;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
-import io.gravitee.rest.api.service.cockpit.services.CockpitService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
 import java.util.Arrays;
@@ -67,7 +66,7 @@ public class PromotionServiceTest {
     private PromotionService promotionService;
 
     @Mock
-    private CockpitService cockpitService;
+    private CockpitPromotionService cockpitPromotionService;
 
     @Mock
     private EnvironmentService environmentService;
@@ -96,7 +95,7 @@ public class PromotionServiceTest {
             new PromotionServiceImpl(
                 apiService,
                 apiDuplicatorService,
-                cockpitService,
+                    cockpitPromotionService,
                 promotionRepository,
                 environmentService,
                 userService,
@@ -108,7 +107,7 @@ public class PromotionServiceTest {
     @Test(expected = BridgeOperationException.class)
     public void shouldFailToListPromotionTargets() {
         // Given
-        when(cockpitService.listPromotionTargets(ORGANIZATION_ID))
+        when(cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID))
             .thenReturn(new CockpitReply<>(Collections.emptyList(), CockpitReplyStatus.ERROR));
 
         // When
@@ -139,7 +138,7 @@ public class PromotionServiceTest {
         currentEnv.setName("My Environment");
         currentEnv.setInstallationId(INSTALLATION_ID);
 
-        when(cockpitService.listPromotionTargets(ORGANIZATION_ID))
+        when(cockpitPromotionService.listPromotionTargets(ORGANIZATION_ID))
             .thenReturn(new CockpitReply<>(Arrays.asList(envA, envB, currentEnv), CockpitReplyStatus.SUCCEEDED));
 
         EnvironmentEntity environmentEntity = new EnvironmentEntity();
@@ -210,7 +209,7 @@ public class PromotionServiceTest {
         when(apiDuplicatorService.createWithImportedDefinition(any(), any(), any(), any())).thenReturn(new ApiEntity());
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
@@ -237,7 +236,7 @@ public class PromotionServiceTest {
         when(apiService.findById(any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
@@ -256,7 +255,7 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.SUCCEEDED);
-        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
 
         when(promotionRepository.update(any())).thenReturn(getAPromotion());
 
@@ -304,7 +303,7 @@ public class PromotionServiceTest {
         when(apiService.findById(any())).thenReturn(existingApi);
 
         CockpitReply<PromotionEntity> cockpitReply = new CockpitReply<>(null, CockpitReplyStatus.ERROR);
-        when(cockpitService.processPromotion(any())).thenReturn(cockpitReply);
+        when(cockpitPromotionService.processPromotion(any())).thenReturn(cockpitReply);
 
         promotionService.processPromotion(PROMOTION_ID, true, USER_ID);
 
@@ -324,7 +323,7 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(promotionRepository.create(any())).thenReturn(getAPromotion());
-        when(cockpitService.requestPromotion(any())).thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
+        when(cockpitPromotionService.requestPromotion(any())).thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
 
         when(promotionRepository.update(any())).thenReturn(mock(Promotion.class));
 

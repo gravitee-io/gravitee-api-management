@@ -22,7 +22,7 @@ import java.util.List;
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  */
-public interface CockpitService {
+public interface CockpitPromotionService {
     CockpitReply<List<PromotionTargetEntity>> listPromotionTargets(String organizationId);
     CockpitReply<PromotionEntity> requestPromotion(PromotionEntity promotionEntity);
     CockpitReply<PromotionEntity> processPromotion(PromotionEntity promotionEntity);

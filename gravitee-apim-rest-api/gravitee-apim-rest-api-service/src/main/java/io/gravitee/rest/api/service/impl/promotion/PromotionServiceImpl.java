@@ -43,7 +43,7 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
-import io.gravitee.rest.api.service.cockpit.services.CockpitService;
+import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -72,7 +72,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
     private final ApiService apiService;
     private final ApiDuplicatorService apiDuplicatorService;
-    private final CockpitService cockpitService;
+    private final CockpitPromotionService cockpitPromotionService;
     private final PromotionRepository promotionRepository;
     private final EnvironmentService environmentService;
     private final UserService userService;
@@ -82,7 +82,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public PromotionServiceImpl(
         ApiService apiService,
         ApiDuplicatorService apiDuplicatorService,
-        CockpitService cockpitService,
+        CockpitPromotionService cockpitPromotionService,
         PromotionRepository promotionRepository,
         EnvironmentService environmentService,
         UserService userService,
@@ -91,7 +91,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     ) {
         this.apiService = apiService;
         this.apiDuplicatorService = apiDuplicatorService;
-        this.cockpitService = cockpitService;
+        this.cockpitPromotionService = cockpitPromotionService;
         this.promotionRepository = promotionRepository;
         this.environmentService = environmentService;
         this.userService = userService;
@@ -103,7 +103,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId) {
         EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
 
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = this.cockpitService.listPromotionTargets(organizationId);
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = this.cockpitPromotionService.listPromotionTargets(organizationId);
         if (listCockpitReply.getStatus() == CockpitReplyStatus.SUCCEEDED) {
             return listCockpitReply
                 .getReply()
@@ -164,7 +164,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
         }
 
         PromotionEntity promotionEntity = convert(createdPromotion);
-        CockpitReply<PromotionEntity> cockpitReply = cockpitService.requestPromotion(promotionEntity);
+        CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.requestPromotion(promotionEntity);
 
         promotionEntity.setStatus(
             cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED ? PromotionEntityStatus.ERROR : PromotionEntityStatus.TO_BE_VALIDATED
@@ -291,7 +291,7 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
 
             final PromotionEntity promotionEntity = convert(existing);
 
-            final CockpitReply<PromotionEntity> cockpitReply = cockpitService.processPromotion(promotionEntity);
+            final CockpitReply<PromotionEntity> cockpitReply = cockpitPromotionService.processPromotion(promotionEntity);
 
             if (cockpitReply.getStatus() != CockpitReplyStatus.SUCCEEDED) {
                 throw new BridgeOperationException(BridgeOperation.PROMOTE_API);
