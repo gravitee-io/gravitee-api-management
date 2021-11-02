@@ -24,11 +24,12 @@ import io.gravitee.cockpit.api.command.designer.DeployModelReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.ApiServiceCockpit;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.reactivex.Single;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -42,12 +43,19 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
     private final Logger logger = LoggerFactory.getLogger(DeployModelCommandHandler.class);
 
-    private final ApiServiceCockpit apiService;
+    private final ApiService apiService;
+    private final ApiServiceCockpit cockpitApiService;
     private final UserService userService;
     private final EnvironmentService environmentService;
 
-    public DeployModelCommandHandler(ApiServiceCockpit apiService, UserService userService, EnvironmentService environmentService) {
+    public DeployModelCommandHandler(
+        ApiService apiService,
+        ApiServiceCockpit cockpitApiService,
+        UserService userService,
+        EnvironmentService environmentService
+    ) {
         this.apiService = apiService;
+        this.cockpitApiService = cockpitApiService;
         this.userService = userService;
         this.environmentService = environmentService;
     }
@@ -65,9 +73,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         String userId = payload.getUserId();
         String swaggerDefinition = payload.getSwaggerDefinition();
         String environmentId = payload.getEnvironmentId();
-        DeployModelPayload.DeploymentMode mode = Optional
-            .ofNullable(payload.getMode())
-            .orElse(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+        DeploymentMode mode = DeploymentMode.fromDeployModelPayload(payload);
 
         try {
             final UserEntity user = userService.findBySource("cockpit", userId, false);
@@ -75,17 +81,10 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
             ApiEntity api;
 
-            switch (mode) {
-                case API_MOCKED:
-                    api = apiService.createOrUpdateMockedApi(apiId, user.getId(), swaggerDefinition, environment.getId());
-                    break;
-                case API_PUBLISHED:
-                    api = apiService.createOrUpdateOnPortalApi(apiId, user.getId(), swaggerDefinition, environment.getId());
-                    break;
-                case API_DOCUMENTED:
-                default:
-                    api = apiService.createOrUpdateDocumentedApi(apiId, user.getId(), swaggerDefinition, environment.getId());
-                    break;
+            if (apiService.exists(apiId)) {
+                api = cockpitApiService.updateApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
+            } else {
+                api = cockpitApiService.createApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
             }
             logger.info("Api imported [{}].", api.getId());
 

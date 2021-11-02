@@ -16,13 +16,13 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 
 /**
  * @author Julien GIOVARESCO (julien.giovaresco at graviteesource.com)
  * @author GraviteeSource Team
  */
 public interface ApiServiceCockpit {
-    ApiEntity createOrUpdateDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId);
-    ApiEntity createOrUpdateMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId);
-    ApiEntity createOrUpdateOnPortalApi(String apiId, String userId, String swaggerDefinition, String environmentId);
+    ApiEntity createApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode);
+    ApiEntity updateApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode);
 }

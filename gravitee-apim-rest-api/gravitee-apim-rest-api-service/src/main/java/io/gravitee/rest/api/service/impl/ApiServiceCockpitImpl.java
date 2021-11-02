@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
@@ -65,70 +66,83 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
     }
 
     @Override
-    public ApiEntity createOrUpdateDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
-        logger.debug("Create or Update Documented Api [{}].", apiId);
+    public ApiEntity createApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
         GraviteeContext.setCurrentEnvironment(environmentId);
 
-        if (this.apiService.exists(apiId)) {
-            ImportSwaggerDescriptorEntity swaggerDescriptor = buildForDocumentedApi(swaggerDefinition);
-            return updateApi(apiId, swaggerDescriptor);
-        } else {
-            ImportSwaggerDescriptorEntity swaggerDescriptor = buildForDocumentedApi(swaggerDefinition);
-            return createApiEntity(apiId, userId, swaggerDescriptor);
+        if (mode == DeploymentMode.API_MOCKED) {
+            logger.debug("Create Mocked Api [{}].", apiId);
+            return createMockedApi(apiId, userId, swaggerDefinition, environmentId);
         }
+
+        if (mode == DeploymentMode.API_PUBLISHED) {
+            logger.debug("Create Published Api [{}].", apiId);
+            return createPublishedApi(apiId, userId, swaggerDefinition, environmentId);
+        }
+
+        logger.debug("Create Documented Api [{}].", apiId);
+        return createDocumentedApi(apiId, userId, swaggerDefinition, environmentId);
     }
 
     @Override
-    public ApiEntity createOrUpdateMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
-        logger.debug("Create or Update Mocked Api [{}].", apiId);
+    public ApiEntity updateApi(String apiId, String userId, String swaggerDefinition, String environmentId, DeploymentMode mode) {
         GraviteeContext.setCurrentEnvironment(environmentId);
 
-        if (this.apiService.exists(apiId)) {
-            ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
-            updateApi(apiId, swaggerDescriptor);
-
-            ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
-            apiDeployment.setDeploymentLabel("Model updated");
-            return apiService.deploy(apiId, userId, EventType.PUBLISH_API, apiDeployment);
-        } else {
-            ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
-
-            createApiEntity(apiId, userId, swaggerDescriptor);
-            this.planService.create(createKeylessPlan(apiId, environmentId));
-
-            return this.apiService.start(apiId, userId);
+        if (mode == DeploymentMode.API_DOCUMENTED) {
+            logger.debug("Update Documented Api [{}].", apiId);
+            return updateDocumentedApi(apiId, swaggerDefinition);
         }
+
+        if (mode == DeploymentMode.API_MOCKED) {
+            logger.debug("Update Mocked Api [{}].", apiId);
+            return updateMockedApi(apiId, userId, swaggerDefinition);
+        }
+
+        logger.debug("Update Published Api [{}].", apiId);
+        return updateMockedApi(apiId, userId, swaggerDefinition);
     }
 
-    @Override
-    public ApiEntity createOrUpdateOnPortalApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
-        logger.debug("Create or Update OnPortalApi [{}].", apiId);
-
-        GraviteeContext.setCurrentEnvironment(environmentId);
-        if (this.apiService.exists(apiId)) {
-            ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
-            updateApi(apiId, swaggerDescriptor);
-
-            ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
-            apiDeployment.setDeploymentLabel("Model updated");
-            return apiService.deploy(apiId, userId, EventType.PUBLISH_API, apiDeployment);
-        } else {
-            ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
-
-            createApiEntity(apiId, userId, swaggerDescriptor);
-            this.planService.create(createKeylessPlan(apiId, environmentId));
-            ApiEntity apiEntity = this.apiService.start(apiId, userId);
-
-            publishSwaggerDocumentation(apiId);
-
-            UpdateApiEntity updateEntity = ApiService.convert(apiEntity);
-            updateEntity.setVisibility(Visibility.PUBLIC);
-            updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
-            return this.apiService.update(apiId, updateEntity);
-        }
+    private ApiEntity createDocumentedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+        ImportSwaggerDescriptorEntity swaggerDescriptor = buildForDocumentedApi(swaggerDefinition);
+        return createApiEntity(apiId, userId, swaggerDescriptor);
     }
 
-    private ApiEntity updateApi(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
+    private ApiEntity updateDocumentedApi(String apiId, String swaggerDefinition) {
+        return updateApiEntity(apiId, buildForDocumentedApi(swaggerDefinition));
+    }
+
+    private ApiEntity createMockedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+        ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
+
+        createApiEntity(apiId, userId, swaggerDescriptor);
+        this.planService.create(createKeylessPlan(apiId, environmentId));
+
+        return this.apiService.start(apiId, userId);
+    }
+
+    private ApiEntity updateMockedApi(String apiId, String userId, String swaggerDefinition) {
+        updateApiEntity(apiId, buildForMockedApi(swaggerDefinition));
+
+        ApiDeploymentEntity apiDeployment = new ApiDeploymentEntity();
+        apiDeployment.setDeploymentLabel("Model updated");
+        return apiService.deploy(apiId, userId, EventType.PUBLISH_API, apiDeployment);
+    }
+
+    private ApiEntity createPublishedApi(String apiId, String userId, String swaggerDefinition, String environmentId) {
+        ImportSwaggerDescriptorEntity swaggerDescriptor = buildForMockedApi(swaggerDefinition);
+
+        createApiEntity(apiId, userId, swaggerDescriptor);
+        this.planService.create(createKeylessPlan(apiId, environmentId));
+        ApiEntity apiEntity = this.apiService.start(apiId, userId);
+
+        publishSwaggerDocumentation(apiId);
+
+        UpdateApiEntity updateEntity = ApiService.convert(apiEntity);
+        updateEntity.setVisibility(Visibility.PUBLIC);
+        updateEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
+        return this.apiService.update(apiId, updateEntity);
+    }
+
+    private ApiEntity updateApiEntity(String apiId, ImportSwaggerDescriptorEntity swaggerDescriptor) {
         final SwaggerApiEntity api = swaggerService.createAPI(swaggerDescriptor, DefinitionVersion.V2);
         api.setPaths(null);
 
