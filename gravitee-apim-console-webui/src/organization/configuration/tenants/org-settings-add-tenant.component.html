@@ -1,0 +1,49 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title>{{ isUpdate ? 'Edit a tenant' : 'Create a tenant' }}</h2>
+
+<form autocomplete="off" [formGroup]="tenantForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form">
+      <mat-form-field *ngIf="isUpdate" appearance="fill">
+        <mat-label>Id</mat-label>
+        <input matInput formControlName="id" />
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" required />
+        <mat-hint align="end">{{ tenantForm.get('name').value?.length ?? 0 }}/30</mat-hint>
+        <mat-error *ngIf="tenantForm.get('name').hasError('maxlength')">Name has to be less than 30 characters long.</mat-error>
+        <mat-error *ngIf="tenantForm.get('name').hasError('minlength')">Name has to be more than 2 characters long.</mat-error>
+      </mat-form-field>
+      <mat-form-field appearance="fill">
+        <mat-label>Description</mat-label>
+        <input matInput formControlName="description" />
+        <mat-hint align="end">{{ tenantForm.get('description').value?.length ?? 0 }}/160</mat-hint>
+        <mat-error *ngIf="tenantForm.get('description').hasError('maxlength')"
+          >Description has to be less than 160 characters long.</mat-error
+        >
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="actions">
+    <button mat-button [mat-dialog-close]="false">Cancel</button>
+    <button mat-button [disabled]="tenantForm.invalid" type="submit">Ok</button>
+  </mat-dialog-actions>
+</form>

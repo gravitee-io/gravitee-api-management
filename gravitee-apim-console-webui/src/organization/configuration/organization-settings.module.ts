@@ -55,6 +55,7 @@ import { OrgSettingsNotificationTemplateComponent } from './notification-templat
 import { OrgSettingsUserDetailComponent } from './user/detail/org-settings-user-detail.component';
 import { OrgSettingsPlatformPoliciesComponent } from './policies/org-settings-platform-policies.component';
 import { OrgSettingsTenantsComponent } from './tenants/org-settings-tenants.component';
+import { OrgSettingAddTenantComponent } from './tenants/org-settings-add-tenant.component';
 
 import { GioConfirmDialogModule } from '../../shared/components/confirm-dialog/confirm-dialog.module';
 import { GioAvatarModule } from '../../shared/components/gio-avatar/gio-avatar.module';
@@ -134,6 +135,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     OrgSettingsCockpitComponent,
     OrgSettingsPlatformPoliciesComponent,
     OrgSettingsTenantsComponent,
+    OrgSettingAddTenantComponent,
   ],
   exports: [OrgSettingsGeneralComponent, OrgSettingsUsersComponent],
   entryComponents: [
@@ -148,6 +150,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     OrgSettingsCockpitComponent,
     OrgSettingsPlatformPoliciesComponent,
     OrgSettingsTenantsComponent,
+    OrgSettingAddTenantComponent,
   ],
 })
 export class OrganizationSettingsModule {}
