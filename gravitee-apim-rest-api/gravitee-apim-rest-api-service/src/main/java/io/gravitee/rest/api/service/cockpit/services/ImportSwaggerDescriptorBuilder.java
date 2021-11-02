@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl.cockpit;
+package io.gravitee.rest.api.service.cockpit.services;
 
 import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
 import java.util.List;

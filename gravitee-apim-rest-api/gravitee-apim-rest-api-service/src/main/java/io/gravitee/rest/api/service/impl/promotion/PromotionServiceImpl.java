@@ -41,9 +41,9 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.promotion.*;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
+import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
-import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -103,7 +103,8 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
     public List<PromotionTargetEntity> listPromotionTargets(String organizationId, String environmentId) {
         EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
 
-        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = this.cockpitPromotionService.listPromotionTargets(organizationId);
+        final CockpitReply<List<PromotionTargetEntity>> listCockpitReply =
+            this.cockpitPromotionService.listPromotionTargets(organizationId);
         if (listCockpitReply.getStatus() == CockpitReplyStatus.SUCCEEDED) {
             return listCockpitReply
                 .getReply()

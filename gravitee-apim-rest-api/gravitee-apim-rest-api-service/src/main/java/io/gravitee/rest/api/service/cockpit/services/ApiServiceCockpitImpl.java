@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.impl;
+package io.gravitee.rest.api.service.cockpit.services;
 
-import static io.gravitee.rest.api.service.impl.cockpit.ImportSwaggerDescriptorBuilder.buildForDocumentedApi;
-import static io.gravitee.rest.api.service.impl.cockpit.ImportSwaggerDescriptorBuilder.buildForMockedApi;
+import static io.gravitee.rest.api.service.cockpit.services.ImportSwaggerDescriptorBuilder.buildForDocumentedApi;
+import static io.gravitee.rest.api.service.cockpit.services.ImportSwaggerDescriptorBuilder.buildForMockedApi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;

@@ -34,9 +34,9 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.promotion.*;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReply;
 import io.gravitee.rest.api.service.cockpit.services.CockpitReplyStatus;
-import io.gravitee.rest.api.service.cockpit.services.CockpitPromotionService;
 import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.promotion.PromotionServiceImpl;
 import java.util.Arrays;
@@ -95,7 +95,7 @@ public class PromotionServiceTest {
             new PromotionServiceImpl(
                 apiService,
                 apiDuplicatorService,
-                    cockpitPromotionService,
+                cockpitPromotionService,
                 promotionRepository,
                 environmentService,
                 userService,
@@ -323,7 +323,8 @@ public class PromotionServiceTest {
         when(promotionRepository.search(any(), any(), any())).thenReturn(promotionPage);
 
         when(promotionRepository.create(any())).thenReturn(getAPromotion());
-        when(cockpitPromotionService.requestPromotion(any())).thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
+        when(cockpitPromotionService.requestPromotion(any()))
+            .thenReturn(new CockpitReply<>(getAPromotionEntity(), CockpitReplyStatus.SUCCEEDED));
 
         when(promotionRepository.update(any())).thenReturn(mock(Promotion.class));
 
