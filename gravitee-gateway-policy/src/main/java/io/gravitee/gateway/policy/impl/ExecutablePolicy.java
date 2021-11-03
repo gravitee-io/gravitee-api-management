@@ -16,12 +16,18 @@
 package io.gravitee.gateway.policy.impl;
 
 import io.gravitee.gateway.api.ExecutionContext;
+import io.gravitee.gateway.api.Request;
+import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.policy.Policy;
 import io.gravitee.gateway.policy.PolicyException;
 import io.gravitee.policy.api.PolicyChain;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import jdk.dynalink.linker.support.Lookup;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,13 +37,62 @@ public class ExecutablePolicy implements Policy {
 
     private final String id;
     private final Object policy;
-    private final Method headMethod, streamMethod;
+    private final MethodHandle headMethodHandle;
+    private final MethodHandle streamMethodHandle;
 
     ExecutablePolicy(String id, Object policy, Method headMethod, Method streamMethod) {
         this.id = id;
         this.policy = policy;
-        this.headMethod = headMethod;
-        this.streamMethod = streamMethod;
+
+        // Optimize the reflection call by relying on MethodHandle and reordering of arguments.
+        headMethodHandle = toMethodHandle(headMethod);
+        streamMethodHandle = toMethodHandle(streamMethod);
+    }
+
+    private MethodHandle toMethodHandle(Method method) {
+        final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+
+        if (method != null) {
+            final MethodType invokedMethodType = MethodType.methodType(
+                method.getReturnType(),
+                method.getDeclaringClass(),
+                PolicyChain.class,
+                ExecutionContext.class,
+                Request.class,
+                Response.class
+            );
+
+            final MethodHandle originalHeadMethodHandle = Lookup.unreflect(lookup, method);
+            final MethodType originalMethodType = originalHeadMethodHandle.type();
+            final int[] reorder = getReorder(originalMethodType, invokedMethodType);
+
+            return MethodHandles.permuteArguments(originalHeadMethodHandle, invokedMethodType, reorder);
+        }
+
+        return null;
+    }
+
+    private int[] getReorder(MethodType originalMethodType, MethodType methodType) {
+        final int[] reorder = new int[originalMethodType.parameterCount()];
+
+        for (int i = 0; i < originalMethodType.parameterCount(); i++) {
+            final Class<?> originalParameterType = originalMethodType.parameterType(i);
+
+            boolean found = false;
+            for (int j = 0; j < methodType.parameterCount(); j++) {
+                final Class<?> parameterType = methodType.parameterType(j);
+                if (parameterType.isAssignableFrom(originalParameterType)) {
+                    reorder[i] = j;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                throw new IllegalArgumentException("Invalid policy parameters");
+            }
+        }
+        return reorder;
     }
 
     @Override
@@ -47,54 +102,30 @@ public class ExecutablePolicy implements Policy {
 
     @Override
     public void execute(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        invoke(headMethod, chain, context, context.request(), context.response());
+        try {
+            headMethodHandle.invoke(policy, chain, context, context.request(), context.response());
+        } catch (Throwable ex) {
+            throw new PolicyException(ex);
+        }
     }
 
     @Override
     public ReadWriteStream<Buffer> stream(PolicyChain chain, ExecutionContext context) throws PolicyException {
-        Object stream = invoke(streamMethod, chain, context, context.request(), context.response());
-        return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
+        try {
+            Object stream = streamMethodHandle.invoke(policy, chain, context, context.request(), context.response());
+            return (stream != null) ? (ReadWriteStream<Buffer>) stream : null;
+        } catch (Throwable ex) {
+            throw new PolicyException(ex);
+        }
     }
 
     @Override
     public boolean isStreamable() {
-        return streamMethod != null;
+        return streamMethodHandle != null;
     }
 
     @Override
     public boolean isRunnable() {
-        return headMethod != null;
-    }
-
-    private Object invoke(Method invokedMethod, Object... args) throws PolicyException {
-        if (invokedMethod != null) {
-            Class<?>[] parametersType = invokedMethod.getParameterTypes();
-            Object[] parameters = new Object[parametersType.length];
-
-            int idx = 0;
-
-            // Map parameters according to parameter's type
-            for (Class<?> paramType : parametersType) {
-                parameters[idx++] = getParameterAssignableTo(paramType, args);
-            }
-
-            try {
-                return invokedMethod.invoke(policy, parameters);
-            } catch (Exception ex) {
-                throw new PolicyException(ex);
-            }
-        }
-
-        return null;
-    }
-
-    private <T> T getParameterAssignableTo(Class<T> paramType, Object... args) {
-        for (Object arg : args) {
-            if (paramType.isAssignableFrom(arg.getClass())) {
-                return (T) arg;
-            }
-        }
-
-        return null;
+        return headMethodHandle != null;
     }
 }

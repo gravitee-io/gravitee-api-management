@@ -47,7 +47,10 @@ public class PolicyFactoryCreator implements FactoryBean<PolicyFactory> {
             logger.debug("Tracing is enabled, looking to decorate all policies...");
         }
 
-        return tracing ? new TracingPolicyPluginFactory(policyPluginFactory) : new PolicyFactoryImpl(policyPluginFactory);
+        final PolicyFactory policyFactory = tracing
+            ? new TracingPolicyPluginFactory(policyPluginFactory)
+            : new PolicyFactoryImpl(policyPluginFactory);
+        return new CachedPolicyFactory(policyFactory);
     }
 
     @Override
