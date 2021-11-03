@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.security.utils;
 
-import com.twelvemonkeys.imageio.stream.ByteArrayImageInputStream;
 import io.gravitee.rest.api.exception.InvalidImageException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -115,13 +114,7 @@ public final class ImageUtils {
 
     private static Image rescale(Image image, int width, int height) throws InvalidImageException {
         try {
-            /*
-             * For an unknown reason, when running APIM from jar/zip instead of sourcecode, com.twelvemonkeys.imageio.stream.ByteArrayImageInputStreamSpi
-             *  is not registered in the IIORegistry used by ImageIO to manage stream.
-             * So basically the hack is to directly instantiate a ByteArrayImageInputStream
-             */
-            //ImageInputStream imageInputStream = ImageIO.createImageInputStream(image.getData());
-            ImageInputStream imageInputStream = new ByteArrayImageInputStream(image.getData());
+            ImageInputStream imageInputStream = ImageIO.createImageInputStream(image.getData());
             Iterator<ImageReader> imageReaders = ImageIO.getImageReaders(imageInputStream);
 
             while (imageReaders.hasNext()) {
