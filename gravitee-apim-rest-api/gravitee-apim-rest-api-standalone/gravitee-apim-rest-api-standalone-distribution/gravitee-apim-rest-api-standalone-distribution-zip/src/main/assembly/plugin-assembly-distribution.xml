@@ -33,7 +33,7 @@
 		<!-- Copy startup scripts and config files -->
 		<fileSet>
 			<directory>../target/distribution/config</directory>
-			<outputDirectory>/config</outputDirectory>
+			<outputDirectory>config</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
@@ -46,7 +46,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/config</directory>
-			<outputDirectory>/config</outputDirectory>
+			<outputDirectory>config</outputDirectory>
 			<includes>
 				<include>**/*.png</include>
 			</includes>
@@ -55,7 +55,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/lib</directory>
-			<outputDirectory>/lib</outputDirectory>
+			<outputDirectory>lib</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
@@ -64,7 +64,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/plugins</directory>
-			<outputDirectory>/plugins</outputDirectory>
+			<outputDirectory>plugins</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
@@ -76,7 +76,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/logs</directory>
-			<outputDirectory>/logs</outputDirectory>
+			<outputDirectory>logs</outputDirectory>
 			<fileMode>644</fileMode>
 			<excludes>
 				<exclude>*</exclude>
@@ -85,7 +85,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/data</directory>
-			<outputDirectory>/data</outputDirectory>
+			<outputDirectory>data</outputDirectory>
 			<fileMode>644</fileMode>
 			<excludes>
 				<exclude>*</exclude>
@@ -94,7 +94,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/bin</directory>
-			<outputDirectory>/bin</outputDirectory>
+			<outputDirectory>bin</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
@@ -103,7 +103,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/templates</directory>
-			<outputDirectory>/templates</outputDirectory>
+			<outputDirectory>templates</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
@@ -112,7 +112,16 @@
 
 		<fileSet>
 			<directory>../target/distribution/themes</directory>
-			<outputDirectory>/themes</outputDirectory>
+			<outputDirectory>themes</outputDirectory>
+			<includes>
+				<include>**/*</include>
+			</includes>
+			<fileMode>755</fileMode>
+		</fileSet>
+
+		<fileSet>
+			<directory>../target/distribution/dashboards</directory>
+			<outputDirectory>dashboards</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
@@ -121,7 +130,7 @@
 
 		<fileSet>
 			<directory>../target/distribution/assets</directory>
-			<outputDirectory>/assets</outputDirectory>
+			<outputDirectory>assets</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>
