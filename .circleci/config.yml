@@ -579,20 +579,23 @@ jobs:
             - run:
                   name: Helm upgrade and 🚀 to Element Zero cluster
                   command: |
-                      az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-                      az aks get-credentials --resource-group element-zero --name element-zero
+                      if [ "master" == "${CIRCLE_BRANCH}" ]
+                      then
+                          az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+                          az aks get-credentials --resource-group element-zero --name element-zero
 
-                      helm upgrade --repo https://helm.gravitee.io \
-                                  --install apim \
-                                  -n apim \
-                                  --reuse-values \
-                                  apim3 \
-                                   --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
-                                   --set "api.image.tag=${TAG}" \
-                                   --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
-                                   --set "portal.image.tag=${TAG}" \
-                                   --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
-                                   --set "ui.image.tag=${TAG}"
+                          helm upgrade --repo https://helm.gravitee.io \
+                                      --install apim \
+                                      -n apim \
+                                      --reuse-values \
+                                      apim3 \
+                                       --set "api.image.repository=graviteeio.azurecr.io/apim-management-api" \
+                                       --set "api.image.tag=${TAG}" \
+                                       --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
+                                       --set "portal.image.tag=${TAG}" \
+                                       --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
+                                       --set "ui.image.tag=${TAG}"
+                      fi
             - run:
                   name: Helm upgrade and 🚀 to APIM cluster
                   command: |
