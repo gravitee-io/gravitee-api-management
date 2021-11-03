@@ -376,7 +376,7 @@ jobs:
                       cp -fr docker/config .
                       cp -fr docker/run.sh .
 
-                      export IMAGE_TAG=graviteeio.azurecr.io/apim-console-webui:${TAG}
+                      export IMAGE_TAG=graviteeio.azurecr.io/apim-management-ui:${TAG}
                       docker build -f docker/Dockerfile-dev -t ${IMAGE_TAG} .
                       echo $AZURE_DOCKER_REGISTRY_PASSWORD | docker login --username $AZURE_DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
                       docker push ${IMAGE_TAG}
@@ -549,7 +549,7 @@ jobs:
                                        --set "api.image.tag=${TAG}" \
                                        --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
                                        --set "portal.image.tag=${TAG}" \
-                                       --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
+                                       --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
                                        --set "ui.image.tag=${TAG}"
                       fi
             - run:
@@ -569,7 +569,7 @@ jobs:
                                    --set "api.image.tag=${TAG}" \
                                    --set "portal.image.repository=graviteeio.azurecr.io/apim-portal-webui" \
                                    --set "portal.image.tag=${TAG}" \
-                                   --set "ui.image.repository=graviteeio.azurecr.io/apim-console-webui" \
+                                   --set "ui.image.repository=graviteeio.azurecr.io/apim-management-ui" \
                                    --set "ui.image.tag=${TAG}"
             - notify-on-failure
 
