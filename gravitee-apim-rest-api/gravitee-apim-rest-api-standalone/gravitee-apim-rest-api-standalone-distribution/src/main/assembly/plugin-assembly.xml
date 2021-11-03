@@ -67,14 +67,6 @@
         </fileSet>
 
         <fileSet>
-            <directory>target/staging/connectors</directory>
-            <outputDirectory>plugins</outputDirectory>
-            <includes>
-                <include>*.zip</include>
-            </includes>
-        </fileSet>
-
-        <fileSet>
             <directory>target/staging/fetchers</directory>
             <outputDirectory>plugins</outputDirectory>
             <includes>

@@ -262,17 +262,7 @@ jobs:
                     name: Run Prettier and ESLint
                     command: npm run lint
                     working_directory: gravitee-apim-console-webui
-            -   run:
-                    name: Run unit tests
-                    command: npm run test:ci
-                    working_directory: gravitee-apim-console-webui
             - notify-on-failure
-            -   persist_to_workspace:
-                    root: .
-                    paths:
-                        - gravitee-apim-console-webui/coverage
-            -   store_test_results:
-                    path: gravitee-apim-console-webui/coverage
 
     console-webui-sonarcloud-analysis:
         docker:

@@ -625,6 +625,46 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.11</version>
+                <configuration>
+                    <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+                    <properties>
+                        <owner>The Gravitee team</owner>
+                        <email>http://gravitee.io</email>
+                    </properties>
+                    <excludes>
+                        <exclude>LICENSE.txt</exclude>
+                        <exclude>**/README</exclude>
+                        <exclude>src/main/packaging/**</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>src/main/resources/**</exclude>
+                        <exclude>src/main/webapp/**</exclude>
+                        <exclude>assets/**</exclude>
+                        <exclude>**/dist/**</exclude>
+                        <exclude>**/.tmp/**</exclude>
+                        <exclude>**/node_modules/**</exclude>
+                        <exclude>**/.*</exclude>
+                        <exclude>**/.*/**</exclude>
+                        <exclude>**/*.adoc</exclude>
+                        <exclude>docker-tag.txt</exclude>
+                    </excludes>
+                    <mapping>
+                        <ts>SLASHSTAR_STYLE</ts>
+                        <js>SLASHSTAR_STYLE</js>
+                    </mapping>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
