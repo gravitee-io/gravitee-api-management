@@ -43,6 +43,7 @@ import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.PolicyFactory;
 import io.gravitee.gateway.policy.PolicyManager;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
+import io.gravitee.gateway.policy.impl.PolicyFactoryCreator;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.gateway.reactor.handler.ReactorHandlerFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
@@ -111,14 +112,19 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                 );
 
                 customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
+                customComponentProvider.add(io.gravitee.definition.model.Api.class, api);
+
                 final CompositeComponentProvider apiComponentProvider = new CompositeComponentProvider(
                     customComponentProvider,
                     globalComponentProvider
                 );
 
+                // Force creation of a dedicated PolicyFactory for each api as it may involve cache we want to be released when api is undeployed.
+                final PolicyFactory policyFactory = applicationContext.getBean(PolicyFactoryCreator.class).getObject();
+
                 final PolicyManager policyManager = policyManager(
                     api,
-                    applicationContext.getBean(PolicyFactory.class),
+                    policyFactory,
                     policyConfigurationFactory(),
                     applicationContext.getBean(PolicyClassLoaderFactory.class),
                     resourceLifecycleManager,
