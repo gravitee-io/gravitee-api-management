@@ -28,7 +28,7 @@
 </div>
 
 <div class="mat-elevation-z3">
-  <gio-table-wrapper (filtersChange)="onFiltersChanged($event)">
+  <gio-table-wrapper [length]="tenants.length" (filtersChange)="onFiltersChanged($event)">
     <table mat-table [dataSource]="tenantsDataSource" class="tenants-table" id="tenantsTable" aria-label="Tenant table">
       <!-- Id Column -->
       <ng-container matColumnDef="id">
