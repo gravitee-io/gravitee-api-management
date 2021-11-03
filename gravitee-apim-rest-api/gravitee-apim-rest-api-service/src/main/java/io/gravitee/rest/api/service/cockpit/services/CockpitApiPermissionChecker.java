@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service;
+package io.gravitee.rest.api.service.cockpit.services;
 
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
+import java.util.Optional;
 
-/**
- * @author Nicolas GERAUD(nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface PermissionService {
-    boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls);
+public interface CockpitApiPermissionChecker {
+    Optional<String> checkCreatePermission(String userId, String environmentId, DeploymentMode mode);
 
-    boolean hasPermission(String userId, RolePermission permission, String referenceId, RolePermissionAction... acls);
-
-    boolean hasManagementRights(String userId);
+    Optional<String> checkUpdatePermission(String userId, String environmentId, String apiId, DeploymentMode mode);
 }

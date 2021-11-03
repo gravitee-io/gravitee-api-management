@@ -45,6 +45,11 @@ public class PermissionServiceImpl extends AbstractService implements Permission
 
     @Override
     public boolean hasPermission(RolePermission permission, String referenceId, RolePermissionAction... acls) {
+        return hasPermission(getAuthenticatedUsername(), permission, referenceId, acls);
+    }
+
+    @Override
+    public boolean hasPermission(String userId, RolePermission permission, String referenceId, RolePermissionAction... acls) {
         MembershipReferenceType membershipReferenceType;
         switch (permission.getScope()) {
             case API:
@@ -69,11 +74,7 @@ public class PermissionServiceImpl extends AbstractService implements Permission
                 membershipReferenceType = null;
         }
 
-        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(
-            membershipReferenceType,
-            referenceId,
-            getAuthenticatedUsername()
-        );
+        Map<String, char[]> permissions = membershipService.getUserMemberPermissions(membershipReferenceType, referenceId, userId);
         if (permissions == null) {
             return false;
         }

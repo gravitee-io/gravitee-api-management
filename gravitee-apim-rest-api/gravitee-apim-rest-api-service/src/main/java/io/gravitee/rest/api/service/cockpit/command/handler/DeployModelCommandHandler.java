@@ -29,6 +29,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.cockpit.services.ApiServiceCockpit;
+import io.gravitee.rest.api.service.cockpit.services.CockpitApiPermissionChecker;
 import io.reactivex.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,17 +46,20 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
     private final ApiService apiService;
     private final ApiServiceCockpit cockpitApiService;
+    private final CockpitApiPermissionChecker permissionChecker;
     private final UserService userService;
     private final EnvironmentService environmentService;
 
     public DeployModelCommandHandler(
         ApiService apiService,
         ApiServiceCockpit cockpitApiService,
+        CockpitApiPermissionChecker permissionChecker,
         UserService userService,
         EnvironmentService environmentService
     ) {
         this.apiService = apiService;
         this.cockpitApiService = cockpitApiService;
+        this.permissionChecker = permissionChecker;
         this.userService = userService;
         this.environmentService = environmentService;
     }
@@ -82,8 +86,24 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
             ApiEntity api;
 
             if (apiService.exists(apiId)) {
+                var message = permissionChecker.checkUpdatePermission(user.getId(), environment.getId(), apiId, mode);
+
+                if (message.isPresent()) {
+                    var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
+                    reply.setMessage(message.get());
+                    return Single.just(reply);
+                }
+
                 api = cockpitApiService.updateApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
             } else {
+                var message = permissionChecker.checkCreatePermission(user.getId(), environment.getId(), mode);
+
+                if (message.isPresent()) {
+                    var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
+                    reply.setMessage(message.get());
+                    return Single.just(reply);
+                }
+
                 api = cockpitApiService.createApi(apiId, user.getId(), swaggerDefinition, environment.getId(), mode);
             }
             logger.info("Api imported [{}].", api.getId());
