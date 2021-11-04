@@ -46,6 +46,7 @@ const ConsoleSettingsComponent: ng.IComponentOptions = {
       this.settings.cors.allowMethods = this.settings.cors.allowMethods || [];
       this.settings.cors.exposedHeaders = this.settings.cors.exposedHeaders || [];
       this.settings.authentication.localLogin.enabled = this.settings.authentication.localLogin.enabled || !this.hasIdpDefined();
+      this.initialSettings = _.cloneDeep(this.settings);
     };
 
     this.save = () => {
@@ -54,6 +55,11 @@ const ConsoleSettingsComponent: ng.IComponentOptions = {
         NotificationService.show('Configuration saved');
         $state.reload();
       });
+    };
+
+    this.reset = () => {
+      this.settings = _.cloneDeep(this.initialSettings);
+      this.formSettings.$setPristine();
     };
 
     this.hasIdpDefined = () => {
