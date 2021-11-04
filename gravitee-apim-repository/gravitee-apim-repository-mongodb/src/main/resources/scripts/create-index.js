@@ -21,6 +21,7 @@ db.getCollection(`${prefix}events`).createIndex( { "updatedAt" : 1 } );
 db.getCollection(`${prefix}events`).createIndex( { "updatedAt" : -1, "_id" : -1 } );
 db.getCollection(`${prefix}events`).createIndex( { "properties.api_id" : 1 } );
 db.getCollection(`${prefix}events`).createIndex( { "properties.api_id":1, "type":1} );
+db.getCollection(`${prefix}events`).createIndex( { "properties.api_id":1, "updatedAt" : 1.0} );
 db.getCollection(`${prefix}events`).createIndex( { "type" : 1, "updatedAt" : 1} );
 db.getCollection(`${prefix}events`).reIndex();
 
