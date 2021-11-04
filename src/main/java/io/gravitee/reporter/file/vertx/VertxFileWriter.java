@@ -234,15 +234,22 @@ public class VertxFileWriter<T extends Reportable> {
     }
 
     public void write(T data) {
-        if (asyncFile != null) {
-            Buffer payload = formatter.format(data);
-            if (payload != null) {
-                if (!asyncFile.writeQueueFull()) {
-                    asyncFile.write(payload.appendBytes(END_OF_LINE));
-                } else {
-                    LOGGER.warn("Reporter file, queue full... Skipping data...");
+        if (asyncFile != null && !asyncFile.writeQueueFull()) {
+            vertx.executeBlocking(
+                (Handler<Promise<Buffer>>) event -> {
+                    Buffer buffer = formatter.format(data);
+                    if (buffer != null) {
+                        event.complete(buffer);
+                    } else {
+                        event.fail("Invalid data");
+                    }
+                },
+                event -> {
+                    if (event.succeeded() && !asyncFile.writeQueueFull()) {
+                        asyncFile.write(event.result().appendBytes(END_OF_LINE));
+                    }
                 }
-            }
+            );
         }
     }
 
