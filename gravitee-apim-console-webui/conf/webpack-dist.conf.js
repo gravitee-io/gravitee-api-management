@@ -144,6 +144,7 @@ module.exports = {
   },
   resolve: {
     extensions: ['.webpack.js', '.web.js', '.js', '.ts', '.json'],
+    mainFields: ['es2015_ivy_ngcc', 'module_ivy_ngcc', 'main_ivy_ngcc', 'es2015', 'browser', 'module', 'main'],
   },
   entry: {
     app: `./${path.join('src', 'index')}`,

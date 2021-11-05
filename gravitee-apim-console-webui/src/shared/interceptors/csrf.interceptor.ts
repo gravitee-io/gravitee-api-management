@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest, HttpResponse } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-
+@Injectable()
 export class CsrfInterceptor implements HttpInterceptor {
   private readonly xsrfTokenHeaderName = 'X-Xsrf-Token';
   public static xsrfToken?: string;

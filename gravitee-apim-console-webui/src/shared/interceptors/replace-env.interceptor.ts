@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Inject } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../../entities/Constants';
 
+@Injectable()
 export class ReplaceEnvInterceptor implements HttpInterceptor {
   constructor(@Inject('Constants') private readonly constants: Constants) {}
 
