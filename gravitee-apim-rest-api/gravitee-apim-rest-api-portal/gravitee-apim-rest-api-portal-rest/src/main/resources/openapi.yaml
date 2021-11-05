@@ -1840,10 +1840,10 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         500:
           $ref: '#/components/responses/InternalServerError'
-  /subscriptions/{subscriptionId}/keys/{keyId}/_revoke:
+  /subscriptions/{subscriptionId}/keys/{apiKey}/_revoke:
     parameters:
       - $ref: '#/components/parameters/subscriptionIdParam'
-      - name: keyId
+      - name: apiKey
         in: path
         required: true
         schema:
