@@ -22,6 +22,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsNewUserComponent } from './org-settings-new-user.component';
 
@@ -30,7 +31,6 @@ import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { UIRouterState } from '../../../../ajs-upgraded-providers';
 import { fakeIdentityProviderListItem } from '../../../../entities/identity-provider';
 import { fakeUser } from '../../../../entities/user/user.fixture';
-import { GioSaveBarHarness } from '../../../../shared/components/gio-save-bar/gio-save-bar.harness';
 
 describe('OrgSettingsNewUserComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNewUserComponent>;

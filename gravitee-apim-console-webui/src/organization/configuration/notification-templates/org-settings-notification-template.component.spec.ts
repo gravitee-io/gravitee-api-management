@@ -20,6 +20,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsNotificationTemplateComponent } from './org-settings-notification-template.component';
 
@@ -28,7 +29,6 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeAlertStatus } from '../../../entities/alerts/alertStatus.fixture';
 import { fakeNotificationTemplate } from '../../../entities/notification/notificationTemplate.fixture';
-import { GioSaveBarHarness } from '../../../shared/components/gio-save-bar/gio-save-bar.harness';
 
 describe('OrgSettingsNotificationTemplateComponent', () => {
   const mockUiRouterState = { go: jest.fn() };

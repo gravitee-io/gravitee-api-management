@@ -26,6 +26,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -37,7 +38,6 @@ import { fakeUser } from '../../../../entities/user/user.fixture';
 import { User as DeprecatedUser } from '../../../../entities/user';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
-import { GioSaveBarHarness } from '../../../../shared/components/gio-save-bar/gio-save-bar.harness';
 import { Environment } from '../../../../entities/environment/environment';
 import { fakeEnvironment } from '../../../../entities/environment/environment.fixture';
 import { Group } from '../../../../entities/group/group';

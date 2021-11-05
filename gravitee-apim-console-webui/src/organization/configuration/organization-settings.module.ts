@@ -39,6 +39,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSortModule } from '@angular/material/sort';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -66,7 +67,6 @@ import { GioFormCardGroupModule } from '../../shared/components/form-card-group/
 import { GioFormTagsInputModule } from '../../shared/components/form-tags-input/gio-form-tags-input.module';
 import { GioFormColorInputModule } from '../../shared/components/form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/go-back-button/gio-go-back-button.module';
-import { GioSaveBarModule } from '../../shared/components/gio-save-bar/gio-save-bar.module';
 import { GioFormFocusInvalidModule } from '../../shared/components/form-focus-first-invalid/gio-form-focus-first-invalid.module';
 import { GioBannerModule } from '../../shared/components/gio-banner/gio-banner.module';
 import { GioClipboardModule } from '../../shared/components/gio-clipboard/gio-clipboard.module';

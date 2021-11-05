@@ -26,6 +26,7 @@ import { omit } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
@@ -37,7 +38,6 @@ import { GioFormColorInputHarness } from '../../../shared/components/form-color-
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
 import { UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
 import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identity-provider';
-import { GioSaveBarHarness } from '../../../shared/components/gio-save-bar/gio-save-bar.harness';
 import { Group } from '../../../entities/group/group';
 import { fakeGroup } from '../../../entities/group/group.fixture';
 import { Role } from '../../../entities/role/role';
