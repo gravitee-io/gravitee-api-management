@@ -39,13 +39,18 @@ public class CachedPolicyFactory implements PolicyFactory {
 
     @Override
     public Policy create(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
-        final String key =
-            streamType.hashCode() +
-            "-" +
-            policyMetadata.hashCode() +
-            "-" +
-            (policyConfiguration == null ? "#null" : policyConfiguration.hashCode());
-        return policies.computeIfAbsent(key, k -> delegate.create(streamType, policyMetadata, policyConfiguration));
+        return policies.computeIfAbsent(
+            getKey(streamType, policyMetadata, policyConfiguration),
+            k -> delegate.create(streamType, policyMetadata, policyConfiguration)
+        );
+    }
+
+    private String getKey(StreamType streamType, PolicyMetadata policyMetadata, PolicyConfiguration policyConfiguration) {
+        if (policyConfiguration == null) {
+            return streamType.hashCode() + "-" + policyMetadata.hashCode();
+        } else {
+            return streamType.hashCode() + "-" + policyMetadata.hashCode() + "-" + policyConfiguration.hashCode();
+        }
     }
 
     public void clear() {
