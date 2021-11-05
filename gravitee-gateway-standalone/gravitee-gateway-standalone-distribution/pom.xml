@@ -23,7 +23,7 @@
     <parent>
         <groupId>io.gravitee.gateway.standalone</groupId>
         <artifactId>gravitee-gateway-standalone</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.5-SNAPSHOT</version>
     </parent>
 
     <artifactId>gravitee-gateway-standalone-distribution</artifactId>
