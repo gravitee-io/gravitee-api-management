@@ -246,7 +246,7 @@
         <gravitee-node.version>1.10.1</gravitee-node.version>
         <gravitee-definition.version>1.25.1</gravitee-definition.version>
         <gravitee-common.version>1.19.4</gravitee-common.version>
-        <gravitee-expression-language.version>1.5.1</gravitee-expression-language.version>
+        <gravitee-expression-language.version>1.5.2-SNAPSHOT</gravitee-expression-language.version>
         <gravitee-plugin-resource.version>1.16.0</gravitee-plugin-resource.version>
         <gravitee-plugin-core.version>1.16.0</gravitee-plugin-core.version>
         <gravitee-plugin-policy.version>1.16.0</gravitee-plugin-policy.version>
