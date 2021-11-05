@@ -112,6 +112,8 @@ public class ApiContextHandlerFactory implements ReactorHandlerFactory<Api> {
                 );
 
                 customComponentProvider.add(ResourceManager.class, resourceLifecycleManager);
+                customComponentProvider.add(io.gravitee.definition.model.Api.class, api);
+
                 final CompositeComponentProvider apiComponentProvider = new CompositeComponentProvider(
                     customComponentProvider,
                     globalComponentProvider
