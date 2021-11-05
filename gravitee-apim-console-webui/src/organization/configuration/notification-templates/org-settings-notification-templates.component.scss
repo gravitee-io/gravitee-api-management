@@ -1,10 +1,11 @@
-@use '../../../scss/gio-layout' as gio-layout;
 @use 'sass:map';
 @use 'node_modules/@angular/material' as mat;
-@use '../../../scss/gio-material-theme' as gio;
+@use '@gravitee/ui-particles-angular' as gio;
 
-$typography: map.get(gio.$gio-theme, typography);
-$background: map.get(gio.$gio-theme, background);
+@use '../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+$background: map.get(gio.$mat-theme, background);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;

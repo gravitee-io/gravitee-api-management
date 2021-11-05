@@ -15,19 +15,17 @@
  */
 @use 'sass:map';
 @use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
-@use '../../../scss/gio-material-theme' as gio;
-@use '../../../scss/gio-palettes' as gio-palettes;
-
-$foreground: map-get(gio.$gio-theme, foreground);
-$background: map-get(gio.$gio-theme, background);
+$foreground: map-get(gio.$mat-theme, foreground);
+$background: map-get(gio.$mat-theme, background);
 
 // Map for palette by type
 $types: (
-  error: gio-palettes.$gio-error-palette,
-  info: gio-palettes.$gio-info-palette,
-  success: gio-palettes.$gio-success-palette,
-  warning: gio-palettes.$gio-warning-palette,
+  error: gio.$mat-error-palette,
+  info: gio.$mat-info-palette,
+  success: gio.$mat-success-palette,
+  warning: gio.$mat-warning-palette,
 );
 
 :host {

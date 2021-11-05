@@ -1,4 +1,4 @@
-@use '../node_modules/@angular/material' as mat;
+@use '../node_modules/@gravitee/ui-particles-angular' as gio;
 
 @import '../node_modules/angular-gridster/dist/angular-gridster.css';
 @import '../node_modules/angular-loading-bar/build/loading-bar.css';
@@ -68,8 +68,7 @@
 
 @import '../node_modules/@fontsource/libre-franklin/scss/mixins';
 
-// Angular Material
-@import 'scss/gio-material-theme';
+@import './scss/material-layout-compatibility.scss';
 
 @each $weight in (400, 500) {
   $fontId: 'libre-franklin';
@@ -127,10 +126,14 @@ body {
 // Wrap mat with `.mat` class without increasing the css specificity
 // Allows you to disable it on some routes
 :where(.mat) {
-  @include mat.core($gio-typography);
-  @include mat.all-component-themes($gio-theme);
+  // Material theme config from Gravitee ui particles
+  @include gio.mat-theme();
+
+  // Scss component from Gravitee ui particles
+  @include gio.all-components();
 
   @include material-layout-compatibility();
+
   @import './scss/gio-global-style';
 }
 

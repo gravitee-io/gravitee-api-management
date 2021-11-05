@@ -1,7 +1,7 @@
 @use 'node_modules/@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
 @use '../../../../scss/gio-layout' as gio-layout;
-@use '../../../../scss/gio-palettes' as gio-palettes;
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
@@ -50,16 +50,16 @@
           margin: 8px 0;
 
           .active {
-            background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium');
-            color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium-contrast');
+            background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
+            color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium-contrast');
           }
           .pending {
-            background-color: mat.get-color-from-palette(gio-palettes.$gio-warning-palette, 'medium');
-            color: mat.get-color-from-palette(gio-palettes.$gio-warning-palette, 'medium-contrast');
+            background-color: mat.get-color-from-palette(gio.$mat-warning-palette, 'medium');
+            color: mat.get-color-from-palette(gio.$mat-warning-palette, 'medium-contrast');
           }
           .rejected {
-            background-color: mat.get-color-from-palette(gio-palettes.$gio-error-palette, 'medium');
-            color: mat.get-color-from-palette(gio-palettes.$gio-error-palette, 'medium-contrast');
+            background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'medium');
+            color: mat.get-color-from-palette(gio.$mat-error-palette, 'medium-contrast');
           }
         }
       }
@@ -80,8 +80,8 @@
       align-items: center;
 
       &__accept-btn {
-        background-color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium');
-        color: mat.get-color-from-palette(gio-palettes.$gio-success-palette, 'medium-contrast');
+        background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
+        color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium-contrast');
       }
     }
   }
@@ -110,7 +110,7 @@
     &__table {
       .mat-cell.mat-column-name {
         .error {
-          color: mat.get-color-from-palette(gio-palettes.$gio-error-palette, medium);
+          color: mat.get-color-from-palette(gio.$mat-error-palette, medium);
         }
       }
 
@@ -128,7 +128,7 @@
       }
 
       .mat-row.error {
-        box-shadow: 8px 0px 0px 0px mat.get-color-from-palette(gio-palettes.$gio-error-palette, medium, 0.42) inset;
+        box-shadow: 8px 0px 0px 0px mat.get-color-from-palette(gio.$mat-error-palette, medium, 0.42) inset;
       }
     }
   }
