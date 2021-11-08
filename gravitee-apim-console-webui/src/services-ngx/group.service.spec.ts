@@ -52,6 +52,22 @@ describe('GroupService', () => {
     });
   });
 
+  describe('listByOrganization', () => {
+    it('should call the API', (done) => {
+      const fakeGroups = [fakeGroup()];
+
+      groupService.listByOrganization().subscribe((groups) => {
+        expect(groups).toMatchObject(fakeGroups);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/groups`);
+      expect(req.request.method).toEqual('GET');
+
+      req.flush(fakeGroups);
+    });
+  });
+
   describe('addOrUpdateMemberships', () => {
     it('should call the API', (done) => {
       const groupId = 'GROUP_ID';

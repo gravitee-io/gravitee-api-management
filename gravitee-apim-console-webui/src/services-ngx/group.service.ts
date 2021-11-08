@@ -32,6 +32,10 @@ export class GroupService {
     return this.http.get<Group[]>(`${this.constants.env.baseURL}/configuration/groups`);
   }
 
+  listByOrganization(): Observable<Group[]> {
+    return this.http.get<Group[]>(`${this.constants.org.baseURL}/groups`);
+  }
+
   addOrUpdateMemberships(groupId: string, groupMemberships: GroupMembership[]): Observable<void> {
     // Remove Membership with empty roles
     const filterEmptyMembershipRoles = (groupMembership: GroupMembership[]) => groupMembership.filter((m) => !isEmpty(m.roles));
