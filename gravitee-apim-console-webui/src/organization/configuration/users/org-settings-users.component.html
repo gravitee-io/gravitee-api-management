@@ -57,9 +57,7 @@
     <ng-container matColumnDef="status">
       <th mat-header-cell *matHeaderCellDef id="status" width="15%">Status</th>
       <td mat-cell *matCellDef="let element">
-        <span *ngIf="element.status === 'ACTIVE'" style="color: green">{{ element.status }}</span>
-        <span *ngIf="element.status === 'PENDING'" style="color: orange">{{ element.status }}</span>
-        <span *ngIf="element.status === 'REJECTED'" style="color: red">{{ element.status }}</span>
+        <span class="gio-badge" [ngClass]="element.status | lowercase">{{ element.status | titlecase }}</span>
       </td>
     </ng-container>
 
@@ -99,7 +97,7 @@
 
     <!-- Row shown when there is no data -->
     <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" colspan="4">No user</td>
+      <td class="mat-cell" [attr.colspan]="displayedColumns.length">No user</td>
     </tr>
   </table>
 

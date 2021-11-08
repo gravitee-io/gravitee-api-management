@@ -36,9 +36,9 @@
           <mat-icon [inline]="true">email</mat-icon> {{ user.email }}
         </h4>
 
-        <mat-chip-list class="org-settings-user-detail__card__head__middle__tags" aria-label="User status">
-          <mat-chip [selectable]="false" [disableRipple]="true" [ngClass]="user.status | lowercase">{{ user.status }}</mat-chip>
-        </mat-chip-list>
+        <span class="gio-badge org-settings-user-detail__card__head__middle__status" [ngClass]="user.status | lowercase">{{
+          user.status | titlecase
+        }}</span>
       </div>
 
       <div class="org-settings-user-detail__card__head__right">

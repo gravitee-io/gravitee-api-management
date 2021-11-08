@@ -118,7 +118,7 @@ describe('OrgSettingsUsersComponent', () => {
           displayName: 'adminPrimary Owner Active Token',
           email: '',
           source: 'memory',
-          status: 'ACTIVE',
+          status: 'Active',
           userPicture: '',
         },
       ]);

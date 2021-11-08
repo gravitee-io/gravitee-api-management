@@ -19,7 +19,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
-import { MatChipHarness } from '@angular/material/chips/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
@@ -121,8 +120,8 @@ describe('OrgSettingsUserDetailComponent', () => {
       expect(await userCard.getText()).toContain(value);
     });
 
-    const userStatus = await userCard.getHarness(MatChipHarness.with({ ancestor: '.org-settings-user-detail__card__head__middle__tags' }));
-    expect(await userStatus.getText()).toContain(user.status);
+    const userStatus = await userCard.getText();
+    expect(await userStatus).toContain('Active');
 
     const resetPasswordButton = await userCard.getHarness(MatButtonHarness.with({ text: 'Reset password' }));
     expect(resetPasswordButton).toBeTruthy();
