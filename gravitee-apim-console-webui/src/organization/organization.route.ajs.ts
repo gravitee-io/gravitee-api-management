@@ -443,6 +443,20 @@ function organizationRouterConfig($stateProvider) {
         },
       },
     })
+    .state('organization.settings.ng-tags', {
+      url: '/ng-tags',
+      component: 'ngOrgSettingsTags',
+      data: {
+        useAngularMaterial: true,
+        menu: null,
+        docs: {
+          page: 'management-configuration-sharding-tags',
+        },
+        perms: {
+          only: ['organization-tag-r'],
+        },
+      },
+    })
     .state('organization.settings.policies', {
       url: '/policies',
       component: 'policies',
