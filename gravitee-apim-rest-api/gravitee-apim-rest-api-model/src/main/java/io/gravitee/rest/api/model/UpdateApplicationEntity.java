@@ -43,6 +43,9 @@ public class UpdateApplicationEntity {
     )
     private String description;
 
+    @ApiModelProperty(value = "Domain used by the application, if relevant", example = "https://my-app.com")
+    private String domain;
+
     private String picture;
 
     @JsonProperty("picture_url")
@@ -152,6 +155,14 @@ public class UpdateApplicationEntity {
 
     public void setPictureUrl(String pictureUrl) {
         this.pictureUrl = pictureUrl;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override

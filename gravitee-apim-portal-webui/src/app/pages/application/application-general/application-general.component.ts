@@ -132,6 +132,7 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
         id: this.application.id,
         name: new FormControl(this.application.name, [Validators.required]),
         description: new FormControl(this.application.description, [Validators.required]),
+        domain: new FormControl(this.application.domain),
         picture: new FormControl(this.application.picture),
         background: new FormControl(this.application.background),
         settings,

@@ -900,6 +900,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     item.setId(application.getId());
                     item.setName(application.getName());
                     item.setDescription(application.getDescription());
+                    item.setDomain(application.getDomain());
                     item.setCreatedAt(application.getCreatedAt());
                     item.setUpdatedAt(application.getUpdatedAt());
                     item.setType(application.getType().name());
@@ -923,6 +924,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     item.setId(applicationEntity.getId());
                     item.setName(applicationEntity.getName());
                     item.setDescription(applicationEntity.getDescription());
+                    item.setDomain(applicationEntity.getDomain());
                     item.setCreatedAt(applicationEntity.getCreatedAt());
                     item.setUpdatedAt(applicationEntity.getUpdatedAt());
                     item.setGroups(applicationEntity.getGroups());
@@ -958,6 +960,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setId(application.getId());
         applicationEntity.setName(application.getName());
         applicationEntity.setDescription(application.getDescription());
+        applicationEntity.setDomain(application.getDomain());
         if (application.getType() != null) {
             applicationEntity.setType(application.getType().name());
         }
@@ -1027,6 +1030,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
 
         application.setName(newApplicationEntity.getName().trim());
         application.setDescription(newApplicationEntity.getDescription().trim());
+        application.setDomain(newApplicationEntity.getDomain());
         application.setGroups(newApplicationEntity.getGroups());
 
         Map<String, String> metadata = new HashMap<>();
@@ -1057,6 +1061,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         application.setPicture(updateApplicationEntity.getPicture());
         application.setBackground(updateApplicationEntity.getBackground());
         application.setDescription(updateApplicationEntity.getDescription().trim());
+        application.setDomain(updateApplicationEntity.getDomain());
         application.setGroups(updateApplicationEntity.getGroups());
         Map<String, String> metadata = new HashMap<>();
 

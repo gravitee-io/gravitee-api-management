@@ -29,6 +29,10 @@ export interface Application {
      */
     description?: string;
     /**
+     * Domain used by the application.
+     */
+    domain?: string;
+    /**
      * Type of the application (Web, Mobile, ...).
      */
     applicationType?: string;

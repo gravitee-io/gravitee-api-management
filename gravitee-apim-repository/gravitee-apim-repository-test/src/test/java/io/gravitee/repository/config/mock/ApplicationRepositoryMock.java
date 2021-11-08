@@ -84,6 +84,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(newApplication.getName()).thenReturn("created-app");
         when(newApplication.getEnvironmentId()).thenReturn("DEFAULT");
         when(newApplication.getDescription()).thenReturn("Application description");
+        when(newApplication.getDomain()).thenReturn("Application domain");
         when(newApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
         when(newApplication.getType()).thenReturn(ApplicationType.SIMPLE);
         when(newApplication.getCreatedAt()).thenReturn(parse("11/02/2016"));
@@ -100,6 +101,7 @@ public class ApplicationRepositoryMock extends AbstractRepositoryMock<Applicatio
         when(updatedApplication.getEnvironmentId()).thenReturn("new_DEFAULT");
         when(updatedApplication.getName()).thenReturn("updated-app");
         when(updatedApplication.getDescription()).thenReturn("Updated description");
+        when(updatedApplication.getDomain()).thenReturn("Updated domain");
         when(updatedApplication.getPicture()).thenReturn("New picture");
         when(updatedApplication.getBackground()).thenReturn("New background");
         when(updatedApplication.getStatus()).thenReturn(ApplicationStatus.ARCHIVED);

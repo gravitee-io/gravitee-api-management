@@ -32,6 +32,7 @@ export class ApplicationCreationStep1Component implements OnInit {
     this.form = this.formBuilder.group({
       name: new FormControl(null, [Validators.required]),
       description: new FormControl(null, [Validators.required]),
+      domain: new FormControl(null),
       picture: new FormControl(null),
     });
 

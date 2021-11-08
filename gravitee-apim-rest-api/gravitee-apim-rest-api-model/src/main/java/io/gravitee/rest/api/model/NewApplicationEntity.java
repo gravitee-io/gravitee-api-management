@@ -40,6 +40,9 @@ public class NewApplicationEntity {
     )
     private String description;
 
+    @ApiModelProperty(value = "Domain used by the application, if relevant", example = "https://my-app.com")
+    private String domain;
+
     private ApplicationSettings settings;
 
     /**
@@ -126,6 +129,14 @@ public class NewApplicationEntity {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override

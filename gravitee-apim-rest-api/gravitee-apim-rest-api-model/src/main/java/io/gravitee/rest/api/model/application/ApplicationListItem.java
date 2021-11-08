@@ -42,6 +42,9 @@ public class ApplicationListItem implements FilterableItem {
     )
     private String description;
 
+    @ApiModelProperty(value = "Domain used by the application, if relevant", example = "https://my-app.com")
+    private String domain;
+
     @ApiModelProperty(value = "Application's groups. Used to add team in your App.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
@@ -186,6 +189,14 @@ public class ApplicationListItem implements FilterableItem {
 
     public void setBackgroundUrl(String backgroundUrl) {
         this.backgroundUrl = backgroundUrl;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override

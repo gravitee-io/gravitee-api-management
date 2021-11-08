@@ -60,6 +60,7 @@ public class ApplicationMapper {
         application.setApplicationType(applicationListItem.getType());
         application.setCreatedAt(applicationListItem.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setDescription(applicationListItem.getDescription());
+        application.setDomain(applicationListItem.getDomain());
         Set<String> groupEntities = applicationListItem.getGroups();
         if (groupEntities != null && !groupEntities.isEmpty()) {
             List<Group> groups = groupEntities
@@ -115,6 +116,7 @@ public class ApplicationMapper {
         application.setApplicationType(applicationEntity.getType());
         application.setCreatedAt(applicationEntity.getCreatedAt().toInstant().atOffset(ZoneOffset.UTC));
         application.setDescription(applicationEntity.getDescription());
+        application.setDomain(applicationEntity.getDomain());
         Set<String> groupEntities = applicationEntity.getGroups();
         if (groupEntities != null && !groupEntities.isEmpty()) {
             List<Group> groups = groupEntities

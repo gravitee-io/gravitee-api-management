@@ -49,6 +49,18 @@
             ngDefaultControl
           >
           </gv-text>
+
+          <gv-input
+            [attr.readonly]="!canUpdate ? 'readonly' : null"
+            class="form__control"
+            label="{{ 'application.domain.title' | translate }}"
+            placeholder="{{ 'application.domain.label' | translate }}"
+            formControlName="domain"
+            name="application.domain"
+            ngDefaultControl
+          >
+          </gv-input>
+
           <div formGroupName="settings" *ngIf="application.settings.app">
             <div formGroupName="app">
               <gv-input

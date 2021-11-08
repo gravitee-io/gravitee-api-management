@@ -3702,6 +3702,9 @@ components:
         description:
           description: Description of the application.
           type: string
+        domain:
+          description: Domain used by the application.
+          type: string
         applicationType:
           description: Type of the application (Web, Mobile, ...).
           type: string
@@ -4424,6 +4427,8 @@ components:
         name:
           type: string
         description:
+          type: string
+        domain:
           type: string
         picture:
           type: string

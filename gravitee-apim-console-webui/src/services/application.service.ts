@@ -84,6 +84,7 @@ class ApplicationService {
     return this.$http.put(`${this.Constants.env.baseURL}/applications/` + application.id, {
       name: application.name,
       description: application.description,
+      domain: application.domain,
       groups: application.groups,
       settings: application.settings,
       picture: application.picture,

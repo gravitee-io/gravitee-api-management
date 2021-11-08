@@ -41,6 +41,9 @@ public class ApplicationEntity {
     )
     private String description;
 
+    @ApiModelProperty(value = "Domain used by the application, if relevant", example = "https://my-app.com")
+    private String domain;
+
     @ApiModelProperty(value = "Application's groups. Used to add team in your App.", example = "['MY_GROUP1', 'MY_GROUP2']")
     private Set<String> groups;
 
@@ -174,6 +177,14 @@ public class ApplicationEntity {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override

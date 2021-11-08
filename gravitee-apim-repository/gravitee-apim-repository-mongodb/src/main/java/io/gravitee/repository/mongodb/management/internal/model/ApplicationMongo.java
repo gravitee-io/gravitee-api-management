@@ -56,6 +56,8 @@ public class ApplicationMongo extends Auditable {
 
     private String background;
 
+    private String domain;
+
     public String getId() {
         return id;
     }
@@ -142,6 +144,14 @@ public class ApplicationMongo extends Auditable {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override

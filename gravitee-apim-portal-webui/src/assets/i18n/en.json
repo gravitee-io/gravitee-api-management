@@ -223,6 +223,10 @@
       "label": "Describe the goal of this application",
       "title": "Description"
     },
+    "domain": {
+      "title": "Domain used by this application",
+      "label": "https://my-app.com"
+    },
     "general": "General",
     "information": {
       "createdDate": "Created",
@@ -456,6 +460,10 @@
       "description": {
         "label": "Description",
         "placeholder": "Just describe its purpose"
+      },
+      "domain": {
+        "label": "Domain your application will use",
+        "placeholder": "https://my-app.com"
       },
       "image": "Application Image",
       "name": {

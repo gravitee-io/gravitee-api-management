@@ -78,6 +78,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setEnvironmentId("DEFAULT");
         application.setName(name);
         application.setDescription("Application description");
+        application.setDomain("Application domain");
         Map<String, String> metadata = new HashMap<>();
         metadata.put("type", "app-type");
         application.setMetadata(metadata);
@@ -99,6 +100,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid environment id.", application.getEnvironmentId(), appSaved.getEnvironmentId());
         assertEquals("Invalid application name.", application.getName(), appSaved.getName());
         assertEquals("Invalid application description.", application.getDescription(), appSaved.getDescription());
+        assertEquals("Invalid application domain.", application.getDomain(), appSaved.getDomain());
         assertEquals("Invalid application status.", application.getStatus(), appSaved.getStatus());
         assertTrue("Invalid application createdAt.", compareDate(application.getCreatedAt(), appSaved.getCreatedAt()));
         assertTrue("Invalid application updateAt.", compareDate(application.getUpdatedAt(), appSaved.getUpdatedAt()));
@@ -115,6 +117,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         application.setEnvironmentId("new_DEFAULT");
         application.setName(applicationName);
         application.setDescription("Updated description");
+        application.setDomain("Updated domain");
         Map<String, String> metadata = new HashMap<>();
         metadata.put("type", "update-type");
         application.setMetadata(metadata);
@@ -136,6 +139,7 @@ public class ApplicationRepositoryTest extends AbstractRepositoryTest {
         assertEquals("Invalid updated environment id.", application.getEnvironmentId(), appUpdated.getEnvironmentId());
         assertEquals("Invalid updated application name.", application.getName(), appUpdated.getName());
         assertEquals("Invalid updated application description.", application.getDescription(), appUpdated.getDescription());
+        assertEquals("Invalid updated application domain.", application.getDomain(), appUpdated.getDomain());
         assertEquals("Invalid updated application status.", application.getStatus(), appUpdated.getStatus());
         assertTrue("Invalid updated application createdAt.", compareDate(application.getCreatedAt(), appUpdated.getCreatedAt()));
         assertTrue("Invalid updated application updateAt.", compareDate(application.getUpdatedAt(), appUpdated.getUpdatedAt()));

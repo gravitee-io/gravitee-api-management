@@ -15,6 +15,7 @@ import { ApplicationSettings } from './applicationSettings';
 export interface ApplicationInput { 
     name?: string;
     description?: string;
+    domain?: string;
     picture?: string;
     groups?: Array<string>;
     settings?: ApplicationSettings;

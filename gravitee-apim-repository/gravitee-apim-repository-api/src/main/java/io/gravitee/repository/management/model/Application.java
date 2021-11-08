@@ -61,6 +61,11 @@ public class Application {
     private String picture;
 
     /**
+     * Domain used by the application, if relevant
+     */
+    private String domain;
+
+    /**
      * The application creation date
      */
     private Date createdAt;
@@ -98,6 +103,7 @@ public class Application {
         this.status = cloned.status;
         this.disableMembershipNotifications = cloned.disableMembershipNotifications;
         this.background = cloned.background;
+        this.domain = cloned.domain;
     }
 
     public Date getCreatedAt() {
@@ -202,6 +208,14 @@ public class Application {
 
     public void setBackground(String background) {
         this.background = background;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override

@@ -103,6 +103,7 @@ public class ApplicationResource extends AbstractResource {
 
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setDescription(application.getDescription());
+        updateApplicationEntity.setDomain(application.getDomain());
         updateApplicationEntity.setName(application.getName());
         updateApplicationEntity.setPicture(checkAndScaleImage(application.getPicture()));
         checkImageFormat(application.getBackground());

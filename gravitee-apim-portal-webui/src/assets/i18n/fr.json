@@ -223,6 +223,10 @@
       "label": "Décrire le but de cette application",
       "title": "Description"
     },
+    "domain": {
+      "title": "Domaine utilisé par l'application",
+      "label": "https://mon-application.fr"
+    },
     "general": "Général",
     "information": {
       "createdDate": "Crée le",
@@ -456,6 +460,10 @@
       "description": {
         "label": "Description",
         "placeholder": "Décrivez simplement son objectif "
+      },
+      "domain": {
+        "label": "Domaine utilisé par l'application",
+        "placeholder": "https://mon-application.fr"
       },
       "image": "Image de l'application",
       "name": {

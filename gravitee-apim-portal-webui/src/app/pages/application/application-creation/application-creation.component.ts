@@ -129,6 +129,7 @@ export class ApplicationCreationComponent implements OnInit {
     this.applicationForm = this.formBuilder.group({
       name: new FormControl(null, [Validators.required]),
       description: new FormControl(null, [Validators.required]),
+      domain: new FormControl(null),
       picture: new FormControl(null),
       settings: new FormControl(null, [Validators.required]),
     });

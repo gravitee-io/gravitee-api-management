@@ -61,6 +61,7 @@ public class ApplicationMapperTest {
     private static final String APPLICATION = "my-application";
     private static final String APPLICATION_ID = "my-application-id";
     private static final String APPLICATION_DESCRIPTION = "my-application-description";
+    private static final String APPLICATION_DOMAIN = "my-application-domain";
     private static final String APPLICATION_NAME = "my-application-name";
     private static final String APPLICATION_GROUP_ID = "my-application-group-id";
     private static final String APPLICATION_GROUP_NAME = "my-application-group-name";
@@ -137,6 +138,7 @@ public class ApplicationMapperTest {
 
         applicationEntity.setCreatedAt(nowDate);
         applicationEntity.setDescription(APPLICATION_DESCRIPTION);
+        applicationEntity.setDomain(APPLICATION_DOMAIN);
         applicationEntity.setGroups(new HashSet<String>(Arrays.asList(APPLICATION_GROUP_ID)));
         applicationEntity.setId(APPLICATION_ID);
         applicationEntity.setName(APPLICATION_NAME);
@@ -147,6 +149,7 @@ public class ApplicationMapperTest {
 
         applicationListItem.setCreatedAt(nowDate);
         applicationListItem.setDescription(APPLICATION_DESCRIPTION);
+        applicationListItem.setDomain(APPLICATION_DOMAIN);
         applicationListItem.setGroups(new HashSet<String>(Arrays.asList(APPLICATION_GROUP_ID)));
         applicationListItem.setId(APPLICATION_ID);
         applicationListItem.setName(APPLICATION_NAME);
@@ -210,6 +213,7 @@ public class ApplicationMapperTest {
         assertEquals(APPLICATION_TYPE, responseApplication.getApplicationType());
         assertEquals(now.toEpochMilli(), responseApplication.getCreatedAt().toInstant().toEpochMilli());
         assertEquals(APPLICATION_DESCRIPTION, responseApplication.getDescription());
+        assertEquals(APPLICATION_DOMAIN, responseApplication.getDomain());
         assertEquals(APPLICATION_ID, responseApplication.getId());
         assertEquals(APPLICATION_NAME, responseApplication.getName());
         assertEquals(now.toEpochMilli(), responseApplication.getUpdatedAt().toInstant().toEpochMilli());
