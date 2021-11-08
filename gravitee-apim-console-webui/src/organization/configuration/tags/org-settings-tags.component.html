@@ -16,7 +16,7 @@
 
 -->
 
-<form *ngIf="!isLoading" autocomplete="off" (ngSubmit)="submitForm()">
+<form *ngIf="!isLoading" autocomplete="off" [formGroup]="defaultConfigForm" (ngSubmit)="submitForm()">
   <h1>Sharding Tags</h1>
 
   <h4>Copy/paste the sharding tag's id to the API gateway configuration file in order to manage API deployments.</h4>
@@ -96,4 +96,21 @@
       </table>
     </gio-table-wrapper>
   </mat-card>
+
+  <mat-card class="org-settings-tags__default-config-card">
+    <h2>Default configuration</h2>
+
+    <mat-form-field
+      [matTooltip]="providedConfigurationMessage"
+      [matTooltipDisabled]="!isReadonlySetting('entrypoint')"
+      class="org-settings-new-user__card__form-field"
+      appearance="fill"
+    >
+      <mat-icon *ngIf="isReadonlySetting('entrypoint')" class="settings-general__form__card__form-field__icon" matPrefix>lock</mat-icon>
+      <mat-label>Entrypoint</mat-label>
+      <input matInput formControlName="entrypoint" />
+    </mat-form-field>
+  </mat-card>
+
+  <gio-save-bar [creationMode]="false" [form]="defaultConfigForm" [formInitialValues]="initialDefaultConfigFormValues"> </gio-save-bar>
 </form>

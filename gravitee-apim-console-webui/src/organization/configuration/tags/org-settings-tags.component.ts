@@ -15,10 +15,14 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { FormControl, FormGroup } from '@angular/forms';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 
+import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GroupService } from '../../../services-ngx/group.service';
+import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../services-ngx/tag.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
@@ -44,14 +48,23 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   filteredTagsTableDS: TagTableDS;
   tagsTableDisplayedColumns: string[] = ['id', 'name', 'description', 'restrictedGroupsName', 'actions'];
 
+  portalSettings: PortalSettings;
+  defaultConfigForm: FormGroup;
+  initialDefaultConfigFormValues: unknown;
+
   private unsubscribe$ = new Subject<boolean>();
 
-  constructor(private readonly tagService: TagService, private readonly groupService: GroupService) {}
+  constructor(
+    private readonly tagService: TagService,
+    private readonly groupService: GroupService,
+    private readonly portalSettingsService: PortalSettingsService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit(): void {
-    combineLatest([this.tagService.list(), this.groupService.listByOrganization()])
+    combineLatest([this.tagService.list(), this.groupService.listByOrganization(), this.portalSettingsService.get()])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([tags, groups]) => {
+      .subscribe(([tags, groups, portalSettings]) => {
         this.tagsTableDS = tags.map((tag) => ({
           id: tag.id,
           name: tag.name,
@@ -59,6 +72,15 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           restrictedGroupsName: (tag.restricted_groups ?? []).map((groupId) => groups.find((g) => g.id === groupId).name),
         }));
         this.filteredTagsTableDS = this.tagsTableDS;
+
+        this.portalSettings = portalSettings;
+        this.defaultConfigForm = new FormGroup({
+          entrypoint: new FormControl({
+            value: this.portalSettings.portal.entrypoint,
+            disabled: this.isReadonlySetting('portal.entrypoint'),
+          }),
+        });
+        this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
         this.isLoading = false;
       });
@@ -71,6 +93,35 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
 
   onTagsFiltersChanged(filters: GioTableWrapperFilters) {
     this.filteredTagsTableDS = gioTableFilterCollection(this.tagsTableDS, filters);
+  }
+
+  isReadonlySetting(property: string): boolean {
+    return PortalSettingsService.isReadonly(this.portalSettings, property);
+  }
+
+  submitForm() {
+    const portalSettingsToSave = {
+      ...this.portalSettings,
+      portal: {
+        ...this.portalSettings.portal,
+        entrypoint: this.defaultConfigForm.get('entrypoint').value,
+      },
+    };
+
+    this.portalSettingsService
+      .save(portalSettingsToSave)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap(() => {
+          this.snackBarService.success('Configuration saved!');
+          this.ngOnInit();
+        }),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe();
   }
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function

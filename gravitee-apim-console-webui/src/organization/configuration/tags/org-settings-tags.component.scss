@@ -19,4 +19,10 @@
       width: 104px;
     }
   }
+
+  &__default-config-card {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+  }
 }
