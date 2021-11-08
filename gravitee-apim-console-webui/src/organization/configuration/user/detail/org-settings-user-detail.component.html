@@ -35,7 +35,12 @@
           {{ user.displayName }}
         </h2>
 
-        <h4 class="org-settings-user-detail__card__head__middle__email" gioClipboardCopyWrapper [contentToCopy]="user.email">
+        <h4
+          *ngIf="user.email"
+          class="org-settings-user-detail__card__head__middle__email"
+          gioClipboardCopyWrapper
+          [contentToCopy]="user.email"
+        >
           <mat-icon [inline]="true">email</mat-icon> {{ user.email }}
         </h4>
 
