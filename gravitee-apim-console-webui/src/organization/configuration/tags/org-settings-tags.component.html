@@ -15,4 +15,85 @@
     limitations under the License.
 
 -->
-org-settings-tags
+
+<form *ngIf="!isLoading" autocomplete="off" (ngSubmit)="submitForm()">
+  <h1>Sharding Tags</h1>
+
+  <h4>Copy/paste the sharding tag's id to the API gateway configuration file in order to manage API deployments.</h4>
+
+  <mat-card class="org-settings-tags__tags-card">
+    <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
+      <button (click)="onAddTagClicked()" mat-raised-button color="primary" aria-label="Button to add a tag" type="button">
+        <mat-icon>add</mat-icon>Add a tag
+      </button>
+    </div>
+
+    <gio-table-wrapper [length]="tagsTableDS.length" (filtersChange)="onTagsFiltersChanged($event)">
+      <table mat-table [dataSource]="filteredTagsTableDS" class="tags-table" id="tagsTable" aria-label="Tags table">
+        <!-- Id Column -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef id="id">Id</th>
+          <td mat-cell *matCellDef="let tag">{{ tag.id }}</td>
+        </ng-container>
+
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+          <td mat-cell *matCellDef="let tag">{{ tag.name }}</td>
+        </ng-container>
+
+        <!-- Description Column -->
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef id="description">Description</th>
+          <td mat-cell *matCellDef="let tag">{{ tag.description }}</td>
+        </ng-container>
+
+        <!-- Restricted groups Column -->
+        <ng-container matColumnDef="restrictedGroupsName">
+          <th mat-header-cell *matHeaderCellDef id="restrictedGroupsName">Restricted groups</th>
+          <td mat-cell *matCellDef="let tag">{{ tag.restrictedGroupsName }}</td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef id="actions"></th>
+          <td mat-cell *matCellDef="let tag">
+            <div class="centered-cell">
+              <ng-container *gioPermission="{ anyOf: ['organization-tag-u'] }">
+                <button
+                  (click)="onEditTagClicked(tag)"
+                  mat-icon-button
+                  color="primary"
+                  type="button"
+                  aria-label="Button to edit a tag"
+                  matTooltip="Edit tag"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </ng-container>
+              <ng-container *gioPermission="{ anyOf: ['organization-tag-d'] }">
+                <button
+                  (click)="onDeleteTagClicked(tag)"
+                  mat-icon-button
+                  color="primary"
+                  type="button"
+                  aria-label="Button to delete a tag"
+                  matTooltip="Delete tag"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="tagsTableDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: tagsTableDisplayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="tagsTableDisplayedColumns.length">No tag</td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  </mat-card>
+</form>

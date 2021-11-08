@@ -16,29 +16,87 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { OrgSettingsTagsComponent } from './org-settings-tags.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { Tag } from '../../../entities/tag/tag';
+import { fakeTag } from '../../../entities/tag/tag.fixture';
+import { Group } from '../../../entities/group/group';
+import { fakeGroup } from '../../../entities/group/group.fixture';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
+import { User as DeprecatedUser } from '../../../entities/user';
 
 describe('OrgSettingsTagsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsTagsComponent>;
+  let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser: new DeprecatedUser() } }],
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsTagsComponent);
-  });
-
-  it('should init the component', () => {
-    expect(fixture.componentInstance).toBeDefined();
+    loader = TestbedHarnessEnvironment.loader(fixture);
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
+
+  it('should display tags table', async () => {
+    fixture.detectChanges();
+    expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+    expect(headerCells).toEqual([
+      {
+        description: 'Description',
+        id: 'Id',
+        name: 'Name',
+        restrictedGroupsName: 'Restricted groups',
+        actions: '',
+      },
+    ]);
+    expect(rowCells).toEqual([
+      {
+        description: 'A tag for all external stuff',
+        id: 'external',
+        name: 'External',
+        restrictedGroupsName: 'Group A',
+        actions: '',
+      },
+    ]);
+  });
+
+  function expectTagsListRequest(tags: Tag[] = []) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`,
+      })
+      .flush(tags);
+  }
+
+  function expectGroupListByOrganizationRequest(groups: Group[] = []) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/groups`,
+      })
+      .flush(groups);
+  }
 });
