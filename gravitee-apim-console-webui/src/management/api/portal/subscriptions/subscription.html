@@ -65,10 +65,12 @@
             </tr>
             <tr md-row style="height: 30px">
               <td md-cell><span style="font-weight: bold">Application</span></td>
-              <td md-cell colspan="3">
+              <td md-cell>
                 <span style="font-weight: bold">{{$ctrl.subscription.application.name}}</span>
                 ({{$ctrl.subscription.application.owner.displayName}}) - Type: {{$ctrl.subscription.application.type}}
               </td>
+              <td md-cell><span style="font-weight: bold">Domain</span></td>
+              <td md-cell>{{$ctrl.subscription.application.domain || '-'}}</td>
             </tr>
             <tr md-row style="height: 30px">
               <td md-cell style="border-top: 0px"></td>

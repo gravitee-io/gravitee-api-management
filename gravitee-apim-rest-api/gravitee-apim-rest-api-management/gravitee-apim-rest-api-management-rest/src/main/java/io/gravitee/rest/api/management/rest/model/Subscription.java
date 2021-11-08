@@ -261,13 +261,22 @@ public class Subscription {
         private final String name;
         private final String type;
         private final String description;
+        private final String domain;
         private final User owner;
 
-        public Application(final String id, final String name, final String type, final String description, final User owner) {
+        public Application(
+            final String id,
+            final String name,
+            final String type,
+            final String description,
+            final String domain,
+            final User owner
+        ) {
             this.id = id;
             this.name = name;
             this.type = type;
             this.description = description;
+            this.domain = domain;
             this.owner = owner;
         }
 
@@ -285,6 +294,10 @@ public class Subscription {
 
         public String getDescription() {
             return description;
+        }
+
+        public String getDomain() {
+            return domain;
         }
 
         public User getOwner() {
