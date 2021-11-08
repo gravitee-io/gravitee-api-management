@@ -20,6 +20,7 @@ import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
 import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { EntrypointService } from '../../../services-ngx/entrypoint.service';
 import { GroupService } from '../../../services-ngx/group.service';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -34,6 +35,10 @@ type TagTableDS = {
   restrictedGroupsName?: string[];
 }[];
 
+type EntrypointTableDS = {
+  url: string;
+  tags: string[];
+}[];
 @Component({
   selector: 'org-settings-tags',
   template: require('./org-settings-tags.component.html'),
@@ -52,19 +57,29 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   defaultConfigForm: FormGroup;
   initialDefaultConfigFormValues: unknown;
 
+  entrypointsTableDS: EntrypointTableDS;
+  filteredEntrypointsTableDS: EntrypointTableDS;
+  entrypointsTableDisplayedColumns: string[] = ['entrypoint', 'tags', 'actions'];
+
   private unsubscribe$ = new Subject<boolean>();
 
   constructor(
     private readonly tagService: TagService,
     private readonly groupService: GroupService,
     private readonly portalSettingsService: PortalSettingsService,
+    private readonly entrypointService: EntrypointService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
-    combineLatest([this.tagService.list(), this.groupService.listByOrganization(), this.portalSettingsService.get()])
+    combineLatest([
+      this.tagService.list(),
+      this.groupService.listByOrganization(),
+      this.portalSettingsService.get(),
+      this.entrypointService.list(),
+    ])
       .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(([tags, groups, portalSettings]) => {
+      .subscribe(([tags, groups, portalSettings, entrypoints]) => {
         this.tagsTableDS = tags.map((tag) => ({
           id: tag.id,
           name: tag.name,
@@ -81,6 +96,9 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
           }),
         });
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
+
+        this.entrypointsTableDS = entrypoints.map((entrypoint) => ({ url: entrypoint.value, tags: entrypoint.tags }));
+        this.filteredEntrypointsTableDS = this.entrypointsTableDS;
 
         this.isLoading = false;
       });
@@ -132,4 +150,17 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onDeleteTagClicked() {}
+
+  onEntrypointsFiltersChanged(filters: GioTableWrapperFilters) {
+    this.filteredEntrypointsTableDS = gioTableFilterCollection(this.entrypointsTableDS, filters);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onAddEntrypointClicked() {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onEditEntrypointClicked() {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onDeleteEntrypointClicked() {}
 }

@@ -10,6 +10,10 @@
     justify-content: flex-end;
     align-items: center;
     margin-bottom: 16px;
+
+    h2 {
+      flex: 1 1 auto;
+    }
   }
 
   &__tags-card {
@@ -24,5 +28,11 @@
     margin-bottom: 16px;
     display: flex;
     flex-direction: column;
+  }
+
+  &__entrypoints-card {
+    .mat-column-actions {
+      width: 104px;
+    }
   }
 }

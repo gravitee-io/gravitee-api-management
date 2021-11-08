@@ -34,6 +34,8 @@ import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { User as DeprecatedUser } from '../../../entities/user';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
+import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
+import { fakeEntrypoint } from '../../../entities/entrypoint/entrypoint.fixture';
 
 describe('OrgSettingsTagsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsTagsComponent>;
@@ -59,6 +61,7 @@ describe('OrgSettingsTagsComponent', () => {
     expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
     expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
     expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest([fakeEntrypoint()]);
 
     const table = await loader.getHarness(MatTableHarness.with({ selector: '#tagsTable' }));
     const headerRows = await table.getHeaderRows();
@@ -98,6 +101,7 @@ describe('OrgSettingsTagsComponent', () => {
         },
       }),
     );
+    expectEntrypointsListRequest([fakeEntrypoint()]);
 
     const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
     const saveBar = await loader.getHarness(GioSaveBarHarness);
@@ -130,11 +134,42 @@ describe('OrgSettingsTagsComponent', () => {
         metadata: { readonly: ['portal.entrypoint'] },
       }),
     );
+    expectEntrypointsListRequest([fakeEntrypoint()]);
 
     const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
 
     expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
     expect(await entrypointInput.isDisabled()).toEqual(true);
+  });
+
+  it('should display entrypoint mappings table', async () => {
+    fixture.detectChanges();
+    expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest([fakeEntrypoint()]);
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#entrypointsTable' }));
+    const headerRows = await table.getHeaderRows();
+    const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
+
+    const rows = await table.getRows();
+    const rowCells = await await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+
+    expect(headerCells).toEqual([
+      {
+        entrypoint: 'Entrypoint',
+        tags: 'Tags',
+        actions: '',
+      },
+    ]);
+    expect(rowCells).toEqual([
+      {
+        entrypoint: 'https://googl.co',
+        tags: 'internal',
+        actions: '',
+      },
+    ]);
   });
 
   function expectTagsListRequest(tags: Tag[] = []) {
@@ -163,5 +198,14 @@ describe('OrgSettingsTagsComponent', () => {
     const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
     expect(req.request.body).toStrictEqual(portalSettings);
     // no flush to stop test here
+  }
+
+  function expectEntrypointsListRequest(entrypoints: Entrypoint[] = []) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints`,
+        method: 'GET',
+      })
+      .flush(entrypoints);
   }
 });
