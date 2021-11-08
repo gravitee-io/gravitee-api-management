@@ -31,7 +31,10 @@
       </div>
 
       <div class="org-settings-user-detail__card__head__middle">
-        <h2 gioTableOfContents class="org-settings-user-detail__card__head__middle__name">{{ user.displayName }}</h2>
+        <h2 gioTableOfContents gioTableOfContentsName="Profile" class="org-settings-user-detail__card__head__middle__name">
+          {{ user.displayName }}
+        </h2>
+
         <h4 class="org-settings-user-detail__card__head__middle__email" gioClipboardCopyWrapper [contentToCopy]="user.email">
           <mat-icon [inline]="true">email</mat-icon> {{ user.email }}
         </h4>

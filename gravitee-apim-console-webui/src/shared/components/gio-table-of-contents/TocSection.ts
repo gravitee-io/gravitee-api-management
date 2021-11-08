@@ -25,7 +25,7 @@ export class TocSectionLink {
    * Id of the section
    */
   public get id(): string {
-    const name = this.element.innerText?.trim();
+    const name = (this.options.name ?? this.element.innerText)?.trim();
     return kebabCase(name);
   }
 
@@ -45,7 +45,7 @@ export class TocSectionLink {
    * Name of the anchor
    */
   public get name(): string {
-    return this.element.innerText?.trim();
+    return (this.options.name ?? this.element.innerText)?.trim();
   }
 
   /**
@@ -55,5 +55,5 @@ export class TocSectionLink {
     return this.element.getBoundingClientRect().top;
   }
 
-  constructor(private element: HTMLElement) {}
+  constructor(private element: HTMLElement, private options?: { name?: string }) {}
 }

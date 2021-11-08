@@ -28,10 +28,12 @@ export class GioTableOfContentsDirective implements AfterViewInit, OnDestroy {
 
   @Input('gioTableOfContentsSectionId') sectionId = '';
 
+  @Input('gioTableOfContentsName') name?: string;
+
   private link: TocSectionLink;
 
   ngAfterViewInit(): void {
-    this.link = new TocSectionLink(this.el.nativeElement);
+    this.link = new TocSectionLink(this.el.nativeElement, { name: this.name });
 
     this.el.nativeElement.id = `toc-${this.link.id}`;
 
