@@ -51,8 +51,11 @@ public abstract class TemplateVariableProviderFactory {
                     try {
                         Class<TemplateVariableProvider> instance = (Class<TemplateVariableProvider>) ClassUtils.forName(name, classLoader);
                         return applicationContext.getBean(instance);
-                    } catch (ClassNotFoundException | NoSuchBeanDefinitionException e) {
-                        logger.warn(e.getMessage());
+                    } catch (ClassNotFoundException e) {
+                        logger.warn("TemplateVariableProvider class not found : {}", e.getMessage());
+                        return null;
+                    } catch (NoSuchBeanDefinitionException e) {
+                        logger.debug("No TemplateVariableProvider of type {} is defined", name);
                         return null;
                     }
                 }
