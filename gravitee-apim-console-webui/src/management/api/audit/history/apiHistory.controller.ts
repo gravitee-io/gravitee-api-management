@@ -263,6 +263,7 @@ class ApiHistoryController {
       tags: eventPayloadDefinition.tags,
       proxy: eventPayloadDefinition.proxy,
       paths: eventPayloadDefinition.paths,
+      plans: eventPayloadDefinition.plans,
       flows: eventPayloadDefinition.flows,
       properties: eventPayloadDefinition.properties,
       services: eventPayloadDefinition.services,
