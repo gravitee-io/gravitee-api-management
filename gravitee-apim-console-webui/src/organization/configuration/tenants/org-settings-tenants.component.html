@@ -27,64 +27,62 @@
   </button>
 </div>
 
-<div class="mat-elevation-z3">
-  <gio-table-wrapper [length]="tenants.length" (filtersChange)="onFiltersChanged($event)">
-    <table mat-table [dataSource]="tenantsDataSource" class="tenants-table" id="tenantsTable" aria-label="Tenant table">
-      <!-- Id Column -->
-      <ng-container matColumnDef="id">
-        <th mat-header-cell *matHeaderCellDef id="id">Id</th>
-        <td mat-cell *matCellDef="let element">{{ element.id }}</td>
-      </ng-container>
+<gio-table-wrapper [length]="tenants.length" (filtersChange)="onFiltersChanged($event)">
+  <table mat-table [dataSource]="tenantsDataSource" class="tenants-table" id="tenantsTable" aria-label="Tenant table">
+    <!-- Id Column -->
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef id="id">Id</th>
+      <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+    </ng-container>
 
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
-      </ng-container>
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
 
-      <!-- Description Column -->
-      <ng-container matColumnDef="description">
-        <th mat-header-cell *matHeaderCellDef id="description">Description</th>
-        <td mat-cell *matCellDef="let element">{{ element.description }}</td>
-      </ng-container>
+    <!-- Description Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef id="description">Description</th>
+      <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+    </ng-container>
 
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef id="actions"></th>
-        <td mat-cell *matCellDef="let element">
-          <div class="centered-cell">
-            <ng-container *gioPermission="{ anyOf: ['organization-tenant-u'] }">
-              <button
-                (click)="onEditTenantClicked(element)"
-                mat-icon-button
-                color="primary"
-                aria-label="Button to edit a tenant"
-                matTooltip="Edit tenant"
-              >
-                <mat-icon>edit</mat-icon>
-              </button>
-            </ng-container>
-            <ng-container *gioPermission="{ anyOf: ['organization-tenant-d'] }">
-              <button
-                (click)="onDeleteTenantClicked(element)"
-                mat-icon-button
-                color="primary"
-                aria-label="Button to delete a tenant"
-                matTooltip="Delete tenant"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </ng-container>
-          </div>
-        </td>
-      </ng-container>
+    <!-- Actions Column -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef id="actions"></th>
+      <td mat-cell *matCellDef="let element">
+        <div class="centered-cell">
+          <ng-container *gioPermission="{ anyOf: ['organization-tenant-u'] }">
+            <button
+              (click)="onEditTenantClicked(element)"
+              mat-icon-button
+              color="primary"
+              aria-label="Button to edit a tenant"
+              matTooltip="Edit tenant"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+          </ng-container>
+          <ng-container *gioPermission="{ anyOf: ['organization-tenant-d'] }">
+            <button
+              (click)="onDeleteTenantClicked(element)"
+              mat-icon-button
+              color="primary"
+              aria-label="Button to delete a tenant"
+              matTooltip="Delete tenant"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </ng-container>
+        </div>
+      </td>
+    </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" colspan="4">No tenant</td>
-      </tr>
-    </table>
-  </gio-table-wrapper>
-</div>
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell" colspan="4">No tenant</td>
+    </tr>
+  </table>
+</gio-table-wrapper>

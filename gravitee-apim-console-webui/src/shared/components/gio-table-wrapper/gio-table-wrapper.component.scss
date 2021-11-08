@@ -8,13 +8,16 @@ $typography: map.get(gio.$mat-theme, typography);
 
 :host {
   display: block;
+
+  @include mat.elevation(3); // default elevation
 }
 
-// remove card padding when table is inside a card
+// remove card padding and default elevation when table is inside a card
 :host-context(.mat-card > :last-child:not(.mat-card-footer)) {
   margin-left: -16px;
   margin-right: -16px;
   margin-bottom: -12px;
+  @include mat.elevation(0);
 }
 
 .gio-table-wrapper {
