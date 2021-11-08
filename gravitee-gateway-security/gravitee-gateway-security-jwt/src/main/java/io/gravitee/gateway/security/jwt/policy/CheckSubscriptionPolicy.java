@@ -40,11 +40,11 @@ import static io.gravitee.reporter.api.http.SecurityType.JWT;
  */
 public class CheckSubscriptionPolicy extends AbstractPolicy {
 
+    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED = ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
 
     private final static String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
     private final static String OAUTH2_ERROR_SERVER_ERROR = "server_error";
-    private static final String BEARER_AUTHORIZATION_TYPE = "Bearer";
 
     static final String GATEWAY_OAUTH2_ACCESS_DENIED_KEY = "GATEWAY_OAUTH2_ACCESS_DENIED";
     static final String GATEWAY_OAUTH2_SERVER_ERROR_KEY = "GATEWAY_OAUTH2_SERVER_ERROR";
@@ -68,9 +68,12 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
                             .build());
 
             if (subscriptions != null && !subscriptions.isEmpty()) {
+
                 final String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
-                final Subscription subscription =
-                        subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
+                final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED));
+                final Subscription subscription = !selectionRuleBasedPlan ? subscriptions.get(0) :
+                    subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
+
                 if (subscription != null && subscription.getClientId().equals(clientId) &&
                         (
                                 subscription.getEndingAt() == null ||
@@ -78,6 +81,7 @@ public class CheckSubscriptionPolicy extends AbstractPolicy {
 
                     executionContext.setAttribute(ExecutionContext.ATTR_APPLICATION, subscription.getApplication());
                     executionContext.setAttribute(ExecutionContext.ATTR_SUBSCRIPTION_ID, subscription.getId());
+                    executionContext.setAttribute(ExecutionContext.ATTR_PLAN, subscription.getPlan());
 
                     policyChain.doNext(request, response);
                     return;
