@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject, combineLatest } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Subject, combineLatest, EMPTY } from 'rxjs';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { StateService } from '@uirouter/angularjs';
+import { MatDialog } from '@angular/material/dialog';
 
 import { RoleService } from '../../../services-ngx/role.service';
 import { Role, RoleScope } from '../../../entities/role/role';
+import { UIRouterState } from '../../../ajs-upgraded-providers';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 interface RoleVM {
   name: string;
@@ -37,10 +42,15 @@ interface RoleVM {
   styles: [require('./org-settings-roles.component.scss')],
 })
 export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
-  rolesByScope: Array<{ scope: string; roles: RoleVM[] }>;
+  rolesByScope: Array<{ scope: string; scopeId: string; roles: RoleVM[] }>;
   loading = true;
 
-  constructor(private readonly roleService: RoleService) {}
+  constructor(
+    private readonly roleService: RoleService,
+    @Inject(UIRouterState) private readonly ajsState: StateService,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   private readonly unsubscribe$ = new Subject<boolean>();
 
@@ -55,10 +65,10 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
         tap(([orgRoles, envRoles, apiRoles, appRoles]) => {
           this.rolesByScope = [
-            { scope: 'Organization', roles: this.convertToRoleVMs(orgRoles) },
-            { scope: 'Environment', roles: this.convertToRoleVMs(envRoles) },
-            { scope: 'API', roles: this.convertToRoleVMs(apiRoles) },
-            { scope: 'Application', roles: this.convertToRoleVMs(appRoles) },
+            { scope: 'Organization', scopeId: 'ORGANIZATION', roles: this.convertToRoleVMs(orgRoles) },
+            { scope: 'Environment', scopeId: 'ENVIRONMENT', roles: this.convertToRoleVMs(envRoles) },
+            { scope: 'API', scopeId: 'API', roles: this.convertToRoleVMs(apiRoles) },
+            { scope: 'Application', scopeId: 'APPLICATION', roles: this.convertToRoleVMs(appRoles) },
           ];
           this.loading = false;
         }),
@@ -71,17 +81,43 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-  onAddARoleClicked(scope: string) {}
+  onAddARoleClicked(scope: string) {
+    this.ajsState.go('organization.settings.rolenew', { roleScope: scope });
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-  onEditRoleClicked(role: RoleVM) {}
+  onEditRoleClicked(scope: string, role: RoleVM) {
+    this.ajsState.go('organization.settings.roleedit', { roleScope: scope, role: role.name });
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-  onDeleteRoleClicked(role: RoleVM) {}
+  onDeleteRoleClicked(scope: string, role: RoleVM) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Delete a Role',
+          content: `Are you sure you want to remove the role <strong>${role.name}</strong>?`,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'deleteRoleConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        switchMap(() => this.roleService.delete(scope, role.name)),
+        tap(() => this.snackBarService.success(`Role ${role.name} successfully deleted!`)),
+        catchError(() => {
+          this.snackBarService.error(`Failed to delete Role ${role.name}`);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-  onMembersClicked(role: RoleVM) {}
+  onMembersClicked(scope: string, role: RoleVM) {
+    this.ajsState.go('organization.settings.rolemembers', { roleScope: scope.toUpperCase(), role: role.name });
+  }
 
   private convertToRoleVMs(roles: Role[]): RoleVM[] {
     return roles.map((role) => ({

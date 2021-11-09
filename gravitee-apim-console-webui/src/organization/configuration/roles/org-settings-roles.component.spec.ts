@@ -16,73 +16,109 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { OrgSettingsRolesComponent } from './org-settings-roles.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeRole } from '../../../entities/role/role.fixture';
+import { CurrentUserService, UIRouterState } from '../../../ajs-upgraded-providers';
+import { User } from '../../../entities/user';
+import { Role } from '../../../entities/role/role';
 
 describe('OrgSettingsRolesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsRolesComponent>;
   let component: OrgSettingsRolesComponent;
   let httpTestingController: HttpTestingController;
+  let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
+
+  const currentUser = new User();
+  currentUser.userPermissions = [];
+  currentUser.userApiPermissions = [];
+  currentUser.userEnvironmentPermissions = [];
+  currentUser.userApplicationPermissions = [];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      providers: [
+        { provide: UIRouterState, useValue: { go: jest.fn() } },
+        { provide: CurrentUserService, useValue: { currentUser } },
+      ],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsRolesComponent);
     component = fixture.componentInstance;
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    currentUser.userPermissions = [];
+    currentUser.userApiPermissions = [];
+    currentUser.userEnvironmentPermissions = [];
+    currentUser.userApplicationPermissions = [];
+  });
+
   it('should init properly', () => {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`).flush([
-      fakeRole({
-        id: 'role-1',
-        name: 'Role 1',
-        description: 'Role 1 description',
-        scope: 'ORGANIZATION',
-      }),
-    ]);
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ENVIRONMENT/roles`).flush([
-      fakeRole({
-        id: 'role-2',
-        name: 'Role 2',
-        description: 'Role 2 description',
-        scope: 'ENVIRONMENT',
-      }),
-    ]);
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API/roles`).flush([
-      fakeRole({
-        id: 'role-3',
-        name: 'Role 3',
-        description: 'Role 3 description',
-        scope: 'API',
-        default: false,
-        system: false,
-      }),
-    ]);
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/APPLICATION/roles`).flush([
-      fakeRole({
-        id: 'role-4',
-        name: 'Role 4',
-        description: 'Role 4 description',
-        scope: 'APPLICATION',
-      }),
-      fakeRole({
-        id: 'role-5',
-        name: 'Role 5',
-        description: 'Role 5 description',
-        scope: 'APPLICATION',
-      }),
-    ]);
+    respondToGetRolesRequests(
+      [
+        fakeRole({
+          id: 'role-1',
+          name: 'Role 1',
+          description: 'Role 1 description',
+          scope: 'ORGANIZATION',
+        }),
+      ],
+      [
+        fakeRole({
+          id: 'role-2',
+          name: 'Role 2',
+          description: 'Role 2 description',
+          scope: 'ENVIRONMENT',
+        }),
+      ],
+      [
+        fakeRole({
+          id: 'role-3',
+          name: 'Role 3',
+          description: 'Role 3 description',
+          scope: 'API',
+          default: false,
+          system: false,
+        }),
+      ],
+      [
+        fakeRole({
+          id: 'role-4',
+          name: 'Role 4',
+          description: 'Role 4 description',
+          scope: 'APPLICATION',
+        }),
+        fakeRole({
+          id: 'role-5',
+          name: 'Role 5',
+          description: 'Role 5 description',
+          scope: 'APPLICATION',
+        }),
+      ],
+    );
 
     expect(component.rolesByScope).toStrictEqual([
       {
         scope: 'Organization',
+        scopeId: 'ORGANIZATION',
         roles: [
           {
             canBeDeleted: false,
@@ -97,6 +133,7 @@ describe('OrgSettingsRolesComponent', () => {
       },
       {
         scope: 'Environment',
+        scopeId: 'ENVIRONMENT',
         roles: [
           {
             canBeDeleted: false,
@@ -111,6 +148,7 @@ describe('OrgSettingsRolesComponent', () => {
       },
       {
         scope: 'API',
+        scopeId: 'API',
         roles: [
           {
             canBeDeleted: true,
@@ -125,6 +163,7 @@ describe('OrgSettingsRolesComponent', () => {
       },
       {
         scope: 'Application',
+        scopeId: 'APPLICATION',
         roles: [
           {
             canBeDeleted: false,
@@ -149,7 +188,55 @@ describe('OrgSettingsRolesComponent', () => {
     ]);
   });
 
+  describe('onDeleteRoleClicked', () => {
+    beforeEach(() => {
+      currentUser.userPermissions = ['organization-role-d'];
+    });
+
+    it('should send a DELETE request', async () => {
+      respondToGetRolesRequests(
+        [
+          fakeRole({
+            id: 'role-1',
+            name: 'Role 1',
+            description: 'Role 1 description',
+            scope: 'ORGANIZATION',
+            default: false,
+            system: false,
+          }),
+        ],
+        [],
+        [],
+        [],
+      );
+
+      fixture.detectChanges();
+
+      const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a role"]' }));
+      await deleteButton.click();
+
+      const dialogConfirmButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+      await dialogConfirmButton.click();
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles/Role 1`,
+        })
+        .flush({ statusCode: 204 });
+
+      respondToGetRolesRequests([], [], [], []);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
+
+  function respondToGetRolesRequests(orgRoles: Role[], envRoles: Role[], apiRoles: Role[], appRoles: Role[]) {
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`).flush(orgRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ENVIRONMENT/roles`).flush(envRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API/roles`).flush(apiRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/APPLICATION/roles`).flush(appRoles);
+  }
 });

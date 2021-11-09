@@ -24,7 +24,7 @@
         <h2 gioTableOfContents>{{ item.scope }}</h2>
         <button
           *gioPermission="{ anyOf: ['organization-role-c'] }"
-          (click)="onAddARoleClicked(item.scope)"
+          (click)="onAddARoleClicked(item.scopeId)"
           mat-raised-button
           color="primary"
         >
@@ -32,9 +32,9 @@
         </button>
       </div>
       <mat-list class="org-settings-roles__content__list">
-        <mat-list-item class="org-settings-roles__content__list__item" *ngFor="let role of item.roles" (click)="onEditRoleClicked(role)">
+        <mat-list-item class="org-settings-roles__content__list__item" *ngFor="let role of item.roles">
           <mat-icon mat-list-icon>{{ role.icon }}</mat-icon>
-          <div class="org-settings-roles__content__list__item__description">
+          <div class="org-settings-roles__content__list__item__description" (click)="onEditRoleClicked(item.scopeId, role)">
             <div mat-line>
               <span>{{ role.name }}</span>
               <span *ngIf="role.isSystem" class="gio-badge">System</span>
@@ -46,7 +46,7 @@
             <ng-container *gioPermission="{ anyOf: ['organization-role-d'] }">
               <button
                 *ngIf="role.canBeDeleted"
-                (click)="onDeleteRoleClicked(role)"
+                (click)="onDeleteRoleClicked(item.scopeId, role)"
                 mat-icon-button
                 color="primary"
                 aria-label="Button to delete a role"
@@ -59,7 +59,7 @@
             <ng-container *gioPermission="{ anyOf: ['organization-role-u'] }">
               <button
                 *ngIf="role.hasUserRoleManagement"
-                (click)="onMembersClicked(role)"
+                (click)="onMembersClicked(item.scopeId, role)"
                 mat-icon-button
                 color="primary"
                 aria-label="Button to see members with this role"
