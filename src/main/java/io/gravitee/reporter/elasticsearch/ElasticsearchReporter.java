@@ -27,9 +27,7 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.Indexer;
 import io.gravitee.reporter.elasticsearch.mapping.IndexPreparer;
-import io.gravitee.reporter.elasticsearch.spring.context.Elastic5xBeanRegistrer;
-import io.gravitee.reporter.elasticsearch.spring.context.Elastic6xBeanRegistrer;
-import io.gravitee.reporter.elasticsearch.spring.context.Elastic7xBeanRegistrer;
+import io.gravitee.reporter.elasticsearch.spring.context.*;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.CompletableObserver;
 import io.reactivex.Observable;
@@ -48,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ElasticsearchReporter extends AbstractService implements Reporter {
 
-	private final Logger logger = LoggerFactory.getLogger(ElasticsearchReporter.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ElasticsearchReporter.class);
 
 	@Autowired
 	private Client client;
@@ -65,63 +63,41 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 	protected void doStart() throws Exception {
 		if (configuration.isEnabled()) {
 			super.doStart();
+			LOGGER.info("Starting Elastic reporter engine...");
 
-			logger.info("Starting Elastic reporter engine...");
-
-			// Wait for a connection to ES and retry each 5 seconds
-			Single<ElasticsearchInfo> singleVersion = client.getInfo()
-					.retryWhen(error -> error.flatMap(
-							throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)));
-
-			singleVersion.subscribe();
-
-			ElasticsearchInfo version = singleVersion.blockingGet();
-
-			boolean registered = true;
+			ElasticsearchInfo elasticsearchInfo = retrieveElasticSearchInfo();
+			AbstractElasticBeanRegistrer elasticsearchBeanRegister = getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
+			if (elasticsearchBeanRegister == null) {
+				LOGGER.error("ElasticSearch version {} is not supported by this Elasticsearch connector", elasticsearchInfo.getVersion().getNumber());
+				LOGGER.info("Starting Elastic reporter engine... ERROR");
+				return;
+			}
 
 			DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
+			elasticsearchBeanRegister.register(beanFactory, configuration.isPerTypeIndex());
 
-			switch (version.getVersion().getMajorVersion()) {
-				case 5:
-					new Elastic5xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
-					break;
-				case 6:
-					new Elastic6xBeanRegistrer().register(beanFactory, configuration.isIlmManagedIndex());
-					break;
-				case 7:
-					new Elastic7xBeanRegistrer().register(beanFactory, configuration.isIlmManagedIndex());
-					break;
-				default:
-					registered = false;
-					logger.error("Version {} is not supported by this Elasticsearch connector", version);
-			}
+			IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
+			preparer
+				.prepare()
+				.doOnComplete(() -> {
+					LOGGER.info("Starting Elastic reporter engine... DONE");
+				})
+				.subscribe(new CompletableObserver() {
+					@Override
+					public void onSubscribe(Disposable d) {}
 
-			if (registered) {
-				IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
-				preparer
-						.prepare()
-						.doOnComplete(() -> {
-							logger.info("Starting Elastic reporter engine... DONE");
-						})
-						.subscribe(new CompletableObserver() {
-							@Override
-							public void onSubscribe(Disposable d) {}
+					@Override
+					public void onComplete() {
+						LOGGER.info("Index mapping template successfully defined");
+					}
 
-							@Override
-							public void onComplete() {
-								logger.info("Index mapping template successfully defined");
-							}
+					@Override
+					public void onError(Throwable t) {
+						LOGGER.error("An error occurs while creating index mapping template", t);
+					}
+				});
 
-							@Override
-							public void onError(Throwable t) {
-								logger.error("An error occurs while creating index mapping template", t);
-							}
-						});
-
-				indexer = applicationContext.getBean(Indexer.class);
-			} else {
-				logger.info("Starting Elastic reporter engine... ERROR");
-			}
+			indexer = applicationContext.getBean(Indexer.class);
 		}
 	}
 
@@ -149,8 +125,25 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 	protected void doStop() throws Exception {
 		if (configuration.isEnabled()) {
 			super.doStop();
+			LOGGER.info("Stopping Elastic reporter engine... DONE");
+		}
+	}
 
-			logger.info("Stopping Elastic reporter engine... DONE");
+	private ElasticsearchInfo retrieveElasticSearchInfo() {
+		// Wait for a connection to ES and retry each 5 seconds
+		Single<ElasticsearchInfo> elasticsearchInfoSingle = client.getInfo()
+				.retryWhen(error -> error.flatMap(
+						throwable -> Observable.just(new Object()).delay(5, TimeUnit.SECONDS).toFlowable(BackpressureStrategy.LATEST)));
+		elasticsearchInfoSingle.subscribe();
+		return elasticsearchInfoSingle.blockingGet();
+	}
+
+	protected AbstractElasticBeanRegistrer getBeanRegistrerFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo) {
+		switch (elasticsearchInfo.getVersion().getMajorVersion()) {
+			case 5: return new Elastic5xBeanRegistrer();
+			case 6: return new Elastic6xBeanRegistrer();
+			case 7: return new Elastic7xBeanRegistrer();
+			default: return null;
 		}
 	}
 }
