@@ -37,4 +37,8 @@ export class RoleService {
   getPermissionsByScopes(): Observable<Record<Extract<RoleScope, 'API' | 'APPLICATION' | 'ENVIRONMENT' | 'ORGANIZATION'>, string[]>> {
     return this.http.get<Record<string, string[]>>(`${this.constants.org.baseURL}/configuration/rolescopes`);
   }
+
+  delete(scope: string, roleName: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles/${roleName}`);
+  }
 }

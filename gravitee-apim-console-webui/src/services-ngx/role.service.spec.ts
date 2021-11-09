@@ -135,6 +135,24 @@ describe('RoleService', () => {
     });
   });
 
+  describe('remove', () => {
+    it('should call the API', (done) => {
+      const roleToDelete = fakeRole({
+        scope: 'ORGANIZATION',
+        name: 'admin',
+      });
+
+      roleService.delete(roleToDelete.scope, roleToDelete.name).subscribe(() => done());
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles/admin`,
+        })
+        .flush({ statusCode: 204 });
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });
