@@ -42,7 +42,7 @@ public class MultiTenantAwareEndpointLifecycleManager extends EndpointGroupLifec
 
     @Override
     protected void doStart() throws Exception {
-        logger.info("Prepare API endpoints for tenant: {}", tenant);
+        logger.debug("Prepare API endpoints for tenant: {}", tenant);
 
         super.doStart();
     }
