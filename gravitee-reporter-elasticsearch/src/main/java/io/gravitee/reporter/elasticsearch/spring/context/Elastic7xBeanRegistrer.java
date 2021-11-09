@@ -15,27 +15,31 @@
  */
 package io.gravitee.reporter.elasticsearch.spring.context;
 
+import io.gravitee.reporter.elasticsearch.indexer.AbstractIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.es7.ES7BulkIndexer;
-import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.indexer.name.AbstractIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.mapping.AbstractIndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es7.ES7IndexPreparer;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class Elastic7xBeanRegistrer {
+public class Elastic7xBeanRegistrer extends AbstractElasticBeanRegistrer {
 
-    public void register(DefaultListableBeanFactory beanFactory, boolean isIlmManagedIndex) {
-        BeanDefinitionBuilder beanIndexer = BeanDefinitionBuilder.rootBeanDefinition(ES7BulkIndexer.class);
-        beanFactory.registerBeanDefinition("indexer", beanIndexer.getBeanDefinition());
+    @Override
+    protected Class<? extends AbstractIndexer> getIndexerClass() {
+        return ES7BulkIndexer.class;
+    }
 
-        BeanDefinitionBuilder beanIndexPreparer = BeanDefinitionBuilder.rootBeanDefinition(ES7IndexPreparer.class);
-        beanFactory.registerBeanDefinition("indexPreparer", beanIndexPreparer.getBeanDefinition());
+    @Override
+    protected Class<? extends AbstractIndexPreparer> getIndexPreparerClass(boolean perTypeIndex) {
+        return ES7IndexPreparer.class;
+    }
 
-        BeanDefinitionBuilder beanIndexNameGenerator = BeanDefinitionBuilder.rootBeanDefinition(isIlmManagedIndex ? PerTypeIndexNameGenerator.class : PerTypeAndDateIndexNameGenerator.class);
-        beanFactory.registerBeanDefinition("indexNameGenerator", beanIndexNameGenerator.getBeanDefinition());
+    @Override
+    protected Class<? extends AbstractIndexNameGenerator> getIndexNameGeneratorClass(boolean perTypeIndex) {
+        return PerTypeIndexNameGenerator.class;
     }
 }
