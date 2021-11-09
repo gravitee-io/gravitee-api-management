@@ -15,4 +15,68 @@
     limitations under the License.
 
 -->
-<h1>Roles</h1>
+<div class="org-settings-roles">
+  <div class="org-settings-roles__content">
+    <h1>Roles</h1>
+
+    <mat-card *ngFor="let item of rolesByScope" class="org-settings-roles__content__card">
+      <div class="org-settings-roles__content__headline">
+        <h2 gioTableOfContents>{{ item.scope }}</h2>
+        <button
+          *gioPermission="{ anyOf: ['organization-role-c'] }"
+          (click)="onAddARoleClicked(item.scope)"
+          mat-raised-button
+          color="primary"
+        >
+          <mat-icon>add</mat-icon>Add a role
+        </button>
+      </div>
+      <mat-list class="org-settings-roles__content__list">
+        <mat-list-item class="org-settings-roles__content__list__item" *ngFor="let role of item.roles" (click)="onEditRoleClicked(role)">
+          <mat-icon mat-list-icon>{{ role.icon }}</mat-icon>
+          <div class="org-settings-roles__content__list__item__description">
+            <div mat-line>
+              <span>{{ role.name }}</span>
+              <span *ngIf="role.isSystem" class="gio-badge">System</span>
+              <span *ngIf="role.isDefault" class="gio-badge gio-badge-accent">Default</span>
+            </div>
+            <div mat-line>{{ role.description }}</div>
+          </div>
+          <div>
+            <ng-container *gioPermission="{ anyOf: ['organization-role-d'] }">
+              <button
+                *ngIf="role.canBeDeleted"
+                (click)="onDeleteRoleClicked(role)"
+                mat-icon-button
+                color="primary"
+                aria-label="Button to delete a role"
+                matTooltip="Delete role"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </ng-container>
+
+            <ng-container *gioPermission="{ anyOf: ['organization-role-u'] }">
+              <button
+                *ngIf="role.hasUserRoleManagement"
+                (click)="onMembersClicked(role)"
+                mat-icon-button
+                color="primary"
+                aria-label="Button to see members with this role"
+                matTooltip="See members"
+              >
+                <mat-icon>people</mat-icon>
+              </button>
+            </ng-container>
+          </div>
+        </mat-list-item>
+      </mat-list>
+    </mat-card>
+  </div>
+
+  <gio-table-of-contents
+    class="org-settings-roles__toc"
+    [sectionNames]="{ '': 'Roles' }"
+    scrollingContainer="ng-roles-component"
+  ></gio-table-of-contents>
+</div>
