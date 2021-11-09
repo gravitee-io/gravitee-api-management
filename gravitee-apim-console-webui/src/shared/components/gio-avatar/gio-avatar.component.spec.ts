@@ -32,7 +32,8 @@ describe('GioAvatarComponent', () => {
 
   it('should complete avatar with jdenticon', () => {
     fixture.detectChanges();
-    expect(component).toMatchSnapshot();
+
+    expect(fixture.nativeElement.querySelector('.gio-avatar').innerHTML).toMatchSnapshot();
   });
 
   it('should display avatar image', () => {
@@ -40,6 +41,6 @@ describe('GioAvatarComponent', () => {
     fixture.componentInstance.ngAfterViewInit();
     fixture.detectChanges();
 
-    expect(component).toMatchSnapshot();
+    expect(fixture.nativeElement.querySelector('.gio-avatar').innerHTML).toMatchSnapshot();
   });
 });
