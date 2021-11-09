@@ -17,6 +17,7 @@ package io.gravitee.gateway.reactor.handler;
 
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.gateway.api.Request;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -71,6 +72,11 @@ public class VirtualHost implements Entrypoint {
     @Override
     public String path() {
         return path;
+    }
+
+    @Override
+    public String host() {
+        return host;
     }
 
     @Override
