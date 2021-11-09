@@ -37,7 +37,8 @@ import java.util.List;
  */
 public class CheckSubscriptionPolicy implements Policy {
 
-    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED = ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
+    static final String CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED =
+        ExecutionContext.ATTR_PREFIX + ExecutionContext.ATTR_PLAN + ".selection.rule.based";
     static final String CONTEXT_ATTRIBUTE_CLIENT_ID = "oauth.client_id";
 
     private static final String OAUTH2_ERROR_ACCESS_DENIED = "access_denied";
@@ -66,10 +67,13 @@ public class CheckSubscriptionPolicy implements Policy {
             );
 
             if (subscriptions != null && !subscriptions.isEmpty()) {
-
                 final String plan = (String) executionContext.getAttribute(ExecutionContext.ATTR_PLAN);
-                final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED));
-                final Subscription subscription = !selectionRuleBasedPlan ? subscriptions.get(0) : subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
+                final boolean selectionRuleBasedPlan = Boolean.TRUE.equals(
+                    executionContext.getAttribute(CONTEXT_ATTRIBUTE_PLAN_SELECTION_RULE_BASED)
+                );
+                final Subscription subscription = !selectionRuleBasedPlan
+                    ? subscriptions.get(0)
+                    : subscriptions.stream().filter(sub -> sub.getPlan().equals(plan)).findAny().orElse(null);
                 if (
                     subscription != null &&
                     subscription.getClientId().equals(clientId) &&
