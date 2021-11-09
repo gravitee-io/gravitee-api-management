@@ -73,7 +73,7 @@ public class DateHistogramQueryCommandTest {
         when(dateHistogramQuery.timeRange()).thenReturn(timeRangeFilter);
         when(timeRangeFilter.range()).thenReturn(dateRange);
         when(info.getVersion()).thenReturn(version);
-        when(version.getMajorVersion()).thenReturn(6);
+        when(version.canUseTypeRequests()).thenReturn(true);
 
         checkDateRange(1561477219132L, 1564069219132L, 600000);
         checkDateRange(1561477219132L, 1564069219132L, 43200000);

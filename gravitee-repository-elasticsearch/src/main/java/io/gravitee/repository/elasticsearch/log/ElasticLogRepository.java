@@ -88,7 +88,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 			if (isEmpty(logQueryString)) {
 				final Single<SearchResponse> result = this.client.search(
 						this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
-						(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
+						!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
 						this.createElasticsearchJsonQuery(query));
 
 				return this.toTabularResponse(result.blockingGet());
@@ -96,7 +96,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 				final String sQuery = this.createElasticsearchJsonQuery(tabularQueryBuilder.query(logQueryString).build());
 				Single<SearchResponse> result = this.client.search(
 						this.indexNameGenerator.getIndexName(Type.LOG, from, to, clusters),
-						(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.LOG.getType(),
+						!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.LOG.getType(),
 						sQuery);
 
 				final SearchResponse searchResponse = result.blockingGet();
@@ -114,7 +114,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 					}
 					result = this.client.search(
 							this.indexNameGenerator.getIndexName(Type.REQUEST, from, to, clusters),
-							(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
+							!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
 							this.createElasticsearchJsonQuery(tqb.build()));
 				}
 
@@ -172,7 +172,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 		try {
 			Single<SearchResponse> result = this.client.search(
 					(timestamp == null) ? this.indexNameGenerator.getWildcardIndexName(Type.REQUEST, clusters) : this.indexNameGenerator.getIndexName(Type.REQUEST, Instant.ofEpochMilli(timestamp), clusters),
-					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.REQUEST.getType(),
+					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.REQUEST.getType(),
 					sQuery);
 
 			SearchResponse searchResponse = result.blockingGet();
@@ -193,7 +193,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
 				searchHitIndex = this.indexNameGenerator.getIndexName(Type.LOG, Instant.ofEpochMilli(timestamp), clusters);
 			}
 
-			result = this.client.search(searchHitIndex, (info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.LOG.getType(), sQuery);
+			result = this.client.search(searchHitIndex, !info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.LOG.getType(), sQuery);
 			searchResponse = result.blockingGet();
 
 			JsonNode log = null;
