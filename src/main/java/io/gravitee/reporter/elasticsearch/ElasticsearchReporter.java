@@ -68,7 +68,7 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 			ElasticsearchInfo elasticsearchInfo = retrieveElasticSearchInfo();
 			AbstractElasticBeanRegistrer elasticsearchBeanRegister = getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
 			if (elasticsearchBeanRegister == null) {
-				LOGGER.error("ElasticSearch version {} is not supported by this Elasticsearch connector", elasticsearchInfo.getVersion().getNumber());
+				LOGGER.error("{} version {} is not supported by this connector", elasticsearchInfo.getVersion().isOpenSearch() ? "OpenSearch" : "ElasticSearch", elasticsearchInfo.getVersion().getNumber());
 				LOGGER.info("Starting Elastic reporter engine... ERROR");
 				return;
 			}
@@ -139,6 +139,13 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 	}
 
 	protected AbstractElasticBeanRegistrer getBeanRegistrerFromElasticsearchInfo(ElasticsearchInfo elasticsearchInfo) {
+		if (elasticsearchInfo.getVersion().isOpenSearch()) {
+			if (elasticsearchInfo.getVersion().getMajorVersion() == 1) {
+				return new OpenSearchBeanRegistrer();
+			}
+			return null;
+		}
+
 		switch (elasticsearchInfo.getVersion().getMajorVersion()) {
 			case 5: return new Elastic5xBeanRegistrer();
 			case 6: return new Elastic6xBeanRegistrer();

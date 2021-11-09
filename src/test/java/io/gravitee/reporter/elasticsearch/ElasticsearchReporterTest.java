@@ -29,10 +29,7 @@ import io.gravitee.reporter.api.monitor.Monitor;
 import io.gravitee.reporter.api.monitor.OsInfo;
 import io.gravitee.reporter.api.monitor.ProcessInfo;
 import io.gravitee.reporter.elasticsearch.spring.ElasticsearchReporterConfigurationTest;
-import io.gravitee.reporter.elasticsearch.spring.context.AbstractElasticBeanRegistrer;
-import io.gravitee.reporter.elasticsearch.spring.context.Elastic5xBeanRegistrer;
-import io.gravitee.reporter.elasticsearch.spring.context.Elastic6xBeanRegistrer;
-import io.gravitee.reporter.elasticsearch.spring.context.Elastic7xBeanRegistrer;
+import io.gravitee.reporter.elasticsearch.spring.context.*;
 import io.reactivex.observers.TestObserver;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.TestScheduler;
@@ -297,6 +294,32 @@ public class ElasticsearchReporterTest {
         AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
 
         assertTrue(beanRegistrer instanceof Elastic7xBeanRegistrer);
+    }
+
+    @Test
+    public void getBeanRegistrer_should_instantiate_opensearch_registrer_when_opensearch_distribution_version_1() {
+        Version version = new Version();
+        version.setNumber("1.12.7");
+        version.setDistribution("opensearch");
+        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
+        elasticsearchInfo.setVersion(version);
+
+        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
+
+        assertTrue(beanRegistrer instanceof OpenSearchBeanRegistrer);
+    }
+
+    @Test
+    public void getBeanRegistrer_should_instantiate_opensearch_registrer_when_opensearch_distribution_higher_version() {
+        Version version = new Version();
+        version.setNumber("2.12.7");
+        version.setDistribution("opensearch");
+        ElasticsearchInfo elasticsearchInfo = new ElasticsearchInfo();
+        elasticsearchInfo.setVersion(version);
+
+        AbstractElasticBeanRegistrer beanRegistrer = reporter.getBeanRegistrerFromElasticsearchInfo(elasticsearchInfo);
+
+        assertNull(beanRegistrer);
     }
 
     @Test
