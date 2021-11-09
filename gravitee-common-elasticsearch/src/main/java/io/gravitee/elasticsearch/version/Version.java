@@ -56,4 +56,19 @@ public class Version {
         }
         return majorVersion;
     }
+
+    public boolean canUseTypeRequests() {
+        // from ES version 7, specifying types in requests is deprecated
+        return getMajorVersion() < 7;
+    }
+
+    public boolean canUseMultiTypeIndex() {
+        // from ES version 6, using multiple mapping types is no more supported
+        return getMajorVersion() < 6;
+    }
+
+    public boolean canUseIlmIndex() {
+        // from ES version 6, we can use ILM indexes
+        return getMajorVersion() >= 6;
+    }
 }

@@ -92,7 +92,7 @@ public class AverageDateHistogramCommand extends AbstractElasticsearchQueryComma
 			final String sQuery = this.createQuery(TEMPLATE, dateHistogramQuery, roundedFrom, roundedTo);
 			final Single<SearchResponse> result = this.client.search(
 					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, to, clusters),
-					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 			return this.toAvailabilityResponseResponse(result.blockingGet(), dateHistogramQuery);
 		} catch (Exception eex) {

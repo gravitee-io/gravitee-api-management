@@ -122,12 +122,12 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
 			result = this.client.search(
 					this.indexNameGenerator.getIndexName(type, from, to, clusters),
-					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
+					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
 					sQuery);
 		} else {
 			result = this.client.search(
 					this.indexNameGenerator.getTodayIndexName(type, clusters),
-					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
+					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
 					sQuery);
 		}
 
@@ -146,12 +146,12 @@ public abstract class AbstractElasticsearchQueryCommand<T extends Response> impl
 
 			result = this.client.count(
 					this.indexNameGenerator.getIndexName(type, from, to, clusters),
-					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
+					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
 					sQuery);
 		} else {
 			result = this.client.count(
 					this.indexNameGenerator.getTodayIndexName(type, clusters),
-					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : type.getType(),
+					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : type.getType(),
 					sQuery);
 		}
 

@@ -22,7 +22,6 @@ import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
-import io.gravitee.repository.healthcheck.query.AbstractQuery;
 import io.gravitee.repository.healthcheck.query.Bucket;
 import io.gravitee.repository.healthcheck.query.FieldBucket;
 import io.gravitee.repository.healthcheck.query.Query;
@@ -82,7 +81,7 @@ public class AverageAvailabilityCommand extends AbstractElasticsearchQueryComman
 
 			final Single<SearchResponse> result = this.client.search(
 					this.indexNameGenerator.getIndexName(Type.HEALTH_CHECK, from, now, clusters),
-					(info.getVersion().getMajorVersion() > 6) ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
+					!info.getVersion().canUseTypeRequests() ? Type.DOC.getType() : Type.HEALTH_CHECK.getType(),
 					sQuery);
 
 			return this.toAvailabilityResponseResponse(result.blockingGet());
