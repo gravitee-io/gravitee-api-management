@@ -150,6 +150,7 @@
     "lodash": "^4.17.15",
     "main-bower-files": "^2.13.3",
     "merge-stream": "^1.0.1",
+    "mini-css-extract-plugin": "^1.6.2",
     "ng-annotate-loader": "^0.6.1",
     "node-sass": "^4.14.1",
     "phantomjs-prebuilt": "^2.1.16",

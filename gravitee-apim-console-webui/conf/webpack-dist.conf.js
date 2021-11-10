@@ -20,7 +20,7 @@ const conf = require('./gulp.conf');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const autoprefixer = require('autoprefixer');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
@@ -36,11 +36,8 @@ module.exports = {
       },
       {
         test: /\.(scss)$/,
-        loaders: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader!sass-loader!postcss-loader',
-        }),
-        include: [path.resolve(__dirname, '..') + '/src/index.scss'],
+        loaders: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        include: path.resolve(__dirname, '..', 'src', 'index.scss'),
       },
       { test: /\.css$/, loaders: ['style-loader', 'css-loader'] },
       {
@@ -86,7 +83,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: conf.path.src('index.html'),
     }),
-    new ExtractTextPlugin('index-[hash].css'),
+    new MiniCssExtractPlugin(),
     new webpack.LoaderOptionsPlugin({
       options: {
         postcss: () => [autoprefixer],
@@ -99,46 +96,53 @@ module.exports = {
         },
       },
     }),
-    new CopyWebpackPlugin(
-      [
-        {
-          from: './constants.json',
-          to: '',
-        },
-        {
-          from: './build.json',
-          to: '',
-        },
-        {
-          from: './themes',
-          to: './themes',
-        },
-        {
-          from: './docs',
-          to: './docs',
-        },
-        {
-          from: './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
-          to: 'webcomponents/webcomponents-loader.js',
-        },
-        {
-          from: './node_modules/@gravitee/ui-components/assets/css',
-          to: 'css',
-        },
-        {
-          from: './node_modules/@gravitee/ui-components/assets/i18n',
-          to: 'i18n',
-        },
-        {
-          from: './node_modules/@gravitee/ui-components/assets/icons',
-          to: 'icons',
-        },
-        { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' },
-      ],
+    new CopyWebpackPlugin([
       {
-        copyUnmodified: true,
+        from: './constants.json',
+        to: '',
       },
-    ),
+      {
+        from: './build.json',
+        to: '',
+      },
+      {
+        from: './themes',
+        to: './themes',
+      },
+      {
+        from: './docs',
+        to: './docs',
+      },
+      {
+        from: './node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js',
+        to: 'webcomponents/webcomponents-loader.js',
+      },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/css',
+        to: 'css',
+      },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/i18n',
+        to: 'i18n',
+      },
+      {
+        from: './node_modules/@gravitee/ui-components/assets/icons',
+        to: 'icons',
+      },
+      { from: './src/swagger-oauth2-redirect.html', to: './swagger-oauth2-redirect.html' },
+      {
+        from: './src/assets',
+        to: 'assets',
+      },
+      {
+        from: './src/libraries',
+        to: 'libraries',
+      },
+      {
+        from: './src/favicon.ico',
+        to: '',
+      },
+    ]),
   ],
   output: {
     path: path.join(process.cwd(), conf.paths.dist),
