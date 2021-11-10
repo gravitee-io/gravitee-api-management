@@ -74,7 +74,7 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 			}
 
 			DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
-			elasticsearchBeanRegister.register(beanFactory, configuration.isPerTypeIndex());
+			elasticsearchBeanRegister.register(beanFactory, configuration);
 
 			IndexPreparer preparer = applicationContext.getBean(IndexPreparer.class);
 			preparer
