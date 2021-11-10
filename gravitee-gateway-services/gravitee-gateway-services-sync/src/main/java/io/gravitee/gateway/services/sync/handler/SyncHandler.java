@@ -45,11 +45,11 @@ public class SyncHandler implements Handler<RoutingContext> {
             .put("totalErrors", syncManager.getTotalErrors())
             .put("lastErrorMessage", syncManager.getLastErrorMessage());
 
+        response.setStatusCode(syncManager.isSynced() ? HttpStatusCode.OK_200 : HttpStatusCode.SERVICE_UNAVAILABLE_503);
         response.putHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
         response.setChunked(true);
-        response.write(object.encodePrettily());
 
-        response.setStatusCode(syncManager.isSynced() ? HttpStatusCode.OK_200 : HttpStatusCode.SERVICE_UNAVAILABLE_503);
+        response.write(object.encodePrettily());
         response.end();
     }
 }
