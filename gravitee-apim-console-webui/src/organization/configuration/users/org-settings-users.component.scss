@@ -37,6 +37,8 @@
 }
 
 .mat-column-status {
+  text-align: center;
+
   .gio-badge {
     &.active {
       background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'medium');
