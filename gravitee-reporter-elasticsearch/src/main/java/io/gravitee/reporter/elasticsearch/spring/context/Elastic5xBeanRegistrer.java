@@ -15,11 +15,12 @@
  */
 package io.gravitee.reporter.elasticsearch.spring.context;
 
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.AbstractIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.es5.ES5BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.name.AbstractIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.MultiTypeIndexNameGenerator;
-import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.AbstractIndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es5.ES5MultiTypeIndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es5.ES5PerTypeIndexPreparer;
@@ -36,12 +37,12 @@ public class Elastic5xBeanRegistrer extends AbstractElasticBeanRegistrer {
     }
 
     @Override
-    protected Class<? extends AbstractIndexPreparer> getIndexPreparerClass(boolean perTypeIndex) {
-        return perTypeIndex ? ES5PerTypeIndexPreparer.class : ES5MultiTypeIndexPreparer.class;
+    protected Class<? extends AbstractIndexPreparer> getIndexPreparerClass(ReporterConfiguration configuration) {
+        return configuration.isPerTypeIndex() ? ES5PerTypeIndexPreparer.class : ES5MultiTypeIndexPreparer.class;
     }
 
     @Override
-    protected Class<? extends AbstractIndexNameGenerator> getIndexNameGeneratorClass(boolean perTypeIndex) {
-        return perTypeIndex ? PerTypeIndexNameGenerator.class : MultiTypeIndexNameGenerator.class;
+    protected Class<? extends AbstractIndexNameGenerator> getIndexNameGeneratorClass(ReporterConfiguration configuration) {
+        return configuration.isPerTypeIndex() ? PerTypeAndDateIndexNameGenerator.class : MultiTypeIndexNameGenerator.class;
     }
 }

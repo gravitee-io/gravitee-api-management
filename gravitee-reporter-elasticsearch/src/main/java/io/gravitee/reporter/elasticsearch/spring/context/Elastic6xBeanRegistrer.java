@@ -15,9 +15,11 @@
  */
 package io.gravitee.reporter.elasticsearch.spring.context;
 
+import io.gravitee.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.reporter.elasticsearch.indexer.AbstractIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.es6.ES6BulkIndexer;
 import io.gravitee.reporter.elasticsearch.indexer.name.AbstractIndexNameGenerator;
+import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.AbstractIndexPreparer;
 import io.gravitee.reporter.elasticsearch.mapping.es6.ES6IndexPreparer;
@@ -34,12 +36,12 @@ public class Elastic6xBeanRegistrer extends AbstractElasticBeanRegistrer {
     }
 
     @Override
-    protected Class<? extends AbstractIndexPreparer> getIndexPreparerClass(boolean perTypeIndex) {
+    protected Class<? extends AbstractIndexPreparer> getIndexPreparerClass(ReporterConfiguration configuration) {
         return ES6IndexPreparer.class;
     }
 
     @Override
-    protected Class<? extends AbstractIndexNameGenerator> getIndexNameGeneratorClass(boolean perTypeIndex) {
-        return PerTypeIndexNameGenerator.class;
+    protected Class<? extends AbstractIndexNameGenerator> getIndexNameGeneratorClass(ReporterConfiguration configuration) {
+        return configuration.isIlmManagedIndex() ? PerTypeIndexNameGenerator.class : PerTypeAndDateIndexNameGenerator.class;
     }
 }

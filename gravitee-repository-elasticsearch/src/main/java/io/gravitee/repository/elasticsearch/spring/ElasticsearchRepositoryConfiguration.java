@@ -117,7 +117,7 @@ public class ElasticsearchRepositoryConfiguration {
 
     @Bean
     public IndexNameGenerator indexNameGenerator(RepositoryConfiguration repositoryConfiguration, ElasticsearchInfo info) {
-        if (info.getVersion().canUseIlmIndex() && repositoryConfiguration.isILMIndex()) {
+        if (info.getVersion().canUseIlmManagedIndex() && repositoryConfiguration.isILMIndex()) {
             return new ILMIndexNameGenerator(repositoryConfiguration.getIndexName());
         } else if (!info.getVersion().canUseMultiTypeIndex() || repositoryConfiguration.isPerTypeIndex()) {
             return new PerTypeIndexNameGenerator(repositoryConfiguration.getIndexName());
