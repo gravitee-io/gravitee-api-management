@@ -79,8 +79,8 @@ public class Version {
         return !isOpenSearch() && getMajorVersion() < 6;
     }
 
-    public boolean canUseIlmIndex() {
-        // from ES version 6, we can use ILM indexes
+    public boolean canUseIlmManagedIndex() {
+        // from ES version 6, we can use ILM managed indexes, which names are not suffixed by date
         return isOpenSearch() || getMajorVersion() >= 6;
     }
 }
