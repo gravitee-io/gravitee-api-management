@@ -19,8 +19,7 @@ const webpack = require('webpack');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const autoprefixer = require('autoprefixer');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
@@ -30,13 +29,15 @@ module.exports = {
     rules: [
       {
         test: /\.(scss)$/,
-        loaders: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: 'css-loader!postcss-loader!sass-loader',
-        }),
-        include: [path.resolve(__dirname, '..') + '/src/index.scss'],
+        loaders: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        include: path.resolve(__dirname, '..', 'src', 'index.scss'),
       },
-      { test: /\.css$/, loaders: ['style-loader', 'css-loader'] },
+      {
+        test: /\.(scss)$/,
+        exclude: path.resolve(__dirname, '..', 'src', 'index.scss'),
+        loaders: ['to-string-loader', 'css-loader', 'sass-loader'],
+      },
+      { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
@@ -86,16 +87,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, '..', 'src', 'index.html'),
     }),
-    new ExtractTextPlugin('index-[hash].css'),
-    new webpack.LoaderOptionsPlugin({
-      options: {
-        postcss: () => [autoprefixer],
-        resolve: {},
-        ts: {
-          configFileName: 'tsconfig.json',
-        },
-      },
-    }),
+    new MiniCssExtractPlugin(),
     new CopyWebpackPlugin({
       patterns: [
         {
