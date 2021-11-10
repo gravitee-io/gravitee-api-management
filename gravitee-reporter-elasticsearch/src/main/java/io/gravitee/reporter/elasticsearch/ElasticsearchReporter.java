@@ -86,10 +86,10 @@ public class ElasticsearchReporter extends AbstractService implements Reporter {
 					new Elastic5xBeanRegistrer().register(beanFactory, configuration.isPerTypeIndex());
 					break;
 				case 6:
-					new Elastic6xBeanRegistrer().register(beanFactory);
+					new Elastic6xBeanRegistrer().register(beanFactory, configuration.isIlmManagedIndex());
 					break;
 				case 7:
-					new Elastic7xBeanRegistrer().register(beanFactory);
+					new Elastic7xBeanRegistrer().register(beanFactory, configuration.isIlmManagedIndex());
 					break;
 				default:
 					registered = false;

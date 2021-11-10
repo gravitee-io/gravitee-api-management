@@ -16,6 +16,7 @@
 package io.gravitee.reporter.elasticsearch.spring.context;
 
 import io.gravitee.reporter.elasticsearch.indexer.es6.ES6BulkIndexer;
+import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeAndDateIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.indexer.name.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.elasticsearch.mapping.es6.ES6IndexPreparer;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -27,14 +28,14 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
  */
 public class Elastic6xBeanRegistrer {
 
-    public void register(DefaultListableBeanFactory beanFactory) {
+    public void register(DefaultListableBeanFactory beanFactory, boolean isIlmManagedIndex) {
         BeanDefinitionBuilder beanIndexer = BeanDefinitionBuilder.rootBeanDefinition(ES6BulkIndexer.class);
         beanFactory.registerBeanDefinition("indexer", beanIndexer.getBeanDefinition());
 
         BeanDefinitionBuilder beanIndexPreparer = BeanDefinitionBuilder.rootBeanDefinition(ES6IndexPreparer.class);
         beanFactory.registerBeanDefinition("indexPreparer", beanIndexPreparer.getBeanDefinition());
 
-        BeanDefinitionBuilder beanIndexNameGenerator = BeanDefinitionBuilder.rootBeanDefinition(PerTypeIndexNameGenerator.class);
+        BeanDefinitionBuilder beanIndexNameGenerator = BeanDefinitionBuilder.rootBeanDefinition(isIlmManagedIndex ? PerTypeIndexNameGenerator.class : PerTypeAndDateIndexNameGenerator.class);
         beanFactory.registerBeanDefinition("indexNameGenerator", beanIndexNameGenerator.getBeanDefinition());
     }
 }

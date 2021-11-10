@@ -55,6 +55,12 @@ public class ReporterConfiguration {
 	private boolean perTypeIndex;
 
 	/**
+	 * Index mode normal (daily index) vs ILM (managed by ILM)
+	 */
+	@Value("${reporters.elasticsearch.index_mode:daily}")
+	private String indexMode;
+
+	/**
 	 * Request actions max by bulk
 	 */
 	@Value("${reporters.elasticsearch.bulk.actions:1000}")
@@ -499,5 +505,9 @@ public class ReporterConfiguration {
 
 	public void setExtendedSettingsTemplate(String extendedSettingsTemplate) {
 		this.extendedSettingsTemplate = extendedSettingsTemplate;
+	}
+
+	public boolean isIlmManagedIndex() {
+		return "ilm".equalsIgnoreCase(indexMode);
 	}
 }
