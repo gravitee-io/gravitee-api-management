@@ -26,7 +26,6 @@ import io.gravitee.gateway.api.http2.HttpFrame;
 import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
-
 import javax.net.ssl.SSLSession;
 
 /**

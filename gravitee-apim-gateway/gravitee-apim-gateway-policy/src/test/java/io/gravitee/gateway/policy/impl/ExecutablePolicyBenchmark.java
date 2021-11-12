@@ -22,7 +22,6 @@ import io.gravitee.gateway.policy.PolicyMetadata;
 import io.gravitee.plugin.policy.internal.PolicyMethodResolver;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
-
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -52,20 +51,25 @@ public class ExecutablePolicyBenchmark {
 
     @Setup
     public void setup() {
-         policy = new DummyPolicy();
+        policy = new DummyPolicy();
 
-        policyMetadata = new PolicyMetadataBuilder()
-            .setPolicy(DummyPolicy.class)
-            .setId("dummy")
-            .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
-            .build();
+        policyMetadata =
+            new PolicyMetadataBuilder()
+                .setPolicy(DummyPolicy.class)
+                .setId("dummy")
+                .setMethods(new PolicyMethodResolver().resolve(DummyPolicy.class))
+                .build();
 
         requestMethod = policyMetadata.method(OnRequest.class);
-        executablePolicy =
-            new ExecutablePolicy("dummy", policy, requestMethod, policyMetadata.method(OnRequestContent.class));
+        executablePolicy = new ExecutablePolicy("dummy", policy, requestMethod, policyMetadata.method(OnRequestContent.class));
 
         reflectionExecutablePolicy =
-                new ReflectionExecutablePolicy("dummy", policy, policyMetadata.method(OnRequest.class), policyMetadata.method(OnRequestContent.class));
+            new ReflectionExecutablePolicy(
+                "dummy",
+                policy,
+                policyMetadata.method(OnRequest.class),
+                policyMetadata.method(OnRequestContent.class)
+            );
 
         executionContext = new SimpleExecutionContext(new SimpleRequest(), new SimpleResponse());
         policyChain = OrderedPolicyChain.create(Collections.emptyList(), executionContext);
@@ -83,7 +87,6 @@ public class ExecutablePolicyBenchmark {
 
     @Benchmark
     public void benchReflectionDirectCall() throws Exception {
-
         requestMethod.invoke(policy, policyChain, executionContext.request(), executionContext.response());
     }
 
