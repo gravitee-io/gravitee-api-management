@@ -89,32 +89,28 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
             }
 
             if (httpServerConfiguration.getTrustStorePaths() != null && !httpServerConfiguration.getTrustStorePaths().isEmpty()) {
-                if (
-                    httpServerConfiguration.getTrustStoreType() == null ||
-                    httpServerConfiguration.getTrustStoreType().isEmpty() ||
-                    httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)
-                ) {
+                if (CERTIFICATE_FORMAT_JKS.equalsIgnoreCase(httpServerConfiguration.getTrustStoreType())) {
                     options.setTrustStoreOptions(
                         new JksOptions()
                             .setPath(httpServerConfiguration.getTrustStorePaths().get(0))
                             .setPassword(httpServerConfiguration.getTrustStorePassword())
                     );
-                } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
+                } else if (CERTIFICATE_FORMAT_PEM.equalsIgnoreCase(httpServerConfiguration.getTrustStoreType())) {
                     final PemTrustOptions pemTrustOptions = new PemTrustOptions();
                     httpServerConfiguration.getTrustStorePaths().forEach(pemTrustOptions::addCertPath);
                     options.setPemTrustOptions(pemTrustOptions);
-                } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
+                } else if (CERTIFICATE_FORMAT_PKCS12.equalsIgnoreCase(httpServerConfiguration.getTrustStoreType())) {
                     options.setPfxTrustOptions(
                         new PfxOptions()
                             .setPath(httpServerConfiguration.getTrustStorePaths().get(0))
                             .setPassword(httpServerConfiguration.getTrustStorePassword())
                     );
-                } else if (httpServerConfiguration.getTrustStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_SELF_SIGNED)) {
+                } else if (CERTIFICATE_FORMAT_SELF_SIGNED.equalsIgnoreCase(httpServerConfiguration.getTrustStoreType())) {
                     options.setPemTrustOptions(SelfSignedCertificate.create().trustOptions());
                 }
             }
 
-            if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_JKS)) {
+            if (CERTIFICATE_FORMAT_JKS.equalsIgnoreCase(httpServerConfiguration.getKeyStoreType())) {
                 if (httpServerConfiguration.getKeyStorePath() == null || httpServerConfiguration.getKeyStorePath().isEmpty()) {
                     logger.error("A JKS Keystore is missing. Skipping SSL keystore configuration...");
                 } else {
@@ -124,7 +120,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
                             .setPassword(httpServerConfiguration.getKeyStorePassword())
                     );
                 }
-            } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PEM)) {
+            } else if (CERTIFICATE_FORMAT_PEM.equalsIgnoreCase(httpServerConfiguration.getKeyStoreType())) {
                 if (
                     httpServerConfiguration.getKeyStoreCertificates() == null || httpServerConfiguration.getKeyStoreCertificates().isEmpty()
                 ) {
@@ -141,7 +137,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
 
                     options.setPemKeyCertOptions(pemKeyCertOptions);
                 }
-            } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_PKCS12)) {
+            } else if (CERTIFICATE_FORMAT_PKCS12.equalsIgnoreCase(httpServerConfiguration.getKeyStoreType())) {
                 if (httpServerConfiguration.getKeyStorePath() == null || httpServerConfiguration.getKeyStorePath().isEmpty()) {
                     logger.error("A PKCS#12 Keystore is missing. Skipping SSL keystore configuration...");
                 } else {
@@ -151,7 +147,7 @@ public class VertxHttpServerFactory implements FactoryBean<HttpServer> {
                             .setPassword(httpServerConfiguration.getKeyStorePassword())
                     );
                 }
-            } else if (httpServerConfiguration.getKeyStoreType().equalsIgnoreCase(CERTIFICATE_FORMAT_SELF_SIGNED)) {
+            } else if (CERTIFICATE_FORMAT_SELF_SIGNED.equalsIgnoreCase(httpServerConfiguration.getKeyStoreType())) {
                 options.setPemKeyCertOptions(SelfSignedCertificate.create().keyCertOptions());
             }
         }

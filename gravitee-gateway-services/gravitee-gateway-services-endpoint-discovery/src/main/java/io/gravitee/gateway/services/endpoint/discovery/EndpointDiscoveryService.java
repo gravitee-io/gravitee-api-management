@@ -67,4 +67,10 @@ public class EndpointDiscoveryService extends AbstractService {
     protected String name() {
         return "Endpoints Discovery";
     }
+
+    @Override
+    public int getOrder() {
+        // ensure service is started before SyncService, as it consumes its events
+        return 900;
+    }
 }
