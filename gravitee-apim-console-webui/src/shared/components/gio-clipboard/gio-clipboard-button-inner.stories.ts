@@ -16,24 +16,41 @@
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata } from '@storybook/angular';
 import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { GioClipboardModule } from './gio-clipboard.module';
 import { GioClipboardCopyWrapperComponent } from './gio-clipboard-button-inner.component';
 
 export default {
-  title: 'Shared / ClipboardInnerButton',
+  title: 'Shared / Clipboard',
   component: GioClipboardCopyWrapperComponent,
   decorators: [
     moduleMetadata({
-      imports: [BrowserAnimationsModule, GioClipboardModule],
+      imports: [BrowserAnimationsModule, GioClipboardModule, MatFormFieldModule, MatInputModule],
     }),
   ],
 } as Meta;
 
-export const Default: Story = {
+export const InnerButton: Story = {
   render: () => {
     return {
       template: `<div style="width:300px;"><div gioClipboardCopyWrapper contentToCopy="Hello" > Copy me ! </div></div>`,
+      props: {},
+    };
+  },
+};
+
+export const FormField: Story = {
+  render: () => {
+    return {
+      template: `
+      <mat-form-field  appearance="fill">
+        <mat-label>Default animal</mat-label>
+        <input #animalInput matInput value="🦊"/>
+        <gio-clipboard-copy-icon matSuffix [contentToCopy]="animalInput.value"></gio-clipboard-copy-icon>
+      </mat-form-field>
+      `,
       props: {},
     };
   },
