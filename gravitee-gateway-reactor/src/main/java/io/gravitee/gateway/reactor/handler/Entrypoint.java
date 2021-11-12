@@ -32,6 +32,11 @@ public interface Entrypoint {
     String path();
 
     /**
+     * The optional listening host (can be null).
+     */
+    String host();
+
+    /**
      * Priority of the entrypoint.
      *
      * @return

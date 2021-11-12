@@ -308,6 +308,7 @@
         <hazelcast.version>4.1.1</hazelcast.version>
         <jmh.version>1.26</jmh.version>
         <netty-tcnative-boringssl-static.version>2.0.42.Final</netty-tcnative-boringssl-static.version>
+
         <!-- Fix the asm version at gateway level -->
         <asm.version>9.1</asm.version>
     </properties>
