@@ -20,6 +20,7 @@ import { RoleService } from './role.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 import { fakeRole } from '../entities/role/role.fixture';
+import { fakeMembershipListItem } from '../entities/role/membershipListItem.fixture';
 
 describe('RoleService', () => {
   let httpTestingController: HttpTestingController;
@@ -48,6 +49,26 @@ describe('RoleService', () => {
       expect(req.request.method).toEqual('GET');
 
       req.flush(fakeRoles);
+    });
+  });
+
+  describe('listMemberships', () => {
+    it('should call the API', (done) => {
+      const membershipList = [fakeMembershipListItem()];
+      const scope = 'ORGANIZATION';
+      const roleName = 'ADMIN';
+
+      roleService.listMemberships(scope, roleName).subscribe((memberships) => {
+        expect(memberships).toStrictEqual(membershipList);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${scope}/roles/${roleName}/users`,
+        })
+        .flush(membershipList);
     });
   });
 

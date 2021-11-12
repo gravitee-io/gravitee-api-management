@@ -21,6 +21,7 @@ import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { Role, RoleScope } from '../entities/role/role';
+import { MembershipListItem } from '../entities/role/membershipListItem';
 
 @Injectable({
   providedIn: 'root',
@@ -40,5 +41,9 @@ export class RoleService {
 
   delete(scope: string, roleName: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles/${roleName}`);
+  }
+
+  listMemberships(scope: string, roleName: string): Observable<MembershipListItem[]> {
+    return this.http.get<MembershipListItem[]>(`${this.constants.org.baseURL}/configuration/rolescopes/${scope}/roles/${roleName}/users`);
   }
 }
