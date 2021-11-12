@@ -207,14 +207,25 @@ export class AnalyticsService {
       });
   }
 
-  private static buildQueryParam(queryParam, q: string) {
-    queryParam = q === 'body' ? '*' + queryParam + '*' : queryParam;
-    queryParam = q === 'uri' ? queryParam + '*' : queryParam;
-    if (queryParam !== '?') {
+  static buildQueryParam(queryParam, q: string) {
+    // use 'contains' wildcard for body parameter
+    if (q === 'body') {
+      queryParam = `*${this.escapeReservedCharacters(queryParam)}*`;
+    }
+    // use 'starts with' wildcard for uri parameter
+    else if (q === 'uri') {
+      queryParam = `${this.escapeReservedCharacters(queryParam)}*`;
+    }
+    // elsewhere, use quotes to match exact string
+    else if (queryParam !== '?') {
       queryParam = '\\"' + queryParam + '\\"';
       queryParam = queryParam.replace(/\//g, '\\\\/');
     }
     return queryParam;
+  }
+
+  private static escapeReservedCharacters(paramValue: string) {
+    return paramValue.replace(/(\+|-|=|&{2}|\|{2}|>|<|!|\(|\)|{|}|\[|]|\^|"|~|\?|:|\\|\/)/g, '\\\\$1');
   }
 
   getQueryFromPath(field?, ranges?) {

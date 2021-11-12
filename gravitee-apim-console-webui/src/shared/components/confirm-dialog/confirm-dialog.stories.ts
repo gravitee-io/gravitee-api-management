@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Meta, moduleMetadata, Story } from '@storybook/angular';
+import { Meta, moduleMetadata } from '@storybook/angular';
+import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
 import { GioConfirmDialogComponent, GioConfirmDialogData } from './confirm-dialog.component';
 import { GioConfirmDialogModule } from './confirm-dialog.module';

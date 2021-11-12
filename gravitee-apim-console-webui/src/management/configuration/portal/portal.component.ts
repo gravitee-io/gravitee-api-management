@@ -49,6 +49,7 @@ const PortalSettingsComponent: ng.IComponentOptions = {
       this.settings.cors.exposedHeaders = this.settings.cors.exposedHeaders || [];
       this.settings.authentication.localLogin.enabled = this.settings.authentication.localLogin.enabled || !this.hasIdpDefined();
       this.overrideHomepageTitle = this.settings.portal.homepageTitle !== null && this.settings.portal.homepageTitle !== undefined;
+      this.initialSettings = _.cloneDeep(this.settings);
     };
 
     this.save = () => {
@@ -57,6 +58,12 @@ const PortalSettingsComponent: ng.IComponentOptions = {
         NotificationService.show('Configuration saved');
         $state.reload();
       });
+    };
+
+    this.reset = () => {
+      this.settings = _.cloneDeep(this.initialSettings);
+      this.overrideHomepageTitle = this.settings.portal.homepageTitle !== null && this.settings.portal.homepageTitle !== undefined;
+      this.formSettings.$setPristine();
     };
 
     this.hasIdpDefined = () => {

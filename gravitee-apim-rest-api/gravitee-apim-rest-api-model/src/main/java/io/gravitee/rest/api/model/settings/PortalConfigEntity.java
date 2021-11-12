@@ -34,6 +34,7 @@ public class PortalConfigEntity {
     private Portal portal;
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
+    private Dashboards dashboards;
 
     public PortalConfigEntity() {
         super();
@@ -50,6 +51,7 @@ public class PortalConfigEntity {
         portal = new Portal();
         reCaptcha = new PortalReCaptcha();
         scheduler = new PortalScheduler();
+        dashboards = new Dashboards();
     }
 
     // Getters & Setters
@@ -155,5 +157,13 @@ public class PortalConfigEntity {
 
     public void setScheduler(PortalScheduler scheduler) {
         this.scheduler = scheduler;
+    }
+
+    public Dashboards getDashboards() {
+        return dashboards;
+    }
+
+    public void setDashboards(Dashboards dashboards) {
+        this.dashboards = dashboards;
     }
 }

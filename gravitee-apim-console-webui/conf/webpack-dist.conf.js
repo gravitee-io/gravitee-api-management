@@ -19,7 +19,7 @@ const webpack = require('webpack');
 const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
@@ -31,22 +31,19 @@ module.exports = {
     rules: [
       {
         test: /\.(scss)$/,
-        use: ExtractTextPlugin.extract({
-          fallback: 'style-loader',
-          use: [
-            'style-loader',
-            'css-loader',
-            {
-              loader: 'sass-loader',
-              options: {
-                webpackImporter: false,
-                sassOptions: {
-                  includePaths: ['node_modules'],
-                },
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              webpackImporter: false,
+              sassOptions: {
+                includePaths: ['node_modules'],
               },
             },
-          ],
-        }),
+          },
+        ],
         include: path.resolve(__dirname, '..', 'src', 'index.scss'),
       },
       {
@@ -100,7 +97,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, '..', 'src', 'index.html'),
     }),
-    new ExtractTextPlugin('index-[hash].css'),
+    new MiniCssExtractPlugin(),
     new CopyWebpackPlugin({
       patterns: [
         {

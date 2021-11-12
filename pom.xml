@@ -45,6 +45,7 @@
     </issueManagement>
 
     <modules>
+        <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-repository</module>
         <module>gravitee-apim-rest-api</module>
         <module>gravitee-apim-console-webui</module>
@@ -56,13 +57,13 @@
         <gravitee-bom.version>1.4</gravitee-bom.version>
         <gravitee-alert-api.version>1.7.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>1.8.0</gravitee-cockpit-api.version>
-        <gravitee-common.version>1.22.1</gravitee-common.version>
+        <gravitee-common.version>1.22.2</gravitee-common.version>
         <gravitee-definition.version>1.29.1</gravitee-definition.version>
-        <gravitee-expression-language.version>1.6.2</gravitee-expression-language.version>
+        <gravitee-expression-language.version>1.6.3</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>1.26.0</gravitee-gateway-api.version>
-        <gravitee-license-node.version>1.1.0</gravitee-license-node.version>
-        <gravitee-node.version>1.17.1</gravitee-node.version>
+        <gravitee-license-node.version>1.3.1</gravitee-license-node.version>
+        <gravitee-node.version>1.17.2</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.1</gravitee-notifier-api.version>
         <gravitee-plugin.version>1.18.0</gravitee-plugin.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
@@ -83,7 +84,7 @@
         <gson.version>2.7</gson.version>
         <guava.version>30.1.1-jre</guava.version>
         <hamcrest.version>1.3</hamcrest.version>
-        <hazelcast.version>3.12.9</hazelcast.version>
+        <hazelcast.version>4.1.1</hazelcast.version>
         <imageio.version>3.7.0</imageio.version>
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <java-jwt.version>3.10.2</java-jwt.version>
@@ -417,18 +418,6 @@
                 <version>${swagger-core.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>io.swagger.parser.v3</groupId>
-                <artifactId>swagger-parser</artifactId>
-                <version>${swagger-parser.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.github.fge</groupId>
-                        <artifactId>json-patch</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-
             <!-- JAXB API & implementation -->
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
@@ -619,12 +608,6 @@
                     <artifactId>maven-assembly-plugin</artifactId>
                     <version>${maven-assembly-plugin.version}</version>
                     <inherited>true</inherited>
-                    <configuration>
-                        <appendAssemblyId>false</appendAssemblyId>
-                        <descriptors>
-                            <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
-                        </descriptors>
-                    </configuration>
                     <executions>
                         <execution>
                             <id>make-plugin-assembly</id>
@@ -632,6 +615,12 @@
                             <goals>
                                 <goal>single</goal>
                             </goals>
+                            <configuration>
+                                <appendAssemblyId>false</appendAssemblyId>
+                                <descriptors>
+                                    <descriptor>src/main/assembly/plugin-assembly.xml</descriptor>
+                                </descriptors>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
@@ -646,7 +635,7 @@
                     </configuration>
                     <executions>
                         <execution>
-                            <phase>verify</phase>
+                            <phase>validate</phase>
                             <goals>
                                 <goal>check</goal>
                             </goals>
@@ -692,6 +681,7 @@
                         <exclude>**/.*</exclude>
                         <exclude>**/.*/**</exclude>
                         <exclude>**/*.adoc</exclude>
+                        <exclude>docker-tag.txt</exclude>
                     </excludes>
                     <mapping>
                         <ts>SLASHSTAR_STYLE</ts>

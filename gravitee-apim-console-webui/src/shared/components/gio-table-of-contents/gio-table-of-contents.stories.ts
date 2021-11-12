@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { APP_INITIALIZER } from '@angular/core';
-import { Meta, moduleMetadata, Story } from '@storybook/angular';
+import { Meta, moduleMetadata } from '@storybook/angular';
+import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 
 import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
 import { GioTableOfContentsModule } from './gio-table-of-contents.module';
