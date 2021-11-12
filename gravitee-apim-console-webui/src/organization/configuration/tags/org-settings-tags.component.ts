@@ -16,15 +16,18 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 
+import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { EntrypointService } from '../../../services-ngx/entrypoint.service';
 import { GroupService } from '../../../services-ngx/group.service';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TagService } from '../../../services-ngx/tag.service';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
@@ -57,6 +60,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   defaultConfigForm: FormGroup;
   initialDefaultConfigFormValues: unknown;
 
+  entrypoints: Entrypoint[];
   entrypointsTableDS: EntrypointTableDS;
   filteredEntrypointsTableDS: EntrypointTableDS;
   entrypointsTableDisplayedColumns: string[] = ['entrypoint', 'tags', 'actions'];
@@ -69,6 +73,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     private readonly portalSettingsService: PortalSettingsService,
     private readonly entrypointService: EntrypointService,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -97,6 +102,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         });
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
+        this.entrypoints = entrypoints;
         this.entrypointsTableDS = entrypoints.map((entrypoint) => ({ url: entrypoint.value, tags: entrypoint.tags }));
         this.filteredEntrypointsTableDS = this.entrypointsTableDS;
 
@@ -148,8 +154,53 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onEditTagClicked() {}
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onDeleteTagClicked() {}
+  onDeleteTagClicked(tag: TagTableDS[number]) {
+    const entrypointsToUpdate = this.entrypoints.filter((entrypoint) => entrypoint.tags.includes(tag.id));
+    let entrypointsInfoMessage = '';
+    if (entrypointsToUpdate.length === 1) {
+      entrypointsInfoMessage = `<br>The tag will be removed for the entrypoint <strong>${entrypointsToUpdate[0].value}</strong>.`;
+    } else if (entrypointsToUpdate.length > 1) {
+      entrypointsInfoMessage = `
+        <br>The tag will be removed from all these entrypoints:
+        <ul>
+          <li><strong>${entrypointsToUpdate.map((e) => e.value).join('</strong></li><li><strong>')}</li>
+        </ul>`;
+    }
+
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Remove a tag',
+          content: `Are you sure you want to remove the tag <strong>${tag.name}</strong>?
+          ${entrypointsInfoMessage}
+          `,
+          confirmButton: 'Remove',
+        },
+        role: 'alertdialog',
+        id: 'removeTagConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        filter((confirm) => confirm === true),
+        // Remove tag in each entrypoints and update them all
+        switchMap(() => {
+          const entrypointsUpdated = entrypointsToUpdate.map((entrypoint) => ({
+            ...entrypoint,
+            tags: entrypoint.tags.filter((t) => t !== tag.id),
+          }));
+          return combineLatest([...entrypointsUpdated.map((entrypoint) => this.entrypointService.update(entrypoint))]);
+        }),
+        switchMap(() => this.tagService.delete(tag.id)),
+        tap(() => this.snackBarService.success(`Tag "${tag.name}" has been removed`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
 
   onEntrypointsFiltersChanged(filters: GioTableWrapperFilters) {
     this.filteredEntrypointsTableDS = gioTableFilterCollection(this.entrypointsTableDS, filters);

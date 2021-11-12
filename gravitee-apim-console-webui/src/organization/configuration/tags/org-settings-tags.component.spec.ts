@@ -21,6 +21,8 @@ import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { OrgSettingsTagsComponent } from './org-settings-tags.component';
 
@@ -38,18 +40,34 @@ import { Entrypoint } from '../../../entities/entrypoint/entrypoint';
 import { fakeEntrypoint } from '../../../entities/entrypoint/entrypoint.fixture';
 
 describe('OrgSettingsTagsComponent', () => {
+  const currentUser = new DeprecatedUser();
+  currentUser.userPermissions = [
+    'organization-tag-c',
+    'organization-tag-u',
+    'organization-tag-d',
+    'organization-entrypoint-c',
+    'organization-entrypoint-u',
+    'organization-entrypoint-d',
+  ];
+
   let fixture: ComponentFixture<OrgSettingsTagsComponent>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser: new DeprecatedUser() } }],
+      providers: [{ provide: CurrentUserService, useValue: { currentUser: currentUser } }],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsTagsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
   });
 
   afterEach(() => {
@@ -85,7 +103,7 @@ describe('OrgSettingsTagsComponent', () => {
         id: expect.stringContaining('external'),
         name: 'External',
         restrictedGroupsName: 'Group A',
-        actions: '',
+        actions: 'editdelete',
       },
     ]);
   });
@@ -159,7 +177,7 @@ describe('OrgSettingsTagsComponent', () => {
     expect(headerCells).toEqual([
       {
         entrypoint: 'Entrypoint',
-        tags: 'Tags',
+        tags: 'Tags id',
         actions: '',
       },
     ]);
@@ -167,9 +185,39 @@ describe('OrgSettingsTagsComponent', () => {
       {
         entrypoint: expect.stringContaining('https://googl.co'),
         tags: 'internal',
-        actions: '',
+        actions: 'editdelete',
       },
     ]);
+  });
+
+  it('should remove a tag', async () => {
+    fixture.detectChanges();
+    expectTagsListRequest([fakeTag({ id: 'tag-1', restricted_groups: ['group-a'] })]);
+    expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+    expectPortalSettingsGetRequest(fakePortalSettings());
+    expectEntrypointsListRequest([fakeEntrypoint({ tags: ['tag-1', 'tag-2'] })]);
+    fixture.detectChanges();
+
+    const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to delete a tag"]' }));
+    await deleteButton.click();
+
+    const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Remove' }));
+    await confirmDialogButton.click();
+
+    // Update entrypoint to remove tag
+    const updateEntrypointReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/entrypoints/`,
+    });
+    expect(updateEntrypointReq.request.body.tags).toEqual(['tag-2']);
+    updateEntrypointReq.flush({ status: 200 });
+
+    // Delete tag
+    httpTestingController.expectOne({
+      method: 'DELETE',
+      url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags/tag-1`,
+    });
+    // no flush stop test here
   });
 
   function expectTagsListRequest(tags: Tag[] = []) {
