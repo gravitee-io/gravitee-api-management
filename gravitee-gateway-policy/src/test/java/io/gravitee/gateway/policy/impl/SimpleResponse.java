@@ -28,7 +28,6 @@ import io.gravitee.gateway.api.stream.ReadStream;
 import io.gravitee.gateway.api.stream.WriteStream;
 import io.gravitee.gateway.api.ws.WebSocket;
 import io.gravitee.reporter.api.http.Metrics;
-
 import javax.net.ssl.SSLSession;
 
 /**
@@ -78,7 +77,5 @@ class SimpleResponse implements Response {
     }
 
     @Override
-    public void end() {
-
-    }
+    public void end() {}
 }
