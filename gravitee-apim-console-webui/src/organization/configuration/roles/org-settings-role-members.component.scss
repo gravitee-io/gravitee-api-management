@@ -3,3 +3,20 @@
 :host {
   @include gio-layout.gio-responsive-margin-container;
 }
+
+.org-settings-role-members {
+  &__add-button-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h2 {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+.mat-column-displayName {
+  width: 100%;
+}

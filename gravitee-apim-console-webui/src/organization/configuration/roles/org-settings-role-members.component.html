@@ -15,4 +15,57 @@
     limitations under the License.
 
 -->
-It works!
+<div *ngIf="filteredMemberships" class="org-settings-role-members">
+  <h1>
+    <gio-go-back-button [ajsGo]="{ to: 'organization.settings.ng-roles' }"></gio-go-back-button>{{ roleScope | titlecase }} - {{ role }}
+  </h1>
+  <h4>List all the users having the role {{ role }} in the {{ roleScope }} scope.</h4>
+
+  <mat-card>
+    <div class="org-settings-role-members__add-button-container" *gioPermission="{ anyOf: ['organization-role-u'] }">
+      <h2>Members</h2>
+
+      <button (click)="onAddMemberClicked()" mat-raised-button color="primary" type="button" aria-label="Button to add a member">
+        <mat-icon>add</mat-icon>Add a member
+      </button>
+    </div>
+
+    <gio-table-wrapper [length]="memberships.length" (filtersChange)="onMembershipFiltersChanged($event)">
+      <table mat-table [dataSource]="filteredMemberships" class="memberships-table" id="membershipsTable" aria-label="Members table">
+        <!-- Display Name Column -->
+        <ng-container matColumnDef="displayName">
+          <th mat-header-cell *matHeaderCellDef id="displayName">Full Name</th>
+          <td mat-cell *matCellDef="let member">{{ member.displayName }}</td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef id="actions"></th>
+          <td mat-cell *matCellDef="let member">
+            <div class="centered-cell">
+              <ng-container *gioPermission="{ anyOf: ['organization-role-u'] }">
+                <button
+                  (click)="onDeleteMemberClicked(member)"
+                  mat-icon-button
+                  color="primary"
+                  type="button"
+                  aria-label="Button to delete a member"
+                  matTooltip="Delete member"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="membershipsTableDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: membershipsTableDisplayedColumns"></tr>
+
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell" [attr.colspan]="membershipsTableDisplayedColumns.length">No member</td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  </mat-card>
+</div>

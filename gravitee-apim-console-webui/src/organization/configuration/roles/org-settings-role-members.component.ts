@@ -14,8 +14,15 @@
  * limitations under the License.
  */
 
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
+import { takeUntil, tap } from 'rxjs/operators';
+
+import { UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { RoleService } from '../../../services-ngx/role.service';
+import { MembershipListItem } from '../../../entities/role/membershipListItem';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 @Component({
   selector: 'org-settings-role-members',
@@ -23,13 +30,48 @@ import { Subject } from 'rxjs';
   styles: [require('./org-settings-role-members.component.scss')],
 })
 export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
+  membershipsTableDisplayedColumns = ['displayName', 'actions'];
+
+  roleScope: string;
+  role: string;
+  memberships: MembershipListItem[];
+  filteredMemberships: MembershipListItem[];
+
   private readonly unsubscribe$ = new Subject<boolean>();
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  ngOnInit(): void {}
+  constructor(
+    @Inject(UIRouterStateParams) private readonly ajsStateParams: { roleScope: string; role: string },
+    private readonly roleService: RoleService,
+  ) {}
+
+  ngOnInit(): void {
+    this.roleScope = this.ajsStateParams.roleScope;
+    this.role = this.ajsStateParams.role;
+
+    this.roleService
+      .listMemberships(this.roleScope, this.role)
+      .pipe(
+        takeUntil(this.unsubscribe$),
+        tap((memberships) => {
+          this.memberships = memberships;
+          this.filteredMemberships = memberships;
+        }),
+      )
+      .subscribe();
+  }
 
   ngOnDestroy() {
     this.unsubscribe$.next(true);
     this.unsubscribe$.unsubscribe();
   }
+
+  onMembershipFiltersChanged(filters: GioTableWrapperFilters) {
+    this.filteredMemberships = gioTableFilterCollection(this.memberships, filters);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onAddMemberClicked() {}
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function,@typescript-eslint/no-unused-vars
+  onDeleteMemberClicked(member) {}
 }

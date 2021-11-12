@@ -16,32 +16,87 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatCellHarness } from '@angular/material/table/testing';
 
 import { OrgSettingsRoleMembersComponent } from './org-settings-role-members.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CurrentUserService, UIRouterState, UIRouterStateParams } from '../../../ajs-upgraded-providers';
+import { MembershipListItem } from '../../../entities/role/membershipListItem';
+import { fakeMembershipListItem } from '../../../entities/role/membershipListItem.fixture';
+import { User } from '../../../entities/user';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 describe('OrgSettingsRoleMembersComponent', () => {
+  const roleScope = 'ORGANIZATION';
+  const role = 'USER';
+
+  const currentUser = new User();
+  currentUser.userPermissions = [];
+  currentUser.userApiPermissions = [];
+  currentUser.userEnvironmentPermissions = [];
+  currentUser.userApplicationPermissions = [];
+
   let fixture: ComponentFixture<OrgSettingsRoleMembersComponent>;
   let component: OrgSettingsRoleMembersComponent;
   let httpTestingController: HttpTestingController;
+  let loader: HarnessLoader;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      providers: [
+        { provide: UIRouterState, useValue: {} },
+        { provide: UIRouterStateParams, useValue: { roleScope, role } },
+        { provide: CurrentUserService, useValue: { currentUser } },
+      ],
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(OrgSettingsRoleMembersComponent);
+    loader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should init properly', () => {
-    expect(component).toBeDefined();
+  it('should init table with data', async () => {
+    expect(component.roleScope).toEqual(roleScope);
+    expect(component.role).toEqual(role);
+
+    respondToListMembershipsRequest([
+      fakeMembershipListItem({
+        displayName: 'John Doe',
+      }),
+      fakeMembershipListItem({
+        displayName: 'Gaëtan',
+      }),
+    ]);
+
+    await loader.getAllHarnesses(MatCellHarness.with({ columnName: 'displayName', text: 'John Doe' }));
+    await loader.getAllHarnesses(MatCellHarness.with({ columnName: 'displayName', text: 'Gaëtan' }));
+
+    const searchInput = await loader.getHarness(GioTableWrapperHarness);
+    await searchInput.setSearchValue('John');
+
+    const tableCells = await loader.getAllHarnesses(MatCellHarness.with({ columnName: 'displayName' }));
+    expect(tableCells.length).toEqual(1);
+    expect(await tableCells[0].getText()).toEqual('John Doe');
   });
 
   afterEach(() => {
     httpTestingController.verify();
   });
+
+  function respondToListMembershipsRequest(items: MembershipListItem[]) {
+    httpTestingController
+      .expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${role}/users`,
+      })
+      .flush(items);
+  }
 });
